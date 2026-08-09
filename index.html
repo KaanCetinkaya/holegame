@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Hole Prototype</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0e14; }
+  #app { position: fixed; inset: 0; touch-action: none; }
+  canvas { display: block; }
+
+  #hud {
+    position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 14px 18px; pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #eef2ff; text-shadow: 0 2px 8px rgba(0,0,0,.6);
+  }
+  .stat { background: rgba(20,26,40,.55); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
+    padding: 8px 14px; line-height: 1.15; }
+  .stat .label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .65; }
+  .stat .value { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #time.low .value { color: #ff6b6b; }
+
+  #overlay {
+    position: fixed; inset: 0; display: none; flex-direction: column;
+    align-items: center; justify-content: center; gap: 18px;
+    background: rgba(8,11,18,.78); backdrop-filter: blur(4px);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #eef2ff; text-align: center; z-index: 10; padding: 24px;
+  }
+  #overlay h1 { font-size: clamp(28px, 8vw, 52px); font-weight: 800; }
+  #overlay p { font-size: clamp(15px, 4.5vw, 20px); opacity: .8; }
+  #overlay .big { font-size: clamp(40px, 14vw, 90px); font-weight: 800; color: #7dd3fc; }
+  #restart { pointer-events: auto; cursor: pointer; margin-top: 8px;
+    border: none; border-radius: 999px; padding: 14px 34px;
+    font-size: 18px; font-weight: 700; color: #0b0e14;
+    background: linear-gradient(180deg,#8be9fd,#38bdf8); box-shadow: 0 8px 24px rgba(56,189,248,.35); }
+  #restart:active { transform: translateY(1px); }
+
+  #hint {
+    position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
+    text-align: center; pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #eef2ff; font-size: 14px; opacity: .55; text-shadow: 0 2px 8px rgba(0,0,0,.6);
+    transition: opacity .5s ease;
+  }
+
+  #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #9fb3d1; font-family: -apple-system, sans-serif; font-size: 16px; z-index: 20; }
+</style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <div id="hud">
+    <div id="time" class="stat"><div class="label">Süre</div><div class="value">90</div></div>
+    <div id="score" class="stat" style="text-align:right"><div class="label">Yutulan</div><div class="value">0</div></div>
+  </div>
+
+  <div id="hint">Deliği sürükle · küçük nesneleri yut</div>
+
+  <div id="overlay">
+    <h1>Süre Doldu</h1>
+    <p>Yutulan nesne</p>
+    <div class="big" id="finalScore">0</div>
+    <button id="restart">Yeniden Başla</button>
+  </div>
+
+  <div id="loading">Yükleniyor…</div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://esm.sh/three@0.161.0"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import RAPIER from 'https://esm.sh/@dimforge/rapier3d-compat@0.14.0';
+
+    await RAPIER.init();
+
+    // ---------- Config ----------
+    const FIELD = 13;            // yarı-alan (nesneler ve delik bu sınır içinde)
+    const OBJECT_COUNT = 80;
+    const GAME_TIME = 90;        // saniye
+    const GRAVITY = -22;
+    const HOLE_R0 = 1.35;        // başlangıç delik yarıçapı
+    const HOLE_K = 0.72;         // logaritmik büyüme katsayısı
+    const HOLE_MAX = 6.0;
+    const WELL_DEPTH = 14;
+
+    // Rapier collision groups: (membership << 16) | filter
+    const G = {
+      FLOOR:   (0x0001 << 16) | 0x0002,   // zemin: sadece normal nesnelerle çarpışır
+      NORMAL:  (0x0002 << 16) | 0x0003,   // normal: zemin + diğer normallerle
+      FALLING: (0x0004 << 16) | 0x0000,   // yutulan: hiçbir şeyle -> serbest düşer
+    };
+
+    // ---------- Renderer / Scene / Camera ----------
+    const app = document.getElementById('app');
+    const renderer = new THREE.WebGLRenderer({ antialias: true, stencil: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x0b0e14, 1);
+    app.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0b0e14, 45, 85);
+
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
+    const CAM_DIR = new THREE.Vector3(0, 1.28, 1.0).normalize();
+
+    function fitCamera() {
+      const w = window.innerWidth, h = window.innerHeight;
+      const aspect = w / h;
+      renderer.setSize(w, h);
+      camera.aspect = aspect;
+      // portrait'te daha uzaktan bak ki tüm alan sığsın
+      let radius = 33;
+      if (aspect < 1) radius = 33 * (1 / Math.max(aspect, 0.5));
+      camera.position.copy(CAM_DIR.clone().multiplyScalar(radius));
+      camera.lookAt(0, 0, 0);
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', fitCamera);
+    fitCamera();
+
+    // ---------- Lights ----------
+    scene.add(new THREE.HemisphereLight(0xbcd4ff, 0x1b2233, 0.9));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+    dir.position.set(12, 24, 10);
+    scene.add(dir);
+    scene.add(new THREE.AmbientLight(0x404a60, 0.6));
+
+    // ---------- Physics world ----------
+    const world = new RAPIER.World({ x: 0, y: GRAVITY, z: 0 });
+    world.timestep = 1 / 60;
+
+    // Zemin (statik fizik gövdesi)
+    const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.5, 0));
+    const floorCol = world.createCollider(
+      RAPIER.ColliderDesc.cuboid(FIELD + 6, 0.5, FIELD + 6).setFriction(0.9).setRestitution(0.05),
+      floorBody
+    );
+    floorCol.setCollisionGroups(G.FLOOR);
+
+    // ---------- Hole (visual: stencil) ----------
+    const hole = { x: 0, z: 0, tx: 0, tz: 0, r: HOLE_R0 };
+
+    // Zemin görseli — stencil NOTEQUAL 1 -> disk bölgesinde çizilmez
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x2a3350, roughness: 0.95, metalness: 0.0 });
+    floorMat.stencilWrite = true;
+    floorMat.stencilRef = 1;
+    floorMat.stencilFunc = THREE.NotEqualStencilFunc;
+    floorMat.stencilFail = THREE.KeepStencilOp;
+    floorMat.stencilZFail = THREE.KeepStencilOp;
+    floorMat.stencilZPass = THREE.KeepStencilOp;
+    const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry((FIELD + 6) * 2, (FIELD + 6) * 2), floorMat);
+    floorMesh.rotation.x = -Math.PI / 2;
+    floorMesh.position.y = 0;
+    floorMesh.renderOrder = 2;
+    scene.add(floorMesh);
+
+    // ızgara dokusu hissi için ince çizgiler
+    const grid = new THREE.GridHelper((FIELD + 6) * 2, 36, 0x3a4668, 0x2a3350);
+    grid.position.y = 0.01;
+    grid.material.opacity = 0.35; grid.material.transparent = true;
+    grid.material.stencilWrite = true; grid.material.stencilRef = 1;
+    grid.material.stencilFunc = THREE.NotEqualStencilFunc;
+    grid.renderOrder = 2;
+    scene.add(grid);
+
+    // Maske diski — sadece stencil'e yazar (renk/derinlik yazmaz)
+    const maskMat = new THREE.MeshBasicMaterial();
+    maskMat.colorWrite = false;
+    maskMat.depthWrite = false;
+    maskMat.stencilWrite = true;
+    maskMat.stencilRef = 1;
+    maskMat.stencilFunc = THREE.AlwaysStencilFunc;
+    maskMat.stencilZPass = THREE.ReplaceStencilOp;
+    const maskMesh = new THREE.Mesh(new THREE.CircleGeometry(1, 48), maskMat);
+    maskMesh.rotation.x = -Math.PI / 2;
+    maskMesh.position.y = 0.02;
+    maskMesh.renderOrder = 1; // zeminden önce çizilmeli
+    scene.add(maskMesh);
+
+    // Kuyu (well) — deliğin altına inen koyu tüp + taban, delikten içerisi görünür
+    const wellGroup = new THREE.Group();
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x0a0d15, roughness: 1, metalness: 0, side: THREE.BackSide });
+    const wellWall = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.82, WELL_DEPTH, 48, 1, true), wallMat);
+    wellWall.position.y = -WELL_DEPTH / 2;
+    wellGroup.add(wellWall);
+    const wellBottom = new THREE.Mesh(new THREE.CircleGeometry(0.82, 48),
+      new THREE.MeshStandardMaterial({ color: 0x05070c, roughness: 1 }));
+    wellBottom.rotation.x = -Math.PI / 2;
+    wellBottom.position.y = -WELL_DEPTH + 0.05;
+    wellGroup.add(wellBottom);
+    wellGroup.renderOrder = 0;
+    scene.add(wellGroup);
+
+    // Delik ağzı halkası (görünürlük için)
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0x0a0d15, roughness: 1, side: THREE.DoubleSide });
+    const rim = new THREE.Mesh(new THREE.RingGeometry(0.86, 1.0, 48), rimMat);
+    rim.rotation.x = -Math.PI / 2;
+    rim.position.y = 0.015;
+    rim.renderOrder = 3;
+    scene.add(rim);
+
+    function applyHoleTransforms() {
+      const r = hole.r;
+      maskMesh.position.set(hole.x, 0.02, hole.z);
+      maskMesh.scale.set(r, r, r);
+      wellGroup.position.set(hole.x, 0, hole.z);
+      wellGroup.scale.set(r, 1, r);
+      rim.position.set(hole.x, 0.015, hole.z);
+      rim.scale.set(r, r, r);
+    }
+    applyHoleTransforms();
+
+    // ---------- Physics objects ----------
+    const objects = []; // { body, mesh, r, swallowed, removeAt }
+
+    const palette = [0xff6b6b, 0xffd93d, 0x6bcB77, 0x4d96ff, 0xff9f45, 0xb983ff, 0x00c2a8, 0xff85a1];
+    const rnd = (a, b) => a + Math.random() * (b - a);
+
+    function addObject() {
+      const type = Math.floor(rnd(0, 3)); // 0 box, 1 sphere, 2 cylinder
+      const color = palette[Math.floor(rnd(0, palette.length))];
+      const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.1 });
+
+      let mesh, colDesc, horizR, height;
+      if (type === 0) {
+        const hx = rnd(0.35, 0.95), hy = rnd(0.35, 0.9), hz = rnd(0.35, 0.95);
+        mesh = new THREE.Mesh(new THREE.BoxGeometry(hx * 2, hy * 2, hz * 2), mat);
+        colDesc = RAPIER.ColliderDesc.cuboid(hx, hy, hz);
+        horizR = Math.hypot(hx, hz); height = hy;
+      } else if (type === 1) {
+        const r = rnd(0.4, 0.95);
+        mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 16), mat);
+        colDesc = RAPIER.ColliderDesc.ball(r);
+        horizR = r; height = r;
+      } else {
+        const r = rnd(0.4, 0.85), h = rnd(0.8, 1.8);
+        mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 24), mat);
+        colDesc = RAPIER.ColliderDesc.cylinder(h / 2, r);
+        horizR = r; height = h / 2;
+      }
+
+      // çakışmayı azaltmak için hafif yukarıdan bırak
+      const x = rnd(-FIELD + 1.5, FIELD - 1.5);
+      const z = rnd(-FIELD + 1.5, FIELD - 1.5);
+      const y = height + rnd(0.1, 2.5);
+
+      const body = world.createRigidBody(
+        RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y, z)
+          .setAngularDamping(0.4).setLinearDamping(0.05)
+      );
+      const col = world.createCollider(
+        colDesc.setDensity(1.0).setFriction(0.8).setRestitution(0.1), body
+      );
+      col.setCollisionGroups(G.NORMAL);
+
+      mesh.position.set(x, y, z);
+      scene.add(mesh);
+      objects.push({ body, mesh, r: horizR, swallowed: false, removeAt: 0 });
+    }
+    for (let i = 0; i < OBJECT_COUNT; i++) addObject();
+
+    // ---------- Input (pointer = mouse + touch) ----------
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const hitPoint = new THREE.Vector3();
+    let dragging = false;
+    let hintFaded = false;
+
+    function pointerToGround(clientX, clientY) {
+      ndc.x = (clientX / window.innerWidth) * 2 - 1;
+      ndc.y = -(clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(ndc, camera);
+      if (raycaster.ray.intersectPlane(groundPlane, hitPoint)) {
+        hole.tx = THREE.MathUtils.clamp(hitPoint.x, -FIELD, FIELD);
+        hole.tz = THREE.MathUtils.clamp(hitPoint.z, -FIELD, FIELD);
+      }
+    }
+    function onDown(e) {
+      if (gameOver) return;
+      dragging = true;
+      const p = e.touches ? e.touches[0] : e;
+      pointerToGround(p.clientX, p.clientY);
+      if (!hintFaded) { document.getElementById('hint').style.opacity = '0'; hintFaded = true; }
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      const p = e.touches ? e.touches[0] : e;
+      pointerToGround(p.clientX, p.clientY);
+    }
+    function onUp() { dragging = false; }
+
+    app.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    // dokunmatik kaydırmayı engelle
+    app.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+    // ---------- Game state / HUD ----------
+    let swallowed = 0;
+    let timeLeft = GAME_TIME;
+    let gameOver = false;
+    let lastT = performance.now();
+
+    const timeEl = document.getElementById('time');
+    const timeVal = timeEl.querySelector('.value');
+    const scoreVal = document.querySelector('#score .value');
+    document.getElementById('loading').style.display = 'none';
+
+    function growHole() {
+      hole.r = Math.min(HOLE_MAX, HOLE_R0 + HOLE_K * Math.log(1 + swallowed));
+    }
+
+    document.getElementById('restart').addEventListener('click', () => location.reload());
+
+    function endGame() {
+      gameOver = true;
+      document.getElementById('finalScore').textContent = String(swallowed);
+      document.getElementById('overlay').style.display = 'flex';
+    }
+
+    // ---------- Main loop ----------
+    function tick(now) {
+      requestAnimationFrame(tick);
+      const dt = Math.min(0.05, (now - lastT) / 1000);
+      lastT = now;
+
+      if (!gameOver) {
+        // süre
+        timeLeft -= dt;
+        if (timeLeft <= 0) { timeLeft = 0; endGame(); }
+        const shown = Math.ceil(timeLeft);
+        timeVal.textContent = String(shown);
+        timeEl.classList.toggle('low', shown <= 10);
+
+        // deliği hedefe doğru yumuşat
+        hole.x += (hole.tx - hole.x) * Math.min(1, dt * 12);
+        hole.z += (hole.tz - hole.z) * Math.min(1, dt * 12);
+
+        world.step();
+
+        // nesne senkron + yutma tespiti
+        for (let i = objects.length - 1; i >= 0; i--) {
+          const o = objects[i];
+          const t = o.body.translation();
+          const q = o.body.rotation();
+          o.mesh.position.set(t.x, t.y, t.z);
+          o.mesh.quaternion.set(q.x, q.y, q.z, q.w);
+
+          if (!o.swallowed) {
+            // sadece zemine yakınken kontrol et
+            if (t.y < 1.5) {
+              const dx = t.x - hole.x, dz = t.z - hole.z;
+              const dist = Math.hypot(dx, dz);
+              // delik nesneden büyük VE nesne çoğunlukla ağzın içinde
+              if (o.r < hole.r * 0.92 && dist < hole.r - o.r * 0.55) {
+                o.swallowed = true;
+                o.removeAt = now + 1000;
+                o.body.collider(0).setCollisionGroups(G.FALLING);
+                o.body.wakeUp();
+                o.body.setLinvel({ x: 0, y: -2, z: 0 }, true);
+                swallowed++;
+                growHole();
+                scoreVal.textContent = String(swallowed);
+              }
+            }
+          } else if (now >= o.removeAt) {
+            // temizle (perf)
+            scene.remove(o.mesh);
+            o.mesh.geometry.dispose();
+            o.mesh.material.dispose();
+            world.removeRigidBody(o.body);
+            objects.splice(i, 1);
+          }
+        }
+
+        applyHoleTransforms();
+      }
+
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
