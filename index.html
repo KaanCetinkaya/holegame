@@ -43,11 +43,14 @@
   #overlay h1 { font-size: clamp(28px, 8vw, 52px); font-weight: 800; }
   #overlay p { font-size: clamp(15px, 4.5vw, 20px); opacity: .8; }
   #overlay .big { font-size: clamp(40px, 14vw, 90px); font-weight: 800; color: #7dd3fc; }
-  #restart { pointer-events: auto; cursor: pointer; margin-top: 8px;
+  #again { pointer-events: auto; cursor: pointer; margin-top: 8px;
     border: none; border-radius: 999px; padding: 14px 34px;
     font-size: 18px; font-weight: 700; color: #0b0e14;
     background: linear-gradient(180deg,#8be9fd,#38bdf8); box-shadow: 0 8px 24px rgba(56,189,248,.35); }
-  #restart:active { transform: translateY(1px); }
+  #again:active { transform: translateY(1px); }
+  #menu { pointer-events: auto; cursor: pointer; margin-top: 2px;
+    border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 10px 26px;
+    font-size: 15px; font-weight: 600; color: #cfe6ff; background: transparent; }
 
   #hint {
     position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
@@ -91,6 +94,37 @@
 
   #overlay .sub2 { font-size: clamp(14px,4vw,18px); opacity:.78; }
   #overlay .coins { font-size: clamp(15px,4.5vw,20px); color:#ffd23f; font-weight:700; }
+
+  /* ---- Ana ekran (meta / yükseltmeler) ---- */
+  #home { position: fixed; inset: 0; z-index: 12; display: none;
+    align-items: center; justify-content: center; overflow-y: auto; padding: 28px 22px;
+    background: linear-gradient(180deg,#8fd3ff,#c3e8ff);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #10233a; }
+  .home-inner { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+  .home-title { font-size: clamp(46px, 16vw, 78px); font-weight: 900; letter-spacing: .04em;
+    text-shadow: 0 4px 0 rgba(255,255,255,.55); }
+  .coinbar { font-size: 22px; font-weight: 800; background: rgba(255,255,255,.6);
+    border-radius: 999px; padding: 8px 22px; color: #a06b00; }
+  .coinbar.nope { animation: nope .4s ease; }
+  @keyframes nope { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+  #upgrades { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+  .ucard { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.62);
+    border-radius: 16px; padding: 10px 14px; }
+  .uicon { font-size: 26px; width: 34px; text-align: center; }
+  .uinfo { flex: 1; min-width: 0; }
+  .uname { font-weight: 700; font-size: 15px; }
+  .udots { letter-spacing: 3px; color: #2b7a3e; font-size: 13px; }
+  .ueff { font-size: 12px; opacity: .7; }
+  .ubuy { border: none; border-radius: 999px; padding: 10px 16px; font-weight: 800; font-size: 14px;
+    color: #10233a; background: linear-gradient(180deg,#ffe27a,#ffcf33); box-shadow: 0 4px 0 #d9a400;
+    cursor: pointer; white-space: nowrap; }
+  .ubuy:active { transform: translateY(2px); box-shadow: 0 2px 0 #d9a400; }
+  .ubuy.dis { background: #cdd6e0; box-shadow: 0 4px 0 #aab4c0; color: #7c8794; cursor: default; }
+  #playBtn { margin-top: 8px; border: none; border-radius: 999px; padding: 16px 64px;
+    font-size: 22px; font-weight: 900; letter-spacing: .05em; color: #fff; cursor: pointer;
+    background: linear-gradient(180deg,#4ecb6a,#22a34a); box-shadow: 0 6px 0 #177735; }
+  #playBtn:active { transform: translateY(2px); box-shadow: 0 4px 0 #177735; }
+  .best-line { font-size: 14px; opacity: .72; }
 </style>
 </head>
 <body>
@@ -114,7 +148,18 @@
     <div class="big" id="finalScore">0</div>
     <p class="sub2" id="ovDetail">0 nesne · En iyi 0</p>
     <p class="coins" id="ovCoins">🪙 0</p>
-    <button id="restart">Yeniden Başla</button>
+    <button id="again">Tekrar Oyna</button>
+    <button id="menu">Menü / Yükseltmeler</button>
+  </div>
+
+  <div id="home">
+    <div class="home-inner">
+      <div class="home-title">HOLE</div>
+      <div class="coinbar">🪙 <span id="homeCoins">0</span></div>
+      <div id="upgrades"></div>
+      <button id="playBtn">OYNA</button>
+      <div class="best-line">En iyi skor: <span id="homeBest">0</span></div>
+    </div>
   </div>
 
   <div id="loading">Yükleniyor…</div>
@@ -517,7 +562,7 @@
       }
     }
     function onDown(e) {
-      if (gameOver) return;
+      if (!playing) return;
       dragging = true;
       const p = e.touches ? e.touches[0] : e;
       pointerToGround(p.clientX, p.clientY);
@@ -534,16 +579,28 @@
     // ========================================================================
     //  Game state / HUD
     // ========================================================================
-    let swallowed = 0, score = 0, timeLeft = GAME_TIME, gameOver = false, lastT = performance.now();
+    let swallowed = 0, score = 0, timeLeft = GAME_TIME, gameOver = false, playing = false, lastT = performance.now();
     let shake = 0;                       // kamera sarsıntısı
     let combo = 0, lastSwallowAt = -9999, coinsThisRun = 0;
     const COMBO_WINDOW = 1400;           // ms — bu süre içinde yutunca combo artar
+
+    // koşuya özel parametreler (yükseltmelerle ayarlanır)
+    let startRadius = HOLE_R0, runTime = GAME_TIME, followSpeed = 12;
 
     // kalıcı durum (hybrid-casual kancası: best skor + coin)
     const state = {
       best:  parseInt(localStorage.getItem('hole_best')  || '0', 10) || 0,
       coins: parseInt(localStorage.getItem('hole_coins') || '0', 10) || 0,
     };
+
+    // ---- Yükseltmeler (coin ile alınır, localStorage'da kalıcı) ----
+    const UPGRADES = [
+      { key: 'size',  name: 'Başlangıç Boyutu', icon: '⭕', max: 5, baseCost: 40, mul: 1.6, fmt: l => '+' + (l * 0.2).toFixed(1) + ' yarıçap' },
+      { key: 'time',  name: 'Süre',             icon: '⏱', max: 5, baseCost: 50, mul: 1.7, fmt: l => '+' + (l * 5) + ' sn' },
+      { key: 'speed', name: 'Sürükleme Hızı',   icon: '⚡', max: 5, baseCost: 35, mul: 1.5, fmt: l => '+' + (l * 10) + '%' },
+    ];
+    const upLvl  = k => parseInt(localStorage.getItem('hole_up_' + k) || '0', 10) || 0;
+    const upCost = u => Math.round(u.baseCost * Math.pow(u.mul, upLvl(u.key)));
 
     const timeEl = document.getElementById('time');
     const timeVal = timeEl.querySelector('.value');
@@ -553,7 +610,7 @@
     const flashEl = document.getElementById('flash');
     document.getElementById('loading').style.display = 'none';
 
-    function growHole() { hole.r = Math.min(HOLE_MAX, HOLE_R0 + HOLE_K * Math.log(1 + swallowed)); }
+    function growHole() { hole.r = Math.min(HOLE_MAX, startRadius + HOLE_K * Math.log(1 + swallowed)); }
 
     // dünya noktasını ekran pikseline çevir (+N baloncukları için)
     const _proj = new THREE.Vector3();
@@ -611,9 +668,14 @@
       }
     }
 
-    document.getElementById('restart').addEventListener('click', () => location.reload());
+    // oyun-sonu: Tekrar (autoplay ile menüyü atla) / Menü (yükseltmeler)
+    document.getElementById('again').addEventListener('click', () => {
+      sessionStorage.setItem('hole_autoplay', '1'); location.reload();
+    });
+    document.getElementById('menu').addEventListener('click', () => location.reload());
+
     function endGame() {
-      gameOver = true;
+      gameOver = true; playing = false;
       const isBest = score > state.best;
       if (isBest) { state.best = score; localStorage.setItem('hole_best', String(state.best)); }
       state.coins += coinsThisRun; localStorage.setItem('hole_coins', String(state.coins));
@@ -626,6 +688,68 @@
     }
 
     // ========================================================================
+    //  Ana ekran (meta) + yükseltmeler + oyun başlatma
+    // ========================================================================
+    const homeEl = document.getElementById('home');
+    const upWrap = document.getElementById('upgrades');
+    const homeCoinsEl = document.getElementById('homeCoins');
+
+    function renderHome() {
+      homeCoinsEl.textContent = state.coins;
+      document.getElementById('homeBest').textContent = state.best;
+      upWrap.innerHTML = '';
+      for (const u of UPGRADES) {
+        const lvl = upLvl(u.key), maxed = lvl >= u.max, cost = upCost(u);
+        const canBuy = !maxed && state.coins >= cost;
+        const card = document.createElement('div');
+        card.className = 'ucard';
+        card.innerHTML =
+          '<div class="uicon">' + u.icon + '</div>' +
+          '<div class="uinfo"><div class="uname">' + u.name + '</div>' +
+          '<div class="udots">' + '●'.repeat(lvl) + '○'.repeat(u.max - lvl) + '</div>' +
+          '<div class="ueff">' + u.fmt(lvl) + '</div></div>' +
+          '<button class="ubuy' + (canBuy ? '' : ' dis') + '">' + (maxed ? 'MAX' : '🪙 ' + cost) + '</button>';
+        if (!maxed) card.querySelector('.ubuy').addEventListener('click', () => buyUpgrade(u));
+        upWrap.appendChild(card);
+      }
+    }
+    function buyUpgrade(u) {
+      const lvl = upLvl(u.key);
+      if (lvl >= u.max) return;
+      const cost = upCost(u);
+      if (state.coins < cost) {
+        const c = homeCoinsEl.parentElement;
+        c.classList.remove('nope'); void c.offsetWidth; c.classList.add('nope');
+        return;
+      }
+      state.coins -= cost; localStorage.setItem('hole_coins', String(state.coins));
+      localStorage.setItem('hole_up_' + u.key, String(lvl + 1));
+      renderHome();
+    }
+
+    function applyUpgrades() {
+      startRadius = HOLE_R0 + upLvl('size') * 0.2;
+      runTime = GAME_TIME + upLvl('time') * 5;
+      followSpeed = 12 * (1 + upLvl('speed') * 0.1);
+    }
+    function startGame() {
+      applyUpgrades();
+      hole.r = startRadius; applyHoleTransforms();
+      timeLeft = runTime;
+      timeVal.textContent = String(Math.ceil(runTime));
+      homeEl.style.display = 'none';
+      playing = true;
+    }
+    document.getElementById('playBtn').addEventListener('click', startGame);
+
+    // açılış akışı: Tekrar'dan gelindiyse menüyü atla, yoksa ana ekranı göster
+    const autoPlay = sessionStorage.getItem('hole_autoplay') === '1';
+    sessionStorage.removeItem('hole_autoplay');
+    renderHome();
+    if (autoPlay) startGame();
+    else homeEl.style.display = 'flex';
+
+    // ========================================================================
     //  Main loop
     // ========================================================================
     const shakeOff = new THREE.Vector3();
@@ -634,15 +758,15 @@
       const dt = Math.min(0.05, (now - lastT) / 1000);
       lastT = now;
 
-      if (!gameOver) {
+      if (playing) {
         timeLeft -= dt;
         if (timeLeft <= 0) { timeLeft = 0; endGame(); }
         const shown = Math.ceil(timeLeft);
         timeVal.textContent = String(shown);
         timeEl.classList.toggle('low', shown <= 10);
 
-        hole.x += (hole.tx - hole.x) * Math.min(1, dt * 12);
-        hole.z += (hole.tz - hole.z) * Math.min(1, dt * 12);
+        hole.x += (hole.tx - hole.x) * Math.min(1, dt * followSpeed);
+        hole.z += (hole.tz - hole.z) * Math.min(1, dt * followSpeed);
 
         world.step();
 
