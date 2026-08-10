@@ -547,7 +547,7 @@
                 scoreVal.textContent = String(swallowed);
                 // ---- görsel efektler ----
                 holePulse = 1;
-                shake = Math.min(1, shake + 0.32);
+                shake = Math.min(0.4, shake + 0.2);
                 spawnDust(t.x, 0.05, t.z, Math.min(1.6, o.r + 0.4));
               }
             }
@@ -573,17 +573,16 @@
         updateDust(dt);
       }
 
-      // ---- kamera shake ----
-      shake = Math.max(0, shake - dt * 2.4);
+      // ---- kamera shake (hafif darbe, hızlı sönümlenir) ----
+      shake = Math.max(0, shake - dt * 3.5);
       if (shake > 0.0001) {
-        const k = shake * shake * 0.55;
-        shakeOff.set((Math.random() - 0.5), (Math.random() - 0.5) * 0.6, (Math.random() - 0.5)).multiplyScalar(k);
+        const k = shake * shake * 0.5;
+        shakeOff.set((Math.random() - 0.5), (Math.random() - 0.5) * 0.5, (Math.random() - 0.5)).multiplyScalar(k);
         camera.position.copy(basePos).add(shakeOff);
-        camera.lookAt(shakeOff.x * 0.3, 0, shakeOff.z * 0.3);
       } else {
         camera.position.copy(basePos);
-        camera.lookAt(0, 0, 0);
       }
+      camera.lookAt(0, 0, 0);
 
       renderer.render(scene, camera);
     }
