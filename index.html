@@ -85,8 +85,10 @@
 
     await RAPIER.init();
 
-    // ---------- Config ----------
-    const FIELD = 13;            // yarı-alan (nesneler ve delik bu sınır içinde)
+    // ========================================================================
+    //  Config  (MEKANİK sabitleri — değiştirilmedi)
+    // ========================================================================
+    const FIELD = 13;            // yarı-alan
     const OBJECT_COUNT = 80;
     const GAME_TIME = 90;        // saniye
     const GRAVITY = -22;
@@ -97,51 +99,71 @@
 
     // Rapier collision groups: (membership << 16) | filter
     const G = {
-      FLOOR:   (0x0001 << 16) | 0x0002,   // zemin: sadece normal nesnelerle çarpışır
-      NORMAL:  (0x0002 << 16) | 0x0003,   // normal: zemin + diğer normallerle
-      FALLING: (0x0004 << 16) | 0x0000,   // yutulan: hiçbir şeyle -> serbest düşer
+      FLOOR:   (0x0001 << 16) | 0x0002,
+      NORMAL:  (0x0002 << 16) | 0x0003,
+      FALLING: (0x0004 << 16) | 0x0000,
     };
 
-    // ---------- Renderer / Scene / Camera ----------
+    // Canlı / doygun palet (Hole.io tarzı, 5 renk)
+    const PALETTE = [0xff4d4d, 0x4d7cff, 0xffd23f, 0x2ecc71, 0xff8c1a];
+
+    // ========================================================================
+    //  Renderer / Scene / Camera
+    // ========================================================================
     const app = document.getElementById('app');
     const renderer = new THREE.WebGLRenderer({ antialias: true, stencil: true, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setClearColor(0x0b0e14, 1);
+    renderer.setClearColor(0x9fd0ff, 1);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     app.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x0b0e14, 45, 85);
+    scene.background = new THREE.Color(0x9fd0ff);
+    scene.fog = new THREE.Fog(0x9fd0ff, 48, 90);
 
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
     const CAM_DIR = new THREE.Vector3(0, 1.28, 1.0).normalize();
+    const basePos = new THREE.Vector3();
 
     function fitCamera() {
       const w = window.innerWidth, h = window.innerHeight;
       const aspect = w / h;
       renderer.setSize(w, h);
       camera.aspect = aspect;
-      // portrait'te daha uzaktan bak ki tüm alan sığsın
       let radius = 33;
       if (aspect < 1) radius = 33 * (1 / Math.max(aspect, 0.5));
-      camera.position.copy(CAM_DIR.clone().multiplyScalar(radius));
+      basePos.copy(CAM_DIR.clone().multiplyScalar(radius));
+      camera.position.copy(basePos);
       camera.lookAt(0, 0, 0);
       camera.updateProjectionMatrix();
     }
     window.addEventListener('resize', fitCamera);
     fitCamera();
 
-    // ---------- Lights ----------
-    scene.add(new THREE.HemisphereLight(0xbcd4ff, 0x1b2233, 0.9));
-    const dir = new THREE.DirectionalLight(0xffffff, 1.1);
-    dir.position.set(12, 24, 10);
-    scene.add(dir);
-    scene.add(new THREE.AmbientLight(0x404a60, 0.6));
+    // ========================================================================
+    //  Lights  (directional + shadow map)
+    // ========================================================================
+    scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x4a6a3a, 0.85));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.32));
+    const sun = new THREE.DirectionalLight(0xfff4e0, 1.7);
+    sun.position.set(16, 30, 12);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = -24; sun.shadow.camera.right = 24;
+    sun.shadow.camera.top = 24;  sun.shadow.camera.bottom = -24;
+    sun.shadow.camera.near = 1;  sun.shadow.camera.far = 90;
+    sun.shadow.bias = -0.0004;
+    sun.shadow.normalBias = 0.02;
+    scene.add(sun);
+    scene.add(sun.target);
 
-    // ---------- Physics world ----------
+    // ========================================================================
+    //  Physics world
+    // ========================================================================
     const world = new RAPIER.World({ x: 0, y: GRAVITY, z: 0 });
     world.timestep = 1 / 60;
 
-    // Zemin (statik fizik gövdesi)
     const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.5, 0));
     const floorCol = world.createCollider(
       RAPIER.ColliderDesc.cuboid(FIELD + 6, 0.5, FIELD + 6).setFriction(0.9).setRestitution(0.05),
@@ -149,11 +171,48 @@
     );
     floorCol.setCollisionGroups(G.FLOOR);
 
-    // ---------- Hole (visual: stencil) ----------
-    const hole = { x: 0, z: 0, tx: 0, tz: 0, r: HOLE_R0 };
+    // ========================================================================
+    //  Ground texture (asfalt/çim + yol çizgileri)
+    // ========================================================================
+    function makeGroundTexture() {
+      const c = document.createElement('canvas'); c.width = c.height = 1024;
+      const x = c.getContext('2d');
+      // çim taban
+      x.fillStyle = '#4ea24a'; x.fillRect(0, 0, 1024, 1024);
+      for (let i = 0; i < 4200; i++) {
+        x.fillStyle = Math.random() < 0.5 ? 'rgba(58,140,54,.55)' : 'rgba(120,196,96,.45)';
+        const s = 2 + Math.random() * 5;
+        x.fillRect(Math.random() * 1024, Math.random() * 1024, s, s);
+      }
+      // asfalt yollar (haç)
+      const rw = 210, cx = 512;
+      x.fillStyle = '#464c55';
+      x.fillRect(cx - rw / 2, 0, rw, 1024);
+      x.fillRect(0, cx - rw / 2, 1024, rw);
+      for (let i = 0; i < 2600; i++) {
+        x.fillStyle = Math.random() < 0.5 ? 'rgba(60,66,74,.6)' : 'rgba(80,86,95,.5)';
+        const s = 2 + Math.random() * 4;
+        // sadece yol bölgesine serp
+        let px, py;
+        if (Math.random() < 0.5) { px = cx - rw / 2 + Math.random() * rw; py = Math.random() * 1024; }
+        else { px = Math.random() * 1024; py = cx - rw / 2 + Math.random() * rw; }
+        x.fillRect(px, py, s, s);
+      }
+      // beyaz kenar çizgileri
+      x.fillStyle = '#e9edf2';
+      x.fillRect(cx - rw / 2 + 10, 0, 7, 1024); x.fillRect(cx + rw / 2 - 17, 0, 7, 1024);
+      x.fillRect(0, cx - rw / 2 + 10, 1024, 7); x.fillRect(0, cx + rw / 2 - 17, 1024, 7);
+      // sarı kesikli orta çizgi
+      x.fillStyle = '#ffd23f';
+      for (let y = 0; y < 1024; y += 64) { if (Math.abs(y - cx) < rw / 2) continue; x.fillRect(cx - 5, y + 12, 10, 34); }
+      for (let xx = 0; xx < 1024; xx += 64) { if (Math.abs(xx - cx) < rw / 2) continue; x.fillRect(xx + 12, cx - 5, 34, 10); }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      return tex;
+    }
 
-    // Zemin görseli — stencil NOTEQUAL 1 -> disk bölgesinde çizilmez
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0x2a3350, roughness: 0.95, metalness: 0.0 });
+    const floorMat = new THREE.MeshStandardMaterial({ map: makeGroundTexture(), roughness: 0.98, metalness: 0.0 });
     floorMat.stencilWrite = true;
     floorMat.stencilRef = 1;
     floorMat.stencilFunc = THREE.NotEqualStencilFunc;
@@ -162,122 +221,244 @@
     floorMat.stencilZPass = THREE.KeepStencilOp;
     const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry((FIELD + 6) * 2, (FIELD + 6) * 2), floorMat);
     floorMesh.rotation.x = -Math.PI / 2;
-    floorMesh.position.y = 0;
+    floorMesh.receiveShadow = true;
     floorMesh.renderOrder = 2;
     scene.add(floorMesh);
 
-    // ızgara dokusu hissi için ince çizgiler
-    const grid = new THREE.GridHelper((FIELD + 6) * 2, 36, 0x3a4668, 0x2a3350);
-    grid.position.y = 0.01;
-    grid.material.opacity = 0.35; grid.material.transparent = true;
-    grid.material.stencilWrite = true; grid.material.stencilRef = 1;
-    grid.material.stencilFunc = THREE.NotEqualStencilFunc;
-    grid.renderOrder = 2;
-    scene.add(grid);
+    // ========================================================================
+    //  Hole (visual: stencil) — mekanik yarıçap ayrı tutulur
+    // ========================================================================
+    const hole = { x: 0, z: 0, tx: 0, tz: 0, r: HOLE_R0 };
+    let holePulse = 0; // yutma anında nabız (yalnızca görsel)
 
-    // Maske diski — sadece stencil'e yazar (renk/derinlik yazmaz)
     const maskMat = new THREE.MeshBasicMaterial();
-    maskMat.colorWrite = false;
-    maskMat.depthWrite = false;
-    maskMat.stencilWrite = true;
-    maskMat.stencilRef = 1;
+    maskMat.colorWrite = false; maskMat.depthWrite = false;
+    maskMat.stencilWrite = true; maskMat.stencilRef = 1;
     maskMat.stencilFunc = THREE.AlwaysStencilFunc;
     maskMat.stencilZPass = THREE.ReplaceStencilOp;
     const maskMesh = new THREE.Mesh(new THREE.CircleGeometry(1, 48), maskMat);
     maskMesh.rotation.x = -Math.PI / 2;
     maskMesh.position.y = 0.02;
-    maskMesh.renderOrder = 1; // zeminden önce çizilmeli
+    maskMesh.renderOrder = 1;
     scene.add(maskMesh);
 
-    // Kuyu (well) — deliğin altına inen koyu tüp + taban, delikten içerisi görünür
     const wellGroup = new THREE.Group();
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x0a0d15, roughness: 1, metalness: 0, side: THREE.BackSide });
-    const wellWall = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.82, WELL_DEPTH, 48, 1, true), wallMat);
+    const wellWall = new THREE.Mesh(
+      new THREE.CylinderGeometry(1, 0.82, WELL_DEPTH, 48, 1, true),
+      new THREE.MeshStandardMaterial({ color: 0x0a0d15, roughness: 1, metalness: 0, side: THREE.BackSide })
+    );
     wellWall.position.y = -WELL_DEPTH / 2;
     wellGroup.add(wellWall);
-    const wellBottom = new THREE.Mesh(new THREE.CircleGeometry(0.82, 48),
-      new THREE.MeshStandardMaterial({ color: 0x05070c, roughness: 1 }));
+    const wellBottom = new THREE.Mesh(
+      new THREE.CircleGeometry(0.82, 48),
+      new THREE.MeshStandardMaterial({ color: 0x05070c, roughness: 1 })
+    );
     wellBottom.rotation.x = -Math.PI / 2;
     wellBottom.position.y = -WELL_DEPTH + 0.05;
     wellGroup.add(wellBottom);
     wellGroup.renderOrder = 0;
     scene.add(wellGroup);
 
-    // Delik ağzı halkası (görünürlük için)
-    const rimMat = new THREE.MeshStandardMaterial({ color: 0x0a0d15, roughness: 1, side: THREE.DoubleSide });
-    const rim = new THREE.Mesh(new THREE.RingGeometry(0.86, 1.0, 48), rimMat);
+    const rim = new THREE.Mesh(
+      new THREE.RingGeometry(0.84, 1.0, 48),
+      new THREE.MeshStandardMaterial({ color: 0x0a0d15, roughness: 1, side: THREE.DoubleSide })
+    );
     rim.rotation.x = -Math.PI / 2;
     rim.position.y = 0.015;
     rim.renderOrder = 3;
     scene.add(rim);
 
     function applyHoleTransforms() {
-      const r = hole.r;
+      const vr = hole.r * (1 + 0.12 * holePulse); // nabız yalnızca görseli büyütür
       maskMesh.position.set(hole.x, 0.02, hole.z);
-      maskMesh.scale.set(r, r, r);
+      maskMesh.scale.set(vr, vr, vr);
       wellGroup.position.set(hole.x, 0, hole.z);
-      wellGroup.scale.set(r, 1, r);
+      wellGroup.scale.set(vr, 1, vr);
       rim.position.set(hole.x, 0.015, hole.z);
-      rim.scale.set(r, r, r);
+      rim.scale.set(vr, vr, vr);
     }
     applyHoleTransforms();
 
-    // ---------- Physics objects ----------
-    const objects = []; // { body, mesh, r, swallowed, removeAt }
+    // ========================================================================
+    //  Low-poly modeller  ->  tek merged geometry (vertex renkli, flat shading)
+    // ========================================================================
+    function mergeParts(parts) {
+      let n = 0;
+      for (const p of parts) { const g = p.geo.index ? p.geo.toNonIndexed() : p.geo; p._g = g; n += g.attributes.position.count; }
+      const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), col = new Float32Array(n * 3);
+      const v = new THREE.Vector3(), nn = new THREE.Vector3(), nm = new THREE.Matrix3();
+      let o = 0;
+      for (const p of parts) {
+        const g = p._g, pa = g.attributes.position, na = g.attributes.normal;
+        nm.getNormalMatrix(p.m);
+        for (let i = 0; i < pa.count; i++) {
+          v.fromBufferAttribute(pa, i).applyMatrix4(p.m);
+          pos[o * 3] = v.x; pos[o * 3 + 1] = v.y; pos[o * 3 + 2] = v.z;
+          if (na) { nn.fromBufferAttribute(na, i).applyMatrix3(nm).normalize(); nor[o * 3] = nn.x; nor[o * 3 + 1] = nn.y; nor[o * 3 + 2] = nn.z; }
+          col[o * 3] = p.c[0]; col[o * 3 + 1] = p.c[1]; col[o * 3 + 2] = p.c[2];
+          o++;
+        }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      geo.computeBoundingSphere();
+      return geo;
+    }
 
-    const palette = [0xff6b6b, 0xffd93d, 0x6bcB77, 0x4d96ff, 0xff9f45, 0xb983ff, 0x00c2a8, 0xff85a1];
+    const _c = new THREE.Color();
+    function colArr(hex) { _c.set(hex); return [_c.r, _c.g, _c.b]; }
+
+    // model tanımı: parça listesi + collider bilgisi
+    function buildModel(kind, s, accent) {
+      const parts = [];
+      const add = (geo, hex, pos, euler) => {
+        const q = new THREE.Quaternion();
+        if (euler) q.setFromEuler(new THREE.Euler(euler[0], euler[1], euler[2]));
+        const m = new THREE.Matrix4().compose(new THREE.Vector3(pos[0], pos[1], pos[2]), q, new THREE.Vector3(1, 1, 1));
+        parts.push({ geo, c: colArr(hex), m });
+      };
+      let colliderDesc, horizR, halfH;
+
+      if (kind === 'car') {
+        add(new THREE.BoxGeometry(1.9, 0.45, 0.85), accent, [0, 0.05, 0]);
+        add(new THREE.BoxGeometry(0.95, 0.42, 0.72), accent, [-0.1, 0.42, 0]);
+        add(new THREE.BoxGeometry(0.5, 0.3, 0.74), 0x1f2a33, [0.12, 0.42, 0]);
+        for (const wx of [0.6, -0.6]) for (const wz of [0.42, -0.42])
+          add(new THREE.CylinderGeometry(0.22, 0.22, 0.2, 12), 0x15151a, [wx, -0.28, wz], [0, 0, Math.PI / 2]);
+        add(new THREE.BoxGeometry(0.12, 0.1, 0.1), 0xfff2b0, [0.96, 0.05, 0.3]);
+        add(new THREE.BoxGeometry(0.12, 0.1, 0.1), 0xfff2b0, [0.96, 0.05, -0.3]);
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(0.95 * s, 0.45 * s, 0.45 * s);
+        horizR = 1.05 * s; halfH = 0.45 * s;
+
+      } else if (kind === 'tree') {
+        add(new THREE.CylinderGeometry(0.15, 0.19, 0.95, 8), 0x7a5230, [0, -0.5, 0]);
+        add(new THREE.IcosahedronGeometry(0.6, 0), 0x2ecc71, [0, 0.35, 0]);
+        add(new THREE.IcosahedronGeometry(0.45, 0), 0x27a35d, [0.24, 0.72, 0.12]);
+        add(new THREE.IcosahedronGeometry(0.4, 0), 0x3fd97a, [-0.22, 0.62, -0.12]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(1.0 * s, 0.5 * s);
+        horizR = 0.62 * s; halfH = 1.0 * s;
+
+      } else if (kind === 'bench') {
+        add(new THREE.BoxGeometry(1.6, 0.1, 0.5), 0x9c6b3f, [0, 0.0, 0]);
+        add(new THREE.BoxGeometry(1.6, 0.45, 0.1), 0x9c6b3f, [0, 0.28, -0.2]);
+        for (const lx of [0.7, -0.7]) for (const lz of [0.18, -0.18])
+          add(new THREE.BoxGeometry(0.1, 0.42, 0.1), 0x3a3f47, [lx, -0.22, lz]);
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(0.85 * s, 0.4 * s, 0.28 * s);
+        horizR = 0.9 * s; halfH = 0.4 * s;
+
+      } else if (kind === 'trash') {
+        add(new THREE.CylinderGeometry(0.3, 0.34, 0.7, 12), accent, [0, 0, 0]);
+        add(new THREE.CylinderGeometry(0.35, 0.35, 0.08, 12), 0x2a2f36, [0, 0.16, 0]);
+        add(new THREE.CylinderGeometry(0.37, 0.36, 0.1, 12), 0x1f242b, [0, 0.4, 0]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.45 * s, 0.34 * s);
+        horizR = 0.35 * s; halfH = 0.45 * s;
+
+      } else { // human
+        add(new THREE.BoxGeometry(0.14, 0.5, 0.16), 0x2c3e50, [-0.09, -0.35, 0]);
+        add(new THREE.BoxGeometry(0.14, 0.5, 0.16), 0x2c3e50, [0.09, -0.35, 0]);
+        add(new THREE.BoxGeometry(0.36, 0.5, 0.22), accent, [0, 0.08, 0]);
+        add(new THREE.BoxGeometry(0.1, 0.42, 0.12), accent, [0.25, 0.08, 0], [0, 0, 0.15]);
+        add(new THREE.BoxGeometry(0.1, 0.42, 0.12), accent, [-0.25, 0.08, 0], [0, 0, -0.15]);
+        add(new THREE.SphereGeometry(0.17, 10, 8), 0xf1c27d, [0, 0.5, 0]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.6 * s, 0.28 * s);
+        horizR = 0.28 * s; halfH = 0.6 * s;
+      }
+
+      // tüm modeli origin etrafında s ile ölçekle
+      const S = new THREE.Matrix4().makeScale(s, s, s);
+      for (const p of parts) p.m.premultiply(S);
+      return { geo: mergeParts(parts), colliderDesc, horizR, halfH };
+    }
+
+    // tüm objeler tek materyali paylaşır
+    const objMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65, metalness: 0.05, flatShading: true });
+
+    // ========================================================================
+    //  Objeleri dağıt
+    // ========================================================================
+    const objects = []; // { body, mesh, r, swallowed, removeAt }
+    const KIND_POOL = ['human', 'human', 'human', 'trash', 'trash', 'bench', 'tree', 'tree', 'car', 'car'];
     const rnd = (a, b) => a + Math.random() * (b - a);
 
     function addObject() {
-      const type = Math.floor(rnd(0, 3)); // 0 box, 1 sphere, 2 cylinder
-      const color = palette[Math.floor(rnd(0, palette.length))];
-      const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.1 });
+      const kind = KIND_POOL[Math.floor(rnd(0, KIND_POOL.length))];
+      const s = rnd(0.85, 1.2);
+      const accent = PALETTE[Math.floor(rnd(0, PALETTE.length))];
+      const model = buildModel(kind, s, accent);
 
-      let mesh, colDesc, horizR, height;
-      if (type === 0) {
-        const hx = rnd(0.35, 0.95), hy = rnd(0.35, 0.9), hz = rnd(0.35, 0.95);
-        mesh = new THREE.Mesh(new THREE.BoxGeometry(hx * 2, hy * 2, hz * 2), mat);
-        colDesc = RAPIER.ColliderDesc.cuboid(hx, hy, hz);
-        horizR = Math.hypot(hx, hz); height = hy;
-      } else if (type === 1) {
-        const r = rnd(0.4, 0.95);
-        mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 16), mat);
-        colDesc = RAPIER.ColliderDesc.ball(r);
-        horizR = r; height = r;
-      } else {
-        const r = rnd(0.4, 0.85), h = rnd(0.8, 1.8);
-        mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 24), mat);
-        colDesc = RAPIER.ColliderDesc.cylinder(h / 2, r);
-        horizR = r; height = h / 2;
-      }
+      const mesh = new THREE.Mesh(model.geo, objMaterial);
+      mesh.castShadow = true; mesh.receiveShadow = true;
 
-      // çakışmayı azaltmak için hafif yukarıdan bırak
       const x = rnd(-FIELD + 1.5, FIELD - 1.5);
       const z = rnd(-FIELD + 1.5, FIELD - 1.5);
-      const y = height + rnd(0.1, 2.5);
+      const y = model.halfH + rnd(0.1, 2.2);
+      const yaw = rnd(0, Math.PI * 2);
 
       const body = world.createRigidBody(
         RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y, z)
+          .setRotation({ x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) })
           .setAngularDamping(0.4).setLinearDamping(0.05)
       );
       const col = world.createCollider(
-        colDesc.setDensity(1.0).setFriction(0.8).setRestitution(0.1), body
+        model.colliderDesc().setDensity(1.0).setFriction(0.8).setRestitution(0.1), body
       );
       col.setCollisionGroups(G.NORMAL);
 
       mesh.position.set(x, y, z);
       scene.add(mesh);
-      objects.push({ body, mesh, r: horizR, swallowed: false, removeAt: 0 });
+      objects.push({ body, mesh, r: model.horizR, swallowed: false, removeAt: 0 });
     }
     for (let i = 0; i < OBJECT_COUNT; i++) addObject();
 
-    // ---------- Input (pointer = mouse + touch) ----------
+    // ========================================================================
+    //  Toz partikülleri
+    // ========================================================================
+    const dustMat = new THREE.PointsMaterial({ color: 0xe8d6b0, size: 0.28, transparent: true, opacity: 0.9, depthWrite: false });
+    const dusts = []; // { pts, vel, life, max, pos }
+    function spawnDust(x, y, z, scale) {
+      const N = 16;
+      const pos = new Float32Array(N * 3), vel = new Float32Array(N * 3);
+      for (let i = 0; i < N; i++) {
+        pos[i * 3] = x; pos[i * 3 + 1] = y + 0.1; pos[i * 3 + 2] = z;
+        const a = Math.random() * Math.PI * 2, sp = (0.8 + Math.random() * 1.8) * scale;
+        vel[i * 3] = Math.cos(a) * sp; vel[i * 3 + 1] = 1.2 + Math.random() * 2.2; vel[i * 3 + 2] = Math.sin(a) * sp;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = dustMat.clone();
+      mat.size = 0.28 * scale;
+      const pts = new THREE.Points(geo, mat);
+      pts.renderOrder = 4;
+      scene.add(pts);
+      dusts.push({ pts, vel, life: 0, max: 0.6, pos });
+    }
+    function updateDust(dt) {
+      for (let i = dusts.length - 1; i >= 0; i--) {
+        const d = dusts[i]; d.life += dt;
+        const attr = d.pts.geometry.attributes.position, arr = attr.array;
+        for (let k = 0; k < d.vel.length; k += 3) {
+          d.vel[k + 1] -= 9 * dt;
+          arr[k] += d.vel[k] * dt; arr[k + 1] += d.vel[k + 1] * dt; arr[k + 2] += d.vel[k + 2] * dt;
+        }
+        attr.needsUpdate = true;
+        d.pts.material.opacity = Math.max(0, 0.9 * (1 - d.life / d.max));
+        if (d.life >= d.max) {
+          scene.remove(d.pts); d.pts.geometry.dispose(); d.pts.material.dispose();
+          dusts.splice(i, 1);
+        }
+      }
+    }
+
+    // ========================================================================
+    //  Input (pointer = mouse + touch)
+    // ========================================================================
     const raycaster = new THREE.Raycaster();
     const ndc = new THREE.Vector2();
     const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const hitPoint = new THREE.Vector3();
-    let dragging = false;
-    let hintFaded = false;
+    let dragging = false, hintFaded = false;
 
     function pointerToGround(clientX, clientY) {
       ndc.x = (clientX / window.innerWidth) * 2 - 1;
@@ -295,64 +476,55 @@
       pointerToGround(p.clientX, p.clientY);
       if (!hintFaded) { document.getElementById('hint').style.opacity = '0'; hintFaded = true; }
     }
-    function onMove(e) {
-      if (!dragging) return;
-      const p = e.touches ? e.touches[0] : e;
-      pointerToGround(p.clientX, p.clientY);
-    }
+    function onMove(e) { if (!dragging) return; const p = e.touches ? e.touches[0] : e; pointerToGround(p.clientX, p.clientY); }
     function onUp() { dragging = false; }
-
     app.addEventListener('pointerdown', onDown);
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
-    // dokunmatik kaydırmayı engelle
     app.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
-    // ---------- Game state / HUD ----------
-    let swallowed = 0;
-    let timeLeft = GAME_TIME;
-    let gameOver = false;
-    let lastT = performance.now();
+    // ========================================================================
+    //  Game state / HUD
+    // ========================================================================
+    let swallowed = 0, timeLeft = GAME_TIME, gameOver = false, lastT = performance.now();
+    let shake = 0; // kamera sarsıntısı
 
     const timeEl = document.getElementById('time');
     const timeVal = timeEl.querySelector('.value');
     const scoreVal = document.querySelector('#score .value');
     document.getElementById('loading').style.display = 'none';
 
-    function growHole() {
-      hole.r = Math.min(HOLE_MAX, HOLE_R0 + HOLE_K * Math.log(1 + swallowed));
-    }
+    function growHole() { hole.r = Math.min(HOLE_MAX, HOLE_R0 + HOLE_K * Math.log(1 + swallowed)); }
 
     document.getElementById('restart').addEventListener('click', () => location.reload());
-
     function endGame() {
       gameOver = true;
       document.getElementById('finalScore').textContent = String(swallowed);
       document.getElementById('overlay').style.display = 'flex';
     }
 
-    // ---------- Main loop ----------
+    // ========================================================================
+    //  Main loop
+    // ========================================================================
+    const shakeOff = new THREE.Vector3();
     function tick(now) {
       requestAnimationFrame(tick);
       const dt = Math.min(0.05, (now - lastT) / 1000);
       lastT = now;
 
       if (!gameOver) {
-        // süre
         timeLeft -= dt;
         if (timeLeft <= 0) { timeLeft = 0; endGame(); }
         const shown = Math.ceil(timeLeft);
         timeVal.textContent = String(shown);
         timeEl.classList.toggle('low', shown <= 10);
 
-        // deliği hedefe doğru yumuşat
         hole.x += (hole.tx - hole.x) * Math.min(1, dt * 12);
         hole.z += (hole.tz - hole.z) * Math.min(1, dt * 12);
 
         world.step();
 
-        // nesne senkron + yutma tespiti
         for (let i = objects.length - 1; i >= 0; i--) {
           const o = objects[i];
           const t = o.body.translation();
@@ -361,33 +533,56 @@
           o.mesh.quaternion.set(q.x, q.y, q.z, q.w);
 
           if (!o.swallowed) {
-            // sadece zemine yakınken kontrol et
+            // ---- YUTMA TESPİTİ (mekanik — değişmedi) ----
             if (t.y < 1.5) {
               const dx = t.x - hole.x, dz = t.z - hole.z;
               const dist = Math.hypot(dx, dz);
-              // delik nesneden büyük VE nesne çoğunlukla ağzın içinde
               if (o.r < hole.r * 0.92 && dist < hole.r - o.r * 0.55) {
                 o.swallowed = true;
                 o.removeAt = now + 1000;
                 o.body.collider(0).setCollisionGroups(G.FALLING);
                 o.body.wakeUp();
-                o.body.setLinvel({ x: 0, y: -2, z: 0 }, true);
                 swallowed++;
                 growHole();
                 scoreVal.textContent = String(swallowed);
+                // ---- görsel efektler ----
+                holePulse = 1;
+                shake = Math.min(1, shake + 0.32);
+                spawnDust(t.x, 0.05, t.z, Math.min(1.6, o.r + 0.4));
               }
             }
-          } else if (now >= o.removeAt) {
-            // temizle (perf)
-            scene.remove(o.mesh);
-            o.mesh.geometry.dispose();
-            o.mesh.material.dispose();
-            world.removeRigidBody(o.body);
-            objects.splice(i, 1);
+          } else {
+            // ---- görsel spiral (mekaniği etkilemez: obje zaten FALLING) ----
+            const dx = t.x - hole.x, dz = t.z - hole.z;
+            const d = Math.hypot(dx, dz) || 0.0001;
+            const tx = -dz / d, tz = dx / d;      // teğet yön
+            const spin = 5.0, pull = 3.5;
+            o.body.setLinvel({ x: tx * spin - (dx / d) * pull, y: -6.0, z: tz * spin - (dz / d) * pull }, true);
+            o.body.setAngvel({ x: 0, y: 7, z: 0 }, true);
+            if (now >= o.removeAt) {
+              scene.remove(o.mesh);
+              o.mesh.geometry.dispose();
+              world.removeRigidBody(o.body);
+              objects.splice(i, 1);
+            }
           }
         }
 
+        holePulse = Math.max(0, holePulse - dt * 3.5);
         applyHoleTransforms();
+        updateDust(dt);
+      }
+
+      // ---- kamera shake ----
+      shake = Math.max(0, shake - dt * 2.4);
+      if (shake > 0.0001) {
+        const k = shake * shake * 0.55;
+        shakeOff.set((Math.random() - 0.5), (Math.random() - 0.5) * 0.6, (Math.random() - 0.5)).multiplyScalar(k);
+        camera.position.copy(basePos).add(shakeOff);
+        camera.lookAt(shakeOff.x * 0.3, 0, shakeOff.z * 0.3);
+      } else {
+        camera.position.copy(basePos);
+        camera.lookAt(0, 0, 0);
       }
 
       renderer.render(scene, camera);
