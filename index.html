@@ -129,22 +129,21 @@
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x9fd0ff);
-    scene.fog = new THREE.Fog(0x9fd0ff, 48, 90);
+    scene.fog = new THREE.Fog(0x9fd0ff, 55, 150);
 
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
     const CAM_DIR = new THREE.Vector3(0, 1.28, 1.0).normalize();
     const basePos = new THREE.Vector3();
+    let baseRadius = 33;   // aspect'e göre temel uzaklık
+    let camZoom = 1;       // delik büyüdükçe artar (zoom-out)
 
     function fitCamera() {
       const w = window.innerWidth, h = window.innerHeight;
       const aspect = w / h;
       renderer.setSize(w, h);
       camera.aspect = aspect;
-      let radius = 33;
-      if (aspect < 1) radius = 33 * (1 / Math.max(aspect, 0.5));
-      basePos.copy(CAM_DIR.clone().multiplyScalar(radius));
-      camera.position.copy(basePos);
-      camera.lookAt(0, 0, 0);
+      baseRadius = 33;
+      if (aspect < 1) baseRadius = 33 * (1 / Math.max(aspect, 0.5));
       camera.updateProjectionMatrix();
     }
     window.addEventListener('resize', fitCamera);
@@ -542,6 +541,19 @@
           o.mesh.quaternion.set(q.x, q.y, q.z, q.w);
 
           if (!o.swallowed) {
+            // ---- KENAR ÇEKİMİ (suction): yutulabilir boyuttaki yakın objeleri
+            //      deliğe doğru fiziksel olarak kaydırır (teleport değil) ----
+            {
+              const hx = hole.x - t.x, hz = hole.z - t.z;
+              const hd = Math.hypot(hx, hz);
+              const R2 = hole.r * 2.2;
+              if (t.y < 1.2 && o.r < hole.r * 1.05 && hd > 0.001 && hd < R2) {
+                const speed = (1 - hd / R2) * 4.2;   // merkeze yakınken güçlü
+                const lv = o.body.linvel();
+                o.body.setLinvel({ x: (hx / hd) * speed, y: lv.y, z: (hz / hd) * speed }, true);
+                o.body.wakeUp();
+              }
+            }
             // ---- YUTMA TESPİTİ (mekanik — değişmedi) ----
             if (t.y < 1.5) {
               const dx = t.x - hole.x, dz = t.z - hole.z;
@@ -581,6 +593,11 @@
         applyHoleTransforms();
         updateDust(dt);
       }
+
+      // ---- kamera: delik büyüdükçe yumuşak zoom-out (merkezde kalır) ----
+      const zoomTarget = Math.min(1.28, 1 + (hole.r - HOLE_R0) * 0.06);
+      camZoom += (zoomTarget - camZoom) * Math.min(1, dt * 2);
+      basePos.copy(CAM_DIR).multiplyScalar(baseRadius * camZoom);
 
       // ---- kamera shake (hafif darbe, hızlı sönümlenir) ----
       shake = Math.max(0, shake - dt * 3.5);
