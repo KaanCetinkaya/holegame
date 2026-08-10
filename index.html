@@ -59,6 +59,38 @@
 
   #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
     color: #9fb3d1; font-family: -apple-system, sans-serif; font-size: 16px; z-index: 20; }
+
+  .stat .sub { font-size: 12px; opacity: .6; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat .value.bump { animation: bump .18s ease; }
+  @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
+
+  #combo {
+    position: fixed; top: 21%; left: 0; right: 0; text-align: center; pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 800; font-size: clamp(26px, 9vw, 60px); color: #ffd23f;
+    text-shadow: 0 3px 14px rgba(0,0,0,.5); opacity: 0; z-index: 6;
+  }
+  #combo.show { animation: comboPop .65s ease; }
+  @keyframes comboPop {
+    0%{opacity:0;transform:scale(.6)} 22%{opacity:1;transform:scale(1.18)}
+    68%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(1)}
+  }
+
+  #flash { position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0;
+    background: radial-gradient(circle at 50% 55%, rgba(255,255,255,.35), rgba(255,255,255,0) 60%); }
+
+  .pop { position: fixed; pointer-events: none; z-index: 7;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 800; font-size: 22px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6);
+    transform: translate(-50%,-50%); will-change: transform, opacity;
+    animation: floatUp .85s ease forwards; }
+  @keyframes floatUp {
+    0%{opacity:0; transform:translate(-50%,-40%) scale(.8)} 15%{opacity:1}
+    100%{opacity:0; transform:translate(-50%,-165%) scale(1.05)}
+  }
+
+  #overlay .sub2 { font-size: clamp(14px,4vw,18px); opacity:.78; }
+  #overlay .coins { font-size: clamp(15px,4.5vw,20px); color:#ffd23f; font-weight:700; }
 </style>
 </head>
 <body>
@@ -66,15 +98,22 @@
 
   <div id="hud">
     <div id="time" class="stat"><div class="label">Süre</div><div class="value">90</div></div>
-    <div id="score" class="stat" style="text-align:right"><div class="label">Yutulan</div><div class="value">0</div></div>
+    <div id="score" class="stat" style="text-align:right">
+      <div class="label">Skor</div><div class="value">0</div>
+      <div class="sub" id="countSub">0 nesne</div>
+    </div>
   </div>
+
+  <div id="combo"></div>
+  <div id="flash"></div>
 
   <div id="hint">Deliği sürükle · küçük nesneleri yut</div>
 
   <div id="overlay">
-    <h1>Süre Doldu</h1>
-    <p>Yutulan nesne</p>
+    <h1 id="ovTitle">Süre Doldu</h1>
     <div class="big" id="finalScore">0</div>
+    <p class="sub2" id="ovDetail">0 nesne · En iyi 0</p>
+    <p class="coins" id="ovCoins">🪙 0</p>
     <button id="restart">Yeniden Başla</button>
   </div>
 
@@ -495,20 +534,94 @@
     // ========================================================================
     //  Game state / HUD
     // ========================================================================
-    let swallowed = 0, timeLeft = GAME_TIME, gameOver = false, lastT = performance.now();
-    let shake = 0; // kamera sarsıntısı
+    let swallowed = 0, score = 0, timeLeft = GAME_TIME, gameOver = false, lastT = performance.now();
+    let shake = 0;                       // kamera sarsıntısı
+    let combo = 0, lastSwallowAt = -9999, coinsThisRun = 0;
+    const COMBO_WINDOW = 1400;           // ms — bu süre içinde yutunca combo artar
+
+    // kalıcı durum (hybrid-casual kancası: best skor + coin)
+    const state = {
+      best:  parseInt(localStorage.getItem('hole_best')  || '0', 10) || 0,
+      coins: parseInt(localStorage.getItem('hole_coins') || '0', 10) || 0,
+    };
 
     const timeEl = document.getElementById('time');
     const timeVal = timeEl.querySelector('.value');
     const scoreVal = document.querySelector('#score .value');
+    const countSub = document.getElementById('countSub');
+    const comboEl = document.getElementById('combo');
+    const flashEl = document.getElementById('flash');
     document.getElementById('loading').style.display = 'none';
 
     function growHole() { hole.r = Math.min(HOLE_MAX, HOLE_R0 + HOLE_K * Math.log(1 + swallowed)); }
 
+    // dünya noktasını ekran pikseline çevir (+N baloncukları için)
+    const _proj = new THREE.Vector3();
+    function worldToScreen(x, y, z) {
+      _proj.set(x, y, z).project(camera);
+      return { x: (_proj.x * 0.5 + 0.5) * window.innerWidth, y: (-_proj.y * 0.5 + 0.5) * window.innerHeight };
+    }
+    function floatText(text, sx, sy, color) {
+      const el = document.createElement('div');
+      el.className = 'pop'; el.textContent = text;
+      el.style.left = sx + 'px'; el.style.top = sy + 'px';
+      if (color) el.style.color = color;
+      el.addEventListener('animationend', () => el.remove());
+      document.body.appendChild(el);
+    }
+
+    // ---- MERKEZİ YUTMA OLAYI: skor / combo / coin / juice tek yerde ----
+    function onSwallow(o, t, now) {
+      swallowed++;
+      growHole();
+
+      // combo (kısa aralıkla art arda yutunca çarpan büyür)
+      combo = (now - lastSwallowAt < COMBO_WINDOW) ? combo + 1 : 1;
+      lastSwallowAt = now;
+
+      // boyuta göre temel puan × combo çarpanı
+      const base = Math.max(1, Math.round(o.r * 12));
+      const gained = base * combo;
+      score += gained;
+      coinsThisRun += 1;
+
+      // HUD
+      scoreVal.textContent = String(score);
+      scoreVal.classList.remove('bump'); void scoreVal.offsetWidth; scoreVal.classList.add('bump');
+      countSub.textContent = swallowed + ' nesne';
+
+      // +N baloncuğu
+      const scr = worldToScreen(t.x, 0.5, t.z);
+      floatText('+' + gained, scr.x, scr.y, combo >= 3 ? '#ffd23f' : '#ffffff');
+
+      // combo göstergesi (2+)
+      if (combo >= 2) {
+        comboEl.textContent = 'COMBO x' + combo;
+        comboEl.classList.remove('show'); void comboEl.offsetWidth; comboEl.classList.add('show');
+      }
+
+      // juice
+      holePulse = 1;
+      shake = Math.min(0.4, shake + 0.14 + Math.min(0.18, combo * 0.03));
+      spawnDust(t.x, 0.05, t.z, Math.min(1.6, o.r + 0.4));
+      if (o.r > 0.8 || combo >= 4) {   // büyük obje / yüksek combo -> ekran parlaması
+        flashEl.style.transition = 'none';
+        flashEl.style.opacity = String(Math.min(0.6, 0.22 + combo * 0.05));
+        requestAnimationFrame(() => { flashEl.style.transition = 'opacity .35s ease'; flashEl.style.opacity = '0'; });
+      }
+    }
+
     document.getElementById('restart').addEventListener('click', () => location.reload());
     function endGame() {
       gameOver = true;
-      document.getElementById('finalScore').textContent = String(swallowed);
+      const isBest = score > state.best;
+      if (isBest) { state.best = score; localStorage.setItem('hole_best', String(state.best)); }
+      state.coins += coinsThisRun; localStorage.setItem('hole_coins', String(state.coins));
+
+      document.getElementById('ovTitle').textContent = isBest ? 'Yeni Rekor! 🎉' : 'Süre Doldu';
+      document.getElementById('finalScore').textContent = String(score);
+      document.getElementById('ovDetail').textContent = swallowed + ' nesne · En iyi ' + state.best;
+      document.getElementById('ovCoins').textContent = '🪙 +' + coinsThisRun + '  ·  toplam ' + state.coins;
       document.getElementById('overlay').style.display = 'flex';
     }
 
@@ -563,13 +676,7 @@
                 o.removeAt = now + 1000;
                 o.body.collider(0).setCollisionGroups(G.FALLING);
                 o.body.wakeUp();
-                swallowed++;
-                growHole();
-                scoreVal.textContent = String(swallowed);
-                // ---- görsel efektler ----
-                holePulse = 1;
-                shake = Math.min(0.4, shake + 0.2);
-                spawnDust(t.x, 0.05, t.z, Math.min(1.6, o.r + 0.4));
+                onSwallow(o, t, now);
               }
             }
           } else {
