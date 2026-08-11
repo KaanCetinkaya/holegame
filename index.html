@@ -152,15 +152,19 @@
   #daily:active { transform: translateY(2px); box-shadow: 0 3px 0 #d9a400; }
   #daily:disabled { background: rgba(255,255,255,.55); box-shadow: 0 5px 0 rgba(0,0,0,.12);
     color: #6b7686; cursor: default; }
-  .hrow { display: flex; gap: 10px; }
+  .hrow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   #achBtn, #mute { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
     padding: 9px 22px; font-size: 14px; font-weight: 700; color: #10233a;
     background: rgba(255,255,255,.6); }
 
-  #achpanel { position: fixed; inset: 0; z-index: 14; display: none;
+  #achpanel, #mispanel { position: fixed; inset: 0; z-index: 14; display: none;
     align-items: center; justify-content: center; padding: 22px;
     background: rgba(8,11,18,.72); backdrop-filter: blur(4px);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .mbar { height: 6px; background: rgba(0,0,0,.1); border-radius: 999px; margin: 5px 0 2px; overflow: hidden; }
+  .mfill { height: 100%; background: linear-gradient(90deg,#8be9fd,#38bdf8); border-radius: 999px; }
+  .ach .claim { border: none; border-radius: 999px; padding: 8px 18px; font-weight: 800; font-size: 13px;
+    color: #fff; cursor: pointer; background: linear-gradient(180deg,#4ecb6a,#22a34a); box-shadow: 0 3px 0 #177735; white-space: nowrap; }
   .ach-inner { width: 100%; max-width: 440px; max-height: 82vh; overflow-y: auto;
     background: #eaf4ff; border-radius: 22px; padding: 20px; color: #10233a; text-align: center; }
   .ach-inner h2 { font-size: 24px; margin-bottom: 14px; }
@@ -241,6 +245,7 @@
       <div class="coinbar">🪙 <span id="homeCoins">0</span></div>
       <button id="daily">🎁 Günlük Ödül</button>
       <div class="hrow">
+        <button id="misBtn">📋 Görevler</button>
         <button id="achBtn">🏆 Başarımlar</button>
         <button id="mute">🔊 Ses</button>
       </div>
@@ -259,6 +264,14 @@
       <h2>🏆 Başarımlar</h2>
       <div id="achlist"></div>
       <button id="achClose">Kapat</button>
+    </div>
+  </div>
+
+  <div id="mispanel">
+    <div class="ach-inner">
+      <h2>📋 Günlük Görevler</h2>
+      <div id="mislist"></div>
+      <button id="misClose">Kapat</button>
     </div>
   </div>
 
@@ -903,7 +916,7 @@
 
       mesh.position.set(x, y, z);
       scene.add(mesh);
-      objects.push({ body, mesh, r: model.horizR, halfH: model.halfH, swallowed: false, removeAt: 0, drive });
+      objects.push({ body, mesh, r: model.horizR, halfH: model.halfH, kind, swallowed: false, removeAt: 0, drive });
     }
     for (const p of layout) addObject(p);
 
@@ -984,7 +997,7 @@
     // ========================================================================
     let swallowed = 0, score = 0, timeLeft = GAME_TIME, gameOver = false, playing = false, lastT = performance.now();
     let shake = 0;                       // kamera sarsıntısı
-    let combo = 0, lastSwallowAt = -9999, coinsThisRun = 0, runMaxCombo = 0;
+    let combo = 0, lastSwallowAt = -9999, coinsThisRun = 0, runMaxCombo = 0, runBuildings = 0;
     const COMBO_WINDOW = 1400;           // ms — bu süre içinde yutunca combo artar
 
     // koşuya özel parametreler (yükseltmelerle ayarlanır)
@@ -1050,6 +1063,7 @@
     // ---- MERKEZİ YUTMA OLAYI: skor / combo / coin / juice tek yerde ----
     function onSwallow(o, t, now) {
       swallowed++;
+      if (o.kind === 'building') runBuildings++;
       growHole();
 
       // combo (kısa aralıkla art arda yutunca çarpan büyür)
@@ -1156,6 +1170,7 @@
       sfx.win();
       const bonus = 20 + level * 5;                 // level tamamlama coin bonusu
       finishRun(bonus);
+      recordRun(true);
       showOverlay('Level ' + level + ' Tamamlandı 🎉', 'Sonraki Level →', async () => {
         localStorage.setItem('hole_level', String(level + 1));
         sessionStorage.setItem('hole_autoplay', '1');
@@ -1169,6 +1184,7 @@
       playing = false;
       sfx.lose();
       finishRun(0);
+      recordRun(false);
       showOverlay('Süre Doldu', 'Tekrar Dene', async () => {
         sessionStorage.setItem('hole_autoplay', '1');
         await showInterstitial();                        // başarısızlıkta ara reklam
@@ -1211,6 +1227,63 @@
         renderDaily();
       };
     }
+
+    // ---- Günlük görevler ----
+    const MISSIONS = [
+      { key: 'sw',    icon: '🕳️', label: 'Bugün 50 nesne yut', ctr: 'dm_sw',    need: 50, reward: 60 },
+      { key: 'lvl',   icon: '🏁', label: '2 level tamamla',     ctr: 'dm_lvl',   need: 2,  reward: 80 },
+      { key: 'combo', icon: '🔥', label: 'x8 combo yap',        ctr: 'dm_combo', need: 8,  reward: 70 },
+    ];
+    function ensureDailyDay() {
+      const today = dayKey(new Date());
+      if (localStorage.getItem('dm_day') !== today) {
+        localStorage.setItem('dm_day', today);
+        ['dm_sw', 'dm_lvl', 'dm_combo', 'dm_bld'].forEach(k => localStorage.setItem(k, '0'));
+        localStorage.setItem('dm_claimed', '');
+      }
+    }
+    function recordRun(completed) {
+      ensureDailyDay();
+      const n = k => parseInt(localStorage.getItem(k) || '0', 10) || 0;
+      localStorage.setItem('dm_sw', String(n('dm_sw') + swallowed));
+      if (completed) localStorage.setItem('dm_lvl', String(n('dm_lvl') + 1));
+      localStorage.setItem('dm_combo', String(Math.max(n('dm_combo'), runMaxCombo)));
+      localStorage.setItem('dm_bld', String(n('dm_bld') + runBuildings));
+    }
+    const misPanel = document.getElementById('mispanel');
+    function renderMissions() {
+      ensureDailyDay();
+      const n = k => parseInt(localStorage.getItem(k) || '0', 10) || 0;
+      const claimed = new Set((localStorage.getItem('dm_claimed') || '').split(',').filter(Boolean));
+      const list = document.getElementById('mislist');
+      list.innerHTML = '';
+      for (const m of MISSIONS) {
+        const prog = Math.min(n(m.ctr), m.need), done = prog >= m.need, got = claimed.has(m.key);
+        const el = document.createElement('div');
+        el.className = 'ach' + (got ? ' done' : '');
+        el.innerHTML = '<div class="ai">' + m.icon + '</div>' +
+          '<div class="at"><div class="an">' + m.label + '</div>' +
+          '<div class="mbar"><div class="mfill" style="width:' + (prog / m.need * 100) + '%"></div></div>' +
+          '<div class="ad">' + prog + '/' + m.need + '</div></div>';
+        const right = document.createElement('div');
+        if (got) { right.className = 'ar'; right.textContent = '✓'; }
+        else if (done) { right.className = 'claim'; right.textContent = 'Al'; right.onclick = () => claimMission(m); }
+        else { right.className = 'ar'; right.textContent = '🪙 ' + m.reward; }
+        el.appendChild(right);
+        list.appendChild(el);
+      }
+    }
+    function claimMission(m) {
+      const claimed = new Set((localStorage.getItem('dm_claimed') || '').split(',').filter(Boolean));
+      if (claimed.has(m.key)) return;
+      if ((parseInt(localStorage.getItem(m.ctr) || '0', 10) || 0) < m.need) return;
+      claimed.add(m.key); localStorage.setItem('dm_claimed', Array.from(claimed).join(','));
+      state.coins += m.reward; localStorage.setItem('hole_coins', String(state.coins));
+      homeCoinsEl.textContent = state.coins; sfx.coin();
+      renderMissions();
+    }
+    document.getElementById('misBtn').addEventListener('click', () => { renderMissions(); misPanel.style.display = 'flex'; });
+    document.getElementById('misClose').addEventListener('click', () => { misPanel.style.display = 'none'; });
 
     // ---- Başarımlar ----
     const ACHS = [
