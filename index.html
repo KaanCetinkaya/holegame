@@ -719,12 +719,9 @@
       );
       col.setCollisionGroups(G.NORMAL);
 
-      // hareket profili: araç/otobüs sürer (yol eksenine hizalı), insanlar dolaşır
+      // hareket profili: otobüs sürer (yol eksenine hizalı), insanlar dolaşır — arabalar sabit
       let drive = null;
-      if (kind === 'car') {
-        const snapped = Math.round(yaw / (Math.PI / 2)) * (Math.PI / 2);
-        drive = { type: 'drive', heading: snapped, speed: rnd(3.0, 5.0), turn: 0 };
-      } else if (kind === 'bus') {
+      if (kind === 'bus') {
         const snapped = Math.round(yaw / (Math.PI / 2)) * (Math.PI / 2);
         drive = { type: 'drive', heading: snapped, speed: rnd(2.2, 3.4), turn: 0 };
       } else if (kind === 'human') {
