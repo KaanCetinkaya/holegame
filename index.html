@@ -234,6 +234,7 @@
     const HOLE_R0 = 1.35;        // başlangıç delik yarıçapı
     const HOLE_K = 0.72;         // logaritmik büyüme katsayısı
     const HOLE_MAX = 6.0;
+    const HOLE_SPEED = 8.0;      // deliğin maksimum hareket hızı (birim/sn) — ağır/kontrollü his
     const WELL_DEPTH = 14;
 
     // Rapier collision groups: (membership << 16) | filter
@@ -817,7 +818,7 @@
     const COMBO_WINDOW = 1400;           // ms — bu süre içinde yutunca combo artar
 
     // koşuya özel parametreler (yükseltmelerle ayarlanır)
-    let startRadius = HOLE_R0, runTime = GAME_TIME, followSpeed = 12;
+    let startRadius = HOLE_R0, runTime = GAME_TIME, moveSpeed = HOLE_SPEED;
 
     // kalıcı durum (hybrid-casual kancası: best skor + coin)
     const state = {
@@ -1065,7 +1066,7 @@
     function applyUpgrades() {
       startRadius = HOLE_R0 + upLvl('size') * 0.2;
       runTime = GAME_TIME + upLvl('time') * 5;
-      followSpeed = 12 * (1 + upLvl('speed') * 0.1);
+      moveSpeed = HOLE_SPEED * (1 + upLvl('speed') * 0.12);
     }
     function startGame() {
       applyUpgrades();
@@ -1101,8 +1102,14 @@
         timeVal.textContent = String(shown);
         timeEl.classList.toggle('low', shown <= 10);
 
-        hole.x += (hole.tx - hole.x) * Math.min(1, dt * followSpeed);
-        hole.z += (hole.tz - hole.z) * Math.min(1, dt * followSpeed);
+        // hedefe sabit maksimum hızla git (ışınlanma değil, ağır/kontrollü)
+        {
+          const dx = hole.tx - hole.x, dz = hole.tz - hole.z;
+          const d = Math.hypot(dx, dz);
+          const step = moveSpeed * dt;
+          if (d <= step || d < 1e-4) { hole.x = hole.tx; hole.z = hole.tz; }
+          else { hole.x += (dx / d) * step; hole.z += (dz / d) * step; }
+        }
 
         world.step();
 
