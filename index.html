@@ -203,10 +203,10 @@
     const FIELD = 13;            // yarı-alan
     const GAME_TIME = 90;        // saniye
 
-    // ---- Level: hedef nesne sayısı + o level için spawn adedi ----
+    // ---- Level: hedef nesne sayısı ----
     const level = parseInt(localStorage.getItem('hole_level') || '1', 10) || 1;
-    const levelTarget = Math.min(80, 18 + (level - 1) * 6);   // hedef (üst sınır 80)
-    const spawnCount = Math.min(110, levelTarget + 22);       // sahnedeki nesne sayısı
+    const levelTarget = Math.min(220, 35 + (level - 1) * 12);  // L1=35, +12/level
+    const POP = 60;   // sahnede tutulacak nesne sayısı (refill ile korunur)
 
     const GRAVITY = -22;
     const HOLE_R0 = 1.35;        // başlangıç delik yarıçapı
@@ -559,7 +559,7 @@
     ];
     const rnd = (a, b) => a + Math.random() * (b - a);
 
-    function addObject() {
+    function addObject(isRefill) {
       const kind = KIND_POOL[Math.floor(rnd(0, KIND_POOL.length))];
       const s = rnd(0.85, 1.2);
       const accent = PALETTE[Math.floor(rnd(0, PALETTE.length))];
@@ -568,9 +568,17 @@
       const mesh = new THREE.Mesh(model.geo, objMaterial);
       mesh.castShadow = true; mesh.receiveShadow = true;
 
-      const x = rnd(-FIELD + 1.5, FIELD - 1.5);
-      const z = rnd(-FIELD + 1.5, FIELD - 1.5);
-      const drop = model.halfH > 1.3 ? 0.05 : rnd(0.1, 1.4);   // uzun objeler düşük düşsün
+      let x = rnd(-FIELD + 1.5, FIELD - 1.5);
+      let z = rnd(-FIELD + 1.5, FIELD - 1.5);
+      if (isRefill) {
+        // refill: delikten uzağa doğ ki hemen yutulup kaybolmasın
+        for (let tries = 0; tries < 8 && Math.hypot(x - hole.x, z - hole.z) < hole.r + 3.5; tries++) {
+          x = rnd(-FIELD + 1.5, FIELD - 1.5);
+          z = rnd(-FIELD + 1.5, FIELD - 1.5);
+        }
+      }
+      const tall = model.halfH > 1.3;
+      const drop = isRefill ? (tall ? 0.1 : rnd(1.5, 3.5)) : (tall ? 0.05 : rnd(0.1, 1.4));
       const y = model.halfH + drop;
       const yaw = rnd(0, Math.PI * 2);
 
@@ -600,7 +608,7 @@
       scene.add(mesh);
       objects.push({ body, mesh, r: model.horizR, halfH: model.halfH, swallowed: false, removeAt: 0, drive });
     }
-    for (let i = 0; i < spawnCount; i++) addObject();
+    for (let i = 0; i < POP; i++) addObject();
 
     // ========================================================================
     //  Toz partikülleri
@@ -679,6 +687,7 @@
     // ========================================================================
     let swallowed = 0, score = 0, timeLeft = GAME_TIME, gameOver = false, playing = false, lastT = performance.now();
     let shake = 0;                       // kamera sarsıntısı
+    let refillTimer = 0;                 // sahne refill zamanlayıcısı
     let combo = 0, lastSwallowAt = -9999, coinsThisRun = 0;
     const COMBO_WINDOW = 1400;           // ms — bu süre içinde yutunca combo artar
 
@@ -969,6 +978,10 @@
             }
           }
         }
+
+        // sahneyi dolu tut: nesneler azaldıkça yenilerini akıt
+        refillTimer -= dt;
+        if (objects.length < POP && refillTimer <= 0) { addObject(true); refillTimer = 0.22; }
 
         holePulse = Math.max(0, holePulse - dt * 3.5);
         applyHoleTransforms();
