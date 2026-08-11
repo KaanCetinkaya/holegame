@@ -47,7 +47,34 @@ Android Studio'da:
 2. `.aab` yükle: İç test → Kapalı test → Üretim.
 3. Gerekenler: gizlilik politikası URL'si (reklam eklenirse zorunlu), içerik derecelendirme anketi, veri güvenliği formu, mağaza görselleri (ikon 512×512, feature grafiği 1024×500, ≥2 ekran görüntüsü), açıklama.
 
+## Reklam (AdMob)
+
+Reklam kodu oyunda **hazır ve bağlı** (`index.html` içindeki `AD_UNITS`, `showRewarded`, `showInterstitial`):
+- "2× Coin" butonu → **rewarded** reklam (izlenince ödül verilir)
+- Her 2 level'da bir ve başarısızlıkta → **interstitial** ara reklam
+- Tarayıcıda reklam **no-op**'tur (oyun aynı çalışır); sadece native uygulamada gösterilir.
+
+Şu an **Google resmi TEST reklam ID'leri** kullanılıyor — geliştirmede güvenle çalışır.
+
+Kurulum (Android):
+```bash
+npm install                 # @capacitor-community/admob dahil
+npx cap sync
+```
+`android/app/src/main/AndroidManifest.xml` içinde `<application>` etiketine AdMob App ID ekle:
+```xml
+<meta-data
+  android:name="com.google.android.gms.ads.APPLICATION_ID"
+  android:value="ca-app-pub-3940256099942544~3347511713"/>
+```
+
+**Yayına çıkmadan önce** (kendi AdMob hesabınla):
+1. AdMob'da uygulama + reklam birimleri (rewarded, interstitial) oluştur.
+2. Yukarıdaki manifest App ID'sini kendi **App ID**'nle değiştir.
+3. `index.html` içindeki `AD_UNITS.rewarded` ve `AD_UNITS.interstitial` değerlerini kendi **reklam birimi ID**'lerinle değiştir, sonra `npm run build:www && npx cap sync`.
+4. Reklam varsa Play Console'da **gizlilik politikası** ve **veri güvenliği** formu zorunlu.
+
 ## Sonraki adımlar (opsiyonel)
 
-- **İkon/Splash:** `@capacitor/assets` ile üret.
-- **Reklam (para):** `@capacitor-community/admob`; oyundaki "2× Coin" butonu rewarded reklam için hazır kanca içerir (`setupDouble`).
+- **İkon/Splash:** `@capacitor/assets` ile üret (bizim delik ikonundan).
+- **Banner reklam**, günlük ödül, daha çok skin vb.
