@@ -152,6 +152,29 @@
   #daily:active { transform: translateY(2px); box-shadow: 0 3px 0 #d9a400; }
   #daily:disabled { background: rgba(255,255,255,.55); box-shadow: 0 5px 0 rgba(0,0,0,.12);
     color: #6b7686; cursor: default; }
+  #achBtn { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
+    padding: 9px 22px; font-size: 14px; font-weight: 700; color: #10233a;
+    background: rgba(255,255,255,.6); }
+
+  #achpanel { position: fixed; inset: 0; z-index: 14; display: none;
+    align-items: center; justify-content: center; padding: 22px;
+    background: rgba(8,11,18,.72); backdrop-filter: blur(4px);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .ach-inner { width: 100%; max-width: 440px; max-height: 82vh; overflow-y: auto;
+    background: #eaf4ff; border-radius: 22px; padding: 20px; color: #10233a; text-align: center; }
+  .ach-inner h2 { font-size: 24px; margin-bottom: 14px; }
+  #achlist { display: flex; flex-direction: column; gap: 9px; text-align: left; }
+  .ach { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 14px; padding: 10px 12px; }
+  .ach.locked { opacity: .55; }
+  .ach .ai { font-size: 24px; width: 32px; text-align: center; }
+  .ach .at { flex: 1; min-width: 0; }
+  .ach .an { font-weight: 800; font-size: 14px; }
+  .ach .ad { font-size: 12px; opacity: .7; }
+  .ach .ar { font-size: 13px; font-weight: 800; color: #a06b00; white-space: nowrap; }
+  .ach.done .ar { color: #22a34a; }
+  #achClose { margin-top: 16px; border: none; border-radius: 999px; padding: 12px 40px;
+    font-size: 16px; font-weight: 800; color: #fff; cursor: pointer;
+    background: linear-gradient(180deg,#4ecb6a,#22a34a); box-shadow: 0 5px 0 #177735; }
 
   .shop-label { align-self: flex-start; margin-top: 4px; font-size: 12px; font-weight: 800;
     letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
@@ -216,6 +239,7 @@
       <div class="home-title">HOLE</div>
       <div class="coinbar">🪙 <span id="homeCoins">0</span></div>
       <button id="daily">🎁 Günlük Ödül</button>
+      <button id="achBtn">🏆 Başarımlar</button>
       <div class="shop-label">Yolculuk</div>
       <div id="levelmap"></div>
       <div id="upgrades"></div>
@@ -223,6 +247,14 @@
       <div id="skins"></div>
       <button id="playBtn">OYNA</button>
       <div class="best-line">Level <span id="homeLevel">1</span> · En iyi skor: <span id="homeBest">0</span></div>
+    </div>
+  </div>
+
+  <div id="achpanel">
+    <div class="ach-inner">
+      <h2>🏆 Başarımlar</h2>
+      <div id="achlist"></div>
+      <button id="achClose">Kapat</button>
     </div>
   </div>
 
@@ -882,7 +914,7 @@
     // ========================================================================
     let swallowed = 0, score = 0, timeLeft = GAME_TIME, gameOver = false, playing = false, lastT = performance.now();
     let shake = 0;                       // kamera sarsıntısı
-    let combo = 0, lastSwallowAt = -9999, coinsThisRun = 0;
+    let combo = 0, lastSwallowAt = -9999, coinsThisRun = 0, runMaxCombo = 0;
     const COMBO_WINDOW = 1400;           // ms — bu süre içinde yutunca combo artar
 
     // koşuya özel parametreler (yükseltmelerle ayarlanır)
@@ -953,6 +985,7 @@
       // combo (kısa aralıkla art arda yutunca çarpan büyür)
       combo = (now - lastSwallowAt < COMBO_WINDOW) ? combo + 1 : 1;
       lastSwallowAt = now;
+      if (combo > runMaxCombo) runMaxCombo = combo;
 
       // boyuta göre temel puan × combo çarpanı
       const base = Math.max(1, Math.round(o.r * 12));
@@ -1020,7 +1053,16 @@
       };
     }
 
+    function saveStats() {
+      const total = (parseInt(localStorage.getItem('hole_total_swallowed') || '0', 10) || 0) + swallowed;
+      localStorage.setItem('hole_total_swallowed', String(total));
+      const mc = Math.max(parseInt(localStorage.getItem('hole_maxcombo') || '0', 10) || 0, runMaxCombo);
+      localStorage.setItem('hole_maxcombo', String(mc));
+      const ml = Math.max(parseInt(localStorage.getItem('hole_maxlevel') || '0', 10) || 0, level);
+      localStorage.setItem('hole_maxlevel', String(ml));
+    }
     function finishRun(extraCoins) {
+      saveStats();
       if (score > state.best) { state.best = score; localStorage.setItem('hole_best', String(state.best)); }
       state.coins += coinsThisRun + (extraCoins || 0);
       localStorage.setItem('hole_coins', String(state.coins));
@@ -1095,6 +1137,56 @@
       };
     }
 
+    // ---- Başarımlar ----
+    const ACHS = [
+      { key: 'sw100',   icon: '🕳️', name: 'Acemi Yutucu',   desc: 'Toplam 100 nesne yut',  reward: 60,  goal: s => s.total,    need: 100 },
+      { key: 'sw1000',  icon: '🌀', name: 'Şehir Canavarı',  desc: 'Toplam 1000 nesne yut', reward: 200, goal: s => s.total,    need: 1000 },
+      { key: 'lvl5',    icon: '🚩', name: 'Yolun Başı',      desc: "Level 5'e ulaş",        reward: 80,  goal: s => s.maxlevel, need: 5 },
+      { key: 'lvl15',   icon: '👑', name: 'Fatih',           desc: "Level 15'e ulaş",       reward: 250, goal: s => s.maxlevel, need: 15 },
+      { key: 'combo10', icon: '🔥', name: 'Kombocu',         desc: 'x10 combo yap',         reward: 120, goal: s => s.maxcombo, need: 10 },
+      { key: 'streak3', icon: '📅', name: 'Sadık Oyuncu',    desc: '3 gün üst üste gir',    reward: 100, goal: s => s.streak,   need: 3 },
+      { key: 'skinsAll',icon: '🎨', name: 'Koleksiyoncu',    desc: 'Tüm skinleri al',       reward: 300, goal: s => s.skins,    need: SKINS.length },
+    ];
+    function getStats() {
+      const n = k => parseInt(localStorage.getItem(k) || '0', 10) || 0;
+      return { total: n('hole_total_swallowed'), maxcombo: n('hole_maxcombo'), maxlevel: n('hole_maxlevel'),
+               streak: n('hole_daily_streak'), skins: ownedSkins().size };
+    }
+    const unlockedAchs = () => new Set((localStorage.getItem('hole_ach') || '').split(',').filter(Boolean));
+    // yeni tamamlanan başarımların ödülünü ver; kazanılan sayısını döndür
+    function grantAchievements() {
+      const s = getStats(), un = unlockedAchs();
+      let granted = 0;
+      for (const a of ACHS) {
+        if (!un.has(a.key) && a.goal(s) >= a.need) {
+          un.add(a.key); state.coins += a.reward; granted++;
+        }
+      }
+      if (granted) {
+        localStorage.setItem('hole_ach', Array.from(un).join(','));
+        localStorage.setItem('hole_coins', String(state.coins));
+      }
+      return granted;
+    }
+    const achPanel = document.getElementById('achpanel');
+    function renderAchList() {
+      const s = getStats(), un = unlockedAchs();
+      const list = document.getElementById('achlist');
+      list.innerHTML = '';
+      for (const a of ACHS) {
+        const done = un.has(a.key), prog = Math.min(a.goal(s), a.need);
+        const el = document.createElement('div');
+        el.className = 'ach ' + (done ? 'done' : 'locked');
+        el.innerHTML = '<div class="ai">' + a.icon + '</div>' +
+          '<div class="at"><div class="an">' + a.name + '</div><div class="ad">' + a.desc +
+          (done ? '' : ' · ' + prog + '/' + a.need) + '</div></div>' +
+          '<div class="ar">' + (done ? '✓' : '🪙 ' + a.reward) + '</div>';
+        list.appendChild(el);
+      }
+    }
+    document.getElementById('achBtn').addEventListener('click', () => { renderAchList(); achPanel.style.display = 'flex'; });
+    document.getElementById('achClose').addEventListener('click', () => { achPanel.style.display = 'none'; });
+
     // ---- Level haritası (journey): mevcut level etrafında düğümler ----
     const mapWrap = document.getElementById('levelmap');
     const PATTERN_ICON = ['🏙️', '🚦', '🌳', '🎯', '🧱'];   // city/traffic/park/rings/rows
@@ -1149,6 +1241,7 @@
     }
 
     function renderHome() {
+      grantAchievements();     // menüye dönünce yeni başarımların ödülünü ver
       homeCoinsEl.textContent = state.coins;
       document.getElementById('homeBest').textContent = state.best;
       document.getElementById('homeLevel').textContent = level;
