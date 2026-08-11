@@ -1,0 +1,9 @@
+{
+  "appId": "com.kaancetinkaya.hole",
+  "appName": "Hole",
+  "webDir": "www",
+  "backgroundColor": "#9fd0ff",
+  "android": {
+    "backgroundColor": "#9fd0ff"
+  }
+}

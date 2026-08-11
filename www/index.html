@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Hole Prototype</title>
+
+<!-- Mobil "Ana ekrana ekle" / tam ekran uygulama hissi (tek dosya korunur, gömülü manifest) -->
+<meta name="theme-color" content="#9fd0ff" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Hole" />
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzRlYTI0YSIvPjxyZWN0IHg9IjIxMCIgd2lkdGg9IjkyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzQ2NGM1NSIvPjxyZWN0IHk9IjIxMCIgd2lkdGg9IjUxMiIgaGVpZ2h0PSI5MiIgZmlsbD0iIzQ2NGM1NSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTE4IiBmaWxsPSIjMGEwZDE1Ii8+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjQ4IiByPSIxMDgiIGZpbGw9IiMwNTA3MGMiLz48L3N2Zz4=" />
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiSG9sZSIsInNob3J0X25hbWUiOiJIb2xlIiwiZGlzcGxheSI6ImZ1bGxzY3JlZW4iLCJvcmllbnRhdGlvbiI6InBvcnRyYWl0IiwiYmFja2dyb3VuZF9jb2xvciI6IiM5ZmQwZmYiLCJ0aGVtZV9jb2xvciI6IiM5ZmQwZmYiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIZHBaSFJvUFNJMU1USWlJR2hsYVdkb2REMGlOVEV5SWo0OGNtVmpkQ0IzYVdSMGFEMGlOVEV5SWlCb1pXbG5hSFE5SWpVeE1pSWdabWxzYkQwaUl6UmxZVEkwWVNJdlBqeHlaV04wSUhnOUlqSXhNQ0lnZDJsa2RHZzlJamt5SWlCb1pXbG5hSFE5SWpVeE1pSWdabWxzYkQwaUl6UTJOR00xTlNJdlBqeHlaV04wSUhrOUlqSXhNQ0lnZDJsa2RHZzlJalV4TWlJZ2FHVnBaMmgwUFNJNU1pSWdabWxzYkQwaUl6UTJOR00xTlNJdlBqeGphWEpqYkdVZ1kzZzlJakkxTmlJZ1kzazlJakkxTmlJZ2NqMGlNVEU0SWlCbWFXeHNQU0lqTUdFd1pERTFJaTgrUEdOcGNtTnNaU0JqZUQwaU1qVTJJaUJqZVQwaU1qUTRJaUJ5UFNJeE1EZ2lJR1pwYkd3OUlpTXdOVEEzTUdNaUx6NDhMM04yWno0PSIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIiwicHVycG9zZSI6ImFueSBtYXNrYWJsZSJ9XX0=" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0e14; }
+  #app { position: fixed; inset: 0; touch-action: none; }
+  canvas { display: block; }
+
+  #hud {
+    position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 14px 18px; pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #eef2ff; text-shadow: 0 2px 8px rgba(0,0,0,.6);
+  }
+  .stat { background: rgba(20,26,40,.55); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
+    padding: 8px 14px; line-height: 1.15; }
+  .stat .label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .65; }
+  .stat .value { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #time.low .value { color: #ff6b6b; }
+
+  #overlay {
+    position: fixed; inset: 0; display: none; flex-direction: column;
+    align-items: center; justify-content: center; gap: 18px;
+    background: rgba(8,11,18,.78); backdrop-filter: blur(4px);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #eef2ff; text-align: center; z-index: 10; padding: 24px;
+  }
+  #overlay h1 { font-size: clamp(28px, 8vw, 52px); font-weight: 800; }
+  #overlay p { font-size: clamp(15px, 4.5vw, 20px); opacity: .8; }
+  #overlay .big { font-size: clamp(40px, 14vw, 90px); font-weight: 800; color: #7dd3fc; }
+  #again { pointer-events: auto; cursor: pointer; margin-top: 8px;
+    border: none; border-radius: 999px; padding: 14px 34px;
+    font-size: 18px; font-weight: 700; color: #0b0e14;
+    background: linear-gradient(180deg,#8be9fd,#38bdf8); box-shadow: 0 8px 24px rgba(56,189,248,.35); }
+  #again:active { transform: translateY(1px); }
+  #menu { pointer-events: auto; cursor: pointer; margin-top: 2px;
+    border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 10px 26px;
+    font-size: 15px; font-weight: 600; color: #cfe6ff; background: transparent; }
+
+  #hint {
+    position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
+    text-align: center; pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #eef2ff; font-size: 14px; opacity: .55; text-shadow: 0 2px 8px rgba(0,0,0,.6);
+    transition: opacity .5s ease;
+  }
+
+  #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #9fb3d1; font-family: -apple-system, sans-serif; font-size: 16px; z-index: 20; }
+
+  .stat .sub { font-size: 12px; opacity: .6; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat .value.bump { animation: bump .18s ease; }
+  @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
+
+  #combo {
+    position: fixed; top: 21%; left: 0; right: 0; text-align: center; pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 800; font-size: clamp(26px, 9vw, 60px); color: #ffd23f;
+    text-shadow: 0 3px 14px rgba(0,0,0,.5); opacity: 0; z-index: 6;
+  }
+  #combo.show { animation: comboPop .65s ease; }
+  @keyframes comboPop {
+    0%{opacity:0;transform:scale(.6)} 22%{opacity:1;transform:scale(1.18)}
+    68%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(1)}
+  }
+
+  #flash { position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0;
+    background: radial-gradient(circle at 50% 55%, rgba(255,255,255,.35), rgba(255,255,255,0) 60%); }
+
+  .pop { position: fixed; pointer-events: none; z-index: 7;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 800; font-size: 22px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6);
+    transform: translate(-50%,-50%); will-change: transform, opacity;
+    animation: floatUp .85s ease forwards; }
+  @keyframes floatUp {
+    0%{opacity:0; transform:translate(-50%,-40%) scale(.8)} 15%{opacity:1}
+    100%{opacity:0; transform:translate(-50%,-165%) scale(1.05)}
+  }
+
+  #overlay .sub2 { font-size: clamp(14px,4vw,18px); opacity:.78; }
+  #overlay .coins { font-size: clamp(15px,4.5vw,20px); color:#ffd23f; font-weight:700; }
+
+  #levelbar {
+    position: fixed; top: calc(env(safe-area-inset-top,0px) + 16px); left: 50%; transform: translateX(-50%);
+    width: min(46vw, 210px); text-align: center; pointer-events: none; z-index: 4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #eef2ff;
+    text-shadow: 0 2px 8px rgba(0,0,0,.6);
+  }
+  .lvl-label { font-size: 12px; font-weight: 800; letter-spacing: .14em; opacity: .9; }
+  .lvl-track { height: 9px; margin: 4px 0 3px; border-radius: 999px; overflow: hidden;
+    background: rgba(10,14,22,.5); border: 1px solid rgba(255,255,255,.12); }
+  .lvl-fill { height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg,#8be9fd,#38bdf8); transition: width .18s ease; }
+  .lvl-count { font-size: 11px; opacity: .7; font-variant-numeric: tabular-nums; }
+
+  /* ---- Ana ekran (meta / yükseltmeler) ---- */
+  #home { position: fixed; inset: 0; z-index: 12; display: none;
+    align-items: center; justify-content: center; overflow-y: auto; padding: 28px 22px;
+    background: linear-gradient(180deg,#8fd3ff,#c3e8ff);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #10233a; }
+  .home-inner { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+  .home-title { font-size: clamp(46px, 16vw, 78px); font-weight: 900; letter-spacing: .04em;
+    text-shadow: 0 4px 0 rgba(255,255,255,.55); }
+  .coinbar { font-size: 22px; font-weight: 800; background: rgba(255,255,255,.6);
+    border-radius: 999px; padding: 8px 22px; color: #a06b00; }
+  .coinbar.nope { animation: nope .4s ease; }
+  @keyframes nope { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+  #upgrades { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+  .ucard { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.62);
+    border-radius: 16px; padding: 10px 14px; }
+  .uicon { font-size: 26px; width: 34px; text-align: center; }
+  .uinfo { flex: 1; min-width: 0; }
+  .uname { font-weight: 700; font-size: 15px; }
+  .udots { letter-spacing: 3px; color: #2b7a3e; font-size: 13px; }
+  .ueff { font-size: 12px; opacity: .7; }
+  .ubuy { border: none; border-radius: 999px; padding: 10px 16px; font-weight: 800; font-size: 14px;
+    color: #10233a; background: linear-gradient(180deg,#ffe27a,#ffcf33); box-shadow: 0 4px 0 #d9a400;
+    cursor: pointer; white-space: nowrap; }
+  .ubuy:active { transform: translateY(2px); box-shadow: 0 2px 0 #d9a400; }
+  .ubuy.dis { background: #cdd6e0; box-shadow: 0 4px 0 #aab4c0; color: #7c8794; cursor: default; }
+  .shop-label { align-self: flex-start; margin-top: 4px; font-size: 12px; font-weight: 800;
+    letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
+  #skins { width: 100%; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .skin { flex: 0 0 auto; width: 74px; background: rgba(255,255,255,.6); border-radius: 14px;
+    padding: 8px 6px; text-align: center; cursor: pointer; border: 2px solid transparent; }
+  .skin.sel { border-color: #22a34a; background: rgba(255,255,255,.85); }
+  .skin .sw { width: 38px; height: 38px; margin: 0 auto 5px; border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #0a0d15 44%, var(--c) 46%, var(--c) 60%, rgba(0,0,0,.25) 78%);
+    box-shadow: 0 0 10px var(--c); }
+  .skin .sn { font-size: 12px; font-weight: 700; }
+  .skin .sc { font-size: 11px; opacity: .75; margin-top: 1px; }
+  .skin.owned .sc { color: #22a34a; font-weight: 700; }
+
+  #double { pointer-events: auto; cursor: pointer; margin-top: 6px;
+    border: none; border-radius: 999px; padding: 13px 30px; font-size: 17px; font-weight: 800;
+    color: #10233a; background: linear-gradient(180deg,#ffe27a,#ffcf33); box-shadow: 0 5px 0 #d9a400; }
+  #double:active { transform: translateY(2px); box-shadow: 0 3px 0 #d9a400; }
+  #double:disabled { opacity: .55; box-shadow: 0 5px 0 #b98f00; cursor: default; }
+
+  #playBtn { margin-top: 8px; border: none; border-radius: 999px; padding: 16px 64px;
+    font-size: 22px; font-weight: 900; letter-spacing: .05em; color: #fff; cursor: pointer;
+    background: linear-gradient(180deg,#4ecb6a,#22a34a); box-shadow: 0 6px 0 #177735; }
+  #playBtn:active { transform: translateY(2px); box-shadow: 0 4px 0 #177735; }
+  .best-line { font-size: 14px; opacity: .72; }
+</style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <div id="hud">
+    <div id="time" class="stat"><div class="label">Süre</div><div class="value">90</div></div>
+    <div id="score" class="stat" style="text-align:right">
+      <div class="label">Skor</div><div class="value">0</div>
+      <div class="sub" id="countSub">0 nesne</div>
+    </div>
+  </div>
+
+  <div id="levelbar">
+    <div class="lvl-label">LEVEL <span id="lvlNum">1</span></div>
+    <div class="lvl-track"><div class="lvl-fill" id="lvlFill"></div></div>
+    <div class="lvl-count"><span id="lvlCur">0</span> / <span id="lvlTgt">0</span></div>
+  </div>
+
+  <div id="combo"></div>
+  <div id="flash"></div>
+
+  <div id="hint">Deliği sürükle · küçük nesneleri yut</div>
+
+  <div id="overlay">
+    <h1 id="ovTitle">Süre Doldu</h1>
+    <div class="big" id="finalScore">0</div>
+    <p class="sub2" id="ovDetail">0 nesne · En iyi 0</p>
+    <p class="coins" id="ovCoins">🪙 0</p>
+    <button id="double">🎬 2× Coin</button>
+    <button id="again">Tekrar Oyna</button>
+    <button id="menu">Menü / Yükseltmeler</button>
+  </div>
+
+  <div id="home">
+    <div class="home-inner">
+      <div class="home-title">HOLE</div>
+      <div class="coinbar">🪙 <span id="homeCoins">0</span></div>
+      <div id="upgrades"></div>
+      <div class="shop-label">Delik Görünümü</div>
+      <div id="skins"></div>
+      <button id="playBtn">OYNA</button>
+      <div class="best-line">Level <span id="homeLevel">1</span> · En iyi skor: <span id="homeBest">0</span></div>
+    </div>
+  </div>
+
+  <div id="loading">Yükleniyor…</div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./three.module.js"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import RAPIER from './rapier.es.js';
+
+    await RAPIER.init();
+
+    // ========================================================================
+    //  Config  (MEKANİK sabitleri — değiştirilmedi)
+    // ========================================================================
+    const FIELD = 13;            // yarı-alan
+    const GAME_TIME = 90;        // saniye
+
+    // ---- Level: her level tasarlanmış bir "şehir dizilimi" (Hole It / Hole Em All tarzı) ----
+    const level = parseInt(localStorage.getItem('hole_level') || '1', 10) || 1;
+    const layout = buildLayout(level);      // dizilimdeki obje yerleşimleri
+    const levelTarget = layout.length;      // hedef = dizilimin tamamını yut
+
+    const GRAVITY = -22;
+    const HOLE_R0 = 1.35;        // başlangıç delik yarıçapı
+    const HOLE_K = 0.72;         // logaritmik büyüme katsayısı
+    const HOLE_MAX = 6.0;
+    const HOLE_SPEED = 8.0;      // deliğin maksimum hareket hızı (birim/sn) — ağır/kontrollü his
+    const WELL_DEPTH = 14;
+
+    // Rapier collision groups: (membership << 16) | filter
+    const G = {
+      FLOOR:   (0x0001 << 16) | 0x0002,
+      NORMAL:  (0x0002 << 16) | 0x0003,
+      FALLING: (0x0004 << 16) | 0x0000,
+    };
+
+    // Canlı / doygun palet (Hole.io tarzı, 5 renk)
+    const PALETTE = [0xff4d4d, 0x4d7cff, 0xffd23f, 0x2ecc71, 0xff8c1a];
+
+    // ---- Delik skinleri (kozmetik, coin ile alınır — All in Hole tarzı meta) ----
+    const SKINS = [
+      { key: 'dark',   name: 'Klasik',  cost: 0,   rim: 0x0a0d15, glow: 0x000000 },
+      { key: 'neon',   name: 'Neon',    cost: 80,  rim: 0x00e5ff, glow: 0x00e5ff },
+      { key: 'lava',   name: 'Lav',     cost: 120, rim: 0xff5a1f, glow: 0xff3b00 },
+      { key: 'toxic',  name: 'Zehir',   cost: 140, rim: 0x7cfc00, glow: 0x39ff14 },
+      { key: 'galaxy', name: 'Galaksi', cost: 160, rim: 0xb983ff, glow: 0x7d3cff },
+      { key: 'gold',   name: 'Altın',   cost: 220, rim: 0xffd23f, glow: 0xffb300 },
+    ];
+    const ownedSkins   = () => { const s = new Set((localStorage.getItem('hole_skins') || '').split(',').filter(Boolean)); s.add('dark'); return s; };
+    const selectedSkin = () => localStorage.getItem('hole_skin') || 'dark';
+
+    // ========================================================================
+    //  Renderer / Scene / Camera
+    // ========================================================================
+    const app = document.getElementById('app');
+    const renderer = new THREE.WebGLRenderer({ antialias: true, stencil: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x9fd0ff, 1);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    app.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x9fd0ff);
+    scene.fog = new THREE.Fog(0x9fd0ff, 55, 150);
+
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
+    const CAM_DIR = new THREE.Vector3(0, 1.28, 1.0).normalize();
+    const basePos = new THREE.Vector3();
+    let baseRadius = 33;   // aspect'e göre temel uzaklık
+    let camZoom = 1;       // delik büyüdükçe artar (zoom-out)
+
+    function fitCamera() {
+      const w = window.innerWidth, h = window.innerHeight;
+      const aspect = w / h;
+      renderer.setSize(w, h);
+      camera.aspect = aspect;
+      baseRadius = 33;
+      if (aspect < 1) baseRadius = 33 * (1 / Math.max(aspect, 0.5));
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', fitCamera);
+    fitCamera();
+
+    // ========================================================================
+    //  Lights  (directional + shadow map)
+    // ========================================================================
+    scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x4a6a3a, 0.85));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.32));
+    const sun = new THREE.DirectionalLight(0xfff4e0, 1.7);
+    sun.position.set(16, 30, 12);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = -24; sun.shadow.camera.right = 24;
+    sun.shadow.camera.top = 24;  sun.shadow.camera.bottom = -24;
+    sun.shadow.camera.near = 1;  sun.shadow.camera.far = 90;
+    sun.shadow.bias = -0.0004;
+    sun.shadow.normalBias = 0.02;
+    scene.add(sun);
+    scene.add(sun.target);
+
+    // ========================================================================
+    //  Physics world
+    // ========================================================================
+    const world = new RAPIER.World({ x: 0, y: GRAVITY, z: 0 });
+    world.timestep = 1 / 60;
+
+    const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.5, 0));
+    const floorCol = world.createCollider(
+      RAPIER.ColliderDesc.cuboid(FIELD + 6, 0.5, FIELD + 6).setFriction(0.9).setRestitution(0.05),
+      floorBody
+    );
+    floorCol.setCollisionGroups(G.FLOOR);
+
+    // ========================================================================
+    //  Ground texture (asfalt/çim + yol çizgileri)
+    // ========================================================================
+    function makeGroundTexture() {
+      const c = document.createElement('canvas'); c.width = c.height = 1024;
+      const x = c.getContext('2d');
+      // çim taban
+      x.fillStyle = '#4ea24a'; x.fillRect(0, 0, 1024, 1024);
+      for (let i = 0; i < 4200; i++) {
+        x.fillStyle = Math.random() < 0.5 ? 'rgba(58,140,54,.55)' : 'rgba(120,196,96,.45)';
+        const s = 2 + Math.random() * 5;
+        x.fillRect(Math.random() * 1024, Math.random() * 1024, s, s);
+      }
+      // asfalt yollar (haç)
+      const rw = 210, cx = 512;
+      x.fillStyle = '#464c55';
+      x.fillRect(cx - rw / 2, 0, rw, 1024);
+      x.fillRect(0, cx - rw / 2, 1024, rw);
+      for (let i = 0; i < 2600; i++) {
+        x.fillStyle = Math.random() < 0.5 ? 'rgba(60,66,74,.6)' : 'rgba(80,86,95,.5)';
+        const s = 2 + Math.random() * 4;
+        // sadece yol bölgesine serp
+        let px, py;
+        if (Math.random() < 0.5) { px = cx - rw / 2 + Math.random() * rw; py = Math.random() * 1024; }
+        else { px = Math.random() * 1024; py = cx - rw / 2 + Math.random() * rw; }
+        x.fillRect(px, py, s, s);
+      }
+      // beyaz kenar çizgileri
+      x.fillStyle = '#e9edf2';
+      x.fillRect(cx - rw / 2 + 10, 0, 7, 1024); x.fillRect(cx + rw / 2 - 17, 0, 7, 1024);
+      x.fillRect(0, cx - rw / 2 + 10, 1024, 7); x.fillRect(0, cx + rw / 2 - 17, 1024, 7);
+      // sarı kesikli orta çizgi
+      x.fillStyle = '#ffd23f';
+      for (let y = 0; y < 1024; y += 64) { if (Math.abs(y - cx) < rw / 2) continue; x.fillRect(cx - 5, y + 12, 10, 34); }
+      for (let xx = 0; xx < 1024; xx += 64) { if (Math.abs(xx - cx) < rw / 2) continue; x.fillRect(xx + 12, cx - 5, 34, 10); }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      return tex;
+    }
+
+    const floorMat = new THREE.MeshStandardMaterial({ map: makeGroundTexture(), roughness: 0.98, metalness: 0.0 });
+    floorMat.stencilWrite = true;
+    floorMat.stencilRef = 1;
+    floorMat.stencilFunc = THREE.NotEqualStencilFunc;
+    floorMat.stencilFail = THREE.KeepStencilOp;
+    floorMat.stencilZFail = THREE.KeepStencilOp;
+    floorMat.stencilZPass = THREE.KeepStencilOp;
+    const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry((FIELD + 6) * 2, (FIELD + 6) * 2), floorMat);
+    floorMesh.rotation.x = -Math.PI / 2;
+    floorMesh.receiveShadow = true;
+    floorMesh.renderOrder = 2;
+    scene.add(floorMesh);
+
+    // ========================================================================
+    //  Hole (visual: stencil) — mekanik yarıçap ayrı tutulur
+    // ========================================================================
+    const hole = { x: 0, z: 0, tx: 0, tz: 0, r: HOLE_R0 };
+    let holePulse = 0; // yutma anında nabız (yalnızca görsel)
+
+    const maskMat = new THREE.MeshBasicMaterial();
+    maskMat.colorWrite = false; maskMat.depthWrite = false;
+    maskMat.stencilWrite = true; maskMat.stencilRef = 1;
+    maskMat.stencilFunc = THREE.AlwaysStencilFunc;
+    maskMat.stencilZPass = THREE.ReplaceStencilOp;
+    const maskMesh = new THREE.Mesh(new THREE.CircleGeometry(1, 48), maskMat);
+    maskMesh.rotation.x = -Math.PI / 2;
+    maskMesh.position.y = 0.02;
+    maskMesh.renderOrder = 1;
+    scene.add(maskMesh);
+
+    const wellGroup = new THREE.Group();
+    const wellWall = new THREE.Mesh(
+      new THREE.CylinderGeometry(1, 0.82, WELL_DEPTH, 48, 1, true),
+      new THREE.MeshStandardMaterial({ color: 0x0a0d15, roughness: 1, metalness: 0, side: THREE.BackSide })
+    );
+    wellWall.position.y = -WELL_DEPTH / 2;
+    wellGroup.add(wellWall);
+    const wellBottom = new THREE.Mesh(
+      new THREE.CircleGeometry(0.82, 48),
+      new THREE.MeshStandardMaterial({ color: 0x05070c, roughness: 1 })
+    );
+    wellBottom.rotation.x = -Math.PI / 2;
+    wellBottom.position.y = -WELL_DEPTH + 0.05;
+    wellGroup.add(wellBottom);
+    wellGroup.renderOrder = 0;
+    scene.add(wellGroup);
+
+    const rim = new THREE.Mesh(
+      new THREE.RingGeometry(0.84, 1.0, 48),
+      new THREE.MeshStandardMaterial({ color: 0x0a0d15, emissive: 0x000000, roughness: 1, side: THREE.DoubleSide })
+    );
+    rim.rotation.x = -Math.PI / 2;
+    rim.position.y = 0.015;
+    rim.renderOrder = 3;
+    scene.add(rim);
+
+    // skin parlaması: rim'in dışına additive halka
+    const glowRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.92, 1.4, 48),
+      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false })
+    );
+    glowRing.rotation.x = -Math.PI / 2;
+    glowRing.position.y = 0.018;
+    glowRing.renderOrder = 3;
+    scene.add(glowRing);
+
+    function applySkin(key) {
+      const sk = SKINS.find(s => s.key === key) || SKINS[0];
+      const hasGlow = sk.glow && sk.glow !== 0x000000;
+      rim.material.color.setHex(sk.rim);
+      rim.material.emissive.setHex(sk.glow);
+      rim.material.emissiveIntensity = hasGlow ? 0.9 : 0;
+      glowRing.material.color.setHex(hasGlow ? sk.glow : 0x000000);
+      glowRing.material.opacity = hasGlow ? 0.45 : 0;
+    }
+    applySkin(selectedSkin());
+
+    function applyHoleTransforms() {
+      const vr = hole.r * (1 + 0.12 * holePulse); // nabız yalnızca görseli büyütür
+      maskMesh.position.set(hole.x, 0.02, hole.z);
+      maskMesh.scale.set(vr, vr, vr);
+      wellGroup.position.set(hole.x, 0, hole.z);
+      wellGroup.scale.set(vr, 1, vr);
+      rim.position.set(hole.x, 0.015, hole.z);
+      rim.scale.set(vr, vr, vr);
+      glowRing.position.set(hole.x, 0.018, hole.z);
+      glowRing.scale.set(vr, vr, vr);
+    }
+    applyHoleTransforms();
+
+    // ========================================================================
+    //  Low-poly modeller  ->  tek merged geometry (vertex renkli, flat shading)
+    // ========================================================================
+    function mergeParts(parts) {
+      let n = 0;
+      for (const p of parts) { const g = p.geo.index ? p.geo.toNonIndexed() : p.geo; p._g = g; n += g.attributes.position.count; }
+      const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), col = new Float32Array(n * 3);
+      const v = new THREE.Vector3(), nn = new THREE.Vector3(), nm = new THREE.Matrix3();
+      let o = 0;
+      for (const p of parts) {
+        const g = p._g, pa = g.attributes.position, na = g.attributes.normal;
+        nm.getNormalMatrix(p.m);
+        for (let i = 0; i < pa.count; i++) {
+          v.fromBufferAttribute(pa, i).applyMatrix4(p.m);
+          pos[o * 3] = v.x; pos[o * 3 + 1] = v.y; pos[o * 3 + 2] = v.z;
+          if (na) { nn.fromBufferAttribute(na, i).applyMatrix3(nm).normalize(); nor[o * 3] = nn.x; nor[o * 3 + 1] = nn.y; nor[o * 3 + 2] = nn.z; }
+          col[o * 3] = p.c[0]; col[o * 3 + 1] = p.c[1]; col[o * 3 + 2] = p.c[2];
+          o++;
+        }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      geo.computeBoundingSphere();
+      return geo;
+    }
+
+    const _c = new THREE.Color();
+    function colArr(hex) { _c.set(hex); return [_c.r, _c.g, _c.b]; }
+
+    // model tanımı: parça listesi + collider bilgisi
+    function buildModel(kind, s, accent) {
+      const parts = [];
+      const add = (geo, hex, pos, euler) => {
+        const q = new THREE.Quaternion();
+        if (euler) q.setFromEuler(new THREE.Euler(euler[0], euler[1], euler[2]));
+        const m = new THREE.Matrix4().compose(new THREE.Vector3(pos[0], pos[1], pos[2]), q, new THREE.Vector3(1, 1, 1));
+        parts.push({ geo, c: colArr(hex), m });
+      };
+      let colliderDesc, horizR, halfH;
+
+      if (kind === 'car') {
+        add(new THREE.BoxGeometry(1.9, 0.45, 0.85), accent, [0, 0.05, 0]);
+        add(new THREE.BoxGeometry(0.95, 0.42, 0.72), accent, [-0.1, 0.42, 0]);
+        add(new THREE.BoxGeometry(0.5, 0.3, 0.74), 0x1f2a33, [0.12, 0.42, 0]);
+        for (const wx of [0.6, -0.6]) for (const wz of [0.42, -0.42])
+          add(new THREE.CylinderGeometry(0.22, 0.22, 0.2, 12), 0x15151a, [wx, -0.28, wz], [0, 0, Math.PI / 2]);
+        add(new THREE.BoxGeometry(0.12, 0.1, 0.1), 0xfff2b0, [0.96, 0.05, 0.3]);
+        add(new THREE.BoxGeometry(0.12, 0.1, 0.1), 0xfff2b0, [0.96, 0.05, -0.3]);
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(0.95 * s, 0.45 * s, 0.45 * s);
+        horizR = 1.05 * s; halfH = 0.45 * s;
+
+      } else if (kind === 'tree') {
+        add(new THREE.CylinderGeometry(0.15, 0.19, 0.95, 8), 0x7a5230, [0, -0.5, 0]);
+        add(new THREE.IcosahedronGeometry(0.6, 0), 0x2ecc71, [0, 0.35, 0]);
+        add(new THREE.IcosahedronGeometry(0.45, 0), 0x27a35d, [0.24, 0.72, 0.12]);
+        add(new THREE.IcosahedronGeometry(0.4, 0), 0x3fd97a, [-0.22, 0.62, -0.12]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(1.0 * s, 0.5 * s);
+        horizR = 0.62 * s; halfH = 1.0 * s;
+
+      } else if (kind === 'bench') {
+        add(new THREE.BoxGeometry(1.6, 0.1, 0.5), 0x9c6b3f, [0, 0.0, 0]);
+        add(new THREE.BoxGeometry(1.6, 0.45, 0.1), 0x9c6b3f, [0, 0.28, -0.2]);
+        for (const lx of [0.7, -0.7]) for (const lz of [0.18, -0.18])
+          add(new THREE.BoxGeometry(0.1, 0.42, 0.1), 0x3a3f47, [lx, -0.22, lz]);
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(0.85 * s, 0.4 * s, 0.28 * s);
+        horizR = 0.9 * s; halfH = 0.4 * s;
+
+      } else if (kind === 'trash') {
+        add(new THREE.CylinderGeometry(0.3, 0.34, 0.7, 12), accent, [0, 0, 0]);
+        add(new THREE.CylinderGeometry(0.35, 0.35, 0.08, 12), 0x2a2f36, [0, 0.16, 0]);
+        add(new THREE.CylinderGeometry(0.37, 0.36, 0.1, 12), 0x1f242b, [0, 0.4, 0]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.45 * s, 0.34 * s);
+        horizR = 0.35 * s; halfH = 0.45 * s;
+
+      } else if (kind === 'building') {
+        add(new THREE.BoxGeometry(2.0, 4.4, 2.0), accent, [0, 0, 0]);
+        for (const wy of [-1.3, -0.2, 0.9, 2.0])
+          add(new THREE.BoxGeometry(2.06, 0.3, 2.06), 0x25303a, [0, wy, 0]);   // pencere bantları
+        add(new THREE.BoxGeometry(2.12, 0.18, 2.12), 0x3a4650, [0, 2.25, 0]);  // çatı kenarı
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(1.0 * s, 2.2 * s, 1.0 * s);
+        horizR = 1.3 * s; halfH = 2.2 * s;
+
+      } else if (kind === 'house') {
+        add(new THREE.BoxGeometry(1.6, 1.1, 1.4), accent, [0, 0, 0]);
+        add(new THREE.ConeGeometry(1.25, 0.9, 4), 0xb5533a, [0, 0.95, 0], [0, Math.PI / 4, 0]); // çatı
+        add(new THREE.BoxGeometry(0.34, 0.6, 0.06), 0x5b3a24, [0, -0.25, 0.71]);   // kapı
+        add(new THREE.BoxGeometry(0.3, 0.3, 0.06), 0x9fd8ff, [-0.5, 0.12, 0.71]);  // pencere
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(0.8 * s, 0.55 * s, 0.7 * s);
+        horizR = 1.02 * s; halfH = 0.55 * s;
+
+      } else if (kind === 'bus') {
+        add(new THREE.BoxGeometry(2.8, 0.9, 1.0), accent, [0, 0.05, 0]);
+        add(new THREE.BoxGeometry(2.5, 0.35, 1.02), 0x243038, [0, 0.42, 0]);       // pencere bandı
+        add(new THREE.BoxGeometry(0.5, 0.32, 1.03), 0x9fd8ff, [1.15, 0.1, 0]);     // ön cam
+        for (const wx of [0.9, -0.9]) for (const wz of [0.5, -0.5])
+          add(new THREE.CylinderGeometry(0.26, 0.26, 0.2, 12), 0x15151a, [wx, -0.5, wz], [0, 0, Math.PI / 2]);
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(1.45 * s, 0.6 * s, 0.55 * s);
+        horizR = 1.35 * s; halfH = 0.6 * s;
+
+      } else if (kind === 'lamp') {
+        add(new THREE.CylinderGeometry(0.08, 0.1, 2.3, 8), 0x454b54, [0, 0, 0]);
+        add(new THREE.BoxGeometry(0.5, 0.08, 0.12), 0x454b54, [0.22, 1.05, 0]);
+        add(new THREE.BoxGeometry(0.24, 0.14, 0.24), 0xfff2a8, [0.42, 0.98, 0]);   // lamba kafası
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(1.15 * s, 0.16 * s);
+        horizR = 0.2 * s; halfH = 1.15 * s;
+
+      } else if (kind === 'hydrant') {
+        add(new THREE.CylinderGeometry(0.16, 0.18, 0.5, 10), 0xe23b2e, [0, 0, 0]);
+        add(new THREE.SphereGeometry(0.17, 10, 8), 0xe23b2e, [0, 0.28, 0]);
+        add(new THREE.BoxGeometry(0.14, 0.1, 0.1), 0xc22a20, [0.2, 0.02, 0]);
+        add(new THREE.BoxGeometry(0.14, 0.1, 0.1), 0xc22a20, [-0.2, 0.02, 0]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.3 * s, 0.18 * s);
+        horizR = 0.2 * s; halfH = 0.3 * s;
+
+      } else if (kind === 'cone') {
+        add(new THREE.ConeGeometry(0.24, 0.55, 12), 0xff6d1a, [0, 0.05, 0]);
+        add(new THREE.CylinderGeometry(0.13, 0.13, 0.1, 12), 0xffffff, [0, 0.04, 0]);  // beyaz şerit
+        add(new THREE.BoxGeometry(0.44, 0.05, 0.44), 0xe25a10, [0, -0.24, 0]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.3 * s, 0.24 * s);
+        horizR = 0.26 * s; halfH = 0.3 * s;
+
+      } else if (kind === 'bush') {
+        add(new THREE.IcosahedronGeometry(0.4, 0), 0x3fa34a, [0, 0, 0]);
+        add(new THREE.IcosahedronGeometry(0.32, 0), 0x4bbd57, [0.28, 0.05, 0.1]);
+        add(new THREE.IcosahedronGeometry(0.3, 0), 0x35913f, [-0.24, 0.02, -0.1]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.32 * s, 0.42 * s);
+        horizR = 0.42 * s; halfH = 0.32 * s;
+
+      } else { // human
+        add(new THREE.BoxGeometry(0.14, 0.5, 0.16), 0x2c3e50, [-0.09, -0.35, 0]);
+        add(new THREE.BoxGeometry(0.14, 0.5, 0.16), 0x2c3e50, [0.09, -0.35, 0]);
+        add(new THREE.BoxGeometry(0.36, 0.5, 0.22), accent, [0, 0.08, 0]);
+        add(new THREE.BoxGeometry(0.1, 0.42, 0.12), accent, [0.25, 0.08, 0], [0, 0, 0.15]);
+        add(new THREE.BoxGeometry(0.1, 0.42, 0.12), accent, [-0.25, 0.08, 0], [0, 0, -0.15]);
+        add(new THREE.SphereGeometry(0.17, 10, 8), 0xf1c27d, [0, 0.5, 0]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.6 * s, 0.28 * s);
+        horizR = 0.28 * s; halfH = 0.6 * s;
+      }
+
+      // tüm modeli origin etrafında s ile ölçekle
+      const S = new THREE.Matrix4().makeScale(s, s, s);
+      for (const p of parts) p.m.premultiply(S);
+      return { geo: mergeParts(parts), colliderDesc, horizR, halfH };
+    }
+
+    // tüm objeler tek materyali paylaşır
+    const objMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65, metalness: 0.05, flatShading: true });
+
+    // ========================================================================
+    //  Objeleri dağıt
+    // ========================================================================
+    const objects = []; // { body, mesh, r, swallowed, removeAt }
+    const KIND_POOL = [
+      // küçük (kolay)
+      'human', 'human', 'human', 'trash', 'trash', 'cone', 'hydrant', 'bush', 'bush', 'lamp',
+      // orta
+      'bench', 'tree', 'tree', 'car', 'car', 'house',
+      // büyük (delik büyüyünce yutulur)
+      'bus', 'building',
+    ];
+    const rnd = (a, b) => a + Math.random() * (b - a);
+
+    // ---- Level dizilimleri: her level farklı bir şehir yerleşimi ----
+    function buildLayout(lvl) {
+      const R = (a, b) => a + Math.random() * (b - a);
+      const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+      const out = [];
+      const push = (kind, x, z, yaw, s) => out.push({ kind, x, z, yaw, s: s == null ? R(0.85, 1.12) : s });
+      const patterns = ['city', 'traffic', 'park', 'rings', 'rows'];
+      const pat = patterns[(lvl - 1) % patterns.length];
+      const tier = Math.floor((lvl - 1) / patterns.length);   // her tam turda biraz büyür
+
+      if (pat === 'city') {                       // ızgara halinde binalar/evler + yolda arabalar
+        const gap = 3.2, n = 2 + Math.min(2, tier);
+        for (const sx of [1, -1]) for (const sz of [1, -1])
+          for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+            const x = sx * (5.5 + i * gap), z = sz * (5.5 + j * gap);
+            if (Math.abs(x) > FIELD - 0.4 || Math.abs(z) > FIELD - 0.4) continue;
+            push(Math.random() < 0.5 ? 'building' : 'house', x, z, 0);
+          }
+        for (let k = 0; k < 5 + tier * 2; k++)
+          Math.random() < 0.5 ? push('car', R(-2.6, 2.6), R(-11, 11), Math.PI / 2)
+                              : push('car', R(-11, 11), R(-2.6, 2.6), 0);
+        for (const sx of [1, -1]) for (const sz of [1, -1]) push('tree', sx * 4.6, sz * 4.6, 0);
+
+      } else if (pat === 'traffic') {             // yollarda sıra sıra trafik + kaldırımda yayalar
+        const lanes = [-2.6, -1.0, 1.0, 2.6], gapz = 2.9 - Math.min(0.9, tier * 0.3);
+        for (const lane of lanes) for (let z = -11; z <= 11; z += gapz)
+          push(Math.random() < 0.12 ? 'bus' : 'car', lane, z + R(-0.2, 0.2), Math.PI / 2);
+        for (const lane of lanes) for (let x = -11; x <= 11; x += gapz)
+          push(Math.random() < 0.12 ? 'bus' : 'car', x + R(-0.2, 0.2), lane, 0);
+        for (let z = -11; z <= 11; z += 3.2) { push('human', 4.7, z, 0); push('human', -4.7, z, 0); }
+        for (const sx of [1, -1]) for (const sz of [1, -1]) push('lamp', sx * 4.4, sz * 4.4, 0);
+
+      } else if (pat === 'park') {                // çim üstünde ağaç/bank/çalı sıraları
+        const rows = 3 + Math.min(2, tier);
+        for (const sx of [1, -1]) for (const sz of [1, -1])
+          for (let i = 0; i < rows; i++) for (let j = 0; j < rows; j++) {
+            const x = sx * (5 + i * 2.4), z = sz * (5 + j * 2.4);
+            if (Math.abs(x) > FIELD || Math.abs(z) > FIELD) continue;
+            const r = Math.random();
+            push(r < 0.45 ? 'tree' : r < 0.7 ? 'bush' : r < 0.88 ? 'bench' : 'human', x, z, R(0, 6.28));
+          }
+        for (let k = 0; k < 8; k++) { const a = k / 8 * 6.283; push('tree', Math.cos(a) * 3, Math.sin(a) * 3, 0); }
+
+      } else if (pat === 'rings') {               // merkezden dışa doğru büyüyen halkalar
+        const rings = [
+          { rad: 3.0, n: 8, k: ['cone', 'hydrant', 'human', 'trash'] },
+          { rad: 5.2, n: 12, k: ['bush', 'human', 'cone', 'tree'] },
+          { rad: 7.4, n: 14, k: ['tree', 'bench', 'car', 'lamp'] },
+          { rad: 9.6, n: 16, k: ['house', 'tree', 'bench'] },
+          { rad: 11.6, n: 18, k: ['building', 'house', 'tree'] },
+        ];
+        const rc = Math.min(rings.length, 4 + tier);
+        for (let ri = 0; ri < rc; ri++) {
+          const rg = rings[ri];
+          for (let m = 0; m < rg.n; m++) {
+            const a = m / rg.n * 6.283 + R(-0.05, 0.05);
+            const x = Math.cos(a) * rg.rad, z = Math.sin(a) * rg.rad;
+            if (Math.abs(x) > FIELD || Math.abs(z) > FIELD) continue;
+            push(pick(rg.k), x, z, a + Math.PI / 2);
+          }
+        }
+
+      } else {                                    // rows: karışık paralel sıralar
+        let row = 0;
+        for (let z = -11; z <= 11; z += 3.0) {
+          const kinds = row % 2 === 0 ? ['car', 'human', 'cone', 'trash', 'bush'] : ['tree', 'bench', 'house', 'lamp', 'hydrant'];
+          for (let x = -11; x <= 11; x += 2.6) {
+            const kind = pick(kinds);
+            push(kind, x + R(-0.15, 0.15), z, kind === 'car' ? 0 : R(0, 6.28));
+          }
+          row++;
+        }
+      }
+
+      // delik başlangıcı (0,0) çevresini boşalt + üst sınır (perf)
+      return out.filter(p => Math.hypot(p.x, p.z) > 1.9).slice(0, 130);
+    }
+
+    function addObject(place) {
+      const kind = place.kind;
+      const s = place.s != null ? place.s : rnd(0.85, 1.2);
+      const accent = PALETTE[Math.floor(rnd(0, PALETTE.length))];
+      const model = buildModel(kind, s, accent);
+
+      const mesh = new THREE.Mesh(model.geo, objMaterial);
+      mesh.castShadow = true; mesh.receiveShadow = true;
+
+      const x = place.x, z = place.z;
+      const tall = model.halfH > 1.3;
+      const y = model.halfH + (tall ? 0.05 : 0.12);   // dizilim: yere düzgün otur
+      const yaw = place.yaw != null ? place.yaw : rnd(0, Math.PI * 2);
+
+      const body = world.createRigidBody(
+        RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y, z)
+          .setRotation({ x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) })
+          .setAngularDamping(0.4).setLinearDamping(0.05)
+      );
+      const col = world.createCollider(
+        model.colliderDesc().setDensity(1.0).setFriction(0.8).setRestitution(0.1), body
+      );
+      col.setCollisionGroups(G.NORMAL);
+
+      // hareket profili: otobüs sürer (yol eksenine hizalı), insanlar dolaşır — arabalar sabit
+      let drive = null;
+      if (kind === 'bus') {
+        const snapped = Math.round(yaw / (Math.PI / 2)) * (Math.PI / 2);
+        drive = { type: 'drive', heading: snapped, speed: rnd(2.2, 3.4), turn: 0 };
+      } else if (kind === 'human') {
+        drive = { type: 'wander', heading: yaw, speed: rnd(0.9, 1.7), turn: rnd(0.5, 2.0) };
+      }
+
+      mesh.position.set(x, y, z);
+      scene.add(mesh);
+      objects.push({ body, mesh, r: model.horizR, halfH: model.halfH, swallowed: false, removeAt: 0, drive });
+    }
+    for (const p of layout) addObject(p);
+
+    // ========================================================================
+    //  Toz partikülleri
+    // ========================================================================
+    const dustMat = new THREE.PointsMaterial({ color: 0xe8d6b0, size: 0.28, transparent: true, opacity: 0.9, depthWrite: false });
+    const dusts = []; // { pts, vel, life, max, pos }
+    function spawnDust(x, y, z, scale) {
+      const N = 16;
+      const pos = new Float32Array(N * 3), vel = new Float32Array(N * 3);
+      for (let i = 0; i < N; i++) {
+        pos[i * 3] = x; pos[i * 3 + 1] = y + 0.1; pos[i * 3 + 2] = z;
+        const a = Math.random() * Math.PI * 2, sp = (0.8 + Math.random() * 1.8) * scale;
+        vel[i * 3] = Math.cos(a) * sp; vel[i * 3 + 1] = 1.2 + Math.random() * 2.2; vel[i * 3 + 2] = Math.sin(a) * sp;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = dustMat.clone();
+      mat.size = 0.28 * scale;
+      const pts = new THREE.Points(geo, mat);
+      pts.renderOrder = 4;
+      scene.add(pts);
+      dusts.push({ pts, vel, life: 0, max: 0.6, pos });
+    }
+    function updateDust(dt) {
+      for (let i = dusts.length - 1; i >= 0; i--) {
+        const d = dusts[i]; d.life += dt;
+        const attr = d.pts.geometry.attributes.position, arr = attr.array;
+        for (let k = 0; k < d.vel.length; k += 3) {
+          d.vel[k + 1] -= 9 * dt;
+          arr[k] += d.vel[k] * dt; arr[k + 1] += d.vel[k + 1] * dt; arr[k + 2] += d.vel[k + 2] * dt;
+        }
+        attr.needsUpdate = true;
+        d.pts.material.opacity = Math.max(0, 0.9 * (1 - d.life / d.max));
+        if (d.life >= d.max) {
+          scene.remove(d.pts); d.pts.geometry.dispose(); d.pts.material.dispose();
+          dusts.splice(i, 1);
+        }
+      }
+    }
+
+    // ========================================================================
+    //  Input (pointer = mouse + touch)
+    // ========================================================================
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const hitPoint = new THREE.Vector3();
+    let dragging = false, hintFaded = false;
+
+    function pointerToGround(clientX, clientY) {
+      ndc.x = (clientX / window.innerWidth) * 2 - 1;
+      ndc.y = -(clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(ndc, camera);
+      if (raycaster.ray.intersectPlane(groundPlane, hitPoint)) {
+        hole.tx = THREE.MathUtils.clamp(hitPoint.x, -FIELD, FIELD);
+        hole.tz = THREE.MathUtils.clamp(hitPoint.z, -FIELD, FIELD);
+      }
+    }
+    function onDown(e) {
+      if (!playing) return;
+      dragging = true;
+      const p = e.touches ? e.touches[0] : e;
+      pointerToGround(p.clientX, p.clientY);
+      if (!hintFaded) { document.getElementById('hint').style.opacity = '0'; hintFaded = true; }
+    }
+    function onMove(e) { if (!dragging) return; const p = e.touches ? e.touches[0] : e; pointerToGround(p.clientX, p.clientY); }
+    function onUp() { dragging = false; }
+    app.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    app.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+    // ========================================================================
+    //  Game state / HUD
+    // ========================================================================
+    let swallowed = 0, score = 0, timeLeft = GAME_TIME, gameOver = false, playing = false, lastT = performance.now();
+    let shake = 0;                       // kamera sarsıntısı
+    let combo = 0, lastSwallowAt = -9999, coinsThisRun = 0;
+    const COMBO_WINDOW = 1400;           // ms — bu süre içinde yutunca combo artar
+
+    // koşuya özel parametreler (yükseltmelerle ayarlanır)
+    let startRadius = HOLE_R0, runTime = GAME_TIME, moveSpeed = HOLE_SPEED;
+
+    // kalıcı durum (hybrid-casual kancası: best skor + coin)
+    const state = {
+      best:  parseInt(localStorage.getItem('hole_best')  || '0', 10) || 0,
+      coins: parseInt(localStorage.getItem('hole_coins') || '0', 10) || 0,
+    };
+
+    // ---- Yükseltmeler (coin ile alınır, localStorage'da kalıcı) ----
+    const UPGRADES = [
+      { key: 'size',  name: 'Başlangıç Boyutu', icon: '⭕', max: 5, baseCost: 40, mul: 1.6, fmt: l => '+' + (l * 0.2).toFixed(1) + ' yarıçap' },
+      { key: 'time',  name: 'Süre',             icon: '⏱', max: 5, baseCost: 50, mul: 1.7, fmt: l => '+' + (l * 5) + ' sn' },
+      { key: 'speed', name: 'Sürükleme Hızı',   icon: '⚡', max: 5, baseCost: 35, mul: 1.5, fmt: l => '+' + (l * 10) + '%' },
+    ];
+    const upLvl  = k => parseInt(localStorage.getItem('hole_up_' + k) || '0', 10) || 0;
+    const upCost = u => Math.round(u.baseCost * Math.pow(u.mul, upLvl(u.key)));
+
+    const timeEl = document.getElementById('time');
+    const timeVal = timeEl.querySelector('.value');
+    const scoreVal = document.querySelector('#score .value');
+    const countSub = document.getElementById('countSub');
+    const comboEl = document.getElementById('combo');
+    const flashEl = document.getElementById('flash');
+    document.getElementById('loading').style.display = 'none';
+
+    function growHole() { hole.r = Math.min(HOLE_MAX, startRadius + HOLE_K * Math.log(1 + swallowed)); }
+
+    // ---- Hareket: araçları sürer, insanları dolaştırır (fizik hızıyla) ----
+    function updateDrive(o, t, dt) {
+      const d = o.drive;
+      const margin = FIELD - 1.5;
+      if (Math.abs(t.x) > margin || Math.abs(t.z) > margin) {
+        d.heading = Math.atan2(t.z, -t.x);           // kenara gelince merkeze dön
+      } else if (d.type === 'wander') {
+        d.turn -= dt;
+        if (d.turn <= 0) { d.heading += (Math.random() - 0.5) * 1.4; d.turn = 1.0 + Math.random() * 2.2; }
+      }
+      const h = d.heading;
+      const lv = o.body.linvel();
+      o.body.setLinvel({ x: Math.cos(h) * d.speed, y: lv.y, z: -Math.sin(h) * d.speed }, true);
+      o.body.setRotation({ x: 0, y: Math.sin(h / 2), z: 0, w: Math.cos(h / 2) }, true); // dik dur, yönüne bak
+      o.body.wakeUp();
+    }
+
+    // dünya noktasını ekran pikseline çevir (+N baloncukları için)
+    const _proj = new THREE.Vector3();
+    function worldToScreen(x, y, z) {
+      _proj.set(x, y, z).project(camera);
+      return { x: (_proj.x * 0.5 + 0.5) * window.innerWidth, y: (-_proj.y * 0.5 + 0.5) * window.innerHeight };
+    }
+    function floatText(text, sx, sy, color) {
+      const el = document.createElement('div');
+      el.className = 'pop'; el.textContent = text;
+      el.style.left = sx + 'px'; el.style.top = sy + 'px';
+      if (color) el.style.color = color;
+      el.addEventListener('animationend', () => el.remove());
+      document.body.appendChild(el);
+    }
+
+    // ---- MERKEZİ YUTMA OLAYI: skor / combo / coin / juice tek yerde ----
+    function onSwallow(o, t, now) {
+      swallowed++;
+      growHole();
+
+      // combo (kısa aralıkla art arda yutunca çarpan büyür)
+      combo = (now - lastSwallowAt < COMBO_WINDOW) ? combo + 1 : 1;
+      lastSwallowAt = now;
+
+      // boyuta göre temel puan × combo çarpanı
+      const base = Math.max(1, Math.round(o.r * 12));
+      const gained = base * combo;
+      score += gained;
+      coinsThisRun += 1;
+
+      // HUD
+      scoreVal.textContent = String(score);
+      scoreVal.classList.remove('bump'); void scoreVal.offsetWidth; scoreVal.classList.add('bump');
+      countSub.textContent = swallowed + ' nesne';
+      updateLevelBar();
+
+      // +N baloncuğu
+      const scr = worldToScreen(t.x, 0.5, t.z);
+      floatText('+' + gained, scr.x, scr.y, combo >= 3 ? '#ffd23f' : '#ffffff');
+
+      // combo göstergesi (2+)
+      if (combo >= 2) {
+        comboEl.textContent = 'COMBO x' + combo;
+        comboEl.classList.remove('show'); void comboEl.offsetWidth; comboEl.classList.add('show');
+      }
+
+      // juice
+      holePulse = 1;
+      shake = Math.min(0.4, shake + 0.14 + Math.min(0.18, combo * 0.03));
+      spawnDust(t.x, 0.05, t.z, Math.min(1.6, o.r + 0.4));
+      if (o.r > 0.8 || combo >= 4) {   // büyük obje / yüksek combo -> ekran parlaması
+        flashEl.style.transition = 'none';
+        flashEl.style.opacity = String(Math.min(0.6, 0.22 + combo * 0.05));
+        requestAnimationFrame(() => { flashEl.style.transition = 'opacity .35s ease'; flashEl.style.opacity = '0'; });
+      }
+
+      // level hedefi tamamlandı mı?
+      if (swallowed >= levelTarget) completeLevel();
+    }
+
+    // level ilerleme çubuğu
+    function updateLevelBar() {
+      document.getElementById('lvlNum').textContent = level;
+      document.getElementById('lvlCur').textContent = Math.min(swallowed, levelTarget);
+      document.getElementById('lvlTgt').textContent = levelTarget;
+      document.getElementById('lvlFill').style.width = Math.min(100, swallowed / levelTarget * 100) + '%';
+    }
+
+    const againBtn = document.getElementById('again');
+    const doubleBtn = document.getElementById('double');
+    document.getElementById('menu').addEventListener('click', () => location.reload());
+
+    // 2× Coin (rewarded reklam kancası). Şimdilik ödülü direkt verir;
+    // Capacitor'da gerçek reklam gösterilip ödül reklam callback'inde verilecek.
+    function setupDouble(baseCoins, gainedBefore) {
+      if (baseCoins <= 0) { doubleBtn.style.display = 'none'; return; }
+      doubleBtn.style.display = 'inline-block';
+      doubleBtn.disabled = false;
+      doubleBtn.textContent = '🎬 2× Coin';
+      doubleBtn.onclick = () => {
+        state.coins += baseCoins;
+        localStorage.setItem('hole_coins', String(state.coins));
+        document.getElementById('ovCoins').textContent = '🪙 +' + (gainedBefore + baseCoins) + '  ·  toplam ' + state.coins;
+        doubleBtn.disabled = true;
+        doubleBtn.textContent = '2× alındı ✓';
+      };
+    }
+
+    function finishRun(extraCoins) {
+      if (score > state.best) { state.best = score; localStorage.setItem('hole_best', String(state.best)); }
+      state.coins += coinsThisRun + (extraCoins || 0);
+      localStorage.setItem('hole_coins', String(state.coins));
+    }
+    function showOverlay(title, primaryText, primaryFn, gained) {
+      document.getElementById('ovTitle').textContent = title;
+      document.getElementById('finalScore').textContent = String(score);
+      document.getElementById('ovDetail').textContent = swallowed + ' / ' + levelTarget + ' nesne · En iyi ' + state.best;
+      document.getElementById('ovCoins').textContent = '🪙 +' + gained + '  ·  toplam ' + state.coins;
+      againBtn.textContent = primaryText;
+      againBtn.onclick = primaryFn;
+      document.getElementById('overlay').style.display = 'flex';
+    }
+
+    let levelDone = false;
+    function completeLevel() {
+      if (levelDone || !playing) return;
+      levelDone = true; playing = false;
+      const bonus = 20 + level * 5;                 // level tamamlama coin bonusu
+      finishRun(bonus);
+      showOverlay('Level ' + level + ' Tamamlandı 🎉', 'Sonraki Level →', () => {
+        localStorage.setItem('hole_level', String(level + 1));
+        sessionStorage.setItem('hole_autoplay', '1'); location.reload();
+      }, coinsThisRun + bonus);
+      setupDouble(coinsThisRun, coinsThisRun + bonus);
+    }
+    function failLevel() {
+      if (levelDone || !playing) return;
+      playing = false;
+      finishRun(0);
+      showOverlay('Süre Doldu', 'Tekrar Dene', () => {
+        sessionStorage.setItem('hole_autoplay', '1'); location.reload();
+      }, coinsThisRun);
+      setupDouble(coinsThisRun, coinsThisRun);
+    }
+
+    // ========================================================================
+    //  Ana ekran (meta) + yükseltmeler + oyun başlatma
+    // ========================================================================
+    const homeEl = document.getElementById('home');
+    const upWrap = document.getElementById('upgrades');
+    const homeCoinsEl = document.getElementById('homeCoins');
+
+    const skinWrap = document.getElementById('skins');
+    function renderSkins() {
+      const owned = ownedSkins(), sel = selectedSkin();
+      skinWrap.innerHTML = '';
+      for (const sk of SKINS) {
+        const own = owned.has(sk.key), isSel = sel === sk.key;
+        const el = document.createElement('div');
+        el.className = 'skin' + (isSel ? ' sel' : '') + (own ? ' owned' : '');
+        el.innerHTML =
+          '<div class="sw" style="--c:#' + sk.rim.toString(16).padStart(6, '0') + '"></div>' +
+          '<div class="sn">' + sk.name + '</div>' +
+          '<div class="sc">' + (own ? (isSel ? 'Seçili' : 'Seç') : '🪙 ' + sk.cost) + '</div>';
+        el.addEventListener('click', () => chooseSkin(sk));
+        skinWrap.appendChild(el);
+      }
+    }
+    function chooseSkin(sk) {
+      const owned = ownedSkins();
+      if (!owned.has(sk.key)) {
+        if (state.coins < sk.cost) {
+          const c = homeCoinsEl.parentElement;
+          c.classList.remove('nope'); void c.offsetWidth; c.classList.add('nope');
+          return;
+        }
+        state.coins -= sk.cost; localStorage.setItem('hole_coins', String(state.coins));
+        const list = Array.from(owned); list.push(sk.key);
+        localStorage.setItem('hole_skins', list.join(','));
+        homeCoinsEl.textContent = state.coins;
+      }
+      localStorage.setItem('hole_skin', sk.key);
+      applySkin(sk.key);
+      renderSkins();
+    }
+
+    function renderHome() {
+      homeCoinsEl.textContent = state.coins;
+      document.getElementById('homeBest').textContent = state.best;
+      document.getElementById('homeLevel').textContent = level;
+      renderSkins();
+      upWrap.innerHTML = '';
+      for (const u of UPGRADES) {
+        const lvl = upLvl(u.key), maxed = lvl >= u.max, cost = upCost(u);
+        const canBuy = !maxed && state.coins >= cost;
+        const card = document.createElement('div');
+        card.className = 'ucard';
+        card.innerHTML =
+          '<div class="uicon">' + u.icon + '</div>' +
+          '<div class="uinfo"><div class="uname">' + u.name + '</div>' +
+          '<div class="udots">' + '●'.repeat(lvl) + '○'.repeat(u.max - lvl) + '</div>' +
+          '<div class="ueff">' + u.fmt(lvl) + '</div></div>' +
+          '<button class="ubuy' + (canBuy ? '' : ' dis') + '">' + (maxed ? 'MAX' : '🪙 ' + cost) + '</button>';
+        if (!maxed) card.querySelector('.ubuy').addEventListener('click', () => buyUpgrade(u));
+        upWrap.appendChild(card);
+      }
+    }
+    function buyUpgrade(u) {
+      const lvl = upLvl(u.key);
+      if (lvl >= u.max) return;
+      const cost = upCost(u);
+      if (state.coins < cost) {
+        const c = homeCoinsEl.parentElement;
+        c.classList.remove('nope'); void c.offsetWidth; c.classList.add('nope');
+        return;
+      }
+      state.coins -= cost; localStorage.setItem('hole_coins', String(state.coins));
+      localStorage.setItem('hole_up_' + u.key, String(lvl + 1));
+      renderHome();
+    }
+
+    function applyUpgrades() {
+      startRadius = HOLE_R0 + upLvl('size') * 0.2;
+      runTime = GAME_TIME + upLvl('time') * 5;
+      moveSpeed = HOLE_SPEED * (1 + upLvl('speed') * 0.12);
+    }
+    function startGame() {
+      applyUpgrades();
+      hole.r = startRadius; applyHoleTransforms();
+      timeLeft = runTime;
+      timeVal.textContent = String(Math.ceil(runTime));
+      updateLevelBar();
+      homeEl.style.display = 'none';
+      playing = true;
+    }
+    document.getElementById('playBtn').addEventListener('click', startGame);
+
+    // açılış akışı: Tekrar'dan gelindiyse menüyü atla, yoksa ana ekranı göster
+    const autoPlay = sessionStorage.getItem('hole_autoplay') === '1';
+    sessionStorage.removeItem('hole_autoplay');
+    renderHome();
+    if (autoPlay) startGame();
+    else homeEl.style.display = 'flex';
+
+    // ========================================================================
+    //  Main loop
+    // ========================================================================
+    const shakeOff = new THREE.Vector3();
+    function tick(now) {
+      requestAnimationFrame(tick);
+      const dt = Math.min(0.05, (now - lastT) / 1000);
+      lastT = now;
+
+      if (playing) {
+        timeLeft -= dt;
+        if (timeLeft <= 0) { timeLeft = 0; failLevel(); }
+        const shown = Math.ceil(timeLeft);
+        timeVal.textContent = String(shown);
+        timeEl.classList.toggle('low', shown <= 10);
+
+        // hedefe sabit maksimum hızla git (ışınlanma değil, ağır/kontrollü)
+        {
+          const dx = hole.tx - hole.x, dz = hole.tz - hole.z;
+          const d = Math.hypot(dx, dz);
+          const step = moveSpeed * dt;
+          if (d <= step || d < 1e-4) { hole.x = hole.tx; hole.z = hole.tz; }
+          else { hole.x += (dx / d) * step; hole.z += (dz / d) * step; }
+        }
+
+        world.step();
+
+        for (let i = objects.length - 1; i >= 0; i--) {
+          const o = objects[i];
+          const t = o.body.translation();
+          const q = o.body.rotation();
+          o.mesh.position.set(t.x, t.y, t.z);
+          o.mesh.quaternion.set(q.x, q.y, q.z, q.w);
+
+          if (!o.swallowed) {
+            const hx = hole.x - t.x, hz = hole.z - t.z;
+            const hd = Math.hypot(hx, hz);
+            const R2 = hole.r * 1.55;                // çekim menzili (daha kısa)
+            const grounded = t.y < o.halfH + 0.7;   // objenin dinlenme yüksekliğine göre
+            const inSuction = (grounded && o.r < hole.r * 1.05 && hd > 0.001 && hd < R2);
+            if (inSuction) {
+              // ---- KENAR ÇEKİMİ (suction): sadece ağza yakın objeyi hafifçe içeri al ----
+              const speed = (1 - hd / R2) * 2.3;     // çekim gücü (daha yumuşak)
+              const lv = o.body.linvel();
+              o.body.setLinvel({ x: (hx / hd) * speed, y: lv.y, z: (hz / hd) * speed }, true);
+              o.body.wakeUp();
+            } else if (o.drive && t.y < 1.0) {
+              // ---- HAREKET: deliğin uzağındayken sür/dolaş ----
+              updateDrive(o, t, dt);
+            }
+            // ---- YUTMA TESPİTİ (mekanik) ----
+            if (grounded) {
+              const dx = t.x - hole.x, dz = t.z - hole.z;
+              const dist = Math.hypot(dx, dz);
+              if (o.r < hole.r * 0.92 && dist < hole.r - o.r * 0.55) {
+                o.swallowed = true;
+                o.removeAt = now + 1000;
+                o.body.collider(0).setCollisionGroups(G.FALLING);
+                o.body.wakeUp();
+                onSwallow(o, t, now);
+              }
+            }
+          } else {
+            // ---- görsel spiral (mekaniği etkilemez: obje zaten FALLING) ----
+            const dx = t.x - hole.x, dz = t.z - hole.z;
+            const d = Math.hypot(dx, dz) || 0.0001;
+            const tx = -dz / d, tz = dx / d;      // teğet yön
+            const spin = 5.0, pull = 3.5;
+            o.body.setLinvel({ x: tx * spin - (dx / d) * pull, y: -6.0, z: tz * spin - (dz / d) * pull }, true);
+            o.body.setAngvel({ x: 0, y: 7, z: 0 }, true);
+            if (now >= o.removeAt) {
+              scene.remove(o.mesh);
+              o.mesh.geometry.dispose();
+              world.removeRigidBody(o.body);
+              objects.splice(i, 1);
+            }
+          }
+        }
+
+        holePulse = Math.max(0, holePulse - dt * 3.5);
+        applyHoleTransforms();
+        updateDust(dt);
+      }
+
+      // ---- kamera: delik büyüdükçe yumuşak zoom-out (merkezde kalır) ----
+      const zoomTarget = Math.min(1.28, 1 + (hole.r - HOLE_R0) * 0.06);
+      camZoom += (zoomTarget - camZoom) * Math.min(1, dt * 2);
+      basePos.copy(CAM_DIR).multiplyScalar(baseRadius * camZoom);
+
+      // ---- kamera shake (hafif darbe, hızlı sönümlenir) ----
+      shake = Math.max(0, shake - dt * 3.5);
+      if (shake > 0.0001) {
+        const k = shake * shake * 0.5;
+        shakeOff.set((Math.random() - 0.5), (Math.random() - 0.5) * 0.5, (Math.random() - 0.5)).multiplyScalar(k);
+        camera.position.copy(basePos).add(shakeOff);
+      } else {
+        camera.position.copy(basePos);
+      }
+      camera.lookAt(0, 0, 0);
+
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
