@@ -133,6 +133,25 @@
     cursor: pointer; white-space: nowrap; }
   .ubuy:active { transform: translateY(2px); box-shadow: 0 2px 0 #d9a400; }
   .ubuy.dis { background: #cdd6e0; box-shadow: 0 4px 0 #aab4c0; color: #7c8794; cursor: default; }
+  .shop-label { align-self: flex-start; margin-top: 4px; font-size: 12px; font-weight: 800;
+    letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
+  #skins { width: 100%; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .skin { flex: 0 0 auto; width: 74px; background: rgba(255,255,255,.6); border-radius: 14px;
+    padding: 8px 6px; text-align: center; cursor: pointer; border: 2px solid transparent; }
+  .skin.sel { border-color: #22a34a; background: rgba(255,255,255,.85); }
+  .skin .sw { width: 38px; height: 38px; margin: 0 auto 5px; border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #0a0d15 44%, var(--c) 46%, var(--c) 60%, rgba(0,0,0,.25) 78%);
+    box-shadow: 0 0 10px var(--c); }
+  .skin .sn { font-size: 12px; font-weight: 700; }
+  .skin .sc { font-size: 11px; opacity: .75; margin-top: 1px; }
+  .skin.owned .sc { color: #22a34a; font-weight: 700; }
+
+  #double { pointer-events: auto; cursor: pointer; margin-top: 6px;
+    border: none; border-radius: 999px; padding: 13px 30px; font-size: 17px; font-weight: 800;
+    color: #10233a; background: linear-gradient(180deg,#ffe27a,#ffcf33); box-shadow: 0 5px 0 #d9a400; }
+  #double:active { transform: translateY(2px); box-shadow: 0 3px 0 #d9a400; }
+  #double:disabled { opacity: .55; box-shadow: 0 5px 0 #b98f00; cursor: default; }
+
   #playBtn { margin-top: 8px; border: none; border-radius: 999px; padding: 16px 64px;
     font-size: 22px; font-weight: 900; letter-spacing: .05em; color: #fff; cursor: pointer;
     background: linear-gradient(180deg,#4ecb6a,#22a34a); box-shadow: 0 6px 0 #177735; }
@@ -167,6 +186,7 @@
     <div class="big" id="finalScore">0</div>
     <p class="sub2" id="ovDetail">0 nesne · En iyi 0</p>
     <p class="coins" id="ovCoins">🪙 0</p>
+    <button id="double">🎬 2× Coin</button>
     <button id="again">Tekrar Oyna</button>
     <button id="menu">Menü / Yükseltmeler</button>
   </div>
@@ -176,6 +196,8 @@
       <div class="home-title">HOLE</div>
       <div class="coinbar">🪙 <span id="homeCoins">0</span></div>
       <div id="upgrades"></div>
+      <div class="shop-label">Delik Görünümü</div>
+      <div id="skins"></div>
       <button id="playBtn">OYNA</button>
       <div class="best-line">Level <span id="homeLevel">1</span> · En iyi skor: <span id="homeBest">0</span></div>
     </div>
@@ -223,6 +245,18 @@
 
     // Canlı / doygun palet (Hole.io tarzı, 5 renk)
     const PALETTE = [0xff4d4d, 0x4d7cff, 0xffd23f, 0x2ecc71, 0xff8c1a];
+
+    // ---- Delik skinleri (kozmetik, coin ile alınır — All in Hole tarzı meta) ----
+    const SKINS = [
+      { key: 'dark',   name: 'Klasik',  cost: 0,   rim: 0x0a0d15, glow: 0x000000 },
+      { key: 'neon',   name: 'Neon',    cost: 80,  rim: 0x00e5ff, glow: 0x00e5ff },
+      { key: 'lava',   name: 'Lav',     cost: 120, rim: 0xff5a1f, glow: 0xff3b00 },
+      { key: 'toxic',  name: 'Zehir',   cost: 140, rim: 0x7cfc00, glow: 0x39ff14 },
+      { key: 'galaxy', name: 'Galaksi', cost: 160, rim: 0xb983ff, glow: 0x7d3cff },
+      { key: 'gold',   name: 'Altın',   cost: 220, rim: 0xffd23f, glow: 0xffb300 },
+    ];
+    const ownedSkins   = () => { const s = new Set((localStorage.getItem('hole_skins') || '').split(',').filter(Boolean)); s.add('dark'); return s; };
+    const selectedSkin = () => localStorage.getItem('hole_skin') || 'dark';
 
     // ========================================================================
     //  Renderer / Scene / Camera
@@ -377,12 +411,33 @@
 
     const rim = new THREE.Mesh(
       new THREE.RingGeometry(0.84, 1.0, 48),
-      new THREE.MeshStandardMaterial({ color: 0x0a0d15, roughness: 1, side: THREE.DoubleSide })
+      new THREE.MeshStandardMaterial({ color: 0x0a0d15, emissive: 0x000000, roughness: 1, side: THREE.DoubleSide })
     );
     rim.rotation.x = -Math.PI / 2;
     rim.position.y = 0.015;
     rim.renderOrder = 3;
     scene.add(rim);
+
+    // skin parlaması: rim'in dışına additive halka
+    const glowRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.92, 1.4, 48),
+      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false })
+    );
+    glowRing.rotation.x = -Math.PI / 2;
+    glowRing.position.y = 0.018;
+    glowRing.renderOrder = 3;
+    scene.add(glowRing);
+
+    function applySkin(key) {
+      const sk = SKINS.find(s => s.key === key) || SKINS[0];
+      const hasGlow = sk.glow && sk.glow !== 0x000000;
+      rim.material.color.setHex(sk.rim);
+      rim.material.emissive.setHex(sk.glow);
+      rim.material.emissiveIntensity = hasGlow ? 0.9 : 0;
+      glowRing.material.color.setHex(hasGlow ? sk.glow : 0x000000);
+      glowRing.material.opacity = hasGlow ? 0.45 : 0;
+    }
+    applySkin(selectedSkin());
 
     function applyHoleTransforms() {
       const vr = hole.r * (1 + 0.12 * holePulse); // nabız yalnızca görseli büyütür
@@ -392,6 +447,8 @@
       wellGroup.scale.set(vr, 1, vr);
       rim.position.set(hole.x, 0.015, hole.z);
       rim.scale.set(vr, vr, vr);
+      glowRing.position.set(hole.x, 0.018, hole.z);
+      glowRing.scale.set(vr, vr, vr);
     }
     applyHoleTransforms();
 
@@ -873,7 +930,24 @@
     }
 
     const againBtn = document.getElementById('again');
+    const doubleBtn = document.getElementById('double');
     document.getElementById('menu').addEventListener('click', () => location.reload());
+
+    // 2× Coin (rewarded reklam kancası). Şimdilik ödülü direkt verir;
+    // Capacitor'da gerçek reklam gösterilip ödül reklam callback'inde verilecek.
+    function setupDouble(baseCoins, gainedBefore) {
+      if (baseCoins <= 0) { doubleBtn.style.display = 'none'; return; }
+      doubleBtn.style.display = 'inline-block';
+      doubleBtn.disabled = false;
+      doubleBtn.textContent = '🎬 2× Coin';
+      doubleBtn.onclick = () => {
+        state.coins += baseCoins;
+        localStorage.setItem('hole_coins', String(state.coins));
+        document.getElementById('ovCoins').textContent = '🪙 +' + (gainedBefore + baseCoins) + '  ·  toplam ' + state.coins;
+        doubleBtn.disabled = true;
+        doubleBtn.textContent = '2× alındı ✓';
+      };
+    }
 
     function finishRun(extraCoins) {
       if (score > state.best) { state.best = score; localStorage.setItem('hole_best', String(state.best)); }
@@ -900,6 +974,7 @@
         localStorage.setItem('hole_level', String(level + 1));
         sessionStorage.setItem('hole_autoplay', '1'); location.reload();
       }, coinsThisRun + bonus);
+      setupDouble(coinsThisRun, coinsThisRun + bonus);
     }
     function failLevel() {
       if (levelDone || !playing) return;
@@ -908,6 +983,7 @@
       showOverlay('Süre Doldu', 'Tekrar Dene', () => {
         sessionStorage.setItem('hole_autoplay', '1'); location.reload();
       }, coinsThisRun);
+      setupDouble(coinsThisRun, coinsThisRun);
     }
 
     // ========================================================================
@@ -917,10 +993,45 @@
     const upWrap = document.getElementById('upgrades');
     const homeCoinsEl = document.getElementById('homeCoins');
 
+    const skinWrap = document.getElementById('skins');
+    function renderSkins() {
+      const owned = ownedSkins(), sel = selectedSkin();
+      skinWrap.innerHTML = '';
+      for (const sk of SKINS) {
+        const own = owned.has(sk.key), isSel = sel === sk.key;
+        const el = document.createElement('div');
+        el.className = 'skin' + (isSel ? ' sel' : '') + (own ? ' owned' : '');
+        el.innerHTML =
+          '<div class="sw" style="--c:#' + sk.rim.toString(16).padStart(6, '0') + '"></div>' +
+          '<div class="sn">' + sk.name + '</div>' +
+          '<div class="sc">' + (own ? (isSel ? 'Seçili' : 'Seç') : '🪙 ' + sk.cost) + '</div>';
+        el.addEventListener('click', () => chooseSkin(sk));
+        skinWrap.appendChild(el);
+      }
+    }
+    function chooseSkin(sk) {
+      const owned = ownedSkins();
+      if (!owned.has(sk.key)) {
+        if (state.coins < sk.cost) {
+          const c = homeCoinsEl.parentElement;
+          c.classList.remove('nope'); void c.offsetWidth; c.classList.add('nope');
+          return;
+        }
+        state.coins -= sk.cost; localStorage.setItem('hole_coins', String(state.coins));
+        const list = Array.from(owned); list.push(sk.key);
+        localStorage.setItem('hole_skins', list.join(','));
+        homeCoinsEl.textContent = state.coins;
+      }
+      localStorage.setItem('hole_skin', sk.key);
+      applySkin(sk.key);
+      renderSkins();
+    }
+
     function renderHome() {
       homeCoinsEl.textContent = state.coins;
       document.getElementById('homeBest').textContent = state.best;
       document.getElementById('homeLevel').textContent = level;
+      renderSkins();
       upWrap.innerHTML = '';
       for (const u of UPGRADES) {
         const lvl = upLvl(u.key), maxed = lvl >= u.max, cost = upCost(u);
