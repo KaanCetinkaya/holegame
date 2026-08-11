@@ -152,7 +152,8 @@
   #daily:active { transform: translateY(2px); box-shadow: 0 3px 0 #d9a400; }
   #daily:disabled { background: rgba(255,255,255,.55); box-shadow: 0 5px 0 rgba(0,0,0,.12);
     color: #6b7686; cursor: default; }
-  #achBtn { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
+  .hrow { display: flex; gap: 10px; }
+  #achBtn, #mute { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
     padding: 9px 22px; font-size: 14px; font-weight: 700; color: #10233a;
     background: rgba(255,255,255,.6); }
 
@@ -239,7 +240,10 @@
       <div class="home-title">HOLE</div>
       <div class="coinbar">🪙 <span id="homeCoins">0</span></div>
       <button id="daily">🎁 Günlük Ödül</button>
-      <button id="achBtn">🏆 Başarımlar</button>
+      <div class="hrow">
+        <button id="achBtn">🏆 Başarımlar</button>
+        <button id="mute">🔊 Ses</button>
+      </div>
       <div class="shop-label">Yolculuk</div>
       <div id="levelmap"></div>
       <div id="upgrades"></div>
@@ -321,6 +325,38 @@
       try { await _AdMob.showBanner({ adId: AD_UNITS.banner, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0 }); _bannerShown = true; } catch (e) { }
     }
     adsInit();
+
+    // ========================================================================
+    //  Ses (WebAudio ile sentez, dosyasız) + titreşim
+    // ========================================================================
+    const _AC = window.AudioContext || window.webkitAudioContext;
+    let _actx = null;
+    let muted = localStorage.getItem('hole_muted') === '1';
+    function ensureAudio() {
+      try { if (!_actx && _AC) _actx = new _AC(); if (_actx && _actx.state === 'suspended') _actx.resume(); } catch (e) { }
+    }
+    function beep(freq, dur, type, vol, when) {
+      if (muted || !_actx) return;
+      try {
+        const t = _actx.currentTime + (when || 0);
+        const o = _actx.createOscillator(), g = _actx.createGain();
+        o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(vol || 0.2, t + 0.008);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(_actx.destination); o.start(t); o.stop(t + dur + 0.02);
+      } catch (e) { }
+    }
+    function vibrate(p) { try { if (!muted && navigator.vibrate) navigator.vibrate(p); } catch (e) { } }
+    const sfx = {
+      swallow(c) { ensureAudio(); beep(360 + Math.min(c, 12) * 26, 0.11, 'triangle', 0.16); vibrate(10); },
+      click() { ensureAudio(); beep(300, 0.05, 'sine', 0.12); },
+      win() { ensureAudio(); [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.2, 'triangle', 0.18, i * 0.09)); vibrate([20, 40, 25]); },
+      lose() { ensureAudio(); [420, 320, 240].forEach((f, i) => beep(f, 0.22, 'sawtooth', 0.14, i * 0.1)); vibrate(70); },
+      coin() { ensureAudio(); beep(880, 0.07, 'square', 0.12); beep(1320, 0.09, 'square', 0.10, 0.05); },
+    };
+    // her etkileşimde sesi aç; butonlarda tık sesi
+    document.addEventListener('pointerdown', (e) => { ensureAudio(); if (e.target.closest && e.target.closest('button')) sfx.click(); }, true);
 
     // ========================================================================
     //  Config  (MEKANİK sabitleri — değiştirilmedi)
@@ -726,7 +762,7 @@
       const pick = arr => arr[Math.floor(Math.random() * arr.length)];
       const out = [];
       const push = (kind, x, z, yaw, s) => out.push({ kind, x, z, yaw, s: s == null ? R(0.85, 1.12) : s });
-      const patterns = ['city', 'traffic', 'park', 'rings', 'rows'];
+      const patterns = ['city', 'traffic', 'park', 'rings', 'rows', 'spiral', 'heart', 'stadium'];
       const pat = patterns[(lvl - 1) % patterns.length];
       const tier = Math.floor((lvl - 1) / patterns.length);   // her tam turda biraz büyür
 
@@ -782,7 +818,7 @@
           }
         }
 
-      } else {                                    // rows: karışık paralel sıralar
+      } else if (pat === 'rows') {                // karışık paralel sıralar
         let row = 0;
         for (let z = -11; z <= 11; z += 3.0) {
           const kinds = row % 2 === 0 ? ['car', 'human', 'cone', 'trash', 'bush'] : ['tree', 'bench', 'house', 'lamp', 'hydrant'];
@@ -791,6 +827,40 @@
             push(kind, x + R(-0.15, 0.15), z, kind === 'car' ? 0 : R(0, 6.28));
           }
           row++;
+        }
+
+      } else if (pat === 'spiral') {              // merkezden dışa spiral
+        const count = 60 + tier * 22;
+        for (let i = 0; i < count; i++) {
+          const a = i * 0.5, rad = 1.9 + a * 0.34;
+          if (rad > FIELD - 0.6) break;
+          const kind = rad < 4 ? pick(['human', 'cone', 'hydrant', 'trash'])
+                     : rad < 8 ? pick(['bush', 'tree', 'bench', 'car'])
+                               : pick(['house', 'tree', 'building']);
+          push(kind, Math.cos(a) * rad, Math.sin(a) * rad, a);
+        }
+
+      } else if (pat === 'heart') {               // kalp şekli
+        const n = 44 + tier * 12, sc = 0.62;
+        for (let i = 0; i < n; i++) {
+          const tt = (i / n) * Math.PI * 2;
+          const hx = 16 * Math.pow(Math.sin(tt), 3);
+          const hy = 13 * Math.cos(tt) - 5 * Math.cos(2 * tt) - 2 * Math.cos(3 * tt) - Math.cos(4 * tt);
+          const x = hx * sc, z = -hy * sc + 1.2;
+          if (Math.abs(x) > FIELD || Math.abs(z) > FIELD) continue;
+          push(pick(['tree', 'bush', 'cone', 'human', 'bench', 'trash']), x, z, R(0, 6.28));
+        }
+        for (let k = 0; k < 6; k++) push('tree', R(-4, 4), R(-2, 4), 0);
+
+      } else {                                    // stadium: oval stant + iç saha
+        const n = 24 + tier * 6;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2;
+          push(pick(['building', 'house', 'tree']), Math.cos(a) * 10.5, Math.sin(a) * 7.5, a + Math.PI / 2);
+        }
+        for (let x = -6; x <= 6; x += 2.2) for (let z = -3.5; z <= 3.5; z += 2.2) {
+          if (Math.hypot(x, z) < 1.9) continue;
+          push(pick(['human', 'cone', 'bush']), x, z, R(0, 6.28));
         }
       }
 
@@ -1013,6 +1083,7 @@
       holePulse = 1;
       shake = Math.min(0.4, shake + 0.14 + Math.min(0.18, combo * 0.03));
       spawnDust(t.x, 0.05, t.z, Math.min(1.6, o.r + 0.4));
+      sfx.swallow(combo);
       if (o.r > 0.8 || combo >= 4) {   // büyük obje / yüksek combo -> ekran parlaması
         flashEl.style.transition = 'none';
         flashEl.style.opacity = String(Math.min(0.6, 0.22 + combo * 0.05));
@@ -1049,6 +1120,7 @@
         state.coins += baseCoins;
         localStorage.setItem('hole_coins', String(state.coins));
         document.getElementById('ovCoins').textContent = '🪙 +' + (gainedBefore + baseCoins) + '  ·  toplam ' + state.coins;
+        sfx.coin();
         doubleBtn.textContent = '2× alındı ✓';
       };
     }
@@ -1081,6 +1153,7 @@
     function completeLevel() {
       if (levelDone || !playing) return;
       levelDone = true; playing = false;
+      sfx.win();
       const bonus = 20 + level * 5;                 // level tamamlama coin bonusu
       finishRun(bonus);
       showOverlay('Level ' + level + ' Tamamlandı 🎉', 'Sonraki Level →', async () => {
@@ -1094,6 +1167,7 @@
     function failLevel() {
       if (levelDone || !playing) return;
       playing = false;
+      sfx.lose();
       finishRun(0);
       showOverlay('Süre Doldu', 'Tekrar Dene', async () => {
         sessionStorage.setItem('hole_autoplay', '1');
@@ -1133,6 +1207,7 @@
         localStorage.setItem('hole_daily_last', today);
         localStorage.setItem('hole_daily_streak', String(nextStreak));
         homeCoinsEl.textContent = state.coins;
+        sfx.coin();
         renderDaily();
       };
     }
@@ -1189,7 +1264,7 @@
 
     // ---- Level haritası (journey): mevcut level etrafında düğümler ----
     const mapWrap = document.getElementById('levelmap');
-    const PATTERN_ICON = ['🏙️', '🚦', '🌳', '🎯', '🧱'];   // city/traffic/park/rings/rows
+    const PATTERN_ICON = ['🏙️', '🚦', '🌳', '🎯', '🧱', '🌀', '❤️', '🏟️'];   // 8 dizilim türü
     function renderLevelMap() {
       mapWrap.innerHTML = '';
       const from = Math.max(1, level - 3), to = level + 4;
@@ -1294,6 +1369,14 @@
       showBanner();   // native: oyun sırasında altta banner reklam
     }
     document.getElementById('playBtn').addEventListener('click', startGame);
+
+    const muteBtn = document.getElementById('mute');
+    function updateMuteBtn() { muteBtn.textContent = muted ? '🔇 Kapalı' : '🔊 Ses'; }
+    updateMuteBtn();
+    muteBtn.addEventListener('click', () => {
+      muted = !muted; localStorage.setItem('hole_muted', muted ? '1' : '0'); updateMuteBtn();
+      if (!muted) sfx.click();
+    });
 
     // açılış akışı: Tekrar'dan gelindiyse menüyü atla, yoksa ana ekranı göster
     const autoPlay = sessionStorage.getItem('hole_autoplay') === '1';
