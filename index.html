@@ -498,9 +498,18 @@
       );
       col.setCollisionGroups(G.NORMAL);
 
+      // hareket profili: araçlar sürer (yol eksenine hizalı), insanlar dolaşır
+      let drive = null;
+      if (kind === 'car') {
+        const snapped = Math.round(yaw / (Math.PI / 2)) * (Math.PI / 2);
+        drive = { type: 'drive', heading: snapped, speed: rnd(3.0, 5.0), turn: 0 };
+      } else if (kind === 'human') {
+        drive = { type: 'wander', heading: yaw, speed: rnd(0.9, 1.7), turn: rnd(0.5, 2.0) };
+      }
+
       mesh.position.set(x, y, z);
       scene.add(mesh);
-      objects.push({ body, mesh, r: model.horizR, swallowed: false, removeAt: 0 });
+      objects.push({ body, mesh, r: model.horizR, swallowed: false, removeAt: 0, drive });
     }
     for (let i = 0; i < OBJECT_COUNT; i++) addObject();
 
@@ -611,6 +620,23 @@
     document.getElementById('loading').style.display = 'none';
 
     function growHole() { hole.r = Math.min(HOLE_MAX, startRadius + HOLE_K * Math.log(1 + swallowed)); }
+
+    // ---- Hareket: araçları sürer, insanları dolaştırır (fizik hızıyla) ----
+    function updateDrive(o, t, dt) {
+      const d = o.drive;
+      const margin = FIELD - 1.5;
+      if (Math.abs(t.x) > margin || Math.abs(t.z) > margin) {
+        d.heading = Math.atan2(t.z, -t.x);           // kenara gelince merkeze dön
+      } else if (d.type === 'wander') {
+        d.turn -= dt;
+        if (d.turn <= 0) { d.heading += (Math.random() - 0.5) * 1.4; d.turn = 1.0 + Math.random() * 2.2; }
+      }
+      const h = d.heading;
+      const lv = o.body.linvel();
+      o.body.setLinvel({ x: Math.cos(h) * d.speed, y: lv.y, z: -Math.sin(h) * d.speed }, true);
+      o.body.setRotation({ x: 0, y: Math.sin(h / 2), z: 0, w: Math.cos(h / 2) }, true); // dik dur, yönüne bak
+      o.body.wakeUp();
+    }
 
     // dünya noktasını ekran pikseline çevir (+N baloncukları için)
     const _proj = new THREE.Vector3();
@@ -778,18 +804,19 @@
           o.mesh.quaternion.set(q.x, q.y, q.z, q.w);
 
           if (!o.swallowed) {
-            // ---- KENAR ÇEKİMİ (suction): yutulabilir boyuttaki yakın objeleri
-            //      deliğe doğru fiziksel olarak kaydırır (teleport değil) ----
-            {
-              const hx = hole.x - t.x, hz = hole.z - t.z;
-              const hd = Math.hypot(hx, hz);
-              const R2 = hole.r * 2.2;
-              if (t.y < 1.2 && o.r < hole.r * 1.05 && hd > 0.001 && hd < R2) {
-                const speed = (1 - hd / R2) * 4.2;   // merkeze yakınken güçlü
-                const lv = o.body.linvel();
-                o.body.setLinvel({ x: (hx / hd) * speed, y: lv.y, z: (hz / hd) * speed }, true);
-                o.body.wakeUp();
-              }
+            const hx = hole.x - t.x, hz = hole.z - t.z;
+            const hd = Math.hypot(hx, hz);
+            const R2 = hole.r * 2.2;
+            const inSuction = (t.y < 1.2 && o.r < hole.r * 1.05 && hd > 0.001 && hd < R2);
+            if (inSuction) {
+              // ---- KENAR ÇEKİMİ (suction): yakın & yutulabilir objeyi deliğe kaydır ----
+              const speed = (1 - hd / R2) * 4.2;
+              const lv = o.body.linvel();
+              o.body.setLinvel({ x: (hx / hd) * speed, y: lv.y, z: (hz / hd) * speed }, true);
+              o.body.wakeUp();
+            } else if (o.drive && t.y < 1.0) {
+              // ---- HAREKET: deliğin uzağındayken sür/dolaş ----
+              updateDrive(o, t, dt);
             }
             // ---- YUTMA TESPİTİ (mekanik — değişmedi) ----
             if (t.y < 1.5) {
