@@ -1005,12 +1005,12 @@
           if (!o.swallowed) {
             const hx = hole.x - t.x, hz = hole.z - t.z;
             const hd = Math.hypot(hx, hz);
-            const R2 = hole.r * 2.2;
+            const R2 = hole.r * 1.55;                // çekim menzili (daha kısa)
             const grounded = t.y < o.halfH + 0.7;   // objenin dinlenme yüksekliğine göre
             const inSuction = (grounded && o.r < hole.r * 1.05 && hd > 0.001 && hd < R2);
             if (inSuction) {
-              // ---- KENAR ÇEKİMİ (suction): yakın & yutulabilir objeyi deliğe kaydır ----
-              const speed = (1 - hd / R2) * 4.2;
+              // ---- KENAR ÇEKİMİ (suction): sadece ağza yakın objeyi hafifçe içeri al ----
+              const speed = (1 - hd / R2) * 2.3;     // çekim gücü (daha yumuşak)
               const lv = o.body.linvel();
               o.body.setLinvel({ x: (hx / hd) * speed, y: lv.y, z: (hz / hd) * speed }, true);
               o.body.wakeUp();
