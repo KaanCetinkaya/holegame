@@ -95,6 +95,19 @@
   #overlay .sub2 { font-size: clamp(14px,4vw,18px); opacity:.78; }
   #overlay .coins { font-size: clamp(15px,4.5vw,20px); color:#ffd23f; font-weight:700; }
 
+  #levelbar {
+    position: fixed; top: calc(env(safe-area-inset-top,0px) + 16px); left: 50%; transform: translateX(-50%);
+    width: min(46vw, 210px); text-align: center; pointer-events: none; z-index: 4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #eef2ff;
+    text-shadow: 0 2px 8px rgba(0,0,0,.6);
+  }
+  .lvl-label { font-size: 12px; font-weight: 800; letter-spacing: .14em; opacity: .9; }
+  .lvl-track { height: 9px; margin: 4px 0 3px; border-radius: 999px; overflow: hidden;
+    background: rgba(10,14,22,.5); border: 1px solid rgba(255,255,255,.12); }
+  .lvl-fill { height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg,#8be9fd,#38bdf8); transition: width .18s ease; }
+  .lvl-count { font-size: 11px; opacity: .7; font-variant-numeric: tabular-nums; }
+
   /* ---- Ana ekran (meta / yükseltmeler) ---- */
   #home { position: fixed; inset: 0; z-index: 12; display: none;
     align-items: center; justify-content: center; overflow-y: auto; padding: 28px 22px;
@@ -138,6 +151,12 @@
     </div>
   </div>
 
+  <div id="levelbar">
+    <div class="lvl-label">LEVEL <span id="lvlNum">1</span></div>
+    <div class="lvl-track"><div class="lvl-fill" id="lvlFill"></div></div>
+    <div class="lvl-count"><span id="lvlCur">0</span> / <span id="lvlTgt">0</span></div>
+  </div>
+
   <div id="combo"></div>
   <div id="flash"></div>
 
@@ -158,7 +177,7 @@
       <div class="coinbar">🪙 <span id="homeCoins">0</span></div>
       <div id="upgrades"></div>
       <button id="playBtn">OYNA</button>
-      <div class="best-line">En iyi skor: <span id="homeBest">0</span></div>
+      <div class="best-line">Level <span id="homeLevel">1</span> · En iyi skor: <span id="homeBest">0</span></div>
     </div>
   </div>
 
@@ -182,8 +201,13 @@
     //  Config  (MEKANİK sabitleri — değiştirilmedi)
     // ========================================================================
     const FIELD = 13;            // yarı-alan
-    const OBJECT_COUNT = 80;
     const GAME_TIME = 90;        // saniye
+
+    // ---- Level: hedef nesne sayısı + o level için spawn adedi ----
+    const level = parseInt(localStorage.getItem('hole_level') || '1', 10) || 1;
+    const levelTarget = Math.min(80, 18 + (level - 1) * 6);   // hedef (üst sınır 80)
+    const spawnCount = Math.min(110, levelTarget + 22);       // sahnedeki nesne sayısı
+
     const GRAVITY = -22;
     const HOLE_R0 = 1.35;        // başlangıç delik yarıçapı
     const HOLE_K = 0.72;         // logaritmik büyüme katsayısı
@@ -576,7 +600,7 @@
       scene.add(mesh);
       objects.push({ body, mesh, r: model.horizR, halfH: model.halfH, swallowed: false, removeAt: 0, drive });
     }
-    for (let i = 0; i < OBJECT_COUNT; i++) addObject();
+    for (let i = 0; i < spawnCount; i++) addObject();
 
     // ========================================================================
     //  Toz partikülleri
@@ -737,6 +761,7 @@
       scoreVal.textContent = String(score);
       scoreVal.classList.remove('bump'); void scoreVal.offsetWidth; scoreVal.classList.add('bump');
       countSub.textContent = swallowed + ' nesne';
+      updateLevelBar();
 
       // +N baloncuğu
       const scr = worldToScreen(t.x, 0.5, t.z);
@@ -757,25 +782,55 @@
         flashEl.style.opacity = String(Math.min(0.6, 0.22 + combo * 0.05));
         requestAnimationFrame(() => { flashEl.style.transition = 'opacity .35s ease'; flashEl.style.opacity = '0'; });
       }
+
+      // level hedefi tamamlandı mı?
+      if (swallowed >= levelTarget) completeLevel();
     }
 
-    // oyun-sonu: Tekrar (autoplay ile menüyü atla) / Menü (yükseltmeler)
-    document.getElementById('again').addEventListener('click', () => {
-      sessionStorage.setItem('hole_autoplay', '1'); location.reload();
-    });
+    // level ilerleme çubuğu
+    function updateLevelBar() {
+      document.getElementById('lvlNum').textContent = level;
+      document.getElementById('lvlCur').textContent = Math.min(swallowed, levelTarget);
+      document.getElementById('lvlTgt').textContent = levelTarget;
+      document.getElementById('lvlFill').style.width = Math.min(100, swallowed / levelTarget * 100) + '%';
+    }
+
+    const againBtn = document.getElementById('again');
     document.getElementById('menu').addEventListener('click', () => location.reload());
 
-    function endGame() {
-      gameOver = true; playing = false;
-      const isBest = score > state.best;
-      if (isBest) { state.best = score; localStorage.setItem('hole_best', String(state.best)); }
-      state.coins += coinsThisRun; localStorage.setItem('hole_coins', String(state.coins));
-
-      document.getElementById('ovTitle').textContent = isBest ? 'Yeni Rekor! 🎉' : 'Süre Doldu';
+    function finishRun(extraCoins) {
+      if (score > state.best) { state.best = score; localStorage.setItem('hole_best', String(state.best)); }
+      state.coins += coinsThisRun + (extraCoins || 0);
+      localStorage.setItem('hole_coins', String(state.coins));
+    }
+    function showOverlay(title, primaryText, primaryFn, gained) {
+      document.getElementById('ovTitle').textContent = title;
       document.getElementById('finalScore').textContent = String(score);
-      document.getElementById('ovDetail').textContent = swallowed + ' nesne · En iyi ' + state.best;
-      document.getElementById('ovCoins').textContent = '🪙 +' + coinsThisRun + '  ·  toplam ' + state.coins;
+      document.getElementById('ovDetail').textContent = swallowed + ' / ' + levelTarget + ' nesne · En iyi ' + state.best;
+      document.getElementById('ovCoins').textContent = '🪙 +' + gained + '  ·  toplam ' + state.coins;
+      againBtn.textContent = primaryText;
+      againBtn.onclick = primaryFn;
       document.getElementById('overlay').style.display = 'flex';
+    }
+
+    let levelDone = false;
+    function completeLevel() {
+      if (levelDone || !playing) return;
+      levelDone = true; playing = false;
+      const bonus = 20 + level * 5;                 // level tamamlama coin bonusu
+      finishRun(bonus);
+      showOverlay('Level ' + level + ' Tamamlandı 🎉', 'Sonraki Level →', () => {
+        localStorage.setItem('hole_level', String(level + 1));
+        sessionStorage.setItem('hole_autoplay', '1'); location.reload();
+      }, coinsThisRun + bonus);
+    }
+    function failLevel() {
+      if (levelDone || !playing) return;
+      playing = false;
+      finishRun(0);
+      showOverlay('Süre Doldu', 'Tekrar Dene', () => {
+        sessionStorage.setItem('hole_autoplay', '1'); location.reload();
+      }, coinsThisRun);
     }
 
     // ========================================================================
@@ -788,6 +843,7 @@
     function renderHome() {
       homeCoinsEl.textContent = state.coins;
       document.getElementById('homeBest').textContent = state.best;
+      document.getElementById('homeLevel').textContent = level;
       upWrap.innerHTML = '';
       for (const u of UPGRADES) {
         const lvl = upLvl(u.key), maxed = lvl >= u.max, cost = upCost(u);
@@ -828,6 +884,7 @@
       hole.r = startRadius; applyHoleTransforms();
       timeLeft = runTime;
       timeVal.textContent = String(Math.ceil(runTime));
+      updateLevelBar();
       homeEl.style.display = 'none';
       playing = true;
     }
@@ -851,7 +908,7 @@
 
       if (playing) {
         timeLeft -= dt;
-        if (timeLeft <= 0) { timeLeft = 0; endGame(); }
+        if (timeLeft <= 0) { timeLeft = 0; failLevel(); }
         const shown = Math.ceil(timeLeft);
         timeVal.textContent = String(shown);
         timeEl.classList.toggle('low', shown <= 10);
