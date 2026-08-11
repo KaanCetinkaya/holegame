@@ -203,10 +203,10 @@
     const FIELD = 13;            // yarı-alan
     const GAME_TIME = 90;        // saniye
 
-    // ---- Level: hedef nesne sayısı ----
+    // ---- Level: her level tasarlanmış bir "şehir dizilimi" (Hole It / Hole Em All tarzı) ----
     const level = parseInt(localStorage.getItem('hole_level') || '1', 10) || 1;
-    const levelTarget = Math.min(220, 35 + (level - 1) * 12);  // L1=35, +12/level
-    const POP = 60;   // sahnede tutulacak nesne sayısı (refill ile korunur)
+    const layout = buildLayout(level);      // dizilimdeki obje yerleşimleri
+    const levelTarget = layout.length;      // hedef = dizilimin tamamını yut
 
     const GRAVITY = -22;
     const HOLE_R0 = 1.35;        // başlangıç delik yarıçapı
@@ -559,28 +559,97 @@
     ];
     const rnd = (a, b) => a + Math.random() * (b - a);
 
-    function addObject(isRefill) {
-      const kind = KIND_POOL[Math.floor(rnd(0, KIND_POOL.length))];
-      const s = rnd(0.85, 1.2);
+    // ---- Level dizilimleri: her level farklı bir şehir yerleşimi ----
+    function buildLayout(lvl) {
+      const R = (a, b) => a + Math.random() * (b - a);
+      const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+      const out = [];
+      const push = (kind, x, z, yaw, s) => out.push({ kind, x, z, yaw, s: s == null ? R(0.85, 1.12) : s });
+      const patterns = ['city', 'traffic', 'park', 'rings', 'rows'];
+      const pat = patterns[(lvl - 1) % patterns.length];
+      const tier = Math.floor((lvl - 1) / patterns.length);   // her tam turda biraz büyür
+
+      if (pat === 'city') {                       // ızgara halinde binalar/evler + yolda arabalar
+        const gap = 3.2, n = 2 + Math.min(2, tier);
+        for (const sx of [1, -1]) for (const sz of [1, -1])
+          for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+            const x = sx * (5.5 + i * gap), z = sz * (5.5 + j * gap);
+            if (Math.abs(x) > FIELD - 0.4 || Math.abs(z) > FIELD - 0.4) continue;
+            push(Math.random() < 0.5 ? 'building' : 'house', x, z, 0);
+          }
+        for (let k = 0; k < 5 + tier * 2; k++)
+          Math.random() < 0.5 ? push('car', R(-2.6, 2.6), R(-11, 11), Math.PI / 2)
+                              : push('car', R(-11, 11), R(-2.6, 2.6), 0);
+        for (const sx of [1, -1]) for (const sz of [1, -1]) push('tree', sx * 4.6, sz * 4.6, 0);
+
+      } else if (pat === 'traffic') {             // yollarda sıra sıra trafik + kaldırımda yayalar
+        const lanes = [-2.6, -1.0, 1.0, 2.6], gapz = 2.9 - Math.min(0.9, tier * 0.3);
+        for (const lane of lanes) for (let z = -11; z <= 11; z += gapz)
+          push(Math.random() < 0.12 ? 'bus' : 'car', lane, z + R(-0.2, 0.2), Math.PI / 2);
+        for (const lane of lanes) for (let x = -11; x <= 11; x += gapz)
+          push(Math.random() < 0.12 ? 'bus' : 'car', x + R(-0.2, 0.2), lane, 0);
+        for (let z = -11; z <= 11; z += 3.2) { push('human', 4.7, z, 0); push('human', -4.7, z, 0); }
+        for (const sx of [1, -1]) for (const sz of [1, -1]) push('lamp', sx * 4.4, sz * 4.4, 0);
+
+      } else if (pat === 'park') {                // çim üstünde ağaç/bank/çalı sıraları
+        const rows = 3 + Math.min(2, tier);
+        for (const sx of [1, -1]) for (const sz of [1, -1])
+          for (let i = 0; i < rows; i++) for (let j = 0; j < rows; j++) {
+            const x = sx * (5 + i * 2.4), z = sz * (5 + j * 2.4);
+            if (Math.abs(x) > FIELD || Math.abs(z) > FIELD) continue;
+            const r = Math.random();
+            push(r < 0.45 ? 'tree' : r < 0.7 ? 'bush' : r < 0.88 ? 'bench' : 'human', x, z, R(0, 6.28));
+          }
+        for (let k = 0; k < 8; k++) { const a = k / 8 * 6.283; push('tree', Math.cos(a) * 3, Math.sin(a) * 3, 0); }
+
+      } else if (pat === 'rings') {               // merkezden dışa doğru büyüyen halkalar
+        const rings = [
+          { rad: 3.0, n: 8, k: ['cone', 'hydrant', 'human', 'trash'] },
+          { rad: 5.2, n: 12, k: ['bush', 'human', 'cone', 'tree'] },
+          { rad: 7.4, n: 14, k: ['tree', 'bench', 'car', 'lamp'] },
+          { rad: 9.6, n: 16, k: ['house', 'tree', 'bench'] },
+          { rad: 11.6, n: 18, k: ['building', 'house', 'tree'] },
+        ];
+        const rc = Math.min(rings.length, 4 + tier);
+        for (let ri = 0; ri < rc; ri++) {
+          const rg = rings[ri];
+          for (let m = 0; m < rg.n; m++) {
+            const a = m / rg.n * 6.283 + R(-0.05, 0.05);
+            const x = Math.cos(a) * rg.rad, z = Math.sin(a) * rg.rad;
+            if (Math.abs(x) > FIELD || Math.abs(z) > FIELD) continue;
+            push(pick(rg.k), x, z, a + Math.PI / 2);
+          }
+        }
+
+      } else {                                    // rows: karışık paralel sıralar
+        let row = 0;
+        for (let z = -11; z <= 11; z += 3.0) {
+          const kinds = row % 2 === 0 ? ['car', 'human', 'cone', 'trash', 'bush'] : ['tree', 'bench', 'house', 'lamp', 'hydrant'];
+          for (let x = -11; x <= 11; x += 2.6) {
+            const kind = pick(kinds);
+            push(kind, x + R(-0.15, 0.15), z, kind === 'car' ? 0 : R(0, 6.28));
+          }
+          row++;
+        }
+      }
+
+      // delik başlangıcı (0,0) çevresini boşalt + üst sınır (perf)
+      return out.filter(p => Math.hypot(p.x, p.z) > 1.9).slice(0, 130);
+    }
+
+    function addObject(place) {
+      const kind = place.kind;
+      const s = place.s != null ? place.s : rnd(0.85, 1.2);
       const accent = PALETTE[Math.floor(rnd(0, PALETTE.length))];
       const model = buildModel(kind, s, accent);
 
       const mesh = new THREE.Mesh(model.geo, objMaterial);
       mesh.castShadow = true; mesh.receiveShadow = true;
 
-      let x = rnd(-FIELD + 1.5, FIELD - 1.5);
-      let z = rnd(-FIELD + 1.5, FIELD - 1.5);
-      if (isRefill) {
-        // refill: delikten uzağa doğ ki hemen yutulup kaybolmasın
-        for (let tries = 0; tries < 8 && Math.hypot(x - hole.x, z - hole.z) < hole.r + 3.5; tries++) {
-          x = rnd(-FIELD + 1.5, FIELD - 1.5);
-          z = rnd(-FIELD + 1.5, FIELD - 1.5);
-        }
-      }
+      const x = place.x, z = place.z;
       const tall = model.halfH > 1.3;
-      const drop = isRefill ? (tall ? 0.1 : rnd(1.5, 3.5)) : (tall ? 0.05 : rnd(0.1, 1.4));
-      const y = model.halfH + drop;
-      const yaw = rnd(0, Math.PI * 2);
+      const y = model.halfH + (tall ? 0.05 : 0.12);   // dizilim: yere düzgün otur
+      const yaw = place.yaw != null ? place.yaw : rnd(0, Math.PI * 2);
 
       const body = world.createRigidBody(
         RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y, z)
@@ -608,7 +677,7 @@
       scene.add(mesh);
       objects.push({ body, mesh, r: model.horizR, halfH: model.halfH, swallowed: false, removeAt: 0, drive });
     }
-    for (let i = 0; i < POP; i++) addObject();
+    for (const p of layout) addObject(p);
 
     // ========================================================================
     //  Toz partikülleri
@@ -687,7 +756,6 @@
     // ========================================================================
     let swallowed = 0, score = 0, timeLeft = GAME_TIME, gameOver = false, playing = false, lastT = performance.now();
     let shake = 0;                       // kamera sarsıntısı
-    let refillTimer = 0;                 // sahne refill zamanlayıcısı
     let combo = 0, lastSwallowAt = -9999, coinsThisRun = 0;
     const COMBO_WINDOW = 1400;           // ms — bu süre içinde yutunca combo artar
 
@@ -978,10 +1046,6 @@
             }
           }
         }
-
-        // sahneyi dolu tut: nesneler azaldıkça yenilerini akıt
-        refillTimer -= dt;
-        if (objects.length < POP && refillTimer <= 0) { addObject(true); refillTimer = 0.22; }
 
         holePulse = Math.max(0, holePulse - dt * 3.5);
         applyHoleTransforms();
