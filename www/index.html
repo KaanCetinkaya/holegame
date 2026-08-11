@@ -133,6 +133,13 @@
     cursor: pointer; white-space: nowrap; }
   .ubuy:active { transform: translateY(2px); box-shadow: 0 2px 0 #d9a400; }
   .ubuy.dis { background: #cdd6e0; box-shadow: 0 4px 0 #aab4c0; color: #7c8794; cursor: default; }
+  #daily { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
+    padding: 12px 26px; font-size: 16px; font-weight: 800; color: #10233a;
+    background: linear-gradient(180deg,#ffe27a,#ffcf33); box-shadow: 0 5px 0 #d9a400; }
+  #daily:active { transform: translateY(2px); box-shadow: 0 3px 0 #d9a400; }
+  #daily:disabled { background: rgba(255,255,255,.55); box-shadow: 0 5px 0 rgba(0,0,0,.12);
+    color: #6b7686; cursor: default; }
+
   .shop-label { align-self: flex-start; margin-top: 4px; font-size: 12px; font-weight: 800;
     letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
   #skins { width: 100%; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
@@ -195,6 +202,7 @@
     <div class="home-inner">
       <div class="home-title">HOLE</div>
       <div class="coinbar">🪙 <span id="homeCoins">0</span></div>
+      <button id="daily">🎁 Günlük Ödül</button>
       <div id="upgrades"></div>
       <div class="shop-label">Delik Görünümü</div>
       <div id="skins"></div>
@@ -230,6 +238,7 @@
     const AD_UNITS = {
       rewarded:     'ca-app-pub-3940256099942544/5224354917',   // Google TEST rewarded
       interstitial: 'ca-app-pub-3940256099942544/1033173712',   // Google TEST interstitial
+      banner:       'ca-app-pub-3940256099942544/6300978111',   // Google TEST banner
     };
     let _interReady = false;
     async function adsInit() {
@@ -258,6 +267,11 @@
           await _AdMob.showRewardVideoAd();
         } catch (e) { cleanup(); resolve(false); }
       });
+    }
+    let _bannerShown = false;
+    async function showBanner() {
+      if (!ADS_ON || _bannerShown) return;
+      try { await _AdMob.showBanner({ adId: AD_UNITS.banner, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0 }); _bannerShown = true; } catch (e) { }
     }
     adsInit();
 
@@ -1039,6 +1053,33 @@
     const upWrap = document.getElementById('upgrades');
     const homeCoinsEl = document.getElementById('homeCoins');
 
+    // ---- Günlük ödül (retention): günde bir, art arda günlerde streak büyür ----
+    const dailyBtn = document.getElementById('daily');
+    const dayKey = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    function renderDaily() {
+      const today = dayKey(new Date());
+      const last = localStorage.getItem('hole_daily_last') || '';
+      const streak = parseInt(localStorage.getItem('hole_daily_streak') || '0', 10) || 0;
+      if (last === today) {
+        dailyBtn.disabled = true;
+        dailyBtn.textContent = '🎁 Bugün alındı ✓';
+        dailyBtn.onclick = null;
+        return;
+      }
+      const yesterday = dayKey(new Date(Date.now() - 86400000));
+      const nextStreak = (last === yesterday) ? streak + 1 : 1;
+      const reward = Math.min(200, 30 + nextStreak * 20);
+      dailyBtn.disabled = false;
+      dailyBtn.textContent = '🎁 Günlük Ödül +' + reward + (nextStreak > 1 ? ' · ' + nextStreak + '. gün' : '');
+      dailyBtn.onclick = () => {
+        state.coins += reward; localStorage.setItem('hole_coins', String(state.coins));
+        localStorage.setItem('hole_daily_last', today);
+        localStorage.setItem('hole_daily_streak', String(nextStreak));
+        homeCoinsEl.textContent = state.coins;
+        renderDaily();
+      };
+    }
+
     const skinWrap = document.getElementById('skins');
     function renderSkins() {
       const owned = ownedSkins(), sel = selectedSkin();
@@ -1077,6 +1118,7 @@
       homeCoinsEl.textContent = state.coins;
       document.getElementById('homeBest').textContent = state.best;
       document.getElementById('homeLevel').textContent = level;
+      renderDaily();
       renderSkins();
       upWrap.innerHTML = '';
       for (const u of UPGRADES) {
@@ -1121,6 +1163,7 @@
       updateLevelBar();
       homeEl.style.display = 'none';
       playing = true;
+      showBanner();   // native: oyun sırasında altta banner reklam
     }
     document.getElementById('playBtn').addEventListener('click', startGame);
 
