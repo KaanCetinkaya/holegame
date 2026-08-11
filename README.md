@@ -74,7 +74,20 @@ npx cap sync
 3. `index.html` içindeki `AD_UNITS.rewarded` ve `AD_UNITS.interstitial` değerlerini kendi **reklam birimi ID**'lerinle değiştir, sonra `npm run build:www && npx cap sync`.
 4. Reklam varsa Play Console'da **gizlilik politikası** ve **veri güvenliği** formu zorunlu.
 
+## İkon & Splash
+
+Kaynak görseller `assets/` klasöründe hazır (delik temalı):
+`icon-only.png`, `icon-foreground.png`, `icon-background.png` (1024×1024),
+`splash.png`, `splash-dark.png` (2732×2732).
+
+Tüm platform ikon/splash boyutlarını üretmek için (android eklendikten sonra):
+```bash
+npx @capacitor/assets generate --android
+```
+Bu, `assets/`'tan Android ikonlarını (adaptive dahil) ve splash ekranlarını
+`android/` projesine yazar. Görseli değiştirmek istersen `assets/` içindeki
+PNG'leri değiştirip komutu tekrar çalıştır.
+
 ## Sonraki adımlar (opsiyonel)
 
-- **İkon/Splash:** `@capacitor/assets` ile üret (bizim delik ikonundan).
-- **Banner reklam**, günlük ödül, daha çok skin vb.
+- **Banner reklam**, günlük ödül, daha çok skin, level haritası vb.
