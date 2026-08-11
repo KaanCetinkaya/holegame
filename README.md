@@ -88,6 +88,15 @@ Bu, `assets/`'tan Android ikonlarını (adaptive dahil) ve splash ekranlarını
 `android/` projesine yazar. Görseli değiştirmek istersen `assets/` içindeki
 PNG'leri değiştirip komutu tekrar çalıştır.
 
+## Mağaza görselleri (Play Console listesi)
+
+`store/` klasöründe hazır:
+- `feature-1024x500.png` — feature grafiği (liste başındaki banner, zorunlu)
+- `1-home.png … 5-gold.png` — telefon ekran görüntüleri (1080×1920), gerçek oynanış
+
+Play Console'da: en az 2 ekran görüntüsü + feature grafiği + 512×512 ikon
+(ikon `@capacitor/assets` çıktısından veya `assets/icon-only.png`'den) yükle.
+
 ## Sonraki adımlar (opsiyonel)
 
 - **Banner reklam**, günlük ödül, daha çok skin, level haritası vb.
