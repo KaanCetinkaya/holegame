@@ -447,6 +447,60 @@
         colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.45 * s, 0.34 * s);
         horizR = 0.35 * s; halfH = 0.45 * s;
 
+      } else if (kind === 'building') {
+        add(new THREE.BoxGeometry(2.0, 4.4, 2.0), accent, [0, 0, 0]);
+        for (const wy of [-1.3, -0.2, 0.9, 2.0])
+          add(new THREE.BoxGeometry(2.06, 0.3, 2.06), 0x25303a, [0, wy, 0]);   // pencere bantları
+        add(new THREE.BoxGeometry(2.12, 0.18, 2.12), 0x3a4650, [0, 2.25, 0]);  // çatı kenarı
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(1.0 * s, 2.2 * s, 1.0 * s);
+        horizR = 1.45 * s; halfH = 2.2 * s;
+
+      } else if (kind === 'house') {
+        add(new THREE.BoxGeometry(1.6, 1.1, 1.4), accent, [0, 0, 0]);
+        add(new THREE.ConeGeometry(1.25, 0.9, 4), 0xb5533a, [0, 0.95, 0], [0, Math.PI / 4, 0]); // çatı
+        add(new THREE.BoxGeometry(0.34, 0.6, 0.06), 0x5b3a24, [0, -0.25, 0.71]);   // kapı
+        add(new THREE.BoxGeometry(0.3, 0.3, 0.06), 0x9fd8ff, [-0.5, 0.12, 0.71]);  // pencere
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(0.8 * s, 0.55 * s, 0.7 * s);
+        horizR = 1.02 * s; halfH = 0.55 * s;
+
+      } else if (kind === 'bus') {
+        add(new THREE.BoxGeometry(2.8, 0.9, 1.0), accent, [0, 0.05, 0]);
+        add(new THREE.BoxGeometry(2.5, 0.35, 1.02), 0x243038, [0, 0.42, 0]);       // pencere bandı
+        add(new THREE.BoxGeometry(0.5, 0.32, 1.03), 0x9fd8ff, [1.15, 0.1, 0]);     // ön cam
+        for (const wx of [0.9, -0.9]) for (const wz of [0.5, -0.5])
+          add(new THREE.CylinderGeometry(0.26, 0.26, 0.2, 12), 0x15151a, [wx, -0.5, wz], [0, 0, Math.PI / 2]);
+        colliderDesc = () => RAPIER.ColliderDesc.cuboid(1.45 * s, 0.6 * s, 0.55 * s);
+        horizR = 1.5 * s; halfH = 0.6 * s;
+
+      } else if (kind === 'lamp') {
+        add(new THREE.CylinderGeometry(0.08, 0.1, 2.3, 8), 0x454b54, [0, 0, 0]);
+        add(new THREE.BoxGeometry(0.5, 0.08, 0.12), 0x454b54, [0.22, 1.05, 0]);
+        add(new THREE.BoxGeometry(0.24, 0.14, 0.24), 0xfff2a8, [0.42, 0.98, 0]);   // lamba kafası
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(1.15 * s, 0.16 * s);
+        horizR = 0.2 * s; halfH = 1.15 * s;
+
+      } else if (kind === 'hydrant') {
+        add(new THREE.CylinderGeometry(0.16, 0.18, 0.5, 10), 0xe23b2e, [0, 0, 0]);
+        add(new THREE.SphereGeometry(0.17, 10, 8), 0xe23b2e, [0, 0.28, 0]);
+        add(new THREE.BoxGeometry(0.14, 0.1, 0.1), 0xc22a20, [0.2, 0.02, 0]);
+        add(new THREE.BoxGeometry(0.14, 0.1, 0.1), 0xc22a20, [-0.2, 0.02, 0]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.3 * s, 0.18 * s);
+        horizR = 0.2 * s; halfH = 0.3 * s;
+
+      } else if (kind === 'cone') {
+        add(new THREE.ConeGeometry(0.24, 0.55, 12), 0xff6d1a, [0, 0.05, 0]);
+        add(new THREE.CylinderGeometry(0.13, 0.13, 0.1, 12), 0xffffff, [0, 0.04, 0]);  // beyaz şerit
+        add(new THREE.BoxGeometry(0.44, 0.05, 0.44), 0xe25a10, [0, -0.24, 0]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.3 * s, 0.24 * s);
+        horizR = 0.26 * s; halfH = 0.3 * s;
+
+      } else if (kind === 'bush') {
+        add(new THREE.IcosahedronGeometry(0.4, 0), 0x3fa34a, [0, 0, 0]);
+        add(new THREE.IcosahedronGeometry(0.32, 0), 0x4bbd57, [0.28, 0.05, 0.1]);
+        add(new THREE.IcosahedronGeometry(0.3, 0), 0x35913f, [-0.24, 0.02, -0.1]);
+        colliderDesc = () => RAPIER.ColliderDesc.cylinder(0.32 * s, 0.42 * s);
+        horizR = 0.42 * s; halfH = 0.32 * s;
+
       } else { // human
         add(new THREE.BoxGeometry(0.14, 0.5, 0.16), 0x2c3e50, [-0.09, -0.35, 0]);
         add(new THREE.BoxGeometry(0.14, 0.5, 0.16), 0x2c3e50, [0.09, -0.35, 0]);
@@ -471,7 +525,14 @@
     //  Objeleri dağıt
     // ========================================================================
     const objects = []; // { body, mesh, r, swallowed, removeAt }
-    const KIND_POOL = ['human', 'human', 'human', 'trash', 'trash', 'bench', 'tree', 'tree', 'car', 'car'];
+    const KIND_POOL = [
+      // küçük (kolay)
+      'human', 'human', 'human', 'trash', 'trash', 'cone', 'hydrant', 'bush', 'bush', 'lamp',
+      // orta
+      'bench', 'tree', 'tree', 'car', 'car', 'house',
+      // büyük (delik büyüyünce yutulur)
+      'bus', 'building',
+    ];
     const rnd = (a, b) => a + Math.random() * (b - a);
 
     function addObject() {
@@ -485,7 +546,8 @@
 
       const x = rnd(-FIELD + 1.5, FIELD - 1.5);
       const z = rnd(-FIELD + 1.5, FIELD - 1.5);
-      const y = model.halfH + rnd(0.1, 2.2);
+      const drop = model.halfH > 1.3 ? 0.05 : rnd(0.1, 1.4);   // uzun objeler düşük düşsün
+      const y = model.halfH + drop;
       const yaw = rnd(0, Math.PI * 2);
 
       const body = world.createRigidBody(
@@ -498,11 +560,14 @@
       );
       col.setCollisionGroups(G.NORMAL);
 
-      // hareket profili: araçlar sürer (yol eksenine hizalı), insanlar dolaşır
+      // hareket profili: araç/otobüs sürer (yol eksenine hizalı), insanlar dolaşır
       let drive = null;
       if (kind === 'car') {
         const snapped = Math.round(yaw / (Math.PI / 2)) * (Math.PI / 2);
         drive = { type: 'drive', heading: snapped, speed: rnd(3.0, 5.0), turn: 0 };
+      } else if (kind === 'bus') {
+        const snapped = Math.round(yaw / (Math.PI / 2)) * (Math.PI / 2);
+        drive = { type: 'drive', heading: snapped, speed: rnd(2.2, 3.4), turn: 0 };
       } else if (kind === 'human') {
         drive = { type: 'wander', heading: yaw, speed: rnd(0.9, 1.7), turn: rnd(0.5, 2.0) };
       }
