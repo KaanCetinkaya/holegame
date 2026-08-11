@@ -453,7 +453,7 @@
           add(new THREE.BoxGeometry(2.06, 0.3, 2.06), 0x25303a, [0, wy, 0]);   // pencere bantları
         add(new THREE.BoxGeometry(2.12, 0.18, 2.12), 0x3a4650, [0, 2.25, 0]);  // çatı kenarı
         colliderDesc = () => RAPIER.ColliderDesc.cuboid(1.0 * s, 2.2 * s, 1.0 * s);
-        horizR = 1.45 * s; halfH = 2.2 * s;
+        horizR = 1.3 * s; halfH = 2.2 * s;
 
       } else if (kind === 'house') {
         add(new THREE.BoxGeometry(1.6, 1.1, 1.4), accent, [0, 0, 0]);
@@ -470,7 +470,7 @@
         for (const wx of [0.9, -0.9]) for (const wz of [0.5, -0.5])
           add(new THREE.CylinderGeometry(0.26, 0.26, 0.2, 12), 0x15151a, [wx, -0.5, wz], [0, 0, Math.PI / 2]);
         colliderDesc = () => RAPIER.ColliderDesc.cuboid(1.45 * s, 0.6 * s, 0.55 * s);
-        horizR = 1.5 * s; halfH = 0.6 * s;
+        horizR = 1.35 * s; halfH = 0.6 * s;
 
       } else if (kind === 'lamp') {
         add(new THREE.CylinderGeometry(0.08, 0.1, 2.3, 8), 0x454b54, [0, 0, 0]);
@@ -574,7 +574,7 @@
 
       mesh.position.set(x, y, z);
       scene.add(mesh);
-      objects.push({ body, mesh, r: model.horizR, swallowed: false, removeAt: 0, drive });
+      objects.push({ body, mesh, r: model.horizR, halfH: model.halfH, swallowed: false, removeAt: 0, drive });
     }
     for (let i = 0; i < OBJECT_COUNT; i++) addObject();
 
@@ -872,7 +872,8 @@
             const hx = hole.x - t.x, hz = hole.z - t.z;
             const hd = Math.hypot(hx, hz);
             const R2 = hole.r * 2.2;
-            const inSuction = (t.y < 1.2 && o.r < hole.r * 1.05 && hd > 0.001 && hd < R2);
+            const grounded = t.y < o.halfH + 0.7;   // objenin dinlenme yüksekliğine göre
+            const inSuction = (grounded && o.r < hole.r * 1.05 && hd > 0.001 && hd < R2);
             if (inSuction) {
               // ---- KENAR ÇEKİMİ (suction): yakın & yutulabilir objeyi deliğe kaydır ----
               const speed = (1 - hd / R2) * 4.2;
@@ -883,8 +884,8 @@
               // ---- HAREKET: deliğin uzağındayken sür/dolaş ----
               updateDrive(o, t, dt);
             }
-            // ---- YUTMA TESPİTİ (mekanik — değişmedi) ----
-            if (t.y < 1.5) {
+            // ---- YUTMA TESPİTİ (mekanik) ----
+            if (grounded) {
               const dx = t.x - hole.x, dz = t.z - hole.z;
               const dist = Math.hypot(dx, dz);
               if (o.r < hole.r * 0.92 && dist < hole.r - o.r * 0.55) {
