@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Fruit Hole</title>
+<meta name="theme-color" content="#e8c07d" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Fruit Hole" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #e8c07d; }
+  #app { position: fixed; inset: 0; touch-action: none; }
+  canvas { display: block; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+  #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #7a5a2a; font-size: 16px; z-index: 30; background: #e8c07d; }
+
+  #hud { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0;
+    display: flex; gap: 8px; padding: 12px 14px; pointer-events: none; flex-wrap: wrap; z-index: 5; }
+  .counter { display: flex; align-items: center; gap: 6px; background: rgba(90,50,140,.88);
+    border: 2px solid rgba(255,255,255,.35); border-radius: 999px; padding: 6px 12px 6px 6px;
+    box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+  .counter .dot { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5); }
+  .counter .n { color: #fff; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .counter .n.bump { animation: bump .2s ease; }
+  @keyframes bump { 0%{transform:scale(1)} 45%{transform:scale(1.3)} 100%{transform:scale(1)} }
+
+  #sizeTag { position: fixed; top: calc(env(safe-area-inset-top,0px) + 6px); left: 50%; transform: translateX(-50%);
+    background: rgba(30,120,220,.92); color: #fff; font-weight: 800; font-size: 13px;
+    border-radius: 999px; padding: 6px 16px; box-shadow: 0 3px 0 rgba(0,0,0,.2); z-index: 5; pointer-events: none; }
+
+  #levelTag { position: fixed; top: calc(env(safe-area-inset-top,0px) + 36px); left: 50%; transform: translateX(-50%);
+    color: #7a5a2a; font-weight: 700; font-size: 13px; opacity: .85; z-index: 5; pointer-events: none; text-shadow: 0 1px 0 rgba(255,255,255,.4); }
+
+  #bottom { position: fixed; left: 0; right: 0; bottom: 0;
+    padding-bottom: calc(env(safe-area-inset-bottom,0px) + 10px);
+    display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 6; }
+
+  #levelRow { display: flex; gap: 8px; }
+  .lnode { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(180deg,#8a6fd8,#6b4fc0);
+    border: none; box-shadow: 0 3px 0 #4a349a; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 11px; opacity: .55; }
+
+  #launchZone { position: relative; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; }
+  #aimRing { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,.5);
+    background: rgba(255,255,255,.12); opacity: 0; transition: opacity .15s ease; }
+  #aimRing.show { opacity: 1; }
+  .supplyStack { position: absolute; bottom: 0; display: flex; flex-direction: column-reverse; align-items: center; }
+  .sball { width: 46px; height: 46px; border-radius: 50%; margin-top: -18px; box-shadow: inset 0 -5px 8px rgba(0,0,0,.35), inset 0 3px 5px rgba(255,255,255,.55), 0 3px 5px rgba(0,0,0,.25); }
+  .sball:last-child { margin-top: 0; }
+  #ballCount { position: fixed; z-index: 7; color: #fff; font-weight: 800; font-size: 13px;
+    text-shadow: 0 2px 4px rgba(0,0,0,.5); pointer-events: none; }
+
+  #waveTag { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom,0px) + 170px);
+    color: #7a5a2a; font-weight: 700; font-size: 13px; opacity: .8; z-index: 5; pointer-events: none; }
+
+  #overlay { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; background: rgba(60,35,10,.55); backdrop-filter: blur(3px); z-index: 20; text-align: center; padding: 24px; }
+  #overlay h1 { color: #fff; font-size: clamp(26px,8vw,44px); font-weight: 800; text-shadow: 0 3px 10px rgba(0,0,0,.4); }
+  #overlay button { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px; padding: 14px 34px;
+    font-size: 17px; font-weight: 800; color: #5a3200; background: linear-gradient(180deg,#ffd97a,#ffb23f);
+    box-shadow: 0 5px 0 #c67e12; }
+</style>
+</head>
+<body>
+<div id="loading">Yükleniyor…</div>
+<div id="app">
+  <div id="hud"></div>
+  <div id="sizeTag">Size <span id="sizeN">1</span></div>
+  <div id="levelTag">Bölüm <span id="lvlN">1</span></div>
+  <div id="waveTag"></div>
+
+  <div id="bottom">
+    <div id="levelRow"></div>
+    <div id="launchZone">
+      <div id="aimRing"></div>
+      <div class="supplyStack" id="supplyStack"></div>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <h1 id="overlayTitle">Bölüm Tamam! 🎉</h1>
+    <button id="continueBtn">Devam</button>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://esm.sh/three@0.161.0" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const TYPES = [
+  { id: 'berry',  label: 'Böğürtlen', base: '#5b2d8e', dark: '#3c1a63', light: '#8a5cc9', speck: '#2a1148' },
+  { id: 'lychee', label: 'Liçi',      base: '#f3e6d8', dark: '#d8b9a0', light: '#ffffff', speck: '#e8a898' },
+  { id: 'banana', label: 'Muz',       base: '#f6d648', dark: '#e0a92a', light: '#fff2a0', speck: '#c98a1c' },
+  { id: 'melon',  label: 'Kavun',     base: '#f0a13c', dark: '#c9711f', light: '#ffc978', speck: '#a85614' },
+];
+const TYPE_BY_ID = Object.fromEntries(TYPES.map(t => [t.id, t]));
+
+const COLS = 7;
+let rows = 9;
+let holeCol = 3;
+let holeRow = rows - 1;
+let level = 1;
+let sizeStage = 1;
+
+const currency = JSON.parse(localStorage.getItem('fruithole_currency') || '{}');
+TYPES.forEach(t => { if (!(t.id in currency)) currency[t.id] = 0; });
+function saveCurrency() { localStorage.setItem('fruithole_currency', JSON.stringify(currency)); }
+
+const app = document.getElementById('app');
+const hudEl = document.getElementById('hud');
+const sizeNEl = document.getElementById('sizeN');
+const lvlNEl = document.getElementById('lvlN');
+const waveTagEl = document.getElementById('waveTag');
+const supplyStackEl = document.getElementById('supplyStack');
+const aimRingEl = document.getElementById('aimRing');
+const overlayEl = document.getElementById('overlay');
+const overlayTitleEl = document.getElementById('overlayTitle');
+const levelRowEl = document.getElementById('levelRow');
+
+function buildHud() {
+  hudEl.innerHTML = '';
+  TYPES.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'counter';
+    el.innerHTML = `<span class="dot" style="background:${t.base}"></span><span class="n" id="cur_${t.id}">${currency[t.id]}</span>`;
+    hudEl.appendChild(el);
+  });
+}
+function bumpCurrency(id, amount) {
+  currency[id] += amount;
+  saveCurrency();
+  const n = document.getElementById('cur_' + id);
+  if (n) { n.textContent = currency[id]; n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); }
+}
+buildHud();
+
+for (let i = 0; i < 3; i++) {
+  const b = document.createElement('div');
+  b.className = 'lnode';
+  b.textContent = 'Lvl ' + (level + i + 1);
+  levelRowEl.appendChild(b);
+}
+
+// ---------------------------------------------------------------------
+// Three.js scene
+// ---------------------------------------------------------------------
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+app.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#e8c07d');
+scene.fog = new THREE.Fog('#e8c07d', 18, 30);
+
+const FRUSTUM = 8;
+const camera = new THREE.OrthographicCamera(-FRUSTUM, FRUSTUM, FRUSTUM, -FRUSTUM, 0.1, 100);
+function positionCamera() {
+  camera.position.set(0, 14, 3.2);
+  camera.lookAt(0, 0, 0.5);
+}
+positionCamera();
+
+scene.add(new THREE.HemisphereLight('#fff6e0', '#c98a3c', 0.9));
+const sun = new THREE.DirectionalLight('#fff2d0', 1.05);
+sun.position.set(5, 12, 6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.left = -10; sun.shadow.camera.right = 10;
+sun.shadow.camera.top = 10; sun.shadow.camera.bottom = -10;
+scene.add(sun);
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(40, 40),
+  new THREE.MeshStandardMaterial({ color: '#e8c07d', roughness: 1 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ---------------------------------------------------------------------
+// Fruit textures (procedural canvas)
+// ---------------------------------------------------------------------
+function makeFruitMaterial(t) {
+  const size = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(size * 0.35, size * 0.32, size * 0.05, size * 0.5, size * 0.5, size * 0.62);
+  g.addColorStop(0, t.light);
+  g.addColorStop(0.55, t.base);
+  g.addColorStop(1, t.dark);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = t.speck;
+  const specks = t.id === 'melon' ? 40 : t.id === 'berry' ? 60 : 14;
+  for (let i = 0; i < specks; i++) {
+    ctx.globalAlpha = 0.35 + Math.random() * 0.3;
+    const x = Math.random() * size, y = Math.random() * size;
+    const r = t.id === 'melon' ? 1.2 : 2 + Math.random() * 2.5;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.45, metalness: 0.05 });
+}
+TYPES.forEach(t => { t.material = makeFruitMaterial(t); });
+
+const ballGeo = new THREE.SphereGeometry(0.44, 20, 16);
+const flatGeo = new THREE.SphereGeometry(0.44, 20, 16);
+flatGeo.scale(1, 0.62, 1);
+function geoFor(id) { return id === 'banana' ? flatGeo : ballGeo; }
+
+// ---------------------------------------------------------------------
+// Grid state + layout
+// ---------------------------------------------------------------------
+const CELL = 1.02;
+let grid = [];      // grid[row][col] = type id | null
+let meshes = [];     // meshes[row][col] = THREE.Mesh | null
+const gridGroup = new THREE.Group();
+scene.add(gridGroup);
+
+function gridToWorld(row, col) {
+  const x = (col - (COLS - 1) / 2) * CELL;
+  const z = (row - holeRow) * CELL;
+  return { x, z };
+}
+
+function pickRegionType(row, col) {
+  const bananaBlock = row >= 1 && row <= 3 && col >= 2 && col <= 4;
+  if (bananaBlock && Math.random() < 0.85) return 'banana';
+  const t = col < COLS / 2
+    ? (Math.random() < 0.6 ? 'berry' : 'lychee')
+    : (Math.random() < 0.6 ? 'lychee' : 'berry');
+  return Math.random() < 0.12 ? TYPES[Math.floor(Math.random() * TYPES.length)].id : t;
+}
+
+function buildGrid() {
+  grid = []; meshes = [];
+  gridGroup.clear();
+  for (let r = 0; r < rows; r++) {
+    grid.push(new Array(COLS).fill(null));
+    meshes.push(new Array(COLS).fill(null));
+  }
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (r === holeRow && c === holeCol) continue;
+      const id = pickRegionType(r, c);
+      grid[r][c] = id;
+      spawnCellMesh(r, c, id);
+    }
+  }
+  buildHole();
+  fitCamera();
+}
+
+function spawnCellMesh(row, col, id) {
+  const t = TYPE_BY_ID[id];
+  const mesh = new THREE.Mesh(geoFor(id), t.material);
+  const { x, z } = gridToWorld(row, col);
+  mesh.position.set(x, id === 'banana' ? 0.27 : 0.44, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  gridGroup.add(mesh);
+  meshes[row][col] = mesh;
+}
+
+let holeGroup;
+function buildHole() {
+  if (holeGroup) scene.remove(holeGroup);
+  holeGroup = new THREE.Group();
+  const { x, z } = gridToWorld(holeRow, holeCol);
+  holeGroup.position.set(x, 0, z);
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(0.56, 0.13, 12, 28),
+    new THREE.MeshStandardMaterial({ color: '#e08a2e', roughness: 0.5 })
+  );
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.02;
+  rim.castShadow = true;
+  const inner = new THREE.Mesh(
+    new THREE.CircleGeometry(0.48, 28),
+    new THREE.MeshBasicMaterial({ color: '#0a0603' })
+  );
+  inner.rotation.x = -Math.PI / 2;
+  inner.position.y = 0.03;
+  holeGroup.add(rim, inner);
+  scene.add(holeGroup);
+}
+
+function fitCamera() {
+  const aspect = innerWidth / innerHeight;
+  const worldRows = rows * CELL + 3;
+  const halfV = Math.max(worldRows / 2, ((COLS * CELL) / 2 + 1.5) / aspect);
+  const halfH = halfV * aspect;
+  camera.left = -halfH; camera.right = halfH;
+  camera.top = halfV; camera.bottom = -halfV;
+  camera.position.set(0, 14, ((rows - 1) / 2 - holeRow) * CELL * 0.35 + 3);
+  camera.lookAt(0, 0, ((rows - 1) / 2 - holeRow) * CELL * 0.35);
+  camera.updateProjectionMatrix();
+}
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h);
+  fitCamera();
+}
+addEventListener('resize', resize);
+resize();
+
+// ---------------------------------------------------------------------
+// Wave / supply system
+// ---------------------------------------------------------------------
+let waveType = null;
+let supply = 0;
+
+function typesRemaining() {
+  const set = new Set();
+  for (let r = 0; r < rows; r++) for (let c = 0; c < COLS; c++) if (grid[r][c]) set.add(grid[r][c]);
+  return [...set];
+}
+
+function startWave() {
+  const remain = typesRemaining();
+  if (remain.length === 0) { onCleared(); return; }
+  waveType = remain[Math.floor(Math.random() * remain.length)];
+  supply = 8 + Math.floor(Math.random() * 5);
+  waveTagEl.textContent = TYPE_BY_ID[waveType].label + ' getir!';
+  renderSupply();
+}
+
+function renderSupply() {
+  supplyStackEl.innerHTML = '';
+  const t = TYPE_BY_ID[waveType];
+  const shown = Math.min(supply, 6);
+  for (let i = 0; i < shown; i++) {
+    const b = document.createElement('div');
+    b.className = 'sball';
+    b.style.background = `radial-gradient(circle at 32% 30%, ${t.light}, ${t.base} 55%, ${t.dark})`;
+    supplyStackEl.appendChild(b);
+  }
+  let countEl = document.getElementById('ballCount');
+  countEl.textContent = 'x' + supply;
+  const rect = supplyStackEl.getBoundingClientRect();
+  countEl.style.left = (rect.left + rect.width / 2 - 12) + 'px';
+  countEl.style.top = (rect.top - 22) + 'px';
+}
+
+const ballCountEl = document.createElement('div');
+ballCountEl.id = 'ballCount';
+document.body.appendChild(ballCountEl);
+
+// ---------------------------------------------------------------------
+// Launch + flood-fill clear
+// ---------------------------------------------------------------------
+function neighborsOf(r, c) {
+  return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([rr,cc]) => rr>=0 && rr<rows && cc>=0 && cc<COLS);
+}
+
+function floodFromHole(type) {
+  const start = neighborsOf(holeRow, holeCol).filter(([r,c]) => grid[r][c] === type);
+  if (start.length === 0) return [];
+  const seen = new Set(start.map(([r,c]) => r+'_'+c));
+  const queue = [...start];
+  const out = [];
+  while (queue.length) {
+    const [r, c] = queue.shift();
+    out.push([r, c]);
+    for (const [nr, nc] of neighborsOf(r, c)) {
+      const key = nr+'_'+nc;
+      if (!seen.has(key) && grid[nr][nc] === type) { seen.add(key); queue.push([nr, nc]); }
+    }
+  }
+  return out;
+}
+
+function distToHole(r, c) { return Math.abs(r - holeRow) + Math.abs(c - holeCol); }
+
+let busy = false;
+function launch() {
+  if (busy || supply <= 0) return;
+  const cluster = floodFromHole(waveType);
+  supply--;
+  renderSupply();
+
+  if (cluster.length === 0) {
+    rejectFlash();
+  } else {
+    busy = true;
+    cluster.sort((a, b) => distToHole(...a) - distToHole(...b));
+    const holePos = holeGroup.position;
+    cluster.forEach(([r, c], i) => {
+      const mesh = meshes[r][c];
+      grid[r][c] = null;
+      meshes[r][c] = null;
+      setTimeout(() => {
+        if (!mesh) return;
+        const t0 = performance.now();
+        const startPos = mesh.position.clone();
+        const dur = 220;
+        function step(now) {
+          const p = Math.min(1, (now - t0) / dur);
+          mesh.position.lerpVectors(startPos, new THREE.Vector3(holePos.x, 0.05, holePos.z), p);
+          mesh.scale.setScalar(1 - p * 0.9);
+          if (p < 1) requestAnimationFrame(step);
+          else { gridGroup.remove(mesh); if (i === cluster.length - 1) afterClear(); }
+        }
+        requestAnimationFrame(step);
+      }, i * 60);
+    });
+    bumpCurrency(waveType, cluster.length);
+  }
+
+  if (supply <= 0 && !busy) startWave();
+}
+
+function afterClear() {
+  busy = false;
+  settleColumns();
+  if (typesRemaining().length === 0) { onCleared(); return; }
+  if (supply <= 0) startWave();
+}
+
+function settleColumns() {
+  for (let c = 0; c < COLS; c++) {
+    let write = rows - 1;
+    if (write === holeRow && c === holeCol) write--;
+    for (let r = rows - 1; r >= 0; r--) {
+      if (r === holeRow && c === holeCol) continue;
+      if (grid[r][c] === null) continue;
+      while (write === holeRow && c === holeCol) write--;
+      if (write < 0) break;
+      if (write !== r) {
+        grid[write][c] = grid[r][c];
+        grid[r][c] = null;
+        meshes[write][c] = meshes[r][c];
+        meshes[r][c] = null;
+        const { x, z } = gridToWorld(write, c);
+        animatePos(meshes[write][c], x, z);
+      }
+      write--;
+    }
+  }
+}
+
+function animatePos(mesh, x, z) {
+  if (!mesh) return;
+  const t0 = performance.now();
+  const start = mesh.position.clone();
+  const target = new THREE.Vector3(x, start.y, z);
+  const dur = 220;
+  function step(now) {
+    const p = Math.min(1, (now - t0) / dur);
+    mesh.position.lerpVectors(start, target, p);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function rejectFlash() {
+  aimRingEl.style.borderColor = '#ff5b5b';
+  setTimeout(() => { aimRingEl.style.borderColor = 'rgba(255,255,255,.5)'; }, 220);
+}
+
+function onCleared() {
+  overlayTitleEl.textContent = 'Bölüm Tamam! 🎉';
+  overlayEl.style.display = 'flex';
+}
+
+document.getElementById('continueBtn').addEventListener('click', () => {
+  overlayEl.style.display = 'none';
+  level++;
+  sizeStage++;
+  rows = Math.min(9 + Math.floor(sizeStage / 2), 14);
+  holeRow = rows - 1;
+  holeCol = 2 + (sizeStage % 3);
+  lvlNEl.textContent = level;
+  sizeNEl.textContent = sizeStage;
+  levelRowEl.querySelectorAll('.lnode').forEach((b, i) => b.textContent = 'Lvl ' + (level + i + 1));
+  buildGrid();
+  startWave();
+});
+
+// ---------------------------------------------------------------------
+// Drag-to-launch input
+// ---------------------------------------------------------------------
+const launchZone = document.getElementById('launchZone');
+let dragging = false, dragStartY = 0, dragY = 0;
+const THRESHOLD = 46;
+
+launchZone.addEventListener('pointerdown', (e) => {
+  if (supply <= 0) return;
+  dragging = true;
+  dragStartY = e.clientY;
+  aimRingEl.classList.add('show');
+  launchZone.setPointerCapture(e.pointerId);
+});
+launchZone.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  dragY = dragStartY - e.clientY;
+  const pull = Math.min(1, Math.max(0, dragY / (THRESHOLD * 2)));
+  aimRingEl.style.transform = `scale(${1 + pull * 0.25})`;
+});
+launchZone.addEventListener('pointerup', () => {
+  if (!dragging) return;
+  dragging = false;
+  aimRingEl.classList.remove('show');
+  aimRingEl.style.transform = 'scale(1)';
+  if (dragY > THRESHOLD) launch();
+  dragY = 0;
+});
+launchZone.addEventListener('pointercancel', () => { dragging = false; aimRingEl.classList.remove('show'); });
+
+// ---------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------
+buildGrid();
+startWave();
+document.getElementById('loading').style.display = 'none';
+
+function tick() {
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
