@@ -135,6 +135,7 @@ const COLS = 7;
 let rows = 9;
 let level = parseInt(localStorage.getItem('fruithole_level') || '1', 10);
 let sizeStage = level;
+let currentPattern = null;   // set by buildField()
 
 const currency = JSON.parse(localStorage.getItem('fruithole_currency') || '{}');
 TYPES.forEach(t => { if (!(t.id in currency)) currency[t.id] = 0; });
@@ -285,7 +286,10 @@ function bumpCurrency(id, amount) {
   const n = document.getElementById('cur_' + id);
   if (n) { n.textContent = currency[id]; n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); }
 }
-function refreshLevelTag() { levelTagEl.textContent = `Bölüm ${level} · Size ${sizeStage}`; }
+function refreshLevelTag() {
+  const p = currentPattern;
+  levelTagEl.textContent = p ? `Bölüm ${level} · ${p.icon} ${p.name}` : `Bölüm ${level}`;
+}
 buildCounters();
 refreshLevelTag();
 menuSubEl.textContent = 'Bölüm ' + level;
@@ -532,14 +536,93 @@ function gridToWorld(row, col) {
   };
 }
 
-function pickRegionType(row, col) {
-  const bananaBlock = row >= 1 && row <= 3 && col >= 2 && col <= 4;
-  if (bananaBlock && Math.random() < 0.85) return 'banana';
-  const t = col < COLS / 2
-    ? (Math.random() < 0.6 ? 'berry' : 'lychee')
-    : (Math.random() < 0.6 ? 'lychee' : 'berry');
-  return Math.random() < 0.12 ? TYPES[Math.floor(Math.random() * TYPES.length)].id : t;
-}
+// ---------------------------------------------------------------------
+// Level patterns
+//
+// Levels are laid out by hand rather than scattered at random: each one
+// puts the types into a readable shape, so a field looks planted instead
+// of noisy and you can plan a route through it. Levels cycle through the
+// list, so the shape tells you which level you are on.
+//
+//   type(r, c) -> type id for that cell
+//   big(r, c)  -> true if the cell holds an oversized fruit (optional;
+//                 oversized fruit needs a grown hole, so where they sit
+//                 is what actually shapes the route)
+// ---------------------------------------------------------------------
+const ID = TYPES.map(t => t.id);
+function midCol() { return (COLS - 1) / 2; }
+function midRow() { return (rows - 1) / 2; }
+function scatter(chance) { return Math.random() < chance; }
+
+const PATTERNS = [
+  {
+    name: 'Tarla', icon: '🌾',
+    // wide vertical bands, like planted rows
+    type: (r, c) => ID[Math.floor(c / 2) % 4],
+    big: (r, c) => c % 2 === 1 && r % 4 === 2,
+  },
+  {
+    name: 'Şeritler', icon: '🍬',
+    // horizontal belts; each belt is one type to clear in a sweep
+    type: (r, c) => ID[Math.floor(r / 2) % 4],
+    big: (r, c) => r % 4 === 3 && (c === 0 || c === COLS - 1),
+  },
+  {
+    name: 'Damalı', icon: '🏁',
+    type: (r, c) => ID[(Math.floor(r / 2) + Math.floor(c / 2)) % 4],
+    big: () => scatter(0.1),
+  },
+  {
+    name: 'Halkalar', icon: '🎯',
+    // concentric rings out from the middle
+    type: (r, c) => {
+      const d = Math.round(Math.hypot(c - midCol(), (r - midRow()) * 0.85));
+      return ID[d % 4];
+    },
+    // a ring of big fruit walls off the centre until the hole has grown
+    big: (r, c) => Math.round(Math.hypot(c - midCol(), (r - midRow()) * 0.85)) === 2,
+  },
+  {
+    name: 'Bahçe', icon: '🌳',
+    // soft blobs: neighbouring cells usually share a type
+    type: (r, c) => {
+      const n = Math.sin(c * 0.9) * Math.cos(r * 0.7) + Math.sin(r * 0.45 + c * 0.3);
+      return ID[Math.min(3, Math.floor(((n + 2) / 4) * 4))];
+    },
+    big: () => scatter(0.12),
+  },
+  {
+    name: 'Çapraz', icon: '🔀',
+    type: (r, c) => ID[Math.floor((r + c) / 2) % 4],
+    big: (r, c) => (r + c) % 6 === 0,
+  },
+  {
+    name: 'Kalp', icon: '💛',
+    // banana heart on a blackberry field
+    type: (r, c) => {
+      const x = (c - midCol()) / (COLS * 0.42);
+      const y = -(r - midRow()) / (rows * 0.34) + 0.35;
+      const s = x * x + y * y - 1;
+      return (s * s * s - x * x * y * y * y <= 0) ? 'banana' : 'berry';
+    },
+    big: (r, c) => {
+      const x = (c - midCol()) / (COLS * 0.42);
+      const y = -(r - midRow()) / (rows * 0.34) + 0.35;
+      const s = x * x + y * y - 1;
+      return (s * s * s - x * x * y * y * y > 0) && scatter(0.16);
+    },
+  },
+  {
+    name: 'Sarmal', icon: '🌀',
+    // type follows the angle around the middle, so it reads as arms
+    type: (r, c) => {
+      const dx = c - midCol(), dy = (r - midRow()) * 0.85;
+      const a = Math.atan2(dy, dx) + Math.hypot(dx, dy) * 0.55;
+      return ID[((Math.floor(a / (Math.PI / 2)) % 4) + 4) % 4];
+    },
+    big: () => scatter(0.1),
+  },
+];
 
 function buildField() {
   fieldGroup.clear();
@@ -547,10 +630,11 @@ function buildField() {
   eatenCount = 0;
   fieldHalfX = (COLS * CELL) / 2;
   fieldHalfZ = (rows * CELL) / 2;
+  currentPattern = PATTERNS[(level - 1) % PATTERNS.length];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < COLS; c++) {
-      const type = pickRegionType(r, c);
-      const big = Math.random() < 0.15;
+      const type = currentPattern.type(r, c);
+      const big = currentPattern.big ? currentPattern.big(r, c) : scatter(0.12);
       const radius = big ? BIG_R : NORMAL_R;
       const vis = fruitVisual(type, radius);
       const mesh = new THREE.Mesh(vis.geo, vis.mat);
