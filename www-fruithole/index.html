@@ -48,6 +48,46 @@
   #levelTag { color: #7a5a2a; font-weight: 700; font-size: 12px; opacity: .85;
     text-shadow: 0 1px 0 rgba(255,255,255,.4); }
 
+  /* level progress + the stars this run is currently on track for */
+  #progWrap { display: flex; flex-direction: column; align-items: center; gap: 3px; width: min(62vw, 250px); }
+  #progBar { width: 100%; height: 9px; border-radius: 999px; background: rgba(90,50,140,.35);
+    border: 2px solid rgba(255,255,255,.35); overflow: hidden; box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+  #progFill { height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg,#7ee787,#39c760); transition: width .18s ease; }
+  #starRow { display: flex; gap: 14px; font-size: 17px; line-height: 1; }
+  #starRow span { color: rgba(255,255,255,.32); text-shadow: 0 2px 3px rgba(0,0,0,.3); transition: color .2s ease, transform .2s ease; }
+  #starRow span.on { color: #ffd23f; transform: scale(1.12); }
+
+  #combo { position: fixed; top: 27%; left: 0; right: 0; text-align: center; pointer-events: none;
+    font-weight: 800; font-size: clamp(24px, 8vw, 52px); color: #ffd23f; z-index: 6;
+    text-shadow: 0 3px 12px rgba(0,0,0,.45); opacity: 0; }
+  #combo.show { animation: comboPop .7s ease; }
+  @keyframes comboPop {
+    0%{opacity:0;transform:scale(.6)} 22%{opacity:1;transform:scale(1.18)}
+    70%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(1)}
+  }
+
+  /* upgrades */
+  #upgrades { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+  #upgWallet { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  #upgList { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin: 4px 0 8px; }
+  .upg { display: flex; align-items: center; gap: 10px; text-align: left;
+    background: rgba(255,255,255,.13); border: 2px solid rgba(255,255,255,.18);
+    border-radius: 16px; padding: 9px 11px; }
+  .upg .ico { font-size: 24px; width: 30px; text-align: center; }
+  .upg .mid { flex: 1; min-width: 0; }
+  .upg .nm { color: #fff; font-weight: 800; font-size: 15px; }
+  .upg .ds { color: rgba(255,255,255,.75); font-weight: 600; font-size: 12px; }
+  .upg .pips { display: flex; gap: 3px; margin-top: 4px; }
+  .upg .pip { width: 16px; height: 5px; border-radius: 999px; background: rgba(255,255,255,.22); }
+  .upg .pip.on { background: linear-gradient(90deg,#ffd97a,#ffb23f); }
+  .upg .buy { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
+    padding: 9px 13px; font-weight: 800; font-size: 13px; color: #5a3200; white-space: nowrap;
+    background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow: 0 3px 0 #c67e12; }
+  .upg .buy:disabled { background: rgba(255,255,255,.16); color: rgba(255,255,255,.5); box-shadow: none; }
+  .upg .buy .cost { display: block; font-size: 11px; font-weight: 700; opacity: .85; }
+
   #hint { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
     text-align: center; pointer-events: none; color: #7a5a2a; font-size: 14px; font-weight: 600;
     opacity: 0; transition: opacity .5s ease; z-index: 5; text-shadow: 0 1px 0 rgba(255,255,255,.4); }
@@ -93,9 +133,15 @@
       <div id="timeTag">⏱ <span id="timeN">0</span></div>
       <button id="muteBtn">🔊</button>
     </div>
+    <div id="progWrap">
+      <div id="progBar"><div id="progFill"></div></div>
+      <div id="starRow"><span>★</span><span>★</span><span>★</span></div>
+    </div>
     <div id="counters"></div>
     <div id="levelTag">Bölüm 1 · Size 1</div>
   </div>
+
+  <div id="combo"></div>
 
   <div id="hint">Parmağını sürükle, deliği gezdir, meyveleri ye</div>
   <div id="joyBase"></div>
@@ -106,6 +152,14 @@
     <h1>Fruit Hole</h1>
     <p id="menuSub">Bölüm 1</p>
     <button class="btn" id="playBtn">Başla</button>
+    <button class="btn ghost" id="upgBtn">⬆️ Yükseltmeler</button>
+  </div>
+
+  <div id="upgrades" class="screen">
+    <h1>⬆️ Yükseltmeler</h1>
+    <div id="upgWallet"></div>
+    <div id="upgList"></div>
+    <button class="btn ghost" id="upgClose">Kapat</button>
   </div>
 
   <div id="overlay" class="screen">
@@ -141,6 +195,35 @@ const currency = JSON.parse(localStorage.getItem('fruithole_currency') || '{}');
 TYPES.forEach(t => { if (!(t.id in currency)) currency[t.id] = 0; });
 function saveCurrency() { localStorage.setItem('fruithole_currency', JSON.stringify(currency)); }
 
+// Best star rating per level, so a replay can improve it but never lose it.
+const stars = JSON.parse(localStorage.getItem('fruithole_stars') || '{}');
+function saveStars() { localStorage.setItem('fruithole_stars', JSON.stringify(stars)); }
+
+// ---------------------------------------------------------------------
+// Upgrades
+//
+// Each track is paid for with a different fruit, so every counter on the
+// HUD is worth collecting rather than just the common ones. Costs double
+// each step: 25, 50, 100, 200, 400.
+// ---------------------------------------------------------------------
+const UPGRADES = [
+  { id: 'speed',  icon: '💨', name: 'Hız',              pay: 'berry',  base: 25,
+    desc: lv => `Delik hızı +${lv * 8}%` },
+  { id: 'size',   icon: '⭕', name: 'Başlangıç boyutu', pay: 'banana', base: 20,
+    desc: lv => `Delik +${(lv * 0.06).toFixed(2)} büyük başlar` },
+  { id: 'time',   icon: '⏱',  name: 'Ek süre',          pay: 'lychee', base: 25,
+    desc: lv => `Her bölümde +${lv * 5} saniye` },
+  { id: 'magnet', icon: '🧲', name: 'Mıknatıs',         pay: 'melon',  base: 30,
+    desc: lv => `Yakındaki meyveleri ${(lv * 0.28).toFixed(2)} birim çeker` },
+];
+const UPG_MAX = 5;
+
+const upgrades = JSON.parse(localStorage.getItem('fruithole_upgrades') || '{}');
+UPGRADES.forEach(u => { if (!(u.id in upgrades)) upgrades[u.id] = 0; });
+function saveUpgrades() { localStorage.setItem('fruithole_upgrades', JSON.stringify(upgrades)); }
+function upg(id) { return upgrades[id] || 0; }
+function upgCost(u) { return u.base * Math.pow(2, upg(u.id)); }
+
 const app = document.getElementById('app');
 const topbarEl = document.getElementById('topbar');
 const countersEl = document.getElementById('counters');
@@ -159,6 +242,12 @@ const overlayStatsEl = document.getElementById('overlayStats');
 const actionBtnEl = document.getElementById('actionBtn');
 const reviveBtnEl = document.getElementById('reviveBtn');
 const muteBtnEl = document.getElementById('muteBtn');
+const progFillEl = document.getElementById('progFill');
+const starRowEl = document.getElementById('starRow');
+const comboEl = document.getElementById('combo');
+const upgradesEl = document.getElementById('upgrades');
+const upgListEl = document.getElementById('upgList');
+const upgWalletEl = document.getElementById('upgWallet');
 
 // ---------------------------------------------------------------------
 // Ads (AdMob) — only live inside the native Capacitor shell. In a browser
@@ -288,8 +377,73 @@ function bumpCurrency(id, amount) {
 }
 function refreshLevelTag() {
   const p = currentPattern;
-  levelTagEl.textContent = p ? `Bölüm ${level} · ${p.icon} ${p.name}` : `Bölüm ${level}`;
+  const best = stars[level] ? ' · ' + '★'.repeat(stars[level]) : '';
+  levelTagEl.textContent = (p ? `Bölüm ${level} · ${p.icon} ${p.name}` : `Bölüm ${level}`) + best;
 }
+
+// ---------------------------------------------------------------------
+// Upgrade screen
+// ---------------------------------------------------------------------
+function renderUpgrades() {
+  upgWalletEl.innerHTML = TYPES.map(t =>
+    `<div class="counter"><span class="dot" style="background:${t.base}"></span><span class="n">${currency[t.id]}</span></div>`
+  ).join('');
+
+  upgListEl.innerHTML = '';
+  UPGRADES.forEach(u => {
+    const lv = upg(u.id);
+    const maxed = lv >= UPG_MAX;
+    const cost = upgCost(u);
+    const pay = TYPE_BY_ID[u.pay];
+    const afford = currency[u.pay] >= cost;
+
+    const row = document.createElement('div');
+    row.className = 'upg';
+    row.innerHTML =
+      `<span class="ico">${u.icon}</span>` +
+      `<span class="mid">` +
+        `<span class="nm">${u.name}</span>` +
+        `<div class="ds">${lv ? u.desc(lv) : 'Henüz yükseltilmedi'}</div>` +
+        `<div class="pips">${Array.from({ length: UPG_MAX }, (_, i) =>
+          `<span class="pip${i < lv ? ' on' : ''}"></span>`).join('')}</div>` +
+      `</span>`;
+
+    const btn = document.createElement('button');
+    btn.className = 'buy';
+    if (maxed) {
+      btn.textContent = 'TAM';
+      btn.disabled = true;
+    } else {
+      btn.innerHTML = `Yükselt<span class="cost">${cost} ${pay.label}</span>`;
+      btn.disabled = !afford;
+      btn.onclick = () => buyUpgrade(u);
+    }
+    row.appendChild(btn);
+    upgListEl.appendChild(row);
+  });
+}
+
+function buyUpgrade(u) {
+  const cost = upgCost(u);
+  if (upg(u.id) >= UPG_MAX || currency[u.pay] < cost) return;
+  currency[u.pay] -= cost;
+  upgrades[u.id]++;
+  saveCurrency();
+  saveUpgrades();
+  sfx.win();
+  buildCounters();
+  renderUpgrades();
+}
+
+document.getElementById('upgBtn').addEventListener('click', () => {
+  renderUpgrades();
+  menuEl.classList.remove('show');
+  upgradesEl.classList.add('show');
+});
+document.getElementById('upgClose').addEventListener('click', () => {
+  upgradesEl.classList.remove('show');
+  menuEl.classList.add('show');
+});
 buildCounters();
 refreshLevelTag();
 menuSubEl.textContent = 'Bölüm ' + level;
@@ -715,7 +869,7 @@ function buildHole() {
 }
 
 function resetHole() {
-  holeRadius = BASE_HOLE_R + (sizeStage - 1) * 0.05;
+  holeRadius = BASE_HOLE_R + (sizeStage - 1) * 0.05 + upg('size') * 0.06;
   holeX = 0;
   holeZ = fieldHalfZ - 1.4;
   buildHole();
@@ -749,7 +903,33 @@ let streak = 0, lastEatAt = -9999;
 let runStart = 0;
 let revivedThisLevel = false;
 
-function levelTime() { return Math.round(40 + rows * COLS * 0.6); }
+function levelTime() { return Math.round(40 + rows * COLS * 0.6) + upg('time') * 5; }
+
+// Stars reflect how much time is still on the clock, so clearing fast is
+// worth more than clearing at all. Shown live during play, awarded on clear.
+function liveStars() {
+  const ratio = timeLeft / Math.max(1, levelTime());
+  return ratio >= 0.45 ? 3 : ratio >= 0.2 ? 2 : 1;
+}
+
+let lastProgPct = -1, lastStarCount = -1;
+function updateProgressUI() {
+  const pct = fruits.length ? Math.round((eatenCount / fruits.length) * 100) : 0;
+  if (pct !== lastProgPct) { progFillEl.style.width = pct + '%'; lastProgPct = pct; }
+  if (state !== 'playing') return;
+  const s = liveStars();
+  if (s !== lastStarCount) {
+    lastStarCount = s;
+    [...starRowEl.children].forEach((el, i) => el.classList.toggle('on', i < s));
+  }
+}
+
+function showCombo(mult) {
+  comboEl.textContent = `x${mult} KOMBO!`;
+  comboEl.classList.remove('show');
+  void comboEl.offsetWidth;
+  comboEl.classList.add('show');
+}
 
 function startLevel() {
   sizeStage = level;
@@ -766,7 +946,10 @@ function startLevel() {
   showBanner();
   refreshLevelTag();
   updateTimeUI();
+  lastProgPct = -1; lastStarCount = -1;
+  updateProgressUI();
   menuEl.classList.remove('show');
+  upgradesEl.classList.remove('show');
   overlayEl.classList.remove('show');
   topbarEl.classList.add('show');
   hintEl.style.opacity = '.8';
@@ -817,22 +1000,33 @@ function nextLevel() {
   startLevel();
 }
 
-function fillStats() {
+function fillStats(earnedStars) {
   const secs = Math.round((performance.now() - runStart) / 1000);
-  overlayStatsEl.innerHTML =
+  const starLine = earnedStars
+    ? `<span class="pill">${'★'.repeat(earnedStars)}${'☆'.repeat(3 - earnedStars)}</span>`
+    : '';
+  overlayStatsEl.innerHTML = starLine +
     `<span class="pill">🍇 ${eatenCount} meyve</span>` +
     `<span class="pill">⏱ ${secs} sn</span>`;
 }
 
 function onCleared() {
   if (state !== 'playing') return;
+  const cleared = level;
+  const earned = liveStars();
   state = 'won';
   sfx.win();
-  fillStats();
+  fillStats(earned);
+
+  const prevBest = stars[cleared] || 0;
+  const isBest = earned > prevBest;
+  if (isBest) { stars[cleared] = earned; saveStars(); }
+
   level++;
   localStorage.setItem('fruithole_level', String(level));
   menuSubEl.textContent = 'Bölüm ' + level;
-  showOverlay('Bölüm Tamam! 🎉', `Sıradaki: Bölüm ${level}`, 'Devam', nextLevel, false);
+  const sub = isBest && prevBest > 0 ? 'Yeni rekor!' : `Sıradaki: Bölüm ${level}`;
+  showOverlay('Bölüm Tamam! 🎉', sub, 'Devam', nextLevel, false);
 }
 
 function onTimeUp() {
@@ -865,9 +1059,14 @@ function checkEat(now) {
 function eatFruit(f, now) {
   f.eaten = true;
   eatenCount++;
-  bumpCurrency(f.type, 1);
+  // chaining eats pays a multiplier, so sweeping a same-type patch in one
+  // pass is worth more than picking fruit off one at a time
   streak = (now - lastEatAt < 900) ? streak + 1 : 1;
   lastEatAt = now;
+  const mult = Math.min(5, 1 + Math.floor(streak / 4));
+  bumpCurrency(f.type, mult);
+  if (mult >= 2 && streak % 4 === 0) showCombo(mult);
+  updateProgressUI();
   sfx.eat(streak);
   // clamp must never shrink a hole that already starts above the cap
   if (holeRadius < HOLE_MAX) holeRadius = Math.min(holeRadius + (f.big ? 0.05 : 0.017), HOLE_MAX);
@@ -939,7 +1138,7 @@ camX = holeX; camZ = holeZ;
 resize();
 document.getElementById('loading').style.display = 'none';
 
-const MOVE_SPEED = 3.4;
+const BASE_MOVE_SPEED = 3.4;
 let lastT = performance.now();
 
 function tick(now) {
@@ -955,14 +1154,37 @@ function tick(now) {
     else updateTimeUI();
 
     if (joyX || joyY) {
-      holeX += joyX * MOVE_SPEED * dt;
-      holeZ += joyY * MOVE_SPEED * dt;
+      const speed = BASE_MOVE_SPEED * (1 + upg('speed') * 0.08);
+      holeX += joyX * speed * dt;
+      holeZ += joyY * speed * dt;
       const mX = fieldHalfX - holeRadius * 0.5;
       const mZ = fieldHalfZ - holeRadius * 0.5;
       holeX = Math.max(-mX, Math.min(mX, holeX));
       holeZ = Math.max(-mZ, Math.min(mZ, holeZ));
     }
+
+    // magnet upgrade: fruit the hole could swallow drifts toward it, so a
+    // near miss still counts. Oversized fruit is not pulled -- it has to
+    // stay where it is until the hole has grown enough to take it.
+    const mag = upg('magnet') * 0.28;
+    if (mag > 0) {
+      for (const f of fruits) {
+        if (f.eaten || f.r > holeRadius * 0.92) continue;
+        const dx = holeX - f.x, dz = holeZ - f.z;
+        const d = Math.hypot(dx, dz);
+        const reach = holeRadius + mag;
+        if (d > 0.001 && d < reach) {
+          const pull = ((reach - d) / reach) * 2.4 * dt;
+          f.x += (dx / d) * pull;
+          f.z += (dz / d) * pull;
+          f.mesh.position.x = f.x;
+          f.mesh.position.z = f.z;
+        }
+      }
+    }
+
     checkEat(now);
+    updateProgressUI();
   }
 
   // uneatable fruits jiggle when bumped
