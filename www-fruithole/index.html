@@ -1262,83 +1262,108 @@ function clearing(r, c, seed, cut) {
   return blob(r, c, 0.18, seed + 51) < cut;
 }
 
+// Each level is one big shape sitting on open ground, not a carpet that
+// fills the board. `empty` carves the silhouette; `type` only decides
+// which fruit sits where inside it. Edges get a noise wobble so the
+// outline is hand-drawn rather than stamped.
+function shapeCoords(r, c) {
+  return {
+    nx: (c - midCol()) / (COLS / 2),
+    ny: (r - midRow()) / (rows / 2),
+    wob: (blob(r, c, 0.45, 91) - 0.5) * 0.22,
+  };
+}
+
 const PATTERNS = [
   {
-    name: 'Bahçe', icon: '🌳',
-    // wide organic patches of one fruit, ragged where they meet
-    type: (r, c) => typeFromNoise(r, c, 0.16, 3),
-    empty: (r, c) => clearing(r, c, 3, 0.24),
+    name: 'Piramit', icon: '🔺',
+    // wide at the bottom, narrowing to a point at the top
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      return ny > 0.82 || Math.abs(nx) > (ny + 1) * 0.46 + wob;
+    },
+    type: (r, c) => typeFromNoise(r, c, 0.2, 3),
     big: (r, c) => blob(r, c, 0.5, 71) > 0.72,
   },
   {
-    name: 'Adalar', icon: '🏝️',
-    // one fruit dominates; islands of the others sit inside it
-    type: (r, c) => {
-      const n = blob(r, c, 0.2, 11);
-      if (n < 0.42) return 'berry';
-      return typeFromNoise(r, c, 0.34, 23);
+    name: 'Kalp', icon: '💛',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      const x = nx / 0.9, y = -ny / 0.85 + 0.28;
+      const s = x * x + y * y - 1;
+      return s * s * s - x * x * y * y * y > wob * 2;
     },
-    empty: (r, c) => clearing(r, c, 11, 0.3),
+    type: (r, c) => typeFromNoise(r, c, 0.22, 61),
+    big: (r, c) => blob(r, c, 0.4, 12) > 0.74,
+  },
+  {
+    name: 'Yıldız', icon: '⭐',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      const d = Math.hypot(nx, ny * 0.95);
+      const a = Math.atan2(ny, nx);
+      return d > (0.55 + 0.4 * Math.cos(5 * a - Math.PI / 2)) + wob;
+    },
+    type: (r, c) => typeFromNoise(r, c, 0.34, 7),
     big: (r, c) => blob(r, c, 0.45, 88) > 0.74,
   },
   {
-    name: 'Bantlar', icon: '🍬',
-    // belts, but the boundaries wander instead of ruling straight across
-    type: (r, c) => {
-      const wobble = (blob(r, c, 0.22, 31) - 0.5) * 5.5;
-      return ID[Math.abs(Math.round((r + wobble) / 4)) % 4];
+    name: 'Ada', icon: '🏝️',
+    // a ragged blob, the least regular of the set
+    empty: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      const d = Math.hypot(nx, ny * 0.9);
+      return d > 0.55 + (blob(r, c, 0.3, 11) - 0.5) * 0.9;
     },
-    empty: (r, c) => clearing(r, c, 31, 0.2),
-    big: (r, c) => blob(r, c, 0.4, 5) > 0.75,
+    type: (r, c) => typeFromNoise(r, c, 0.2, 11),
+    big: (r, c) => blob(r, c, 0.45, 5) > 0.73,
   },
   {
-    name: 'Halkalar', icon: '🎯',
-    // rings out from the middle, edges nibbled by noise
-    type: (r, c) => {
-      const d = Math.hypot(c - midCol(), (r - midRow()) * 0.85) + (blob(r, c, 0.3, 43) - 0.5) * 3;
-      return ID[Math.abs(Math.round(d / 2.5)) % 4];
+    name: 'Halka', icon: '🎯',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      const d = Math.hypot(nx, ny * 0.95);
+      return d > 0.92 + wob || d < 0.42 + wob;
     },
+    type: (r, c) => typeFromNoise(r, c, 0.26, 43),
+    // a band of oversized fruit around the outer rim of the ring
     big: (r, c) => {
-      const d = Math.hypot(c - midCol(), (r - midRow()) * 0.85);
-      return d > 4 && d < 5.4;
+      const { nx, ny } = shapeCoords(r, c);
+      const d = Math.hypot(nx, ny * 0.95);
+      return d > 0.8 && d < 0.87;
     },
   },
   {
-    name: 'Benekli', icon: '🎲',
-    // fine mix with small same-fruit clumps scattered through it
-    type: (r, c) => typeFromNoise(r, c, 0.55, 7),
-    empty: (r, c) => clearing(r, c, 7, 0.18),
-    big: () => scatter(0.1),
-  },
-  {
-    name: 'Kalp', icon: '💛',
-    // banana heart on a blackberry field
-    type: (r, c) => {
-      const x = (c - midCol()) / (COLS * 0.34);
-      const y = -(r - midRow()) / (rows * 0.3) + 0.35;
-      const s = x * x + y * y - 1;
-      return (s * s * s - x * x * y * y * y <= 0) ? 'banana' : typeFromNoise(r, c, 0.2, 61);
+    name: 'Elmas', icon: '💎',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      return Math.abs(nx) + Math.abs(ny) * 0.9 > 0.9 + wob;
     },
-    big: (r, c) => blob(r, c, 0.4, 12) > 0.76,
+    type: (r, c) => typeFromNoise(r, c, 0.22, 31),
+    big: (r, c) => blob(r, c, 0.4, 19) > 0.75,
   },
   {
     name: 'Sarmal', icon: '🌀',
-    // type follows the angle around the middle, so it reads as arms
-    type: (r, c) => {
-      const dx = c - midCol(), dy = (r - midRow()) * 0.85;
-      const a = Math.atan2(dy, dx) + Math.hypot(dx, dy) * 0.42 + (blob(r, c, 0.3, 17) - 0.5) * 1.2;
-      return ID[((Math.floor(a / (Math.PI / 2)) % 4) + 4) % 4];
+    // an arm curling out from the middle
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      const d = Math.hypot(nx, ny * 0.95);
+      if (d > 1 || d < 0.1) return true;
+      const a = Math.atan2(ny, nx) + d * 4.2;
+      return Math.abs(Math.sin(a)) > 0.55 + wob;
     },
+    type: (r, c) => typeFromNoise(r, c, 0.3, 17),
     big: () => scatter(0.1),
   },
   {
-    name: 'Nehir', icon: '🏞️',
-    // a winding clearing cuts through the field like a dry riverbed
-    type: (r, c) => typeFromNoise(r, c, 0.18, 97),
+    name: 'Çapraz', icon: '🔀',
+    // two broad bands crossing, leaving four open corners
     empty: (r, c) => {
-      const bank = midCol() + Math.sin(r * 0.32) * (COLS * 0.26) + (blob(r, c, 0.4, 5) - 0.5) * 3;
-      return Math.abs(c - bank) < 1.6;
+      const { nx, ny, wob } = shapeCoords(r, c);
+      if (Math.abs(nx) > 0.95 || Math.abs(ny) > 0.92) return true;
+      return Math.abs(nx - ny) > 0.42 + wob && Math.abs(nx + ny) > 0.42 + wob;
     },
+    type: (r, c) => typeFromNoise(r, c, 0.24, 97),
     big: (r, c) => blob(r, c, 0.42, 33) > 0.74,
   },
 ];
