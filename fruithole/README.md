@@ -69,3 +69,13 @@ gerekir). Paketlenecek, kütüphanesi yerel sürümü üretmek için depo kökü
 ```bash
 npm run build:www        # -> www-fruithole/
 ```
+
+## Tek dosyalık sürüm (paylaşmak / telefonda denemek için)
+
+```bash
+python3 fruithole/build-standalone.py /bir/yer/fruit-hole.html
+```
+
+Three.js'i sayfanın içine gömer; ortaya çıkan tek HTML dosyası internetsiz,
+başka hiçbir dosyaya ihtiyaç duymadan açılır (~1.25 MB). Bir yere yükleyip
+telefondan denemek ya da birine göndermek için bunu kullan.
