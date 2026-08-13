@@ -252,45 +252,205 @@ sun.shadow.camera.left = -12; sun.shadow.camera.right = 12;
 sun.shadow.camera.top = 12; sun.shadow.camera.bottom = -12;
 scene.add(sun);
 
+// ---------------------------------------------------------------------
+// Fruit look: procedural textures + per-type geometry
+//
+// The camera sits nearly overhead, so what reads is the top of each
+// fruit. Sphere UVs put the canvas top row at the north pole, which is
+// where the top-facing detail is drawn.
+// ---------------------------------------------------------------------
+function newCanvas(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  return [c, c.getContext('2d')];
+}
+function finishTexture(canvas) {
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
+function berryTexture(t) {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = t.dark;
+  ctx.fillRect(0, 0, S, S);
+  // drupelets: small rounded cells lit from the upper-left
+  const cell = 20;
+  for (let y = -cell; y < S + cell; y += cell) {
+    for (let x = -cell; x < S + cell; x += cell) {
+      const ox = ((y / cell) & 1) ? cell / 2 : 0;
+      const cx = x + ox + (Math.random() - 0.5) * 3;
+      const cy = y + (Math.random() - 0.5) * 3;
+      const r = cell * 0.52;
+      const g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r);
+      g.addColorStop(0, t.light);
+      g.addColorStop(0.6, t.base);
+      g.addColorStop(1, t.speck);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  return finishTexture(c);
+}
+
+function lycheeTexture(t) {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = t.base;
+  ctx.fillRect(0, 0, S, S);
+  // soft mottling
+  for (let i = 0; i < 180; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.09;
+    ctx.fillStyle = Math.random() < 0.5 ? t.dark : t.light;
+    const x = Math.random() * S, y = Math.random() * S, r = 6 + Math.random() * 16;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // blush ring around the pole -> reads as the dimple on top
+  const band = ctx.createLinearGradient(0, 0, 0, S * 0.13);
+  band.addColorStop(0, t.speck);
+  band.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = band;
+  ctx.fillRect(0, 0, S, S * 0.13);
+  return finishTexture(c);
+}
+
+function melonTexture(t) {
+  const S = 256, [c, ctx] = newCanvas(S);
+  const g = ctx.createLinearGradient(0, 0, 0, S);
+  g.addColorStop(0, t.light);
+  g.addColorStop(0.5, t.base);
+  g.addColorStop(1, t.dark);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+  // cantaloupe netting
+  ctx.strokeStyle = '#ffe0b0';
+  ctx.lineWidth = 3.2;
+  ctx.lineCap = 'round';
+  for (let i = -S; i < S * 2; i += 26) {
+    ctx.globalAlpha = 0.55;
+    ctx.beginPath();
+    for (let y = 0; y <= S; y += 16) ctx.lineTo(i + y + Math.sin(y * 0.08) * 7, y);
+    ctx.stroke();
+    ctx.beginPath();
+    for (let y = 0; y <= S; y += 16) ctx.lineTo(i - y + Math.cos(y * 0.08) * 7, y);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  return finishTexture(c);
+}
+
+function bananaCapTexture(t) {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.clearRect(0, 0, S, S);
+  const cx = S / 2, cy = S / 2, R = S / 2;
+  // peel edge
+  ctx.fillStyle = t.dark;
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+  // flesh
+  const g = ctx.createRadialGradient(cx - R * 0.2, cy - R * 0.25, R * 0.1, cx, cy, R * 0.92);
+  g.addColorStop(0, '#fffbe0');
+  g.addColorStop(0.65, t.light);
+  g.addColorStop(1, t.base);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(cx, cy, R * 0.88, 0, Math.PI * 2); ctx.fill();
+  // three-lobed core with seeds
+  ctx.fillStyle = 'rgba(210,165,60,.5)';
+  ctx.beginPath(); ctx.arc(cx, cy, R * 0.24, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(180,135,45,.55)';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a) * R * 0.24, cy + Math.sin(a) * R * 0.24);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(120,85,25,.75)';
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(a + 1.05) * R * 0.12, cy + Math.sin(a + 1.05) * R * 0.12, R * 0.035, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return finishTexture(c);
+}
+
+// A sphere pushed out along a repeating 3D wave: real bumps, so the
+// blackberry keeps its texture from the overhead camera angle.
+function bumpySphere(freq, amp, wSeg, hSeg) {
+  const geo = new THREE.SphereGeometry(1, wSeg, hSeg);
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const n = v.clone().normalize();
+    const bump = Math.sin(n.x * freq) * Math.sin(n.y * freq) * Math.sin(n.z * freq);
+    v.setLength(1 + bump * amp);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
+}
+
+const GEO = {
+  berry:  bumpySphere(9, 0.085, 34, 26),
+  lychee: new THREE.SphereGeometry(1, 24, 18),
+  melon:  bumpySphere(7, 0.022, 28, 20),
+  banana: new THREE.CylinderGeometry(1, 1, 1, 30),
+};
+
+const MAT = {};
+TYPES.forEach(t => {
+  if (t.id === 'berry') {
+    MAT.berry = new THREE.MeshStandardMaterial({ map: berryTexture(t), roughness: 0.36, metalness: 0.04 });
+  } else if (t.id === 'lychee') {
+    MAT.lychee = new THREE.MeshStandardMaterial({ map: lycheeTexture(t), roughness: 0.52 });
+  } else if (t.id === 'melon') {
+    MAT.melon = new THREE.MeshStandardMaterial({ map: melonTexture(t), roughness: 0.62 });
+  } else {
+    const cap = new THREE.MeshStandardMaterial({ map: bananaCapTexture(t), roughness: 0.5 });
+    const side = new THREE.MeshStandardMaterial({ color: t.dark, roughness: 0.55 });
+    MAT.banana = [side, cap, cap];   // CylinderGeometry groups: side, top, bottom
+  }
+});
+
+// Sphere fruits sit on the ground at y = radius; the banana disc is a
+// cylinder centred on its own origin, so it sits at half its height.
+function fruitVisual(type, radius) {
+  if (type === 'banana') {
+    const sy = radius * 0.5;
+    return { geo: GEO.banana, mat: MAT.banana, sx: radius, sy, baseY: sy / 2 };
+  }
+  return { geo: GEO[type], mat: MAT[type], sx: radius, sy: radius, baseY: radius };
+}
+
+const NORMAL_R = 0.42, BIG_R = 0.64;
+
+// ---------------------------------------------------------------------
+// Ground
+// ---------------------------------------------------------------------
+function groundTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#e8c07d';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2400; i++) {
+    ctx.globalAlpha = 0.04 + Math.random() * 0.07;
+    ctx.fillStyle = Math.random() < 0.5 ? '#d3a45c' : '#f5d69c';
+    const x = Math.random() * S, y = Math.random() * S, r = 1 + Math.random() * 2.6;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(14, 14);
+  return tex;
+}
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(60, 60),
-  new THREE.MeshStandardMaterial({ color: '#e8c07d', roughness: 1 })
+  new THREE.MeshStandardMaterial({ map: groundTexture(), roughness: 1 })
 );
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
-
-// ---------------------------------------------------------------------
-// Fruit textures (procedural canvas)
-// ---------------------------------------------------------------------
-function makeFruitMaterial(t) {
-  const size = 128;
-  const c = document.createElement('canvas');
-  c.width = c.height = size;
-  const ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(size * 0.35, size * 0.32, size * 0.05, size * 0.5, size * 0.5, size * 0.62);
-  g.addColorStop(0, t.light);
-  g.addColorStop(0.55, t.base);
-  g.addColorStop(1, t.dark);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = t.speck;
-  const specks = t.id === 'melon' ? 40 : t.id === 'berry' ? 60 : 14;
-  for (let i = 0; i < specks; i++) {
-    ctx.globalAlpha = 0.35 + Math.random() * 0.3;
-    const x = Math.random() * size, y = Math.random() * size;
-    const r = t.id === 'melon' ? 1.2 : 2 + Math.random() * 2.5;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.45, metalness: 0.05 });
-}
-TYPES.forEach(t => { t.material = makeFruitMaterial(t); });
-
-const UNIT_SPHERE = new THREE.SphereGeometry(1, 20, 16);
-const NORMAL_R = 0.42, BIG_R = 0.64;
 
 // ---------------------------------------------------------------------
 // Field
@@ -330,16 +490,16 @@ function buildField() {
       const type = pickRegionType(r, c);
       const big = Math.random() < 0.15;
       const radius = big ? BIG_R : NORMAL_R;
-      const t = TYPE_BY_ID[type];
-      const mesh = new THREE.Mesh(UNIT_SPHERE, t.material);
+      const vis = fruitVisual(type, radius);
+      const mesh = new THREE.Mesh(vis.geo, vis.mat);
       const { x, z } = gridToWorld(r, c);
-      const yScale = type === 'banana' ? radius * 0.62 : radius;
-      mesh.scale.set(radius, yScale, radius);
-      mesh.position.set(x, yScale, z);
+      mesh.scale.set(vis.sx, vis.sy, vis.sx);
+      mesh.position.set(x, vis.baseY, z);
+      mesh.rotation.y = Math.random() * Math.PI * 2;
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       fieldGroup.add(mesh);
-      fruits.push({ mesh, x, z, r: radius, type, big, eaten: false, baseY: yScale, nudge: 0 });
+      fruits.push({ mesh, x, z, r: radius, type, big, eaten: false, baseY: vis.baseY, nudge: 0 });
     }
   }
 }
@@ -353,19 +513,54 @@ let holeRadius = BASE_HOLE_R;
 let holeX = 0, holeZ = 0;
 let holeGroup;
 
+// The ground is a solid plane, so the pit cannot be real geometry without
+// a stencil cut-out. From this near-overhead camera a disc painted as a
+// brick shaft falling away into darkness reads as depth just as well.
+function holeInteriorTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  const cx = S / 2, cy = S / 2, R = S / 2;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = '#5c3517';
+  ctx.fillRect(0, 0, S, S);
+  const rings = 5;
+  for (let i = 0; i < rings; i++) {
+    const r0 = R * (1 - i / rings), r1 = R * (1 - (i + 1) / rings);
+    const seg = 14 + i * 2;
+    for (let s = 0; s < seg; s++) {
+      const a0 = (s / seg) * Math.PI * 2 + (i % 2 ? Math.PI / seg : 0);
+      const a1 = a0 + (Math.PI * 2 / seg) * 0.86;
+      ctx.fillStyle = ['#6b3d18', '#5a3213', '#7a4a20'][s % 3];
+      ctx.beginPath();
+      ctx.arc(cx, cy, r0, a0, a1);
+      ctx.arc(cx, cy, r1, a1, a0, true);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  const g = ctx.createRadialGradient(cx, cy, R * 0.04, cx, cy, R);
+  g.addColorStop(0, 'rgba(0,0,0,1)');
+  g.addColorStop(0.45, 'rgba(0,0,0,.94)');
+  g.addColorStop(1, 'rgba(0,0,0,.18)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+  ctx.restore();
+  return finishTexture(c);
+}
+const HOLE_INTERIOR_MAT = new THREE.MeshBasicMaterial({ map: holeInteriorTexture() });
+
 function buildHole() {
   if (holeGroup) scene.remove(holeGroup);
   holeGroup = new THREE.Group();
   const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(BASE_HOLE_R, 0.13, 12, 28),
-    new THREE.MeshStandardMaterial({ color: '#e08a2e', roughness: 0.5 })
+    new THREE.TorusGeometry(BASE_HOLE_R, 0.14, 14, 32),
+    new THREE.MeshStandardMaterial({ color: '#f59321', roughness: 0.42 })
   );
   rim.rotation.x = Math.PI / 2;
   rim.position.y = 0.02;
   rim.castShadow = true;
   const inner = new THREE.Mesh(
-    new THREE.CircleGeometry(BASE_HOLE_R * 0.86, 28),
-    new THREE.MeshBasicMaterial({ color: '#0a0603' })
+    new THREE.CircleGeometry(BASE_HOLE_R * 0.92, 32),
+    HOLE_INTERIOR_MAT
   );
   inner.rotation.x = -Math.PI / 2;
   inner.position.y = 0.03;
