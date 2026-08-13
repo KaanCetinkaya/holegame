@@ -1255,13 +1255,25 @@ function resetHole() {
 // Camera
 // ---------------------------------------------------------------------
 let camX = 0, camZ = 0;
+// The field is only seven columns wide, so the width sets the zoom -- that
+// keeps fruit a readable size on a phone instead of shrinking it to fit a
+// tall screen. Height then follows from the aspect ratio.
 function fitCamera() {
   const aspect = innerWidth / innerHeight;
-  const halfV = Math.max(6.5, fieldHalfZ + 2);
-  const halfH = halfV * aspect;
+  const halfH = fieldHalfX + 0.9;
+  const halfV = halfH / aspect;
   camera.left = -halfH; camera.right = halfH;
   camera.top = halfV; camera.bottom = -halfV;
   camera.updateProjectionMatrix();
+}
+
+// Keep the view inside the field: following the hole to the very edge
+// would otherwise park half the screen on empty ground.
+function clampCamera() {
+  const limX = Math.max(0, fieldHalfX + 1 - camera.right);
+  const limZ = Math.max(0, fieldHalfZ + 1 - camera.top);
+  camX = Math.max(-limX, Math.min(limX, camX));
+  camZ = Math.max(-limZ, Math.min(limZ, camZ));
 }
 function resize() {
   renderer.setSize(innerWidth, innerHeight);
@@ -1655,6 +1667,7 @@ function tick(now) {
 
   camX += (holeX - camX) * 0.09;
   camZ += (holeZ - camZ) * 0.09;
+  clampCamera();
   camera.position.set(camX, 14, camZ + 2.0);
   camera.lookAt(camX, 0, camZ);
 
