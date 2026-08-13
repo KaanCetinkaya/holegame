@@ -87,7 +87,21 @@
     background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow: 0 3px 0 #c67e12; }
   .upg .buy:disabled { background: rgba(255,255,255,.16); color: rgba(255,255,255,.5); box-shadow: none; }
   .upg .buy .cost { display: block; font-size: 11px; font-weight: 700; opacity: .85; }
-  #upgrades .sect { font-size: 15px; font-weight: 800; opacity: .9; margin-top: 2px; }
+  #upgrades .sect, #goals .sect { font-size: 15px; font-weight: 800; opacity: .9; margin-top: 2px; }
+  .menuRow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .menuRow .btn { margin-top: 0; }
+
+  #goals { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+  #missionList, #achList { display: flex; flex-direction: column; gap: 9px;
+    width: min(94vw, 420px); margin-bottom: 4px; }
+  .upg.done { border-color: rgba(126,231,135,.6); background: rgba(126,231,135,.14); }
+  .mbar { height: 6px; border-radius: 999px; background: rgba(255,255,255,.2);
+    margin-top: 5px; overflow: hidden; }
+  .mfill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#7ee787,#39c760); }
+
+  #daily { background: rgba(60,35,10,.8); backdrop-filter: blur(4px); }
+  #dailyLoot .pill { font-size: 16px; }
   #boostShop { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin-bottom: 6px; }
   .upg .own { color: #ffd23f; font-weight: 800; font-size: 12px; margin-top: 3px; }
 
@@ -173,7 +187,26 @@
     <h1>Fruit Hole</h1>
     <p id="menuSub">Bölüm 1</p>
     <button class="btn" id="playBtn">Başla</button>
-    <button class="btn ghost" id="upgBtn">⬆️ Yükseltmeler</button>
+    <div class="menuRow">
+      <button class="btn ghost" id="upgBtn">⬆️ Yükseltmeler</button>
+      <button class="btn ghost" id="goalsBtn">📋 Görevler</button>
+    </div>
+  </div>
+
+  <div id="goals" class="screen">
+    <h1>📋 Görevler</h1>
+    <p class="sect">Günlük görevler</p>
+    <div id="missionList"></div>
+    <p class="sect">🏆 Başarımlar</p>
+    <div id="achList"></div>
+    <button class="btn ghost" id="goalsClose">Kapat</button>
+  </div>
+
+  <div id="daily" class="screen">
+    <h1>🎁 Günlük Ödül</h1>
+    <p id="dailySub"></p>
+    <div class="stats" id="dailyLoot"></div>
+    <button class="btn" id="dailyBtn">Al</button>
   </div>
 
   <div id="upgrades" class="screen">
@@ -190,7 +223,10 @@
     <p id="overlaySub"></p>
     <div class="stats" id="overlayStats"></div>
     <button class="btn" id="reviveBtn">📺 +15 saniye</button>
-    <button class="btn ghost" id="actionBtn">Devam</button>
+    <div class="menuRow">
+      <button class="btn ghost" id="actionBtn">Devam</button>
+      <button class="btn ghost" id="toMenuBtn">🏠 Menü</button>
+    </div>
   </div>
 </div>
 
@@ -269,6 +305,70 @@ const boosters = boosterStore || Object.fromEntries(BOOSTERS.map(b => [b.id, b.f
 BOOSTERS.forEach(b => { if (!(b.id in boosters)) boosters[b.id] = b.free; });
 function saveBoosters() { localStorage.setItem('fruithole_boosters', JSON.stringify(boosters)); }
 function boosterUnlocked(b) { return level >= b.unlock; }
+
+// ---------------------------------------------------------------------
+// Stats, daily missions, achievements, daily reward
+//
+// Daily work is counted in its own bucket that resets with the date,
+// rather than diffing lifetime totals against a snapshot -- that way a
+// mission cannot be completed by progress made before it was handed out.
+// ---------------------------------------------------------------------
+const stats = JSON.parse(localStorage.getItem('fruithole_stats') || '{}');
+['fruits', 'levels', 'stars', 'bestCombo'].forEach(k => { if (!(k in stats)) stats[k] = 0; });
+function saveStats() { localStorage.setItem('fruithole_stats', JSON.stringify(stats)); }
+
+function dayKey(d) { return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
+
+const MISSION_POOL = [
+  { id: 'eat',   icon: '🍇', track: 'fruits',    text: n => `${n} meyve ye`,     roll: () => 60 + Math.floor(Math.random() * 5) * 20 },
+  { id: 'lvl',   icon: '🏁', track: 'levels',    text: n => `${n} bölüm bitir`,  roll: () => 2 + Math.floor(Math.random() * 3) },
+  { id: 'star',  icon: '⭐', track: 'stars',     text: n => `${n} yıldız kazan`, roll: () => 4 + Math.floor(Math.random() * 5) },
+  { id: 'combo', icon: '🔥', track: 'bestCombo', text: n => `x${n} kombo yap`,   roll: () => 3 + Math.floor(Math.random() * 3) },
+];
+const MISSION_BY_ID = Object.fromEntries(MISSION_POOL.map(m => [m.id, m]));
+const MISSION_REWARD = 45;
+
+const daily = JSON.parse(localStorage.getItem('fruithole_daily') || '{}');
+function saveDaily() { localStorage.setItem('fruithole_daily', JSON.stringify(daily)); }
+
+function ensureDaily() {
+  const key = dayKey(new Date());
+  if (daily.date === key) return;
+  const yesterday = dayKey(new Date(Date.now() - 86400000));
+  daily.streak = daily.date === yesterday ? (daily.streak || 0) + 1 : 1;
+  daily.date = key;
+  daily.fruits = 0; daily.levels = 0; daily.stars = 0; daily.bestCombo = 0;
+  daily.missions = [...MISSION_POOL]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3)
+    .map(m => ({ id: m.id, goal: m.roll(), claimed: false }));
+  daily.rewardClaimed = false;
+  const t = TYPES[Math.floor(Math.random() * TYPES.length)];
+  daily.loot = { type: t.id, amount: 25 + Math.min(daily.streak, 7) * 10 };
+  saveDaily();
+}
+ensureDaily();
+
+const ACHIEVEMENTS = [
+  { id: 'eat100',  icon: '🍇',  name: 'Yüz lokma',     desc: 'Toplam 100 meyve ye',  goal: 100,  at: () => stats.fruits,    pay: 'berry',  reward: 60 },
+  { id: 'eat1000', icon: '🍽️', name: 'Doymak bilmez', desc: 'Toplam 1000 meyve ye', goal: 1000, at: () => stats.fruits,    pay: 'berry',  reward: 220 },
+  { id: 'lvl10',   icon: '🏁',  name: 'Onuncu bölüm',  desc: "Bölüm 10'a ulaş",      goal: 10,   at: () => level,           pay: 'banana', reward: 140 },
+  { id: 'star15',  icon: '⭐',  name: 'Yıldız avcısı', desc: '15 yıldız kazan',      goal: 15,   at: () => stats.stars,     pay: 'lychee', reward: 140 },
+  { id: 'combo5',  icon: '🔥',  name: 'Zincirleme',    desc: 'x5 kombo yap',         goal: 5,    at: () => stats.bestCombo, pay: 'melon',  reward: 110 },
+];
+const achClaimed = JSON.parse(localStorage.getItem('fruithole_ach') || '{}');
+function saveAch() { localStorage.setItem('fruithole_ach', JSON.stringify(achClaimed)); }
+
+// how far along a daily mission is, capped at its goal
+function missionAt(m) { return Math.min(daily[MISSION_BY_ID[m.id].track] || 0, m.goal); }
+function missionDone(m) { return missionAt(m) >= m.goal; }
+
+// something claimable anywhere? used to badge the menu button
+function anyClaimable() {
+  const mission = (daily.missions || []).some(m => missionDone(m) && !m.claimed);
+  const ach = ACHIEVEMENTS.some(a => !achClaimed[a.id] && a.at() >= a.goal);
+  return mission || ach;
+}
 
 const app = document.getElementById('app');
 const topbarEl = document.getElementById('topbar');
@@ -505,6 +605,131 @@ function renderBoostShop() {
     shop.appendChild(row);
   });
 }
+
+// ---------------------------------------------------------------------
+// Goals screen: daily missions + achievements
+// ---------------------------------------------------------------------
+function goalRow(icon, name, desc, at, goal, claimed, onClaim) {
+  const pct = Math.min(100, Math.round((at / goal) * 100));
+  const ready = at >= goal && !claimed;
+  const row = document.createElement('div');
+  row.className = 'upg' + (claimed ? ' done' : '');
+  row.innerHTML =
+    `<span class="ico">${icon}</span>` +
+    `<span class="mid">` +
+      `<span class="nm">${name}</span>` +
+      `<div class="ds">${desc}</div>` +
+      `<div class="mbar"><div class="mfill" style="width:${pct}%"></div></div>` +
+      `<div class="own">${Math.min(at, goal)} / ${goal}</div>` +
+    `</span>`;
+  const btn = document.createElement('button');
+  btn.className = 'buy';
+  if (claimed) { btn.textContent = '✓'; btn.disabled = true; }
+  else if (ready) { btn.textContent = 'Al'; btn.onclick = onClaim; }
+  else { btn.textContent = '…'; btn.disabled = true; }
+  row.appendChild(btn);
+  return row;
+}
+
+function renderGoals() {
+  ensureDaily();
+  const mList = document.getElementById('missionList');
+  mList.innerHTML = '';
+  (daily.missions || []).forEach(m => {
+    const def = MISSION_BY_ID[m.id];
+    mList.appendChild(goalRow(
+      def.icon, def.text(m.goal), `Ödül: ${MISSION_REWARD} meyve`,
+      missionAt(m), m.goal, m.claimed,
+      () => claimMission(m)
+    ));
+  });
+
+  const aList = document.getElementById('achList');
+  aList.innerHTML = '';
+  ACHIEVEMENTS.forEach(a => {
+    aList.appendChild(goalRow(
+      a.icon, a.name, `${a.desc} · ${a.reward} ${TYPE_BY_ID[a.pay].label}`,
+      a.at(), a.goal, !!achClaimed[a.id],
+      () => claimAch(a)
+    ));
+  });
+  refreshGoalsBadge();
+}
+
+function claimMission(m) {
+  if (m.claimed || !missionDone(m)) return;
+  m.claimed = true;
+  saveDaily();
+  const t = TYPES[Math.floor(Math.random() * TYPES.length)];
+  bumpCurrency(t.id, MISSION_REWARD);
+  sfx.win();
+  renderGoals();
+}
+
+function claimAch(a) {
+  if (achClaimed[a.id] || a.at() < a.goal) return;
+  achClaimed[a.id] = true;
+  saveAch();
+  bumpCurrency(a.pay, a.reward);
+  sfx.win();
+  renderGoals();
+}
+
+function refreshGoalsBadge() {
+  const b = document.getElementById('goalsBtn');
+  b.textContent = anyClaimable() ? '📋 Görevler ❗' : '📋 Görevler';
+}
+
+// Back to the menu from the end-of-run overlay -- without this there is
+// no way to reach upgrades or goals again once a run has started.
+function toMenu() {
+  state = 'menu';
+  overlayEl.classList.remove('show');
+  boosterBarEl.classList.remove('show');
+  topbarEl.classList.remove('show');
+  hintEl.style.opacity = '0';
+  menuSubEl.textContent = 'Bölüm ' + level;
+  refreshGoalsBadge();
+  menuEl.classList.add('show');
+}
+document.getElementById('toMenuBtn').addEventListener('click', toMenu);
+
+document.getElementById('goalsBtn').addEventListener('click', () => {
+  saveStats();
+  renderGoals();
+  menuEl.classList.remove('show');
+  document.getElementById('goals').classList.add('show');
+});
+document.getElementById('goalsClose').addEventListener('click', () => {
+  document.getElementById('goals').classList.remove('show');
+  menuEl.classList.add('show');
+});
+
+// ---------------------------------------------------------------------
+// Daily reward
+// ---------------------------------------------------------------------
+function maybeShowDaily() {
+  ensureDaily();
+  if (daily.rewardClaimed) return false;
+  const t = TYPE_BY_ID[daily.loot.type];
+  document.getElementById('dailySub').textContent = `${daily.streak}. gün üst üste`;
+  document.getElementById('dailyLoot').innerHTML =
+    `<span class="pill">${daily.loot.amount} ${t.label}</span>`;
+  menuEl.classList.remove('show');
+  document.getElementById('daily').classList.add('show');
+  return true;
+}
+
+document.getElementById('dailyBtn').addEventListener('click', () => {
+  if (!daily.rewardClaimed) {
+    daily.rewardClaimed = true;
+    saveDaily();
+    bumpCurrency(daily.loot.type, daily.loot.amount);
+    sfx.win();
+  }
+  document.getElementById('daily').classList.remove('show');
+  menuEl.classList.add('show');
+});
 
 function buyBooster(b) {
   if (!boosterUnlocked(b) || currency[b.pay] < b.cost) return;
@@ -1166,6 +1391,14 @@ function onCleared() {
   const isBest = earned > prevBest;
   if (isBest) { stars[cleared] = earned; saveStars(); }
 
+  stats.levels++;
+  stats.stars += earned;
+  daily.levels = (daily.levels || 0) + 1;
+  daily.stars = (daily.stars || 0) + earned;
+  saveStats();
+  saveDaily();
+  refreshGoalsBadge();
+
   level++;
   localStorage.setItem('fruithole_level', String(level));
   menuSubEl.textContent = 'Bölüm ' + level;
@@ -1209,6 +1442,10 @@ function eatFruit(f, now) {
   lastEatAt = now;
   const mult = Math.min(5, 1 + Math.floor(streak / 4));
   bumpCurrency(f.type, mult);
+  stats.fruits++;
+  daily.fruits = (daily.fruits || 0) + 1;
+  if (mult > stats.bestCombo) stats.bestCombo = mult;
+  if (mult > (daily.bestCombo || 0)) daily.bestCombo = mult;
   if (mult >= 2 && streak % 4 === 0) showCombo(mult);
   updateProgressUI();
   sfx.eat(streak);
@@ -1281,6 +1518,8 @@ resetHole();
 camX = holeX; camZ = holeZ;
 resize();
 document.getElementById('loading').style.display = 'none';
+refreshGoalsBadge();
+maybeShowDaily();
 
 const BASE_MOVE_SPEED = 3.4;
 let lastT = performance.now();
