@@ -87,6 +87,26 @@
     background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow: 0 3px 0 #c67e12; }
   .upg .buy:disabled { background: rgba(255,255,255,.16); color: rgba(255,255,255,.5); box-shadow: none; }
   .upg .buy .cost { display: block; font-size: 11px; font-weight: 700; opacity: .85; }
+  #upgrades .sect { font-size: 15px; font-weight: 800; opacity: .9; margin-top: 2px; }
+  #boostShop { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin-bottom: 6px; }
+  .upg .own { color: #ffd23f; font-weight: 800; font-size: 12px; margin-top: 3px; }
+
+  /* boosters */
+  #boosterBar { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 52px);
+    display: none; gap: 12px; justify-content: center; z-index: 7; }
+  #boosterBar.show { display: flex; }
+  .slot { position: relative; pointer-events: auto; cursor: pointer; border: none;
+    width: 60px; height: 60px; border-radius: 17px; font-size: 25px;
+    background: linear-gradient(180deg,#8a6fd8,#6b4fc0); box-shadow: 0 4px 0 #4a349a;
+    display: flex; align-items: center; justify-content: center; }
+  .slot:active { transform: translateY(2px); box-shadow: 0 2px 0 #4a349a; }
+  .slot.locked { background: linear-gradient(180deg,#7a6ca0,#5b5080); box-shadow: 0 4px 0 #3e3660;
+    font-size: 12px; font-weight: 800; color: #fff; cursor: default; opacity: .75; }
+  .slot.empty { opacity: .5; }
+  .slot .badge { position: absolute; top: -6px; right: -6px; min-width: 22px; height: 22px;
+    border-radius: 999px; background: #e2373d; color: #fff; font-size: 12px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; padding: 0 5px;
+    box-shadow: 0 2px 0 rgba(0,0,0,.25); }
 
   #hint { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
     text-align: center; pointer-events: none; color: #7a5a2a; font-size: 14px; font-weight: 600;
@@ -143,6 +163,7 @@
 
   <div id="combo"></div>
 
+  <div id="boosterBar"></div>
   <div id="hint">Parmağını sürükle, deliği gezdir, meyveleri ye</div>
   <div id="joyBase"></div>
   <div id="joyKnob"></div>
@@ -159,6 +180,8 @@
     <h1>⬆️ Yükseltmeler</h1>
     <div id="upgWallet"></div>
     <div id="upgList"></div>
+    <p class="sect">🎁 Boosterlar</p>
+    <div id="boostShop"></div>
     <button class="btn ghost" id="upgClose">Kapat</button>
   </div>
 
@@ -224,6 +247,29 @@ function saveUpgrades() { localStorage.setItem('fruithole_upgrades', JSON.string
 function upg(id) { return upgrades[id] || 0; }
 function upgCost(u) { return u.base * Math.pow(2, upg(u.id)); }
 
+// ---------------------------------------------------------------------
+// Boosters
+//
+// Consumables spent mid-run from the bar at the bottom. Slots unlock as
+// levels are cleared, so the bar fills out over time instead of dumping
+// three unexplained buttons on a new player. Each starts with a couple
+// free so the first use costs nothing to learn.
+// ---------------------------------------------------------------------
+const BOOSTERS = [
+  { id: 'time',   icon: '⏰', name: 'Zaman',    unlock: 4,  pay: 'lychee', cost: 40, free: 2,
+    desc: '+15 saniye' },
+  { id: 'grow',   icon: '💥', name: 'Büyüt',    unlock: 7,  pay: 'banana', cost: 50, free: 1,
+    desc: 'Delik anında büyür' },
+  { id: 'magnet', icon: '🌟', name: 'Süper mıknatıs', unlock: 10, pay: 'melon', cost: 45, free: 1,
+    desc: '8 saniye güçlü çekim' },
+];
+
+const boosterStore = JSON.parse(localStorage.getItem('fruithole_boosters') || 'null');
+const boosters = boosterStore || Object.fromEntries(BOOSTERS.map(b => [b.id, b.free]));
+BOOSTERS.forEach(b => { if (!(b.id in boosters)) boosters[b.id] = b.free; });
+function saveBoosters() { localStorage.setItem('fruithole_boosters', JSON.stringify(boosters)); }
+function boosterUnlocked(b) { return level >= b.unlock; }
+
 const app = document.getElementById('app');
 const topbarEl = document.getElementById('topbar');
 const countersEl = document.getElementById('counters');
@@ -248,6 +294,7 @@ const comboEl = document.getElementById('combo');
 const upgradesEl = document.getElementById('upgrades');
 const upgListEl = document.getElementById('upgList');
 const upgWalletEl = document.getElementById('upgWallet');
+const boosterBarEl = document.getElementById('boosterBar');
 
 // ---------------------------------------------------------------------
 // Ads (AdMob) — only live inside the native Capacitor shell. In a browser
@@ -341,6 +388,7 @@ const sfx = {
   win()       { ensureAudio(); [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.2, 'triangle', 0.18, i * 0.09)); vibrate([20, 40, 25]); },
   lose()      { ensureAudio(); [420, 320, 240].forEach((f, i) => beep(f, 0.22, 'sawtooth', 0.14, i * 0.1)); vibrate(70); },
   tick()      { ensureAudio(); beep(760, 0.05, 'square', 0.08); },
+  booster()   { ensureAudio(); [660, 880, 1180].forEach((f, i) => beep(f, 0.13, 'triangle', 0.17, i * 0.06)); vibrate([15, 30]); },
 };
 
 function refreshMuteBtn() { muteBtnEl.textContent = muted ? '🔇' : '🔊'; }
@@ -421,6 +469,52 @@ function renderUpgrades() {
     row.appendChild(btn);
     upgListEl.appendChild(row);
   });
+
+  renderBoostShop();
+}
+
+function renderBoostShop() {
+  const shop = document.getElementById('boostShop');
+  shop.innerHTML = '';
+  BOOSTERS.forEach(b => {
+    const pay = TYPE_BY_ID[b.pay];
+    const locked = !boosterUnlocked(b);
+    const afford = currency[b.pay] >= b.cost;
+
+    const row = document.createElement('div');
+    row.className = 'upg';
+    row.innerHTML =
+      `<span class="ico">${b.icon}</span>` +
+      `<span class="mid">` +
+        `<span class="nm">${b.name}</span>` +
+        `<div class="ds">${b.desc}</div>` +
+        `<div class="own">${locked ? `Bölüm ${b.unlock}'da açılır` : `Elinde: ${boosters[b.id] || 0}`}</div>` +
+      `</span>`;
+
+    const btn = document.createElement('button');
+    btn.className = 'buy';
+    if (locked) {
+      btn.textContent = '🔒';
+      btn.disabled = true;
+    } else {
+      btn.innerHTML = `Satın al<span class="cost">${b.cost} ${pay.label}</span>`;
+      btn.disabled = !afford;
+      btn.onclick = () => buyBooster(b);
+    }
+    row.appendChild(btn);
+    shop.appendChild(row);
+  });
+}
+
+function buyBooster(b) {
+  if (!boosterUnlocked(b) || currency[b.pay] < b.cost) return;
+  currency[b.pay] -= b.cost;
+  boosters[b.id] = (boosters[b.id] || 0) + 1;
+  saveCurrency();
+  saveBoosters();
+  sfx.booster();
+  buildCounters();
+  renderUpgrades();
 }
 
 function buyUpgrade(u) {
@@ -924,11 +1018,56 @@ function updateProgressUI() {
   }
 }
 
-function showCombo(mult) {
-  comboEl.textContent = `x${mult} KOMBO!`;
+function flash(text) {
+  comboEl.textContent = text;
   comboEl.classList.remove('show');
   void comboEl.offsetWidth;
   comboEl.classList.add('show');
+}
+function showCombo(mult) { flash(`x${mult} KOMBO!`); }
+
+// ---------------------------------------------------------------------
+// Booster bar
+// ---------------------------------------------------------------------
+let magnetBoostUntil = 0;
+
+function renderBoosters() {
+  boosterBarEl.innerHTML = '';
+  BOOSTERS.forEach(b => {
+    const btn = document.createElement('button');
+    if (!boosterUnlocked(b)) {
+      btn.className = 'slot locked';
+      btn.textContent = 'Lvl ' + b.unlock;
+      btn.disabled = true;
+    } else {
+      const n = boosters[b.id] || 0;
+      btn.className = 'slot' + (n <= 0 ? ' empty' : '');
+      btn.innerHTML = b.icon + (n > 0 ? `<span class="badge">${n}</span>` : '');
+      btn.disabled = n <= 0;
+      btn.onclick = () => useBooster(b);
+    }
+    boosterBarEl.appendChild(btn);
+  });
+}
+
+function useBooster(b) {
+  if (state !== 'playing' || !boosterUnlocked(b) || (boosters[b.id] || 0) <= 0) return;
+  boosters[b.id]--;
+  saveBoosters();
+
+  if (b.id === 'time') {
+    timeLeft += 15;
+    lastWholeSecond = -1;
+    updateTimeUI();
+  } else if (b.id === 'grow') {
+    holeRadius = Math.min(HOLE_MAX, holeRadius + 0.4);
+  } else if (b.id === 'magnet') {
+    magnetBoostUntil = performance.now() + 8000;
+  }
+
+  sfx.booster();
+  flash(`${b.icon} ${b.desc}`);
+  renderBoosters();
 }
 
 function startLevel() {
@@ -948,6 +1087,9 @@ function startLevel() {
   updateTimeUI();
   lastProgPct = -1; lastStarCount = -1;
   updateProgressUI();
+  magnetBoostUntil = 0;
+  renderBoosters();
+  boosterBarEl.classList.add('show');
   menuEl.classList.remove('show');
   upgradesEl.classList.remove('show');
   overlayEl.classList.remove('show');
@@ -973,6 +1115,7 @@ function showOverlay(title, sub, btnText, action, offerRevive) {
   actionBtnEl.onclick = action;
   actionBtnEl.classList.toggle('ghost', !!offerRevive);
   reviveBtnEl.hidden = !offerRevive;
+  boosterBarEl.classList.remove('show');
   overlayEl.classList.add('show');
 }
 
@@ -989,6 +1132,7 @@ async function revive() {
   lastWholeSecond = -1;
   updateTimeUI();
   overlayEl.classList.remove('show');
+  boosterBarEl.classList.add('show');
   state = 'playing';
 }
 reviveBtnEl.addEventListener('click', revive);
@@ -1166,7 +1310,7 @@ function tick(now) {
     // magnet upgrade: fruit the hole could swallow drifts toward it, so a
     // near miss still counts. Oversized fruit is not pulled -- it has to
     // stay where it is until the hole has grown enough to take it.
-    const mag = upg('magnet') * 0.28;
+    const mag = upg('magnet') * 0.28 + (now < magnetBoostUntil ? 1.6 : 0);
     if (mag > 0) {
       for (const f of fruits) {
         if (f.eaten || f.r > holeRadius * 0.92) continue;
