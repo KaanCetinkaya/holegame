@@ -36,27 +36,16 @@
   #levelTag { position: fixed; top: calc(env(safe-area-inset-top,0px) + 36px); left: 50%; transform: translateX(-50%);
     color: #7a5a2a; font-weight: 700; font-size: 13px; opacity: .85; z-index: 5; pointer-events: none; text-shadow: 0 1px 0 rgba(255,255,255,.4); }
 
-  #bottom { position: fixed; left: 0; right: 0; bottom: 0;
-    padding-bottom: calc(env(safe-area-inset-bottom,0px) + 10px);
-    display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 6; }
+  #hint { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
+    text-align: center; pointer-events: none; color: #7a5a2a; font-size: 14px; font-weight: 600;
+    opacity: .8; transition: opacity .5s ease; z-index: 5; text-shadow: 0 1px 0 rgba(255,255,255,.4); }
 
-  #levelRow { display: flex; gap: 8px; }
-  .lnode { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(180deg,#8a6fd8,#6b4fc0);
-    border: none; box-shadow: 0 3px 0 #4a349a; display: flex; align-items: center; justify-content: center;
-    color: #fff; font-weight: 800; font-size: 11px; opacity: .55; }
-
-  #launchZone { position: relative; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; }
-  #aimRing { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,.5);
-    background: rgba(255,255,255,.12); opacity: 0; transition: opacity .15s ease; }
-  #aimRing.show { opacity: 1; }
-  .supplyStack { position: absolute; bottom: 0; display: flex; flex-direction: column-reverse; align-items: center; }
-  .sball { width: 46px; height: 46px; border-radius: 50%; margin-top: -18px; box-shadow: inset 0 -5px 8px rgba(0,0,0,.35), inset 0 3px 5px rgba(255,255,255,.55), 0 3px 5px rgba(0,0,0,.25); }
-  .sball:last-child { margin-top: 0; }
-  #ballCount { position: fixed; z-index: 7; color: #fff; font-weight: 800; font-size: 13px;
-    text-shadow: 0 2px 4px rgba(0,0,0,.5); pointer-events: none; }
-
-  #waveTag { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom,0px) + 170px);
-    color: #7a5a2a; font-weight: 700; font-size: 13px; opacity: .8; z-index: 5; pointer-events: none; }
+  #joyBase { position: fixed; width: 110px; height: 110px; margin: -55px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.5); background: rgba(255,255,255,.12);
+    opacity: 0; pointer-events: none; z-index: 8; transition: opacity .15s ease; }
+  #joyKnob { position: fixed; width: 46px; height: 46px; margin: -23px; border-radius: 50%;
+    background: rgba(255,255,255,.55); pointer-events: none; z-index: 9; opacity: 0; transition: opacity .15s ease; }
+  #joyBase.show, #joyKnob.show { opacity: 1; }
 
   #overlay { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
     gap: 16px; background: rgba(60,35,10,.55); backdrop-filter: blur(3px); z-index: 20; text-align: center; padding: 24px; }
@@ -72,15 +61,9 @@
   <div id="hud"></div>
   <div id="sizeTag">Size <span id="sizeN">1</span></div>
   <div id="levelTag">Bölüm <span id="lvlN">1</span></div>
-  <div id="waveTag"></div>
-
-  <div id="bottom">
-    <div id="levelRow"></div>
-    <div id="launchZone">
-      <div id="aimRing"></div>
-      <div class="supplyStack" id="supplyStack"></div>
-    </div>
-  </div>
+  <div id="hint">Parmağını sürükle, deliği gezdir, meyveleri ye</div>
+  <div id="joyBase"></div>
+  <div id="joyKnob"></div>
 
   <div id="overlay">
     <h1 id="overlayTitle">Bölüm Tamam! 🎉</h1>
@@ -104,8 +87,6 @@ const TYPE_BY_ID = Object.fromEntries(TYPES.map(t => [t.id, t]));
 
 const COLS = 7;
 let rows = 9;
-let holeCol = 3;
-let holeRow = rows - 1;
 let level = 1;
 let sizeStage = 1;
 
@@ -117,12 +98,11 @@ const app = document.getElementById('app');
 const hudEl = document.getElementById('hud');
 const sizeNEl = document.getElementById('sizeN');
 const lvlNEl = document.getElementById('lvlN');
-const waveTagEl = document.getElementById('waveTag');
-const supplyStackEl = document.getElementById('supplyStack');
-const aimRingEl = document.getElementById('aimRing');
+const hintEl = document.getElementById('hint');
 const overlayEl = document.getElementById('overlay');
 const overlayTitleEl = document.getElementById('overlayTitle');
-const levelRowEl = document.getElementById('levelRow');
+const joyBaseEl = document.getElementById('joyBase');
+const joyKnobEl = document.getElementById('joyKnob');
 
 function buildHud() {
   hudEl.innerHTML = '';
@@ -141,13 +121,6 @@ function bumpCurrency(id, amount) {
 }
 buildHud();
 
-for (let i = 0; i < 3; i++) {
-  const b = document.createElement('div');
-  b.className = 'lnode';
-  b.textContent = 'Lvl ' + (level + i + 1);
-  levelRowEl.appendChild(b);
-}
-
 // ---------------------------------------------------------------------
 // Three.js scene
 // ---------------------------------------------------------------------
@@ -159,27 +132,21 @@ app.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#e8c07d');
-scene.fog = new THREE.Fog('#e8c07d', 18, 30);
+scene.fog = new THREE.Fog('#e8c07d', 20, 34);
 
-const FRUSTUM = 8;
-const camera = new THREE.OrthographicCamera(-FRUSTUM, FRUSTUM, FRUSTUM, -FRUSTUM, 0.1, 100);
-function positionCamera() {
-  camera.position.set(0, 14, 3.2);
-  camera.lookAt(0, 0, 0.5);
-}
-positionCamera();
+const camera = new THREE.OrthographicCamera(-8, 8, 8, -8, 0.1, 100);
 
 scene.add(new THREE.HemisphereLight('#fff6e0', '#c98a3c', 0.9));
 const sun = new THREE.DirectionalLight('#fff2d0', 1.05);
 sun.position.set(5, 12, 6);
 sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
-sun.shadow.camera.left = -10; sun.shadow.camera.right = 10;
-sun.shadow.camera.top = 10; sun.shadow.camera.bottom = -10;
+sun.shadow.camera.left = -12; sun.shadow.camera.right = 12;
+sun.shadow.camera.top = 12; sun.shadow.camera.bottom = -12;
 scene.add(sun);
 
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(40, 40),
+  new THREE.PlaneGeometry(60, 60),
   new THREE.MeshStandardMaterial({ color: '#e8c07d', roughness: 1 })
 );
 ground.rotation.x = -Math.PI / 2;
@@ -215,24 +182,24 @@ function makeFruitMaterial(t) {
 }
 TYPES.forEach(t => { t.material = makeFruitMaterial(t); });
 
-const ballGeo = new THREE.SphereGeometry(0.44, 20, 16);
-const flatGeo = new THREE.SphereGeometry(0.44, 20, 16);
-flatGeo.scale(1, 0.62, 1);
-function geoFor(id) { return id === 'banana' ? flatGeo : ballGeo; }
+const UNIT_SPHERE = new THREE.SphereGeometry(1, 20, 16);
+const NORMAL_R = 0.42, BIG_R = 0.64;
 
 // ---------------------------------------------------------------------
-// Grid state + layout
+// Field layout
 // ---------------------------------------------------------------------
-const CELL = 1.02;
-let grid = [];      // grid[row][col] = type id | null
-let meshes = [];     // meshes[row][col] = THREE.Mesh | null
-const gridGroup = new THREE.Group();
-scene.add(gridGroup);
+const CELL = 1.05;
+let fieldHalfX = (COLS * CELL) / 2;
+let fieldHalfZ = (rows * CELL) / 2;
+const fieldGroup = new THREE.Group();
+scene.add(fieldGroup);
+let fruits = []; // { mesh, x, z, r, type, big, eaten }
 
 function gridToWorld(row, col) {
-  const x = (col - (COLS - 1) / 2) * CELL;
-  const z = (row - holeRow) * CELL;
-  return { x, z };
+  return {
+    x: (col - (COLS - 1) / 2) * CELL,
+    z: (row - (rows - 1) / 2) * CELL,
+  };
 }
 
 function pickRegionType(row, col) {
@@ -244,51 +211,49 @@ function pickRegionType(row, col) {
   return Math.random() < 0.12 ? TYPES[Math.floor(Math.random() * TYPES.length)].id : t;
 }
 
-function buildGrid() {
-  grid = []; meshes = [];
-  gridGroup.clear();
-  for (let r = 0; r < rows; r++) {
-    grid.push(new Array(COLS).fill(null));
-    meshes.push(new Array(COLS).fill(null));
-  }
+function buildField() {
+  fieldGroup.clear();
+  fruits = [];
+  fieldHalfX = (COLS * CELL) / 2;
+  fieldHalfZ = (rows * CELL) / 2;
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < COLS; c++) {
-      if (r === holeRow && c === holeCol) continue;
-      const id = pickRegionType(r, c);
-      grid[r][c] = id;
-      spawnCellMesh(r, c, id);
+      const type = pickRegionType(r, c);
+      const big = Math.random() < 0.15;
+      const radius = big ? BIG_R : NORMAL_R;
+      const t = TYPE_BY_ID[type];
+      const mesh = new THREE.Mesh(UNIT_SPHERE, t.material);
+      const { x, z } = gridToWorld(r, c);
+      const yScale = type === 'banana' ? radius * 0.62 : radius;
+      mesh.scale.set(radius, yScale, radius);
+      mesh.position.set(x, yScale, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      fieldGroup.add(mesh);
+      fruits.push({ mesh, x, z, r: radius, type, big, eaten: false });
     }
   }
-  buildHole();
-  fitCamera();
 }
 
-function spawnCellMesh(row, col, id) {
-  const t = TYPE_BY_ID[id];
-  const mesh = new THREE.Mesh(geoFor(id), t.material);
-  const { x, z } = gridToWorld(row, col);
-  mesh.position.set(x, id === 'banana' ? 0.27 : 0.44, z);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  gridGroup.add(mesh);
-  meshes[row][col] = mesh;
-}
-
+// ---------------------------------------------------------------------
+// Hole (drag-controlled, grows as it eats)
+// ---------------------------------------------------------------------
+const BASE_HOLE_R = 0.56;
+let holeRadius = BASE_HOLE_R;
+let holeX = 0, holeZ = fieldHalfZ - 1.4;
 let holeGroup;
 function buildHole() {
   if (holeGroup) scene.remove(holeGroup);
   holeGroup = new THREE.Group();
-  const { x, z } = gridToWorld(holeRow, holeCol);
-  holeGroup.position.set(x, 0, z);
   const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(0.56, 0.13, 12, 28),
+    new THREE.TorusGeometry(BASE_HOLE_R, 0.13, 12, 28),
     new THREE.MeshStandardMaterial({ color: '#e08a2e', roughness: 0.5 })
   );
   rim.rotation.x = Math.PI / 2;
   rim.position.y = 0.02;
   rim.castShadow = true;
   const inner = new THREE.Mesh(
-    new THREE.CircleGeometry(0.48, 28),
+    new THREE.CircleGeometry(BASE_HOLE_R * 0.86, 28),
     new THREE.MeshBasicMaterial({ color: '#0a0603' })
   );
   inner.rotation.x = -Math.PI / 2;
@@ -297,178 +262,68 @@ function buildHole() {
   scene.add(holeGroup);
 }
 
+function resetHole() {
+  holeRadius = BASE_HOLE_R + (sizeStage - 1) * 0.05;
+  holeX = 0;
+  holeZ = fieldHalfZ - 1.4;
+  buildHole();
+}
+
+// ---------------------------------------------------------------------
+// Camera
+// ---------------------------------------------------------------------
+let camX = 0, camZ = 0;
 function fitCamera() {
   const aspect = innerWidth / innerHeight;
-  const worldRows = rows * CELL + 3;
-  const halfV = Math.max(worldRows / 2, ((COLS * CELL) / 2 + 1.5) / aspect);
+  const halfV = Math.max(6.5, (fieldHalfZ + 2));
   const halfH = halfV * aspect;
   camera.left = -halfH; camera.right = halfH;
   camera.top = halfV; camera.bottom = -halfV;
-  camera.position.set(0, 14, ((rows - 1) / 2 - holeRow) * CELL * 0.35 + 3);
-  camera.lookAt(0, 0, ((rows - 1) / 2 - holeRow) * CELL * 0.35);
   camera.updateProjectionMatrix();
 }
-
 function resize() {
-  const w = innerWidth, h = innerHeight;
-  renderer.setSize(w, h);
+  renderer.setSize(innerWidth, innerHeight);
   fitCamera();
 }
 addEventListener('resize', resize);
-resize();
 
 // ---------------------------------------------------------------------
-// Wave / supply system
+// Eating logic
 // ---------------------------------------------------------------------
-let waveType = null;
-let supply = 0;
-
-function typesRemaining() {
-  const set = new Set();
-  for (let r = 0; r < rows; r++) for (let c = 0; c < COLS; c++) if (grid[r][c]) set.add(grid[r][c]);
-  return [...set];
-}
-
-function startWave() {
-  const remain = typesRemaining();
-  if (remain.length === 0) { onCleared(); return; }
-  waveType = remain[Math.floor(Math.random() * remain.length)];
-  supply = 8 + Math.floor(Math.random() * 5);
-  waveTagEl.textContent = TYPE_BY_ID[waveType].label + ' getir!';
-  renderSupply();
-}
-
-function renderSupply() {
-  supplyStackEl.innerHTML = '';
-  const t = TYPE_BY_ID[waveType];
-  const shown = Math.min(supply, 6);
-  for (let i = 0; i < shown; i++) {
-    const b = document.createElement('div');
-    b.className = 'sball';
-    b.style.background = `radial-gradient(circle at 32% 30%, ${t.light}, ${t.base} 55%, ${t.dark})`;
-    supplyStackEl.appendChild(b);
-  }
-  let countEl = document.getElementById('ballCount');
-  countEl.textContent = 'x' + supply;
-  const rect = supplyStackEl.getBoundingClientRect();
-  countEl.style.left = (rect.left + rect.width / 2 - 12) + 'px';
-  countEl.style.top = (rect.top - 22) + 'px';
-}
-
-const ballCountEl = document.createElement('div');
-ballCountEl.id = 'ballCount';
-document.body.appendChild(ballCountEl);
-
-// ---------------------------------------------------------------------
-// Launch + flood-fill clear
-// ---------------------------------------------------------------------
-function neighborsOf(r, c) {
-  return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([rr,cc]) => rr>=0 && rr<rows && cc>=0 && cc<COLS);
-}
-
-function floodFromHole(type) {
-  const start = neighborsOf(holeRow, holeCol).filter(([r,c]) => grid[r][c] === type);
-  if (start.length === 0) return [];
-  const seen = new Set(start.map(([r,c]) => r+'_'+c));
-  const queue = [...start];
-  const out = [];
-  while (queue.length) {
-    const [r, c] = queue.shift();
-    out.push([r, c]);
-    for (const [nr, nc] of neighborsOf(r, c)) {
-      const key = nr+'_'+nc;
-      if (!seen.has(key) && grid[nr][nc] === type) { seen.add(key); queue.push([nr, nc]); }
-    }
-  }
-  return out;
-}
-
-function distToHole(r, c) { return Math.abs(r - holeRow) + Math.abs(c - holeCol); }
-
-let busy = false;
-function launch() {
-  if (busy || supply <= 0) return;
-  const cluster = floodFromHole(waveType);
-  supply--;
-  renderSupply();
-
-  if (cluster.length === 0) {
-    rejectFlash();
-  } else {
-    busy = true;
-    cluster.sort((a, b) => distToHole(...a) - distToHole(...b));
-    const holePos = holeGroup.position;
-    cluster.forEach(([r, c], i) => {
-      const mesh = meshes[r][c];
-      grid[r][c] = null;
-      meshes[r][c] = null;
-      setTimeout(() => {
-        if (!mesh) return;
-        const t0 = performance.now();
-        const startPos = mesh.position.clone();
-        const dur = 220;
-        function step(now) {
-          const p = Math.min(1, (now - t0) / dur);
-          mesh.position.lerpVectors(startPos, new THREE.Vector3(holePos.x, 0.05, holePos.z), p);
-          mesh.scale.setScalar(1 - p * 0.9);
-          if (p < 1) requestAnimationFrame(step);
-          else { gridGroup.remove(mesh); if (i === cluster.length - 1) afterClear(); }
-        }
-        requestAnimationFrame(step);
-      }, i * 60);
-    });
-    bumpCurrency(waveType, cluster.length);
-  }
-
-  if (supply <= 0 && !busy) startWave();
-}
-
-function afterClear() {
-  busy = false;
-  settleColumns();
-  if (typesRemaining().length === 0) { onCleared(); return; }
-  if (supply <= 0) startWave();
-}
-
-function settleColumns() {
-  for (let c = 0; c < COLS; c++) {
-    let write = rows - 1;
-    if (write === holeRow && c === holeCol) write--;
-    for (let r = rows - 1; r >= 0; r--) {
-      if (r === holeRow && c === holeCol) continue;
-      if (grid[r][c] === null) continue;
-      while (write === holeRow && c === holeCol) write--;
-      if (write < 0) break;
-      if (write !== r) {
-        grid[write][c] = grid[r][c];
-        grid[r][c] = null;
-        meshes[write][c] = meshes[r][c];
-        meshes[r][c] = null;
-        const { x, z } = gridToWorld(write, c);
-        animatePos(meshes[write][c], x, z);
-      }
-      write--;
-    }
+function checkEat() {
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    const dx = f.x - holeX, dz = f.z - holeZ;
+    const dist = Math.hypot(dx, dz);
+    const sizeOk = f.r <= holeRadius * 0.92;
+    if (sizeOk && dist < holeRadius * 0.62) eatFruit(f);
   }
 }
 
-function animatePos(mesh, x, z) {
-  if (!mesh) return;
+function eatFruit(f) {
+  f.eaten = true;
+  bumpCurrency(f.type, 1);
+  holeRadius = Math.min(holeRadius + (f.big ? 0.05 : 0.017), BASE_HOLE_R + 2.2);
+  const mesh = f.mesh;
   const t0 = performance.now();
-  const start = mesh.position.clone();
-  const target = new THREE.Vector3(x, start.y, z);
-  const dur = 220;
-  function step(now) {
+  const startPos = mesh.position.clone();
+  const startScale = mesh.scale.clone();
+  const dur = 180;
+  (function step(now) {
     const p = Math.min(1, (now - t0) / dur);
-    mesh.position.lerpVectors(start, target, p);
+    mesh.position.set(
+      startPos.x + (holeX - startPos.x) * p,
+      startPos.y * (1 - p),
+      startPos.z + (holeZ - startPos.z) * p
+    );
+    mesh.scale.set(startScale.x * (1 - p), startScale.y * (1 - p), startScale.z * (1 - p));
     if (p < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
+    else { fieldGroup.remove(mesh); checkLevelClear(); }
+  })(t0);
 }
 
-function rejectFlash() {
-  aimRingEl.style.borderColor = '#ff5b5b';
-  setTimeout(() => { aimRingEl.style.borderColor = 'rgba(255,255,255,.5)'; }, 220);
+function checkLevelClear() {
+  if (fruits.every(f => f.eaten)) onCleared();
 }
 
 function onCleared() {
@@ -480,54 +335,80 @@ document.getElementById('continueBtn').addEventListener('click', () => {
   overlayEl.style.display = 'none';
   level++;
   sizeStage++;
-  rows = Math.min(9 + Math.floor(sizeStage / 2), 14);
-  holeRow = rows - 1;
-  holeCol = 2 + (sizeStage % 3);
+  rows = Math.min(9 + Math.floor(sizeStage / 2), 16);
   lvlNEl.textContent = level;
   sizeNEl.textContent = sizeStage;
-  levelRowEl.querySelectorAll('.lnode').forEach((b, i) => b.textContent = 'Lvl ' + (level + i + 1));
-  buildGrid();
-  startWave();
+  buildField();
+  resetHole();
+  fitCamera();
 });
 
 // ---------------------------------------------------------------------
-// Drag-to-launch input
+// Drag joystick input
 // ---------------------------------------------------------------------
-const launchZone = document.getElementById('launchZone');
-let dragging = false, dragStartY = 0, dragY = 0;
-const THRESHOLD = 46;
+let touchId = null, joyBaseX = 0, joyBaseY = 0;
+let joyX = 0, joyY = 0;
+const MAX_JOY = 55;
 
-launchZone.addEventListener('pointerdown', (e) => {
-  if (supply <= 0) return;
-  dragging = true;
-  dragStartY = e.clientY;
-  aimRingEl.classList.add('show');
-  launchZone.setPointerCapture(e.pointerId);
+app.addEventListener('pointerdown', (e) => {
+  touchId = e.pointerId;
+  joyBaseX = e.clientX; joyBaseY = e.clientY;
+  joyBaseEl.style.left = joyBaseX + 'px'; joyBaseEl.style.top = joyBaseY + 'px';
+  joyKnobEl.style.left = joyBaseX + 'px'; joyKnobEl.style.top = joyBaseY + 'px';
+  joyBaseEl.classList.add('show'); joyKnobEl.classList.add('show');
+  app.setPointerCapture(e.pointerId);
+  if (hintEl.style.opacity !== '0') hintEl.style.opacity = '0';
 });
-launchZone.addEventListener('pointermove', (e) => {
-  if (!dragging) return;
-  dragY = dragStartY - e.clientY;
-  const pull = Math.min(1, Math.max(0, dragY / (THRESHOLD * 2)));
-  aimRingEl.style.transform = `scale(${1 + pull * 0.25})`;
+app.addEventListener('pointermove', (e) => {
+  if (e.pointerId !== touchId) return;
+  let dx = e.clientX - joyBaseX, dy = e.clientY - joyBaseY;
+  const len = Math.hypot(dx, dy);
+  if (len > MAX_JOY) { dx = dx / len * MAX_JOY; dy = dy / len * MAX_JOY; }
+  joyKnobEl.style.left = (joyBaseX + dx) + 'px';
+  joyKnobEl.style.top = (joyBaseY + dy) + 'px';
+  joyX = dx / MAX_JOY; joyY = dy / MAX_JOY;
 });
-launchZone.addEventListener('pointerup', () => {
-  if (!dragging) return;
-  dragging = false;
-  aimRingEl.classList.remove('show');
-  aimRingEl.style.transform = 'scale(1)';
-  if (dragY > THRESHOLD) launch();
-  dragY = 0;
-});
-launchZone.addEventListener('pointercancel', () => { dragging = false; aimRingEl.classList.remove('show'); });
+function endDrag(e) {
+  if (e.pointerId !== touchId) return;
+  touchId = null; joyX = 0; joyY = 0;
+  joyBaseEl.classList.remove('show'); joyKnobEl.classList.remove('show');
+}
+app.addEventListener('pointerup', endDrag);
+app.addEventListener('pointercancel', endDrag);
 
 // ---------------------------------------------------------------------
-// Boot
+// Boot + main loop
 // ---------------------------------------------------------------------
-buildGrid();
-startWave();
+buildField();
+resetHole();
+resize();
 document.getElementById('loading').style.display = 'none';
 
-function tick() {
+const MOVE_SPEED = 3.4;
+let lastT = performance.now();
+function tick(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+
+  if (joyX || joyY) {
+    holeX += joyX * MOVE_SPEED * dt;
+    holeZ += joyY * MOVE_SPEED * dt;
+    const mX = fieldHalfX - holeRadius * 0.5;
+    const mZ = fieldHalfZ - holeRadius * 0.5;
+    holeX = Math.max(-mX, Math.min(mX, holeX));
+    holeZ = Math.max(-mZ, Math.min(mZ, holeZ));
+  }
+
+  holeGroup.position.set(holeX, 0, holeZ);
+  const s = holeRadius / BASE_HOLE_R;
+  holeGroup.scale.set(s, 1, s);
+
+  camX += (holeX - camX) * 0.09;
+  camZ += (holeZ - camZ) * 0.09;
+  camera.position.set(camX, 14, camZ + 3.4);
+  camera.lookAt(camX, 0, camZ);
+
+  checkEat();
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
