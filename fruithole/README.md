@@ -63,6 +63,42 @@ girer. Yani desenler tekrar eder, zorluk etmez.
 - **Ses dosyasız.** Bütün efektler WebAudio ile sentezleniyor; arka arkaya
   yedikçe yeme sesi tizleşiyor. Titreşim varsa `navigator.vibrate` ile.
 
+## Uygulama içi satın alma (IAP)
+
+Mağaza ekranı ve dört ürün hazır; ürün kimlikleri Play Console'da aynı
+adlarla oluşturulmalı:
+
+| Ürün kimliği | Tür | İçerik |
+|---|---|---|
+| `fruithole_remove_ads` | tek seferlik | banner + geçiş reklamları kalkar (ödüllü kalır) |
+| `fruithole_starter` | tek seferlik | her meyveden 500, her booster'dan 3, üstüne reklamsız |
+| `fruithole_pack_small` | tüketilebilir | her meyveden 400 |
+| `fruithole_pack_large` | tüketilebilir | her meyveden 1200 |
+
+**Yapılması gereken tek şey ödeme SDK'sını bağlamak.** Desteklenen yol
+[`@revenuecat/purchases-capacitor`](https://github.com/RevenueCat/purchases-capacitor);
+Cordova sürümü emekliye ayrıldı ve Google, ona dayalı güncellemeleri
+2026-08-31'den sonra kabul etmiyor.
+
+```bash
+npm install @revenuecat/purchases-capacitor
+APP=fruithole npx cap sync android
+```
+
+Sonra `index.html` içindeki `purchase()` ve `restorePurchases()`
+fonksiyonlarını eklentinin kendi API'siyle eşle — oradaki çağrı şekli
+doğrulanmadı, eklenti kurulunca kendi dokümanına göre bağlanmalı.
+Kod tarafında değişmesi gereken **yalnızca bu iki fonksiyon**; ürünlerin
+verdiği ödüller ve sahiplik kaydı bağımsız çalışıyor.
+
+Gösterilen fiyatlar tarayıcı sürümü için yer tutucudur; cihazda mağazanın
+döndürdüğü **yerel fiyat** gösterilmelidir. Tarayıcıda satın alma yapılmaz,
+ürünler akışı denemek için doğrudan verilir.
+
+Sahiplik `localStorage`'da (`fruithole_iap`) tutulur; kullanıcı uygulamayı
+silip kurarsa "Satın alımları geri yükle" düğmesi gerekir, o da yalnızca
+uygulamada çalışır.
+
 ## Reklamlar
 
 Reklam kodu bağlı ama şu an **Google'ın resmi TEST birimleri** kullanılıyor
@@ -74,11 +110,11 @@ banner) değiştir.
 Tarayıcıda reklam çağrıları no-op'tur; ödüllü reklam doğrudan `true`
 döner, yani oyun reklam ağı olmadan da birebir aynı oynanır.
 
-| Yer | Reklam |
-|---|---|
-| Süre bitti ekranı, "📺 +15 saniye" | rewarded (bölüm başına 1) |
-| Her 3 bölümde bir, sonraki bölüme geçerken | interstitial |
-| Oyun sırasında altta | banner |
+| Yer | Reklam | "Reklamsız" alınırsa |
+|---|---|---|
+| Süre bitti ekranı, "📺 +15 saniye" | rewarded (bölüm başına 1) | kalır (isteğe bağlı, oyuncu lehine) |
+| Her 3 bölümde bir, sonraki bölüme geçerken | interstitial | kalkar |
+| Oyun sırasında altta | banner | kalkar |
 
 ## Geliştirme
 

@@ -102,6 +102,12 @@
 
   #daily { background: rgba(60,35,10,.8); backdrop-filter: blur(4px); }
   #dailyLoot .pill { font-size: 16px; }
+
+  #shop { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+  #shopList { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin-bottom: 4px; }
+  .screen .muted { font-size: 12px; opacity: .7; max-width: min(94vw, 420px); }
+  .upg .buy.owned { background: rgba(126,231,135,.3); color: #eaffef; box-shadow: none; }
   #boostShop { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin-bottom: 6px; }
   .upg .own { color: #ffd23f; font-weight: 800; font-size: 12px; margin-top: 3px; }
 
@@ -190,6 +196,19 @@
     <div class="menuRow">
       <button class="btn ghost" id="upgBtn">⬆️ Yükseltmeler</button>
       <button class="btn ghost" id="goalsBtn">📋 Görevler</button>
+    </div>
+    <div class="menuRow">
+      <button class="btn ghost" id="shopBtn">🛒 Mağaza</button>
+    </div>
+  </div>
+
+  <div id="shop" class="screen">
+    <h1>🛒 Mağaza</h1>
+    <div id="shopList"></div>
+    <p id="shopNote" class="muted"></p>
+    <div class="menuRow">
+      <button class="btn ghost" id="restoreBtn">Satın alımları geri yükle</button>
+      <button class="btn ghost" id="shopClose">Kapat</button>
     </div>
   </div>
 
@@ -424,7 +443,7 @@ async function prepareInterstitial() {
   try { await _AdMob.prepareInterstitial({ adId: AD_UNITS.interstitial }); _interReady = true; } catch (e) { _interReady = false; }
 }
 async function showInterstitial() {
-  if (!ADS_ON || !_interReady) return;
+  if (!ADS_ON || adsRemoved() || !_interReady) return;
   try { await _AdMob.showInterstitial(); } catch (e) { }
   _interReady = false;
   prepareInterstitial();
@@ -444,13 +463,63 @@ async function showRewarded() {
 }
 let _bannerShown = false;
 async function showBanner() {
-  if (!ADS_ON || _bannerShown) return;
+  if (!ADS_ON || adsRemoved() || _bannerShown) return;
   try {
     await _AdMob.showBanner({ adId: AD_UNITS.banner, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0 });
     _bannerShown = true;
   } catch (e) { }
 }
+async function hideBanner() {
+  if (!ADS_ON || !_bannerShown) return;
+  try { await _AdMob.hideBanner(); _bannerShown = false; } catch (e) { }
+}
 adsInit();
+
+// ---------------------------------------------------------------------
+// In-app purchases
+//
+// Same shape as the ad layer: live only inside the native shell, no-op in
+// a browser. The one piece that must be wired up for real money is
+// purchase() below -- the supported route is RevenueCat's Capacitor
+// plugin (@revenuecat/purchases-capacitor); the Cordova one is retired
+// and Google stops accepting updates built on it after 2026-08-31.
+//
+// Prices here are placeholders for the browser build only. On device the
+// store returns the real localised price and that is what must be shown.
+// ---------------------------------------------------------------------
+const _Purchases = _Cap && _Cap.Plugins ? _Cap.Plugins.Purchases : null;
+const IAP_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Purchases);
+
+const iap = JSON.parse(localStorage.getItem('fruithole_iap') || '{}');
+function saveIap() { localStorage.setItem('fruithole_iap', JSON.stringify(iap)); }
+function adsRemoved() { return !!iap.remove_ads; }
+
+async function purchase(productId) {
+  if (!IAP_ON) return true;   // browser: grant so the flow can be walked through
+  try {
+    const res = await _Purchases.purchaseStoreProduct({ productIdentifier: productId });
+    return !(res && res.userCancelled);
+  } catch (e) {
+    return false;
+  }
+}
+
+async function restorePurchases() {
+  if (!IAP_ON) return false;
+  try {
+    const info = await _Purchases.restorePurchases();
+    const owned = info && info.customerInfo && info.customerInfo.allPurchasedProductIdentifiers;
+    if (Array.isArray(owned)) {
+      for (const p of PRODUCTS) {
+        if (p.key && owned.includes(p.id)) iap[p.key] = true;
+      }
+      saveIap();
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 // ---------------------------------------------------------------------
 // Sound (WebAudio synth, no files) + haptics
@@ -703,6 +772,102 @@ document.getElementById('goalsBtn').addEventListener('click', () => {
 document.getElementById('goalsClose').addEventListener('click', () => {
   document.getElementById('goals').classList.remove('show');
   menuEl.classList.add('show');
+});
+
+// ---------------------------------------------------------------------
+// Shop (real-money products)
+//
+// `id` must match the product id created in Play Console. `key` marks a
+// one-time product whose ownership is remembered; consumables leave it
+// unset so they can be bought again.
+// ---------------------------------------------------------------------
+const PRODUCTS = [
+  {
+    id: 'fruithole_remove_ads', key: 'remove_ads', icon: '🚫',
+    name: 'Reklamsız', desc: 'Banner ve bölüm arası reklamlar kalkar', price: '₺59,99',
+    grant() { hideBanner(); },
+  },
+  {
+    id: 'fruithole_starter', key: 'starter', icon: '🎒',
+    name: 'Başlangıç paketi', desc: 'Her meyveden 500, her booster’dan 3, üstüne reklamsız',
+    price: '₺89,99',
+    grant() {
+      TYPES.forEach(t => bumpCurrency(t.id, 500));
+      BOOSTERS.forEach(b => { boosters[b.id] = (boosters[b.id] || 0) + 3; });
+      saveBoosters();
+      iap.remove_ads = true;
+      saveIap();
+      hideBanner();
+    },
+  },
+  {
+    id: 'fruithole_pack_small', icon: '🧺',
+    name: 'Meyve sepeti', desc: 'Her meyveden 400', price: '₺29,99',
+    grant() { TYPES.forEach(t => bumpCurrency(t.id, 400)); },
+  },
+  {
+    id: 'fruithole_pack_large', icon: '🚚',
+    name: 'Meyve kamyonu', desc: 'Her meyveden 1200', price: '₺79,99',
+    grant() { TYPES.forEach(t => bumpCurrency(t.id, 1200)); },
+  },
+];
+
+function renderShop() {
+  const list = document.getElementById('shopList');
+  list.innerHTML = '';
+  PRODUCTS.forEach(p => {
+    const owned = p.key && iap[p.key];
+    const row = document.createElement('div');
+    row.className = 'upg' + (owned ? ' done' : '');
+    row.innerHTML =
+      `<span class="ico">${p.icon}</span>` +
+      `<span class="mid">` +
+        `<span class="nm">${p.name}</span>` +
+        `<div class="ds">${p.desc}</div>` +
+      `</span>`;
+    const btn = document.createElement('button');
+    btn.className = 'buy' + (owned ? ' owned' : '');
+    if (owned) { btn.textContent = '✓ Alındı'; btn.disabled = true; }
+    else { btn.textContent = p.price; btn.onclick = () => buyProduct(p, btn); }
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
+
+  document.getElementById('shopNote').textContent = IAP_ON
+    ? 'Fiyatlar mağazadan gelir; satın alımlar Google Play hesabına işlenir.'
+    : 'Tarayıcı sürümü: satın alma yapılmaz, ürünler denemek için doğrudan verilir. Gerçek satın alma yalnızca uygulamada çalışır.';
+}
+
+async function buyProduct(p, btn) {
+  if (p.key && iap[p.key]) return;
+  btn.disabled = true;
+  const ok = await purchase(p.id);
+  btn.disabled = false;
+  if (!ok) return;
+  if (p.key) { iap[p.key] = true; saveIap(); }
+  p.grant();
+  sfx.win();
+  buildCounters();
+  renderShop();
+}
+
+document.getElementById('shopBtn').addEventListener('click', () => {
+  renderShop();
+  menuEl.classList.remove('show');
+  document.getElementById('shop').classList.add('show');
+});
+document.getElementById('shopClose').addEventListener('click', () => {
+  document.getElementById('shop').classList.remove('show');
+  menuEl.classList.add('show');
+});
+document.getElementById('restoreBtn').addEventListener('click', async (e) => {
+  e.target.disabled = true;
+  const ok = await restorePurchases();
+  e.target.disabled = false;
+  document.getElementById('shopNote').textContent = ok
+    ? 'Satın alımlar geri yüklendi.'
+    : 'Geri yükleme yalnızca uygulamada çalışır.';
+  renderShop();
 });
 
 // ---------------------------------------------------------------------

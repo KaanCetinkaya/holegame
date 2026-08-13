@@ -63,11 +63,23 @@ Tarlayı temizlemeye hazır mısın?
 
 ## İçerik derecelendirmesi
 Şiddet, korku, kumar ve kullanıcılar arası etkileşim **yok**. Reklam **var**
-(banner, geçiş, isteğe bağlı ödüllü video). Ankette buna göre işaretle.
+(banner, geçiş, isteğe bağlı ödüllü video) ve **uygulama içi satın alma var**.
+Ankette buna göre işaretle.
+
+## Uygulama içi ürünler (Play Console → Ürünler)
+| Ürün kimliği | Tür |
+|---|---|
+| `fruithole_remove_ads` | Yönetilen ürün (tek seferlik) |
+| `fruithole_starter` | Yönetilen ürün (tek seferlik) |
+| `fruithole_pack_small` | Tüketilebilir |
+| `fruithole_pack_large` | Tüketilebilir |
+
+Kimlikler oyundaki `PRODUCTS` listesiyle **birebir aynı** olmalı.
 
 ## Veri güvenliği formu
 - Toplanan kişisel veri: **yok** (oyun ilerlemesi yalnızca cihazda `localStorage`'da)
 - Üçüncü taraf: **Google AdMob** (reklam kimliği ve reklam ölçüm verileri)
+- Ödemeler **Google Play** üzerinden; kart bilgisi uygulamaya gelmez
 - Gizlilik politikası URL'si: `fruithole/store/privacy-policy.html` dosyasını
   bir yere yayınla (ör. GitHub Pages) ve o adresi gir.
 
