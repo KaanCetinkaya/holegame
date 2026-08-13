@@ -2,9 +2,11 @@
   "name": "hole",
   "version": "1.0.0",
   "private": true,
-  "description": "Hole - single-file Three.js + Rapier hole game, packaged for mobile via Capacitor",
+  "description": "Hole and Fruit Hole - single-file Three.js hole games, packaged for mobile via Capacitor",
   "scripts": {
-    "build:www": "bash build-www.sh"
+    "build:www": "bash build-www.sh",
+    "sync:hole": "bash build-www.sh && npx cap sync android",
+    "sync:fruithole": "bash build-www.sh && APP=fruithole npx cap sync android"
   },
   "dependencies": {
     "@capacitor-community/admob": "^6.1.0",

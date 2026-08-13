@@ -1,14 +1,34 @@
 #!/usr/bin/env bash
-# Kök index.html'i (CDN'li, tarayıcıda çift tıklamayla açılan sürüm) alır ve
-# Capacitor'ın paketleyeceği www/index.html'i (yerel kütüphaneli) yeniden üretir.
-# Kütüphane dosyaları (www/three.module.js, www/rapier.es.js) sabit; sadece HTML yenilenir.
+# CDN'li kaynak HTML'leri (tarayıcıda çift tıklamayla açılan sürümler) alır ve
+# Capacitor'ın paketleyeceği, kütüphanesi yerel olan www dizinlerini üretir.
+#
+#   index.html            -> www/index.html            (Hole:       three + rapier)
+#   fruithole/index.html  -> www-fruithole/index.html  (Fruit Hole: three)
+#
+# Kütüphane dosyaları sabittir; Fruit Hole three.module.js'i www/'den kopyalar.
 set -e
 cd "$(dirname "$0")"
-mkdir -p www
 
+# ---- Hole -> www/ ----
+mkdir -p www
 sed -e 's#"three": "https://esm.sh/three@0.161.0"#"three": "./three.module.js"#' \
     -e "s#from 'https://esm.sh/@dimforge/rapier3d-compat@0.14.0'#from './rapier.es.js'#" \
     index.html > www/index.html
+echo "www/index.html güncellendi (Hole)."
 
-echo "www/index.html güncellendi (yerel kütüphanelerle)."
-echo "Sonra: npx cap sync"
+# ---- Fruit Hole -> www-fruithole/ ----
+mkdir -p www-fruithole
+sed -e 's#"three": "https://esm.sh/three@0.161.0"#"three": "./three.module.js"#' \
+    fruithole/index.html > www-fruithole/index.html
+
+if [ -f www/three.module.js ]; then
+  cp -f www/three.module.js www-fruithole/three.module.js
+else
+  echo "UYARI: www/three.module.js yok, www-fruithole/ kütüphanesiz kaldı." >&2
+fi
+echo "www-fruithole/index.html güncellendi (Fruit Hole)."
+
+echo
+echo "Sonra:"
+echo "  npx cap sync android                  # Hole"
+echo "  APP=fruithole npx cap sync android    # Fruit Hole"
