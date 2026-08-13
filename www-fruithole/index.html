@@ -19,46 +19,63 @@
   #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
     color: #7a5a2a; font-size: 16px; z-index: 30; background: #e8c07d; }
 
-  /* ---- top bar ---- */
+  /* ---- top bar: level badge left, clock centre, pause right ---- */
   #topbar { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0;
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    padding: 10px 12px; pointer-events: none; z-index: 5; opacity: 0; transition: opacity .25s ease; }
+    padding: 10px 12px 0; pointer-events: none; z-index: 5;
+    opacity: 0; transition: opacity .25s ease; }
   #topbar.show { opacity: 1; }
 
-  #topRow { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
-  #timeTag { background: rgba(30,120,220,.92); color: #fff; font-weight: 800; font-size: 19px;
-    border-radius: 999px; padding: 6px 20px; box-shadow: 0 3px 0 rgba(0,0,0,.2);
-    font-variant-numeric: tabular-nums; }
-  #timeTag.low { background: rgba(220,50,50,.94); animation: pulse .6s ease infinite; }
-  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
-  #muteBtn { pointer-events: auto; cursor: pointer; position: absolute; right: 0;
-    border: none; background: rgba(90,50,140,.88); color: #fff; font-size: 16px;
-    width: 38px; height: 38px; border-radius: 50%; box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+  #levelBadge { position: absolute; left: 12px; top: 10px;
+    background: #fff8ec; color: #5b2d8e; font-weight: 800; font-size: 15px;
+    letter-spacing: .04em; border-radius: 14px; padding: 9px 16px;
+    border: 3px solid #6b4fc0; box-shadow: 0 4px 0 rgba(0,0,0,.22); }
 
-  #counters { display: flex; gap: 6px; justify-content: center; }
-  .counter { display: flex; align-items: center; gap: 5px; background: rgba(90,50,140,.88);
-    border: 2px solid rgba(255,255,255,.32); border-radius: 999px; padding: 4px 10px 4px 4px;
-    box-shadow: 0 3px 0 rgba(0,0,0,.18); }
-  .counter .dot { width: 18px; height: 18px; border-radius: 50%;
-    box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5); }
-  .counter .n { color: #fff; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; min-width: 12px; }
-  .counter .n.bump { animation: bump .2s ease; }
+  #pauseBtn { position: absolute; right: 12px; top: 10px; pointer-events: auto; cursor: pointer;
+    width: 46px; height: 46px; border-radius: 14px; font-size: 15px; letter-spacing: 1px;
+    color: #fff; background: linear-gradient(180deg,#8a6fd8,#6b4fc0);
+    border: 3px solid rgba(255,255,255,.55); box-shadow: 0 4px 0 #4a349a; }
+
+  #centerCol { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  #timeTag { display: flex; align-items: center; gap: 7px;
+    background: linear-gradient(180deg,#8a6fd8,#5b3fb0); color: #fff;
+    font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums;
+    border-radius: 999px; padding: 7px 20px;
+    border: 3px solid rgba(255,255,255,.5); box-shadow: 0 4px 0 rgba(0,0,0,.22); }
+  #timeTag .clock { font-size: 16px; }
+  #timeTag.low { background: linear-gradient(180deg,#ff7a6b,#d62f2f); animation: pulse .6s ease infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+
+  /* progress bar with the three stars sitting on it */
+  #progWrap { position: relative; width: min(44vw, 178px); }
+  #progBar { width: 100%; height: 13px; border-radius: 999px; background: #5b3fb0;
+    border: 3px solid rgba(255,255,255,.5); overflow: hidden; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+  #progFill { height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg,#8ef07f,#33c74d); transition: width .18s ease; }
+  #starRow { position: absolute; inset: 0; display: flex; align-items: center;
+    gap: 0; pointer-events: none; }
+  #starRow span { position: absolute; font-size: 19px; line-height: 1; transform: translate(-50%,-50%);
+    top: 50%; color: #7c6aa8; text-shadow: 0 2px 3px rgba(0,0,0,.35); transition: color .2s ease, transform .2s ease; }
+  #starRow span:nth-child(1) { left: 14%; }
+  #starRow span:nth-child(2) { left: 34%; }
+  #starRow span:nth-child(3) { left: 54%; }
+  #starRow span.on { color: #ffc82e; transform: translate(-50%,-50%) scale(1.15); }
+
+  /* fruit wallet cards under the level badge */
+  #wallet { position: absolute; left: 12px; top: 84px; display: flex; gap: 5px; }
+  .card { width: 46px; border-radius: 13px; background: linear-gradient(180deg,#7a5fd0,#5b3fb0);
+    border: 3px solid rgba(255,255,255,.45); box-shadow: 0 4px 0 rgba(0,0,0,.22);
+    padding: 4px 0 5px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .card .n { color: #fff; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .card .n.bump { animation: bump .2s ease; }
+  .card .dot { width: 23px; height: 23px; border-radius: 50%;
+    box-shadow: inset 0 -4px 6px rgba(0,0,0,.35), inset 0 3px 4px rgba(255,255,255,.55); }
   @keyframes bump { 0%{transform:scale(1)} 45%{transform:scale(1.35)} 100%{transform:scale(1)} }
 
-  #levelTag { color: #7a5a2a; font-weight: 700; font-size: 12px; opacity: .85;
+  #patternTag { position: absolute; left: 0; right: 0; top: 140px; text-align: center;
+    color: #7a5a2a; font-weight: 700; font-size: 12px; opacity: .8;
     text-shadow: 0 1px 0 rgba(255,255,255,.4); }
 
-  /* level progress + the stars this run is currently on track for */
-  #progWrap { display: flex; flex-direction: column; align-items: center; gap: 3px; width: min(62vw, 250px); }
-  #progBar { width: 100%; height: 9px; border-radius: 999px; background: rgba(90,50,140,.35);
-    border: 2px solid rgba(255,255,255,.35); overflow: hidden; box-shadow: 0 2px 0 rgba(0,0,0,.15); }
-  #progFill { height: 100%; width: 0%; border-radius: 999px;
-    background: linear-gradient(90deg,#7ee787,#39c760); transition: width .18s ease; }
-  #starRow { display: flex; gap: 14px; font-size: 17px; line-height: 1; }
-  #starRow span { color: rgba(255,255,255,.32); text-shadow: 0 2px 3px rgba(0,0,0,.3); transition: color .2s ease, transform .2s ease; }
-  #starRow span.on { color: #ffd23f; transform: scale(1.12); }
-
-  #combo { position: fixed; top: 27%; left: 0; right: 0; text-align: center; pointer-events: none;
+  #combo { position: fixed; top: 30%; left: 0; right: 0; text-align: center; pointer-events: none;
     font-weight: 800; font-size: clamp(24px, 8vw, 52px); color: #ffd23f; z-index: 6;
     text-shadow: 0 3px 12px rgba(0,0,0,.45); opacity: 0; }
   #combo.show { animation: comboPop .7s ease; }
@@ -71,6 +88,11 @@
   #upgrades { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
     padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
   #upgWallet { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  #upgWallet .counter { display: flex; align-items: center; gap: 5px; background: rgba(90,50,140,.88);
+    border: 2px solid rgba(255,255,255,.32); border-radius: 999px; padding: 4px 10px 4px 4px; }
+  #upgWallet .counter .dot { width: 18px; height: 18px; border-radius: 50%;
+    box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5); }
+  #upgWallet .counter .n { color: #fff; font-weight: 800; font-size: 13px; }
   #upgList { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin: 4px 0 8px; }
   .upg { display: flex; align-items: center; gap: 10px; text-align: left;
     background: rgba(255,255,255,.13); border: 2px solid rgba(255,255,255,.18);
@@ -108,8 +130,8 @@
   #shopList { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin-bottom: 4px; }
   .screen .muted { font-size: 12px; opacity: .7; max-width: min(94vw, 420px); }
   .upg .buy.owned { background: rgba(126,231,135,.3); color: #eaffef; box-shadow: none; }
-  #boostShop { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin-bottom: 6px; }
-  .upg .own { color: #ffd23f; font-weight: 800; font-size: 12px; margin-top: 3px; }
+
+  #pause { background: rgba(40,22,8,.8); backdrop-filter: blur(4px); }
 
   /* size badge pinned under the hole, like the other hole games */
   #sizeTag { position: fixed; left: 0; top: 0; display: none; z-index: 6; pointer-events: none;
@@ -148,7 +170,8 @@
     opacity: 0; pointer-events: none; z-index: 8; transition: opacity .15s ease; }
   #joyKnob { position: fixed; width: 46px; height: 46px; margin: -23px; border-radius: 50%;
     background: rgba(255,255,255,.55); pointer-events: none; z-index: 9; opacity: 0; transition: opacity .15s ease; }
-  #joyBase.show, #joyKnob.show { opacity: 1; }
+  #joyBase.show, #joyKnob.show { opacity: .55; }
+  #joyBase.drag, #joyKnob.drag { opacity: 1; }
 
   /* ---- screens ---- */
   .screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center;
@@ -179,25 +202,36 @@
 <div id="loading">Yükleniyor…</div>
 <div id="app">
   <div id="topbar">
-    <div id="topRow">
-      <div id="timeTag">⏱ <span id="timeN">0</span></div>
-      <button id="muteBtn">🔊</button>
+    <div id="levelBadge">LEVEL <span id="levelN">1</span></div>
+    <div id="centerCol">
+      <div id="timeTag"><span class="clock">⏱</span><span id="timeN">0</span></div>
+      <div id="progWrap">
+        <div id="progBar"><div id="progFill"></div></div>
+        <div id="starRow"><span>★</span><span>★</span><span>★</span></div>
+      </div>
     </div>
-    <div id="progWrap">
-      <div id="progBar"><div id="progFill"></div></div>
-      <div id="starRow"><span>★</span><span>★</span><span>★</span></div>
-    </div>
-    <div id="counters"></div>
-    <div id="levelTag">Bölüm 1 · Size 1</div>
+    <button id="pauseBtn">❚❚</button>
+    <div id="wallet"></div>
+    <div id="patternTag"></div>
   </div>
-
-  <div id="combo"></div>
 
   <div id="sizeTag">Size <span id="sizeN">1</span></div>
   <div id="boosterBar"></div>
+  <div id="combo"></div>
   <div id="hint">Parmağını sürükle, deliği gezdir, meyveleri ye</div>
   <div id="joyBase"></div>
   <div id="joyKnob"></div>
+
+  <div id="pause" class="screen">
+    <h1>❚❚ Duraklatıldı</h1>
+    <div class="menuRow">
+      <button class="btn" id="resumeBtn">Devam et</button>
+    </div>
+    <div class="menuRow">
+      <button class="btn ghost" id="pauseMute">🔊 Ses</button>
+      <button class="btn ghost" id="pauseMenu">🏠 Menü</button>
+    </div>
+  </div>
 
   <div id="menu" class="screen show">
     <div class="logo">🕳️</div>
@@ -402,10 +436,12 @@ function anyClaimable() {
 
 const app = document.getElementById('app');
 const topbarEl = document.getElementById('topbar');
-const countersEl = document.getElementById('counters');
+const walletEl = document.getElementById('wallet');
+const levelNEl = document.getElementById('levelN');
+const pauseEl = document.getElementById('pause');
 const timeTagEl = document.getElementById('timeTag');
 const timeNEl = document.getElementById('timeN');
-const levelTagEl = document.getElementById('levelTag');
+const patternTagEl = document.getElementById('patternTag');
 const hintEl = document.getElementById('hint');
 const joyBaseEl = document.getElementById('joyBase');
 const joyKnobEl = document.getElementById('joyKnob');
@@ -417,7 +453,6 @@ const overlaySubEl = document.getElementById('overlaySub');
 const overlayStatsEl = document.getElementById('overlayStats');
 const actionBtnEl = document.getElementById('actionBtn');
 const reviveBtnEl = document.getElementById('reviveBtn');
-const muteBtnEl = document.getElementById('muteBtn');
 const progFillEl = document.getElementById('progFill');
 const starRowEl = document.getElementById('starRow');
 const comboEl = document.getElementById('combo');
@@ -571,30 +606,25 @@ const sfx = {
   booster()   { ensureAudio(); [660, 880, 1180].forEach((f, i) => beep(f, 0.13, 'triangle', 0.17, i * 0.06)); vibrate([15, 30]); },
 };
 
-function refreshMuteBtn() { muteBtnEl.textContent = muted ? '🔇' : '🔊'; }
-refreshMuteBtn();
-muteBtnEl.addEventListener('click', (e) => {
-  e.stopPropagation();
-  muted = !muted;
-  localStorage.setItem('fruithole_muted', muted ? '1' : '0');
-  refreshMuteBtn();
-  if (!muted) { ensureAudio(); sfx.click(); }
-});
+// sound is toggled from the pause screen; nothing to mirror in the HUD
+function refreshMuteBtn() { }
 document.addEventListener('pointerdown', (e) => {
   ensureAudio();
-  if (e.target.closest && e.target.closest('button') && e.target !== muteBtnEl) sfx.click();
+  if (e.target.closest && e.target.closest('button')) sfx.click();
 }, true);
 
 // ---------------------------------------------------------------------
 // HUD
 // ---------------------------------------------------------------------
 function buildCounters() {
-  countersEl.innerHTML = '';
+  walletEl.innerHTML = '';
   TYPES.forEach(t => {
     const el = document.createElement('div');
-    el.className = 'counter';
-    el.innerHTML = `<span class="dot" style="background:${t.base}"></span><span class="n" id="cur_${t.id}">${currency[t.id]}</span>`;
-    countersEl.appendChild(el);
+    el.className = 'card';
+    el.innerHTML =
+      `<span class="dot" style="background:radial-gradient(circle at 34% 30%, ${t.light}, ${t.base} 58%, ${t.dark})"></span>` +
+      `<span class="n" id="cur_${t.id}">${currency[t.id]}</span>`;
+    walletEl.appendChild(el);
   });
 }
 function bumpCurrency(id, amount) {
@@ -605,8 +635,9 @@ function bumpCurrency(id, amount) {
 }
 function refreshLevelTag() {
   const p = currentPattern;
-  const best = stars[level] ? ' · ' + '★'.repeat(stars[level]) : '';
-  levelTagEl.textContent = (p ? `Bölüm ${level} · ${p.icon} ${p.name}` : `Bölüm ${level}`) + best;
+  const best = stars[level] ? '  ' + '★'.repeat(stars[level]) : '';
+  levelNEl.textContent = level;
+  patternTagEl.textContent = (p ? `${p.icon} ${p.name}` : '') + best;
 }
 
 // ---------------------------------------------------------------------
@@ -767,6 +798,7 @@ function toMenu() {
   overlayEl.classList.remove('show');
   boosterBarEl.classList.remove('show');
   sizeTagEl.classList.remove('show');
+  joyBaseEl.classList.remove('show'); joyKnobEl.classList.remove('show');
   topbarEl.classList.remove('show');
   hintEl.style.opacity = '0';
   menuSubEl.textContent = 'Bölüm ' + level;
@@ -774,6 +806,58 @@ function toMenu() {
   menuEl.classList.add('show');
 }
 document.getElementById('toMenuBtn').addEventListener('click', toMenu);
+
+// ---------------------------------------------------------------------
+// Pause
+//
+// Parks the run in its own state so the clock, the hole and eating all
+// stop; resuming re-arms lastT so the paused seconds are not billed to
+// the countdown in one lump.
+// ---------------------------------------------------------------------
+let pausedFrom = null;
+
+function pauseGame() {
+  if (state !== 'playing') return;
+  pausedFrom = state;
+  state = 'paused';
+  joyX = 0; joyY = 0; touchId = null;
+  joyBaseEl.classList.remove('drag'); joyKnobEl.classList.remove('drag');
+  boosterBarEl.classList.remove('show');
+  sizeTagEl.classList.remove('show');
+  joyBaseEl.classList.remove('show'); joyKnobEl.classList.remove('show');
+  refreshPauseMute();
+  pauseEl.classList.add('show');
+}
+
+function resumeGame() {
+  if (state !== 'paused') return;
+  pauseEl.classList.remove('show');
+  boosterBarEl.classList.add('show');
+  sizeTagEl.classList.add('show');
+  joyBaseEl.classList.add('show'); joyKnobEl.classList.add('show');
+  lastT = performance.now();
+  state = pausedFrom || 'playing';
+  pausedFrom = null;
+}
+
+function refreshPauseMute() {
+  document.getElementById('pauseMute').textContent = muted ? '🔇 Ses' : '🔊 Ses';
+}
+
+document.getElementById('pauseBtn').addEventListener('click', pauseGame);
+document.getElementById('resumeBtn').addEventListener('click', resumeGame);
+document.getElementById('pauseMute').addEventListener('click', () => {
+  muted = !muted;
+  localStorage.setItem('fruithole_muted', muted ? '1' : '0');
+  refreshMuteBtn();
+  refreshPauseMute();
+  if (!muted) { ensureAudio(); sfx.click(); }
+});
+document.getElementById('pauseMenu').addEventListener('click', () => {
+  pauseEl.classList.remove('show');
+  state = 'playing';   // toMenu tears the run down from a live state
+  toMenu();
+});
 
 document.getElementById('goalsBtn').addEventListener('click', () => {
   saveStats();
@@ -1491,8 +1575,8 @@ function buildField() {
       }
     }
   }
-  // Tarla ekrandan tastigi icin hepsini yemek beklenmiyor; hedef yarisi.
-  levelGoal = Math.max(1, Math.round(fruits.length * 0.42));
+  // Bolum, tarladaki her meyve yendiginde biter.
+  levelGoal = fruits.length;
 }
 
 // ---------------------------------------------------------------------
@@ -1607,7 +1691,9 @@ let runStart = 0;
 let revivedThisLevel = false;
 
 function levelTime() {
-  const base = Math.round(50 + levelGoal * 0.95);
+  // Buyuyen delik bir gecişte birkac sutun birden supurdugu icin sure
+  // meyve basina degil, tarayacagi alana gore olceklenir.
+  const base = Math.round(60 + levelGoal * 0.35);
   const squeeze = 1 - Math.min(0.28, tier() * 0.07);   // later cycles are tighter
   return Math.round(base * squeeze) + upg('time') * 5;
 }
@@ -1734,6 +1820,8 @@ function startLevel() {
   boosterBarEl.classList.add('show');
   shownSize = 0;
   sizeTagEl.classList.add('show');
+  parkJoystick();
+  joyBaseEl.classList.add('show'); joyKnobEl.classList.add('show');
   menuEl.classList.remove('show');
   upgradesEl.classList.remove('show');
   overlayEl.classList.remove('show');
@@ -1763,6 +1851,7 @@ function showOverlay(title, sub, btnText, action, offerRevive) {
   reviveBtnEl.hidden = !offerRevive;
   boosterBarEl.classList.remove('show');
   sizeTagEl.classList.remove('show');
+  joyBaseEl.classList.remove('show'); joyKnobEl.classList.remove('show');
   overlayEl.classList.add('show');
 }
 
@@ -1781,6 +1870,7 @@ async function revive() {
   overlayEl.classList.remove('show');
   boosterBarEl.classList.add('show');
   sizeTagEl.classList.add('show');
+  joyBaseEl.classList.add('show'); joyKnobEl.classList.add('show');
   state = 'playing';
 }
 reviveBtnEl.addEventListener('click', revive);
@@ -1905,6 +1995,16 @@ let touchId = null, joyBaseX = 0, joyBaseY = 0;
 let joyX = 0, joyY = 0;
 const MAX_JOY = 55;
 
+// The stick sits at the bottom of the screen when idle, the way the other
+// hole games show it, and only jumps to the finger while a drag is live.
+function parkJoystick() {
+  const x = innerWidth / 2;
+  const y = innerHeight - 132;
+  joyBaseEl.style.left = x + 'px'; joyBaseEl.style.top = y + 'px';
+  joyKnobEl.style.left = x + 'px'; joyKnobEl.style.top = y + 'px';
+}
+addEventListener('resize', parkJoystick);
+
 app.addEventListener('pointerdown', (e) => {
   if (state !== 'playing') return;
   if (e.target.closest && e.target.closest('button')) return;
@@ -1912,7 +2012,7 @@ app.addEventListener('pointerdown', (e) => {
   joyBaseX = e.clientX; joyBaseY = e.clientY;
   joyBaseEl.style.left = joyBaseX + 'px'; joyBaseEl.style.top = joyBaseY + 'px';
   joyKnobEl.style.left = joyBaseX + 'px'; joyKnobEl.style.top = joyBaseY + 'px';
-  joyBaseEl.classList.add('show'); joyKnobEl.classList.add('show');
+  joyBaseEl.classList.add('drag'); joyKnobEl.classList.add('drag');
   app.setPointerCapture(e.pointerId);
   hintEl.style.opacity = '0';
 });
@@ -1928,7 +2028,8 @@ app.addEventListener('pointermove', (e) => {
 function endDrag(e) {
   if (e.pointerId !== touchId) return;
   touchId = null; joyX = 0; joyY = 0;
-  joyBaseEl.classList.remove('show'); joyKnobEl.classList.remove('show');
+  joyBaseEl.classList.remove('drag'); joyKnobEl.classList.remove('drag');
+  parkJoystick();
 }
 app.addEventListener('pointerup', endDrag);
 app.addEventListener('pointercancel', endDrag);
