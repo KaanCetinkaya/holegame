@@ -12,7 +12,9 @@
     "open:hole": "npx cap open android",
     "open:fruithole": "cross-env APP=fruithole npx cap open android",
     "assets:fruithole": "cross-env APP=fruithole npx @capacitor/assets generate --assetPath fruithole/assets --androidProject android-fruithole --android",
-    "assets:hole": "npx @capacitor/assets generate --assetPath assets --androidProject android --android"
+    "assets:hole": "npx @capacitor/assets generate --assetPath assets --androidProject android --android",
+    "aab:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android && cross-env APP=fruithole node patch-manifest.mjs && cross-env APP=fruithole node build-aab.mjs",
+    "aab:hole": "node build-www.mjs && npx cap sync android && node patch-manifest.mjs && node build-aab.mjs"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.1.0",

@@ -5,3 +5,4 @@ node_modules/
 *.log
 /android-fruithole/
 www-fruithole/three.module.js
+keystore.properties
