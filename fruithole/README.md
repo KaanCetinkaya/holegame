@@ -172,7 +172,9 @@ ve `fruithole/store/feature-1024x500.png`. Android ikon/splash boyutlarını
 npm run assets:fruithole
 ```
 
-Çıktı `android-fruithole/` projesine yazılır.
+Çıktı `android-fruithole/` projesine yazılır. Araç `capacitor.config.js`'i
+okumadığı için hedef projeyi `--androidProject` ile açıkça veriyoruz;
+onsuz varsayılan `android/` klasörüne bakıp "platform bulunamadı" diyor.
 
 Mağaza ekran görüntüleri (`fruithole/store/1-menu.png` … `5-goals.png`,
 1080×1920) gerçek oynanıştan alındı; listeleme metni ve form cevapları (İngilizce)
