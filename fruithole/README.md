@@ -178,10 +178,18 @@ onsuz varsayılan `android/` klasörüne bakıp "platform bulunamadı" diyor.
 
 Mağaza ekran görüntüleri (`fruithole/store/1-menu.png` … `5-goals.png`,
 1080×1920) gerçek oynanıştan alındı; listeleme metni ve form cevapları (İngilizce)
-[`store/listing-en.md`](store/listing-en.md), gizlilik politikası
-[`store/privacy-policy.html`](store/privacy-policy.html) dosyasında.
-Reklam gösterildiği için politikanın bir adreste **yayınlanması** ve URL'sinin
-Play Console'a girilmesi zorunlu.
+[`store/listing-en.md`](store/listing-en.md) dosyasında.
+
+Reklam gösterildiği için gizlilik politikasının bir adreste **yayınlanması**
+zorunlu; bu yüzden [`docs/privacy-policy.html`](../docs/privacy-policy.html)
+GitHub Pages ile yayınlanıyor:
+
+```
+https://kaancetinkaya.github.io/holegame/privacy-policy.html
+```
+
+Politikayı değiştirirsen `docs/` altındaki dosyayı düzenle — Pages doğrudan
+oradan yayın yapıyor, ayrıca bir yere kopyalamaya gerek yok.
 
 ## Tek dosyalık sürüm (paylaşmak / telefonda denemek için)
 

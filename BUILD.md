@@ -64,6 +64,7 @@ linkini telefondan aç.
 | İkon/splash | `npm run assets:fruithole` |
 | Keystore | Android Studio → Generate Signed Bundle → Create new, **ya da** `keytool` |
 | `keystore.properties` | depo kökünde, aşağıdaki biçimde (git'e girmez) |
+| Gizlilik politikası | GitHub → Settings → Pages → Source: `/docs` (aşağı bak) |
 
 ```properties
 storeFile=C:/Users/HP/Desktop/fruithole-key.jks
@@ -74,6 +75,23 @@ keyPassword=SIFREN
 
 > Yolda **düz `/`** kullan. `.jks` dosyasını ve şifreyi ayrı yerlere yedekle —
 > kaybolursa uygulama bir daha güncellenemez.
+
+### Gizlilik politikasını yayınlama (bir kez)
+
+Reklam olduğu için Play, politikanın **açık bir adreste** durmasını istiyor.
+Dosya depoda `docs/privacy-policy.html`; depo herkese açık olduğu için
+GitHub Pages bedava yayınlıyor:
+
+GitHub → **Settings → Pages** → Source: **Deploy from a branch** →
+Branch: `claude/game-development-continue-awblv7`, klasör: **`/docs`** → Save.
+
+Birkaç dakika sonra adres hazır:
+
+```
+https://kaancetinkaya.github.io/holegame/privacy-policy.html
+```
+
+Bunu Play Console → Uygulama içeriği → **Gizlilik politikası** alanına yaz.
 
 ---
 

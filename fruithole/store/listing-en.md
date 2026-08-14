@@ -82,8 +82,8 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 - Personal data collected: **none** (progress lives on-device in `localStorage`)
 - Third party: **Google AdMob** (advertising ID and ad measurement data)
 - Payments run through **Google Play**; no card details reach the app
-- Privacy policy URL: publish `fruithole/store/privacy-policy.html` somewhere
-  (e.g. GitHub Pages) and enter that address.
+- Privacy policy URL: `https://kaancetinkaya.github.io/holegame/privacy-policy.html`
+  (served from `docs/` via GitHub Pages — see the repo README)
 
 ## Assets (ready in this folder)
 - `feature-1024x500.png` — feature graphic (required)
