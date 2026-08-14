@@ -153,13 +153,25 @@ function findJdk() {
   }
 
   const seen = [];
+  const found = [];
   for (const c of candidates) {
     if (!c || !existsSync(c)) continue;
     const major = javaMajor(c);
     if (major === null) continue;
     seen.push(`${major} -> ${c}`);
-    if (major >= JDK_MIN && major <= JDK_MAX) return { path: c, major, seen };
+    found.push({ path: c, major });
   }
+
+  // Tercih edilen: Gradle'ın resmen desteklediği aralık.
+  const exact = found.find(j => j.major >= JDK_MIN && j.major <= JDK_MAX);
+  if (exact) return { ...exact, seen };
+
+  // Aralıkta bir şey yoksa daha yenisiyle deniyoruz. Resmî kombinasyon
+  // değil ama Android Studio'nun kendi Java 25'iyle build çalışıyor;
+  // makineye ayrıca JDK 21 kurdurtmaktan iyi.
+  const newer = found.filter(j => j.major > JDK_MAX).sort((a, b) => a.major - b.major)[0];
+  if (newer) return { ...newer, seen, fallback: true };
+
   return { path: null, seen };
 }
 
@@ -173,6 +185,9 @@ if (!jdk.path) {
   process.exit(1);
 }
 console.log(`JDK: Java ${jdk.major} (${jdk.path})`);
+if (jdk.fallback) {
+  console.log(`  not: Java ${JDK_MIN}-${JDK_MAX} bulunamadı, bununla deneniyor.`);
+}
 
 // --- gradle ile paketle ---
 const isWin = process.platform === 'win32';

@@ -82,10 +82,13 @@ Gradle 8.14, Java 25'i kabul etmiyor (en fazla 24).
 ### 4. "invalid source release: 21"
 Capacitor 8, Java **21** ile derleniyor; JDK 17 ile olmuyor.
 
-**3 ve 4 birlikte:** Gerekli aralık **Java 21-24**. Build script'i artık
+**3 ve 4 birlikte:** Resmî aralık **Java 21-24**. Build script'i
 `JAVA_HOME`, Android Studio'nun `jbr` klasörü, `~/.jdks` ve `/usr/lib/jvm`
-altında bu aralığa uyan bir JDK arayıp yalnızca o build için kullanıyor.
-Bulamazsa ne bulduğunu listeleyip adoptium.net'e yönlendiriyor.
+altını tarayıp uygun JDK'yı yalnızca o build için kullanıyor.
+
+Aralıkta bir şey yoksa daha yenisiyle deniyor ve bunu ekrana yazıyor —
+Android Studio'nun kendi Java 25'iyle build pratikte çalışıyor. Sorun
+çıkarsa adoptium.net/temurin'den **JDK 21** kur, script onu tercih eder.
 
 ### 5. "Android platform not found at .../android"
 `@capacitor/assets`, `capacitor.config.js`'i **okumuyor**; iki uygulamalı
