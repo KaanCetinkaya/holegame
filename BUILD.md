@@ -86,9 +86,11 @@ Capacitor 8, Java **21** ile derleniyor; JDK 17 ile olmuyor.
 `JAVA_HOME`, Android Studio'nun `jbr` klasörü, `~/.jdks` ve `/usr/lib/jvm`
 altını tarayıp uygun JDK'yı yalnızca o build için kullanıyor.
 
-Aralıkta bir şey yoksa daha yenisiyle deniyor ve bunu ekrana yazıyor —
-Android Studio'nun kendi Java 25'iyle build pratikte çalışıyor. Sorun
-çıkarsa adoptium.net/temurin'den **JDK 21** kur, script onu tercih eder.
+Aralıkta bir şey yoksa daha yenisiyle deniyor ama **bu genelde çalışmıyor**:
+Java 25 ile Gradle build script'ini bile derleyemiyor
+(`Unsupported class file major version 69`). Android Studio'nun kendi JDK'sı
+25 ise adoptium.net/temurin'den **JDK 21** kur — script kuruluysa onu tercih
+eder, elle bir şey yapmana gerek kalmaz.
 
 ### 5. "Android platform not found at .../android"
 `@capacitor/assets`, `capacitor.config.js`'i **okumuyor**; iki uygulamalı

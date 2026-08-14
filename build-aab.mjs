@@ -146,6 +146,11 @@ function findJdk() {
   ]) {
     candidates.push(base);
   }
+  // Temurin/Java'nın Windows'taki standart kurulum kökleri
+  for (const dir of ['C:/Program Files/Eclipse Adoptium', 'C:/Program Files/Java']) {
+    if (!existsSync(dir)) continue;
+    for (const name of readdirSync(dir)) candidates.push(join(dir, name));
+  }
   // ~/.jdks ve linux'ta /usr/lib/jvm altındaki her şey
   for (const dir of [join(home, '.jdks'), '/usr/lib/jvm']) {
     if (!existsSync(dir)) continue;
