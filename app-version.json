@@ -1,0 +1,11 @@
+{
+  "_comment": "Play her yüklemede yeni bir versionCode ister; aynısı ikinci kez kabul edilmez. Yeni bir .aab yükleyeceğin her seferde ilgili versionCode'u 1 artır. versionName kullanıcıya görünen sürümdür.",
+  "hole": {
+    "versionCode": 1,
+    "versionName": "1.0"
+  },
+  "fruithole": {
+    "versionCode": 2,
+    "versionName": "1.0"
+  }
+}

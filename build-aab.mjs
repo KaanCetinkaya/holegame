@@ -48,12 +48,36 @@ if (!existsSync(propsFile)) {
   process.exit(1);
 }
 
+// --- sürüm numarası ---
+// Play aynı versionCode'u ikinci kez kabul etmiyor, bu yüzden numara
+// depoda tutuluyor: native proje yeniden üretilse de kaybolmaz.
+const versionFile = join(ROOT, 'app-version.json');
+const versions = JSON.parse(readFileSync(versionFile, 'utf8'));
+const version = versions[appName];
+if (!version) {
+  console.error(`app-version.json içinde "${appName}" yok.`);
+  process.exit(1);
+}
+
 // --- imza bloğunu app/build.gradle'a enjekte et ---
 const gradleFile = join(projectPath, 'app', 'build.gradle');
 let gradle = readFileSync(gradleFile, 'utf8');
 
+// Şablon versionCode 1 / versionName "1.0" ile geliyor; her build'de
+// app-version.json'daki değerlerle üzerine yazıyoruz.
+const beforeVersion = gradle;
+gradle = gradle
+  .replace(/versionCode\s+\d+/, `versionCode ${version.versionCode}`)
+  .replace(/versionName\s+"[^"]*"/, `versionName "${version.versionName}"`);
+if (gradle === beforeVersion && !gradle.includes(`versionCode ${version.versionCode}`)) {
+  console.error('HATA: app/build.gradle içinde versionCode/versionName bulunamadı.');
+  process.exit(1);
+}
+console.log(`Sürüm: ${version.versionName} (code ${version.versionCode})`);
+
 if (gradle.includes('signingConfigs')) {
   console.log('İmza yapılandırması zaten var.');
+  writeFileSync(gradleFile, gradle);   // sürüm değişmiş olabilir
 } else {
   const loader =
     `def keystorePropertiesFile = rootProject.file("../keystore.properties")\n` +
