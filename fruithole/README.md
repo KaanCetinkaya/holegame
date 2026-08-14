@@ -36,15 +36,22 @@ Kayıtlar `localStorage`'da: `fruithole_level`, `fruithole_currency`,
 `fruithole_stars`, `fruithole_upgrades`, `fruithole_boosters`,
 `fruithole_daily`, `fruithole_stats`, `fruithole_ach`, `fruithole_muted`.
 
-## Zorluk
+## Bölüm yapısı
 
-Her bölümde tarla bir sıra daha uzar (9'dan 16'ya kadar), süre tarla
-büyüklüğüne göre hesaplanır (`40 + hücre sayısı × 0.6` saniye) ve delik
-biraz daha büyük başlar. Bölüm 1'de bu 78 saniye ediyor.
+Tarla 13 sütun geniş, 22 satırdan başlayıp bölüm bölüm 34'e uzar; ekrandan
+taştığı için kamera deliği takip eder. Her bölüm **bir şekildir** — piramit,
+kalp, yıldız, ada, halka, elmas, sarmal, çapraz, bloklar, merdiven, yığınlar,
+duvarlar — ve şeklin dışı boş kalır. Bir hücre birden çok meyve taşıyabilir
+(istif), delik geçerken kule toptan dökülür.
 
-Sekiz desen bittiğinde oyun durmaz: her tam tur bir **kademe** sayılır,
-kademe başına süre %7 kısalır (en fazla %28) ve tarlaya daha çok kaya
-girer. Yani desenler tekrar eder, zorluk etmez.
+Bölüm, tarladaki **her meyve** yendiğinde biter. Süre meyve sayısına göre
+değil deliğin tarayacağı alana göre hesaplanır (`60 + meyve × 0.35` saniye),
+çünkü büyüyen delik bir geçişte birkaç sütun birden süpürür. Bölüm 1'de bu
+~2:20, ileri bölümlerde ~3:30 ediyor.
+
+On iki desen bittiğinde oyun durmaz: her tam tur bir **kademe** sayılır,
+kademe başına süre %7 kısalır (en fazla %28) ve tarlaya daha çok kaya girer.
+Yani desenler tekrar eder, zorluk etmez.
 
 ## Teknik notlar
 
@@ -101,11 +108,31 @@ uygulamada çalışır.
 
 ## Reklamlar
 
-Reklam kodu bağlı ama şu an **Google'ın resmi TEST birimleri** kullanılıyor
-(`AD_UNITS`). Fruit Hole ayrı bir uygulama olarak yayınlandığı için
-**kendi AdMob birimlerine ihtiyacı var** — Hole uygulamasının birimleri
-burada kullanılamaz. Yayından önce üçünü de (rewarded / interstitial /
-banner) değiştir.
+Fruit Hole'un **kendi AdMob birimleri** koda girildi (`AD_UNITS`):
+
+| Yer | Kimlik |
+|---|---|
+| Uygulama (AdMob App ID) | `ca-app-pub-2542927456156553~4653695871` |
+| Ödüllü | `ca-app-pub-2542927456156553/4650610263` |
+| Geçiş | `ca-app-pub-2542927456156553/3960345120` |
+| Banner | `ca-app-pub-2542927456156553/9522879176` |
+
+**App ID koda değil, Android manifest'ine girer.** Native proje eklendikten
+sonra `android-fruithole/app/src/main/AndroidManifest.xml` içinde
+`<application>` etiketinin altına:
+
+```xml
+<meta-data
+  android:name="com.google.android.gms.ads.APPLICATION_ID"
+  android:value="ca-app-pub-2542927456156553~4653695871"/>
+```
+
+### Yayına çıkmadan önce: `ADS_TESTING`
+
+`index.html` içinde `const ADS_TESTING = true;` var. Kendi reklamına
+tıklamak AdMob hesabını kapattırır, bu yüzden kendi cihazında denerken
+**true** kalmalı (test reklamı gösterir). Play'e yüklediğin sürümde
+**false** yap, yoksa gerçek reklam gelmez ve gelir olmaz.
 
 Tarayıcıda reklam çağrıları no-op'tur; ödüllü reklam doğrudan `true`
 döner, yani oyun reklam ağı olmadan da birebir aynı oynanır.

@@ -466,23 +466,31 @@ const boosterBarEl = document.getElementById('boosterBar');
 // every call is a no-op and showRewarded() resolves true, so the game
 // plays identically without an ad network.
 //
-// These are Google's public TEST units. Fruit Hole ships as its own app,
-// so it needs its own AdMob units — the Hole app's units must not be
-// reused here. Replace all three before release.
+// Fruit Hole's own AdMob units. They belong to this app alone — the Hole
+// app's units are registered to a different app and cannot be used here.
+//
+// The matching AdMob App ID goes in the Android manifest, not in this file:
+//   ca-app-pub-2542927456156553~4653695871
 // ---------------------------------------------------------------------
 const _Cap = window.Capacitor;
 const _AdMob = _Cap && _Cap.Plugins ? _Cap.Plugins.AdMob : null;
 const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _AdMob);
 const AD_UNITS = {
-  rewarded:     'ca-app-pub-3940256099942544/5224354917',
-  interstitial: 'ca-app-pub-3940256099942544/1033173712',
-  banner:       'ca-app-pub-3940256099942544/6300978111',
+  rewarded:     'ca-app-pub-2542927456156553/4650610263',
+  interstitial: 'ca-app-pub-2542927456156553/3960345120',
+  banner:       'ca-app-pub-2542927456156553/9522879176',
 };
+
+// Tapping your own live ads gets an AdMob account suspended, so testing on
+// a real device has to serve test ads. Leave this true while trying the app
+// yourself; set it to false for the build you upload.
+const ADS_TESTING = true;
+
 let _interReady = false;
 
 async function adsInit() {
   if (!ADS_ON) return;
-  try { await _AdMob.initialize({ initializeForTesting: true }); prepareInterstitial(); } catch (e) { }
+  try { await _AdMob.initialize({ initializeForTesting: ADS_TESTING }); prepareInterstitial(); } catch (e) { }
 }
 async function prepareInterstitial() {
   if (!ADS_ON) return;
