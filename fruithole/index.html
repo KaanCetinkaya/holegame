@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -199,7 +199,7 @@
 </style>
 </head>
 <body>
-<div id="loading">Yükleniyor…</div>
+<div id="loading">Loading…</div>
 <div id="app">
   <div id="topbar">
     <div id="levelBadge">LEVEL <span id="levelN">1</span></div>
@@ -218,78 +218,78 @@
   <div id="sizeTag">Size <span id="sizeN">1</span></div>
   <div id="boosterBar"></div>
   <div id="combo"></div>
-  <div id="hint">Parmağını sürükle, deliği gezdir, meyveleri ye</div>
+  <div id="hint">Drag anywhere to steer the hole and swallow the fruit</div>
   <div id="joyBase"></div>
   <div id="joyKnob"></div>
 
   <div id="pause" class="screen">
-    <h1>❚❚ Duraklatıldı</h1>
+    <h1>❚❚ Paused</h1>
     <div class="menuRow">
-      <button class="btn" id="resumeBtn">Devam et</button>
+      <button class="btn" id="resumeBtn">Resume</button>
     </div>
     <div class="menuRow">
-      <button class="btn ghost" id="pauseMute">🔊 Ses</button>
-      <button class="btn ghost" id="pauseMenu">🏠 Menü</button>
+      <button class="btn ghost" id="pauseMute">🔊 Sound</button>
+      <button class="btn ghost" id="pauseMenu">🏠 Menu</button>
     </div>
   </div>
 
   <div id="menu" class="screen show">
     <div class="logo">🕳️</div>
     <h1>Fruit Hole</h1>
-    <p id="menuSub">Bölüm 1</p>
-    <button class="btn" id="playBtn">Başla</button>
+    <p id="menuSub">Level 1</p>
+    <button class="btn" id="playBtn">Play</button>
     <div class="menuRow">
-      <button class="btn ghost" id="upgBtn">⬆️ Yükseltmeler</button>
-      <button class="btn ghost" id="goalsBtn">📋 Görevler</button>
+      <button class="btn ghost" id="upgBtn">⬆️ Upgrades</button>
+      <button class="btn ghost" id="goalsBtn">📋 Goals</button>
     </div>
     <div class="menuRow">
-      <button class="btn ghost" id="shopBtn">🛒 Mağaza</button>
+      <button class="btn ghost" id="shopBtn">🛒 Shop</button>
     </div>
   </div>
 
   <div id="shop" class="screen">
-    <h1>🛒 Mağaza</h1>
+    <h1>🛒 Shop</h1>
     <div id="shopList"></div>
     <p id="shopNote" class="muted"></p>
     <div class="menuRow">
-      <button class="btn ghost" id="restoreBtn">Satın alımları geri yükle</button>
-      <button class="btn ghost" id="shopClose">Kapat</button>
+      <button class="btn ghost" id="restoreBtn">Restore purchases</button>
+      <button class="btn ghost" id="shopClose">Close</button>
     </div>
   </div>
 
   <div id="goals" class="screen">
-    <h1>📋 Görevler</h1>
-    <p class="sect">Günlük görevler</p>
+    <h1>📋 Goals</h1>
+    <p class="sect">Daily missions</p>
     <div id="missionList"></div>
-    <p class="sect">🏆 Başarımlar</p>
+    <p class="sect">🏆 Achievements</p>
     <div id="achList"></div>
-    <button class="btn ghost" id="goalsClose">Kapat</button>
+    <button class="btn ghost" id="goalsClose">Close</button>
   </div>
 
   <div id="daily" class="screen">
-    <h1>🎁 Günlük Ödül</h1>
+    <h1>🎁 Daily Reward</h1>
     <p id="dailySub"></p>
     <div class="stats" id="dailyLoot"></div>
-    <button class="btn" id="dailyBtn">Al</button>
+    <button class="btn" id="dailyBtn">Claim</button>
   </div>
 
   <div id="upgrades" class="screen">
-    <h1>⬆️ Yükseltmeler</h1>
+    <h1>⬆️ Upgrades</h1>
     <div id="upgWallet"></div>
     <div id="upgList"></div>
-    <p class="sect">🎁 Boosterlar</p>
+    <p class="sect">🎁 Boosters</p>
     <div id="boostShop"></div>
-    <button class="btn ghost" id="upgClose">Kapat</button>
+    <button class="btn ghost" id="upgClose">Close</button>
   </div>
 
   <div id="overlay" class="screen">
-    <h1 id="overlayTitle">Bölüm Tamam!</h1>
+    <h1 id="overlayTitle">Level Complete!</h1>
     <p id="overlaySub"></p>
     <div class="stats" id="overlayStats"></div>
-    <button class="btn" id="reviveBtn">📺 +15 saniye</button>
+    <button class="btn" id="reviveBtn">📺 +15 seconds</button>
     <div class="menuRow">
-      <button class="btn ghost" id="actionBtn">Devam</button>
-      <button class="btn ghost" id="toMenuBtn">🏠 Menü</button>
+      <button class="btn ghost" id="actionBtn">Next</button>
+      <button class="btn ghost" id="toMenuBtn">🏠 Menu</button>
     </div>
   </div>
 </div>
@@ -301,10 +301,10 @@
 import * as THREE from 'three';
 
 const TYPES = [
-  { id: 'berry',  label: 'Böğürtlen', base: '#5b2d8e', dark: '#3c1a63', light: '#8a5cc9', speck: '#2a1148' },
-  { id: 'lychee', label: 'Liçi',      base: '#f3e6d8', dark: '#d8b9a0', light: '#ffffff', speck: '#e8a898' },
-  { id: 'banana', label: 'Muz',       base: '#f6d648', dark: '#e0a92a', light: '#fff2a0', speck: '#c98a1c' },
-  { id: 'melon',  label: 'Kavun',     base: '#f0a13c', dark: '#c9711f', light: '#ffc978', speck: '#a85614' },
+  { id: 'berry',  label: 'Blackberry', base: '#5b2d8e', dark: '#3c1a63', light: '#8a5cc9', speck: '#2a1148' },
+  { id: 'lychee', label: 'Lychee',    base: '#f3e6d8', dark: '#d8b9a0', light: '#ffffff', speck: '#e8a898' },
+  { id: 'banana', label: 'Banana',    base: '#f6d648', dark: '#e0a92a', light: '#fff2a0', speck: '#c98a1c' },
+  { id: 'melon',  label: 'Melon',     base: '#f0a13c', dark: '#c9711f', light: '#ffc978', speck: '#a85614' },
 ];
 const TYPE_BY_ID = Object.fromEntries(TYPES.map(t => [t.id, t]));
 
@@ -330,14 +330,14 @@ function saveStars() { localStorage.setItem('fruithole_stars', JSON.stringify(st
 // each step: 25, 50, 100, 200, 400.
 // ---------------------------------------------------------------------
 const UPGRADES = [
-  { id: 'speed',  icon: '💨', name: 'Hız',              pay: 'berry',  base: 25,
-    desc: lv => `Delik hızı +${lv * 8}%` },
-  { id: 'size',   icon: '⭕', name: 'Başlangıç boyutu', pay: 'banana', base: 20,
-    desc: lv => `Delik +${(lv * 0.06).toFixed(2)} büyük başlar` },
-  { id: 'time',   icon: '⏱',  name: 'Ek süre',          pay: 'lychee', base: 25,
-    desc: lv => `Her bölümde +${lv * 5} saniye` },
-  { id: 'magnet', icon: '🧲', name: 'Mıknatıs',         pay: 'melon',  base: 30,
-    desc: lv => `Yakındaki meyveleri ${(lv * 0.28).toFixed(2)} birim çeker` },
+  { id: 'speed',  icon: '💨', name: 'Speed',          pay: 'berry',  base: 25,
+    desc: lv => `Hole moves ${lv * 8}% faster` },
+  { id: 'size',   icon: '⭕', name: 'Starting size',  pay: 'banana', base: 20,
+    desc: lv => `Hole starts ${(lv * 0.06).toFixed(2)} wider` },
+  { id: 'time',   icon: '⏱',  name: 'Extra time',     pay: 'lychee', base: 25,
+    desc: lv => `+${lv * 5} seconds every level` },
+  { id: 'magnet', icon: '🧲', name: 'Magnet',         pay: 'melon',  base: 30,
+    desc: lv => `Pulls fruit in from ${(lv * 0.28).toFixed(2)} further out` },
 ];
 const UPG_MAX = 5;
 
@@ -356,12 +356,12 @@ function upgCost(u) { return u.base * Math.pow(2, upg(u.id)); }
 // free so the first use costs nothing to learn.
 // ---------------------------------------------------------------------
 const BOOSTERS = [
-  { id: 'time',   icon: '⏰', name: 'Zaman',    unlock: 4,  pay: 'lychee', cost: 40, free: 2,
-    desc: '+15 saniye' },
-  { id: 'grow',   icon: '💥', name: 'Büyüt',    unlock: 7,  pay: 'banana', cost: 50, free: 1,
-    desc: 'Delik anında büyür' },
-  { id: 'magnet', icon: '🌟', name: 'Süper mıknatıs', unlock: 10, pay: 'melon', cost: 45, free: 1,
-    desc: '8 saniye güçlü çekim' },
+  { id: 'time',   icon: '⏰', name: 'Time',     unlock: 4,  pay: 'lychee', cost: 40, free: 2,
+    desc: '+15 seconds' },
+  { id: 'grow',   icon: '💥', name: 'Grow',     unlock: 7,  pay: 'banana', cost: 50, free: 1,
+    desc: 'Hole grows at once' },
+  { id: 'magnet', icon: '🌟', name: 'Super magnet', unlock: 10, pay: 'melon', cost: 45, free: 1,
+    desc: '8 seconds of strong pull' },
 ];
 
 const boosterStore = JSON.parse(localStorage.getItem('fruithole_boosters') || 'null');
@@ -384,10 +384,10 @@ function saveStats() { localStorage.setItem('fruithole_stats', JSON.stringify(st
 function dayKey(d) { return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
 
 const MISSION_POOL = [
-  { id: 'eat',   icon: '🍇', track: 'fruits',    text: n => `${n} meyve ye`,     roll: () => 60 + Math.floor(Math.random() * 5) * 20 },
-  { id: 'lvl',   icon: '🏁', track: 'levels',    text: n => `${n} bölüm bitir`,  roll: () => 2 + Math.floor(Math.random() * 3) },
-  { id: 'star',  icon: '⭐', track: 'stars',     text: n => `${n} yıldız kazan`, roll: () => 4 + Math.floor(Math.random() * 5) },
-  { id: 'combo', icon: '🔥', track: 'bestCombo', text: n => `x${n} kombo yap`,   roll: () => 3 + Math.floor(Math.random() * 3) },
+  { id: 'eat',   icon: '🍇', track: 'fruits',    text: n => `Eat ${n} fruit`,     roll: () => 60 + Math.floor(Math.random() * 5) * 20 },
+  { id: 'lvl',   icon: '🏁', track: 'levels',    text: n => `Finish ${n} levels`,  roll: () => 2 + Math.floor(Math.random() * 3) },
+  { id: 'star',  icon: '⭐', track: 'stars',     text: n => `Earn ${n} stars`, roll: () => 4 + Math.floor(Math.random() * 5) },
+  { id: 'combo', icon: '🔥', track: 'bestCombo', text: n => `Hit an x${n} combo`,   roll: () => 3 + Math.floor(Math.random() * 3) },
 ];
 const MISSION_BY_ID = Object.fromEntries(MISSION_POOL.map(m => [m.id, m]));
 const MISSION_REWARD = 45;
@@ -414,11 +414,11 @@ function ensureDaily() {
 ensureDaily();
 
 const ACHIEVEMENTS = [
-  { id: 'eat100',  icon: '🍇',  name: 'Yüz lokma',     desc: 'Toplam 100 meyve ye',  goal: 100,  at: () => stats.fruits,    pay: 'berry',  reward: 60 },
-  { id: 'eat1000', icon: '🍽️', name: 'Doymak bilmez', desc: 'Toplam 1000 meyve ye', goal: 1000, at: () => stats.fruits,    pay: 'berry',  reward: 220 },
-  { id: 'lvl10',   icon: '🏁',  name: 'Onuncu bölüm',  desc: "Bölüm 10'a ulaş",      goal: 10,   at: () => level,           pay: 'banana', reward: 140 },
-  { id: 'star15',  icon: '⭐',  name: 'Yıldız avcısı', desc: '15 yıldız kazan',      goal: 15,   at: () => stats.stars,     pay: 'lychee', reward: 140 },
-  { id: 'combo5',  icon: '🔥',  name: 'Zincirleme',    desc: 'x5 kombo yap',         goal: 5,    at: () => stats.bestCombo, pay: 'melon',  reward: 110 },
+  { id: 'eat100',  icon: '🍇',  name: 'Hundred bites', desc: 'Eat 100 fruit in total',  goal: 100,  at: () => stats.fruits,    pay: 'berry',  reward: 60 },
+  { id: 'eat1000', icon: '🍽️', name: 'Never full',    desc: 'Eat 1000 fruit in total', goal: 1000, at: () => stats.fruits,    pay: 'berry',  reward: 220 },
+  { id: 'lvl10',   icon: '🏁',  name: 'Tenth level',   desc: 'Reach level 10',      goal: 10,   at: () => level,           pay: 'banana', reward: 140 },
+  { id: 'star15',  icon: '⭐',  name: 'Star hunter',   desc: 'Earn 15 stars',      goal: 15,   at: () => stats.stars,     pay: 'lychee', reward: 140 },
+  { id: 'combo5',  icon: '🔥',  name: 'Chain eater',   desc: 'Hit an x5 combo',         goal: 5,    at: () => stats.bestCombo, pay: 'melon',  reward: 110 },
 ];
 const achClaimed = JSON.parse(localStorage.getItem('fruithole_ach') || '{}');
 function saveAch() { localStorage.setItem('fruithole_ach', JSON.stringify(achClaimed)); }
@@ -670,7 +670,7 @@ function renderUpgrades() {
       `<span class="ico">${u.icon}</span>` +
       `<span class="mid">` +
         `<span class="nm">${u.name}</span>` +
-        `<div class="ds">${lv ? u.desc(lv) : 'Henüz yükseltilmedi'}</div>` +
+        `<div class="ds">${lv ? u.desc(lv) : 'Not upgraded yet'}</div>` +
         `<div class="pips">${Array.from({ length: UPG_MAX }, (_, i) =>
           `<span class="pip${i < lv ? ' on' : ''}"></span>`).join('')}</div>` +
       `</span>`;
@@ -678,10 +678,10 @@ function renderUpgrades() {
     const btn = document.createElement('button');
     btn.className = 'buy';
     if (maxed) {
-      btn.textContent = 'TAM';
+      btn.textContent = 'MAX';
       btn.disabled = true;
     } else {
-      btn.innerHTML = `Yükselt<span class="cost">${cost} ${pay.label}</span>`;
+      btn.innerHTML = `Upgrade<span class="cost">${cost} ${pay.label}</span>`;
       btn.disabled = !afford;
       btn.onclick = () => buyUpgrade(u);
     }
@@ -707,7 +707,7 @@ function renderBoostShop() {
       `<span class="mid">` +
         `<span class="nm">${b.name}</span>` +
         `<div class="ds">${b.desc}</div>` +
-        `<div class="own">${locked ? `Bölüm ${b.unlock}'da açılır` : `Elinde: ${boosters[b.id] || 0}`}</div>` +
+        `<div class="own">${locked ? `Unlocks at level ${b.unlock}` : `Owned: ${boosters[b.id] || 0}`}</div>` +
       `</span>`;
 
     const btn = document.createElement('button');
@@ -716,7 +716,7 @@ function renderBoostShop() {
       btn.textContent = '🔒';
       btn.disabled = true;
     } else {
-      btn.innerHTML = `Satın al<span class="cost">${b.cost} ${pay.label}</span>`;
+      btn.innerHTML = `Buy<span class="cost">${b.cost} ${pay.label}</span>`;
       btn.disabled = !afford;
       btn.onclick = () => buyBooster(b);
     }
@@ -744,7 +744,7 @@ function goalRow(icon, name, desc, at, goal, claimed, onClaim) {
   const btn = document.createElement('button');
   btn.className = 'buy';
   if (claimed) { btn.textContent = '✓'; btn.disabled = true; }
-  else if (ready) { btn.textContent = 'Al'; btn.onclick = onClaim; }
+  else if (ready) { btn.textContent = 'Claim'; btn.onclick = onClaim; }
   else { btn.textContent = '…'; btn.disabled = true; }
   row.appendChild(btn);
   return row;
@@ -757,7 +757,7 @@ function renderGoals() {
   (daily.missions || []).forEach(m => {
     const def = MISSION_BY_ID[m.id];
     mList.appendChild(goalRow(
-      def.icon, def.text(m.goal), `Ödül: ${MISSION_REWARD} meyve`,
+      def.icon, def.text(m.goal), `Reward: ${MISSION_REWARD} fruit`,
       missionAt(m), m.goal, m.claimed,
       () => claimMission(m)
     ));
@@ -796,7 +796,7 @@ function claimAch(a) {
 
 function refreshGoalsBadge() {
   const b = document.getElementById('goalsBtn');
-  b.textContent = anyClaimable() ? '📋 Görevler ❗' : '📋 Görevler';
+  b.textContent = anyClaimable() ? '📋 Goals ❗' : '📋 Goals';
 }
 
 // Back to the menu from the end-of-run overlay -- without this there is
@@ -809,7 +809,7 @@ function toMenu() {
   joyBaseEl.classList.remove('show'); joyKnobEl.classList.remove('show');
   topbarEl.classList.remove('show');
   hintEl.style.opacity = '0';
-  menuSubEl.textContent = 'Bölüm ' + level;
+  menuSubEl.textContent = 'Level ' + level;
   refreshGoalsBadge();
   menuEl.classList.add('show');
 }
@@ -849,7 +849,7 @@ function resumeGame() {
 }
 
 function refreshPauseMute() {
-  document.getElementById('pauseMute').textContent = muted ? '🔇 Ses' : '🔊 Ses';
+  document.getElementById('pauseMute').textContent = muted ? '🔇 Sound' : '🔊 Sound';
 }
 
 document.getElementById('pauseBtn').addEventListener('click', pauseGame);
@@ -888,13 +888,13 @@ document.getElementById('goalsClose').addEventListener('click', () => {
 const PRODUCTS = [
   {
     id: 'fruithole_remove_ads', key: 'remove_ads', icon: '🚫',
-    name: 'Reklamsız', desc: 'Banner ve bölüm arası reklamlar kalkar', price: '₺59,99',
+    name: 'Remove ads', desc: 'No more banner or between-level ads', price: '$1.99',
     grant() { hideBanner(); },
   },
   {
     id: 'fruithole_starter', key: 'starter', icon: '🎒',
-    name: 'Başlangıç paketi', desc: 'Her meyveden 500, her booster’dan 3, üstüne reklamsız',
-    price: '₺89,99',
+    name: 'Starter pack', desc: '500 of every fruit, 3 of every booster, and no ads',
+    price: '$2.99',
     grant() {
       TYPES.forEach(t => bumpCurrency(t.id, 500));
       BOOSTERS.forEach(b => { boosters[b.id] = (boosters[b.id] || 0) + 3; });
@@ -906,12 +906,12 @@ const PRODUCTS = [
   },
   {
     id: 'fruithole_pack_small', icon: '🧺',
-    name: 'Meyve sepeti', desc: 'Her meyveden 400', price: '₺29,99',
+    name: 'Fruit basket', desc: '400 of every fruit', price: '$0.99',
     grant() { TYPES.forEach(t => bumpCurrency(t.id, 400)); },
   },
   {
     id: 'fruithole_pack_large', icon: '🚚',
-    name: 'Meyve kamyonu', desc: 'Her meyveden 1200', price: '₺79,99',
+    name: 'Fruit truck', desc: '1200 of every fruit', price: '$2.49',
     grant() { TYPES.forEach(t => bumpCurrency(t.id, 1200)); },
   },
 ];
@@ -931,15 +931,15 @@ function renderShop() {
       `</span>`;
     const btn = document.createElement('button');
     btn.className = 'buy' + (owned ? ' owned' : '');
-    if (owned) { btn.textContent = '✓ Alındı'; btn.disabled = true; }
+    if (owned) { btn.textContent = '✓ Owned'; btn.disabled = true; }
     else { btn.textContent = p.price; btn.onclick = () => buyProduct(p, btn); }
     row.appendChild(btn);
     list.appendChild(row);
   });
 
   document.getElementById('shopNote').textContent = IAP_ON
-    ? 'Fiyatlar mağazadan gelir; satın alımlar Google Play hesabına işlenir.'
-    : 'Tarayıcı sürümü: satın alma yapılmaz, ürünler denemek için doğrudan verilir. Gerçek satın alma yalnızca uygulamada çalışır.';
+    ? 'Prices come from the store; purchases are billed to your Google Play account.'
+    : 'Browser build: nothing is charged and items are granted outright so you can try the flow. Real purchases work only in the app.';
 }
 
 async function buyProduct(p, btn) {
@@ -969,8 +969,8 @@ document.getElementById('restoreBtn').addEventListener('click', async (e) => {
   const ok = await restorePurchases();
   e.target.disabled = false;
   document.getElementById('shopNote').textContent = ok
-    ? 'Satın alımlar geri yüklendi.'
-    : 'Geri yükleme yalnızca uygulamada çalışır.';
+    ? 'Purchases restored.'
+    : 'Restoring works only in the app.';
   renderShop();
 });
 
@@ -981,7 +981,7 @@ function maybeShowDaily() {
   ensureDaily();
   if (daily.rewardClaimed) return false;
   const t = TYPE_BY_ID[daily.loot.type];
-  document.getElementById('dailySub').textContent = `${daily.streak}. gün üst üste`;
+  document.getElementById('dailySub').textContent = `Day ${daily.streak} streak`;
   document.getElementById('dailyLoot').innerHTML =
     `<span class="pill">${daily.loot.amount} ${t.label}</span>`;
   menuEl.classList.remove('show');
@@ -1034,7 +1034,7 @@ document.getElementById('upgClose').addEventListener('click', () => {
 });
 buildCounters();
 refreshLevelTag();
-menuSubEl.textContent = 'Bölüm ' + level;
+menuSubEl.textContent = 'Level ' + level;
 
 // ---------------------------------------------------------------------
 // Three.js scene
@@ -1231,7 +1231,7 @@ function fruitVisual(type, radius) {
   return { geo: GEO[type], mat: MAT[type], sx: radius, sy: radius, baseY: radius };
 }
 
-const NORMAL_R = 0.50, BIG_R = 0.72;   // hucre 1.05 -> meyveler neredeyse degiyor
+const NORMAL_R = 0.50, BIG_R = 0.72;   // cell is 1.05, so fruit almost touches
 
 const ROCK_GEO = bumpySphere(5, 0.16, 18, 12);
 ROCK_GEO.scale(1, 0.72, 1);
@@ -1287,7 +1287,7 @@ const fieldGroup = new THREE.Group();
 scene.add(fieldGroup);
 let fruits = [];
 let eatenCount = 0;
-let levelGoal = 0;   // bolumu bitirmek icin yenmesi gereken meyve
+let levelGoal = 0;   // fruit that must be eaten to finish the level
 let rocks = [];   // never edible, and they block the hole -- they shape the route
 
 // Levels keep going after the pattern list runs out; each full cycle is a
@@ -1378,7 +1378,7 @@ function stepped(v, size) { return Math.floor(v / size) * size; }
 
 const PATTERNS = [
   {
-    name: 'Piramit', icon: '🔺',
+    name: 'Pyramid', icon: '🔺',
     // wide at the bottom, narrowing to a point at the top -- and piled
     // higher toward the middle, so it is a pyramid from the side too
     empty: (r, c) => {
@@ -1394,7 +1394,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.5, 71) > 0.72,
   },
   {
-    name: 'Yığınlar', icon: '🥞',
+    name: 'Piles', icon: '🥞',
     // sparse ground with tall piles dotted across it
     empty: (r, c) => !(r % 2 === 1 && c % 2 === 1) || blob(r, c, 0.35, 13) < 0.32,
     stack: (r, c) => 2 + Math.round(blob(r, c, 0.4, 29) * 3),
@@ -1402,7 +1402,7 @@ const PATTERNS = [
     big: () => false,
   },
   {
-    name: 'Duvarlar', icon: '🧱',
+    name: 'Walls', icon: '🧱',
     // winding walls with open corridors to work along
     empty: (r, c) => Math.abs(blob(r, c, 0.19, 77) - 0.5) > 0.11,
     stack: (r, c) => 1 + Math.round(blob(r, c, 0.5, 41) * 1.6),
@@ -1410,7 +1410,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 9) > 0.76,
   },
   {
-    name: 'Bloklar', icon: '🧊',
+    name: 'Blocks', icon: '🧊',
     // rectangular crates of one fruit, mass ending in a stepped edge
     empty: (r, c) => {
       const qr = stepped(r, 3), qc = stepped(c, 3);
@@ -1422,7 +1422,7 @@ const PATTERNS = [
     big: (r, c) => blockType(r, c, 4, 3, 55) === 'melon' && r % 3 === 1 && c % 4 === 2,
   },
   {
-    name: 'Merdiven', icon: '🪜',
+    name: 'Stairs', icon: '🪜',
     // the mass descends across the board in broad steps
     empty: (r, c) => {
       const stepH = 3;
@@ -1434,7 +1434,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 47) > 0.76,
   },
   {
-    name: 'Kalp', icon: '💛',
+    name: 'Heart', icon: '💛',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const x = nx / 0.9, y = -ny / 0.85 + 0.28;
@@ -1445,7 +1445,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 12) > 0.74,
   },
   {
-    name: 'Yıldız', icon: '⭐',
+    name: 'Star', icon: '⭐',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const d = Math.hypot(nx, ny * 0.95);
@@ -1456,7 +1456,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 88) > 0.74,
   },
   {
-    name: 'Ada', icon: '🏝️',
+    name: 'Island', icon: '🏝️',
     // a ragged blob, the least regular of the set
     empty: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -1467,7 +1467,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 5) > 0.73,
   },
   {
-    name: 'Halka', icon: '🎯',
+    name: 'Ring', icon: '🎯',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const d = Math.hypot(nx, ny * 0.95);
@@ -1482,7 +1482,7 @@ const PATTERNS = [
     },
   },
   {
-    name: 'Elmas', icon: '💎',
+    name: 'Diamond', icon: '💎',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       return Math.abs(nx) + Math.abs(ny) * 0.9 > 0.9 + wob;
@@ -1491,7 +1491,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 19) > 0.75,
   },
   {
-    name: 'Sarmal', icon: '🌀',
+    name: 'Spiral', icon: '🌀',
     // an arm curling out from the middle
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
@@ -1504,7 +1504,7 @@ const PATTERNS = [
     big: () => scatter(0.1),
   },
   {
-    name: 'Çapraz', icon: '🔀',
+    name: 'Cross', icon: '🔀',
     // two broad bands crossing, leaving four open corners
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
@@ -1583,7 +1583,7 @@ function buildField() {
       }
     }
   }
-  // Bolum, tarladaki her meyve yendiginde biter.
+  // A level ends when every fruit on the field has been eaten.
   levelGoal = fruits.length;
 }
 
@@ -1667,7 +1667,7 @@ let camX = 0, camZ = 0;
 // tall screen. Height then follows from the aspect ratio.
 function fitCamera() {
   const aspect = innerWidth / innerHeight;
-  const halfH = 5.4;   // sabit gorus alani; tarla ekrandan tasar ve kamera gezer
+  const halfH = 5.4;   // fixed view width; the field runs past it and the camera travels
   const halfV = halfH / aspect;
   camera.left = -halfH; camera.right = halfH;
   camera.top = halfV; camera.bottom = -halfV;
@@ -1699,8 +1699,8 @@ let runStart = 0;
 let revivedThisLevel = false;
 
 function levelTime() {
-  // Buyuyen delik bir gecişte birkac sutun birden supurdugu icin sure
-  // meyve basina degil, tarayacagi alana gore olceklenir.
+  // A grown hole sweeps several columns per pass, so the clock scales
+  // with the area to cover rather than with the fruit count.
   const base = Math.round(60 + levelGoal * 0.35);
   const squeeze = 1 - Math.min(0.28, tier() * 0.07);   // later cycles are tighter
   return Math.round(base * squeeze) + upg('time') * 5;
@@ -1760,7 +1760,7 @@ function flash(text) {
   void comboEl.offsetWidth;
   comboEl.classList.add('show');
 }
-function showCombo(mult) { flash(`x${mult} KOMBO!`); }
+function showCombo(mult) { flash(`x${mult} COMBO!`); }
 
 // ---------------------------------------------------------------------
 // Booster bar
@@ -1896,8 +1896,8 @@ function fillStats(earnedStars) {
     ? `<span class="pill">${'★'.repeat(earnedStars)}${'☆'.repeat(3 - earnedStars)}</span>`
     : '';
   overlayStatsEl.innerHTML = starLine +
-    `<span class="pill">🍇 ${eatenCount} meyve</span>` +
-    `<span class="pill">⏱ ${secs} sn</span>`;
+    `<span class="pill">🍇 ${eatenCount} fruit</span>` +
+    `<span class="pill">⏱ ${secs}s</span>`;
 }
 
 function onCleared() {
@@ -1922,9 +1922,9 @@ function onCleared() {
 
   level++;
   localStorage.setItem('fruithole_level', String(level));
-  menuSubEl.textContent = 'Bölüm ' + level;
-  const sub = isBest && prevBest > 0 ? 'Yeni rekor!' : `Sıradaki: Bölüm ${level}`;
-  showOverlay('Bölüm Tamam! 🎉', sub, 'Devam', nextLevel, false);
+  menuSubEl.textContent = 'Level ' + level;
+  const sub = isBest && prevBest > 0 ? 'New best!' : `Next: level ${level}`;
+  showOverlay('Level Complete! 🎉', sub, 'Next', nextLevel, false);
 }
 
 function onTimeUp() {
@@ -1933,7 +1933,7 @@ function onTimeUp() {
   sfx.lose();
   fillStats();
   const left = Math.max(0, levelGoal - eatenCount);
-  showOverlay('Süre Bitti! ⏱', `${left} meyve kaldı`, 'Tekrar Dene', startLevel, !revivedThisLevel);
+  showOverlay("Time's Up! ⏱", `${left} fruit left`, 'Retry', startLevel, !revivedThisLevel);
 }
 
 // ---------------------------------------------------------------------

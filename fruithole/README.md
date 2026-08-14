@@ -70,6 +70,12 @@ Yani desenler tekrar eder, zorluk etmez.
 - **Ses dosyasız.** Bütün efektler WebAudio ile sentezleniyor; arka arkaya
   yedikçe yeme sesi tizleşiyor. Titreşim varsa `navigator.vibrate` ile.
 
+## Dil
+
+Oyunun arayüzü ve mağaza metinleri **İngilizce**; Play Console'da varsayılan
+dil de İngilizce seçilmeli. Arayüz metinleri `index.html` içinde doğrudan
+gömülü, ayrı bir dil dosyası yok.
+
 ## Uygulama içi satın alma (IAP)
 
 Mağaza ekranı ve dört ürün hazır; ürün kimlikleri Play Console'da aynı
@@ -172,8 +178,8 @@ APP=fruithole npx @capacitor/assets generate --assetPath fruithole/assets --andr
 `android-fruithole/` projesine yazılır.
 
 Mağaza ekran görüntüleri (`fruithole/store/1-menu.png` … `5-goals.png`,
-1080×1920) gerçek oynanıştan alındı; listeleme metni ve form cevapları
-[`store/listing-tr.md`](store/listing-tr.md), gizlilik politikası
+1080×1920) gerçek oynanıştan alındı; listeleme metni ve form cevapları (İngilizce)
+[`store/listing-en.md`](store/listing-en.md), gizlilik politikası
 [`store/privacy-policy.html`](store/privacy-policy.html) dosyasında.
 Reklam gösterildiği için politikanın bir adreste **yayınlanması** ve URL'sinin
 Play Console'a girilmesi zorunlu.
