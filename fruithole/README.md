@@ -95,7 +95,7 @@ Cordova sürümü emekliye ayrıldı ve Google, ona dayalı güncellemeleri
 
 ```bash
 npm install @revenuecat/purchases-capacitor
-APP=fruithole npx cap sync android
+npm run sync:fruithole
 ```
 
 Sonra `index.html` içindeki `purchase()` ve `restorePurchases()`
@@ -171,11 +171,10 @@ ve `fruithole/store/feature-1024x500.png`. Android ikon/splash boyutlarını
 üretmek için (native proje eklendikten sonra, depo kökünde):
 
 ```bash
-APP=fruithole npx @capacitor/assets generate --assetPath fruithole/assets --android
+npm run assets:fruithole
 ```
 
-`--assetPath` depo köküne **göreli** olmalı; `APP=fruithole` sayesinde çıktı
-`android-fruithole/` projesine yazılır.
+Çıktı `android-fruithole/` projesine yazılır.
 
 Mağaza ekran görüntüleri (`fruithole/store/1-menu.png` … `5-goals.png`,
 1080×1920) gerçek oynanıştan alındı; listeleme metni ve form cevapları (İngilizce)

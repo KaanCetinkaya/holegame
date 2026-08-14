@@ -4,9 +4,14 @@
   "private": true,
   "description": "Hole and Fruit Hole - single-file Three.js hole games, packaged for mobile via Capacitor",
   "scripts": {
-    "build:www": "bash build-www.sh",
-    "sync:hole": "bash build-www.sh && npx cap sync android",
-    "sync:fruithole": "bash build-www.sh && APP=fruithole npx cap sync android"
+    "build:www": "node build-www.mjs",
+    "add:hole": "npx cap add android",
+    "add:fruithole": "cross-env APP=fruithole npx cap add android",
+    "sync:hole": "node build-www.mjs && npx cap sync android",
+    "sync:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android",
+    "open:hole": "npx cap open android",
+    "open:fruithole": "cross-env APP=fruithole npx cap open android",
+    "assets:fruithole": "cross-env APP=fruithole npx @capacitor/assets generate --assetPath fruithole/assets --android"
   },
   "dependencies": {
     "@capacitor-community/admob": "^6.1.0",
@@ -15,6 +20,7 @@
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^6.1.2"
+    "@capacitor/cli": "^6.1.2",
+    "cross-env": "^10.1.0"
   }
 }

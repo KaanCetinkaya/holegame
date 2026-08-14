@@ -17,7 +17,7 @@ Bu depo **iki ayrı oyun** barındırıyor. İkisi de tek dosyalık Three.js oyu
 - **`www/`** — Hole'un uygulama build'i. Three.js + Rapier **yerel dosyalara gömülü** (internetsiz çalışır).
   - `www/index.html`, `www/three.module.js`, `www/rapier.es.js`
 - **`www-fruithole/`** — Fruit Hole'un uygulama build'i (`three.module.js` build sırasında `www/`'den kopyalanır, bu yüzden git'e girmez).
-- **`capacitor.config.js`**, **`package.json`**, **`build-www.sh`** — paketleme yapılandırması.
+- **`capacitor.config.js`**, **`package.json`**, **`build-www.mjs`** — paketleme yapılandırması.
 
 > Oyunu değiştirdikten sonra ilgili kaynak dosyayı düzenle, sonra `npm run build:www` ile **iki** build klasörünü birden yenile.
 
@@ -27,19 +27,20 @@ Capacitor kök dizindeki tek bir config dosyası okur ve `sync`/`copy` için bir
 `--config` bayrağı **yoktur**. Bu yüzden hedefi `APP` ortam değişkeni seçer
 (`capacitor.config.js`), her uygulamanın native projesi de kendi klasöründe durur:
 
-```bash
-npx cap sync android                  # Hole        -> android/
-APP=fruithole npx cap sync android    # Fruit Hole  -> android-fruithole/
-```
-
-Kısayol: `npm run sync:hole` / `npm run sync:fruithole` (ikisi de önce `build:www` çalıştırır).
-
-`npx cap add android` ve `npx cap open android` de aynı `APP` değişkenine uyar:
+Hazır komutlar var; hepsi Windows/macOS/Linux'ta aynı şekilde çalışır
+(`cross-env` sayesinde, `APP=...` yazmana gerek yok):
 
 ```bash
-APP=fruithole npx cap add android
-APP=fruithole npx cap open android
+npm run add:fruithole      # native projeyi oluştur  -> android-fruithole/
+npm run sync:fruithole     # www'yu üret + native'e kopyala
+npm run open:fruithole     # Android Studio'da aç
+npm run assets:fruithole   # ikon + splash üret
 ```
+
+Hole için aynıları: `add:hole`, `sync:hole`, `open:hole`.
+
+Elle çalıştırmak istersen değişken şöyle (bash):
+`APP=fruithole npx cap sync android`
 
 ## Tarayıcıda çalıştırma
 
@@ -53,17 +54,17 @@ Gereksinimler: **Node.js**, **Android Studio** (Android SDK), **Google Play Deve
 # 1) Bağımlılıkları kur
 npm install
 
-# 2) www/ HTML'ini kök index.html'den yenile (opsiyonel; ilk seferde www hazır)
+# 2) www/ HTML'ini kök index.html'den yenile
 npm run build:www
 
-# 3) Capacitor'ı başlat (sadece ilk sefer — capacitor.config.js zaten var)
-npx cap add android
+# 3) Capacitor'ı başlat (sadece ilk sefer)
+npm run add:hole
 
 # 4) Web içeriğini native projeye kopyala
-npx cap sync
+npm run sync:hole
 
 # 5) Android Studio'da aç
-npx cap open android
+npm run open:hole
 ```
 
 Android Studio'da:
