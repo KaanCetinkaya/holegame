@@ -50,6 +50,12 @@ Elle çalıştırmak istersen değişken şöyle (bash):
 
 Gereksinimler: **Node.js**, **Android Studio** (Android SDK), **Google Play Developer hesabı** ($25 tek seferlik).
 
+> **Capacitor 8** kullanılıyor; varsayılan hedef API düzeyi **36**. Google
+> Play yeni yüklemelerde en az **35** istiyor, Capacitor 6 ise 34'te
+> kalıyordu — bu yüzden 6'dan yükseltildi. Native proje (`android/`,
+> `android-fruithole/`) Capacitor 6 ile üretilmişse **silip yeniden
+> oluştur**, yoksa eski SDK ayarları kalır.
+
 ```bash
 # 1) Bağımlılıkları kur
 npm install

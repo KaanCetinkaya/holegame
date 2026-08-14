@@ -5,22 +5,22 @@
   "description": "Hole and Fruit Hole - single-file Three.js hole games, packaged for mobile via Capacitor",
   "scripts": {
     "build:www": "node build-www.mjs",
-    "add:hole": "npx cap add android",
-    "add:fruithole": "cross-env APP=fruithole npx cap add android",
-    "sync:hole": "node build-www.mjs && npx cap sync android",
-    "sync:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android",
+    "add:hole": "npx cap add android && node patch-manifest.mjs",
+    "add:fruithole": "cross-env APP=fruithole npx cap add android && cross-env APP=fruithole node patch-manifest.mjs",
+    "sync:hole": "node build-www.mjs && npx cap sync android && node patch-manifest.mjs",
+    "sync:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android && cross-env APP=fruithole node patch-manifest.mjs",
     "open:hole": "npx cap open android",
     "open:fruithole": "cross-env APP=fruithole npx cap open android",
     "assets:fruithole": "cross-env APP=fruithole npx @capacitor/assets generate --assetPath fruithole/assets --android"
   },
   "dependencies": {
-    "@capacitor-community/admob": "^6.1.0",
-    "@capacitor/android": "^6.1.2",
-    "@capacitor/core": "^6.1.2"
+    "@capacitor-community/admob": "^8.1.0",
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/core": "^8.5.0"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^6.1.2",
+    "@capacitor/cli": "^8.5.0",
     "cross-env": "^10.1.0"
   }
 }

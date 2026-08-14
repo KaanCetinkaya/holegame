@@ -123,15 +123,13 @@ Fruit Hole'un **kendi AdMob birimleri** koda girildi (`AD_UNITS`):
 | Geçiş | `ca-app-pub-2542927456156553/3960345120` |
 | Banner | `ca-app-pub-2542927456156553/9522879176` |
 
-**App ID koda değil, Android manifest'ine girer.** Native proje eklendikten
-sonra `android-fruithole/app/src/main/AndroidManifest.xml` içinde
-`<application>` etiketinin altına:
+**App ID koda değil, Android manifest'ine girer** — ve manifest `cap add`
+ile üretildiği için native proje her yeniden oluşturulduğunda kaybolur.
+Elle eklemeyi hatırlamak gerekmesin diye `patch-manifest.mjs` bunu
+`add:*` ve `sync:*` komutlarının parçası olarak yazıyor; zaten varsa
+dokunmuyor. Yani ekstra bir şey yapmana gerek yok.
 
-```xml
-<meta-data
-  android:name="com.google.android.gms.ads.APPLICATION_ID"
-  android:value="ca-app-pub-2542927456156553~4653695871"/>
-```
+Bu satır olmadan uygulama **açılır açılmaz çöker**.
 
 ### Yayına çıkmadan önce: `ADS_TESTING`
 
