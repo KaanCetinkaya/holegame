@@ -14,7 +14,7 @@
 // Native proje `cap add` ile yeniden üretildiğinde app/build.gradle sıfırlanır,
 // bu yüzden imza bloğu her çalıştırmada yeniden enjekte edilir (varsa dokunmaz).
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
@@ -118,6 +118,62 @@ if (gradle.includes('signingConfigs')) {
   console.log('İmza yapılandırması eklendi.');
 }
 
+// --- uygun JDK'yı bul ---
+// Capacitor 8 en az Java 21 istiyor, Gradle 8.14 ise 24'ten yenisini
+// kabul etmiyor. Sistemdeki varsayılan Java çoğu zaman bu aralığın
+// dışında kalıyor, o yüzden aralığa uyan bir JDK'yı kendimiz arayıp
+// yalnızca bu build için JAVA_HOME olarak veriyoruz.
+const JDK_MIN = 21, JDK_MAX = 24;
+
+function javaMajor(javaHome) {
+  const bin = join(javaHome, 'bin', process.platform === 'win32' ? 'java.exe' : 'java');
+  if (!existsSync(bin)) return null;
+  const out = spawnSync(bin, ['-version'], { encoding: 'utf8' });
+  const text = (out.stderr || '') + (out.stdout || '');
+  const m = text.match(/version "(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function findJdk() {
+  const candidates = [];
+  if (process.env.JAVA_HOME) candidates.push(process.env.JAVA_HOME);
+
+  const home = process.env.USERPROFILE || process.env.HOME || '';
+  for (const base of [
+    'C:/Program Files/Android/Android Studio/jbr',
+    'C:/Program Files/Android/Android Studio1/jbr',
+    '/Applications/Android Studio.app/Contents/jbr/Contents/Home',
+  ]) {
+    candidates.push(base);
+  }
+  // ~/.jdks ve linux'ta /usr/lib/jvm altındaki her şey
+  for (const dir of [join(home, '.jdks'), '/usr/lib/jvm']) {
+    if (!existsSync(dir)) continue;
+    for (const name of readdirSync(dir)) candidates.push(join(dir, name));
+  }
+
+  const seen = [];
+  for (const c of candidates) {
+    if (!c || !existsSync(c)) continue;
+    const major = javaMajor(c);
+    if (major === null) continue;
+    seen.push(`${major} -> ${c}`);
+    if (major >= JDK_MIN && major <= JDK_MAX) return { path: c, major, seen };
+  }
+  return { path: null, seen };
+}
+
+const jdk = findJdk();
+if (!jdk.path) {
+  console.error(
+    `\nUygun JDK bulunamadı (Java ${JDK_MIN}-${JDK_MAX} gerekiyor).\n` +
+    (jdk.seen.length ? `Bulunanlar:\n  ${jdk.seen.join('\n  ')}\n` : '') +
+    `\nJDK 21'i adoptium.net/temurin adresinden kurup tekrar dene.\n`
+  );
+  process.exit(1);
+}
+console.log(`JDK: Java ${jdk.major} (${jdk.path})`);
+
 // --- gradle ile paketle ---
 const isWin = process.platform === 'win32';
 const gradlew = join(projectPath, isWin ? 'gradlew.bat' : 'gradlew');
@@ -127,6 +183,7 @@ const res = spawnSync(gradlew, ['bundleRelease'], {
   cwd: projectPath,
   stdio: 'inherit',
   shell: isWin,
+  env: { ...process.env, JAVA_HOME: jdk.path },
 });
 
 if (res.status !== 0) {
