@@ -29,6 +29,30 @@ Bu tek komut şunları yapıyor:
 
 ---
 
+## Telefonda denemek (Play'e uğramadan)
+
+`.aab` **telefona kurulamaz** — o sadece Play'e yüklenen paket biçimi.
+Cihazda denemek için `.apk` gerekiyor:
+
+```bash
+npm run apk:fruithole
+```
+
+Çıktı: `android-fruithole/app/build/outputs/apk/release/app-release.apk`
+
+USB kablo / WhatsApp "Kendine mesaj" / Drive ile telefona at, dosyaya dokun,
+"Bilinmeyen kaynaklardan kuruluma izin ver" de. Aynı keystore ile imzalı,
+yani Play'den gelen sürümle **aynı** uygulama sayılır.
+
+> Play'den gelen sürüm zaten kuruluysa APK "uygulama yüklenemedi" diyebilir.
+> Önce Play sürümünü kaldır, ya da tersi.
+
+Alternatif (Play üzerinden): Play Console → Test etme → Dahili test →
+**Test kullanıcıları** sekmesi → e-postanı listeye ekle → **"Web'de katılın"**
+linkini telefondan aç.
+
+---
+
 ## İlk kurulumda bir kez yapılacaklar
 
 | Ne | Nasıl |

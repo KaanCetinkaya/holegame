@@ -195,11 +195,19 @@ if (jdk.fallback) {
 }
 
 // --- gradle ile paketle ---
+// .aab Play'e yüklemek için; telefona doğrudan kurulamaz. Elle kurup denemek
+// için `node build-aab.mjs apk` → aynı imzayla .apk üretir.
+const wantApk = process.argv[2] === 'apk';
+const task = wantApk ? 'assembleRelease' : 'bundleRelease';
+const out = wantApk
+  ? resolve(projectPath, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk')
+  : resolve(projectPath, 'app', 'build', 'outputs', 'bundle', 'release', 'app-release.aab');
+
 const isWin = process.platform === 'win32';
 const gradlew = join(projectPath, isWin ? 'gradlew.bat' : 'gradlew');
 
-console.log(`\n${projectDir}: bundleRelease çalışıyor, bu birkaç dakika sürer...\n`);
-const res = spawnSync(gradlew, ['bundleRelease'], {
+console.log(`\n${projectDir}: ${task} çalışıyor, bu birkaç dakika sürer...\n`);
+const res = spawnSync(gradlew, [task], {
   cwd: projectPath,
   stdio: 'inherit',
   shell: isWin,
@@ -211,7 +219,10 @@ if (res.status !== 0) {
   process.exit(res.status || 1);
 }
 
-const out = resolve(projectPath, 'app', 'build', 'outputs', 'bundle', 'release', 'app-release.aab');
 console.log('\n' + '='.repeat(60));
 console.log(existsSync(out) ? `HAZIR:\n${out}` : `Build bitti ama dosya bulunamadı: ${out}`);
 console.log('='.repeat(60));
+if (wantApk && existsSync(out)) {
+  console.log('\nBu dosyayı telefona kopyala ve dokun. "Bilinmeyen kaynak" uyarısı');
+  console.log('çıkarsa izin ver. Play\'e yüklenecek olan bu değil, .aab.');
+}
