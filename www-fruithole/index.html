@@ -194,37 +194,86 @@
   .screen .btn[hidden] { display: none; }
 
   /* ---- main menu ----
-     The logo used to be the 🕳️ emoji, which every phone draws differently
-     (Samsung renders it as a blue disc). It is drawn here instead so it
-     looks the same everywhere and matches the hole in the game. */
-  #menu { background: linear-gradient(180deg, rgba(46,26,6,.55), rgba(46,26,6,.86)); gap: 10px; }
-  #menu .logo { position: relative; width: clamp(96px,30vw,150px); aspect-ratio: 1;
-    display: grid; place-items: center; margin-bottom: 2px; }
-  #menu .logo::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
-    background: radial-gradient(ellipse at 50% 40%, #0d0703 0 40%, #34200e 58%, #d98a26 62%, #ffc978 78%, #f0a13c 92%, #c67e12 100%);
-    box-shadow: 0 10px 26px rgba(0,0,0,.5), inset 0 -6px 14px rgba(0,0,0,.45); }
-  #menu .logo .pip { position: absolute; font-size: clamp(26px,8vw,40px);
-    filter: drop-shadow(0 3px 4px rgba(0,0,0,.5)); }
-  #menu .logo .pip:nth-child(1) { left: -6%;  top: 8%;  transform: rotate(-14deg); }
-  #menu .logo .pip:nth-child(2) { right: -8%; top: 2%;  transform: rotate(12deg); }
-  #menu .logo .pip:nth-child(3) { right: -2%; bottom: 2%; transform: rotate(-8deg); }
+     Three flat bands: grass, the sand the level is played on, grass again
+     under the nav bar. Flat colour reads cleaner at phone size than a
+     painted scene faked with gradients, and it leaves the hole as the
+     loudest thing on screen. The logo used to be the emoji, which every
+     phone draws differently (Samsung paints it as a blue disc). */
+  #menu { gap: 8px; justify-content: flex-start; padding: 0 20px;
+    background: linear-gradient(180deg,
+      #7ac943 0%, #7ac943 19%,
+      #ffe08a 19%, #ffd76b 50%, #ffcf55 82%,
+      #7ac943 82%, #6bb838 100%);
+    overflow: hidden; }
+  /* scalloped seams, so the bands do not meet on a ruled line */
+  #menu::before, #menu::after { content: ''; position: absolute; left: -2%; width: 104%;
+    height: 22px; pointer-events: none;
+    background: radial-gradient(circle at 50% 0, #7ac943 0 52%, rgba(122,201,67,0) 53%) 0 0/32px 22px repeat-x; }
+  #menu::before { top: calc(19% - 1px); }
+  #menu::after { bottom: calc(18% - 1px); transform: scaleY(-1); }
 
-  #menu h1 { font-size: clamp(36px,12vw,60px); letter-spacing: -1px; color: #ffd97a;
-    text-shadow: 0 2px 0 #a85614, 0 4px 0 #7d3c0c, 0 10px 22px rgba(0,0,0,.55); }
-  #menuSub { letter-spacing: .5px; text-transform: uppercase; font-size: 13px; opacity: .8; }
+  #menu > * { position: relative; z-index: 1; }
+
+  /* the hole, with the level you are about to play sitting inside it */
+  #menu .logo { position: relative; width: clamp(148px,45vw,215px); aspect-ratio: 1;
+    display: grid; place-items: center; margin: 19vh 0 0; }
+  #menu .logo::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 42%,
+      #123048 0 60%, #0b2033 67%, #eef2f6 69%, #ffffff 79%, #b9c3cd 89%, #79838f 100%);
+    box-shadow: 0 12px 0 rgba(0,0,0,.16), 0 20px 28px rgba(0,0,0,.25),
+      inset 0 -10px 20px rgba(0,0,0,.45); }
+  #menu .logo .lvl { position: relative; text-align: center; line-height: 1; color: #fff;
+    -webkit-text-stroke: 3px #0b2033; paint-order: stroke fill;
+    text-shadow: 0 3px 0 rgba(0,0,0,.3); }
+  #menu .logo .lvl small { display: block; font-size: clamp(12px,3.8vw,16px); font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase; color: #bfe6f7; -webkit-text-stroke-width: 2px; }
+  #menu .logo .lvl b { display: block; font-size: clamp(42px,14vw,64px); font-weight: 800; }
+  #menu .logo .pip { position: absolute; font-size: clamp(28px,9vw,42px);
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,.3)); }
+  #menu .logo .pip:nth-child(1) { left: -11%;  top: 3%;   transform: rotate(-16deg); }
+  #menu .logo .pip:nth-child(2) { right: -12%; top: -3%;  transform: rotate(14deg); }
+  #menu .logo .pip:nth-child(3) { right: -9%;  bottom: 6%;  transform: rotate(-9deg); }
+
+  #menu h1 { margin-top: 8.5vh; font-size: clamp(32px,10.5vw,50px); letter-spacing: -1px; color: #fff;
+    -webkit-text-stroke: 3px #3f7a1c; paint-order: stroke fill;
+    text-shadow: 0 5px 0 #3f7a1c, 0 9px 14px rgba(0,0,0,.25); }
+  #menuSub { margin: 10px 0 auto; letter-spacing: 2px; font-size: 16px; font-weight: 800;
+    color: #fff; -webkit-text-stroke: 3px #d08a12; paint-order: stroke fill;
+    text-shadow: 0 2px 0 rgba(120,60,0,.28); }
 
   /* the primary action is the one thing that should shout */
-  #playBtn { padding: 18px 62px; font-size: 23px; color: #14420f;
-    background: linear-gradient(180deg,#8ce063,#4fb63a); box-shadow: 0 6px 0 #2f7d24; }
-  #playBtn:active { box-shadow: 0 2px 0 #2f7d24; }
+  #playBtn { margin-top: auto; padding: 16px 74px; font-size: 26px; color: #fff;
+    -webkit-text-stroke: 2px #1f6b18; paint-order: stroke fill;
+    background: linear-gradient(180deg,#96e86c,#4fb63a);
+    border: 3px solid #eafbe2; box-shadow: 0 7px 0 #2f7d24, 0 12px 18px rgba(0,0,0,.28); }
+  #playBtn:active { transform: translateY(4px); box-shadow: 0 3px 0 #2f7d24; }
 
-  /* fruit counts belong on the menu too: the in-game wallet is hidden here */
-  #menuWallet { display: flex; gap: 6px; justify-content: center; margin-top: 2px; }
-  #menuWallet .mw { display: flex; align-items: center; gap: 5px; padding: 5px 11px 5px 6px;
-    border-radius: 999px; background: rgba(0,0,0,.32); border: 1px solid rgba(255,255,255,.18); }
+  /* top strip: fruit counts on the left, sound on the right */
+  #menuTop { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top,0px) + 10px);
+    left: 10px; right: 10px; display: flex; align-items: center; gap: 6px; }
+  #menuWallet { display: flex; gap: 5px; }
+  #menuWallet .mw { display: flex; align-items: center; gap: 4px; padding: 4px 10px 4px 5px;
+    border-radius: 999px; background: rgba(255,255,255,.92); border: 2px solid #fff;
+    box-shadow: 0 3px 0 rgba(0,0,0,.16); }
   #menuWallet .mw i { width: 15px; height: 15px; border-radius: 50%;
     box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5); }
-  #menuWallet .mw b { color: #fff; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  #menuWallet .mw b { color: #5a3200; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  #menuSound { margin-left: auto; pointer-events: auto; cursor: pointer; width: 38px; height: 38px;
+    border: 2px solid #fff; border-radius: 50%; font-size: 17px; line-height: 1;
+    background: rgba(255,255,255,.92); box-shadow: 0 3px 0 rgba(0,0,0,.16); }
+
+  /* bottom bar, so the secondary screens stop competing with Play */
+  #menuNav { display: flex; gap: 10px; width: 100%; max-width: 420px; margin-top: 3.5vh;
+    padding: 0 4px calc(env(safe-area-inset-bottom,0px) + 10px); }
+  #menuNav .nav { pointer-events: auto; cursor: pointer; flex: 1; border: none; border-radius: 16px;
+    padding: 9px 4px 7px; background: rgba(255,255,255,.9); box-shadow: 0 4px 0 rgba(0,0,0,.16);
+    display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
+  #menuNav .nav:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.16); }
+  #menuNav .nav .ic { font-size: 20px; line-height: 1; }
+  #menuNav .nav .lb { font-size: 11px; font-weight: 800; color: #5a3200; }
+  #menuNav .nav.alert::after { content: ''; position: absolute; right: 10px; top: 6px;
+    width: 11px; height: 11px; border-radius: 50%; background: #ff3b30;
+    border: 2px solid #fff; animation: bump 1.1s ease infinite; }
   #overlay { background: rgba(60,35,10,.62); backdrop-filter: blur(3px); }
   #overlay .stats { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
   #overlay .pill { background: rgba(255,255,255,.16); border-radius: 999px; padding: 6px 14px;
@@ -267,19 +316,21 @@
   </div>
 
   <div id="menu" class="screen show">
-    <div class="logo">
-      <span class="pip">🍓</span><span class="pip">🍉</span><span class="pip">🍌</span>
+    <div id="menuTop">
+      <div id="menuWallet"></div>
+      <button id="menuSound">🔊</button>
     </div>
     <h1>Fruit Hole</h1>
-    <p id="menuSub">Level 1</p>
-    <div id="menuWallet"></div>
-    <button class="btn" id="playBtn">Play</button>
-    <div class="menuRow">
-      <button class="btn ghost" id="upgBtn">⬆️ Upgrades</button>
-      <button class="btn ghost" id="goalsBtn">📋 Goals</button>
+    <div class="logo">
+      <span class="pip">🍓</span><span class="pip">🍉</span><span class="pip">🍌</span>
+      <span class="lvl"><small>Level</small><b id="menuLvlN">1</b></span>
     </div>
-    <div class="menuRow">
-      <button class="btn ghost" id="shopBtn">🛒 Shop</button>
+    <p id="menuSub">Level 1</p>
+    <button class="btn" id="playBtn">Play</button>
+    <div id="menuNav">
+      <button class="nav" id="upgBtn"><span class="ic">⬆️</span><span class="lb">Upgrades</span></button>
+      <button class="nav" id="goalsBtn"><span class="ic">📋</span><span class="lb">Goals</span></button>
+      <button class="nav" id="shopBtn"><span class="ic">🛒</span><span class="lb">Shop</span></button>
     </div>
   </div>
 
@@ -342,13 +393,13 @@ import * as THREE from 'three';
 // banana are cut slices seen face-on.
 // The ids are storage keys (currency, upgrades) and must not change.
 const TYPES = [
-  { id: 'berry',  label: 'Strawberry', base: '#e8353f', dark: '#a8121d', light: '#ff6b63', speck: '#7d0a14' },
-  { id: 'lychee', label: 'Lychee',     base: '#f3e6d8', dark: '#d8b9a0', light: '#ffffff', speck: '#e8a898' },
-  { id: 'banana', label: 'Banana',     base: '#f6d648', dark: '#e0a92a', light: '#fff2a0', speck: '#c98a1c' },
+  { id: 'berry',  label: 'Strawberry', base: '#f5232f', dark: '#c00d1c', light: '#ff6a5c', speck: '#8f0713' },
+  { id: 'lychee', label: 'Lychee',     base: '#fdf3e6', dark: '#e6c6a8', light: '#ffffff', speck: '#ff9d8a' },
+  { id: 'banana', label: 'Banana',     base: '#ffdc3d', dark: '#f0b41f', light: '#fff7b8', speck: '#d99512' },
   // The watermelon's flesh is red like the strawberry's, so its counter
   // uses the rind colours instead — two identical dots would be unreadable.
-  { id: 'melon',  label: 'Watermelon', base: '#e33d4e', dark: '#2f7d3a', light: '#ff7a72', speck: '#1d5a28',
-    uiLight: '#7fd06a', uiBase: '#3f9a3a', uiDark: '#1d5a28' },
+  { id: 'melon',  label: 'Watermelon', base: '#f22c43', dark: '#2f9a3c', light: '#ff6f6a', speck: '#177029',
+    uiLight: '#8ce063', uiBase: '#3fae38', uiDark: '#1d6a28' },
 ];
 function dotFill(t) {
   return `radial-gradient(circle at 34% 30%, ${t.uiLight || t.light}, ${t.uiBase || t.base} 58%, ${t.uiDark || t.dark})`;
@@ -669,7 +720,12 @@ const sfx = {
 };
 
 // sound is toggled from the pause screen; nothing to mirror in the HUD
-function refreshMuteBtn() { }
+// The menu has its own sound toggle; the pause screen has another. Both
+// change the same flag, so both labels are redrawn from it.
+function refreshMuteBtn() {
+  const b = document.getElementById('menuSound');
+  if (b) b.textContent = muted ? '🔇' : '🔊';
+}
 document.addEventListener('pointerdown', (e) => {
   ensureAudio();
   if (e.target.closest && e.target.closest('button')) sfx.click();
@@ -704,10 +760,19 @@ function buildMenuWallet() {
     el.appendChild(row);
   });
 }
+// The level lives on the Play button, the way the level-map games do it —
+// the button says where you are going, not just what it does.
+function refreshMenuLevel() {
+  const best = stars[level] || 0;
+  document.getElementById('menuLvlN').textContent = level;
+  menuSubEl.textContent = best ? '★'.repeat(best) + '☆'.repeat(3 - best) : 'New level';
+}
+
 // Every route back to the menu goes through here, so the counts shown are
 // never the ones from before the run.
 function showMenu() {
   buildMenuWallet();
+  refreshMenuLevel();
   menuEl.classList.add('show');
 }
 function bumpCurrency(id, amount) {
@@ -869,9 +934,11 @@ function claimAch(a) {
   renderGoals();
 }
 
+// The button is an icon/label stack now, so the badge is a dot on the
+// corner rather than a character appended to the text.
 function refreshGoalsBadge() {
   const b = document.getElementById('goalsBtn');
-  b.textContent = anyClaimable() ? '📋 Goals ❗' : '📋 Goals';
+  b.classList.toggle('alert', anyClaimable());
 }
 
 // Back to the menu from the end-of-run overlay -- without this there is
@@ -884,7 +951,7 @@ function toMenu() {
   joyBaseEl.classList.remove('show'); joyKnobEl.classList.remove('show');
   topbarEl.classList.remove('show');
   hintEl.style.opacity = '0';
-  menuSubEl.textContent = 'Level ' + level;
+  refreshMenuLevel();
   refreshGoalsBadge();
   showMenu();
 }
@@ -940,6 +1007,14 @@ document.getElementById('pauseMenu').addEventListener('click', () => {
   pauseEl.classList.remove('show');
   state = 'playing';   // toMenu tears the run down from a live state
   toMenu();
+});
+
+document.getElementById('menuSound').addEventListener('click', () => {
+  muted = !muted;
+  localStorage.setItem('fruithole_muted', muted ? '1' : '0');
+  refreshMuteBtn();
+  refreshPauseMute();
+  if (!muted) { ensureAudio(); sfx.click(); }
 });
 
 document.getElementById('goalsBtn').addEventListener('click', () => {
@@ -1031,7 +1106,7 @@ async function buyProduct(p, btn) {
 }
 
 if (!SHOW_SHOP) {
-  document.getElementById('shopBtn').closest('.menuRow').style.display = 'none';
+  document.getElementById('shopBtn').style.display = 'none';
 }
 document.getElementById('shopBtn').addEventListener('click', () => {
   renderShop();
@@ -1112,7 +1187,7 @@ document.getElementById('upgClose').addEventListener('click', () => {
 });
 buildCounters();
 refreshLevelTag();
-menuSubEl.textContent = 'Level ' + level;
+refreshMenuLevel();
 
 // ---------------------------------------------------------------------
 // Three.js scene
@@ -1124,13 +1199,20 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#e8c07d');
-scene.fog = new THREE.Fog('#e8c07d', 20, 34);
+scene.background = new THREE.Color('#f7cf95');
+// The old fog started at 20 units, which under this camera is inside the
+// field: fruit a couple of rows out were being blended into the sand and
+// came out chalky. It now only softens the far edge of the board.
+scene.fog = new THREE.Fog('#f7cf95', 46, 72);
 
 const camera = new THREE.OrthographicCamera(-8, 8, 8, -8, 0.1, 100);
 
-scene.add(new THREE.HemisphereLight('#fff6e0', '#c98a3c', 0.9));
-const sun = new THREE.DirectionalLight('#fff2d0', 1.05);
+// Bright, mostly ambient light: the sun is there to place the shadows, not
+// to model the fruit. A strong key light drops one side of every sphere
+// into shade and reads as muddy at this size.
+scene.add(new THREE.HemisphereLight('#ffffff', '#f0b877', 1.5));
+scene.add(new THREE.AmbientLight('#fff4de', 0.45));
+const sun = new THREE.DirectionalLight('#fff8e8', 0.72);
 sun.position.set(5, 12, 6);
 sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
@@ -1234,13 +1316,13 @@ function watermelonCapTexture(t) {
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = t.dark;
   ctx.beginPath(); ctx.arc(cx, cy, R * 0.965, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#e9f5c8';
+  ctx.fillStyle = '#f2fbd6';
   ctx.beginPath(); ctx.arc(cx, cy, R * 0.86, 0, Math.PI * 2); ctx.fill();
 
   const g = ctx.createRadialGradient(cx - R * 0.22, cy - R * 0.26, R * 0.1, cx, cy, R * 0.83);
   g.addColorStop(0, t.light);
   g.addColorStop(0.6, t.base);
-  g.addColorStop(1, '#c22636');
+  g.addColorStop(1, '#d81b32');
   ctx.fillStyle = g;
   ctx.beginPath(); ctx.arc(cx, cy, R * 0.8, 0, Math.PI * 2); ctx.fill();
 
@@ -1260,7 +1342,7 @@ function watermelonCapTexture(t) {
 // Striped rind for the curved side of the slice.
 function watermelonRindTexture(t) {
   const S = 128, [c, ctx] = newCanvas(S);
-  ctx.fillStyle = '#4aa64a';
+  ctx.fillStyle = '#5ec24f';
   ctx.fillRect(0, 0, S, S);
   ctx.fillStyle = t.dark;
   for (let x = 0; x < S; x += 16) {
@@ -1405,11 +1487,11 @@ const ROCK_MAT = new THREE.MeshStandardMaterial({ map: rockTexture(), roughness:
 // ---------------------------------------------------------------------
 function groundTexture() {
   const S = 256, [c, ctx] = newCanvas(S);
-  ctx.fillStyle = '#e8c07d';
+  ctx.fillStyle = '#f7cf95';
   ctx.fillRect(0, 0, S, S);
   for (let i = 0; i < 2400; i++) {
-    ctx.globalAlpha = 0.04 + Math.random() * 0.07;
-    ctx.fillStyle = Math.random() < 0.5 ? '#d3a45c' : '#f5d69c';
+    ctx.globalAlpha = 0.03 + Math.random() * 0.05;
+    ctx.fillStyle = Math.random() < 0.5 ? '#e6b877' : '#ffe6bb';
     const x = Math.random() * S, y = Math.random() * S, r = 1 + Math.random() * 2.6;
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
   }
@@ -2069,7 +2151,7 @@ function onCleared() {
 
   level++;
   localStorage.setItem('fruithole_level', String(level));
-  menuSubEl.textContent = 'Level ' + level;
+  refreshMenuLevel();
   const sub = isBest && prevBest > 0 ? 'New best!' : `Next: level ${level}`;
   showOverlay('Level Complete! 🎉', sub, 'Next', nextLevel, false);
 }
