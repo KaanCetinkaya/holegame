@@ -193,8 +193,38 @@
   .screen .btn.ghost:active { box-shadow: 0 2px 0 rgba(0,0,0,.22); }
   .screen .btn[hidden] { display: none; }
 
-  #menu { background: linear-gradient(180deg, rgba(60,35,10,.35), rgba(60,35,10,.7)); }
-  #menu .logo { font-size: clamp(44px,15vw,84px); }
+  /* ---- main menu ----
+     The logo used to be the 🕳️ emoji, which every phone draws differently
+     (Samsung renders it as a blue disc). It is drawn here instead so it
+     looks the same everywhere and matches the hole in the game. */
+  #menu { background: linear-gradient(180deg, rgba(46,26,6,.55), rgba(46,26,6,.86)); gap: 10px; }
+  #menu .logo { position: relative; width: clamp(96px,30vw,150px); aspect-ratio: 1;
+    display: grid; place-items: center; margin-bottom: 2px; }
+  #menu .logo::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 40%, #0d0703 0 40%, #34200e 58%, #d98a26 62%, #ffc978 78%, #f0a13c 92%, #c67e12 100%);
+    box-shadow: 0 10px 26px rgba(0,0,0,.5), inset 0 -6px 14px rgba(0,0,0,.45); }
+  #menu .logo .pip { position: absolute; font-size: clamp(26px,8vw,40px);
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,.5)); }
+  #menu .logo .pip:nth-child(1) { left: -6%;  top: 8%;  transform: rotate(-14deg); }
+  #menu .logo .pip:nth-child(2) { right: -8%; top: 2%;  transform: rotate(12deg); }
+  #menu .logo .pip:nth-child(3) { right: -2%; bottom: 2%; transform: rotate(-8deg); }
+
+  #menu h1 { font-size: clamp(36px,12vw,60px); letter-spacing: -1px; color: #ffd97a;
+    text-shadow: 0 2px 0 #a85614, 0 4px 0 #7d3c0c, 0 10px 22px rgba(0,0,0,.55); }
+  #menuSub { letter-spacing: .5px; text-transform: uppercase; font-size: 13px; opacity: .8; }
+
+  /* the primary action is the one thing that should shout */
+  #playBtn { padding: 18px 62px; font-size: 23px; color: #14420f;
+    background: linear-gradient(180deg,#8ce063,#4fb63a); box-shadow: 0 6px 0 #2f7d24; }
+  #playBtn:active { box-shadow: 0 2px 0 #2f7d24; }
+
+  /* fruit counts belong on the menu too: the in-game wallet is hidden here */
+  #menuWallet { display: flex; gap: 6px; justify-content: center; margin-top: 2px; }
+  #menuWallet .mw { display: flex; align-items: center; gap: 5px; padding: 5px 11px 5px 6px;
+    border-radius: 999px; background: rgba(0,0,0,.32); border: 1px solid rgba(255,255,255,.18); }
+  #menuWallet .mw i { width: 15px; height: 15px; border-radius: 50%;
+    box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5); }
+  #menuWallet .mw b { color: #fff; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
   #overlay { background: rgba(60,35,10,.62); backdrop-filter: blur(3px); }
   #overlay .stats { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
   #overlay .pill { background: rgba(255,255,255,.16); border-radius: 999px; padding: 6px 14px;
@@ -237,9 +267,12 @@
   </div>
 
   <div id="menu" class="screen show">
-    <div class="logo">🕳️</div>
+    <div class="logo">
+      <span class="pip">🍓</span><span class="pip">🍉</span><span class="pip">🍌</span>
+    </div>
     <h1>Fruit Hole</h1>
     <p id="menuSub">Level 1</p>
+    <div id="menuWallet"></div>
     <button class="btn" id="playBtn">Play</button>
     <div class="menuRow">
       <button class="btn ghost" id="upgBtn">⬆️ Upgrades</button>
@@ -312,8 +345,14 @@ const TYPES = [
   { id: 'berry',  label: 'Strawberry', base: '#e8353f', dark: '#a8121d', light: '#ff6b63', speck: '#7d0a14' },
   { id: 'lychee', label: 'Lychee',     base: '#f3e6d8', dark: '#d8b9a0', light: '#ffffff', speck: '#e8a898' },
   { id: 'banana', label: 'Banana',     base: '#f6d648', dark: '#e0a92a', light: '#fff2a0', speck: '#c98a1c' },
-  { id: 'melon',  label: 'Watermelon', base: '#e33d4e', dark: '#2f7d3a', light: '#ff7a72', speck: '#1d5a28' },
+  // The watermelon's flesh is red like the strawberry's, so its counter
+  // uses the rind colours instead — two identical dots would be unreadable.
+  { id: 'melon',  label: 'Watermelon', base: '#e33d4e', dark: '#2f7d3a', light: '#ff7a72', speck: '#1d5a28',
+    uiLight: '#7fd06a', uiBase: '#3f9a3a', uiDark: '#1d5a28' },
 ];
+function dotFill(t) {
+  return `radial-gradient(circle at 34% 30%, ${t.uiLight || t.light}, ${t.uiBase || t.base} 58%, ${t.uiDark || t.dark})`;
+}
 const TYPE_BY_ID = Object.fromEntries(TYPES.map(t => [t.id, t]));
 
 const COLS = 13;
@@ -645,10 +684,31 @@ function buildCounters() {
     const el = document.createElement('div');
     el.className = 'card';
     el.innerHTML =
-      `<span class="dot" style="background:radial-gradient(circle at 34% 30%, ${t.light}, ${t.base} 58%, ${t.dark})"></span>` +
+      `<span class="dot" style="background:${dotFill(t)}"></span>` +
       `<span class="n" id="cur_${t.id}">${currency[t.id]}</span>`;
     walletEl.appendChild(el);
   });
+}
+// The in-game wallet is part of the HUD and hidden on the menu, so the menu
+// carries its own read-only copy — otherwise you cannot see what you own
+// without starting a run.
+function buildMenuWallet() {
+  const el = document.getElementById('menuWallet');
+  el.innerHTML = '';
+  TYPES.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'mw';
+    row.innerHTML =
+      `<i style="background:${dotFill(t)}"></i>` +
+      `<b>${currency[t.id]}</b>`;
+    el.appendChild(row);
+  });
+}
+// Every route back to the menu goes through here, so the counts shown are
+// never the ones from before the run.
+function showMenu() {
+  buildMenuWallet();
+  menuEl.classList.add('show');
 }
 function bumpCurrency(id, amount) {
   currency[id] += amount;
@@ -668,7 +728,7 @@ function refreshLevelTag() {
 // ---------------------------------------------------------------------
 function renderUpgrades() {
   upgWalletEl.innerHTML = TYPES.map(t =>
-    `<div class="counter"><span class="dot" style="background:${t.base}"></span><span class="n">${currency[t.id]}</span></div>`
+    `<div class="counter"><span class="dot" style="background:${t.uiBase || t.base}"></span><span class="n">${currency[t.id]}</span></div>`
   ).join('');
 
   upgListEl.innerHTML = '';
@@ -826,7 +886,7 @@ function toMenu() {
   hintEl.style.opacity = '0';
   menuSubEl.textContent = 'Level ' + level;
   refreshGoalsBadge();
-  menuEl.classList.add('show');
+  showMenu();
 }
 document.getElementById('toMenuBtn').addEventListener('click', toMenu);
 
@@ -890,7 +950,7 @@ document.getElementById('goalsBtn').addEventListener('click', () => {
 });
 document.getElementById('goalsClose').addEventListener('click', () => {
   document.getElementById('goals').classList.remove('show');
-  menuEl.classList.add('show');
+  showMenu();
 });
 
 // ---------------------------------------------------------------------
@@ -980,7 +1040,7 @@ document.getElementById('shopBtn').addEventListener('click', () => {
 });
 document.getElementById('shopClose').addEventListener('click', () => {
   document.getElementById('shop').classList.remove('show');
-  menuEl.classList.add('show');
+  showMenu();
 });
 document.getElementById('restoreBtn').addEventListener('click', async (e) => {
   e.target.disabled = true;
@@ -1015,7 +1075,7 @@ document.getElementById('dailyBtn').addEventListener('click', () => {
     sfx.win();
   }
   document.getElementById('daily').classList.remove('show');
-  menuEl.classList.add('show');
+  showMenu();
 });
 
 function buyBooster(b) {
@@ -1048,7 +1108,7 @@ document.getElementById('upgBtn').addEventListener('click', () => {
 });
 document.getElementById('upgClose').addEventListener('click', () => {
   upgradesEl.classList.remove('show');
-  menuEl.classList.add('show');
+  showMenu();
 });
 buildCounters();
 refreshLevelTag();
