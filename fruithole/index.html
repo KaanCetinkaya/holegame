@@ -542,7 +542,14 @@ adsInit();
 // store returns the real localised price and that is what must be shown.
 // ---------------------------------------------------------------------
 const _Purchases = _Cap && _Cap.Plugins ? _Cap.Plugins.Purchases : null;
-const IAP_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Purchases);
+const IS_NATIVE = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform());
+const IAP_ON = !!(IS_NATIVE && _Purchases);
+
+// The shop may only be reachable on device once a billing plugin is really
+// wired up: without one `purchase()` returns true and hands out paid items
+// for free, which misleads players and fails Play review. In the browser it
+// stays visible so the flow can still be walked through.
+const SHOW_SHOP = IAP_ON || !IS_NATIVE;
 
 const iap = JSON.parse(localStorage.getItem('fruithole_iap') || '{}');
 function saveIap() { localStorage.setItem('fruithole_iap', JSON.stringify(iap)); }
@@ -955,6 +962,9 @@ async function buyProduct(p, btn) {
   renderShop();
 }
 
+if (!SHOW_SHOP) {
+  document.getElementById('shopBtn').closest('.menuRow').style.display = 'none';
+}
 document.getElementById('shopBtn').addEventListener('click', () => {
   renderShop();
   menuEl.classList.remove('show');
