@@ -201,14 +201,14 @@
      phone draws differently (Samsung paints it as a blue disc). */
   #menu { gap: 8px; justify-content: flex-start; padding: 0 20px;
     background: linear-gradient(180deg,
-      #7ac943 0%, #7ac943 19%,
+      #22c9cd 0%, #22c9cd 19%,
       #ffe08a 19%, #ffd76b 50%, #ffcf55 82%,
-      #7ac943 82%, #6bb838 100%);
+      #22c9cd 82%, #16a8bd 100%);
     overflow: hidden; }
   /* scalloped seams, so the bands do not meet on a ruled line */
   #menu::before, #menu::after { content: ''; position: absolute; left: -2%; width: 104%;
     height: 22px; pointer-events: none;
-    background: radial-gradient(circle at 50% 0, #7ac943 0 52%, rgba(122,201,67,0) 53%) 0 0/32px 22px repeat-x; }
+    background: radial-gradient(circle at 50% 0, #22c9cd 0 52%, rgba(34,201,205,0) 53%) 0 0/32px 22px repeat-x; }
   #menu::before { top: calc(19% - 1px); }
   #menu::after { bottom: calc(18% - 1px); transform: scaleY(-1); }
 
@@ -235,8 +235,8 @@
   #menu .logo .pip:nth-child(3) { right: -9%;  bottom: 6%;  transform: rotate(-9deg); }
 
   #menu h1 { margin-top: 8.5vh; font-size: clamp(32px,10.5vw,50px); letter-spacing: -1px; color: #fff;
-    -webkit-text-stroke: 3px #3f7a1c; paint-order: stroke fill;
-    text-shadow: 0 5px 0 #3f7a1c, 0 9px 14px rgba(0,0,0,.25); }
+    -webkit-text-stroke: 3px #0d7b8c; paint-order: stroke fill;
+    text-shadow: 0 5px 0 #0d7b8c, 0 9px 14px rgba(0,0,0,.22); }
   #menuSub { margin: 10px 0 auto; letter-spacing: 2px; font-size: 16px; font-weight: 800;
     color: #fff; -webkit-text-stroke: 3px #d08a12; paint-order: stroke fill;
     text-shadow: 0 2px 0 rgba(120,60,0,.28); }
@@ -1199,11 +1199,11 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#f7cf95');
+scene.background = new THREE.Color('#22c9cd');
 // The old fog started at 20 units, which under this camera is inside the
 // field: fruit a couple of rows out were being blended into the sand and
 // came out chalky. It now only softens the far edge of the board.
-scene.fog = new THREE.Fog('#f7cf95', 46, 72);
+scene.fog = new THREE.Fog('#22c9cd', 46, 72);
 
 const camera = new THREE.OrthographicCamera(-8, 8, 8, -8, 0.1, 100);
 
@@ -1501,13 +1501,44 @@ function groundTexture() {
   tex.repeat.set(14, 14);
   return tex;
 }
+// The sand is an island in turquoise water rather than sand to the horizon:
+// it ties the board to the app icon, and it gives the field a visible edge —
+// before this you could not tell where the board stopped.
+const WATER = '#22c9cd';
+const water = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshStandardMaterial({ color: WATER, roughness: 0.35, metalness: 0.05 })
+);
+water.rotation.x = -Math.PI / 2;
+water.position.y = -0.06;
+scene.add(water);
+
+// Foam ring just inside the shoreline, so the two colours do not meet on a
+// hard edge at this camera distance.
+const shore = new THREE.Mesh(
+  new THREE.PlaneGeometry(1, 1),
+  new THREE.MeshBasicMaterial({ color: '#bff3f5' })
+);
+shore.rotation.x = -Math.PI / 2;
+shore.position.y = -0.03;
+scene.add(shore);
+
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(60, 60),
+  new THREE.PlaneGeometry(1, 1),
   new THREE.MeshStandardMaterial({ map: groundTexture(), roughness: 1 })
 );
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
+
+// Called whenever the field changes size; the beach keeps a constant margin
+// so the hole always has somewhere to stand at the edge of the board.
+function fitGround() {
+  const w = fieldHalfX * 2 + 3.0;
+  const h = fieldHalfZ * 2 + 3.0;
+  ground.scale.set(w, h, 1);
+  shore.scale.set(w + 1.4, h + 1.4, 1);
+}
 
 // ---------------------------------------------------------------------
 // Field
@@ -1772,6 +1803,7 @@ function buildField() {
   eatenCount = 0;
   fieldHalfX = (COLS * CELL) / 2;
   fieldHalfZ = (rows * CELL) / 2;
+  fitGround();
   currentPattern = PATTERNS[(level - 1) % PATTERNS.length];
   placeRocks();
   const rockAt = new Set(rocks.map(k => k.row + '_' + k.col));
@@ -1908,9 +1940,12 @@ function fitCamera() {
 
 // Keep the view inside the field: following the hole to the very edge
 // would otherwise park half the screen on empty ground.
+// The camera used to stop right at the last row, so the board looked like
+// it went on forever. It may now overshoot far enough to put the beach and
+// the water's edge on screen — that is what tells you where the field ends.
 function clampCamera() {
-  const limX = Math.max(0, fieldHalfX + 1 - camera.right);
-  const limZ = Math.max(0, fieldHalfZ + 1 - camera.top);
+  const limX = Math.max(0, fieldHalfX + 4 - camera.right);
+  const limZ = Math.max(0, fieldHalfZ + 4 - camera.top);
   camX = Math.max(-limX, Math.min(limX, camX));
   camZ = Math.max(-limZ, Math.min(limZ, camZ));
 }
