@@ -111,6 +111,11 @@ def make_icon():
     scene(ImageDraw.Draw(fg), size / 2, size / 2, 0.62)
     fg.save(ASSETS / 'icon-foreground.png')
 
+    # Play Console mağaza ikonu tam olarak 512x512 ister; elle küçültmek
+    # gerekmesin diye burada üretiyoruz.
+    STORE.mkdir(parents=True, exist_ok=True)
+    img.resize((512, 512), Image.LANCZOS).save(STORE / 'icon-512.png')
+
 
 def make_splash():
     size = 2732

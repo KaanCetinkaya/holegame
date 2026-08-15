@@ -86,6 +86,7 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
   (served from `docs/` via GitHub Pages — see the repo README)
 
 ## Assets (ready in this folder)
+- `icon-512.png` — store icon, exactly 512×512 (required)
 - `feature-1024x500.png` — feature graphic (required)
 - `1-menu.png` — main menu
 - `2-play.png` — gameplay
@@ -94,6 +95,3 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 - `5-goals.png` — daily missions and achievements
 
 Screenshots are 1080×1920, captured from real play.
-
-For the 512×512 icon, resize `fruithole/assets/icon-only.png` or use the
-`npx @capacitor/assets` output.
