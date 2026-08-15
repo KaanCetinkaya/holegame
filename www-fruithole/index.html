@@ -60,18 +60,21 @@
   #starRow span:nth-child(3) { left: 54%; }
   #starRow span.on { color: #ffc82e; transform: translate(-50%,-50%) scale(1.15); }
 
-  /* fruit wallet cards under the level badge */
-  #wallet { position: absolute; left: 12px; top: 84px; display: flex; gap: 5px; }
-  .card { width: 46px; border-radius: 13px; background: linear-gradient(180deg,#7a5fd0,#5b3fb0);
-    border: 3px solid rgba(255,255,255,.45); box-shadow: 0 4px 0 rgba(0,0,0,.22);
-    padding: 4px 0 5px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-  .card .n { color: #fff; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; }
+  /* fruit wallet cards under the level badge — kept small and slightly
+     see-through: they sit over the playfield, so they must read as a
+     counter, not as a wall the fruit hides behind */
+  #wallet { position: absolute; left: 12px; top: 82px; display: flex; gap: 4px; opacity: .88; }
+  .card { width: 36px; border-radius: 11px; background: linear-gradient(180deg,#7a5fd0,#5b3fb0);
+    border: 2px solid rgba(255,255,255,.45); box-shadow: 0 3px 0 rgba(0,0,0,.22);
+    padding: 3px 0 4px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .card .n { color: #fff; font-weight: 800; font-size: 11px; font-variant-numeric: tabular-nums; }
   .card .n.bump { animation: bump .2s ease; }
-  .card .dot { width: 23px; height: 23px; border-radius: 50%;
-    box-shadow: inset 0 -4px 6px rgba(0,0,0,.35), inset 0 3px 4px rgba(255,255,255,.55); }
+  .card .dot { width: 17px; height: 17px; border-radius: 50%;
+    box-shadow: inset 0 -3px 5px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.55); }
   @keyframes bump { 0%{transform:scale(1)} 45%{transform:scale(1.35)} 100%{transform:scale(1)} }
 
-  #patternTag { position: absolute; left: 0; right: 0; top: 140px; text-align: center;
+  /* clears the wallet row above it, so the level name stays readable */
+  #patternTag { position: absolute; left: 0; right: 0; top: 126px; text-align: center;
     color: #7a5a2a; font-weight: 700; font-size: 12px; opacity: .8;
     text-shadow: 0 1px 0 rgba(255,255,255,.4); }
 
@@ -1779,19 +1782,16 @@ let magnetBoostUntil = 0;
 
 function renderBoosters() {
   boosterBarEl.innerHTML = '';
-  BOOSTERS.forEach(b => {
+  // Locked slots are left out entirely: a row of "Lvl 7" plates reads as
+  // nothing to a new player and sits on top of the fruit it hides. The
+  // booster announces itself when it unlocks instead.
+  BOOSTERS.filter(boosterUnlocked).forEach(b => {
+    const n = boosters[b.id] || 0;
     const btn = document.createElement('button');
-    if (!boosterUnlocked(b)) {
-      btn.className = 'slot locked';
-      btn.textContent = 'Lvl ' + b.unlock;
-      btn.disabled = true;
-    } else {
-      const n = boosters[b.id] || 0;
-      btn.className = 'slot' + (n <= 0 ? ' empty' : '');
-      btn.innerHTML = b.icon + (n > 0 ? `<span class="badge">${n}</span>` : '');
-      btn.disabled = n <= 0;
-      btn.onclick = () => useBooster(b);
-    }
+    btn.className = 'slot' + (n <= 0 ? ' empty' : '');
+    btn.innerHTML = b.icon + (n > 0 ? `<span class="badge">${n}</span>` : '');
+    btn.disabled = n <= 0;
+    btn.onclick = () => useBooster(b);
     boosterBarEl.appendChild(btn);
   });
 }
