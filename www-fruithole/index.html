@@ -229,18 +229,8 @@
      loudest thing on screen. The logo used to be the emoji, which every
      phone draws differently (Samsung paints it as a blue disc). */
   #menu { gap: 8px; justify-content: flex-start; padding: 0 20px;
-    background: linear-gradient(180deg,
-      #22c9cd 0%, #22c9cd 19%,
-      #ffe08a 19%, #ffd76b 55%, #ffcf55 86%,
-      #22c9cd 86%, #16a8bd 100%);
+    background: #ffd76b url('assets/menu-bg.png') center top / cover no-repeat;
     overflow: hidden; }
-  /* scalloped seams, so the bands do not meet on a ruled line */
-  #menu::before, #menu::after { content: ''; position: absolute; left: -2%; width: 104%;
-    height: 22px; pointer-events: none;
-    background: radial-gradient(circle at 50% 0, #22c9cd 0 52%, rgba(34,201,205,0) 53%) 0 0/32px 22px repeat-x; }
-  #menu::before { top: calc(19% - 1px); }
-  #menu::after { bottom: calc(14% - 1px); transform: scaleY(-1); }
-
   #menu > * { position: relative; z-index: 1; }
 
   /* the hole, with the level you are about to play sitting inside it */

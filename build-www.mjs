@@ -45,6 +45,11 @@ fruit = swap(fruit,
   '"three": "./three.module.js"', 'fruithole/index.html');
 writeFileSync(r('www-fruithole', 'index.html'), fruit);
 
+// The menu backdrop is a real image (gradients cannot fake a painted scene),
+// so it has to travel with the packaged build.
+mkdirSync(r('www-fruithole', 'assets'), { recursive: true });
+copyFileSync(r('fruithole', 'assets', 'menu-bg.png'), r('www-fruithole', 'assets', 'menu-bg.png'));
+
 if (existsSync(r('www', 'three.module.js'))) {
   copyFileSync(r('www', 'three.module.js'), r('www-fruithole', 'three.module.js'));
 } else {

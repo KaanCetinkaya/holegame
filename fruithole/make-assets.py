@@ -240,3 +240,100 @@ if __name__ == '__main__':
     make_feature()
     for p in sorted(list(ASSETS.glob('*.png')) + list(STORE.glob('*.png'))):
         print(f'{p.relative_to(ROOT.parent)}  {Image.open(p).size}')
+
+
+# ---------------------------------------------------------------------
+# Menu backdrop
+#
+# The menu was flat colour bands. Every game it sits next to uses a painted
+# scene, and gradients cannot fake one — so it is drawn here as a real
+# image: sky, sea, surf, then the beach the hole is dug into, with palms,
+# dunes and litter. Portrait 720x1560 covers phone aspect ratios when
+# stretched with background-size: cover.
+# ---------------------------------------------------------------------
+MENU_W, MENU_H = 720, 1560
+
+SKY_TOP  = (92, 200, 244)
+SKY_BOT  = (186, 232, 250)
+SEA_FAR  = (24, 150, 186)
+SEA_NEAR = (46, 190, 214)
+FOAM     = (226, 248, 250)
+BEACH    = (255, 224, 154)
+BEACH_LO = (243, 198, 118)
+
+
+def band(d, y0, y1, top, bot):
+    for y in range(int(y0), int(y1)):
+        d.line([(0, y), (MENU_W, y)], fill=lerp(top, bot, (y - y0) / max(1, y1 - y0)))
+
+
+def scallop(d, y, colour, r=26):
+    """Wavy seam so two bands do not meet on a ruled line."""
+    x = -r
+    while x < MENU_W + r:
+        d.ellipse([x - r, y - r, x + r, y + r], fill=colour)
+        x += r * 1.55
+
+
+def palm(d, x, y, h, flip=False):
+    trunk = (150, 104, 58)
+    d.polygon([(x - h * .045, y), (x + h * .045, y),
+               (x + h * .022, y - h), (x - h * .022, y - h)], fill=trunk)
+    leaf = (58, 158, 74)
+    dark = (36, 122, 56)
+    import math
+    for i in range(7):
+        a = math.pi + i * (math.pi / 6) + (0.2 if flip else -0.2)
+        ex, ey = x + math.cos(a) * h * .5, y - h + math.sin(a) * h * .28
+        d.polygon([(x, y - h), (ex, ey - h * .09), (ex + h * .04, ey + h * .05)],
+                  fill=leaf if i % 2 else dark)
+    d.ellipse([x - h * .05, y - h * 1.03, x + h * .05, y - h * .93], fill=(120, 84, 44))
+
+
+def make_menu_bg():
+    img = Image.new('RGB', (MENU_W, MENU_H), SKY_TOP)
+    d = ImageDraw.Draw(img)
+
+    horizon = int(MENU_H * 0.20)
+    surf    = int(MENU_H * 0.27)
+    shore   = int(MENU_H * 0.30)
+
+    band(d, 0, horizon, SKY_TOP, SKY_BOT)
+    band(d, horizon, surf, SEA_FAR, SEA_NEAR)
+    band(d, surf, shore, SEA_NEAR, FOAM)
+    band(d, shore, MENU_H, BEACH, BEACH_LO)
+
+    # sun and a couple of clouds
+    d.ellipse([MENU_W * .74, MENU_H * .035, MENU_W * .93, MENU_H * .125],
+              fill=(255, 249, 207))
+    for cx, cy, s in [(.18, .075, 1.0), (.55, .12, .7), (.82, .155, .55)]:
+        x, y, w = MENU_W * cx, MENU_H * cy, 120 * s
+        for ox, oy, rr in [(-w * .5, 0, w * .34), (0, -w * .16, w * .44), (w * .55, 0, w * .3)]:
+            d.ellipse([x + ox - rr, y + oy - rr, x + ox + rr, y + oy + rr], fill=(255, 255, 255))
+
+    scallop(d, shore, BEACH, 30)                      # foam edge onto the sand
+
+    # dunes behind the play area
+    for cx, cy, w, h in [(.14, .40, .40, .07), (.78, .43, .46, .08), (.46, .38, .34, .05)]:
+        d.ellipse([MENU_W * (cx - w / 2), MENU_H * (cy - h / 2),
+                   MENU_W * (cx + w / 2), MENU_H * (cy + h / 2)],
+                  fill=lerp(BEACH, (255, 255, 255), .35))
+
+    palm(d, MENU_W * .09, MENU_H * .40, MENU_H * .13)
+    palm(d, MENU_W * .93, MENU_H * .43, MENU_H * .11, flip=True)
+
+    # grains, so the sand is not a flat wash
+    import random
+    random.seed(7)
+    for _ in range(2600):
+        x = random.random() * MENU_W
+        y = shore + random.random() * (MENU_H - shore)
+        rr = 1 + random.random() * 2.2
+        c = lerp(BEACH_LO, (255, 255, 255), random.random())
+        d.ellipse([x - rr, y - rr, x + rr, y + rr], fill=c)
+
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    img.save(ASSETS / 'menu-bg.png')
+
+
+make_menu_bg()
