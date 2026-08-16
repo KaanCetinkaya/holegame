@@ -2907,18 +2907,28 @@ document.getElementById('playBtn').addEventListener('click', () => { ensureAudio
 // shadowed, and identical everywhere. Emoji stay in the markup as the
 // fallback if WebGL will not give us a second context.
 // ---------------------------------------------------------------------
+// Glossy rather than matte. The look these icon sets share comes from a
+// clearcoat hotspot and a hard key light, not from being 3D — ours were
+// already rendered geometry and still read flat because they were matte.
+function iconMat(color, opts = {}) {
+  return new THREE.MeshPhysicalMaterial({
+    color, roughness: opts.rough ?? 0.28, metalness: opts.metal ?? 0.05,
+    clearcoat: 1, clearcoatRoughness: opts.cc ?? 0.12,
+  });
+}
 const ICON_MAT = {
-  gold:   new THREE.MeshStandardMaterial({ color: '#ffc23a', roughness: 0.32, metalness: 0.35 }),
-  amber:  new THREE.MeshStandardMaterial({ color: '#e8912a', roughness: 0.4 }),
-  cream:  new THREE.MeshStandardMaterial({ color: '#fff6e2', roughness: 0.5 }),
-  white:  new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.55 }),
-  red:    new THREE.MeshStandardMaterial({ color: '#e8353f', roughness: 0.4 }),
-  green:  new THREE.MeshStandardMaterial({ color: '#4fb63a', roughness: 0.45 }),
-  blue:   new THREE.MeshStandardMaterial({ color: '#3f9ae0', roughness: 0.4 }),
-  purple: new THREE.MeshStandardMaterial({ color: '#7a68d8', roughness: 0.4 }),
-  slate:  new THREE.MeshStandardMaterial({ color: '#4a3a99', roughness: 0.5 }),
-  dark:   new THREE.MeshStandardMaterial({ color: '#2c2350', roughness: 0.6 }),
+  gold:   iconMat('#ffc23a', { metal: 0.55, rough: 0.22 }),
+  amber:  iconMat('#f09022'),
+  cream:  iconMat('#fff8ea', { rough: 0.34 }),
+  white:  iconMat('#ffffff', { rough: 0.36 }),
+  red:    iconMat('#f22c3a'),
+  green:  iconMat('#46c132'),
+  blue:   iconMat('#2f9ae8'),
+  purple: iconMat('#8878e2'),
+  slate:  iconMat('#4a3a99', { rough: 0.34 }),
+  dark:   iconMat('#2a2150', { rough: 0.4 }),
 };
+const OUTLINE_MAT = new THREE.MeshBasicMaterial({ color: '#1a0e40', side: THREE.BackSide });
 
 function starShape(points, outer, inner) {
   const s = new THREE.Shape();
@@ -3061,26 +3071,33 @@ function renderIcons(names, size = 192, plinth = false) {
   r.shadowMap.enabled = true;
   r.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  const halfV = plinth ? 1.77 : 1.5;
-  const cam = new THREE.OrthographicCamera(-1.5, 1.5, halfV, -halfV, 0.1, 40);
-  cam.position.set(1.5, 2.0, 4.2);
-  cam.lookAt(0, plinth ? -0.25 : 0, 0);
+  // Perspective, not orthographic: the near face reads larger than the far
+  // one, which is most of what makes these objects look solid.
+  const cam = new THREE.PerspectiveCamera(26, size / (plinth ? size * 1.18 : size), 0.1, 60);
+  cam.position.set(2.6, 3.4, 8.4);
+  cam.lookAt(0, plinth ? -0.35 : 0, 0);
 
   for (const name of names) {
     const build = ICON_BUILDERS[name];
     if (!build) continue;
     const sc = new THREE.Scene();
-    sc.add(new THREE.HemisphereLight('#ffffff', '#8a7fd0', 1.35));
-    const key = new THREE.DirectionalLight('#fff8e8', 1.5);
-    key.position.set(3, 5, 4);
+    // One hard key for the hotspot and the shadow, a cool rim behind to peel
+    // the silhouette off the background, and only a little ambient — soft
+    // even light is what made the old icons look printed.
+    sc.add(new THREE.HemisphereLight('#ffffff', '#6a5ab8', 0.75));
+    const key = new THREE.DirectionalLight('#fffdf2', 2.6);
+    key.position.set(3.2, 5.5, 4.5);
     key.castShadow = true;
     key.shadow.mapSize.set(512, 512);
     key.shadow.camera.left = -3; key.shadow.camera.right = 3;
     key.shadow.camera.top = 3; key.shadow.camera.bottom = -3;
     sc.add(key);
-    const rim = new THREE.DirectionalLight('#bfe6f7', 0.5);
-    rim.position.set(-4, 1, -2);
+    const rim = new THREE.DirectionalLight('#8fd8ff', 1.5);
+    rim.position.set(-4.5, 1.5, -3);
     sc.add(rim);
+    const spark = new THREE.PointLight('#ffffff', 12, 14);
+    spark.position.set(-1.6, 2.4, 3.2);
+    sc.add(spark);
     const g = new THREE.Group();
     build(g);
     g.rotation.y = -0.30;
@@ -3091,11 +3108,17 @@ function renderIcons(names, size = 192, plinth = false) {
     const span = Math.max(box.max.x - box.min.x, box.max.y - box.min.y) || 1;
     const holder = new THREE.Group();
     holder.add(g);
-    holder.scale.setScalar(2.35 / span);
+    holder.scale.setScalar(3.55 / span);
     const mid = box.getCenter(new THREE.Vector3());
     g.position.sub(mid);
+    // A dark shell one step larger, drawn back-face only, gives a genuine
+    // outline that follows the silhouette — a CSS shadow only outlines the box.
+    const shell = g.clone(true);
+    shell.traverse(o => { if (o.isMesh) { o.material = OUTLINE_MAT; o.castShadow = false; } });
+    shell.scale.multiplyScalar(1.055);
+    holder.add(shell);
     if (plinth) {
-      holder.scale.setScalar(1.85 / span);
+      holder.scale.setScalar(2.75 / span);
       holder.position.y = 0.42;
       const top = new THREE.Mesh(
         new THREE.CylinderGeometry(1.15, 1.15, 0.3, 28),
