@@ -309,47 +309,59 @@
   #menuSound { margin-left: 6px; }
 
   /* bottom bar, so the secondary screens stop competing with Play */
-  /* One solid bar across the bottom instead of three floating cards.
-     The icons stand free rather than on tiles — that is what the bars in
-     these games actually look like — and the selected column gets a lighter
-     panel behind it instead of a badge. */
-  #menuNav { display: flex; gap: 0; width: calc(100% + 40px); margin: 3.5vh -20px 0;
-    padding: 6px 6px calc(env(safe-area-inset-bottom,0px) + 8px);
-    background: linear-gradient(180deg,#6a58c9 0 5px,#5b49b4 5px,#4a3a99 100%);
-    box-shadow: inset 0 5px 0 rgba(255,255,255,.22); }
-  #menuNav .nav { pointer-events: auto; cursor: pointer; flex: 1; border: none; background: transparent;
-    padding: 10px 2px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px;
-    position: relative; border-radius: 0 0 16px 16px; }
-  #menuNav .nav .ic { font-size: 27px; line-height: 1;
-    filter: drop-shadow(0 3px 2px rgba(30,16,70,.55)); transition: transform .08s; }
-  /* rendered icon rather than a glyph: sized by the box, not the font */
-  .icon3d { background-repeat: no-repeat; background-position: center;
-    background-size: contain; color: transparent; }
-  #menuNav .nav .ic.icon3d { width: 38px; height: 38px; }
-  #menuNav .nav.mid .ic.icon3d { width: 46px; height: 46px; }
-  #menuSound.icon3d { background-size: 62%; }
-  #menuShelf .slot2 .ic.icon3d { background-size: 72%; }
-  .slot .ic3 { width: 40px; height: 40px; background-repeat: no-repeat;
-    background-position: center; background-size: contain; }
-  .icoImg { display: block; width: 76%; height: 76%; background-repeat: no-repeat;
-    background-position: center; background-size: contain; }
-  #menuNav .nav:active .ic { transform: translateY(3px) scale(.94); }
-  #menuNav .nav .lb { font-size: 10px; font-weight: 800; color: #d9d2ff;
-    text-shadow: 0 2px 0 rgba(0,0,0,.3); }
+  /* A platform with thickness rather than a strip of colour: a lit lip
+     along the top, a body that darkens toward the base, and stone courses
+     that each carry their own highlight and shadow so the blocks read as
+     cut rather than printed. The selected column stands proud of it. */
+  #menuNav { position: relative; display: flex; gap: 0; width: calc(100% + 40px);
+    margin: 3.5vh -20px 0; padding: 9px 6px calc(env(safe-area-inset-bottom,0px) + 9px);
+    background:
+      linear-gradient(180deg,
+        #a495f5 0 3px, #8878e2 3px 8px,
+        #6d5ac6 8px 34%, #5444ab 34%, #43349c 78%, #372a80 100%);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.5), 0 -3px 12px rgba(0,0,0,.28); }
+  #menuNav::before { content: ''; position: absolute; inset: 8px 0 0; pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(255,255,255,.10) 0 2px,
+        rgba(0,0,0,0) 2px 4px,
+        rgba(0,0,0,0) 4px 74px,
+        rgba(24,12,64,.5) 74px 78px),
+      repeating-linear-gradient(180deg,
+        rgba(255,255,255,.13) 0 2px,
+        rgba(0,0,0,0) 2px 30px,
+        rgba(24,12,64,.5) 30px 34px,
+        rgba(0,0,0,0) 34px 64px);
+    background-position: 0 0, 37px 32px; }
+  #menuNav > * { position: relative; z-index: 1; }
 
-  /* Centre column: a lighter block standing proud of the bar with a hole
-     cut into it that the house sits in — the same hole the whole game is
-     about, and the reason the middle tab reads as the home you return to. */
-  #menuNav .nav.mid { background: linear-gradient(180deg,#9887ee,#6d5ac6);
-    box-shadow: inset 0 4px 0 rgba(255,255,255,.34), 0 -3px 0 rgba(0,0,0,.12);
-    margin-top: -20px; padding-top: 26px; border-radius: 18px 18px 0 0; }
-  #menuNav .nav.mid .ic { font-size: 38px; position: relative; z-index: 1;
+  #menuNav .nav { pointer-events: auto; cursor: pointer; flex: 1; border: none; background: transparent;
+    padding: 6px 2px 2px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    position: relative; }
+  /* dark rim on every side, so a matte model still separates from the purple */
+  #menuNav .nav .ic { font-size: 34px; line-height: 1;
+    filter: drop-shadow(1.5px 0 0 rgba(26,14,64,.9)) drop-shadow(-1.5px 0 0 rgba(26,14,64,.9))
+            drop-shadow(0 1.5px 0 rgba(26,14,64,.9)) drop-shadow(0 -1.5px 0 rgba(26,14,64,.9))
+            drop-shadow(0 5px 4px rgba(20,10,50,.5));
+    transition: transform .08s; }
+  #menuNav .nav:active .ic { transform: translateY(3px) scale(.94); }
+  #menuNav .nav .lb { font-size: 9.5px; font-weight: 800; color: rgba(220,214,255,.72);
+    letter-spacing: .2px; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+
+  /* the centre block: raised, with its own lit lip and side faces */
+  #menuNav .nav.mid { margin-top: -22px; padding-top: 26px; border-radius: 20px 20px 0 0;
+    background: linear-gradient(180deg,
+      #a595f2 0 3px, #8b79e8 3px 9px, #7565cf 9px 55%, #5b49b4 100%);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.55),
+      inset 3px 0 0 rgba(255,255,255,.16), inset -3px 0 0 rgba(0,0,0,.18),
+      0 -4px 10px rgba(0,0,0,.25); }
+  #menuNav .nav.mid .ic { font-size: 44px; position: relative; z-index: 1;
     transform: translateY(-1px); }
   #menuNav .nav.mid .ic::before { content: ''; position: absolute; z-index: -1;
-    left: 50%; bottom: -7px; transform: translateX(-50%);
-    width: 46px; height: 16px; border-radius: 50%;
-    background: radial-gradient(ellipse at 50% 35%, #1a1140 0 58%, #3a2a7a 78%, #6d5ac6 100%);
-    box-shadow: inset 0 3px 5px rgba(0,0,0,.6); }
+    left: 50%; bottom: 3px; transform: translateX(-50%);
+    width: 40px; height: 13px; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 30%, #150c38 0 52%, #33266e 76%, #7a68d8 100%);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,.75); }
   #menuNav .nav.mid .lb { color: #fff; font-size: 11px; }
 
   #menuNav .nav.alert::after { content: ''; position: absolute; right: 24%; top: 12px;
@@ -574,8 +586,8 @@
   /* rendered icon rather than a glyph: sized by the box, not the font */
   .icon3d { background-repeat: no-repeat; background-position: center;
     background-size: contain; color: transparent; }
-  #menuNav .nav .ic.icon3d { width: 38px; height: 38px; }
-  #menuNav .nav.mid .ic.icon3d { width: 46px; height: 46px; }
+  #menuNav .nav .ic.icon3d { width: 52px; height: 52px; }
+  #menuNav .nav.mid .ic.icon3d { width: 64px; height: 64px; }
   #menuSound.icon3d { background-size: 62%; }
   #menuShelf .slot2 .ic.icon3d { background-size: 72%; }
   .slot .ic3 { width: 40px; height: 40px; background-repeat: no-repeat;
