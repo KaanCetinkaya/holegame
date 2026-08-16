@@ -322,6 +322,17 @@
     position: relative; border-radius: 0 0 16px 16px; }
   #menuNav .nav .ic { font-size: 27px; line-height: 1;
     filter: drop-shadow(0 3px 2px rgba(30,16,70,.55)); transition: transform .08s; }
+  /* rendered icon rather than a glyph: sized by the box, not the font */
+  .icon3d { background-repeat: no-repeat; background-position: center;
+    background-size: contain; color: transparent; }
+  #menuNav .nav .ic.icon3d { width: 38px; height: 38px; }
+  #menuNav .nav.mid .ic.icon3d { width: 46px; height: 46px; }
+  #menuSound.icon3d { background-size: 62%; }
+  #menuShelf .slot2 .ic.icon3d { background-size: 72%; }
+  .slot .ic3 { width: 40px; height: 40px; background-repeat: no-repeat;
+    background-position: center; background-size: contain; }
+  .icoImg { display: block; width: 76%; height: 76%; background-repeat: no-repeat;
+    background-position: center; background-size: contain; }
   #menuNav .nav:active .ic { transform: translateY(3px) scale(.94); }
   #menuNav .nav .lb { font-size: 10px; font-weight: 800; color: #d9d2ff;
     text-shadow: 0 2px 0 rgba(0,0,0,.3); }
@@ -333,10 +344,10 @@
     box-shadow: inset 0 4px 0 rgba(255,255,255,.34), 0 -3px 0 rgba(0,0,0,.12);
     margin-top: -20px; padding-top: 26px; border-radius: 18px 18px 0 0; }
   #menuNav .nav.mid .ic { font-size: 38px; position: relative; z-index: 1;
-    transform: translateY(4px); }
+    transform: translateY(-1px); }
   #menuNav .nav.mid .ic::before { content: ''; position: absolute; z-index: -1;
-    left: 50%; bottom: 2px; transform: translateX(-50%);
-    width: 54px; height: 22px; border-radius: 50%;
+    left: 50%; bottom: -7px; transform: translateX(-50%);
+    width: 46px; height: 16px; border-radius: 50%;
     background: radial-gradient(ellipse at 50% 35%, #1a1140 0 58%, #3a2a7a 78%, #6d5ac6 100%);
     box-shadow: inset 0 3px 5px rgba(0,0,0,.6); }
   #menuNav .nav.mid .lb { color: #fff; font-size: 11px; }
@@ -560,6 +571,17 @@
     position: relative; border-radius: 0 0 16px 16px; }
   #menuNav .nav .ic { font-size: 27px; line-height: 1;
     filter: drop-shadow(0 3px 2px rgba(30,16,70,.55)); transition: transform .08s; }
+  /* rendered icon rather than a glyph: sized by the box, not the font */
+  .icon3d { background-repeat: no-repeat; background-position: center;
+    background-size: contain; color: transparent; }
+  #menuNav .nav .ic.icon3d { width: 38px; height: 38px; }
+  #menuNav .nav.mid .ic.icon3d { width: 46px; height: 46px; }
+  #menuSound.icon3d { background-size: 62%; }
+  #menuShelf .slot2 .ic.icon3d { background-size: 72%; }
+  .slot .ic3 { width: 40px; height: 40px; background-repeat: no-repeat;
+    background-position: center; background-size: contain; }
+  .icoImg { display: block; width: 76%; height: 76%; background-repeat: no-repeat;
+    background-position: center; background-size: contain; }
   #menuNav .nav:active .ic { transform: translateY(3px) scale(.94); }
   #menuNav .nav .lb { font-size: 10px; font-weight: 800; color: #d9d2ff;
     text-shadow: 0 2px 0 rgba(0,0,0,.3); }
@@ -571,10 +593,10 @@
     box-shadow: inset 0 4px 0 rgba(255,255,255,.34), 0 -3px 0 rgba(0,0,0,.12);
     margin-top: -20px; padding-top: 26px; border-radius: 18px 18px 0 0; }
   #menuNav .nav.mid .ic { font-size: 38px; position: relative; z-index: 1;
-    transform: translateY(4px); }
+    transform: translateY(-1px); }
   #menuNav .nav.mid .ic::before { content: ''; position: absolute; z-index: -1;
-    left: 50%; bottom: 2px; transform: translateX(-50%);
-    width: 54px; height: 22px; border-radius: 50%;
+    left: 50%; bottom: -7px; transform: translateX(-50%);
+    width: 46px; height: 16px; border-radius: 50%;
     background: radial-gradient(ellipse at 50% 35%, #1a1140 0 58%, #3a2a7a 78%, #6d5ac6 100%);
     box-shadow: inset 0 3px 5px rgba(0,0,0,.6); }
   #menuNav .nav.mid .lb { color: #fff; font-size: 11px; }
@@ -606,6 +628,7 @@
     padding: 9px 18px; border-radius: 999px; max-width: 94%;
     background: linear-gradient(180deg,#4a3a99,#382b78); border: 3px solid #7a68d8;
     box-shadow: inset 0 2px 0 rgba(255,255,255,.16), 0 4px 0 rgba(0,0,0,.22); }
+  #menuBanner .bi.icon3d { width: 26px; height: 26px; }
   #menuBanner .bi { font-size: 19px; line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
   #menuBanner .bt { color: #fff; font-size: 13px; font-weight: 800;
     text-shadow: 0 2px 0 rgba(0,0,0,.35); }
@@ -769,6 +792,16 @@ function dotFill(t) {
   return `radial-gradient(circle at 34% 30%, ${t.uiLight || t.light}, ${t.uiBase || t.base} 58%, ${t.uiDark || t.dark})`;
 }
 const TYPE_BY_ID = Object.fromEntries(TYPES.map(t => [t.id, t]));
+
+// Rendered interface icons, filled in at boot by applyIcons(). Declared here
+// because the menu and the booster bar are drawn before that runs, and they
+// fall back to the emoji in the markup while it is empty.
+const ICONS = {};
+const ICON_FOR = {
+  levelsBtn: 'map', upgBtn: 'arrow', homeBtn: 'house',
+  goalsBtn: 'clipboard', awardsBtn: 'trophy', shopBtn: 'cart',
+};
+const BOOSTER_ICON = { time: 'clock', grow: 'burst', magnet: 'star' };
 
 const COLS = 13;
 let rows = 22;
@@ -1136,7 +1169,8 @@ function refreshMenuLevel() {
   const next = BOOSTERS.find(b => b.unlock > level);
   const banner = document.getElementById('menuBanner');
   if (next) {
-    banner.innerHTML = `<span class="bi">🔒</span><span class="bt">${next.name} booster unlocks at level ${next.unlock}</span>`;
+    banner.innerHTML = iconHTML('lock', '🔒', 'bi') +
+      `<span class="bt">${next.name} booster unlocks at level ${next.unlock}</span>`;
   } else {
     const total = Object.values(stars).reduce((a, b) => a + b, 0);
     banner.innerHTML = `<span class="bi">⭐</span><span class="bt">${total} stars collected — everything unlocked</span>`;
@@ -1149,7 +1183,7 @@ function refreshMenuLevel() {
     const open = boosterUnlocked(b);
     const el = document.createElement('div');
     el.className = 'slot2' + (open ? '' : ' locked');
-    el.innerHTML = `<span class="ic">${b.icon}</span>` +
+    el.innerHTML = `<span class="ic">${iconInner(BOOSTER_ICON[b.id], b.icon)}</span>` +
       `<span class="tx">${open ? '×' + (boosters[b.id] || 0) : 'Lvl ' + b.unlock}</span>`;
     shelf.appendChild(el);
   });
@@ -2584,7 +2618,8 @@ function renderBoosters() {
     const n = boosters[b.id] || 0;
     const btn = document.createElement('button');
     btn.className = 'slot' + (n <= 0 ? ' empty' : '');
-    btn.innerHTML = b.icon + (n > 0 ? `<span class="badge">${n}</span>` : '');
+    btn.innerHTML = iconHTML(BOOSTER_ICON[b.id], b.icon, 'ic3') +
+      (n > 0 ? `<span class="badge">${n}</span>` : '');
     btn.disabled = n <= 0;
     btn.onclick = () => useBooster(b);
     boosterBarEl.appendChild(btn);
@@ -2852,6 +2887,245 @@ app.addEventListener('pointercancel', endDrag);
 
 document.getElementById('playBtn').addEventListener('click', () => { ensureAudio(); startLevel(); });
 
+// ---------------------------------------------------------------------
+// Interface icons
+//
+// The menu used emoji, which the system font draws — flat next to a 3D
+// board, and different on every phone (Samsung's set looks nothing like
+// Google's). These are modelled from primitives and rendered once at boot
+// with the engine already loaded, then handed to CSS as images: solid,
+// shadowed, and identical everywhere. Emoji stay in the markup as the
+// fallback if WebGL will not give us a second context.
+// ---------------------------------------------------------------------
+const ICON_MAT = {
+  gold:   new THREE.MeshStandardMaterial({ color: '#ffc23a', roughness: 0.32, metalness: 0.35 }),
+  amber:  new THREE.MeshStandardMaterial({ color: '#e8912a', roughness: 0.4 }),
+  cream:  new THREE.MeshStandardMaterial({ color: '#fff6e2', roughness: 0.5 }),
+  white:  new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.55 }),
+  red:    new THREE.MeshStandardMaterial({ color: '#e8353f', roughness: 0.4 }),
+  green:  new THREE.MeshStandardMaterial({ color: '#4fb63a', roughness: 0.45 }),
+  blue:   new THREE.MeshStandardMaterial({ color: '#3f9ae0', roughness: 0.4 }),
+  purple: new THREE.MeshStandardMaterial({ color: '#7a68d8', roughness: 0.4 }),
+  slate:  new THREE.MeshStandardMaterial({ color: '#4a3a99', roughness: 0.5 }),
+  dark:   new THREE.MeshStandardMaterial({ color: '#2c2350', roughness: 0.6 }),
+};
+
+function starShape(points, outer, inner) {
+  const s = new THREE.Shape();
+  for (let i = 0; i < points * 2; i++) {
+    const r = i % 2 ? inner : outer;
+    const a = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2;
+    const x = Math.cos(a) * r, y = Math.sin(a) * r;
+    i ? s.lineTo(x, y) : s.moveTo(x, y);
+  }
+  s.closePath();
+  return s;
+}
+function extrude(shape, depth) {
+  const g = new THREE.ExtrudeGeometry(shape, {
+    depth, bevelEnabled: true, bevelSize: 0.05, bevelThickness: 0.05, bevelSegments: 2,
+  });
+  g.center();
+  return g;
+}
+function part(geo, mat, x = 0, y = 0, z = 0) {
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z);
+  m.castShadow = true;
+  return m;
+}
+
+// Each builder returns a group roughly two units across, facing +Z.
+const ICON_BUILDERS = {
+  map(g) {
+    const sheet = new THREE.BoxGeometry(1.9, 1.35, 0.12);
+    for (let i = 0; i < 3; i++) {
+      const p = part(sheet, i % 2 ? ICON_MAT.cream : ICON_MAT.white, (i - 1) * 0.62, 0, 0);
+      p.scale.x = 0.34;
+      p.rotation.y = (i - 1) * 0.34;
+      g.add(p);
+    }
+    g.add(part(new THREE.TorusGeometry(0.26, 0.07, 8, 20), ICON_MAT.green, 0.1, 0.12, 0.12));
+    g.add(part(new THREE.SphereGeometry(0.16, 14, 10), ICON_MAT.red, -0.45, -0.3, 0.14));
+  },
+  arrow(g) {
+    g.add(part(new THREE.ConeGeometry(0.72, 0.8, 4), ICON_MAT.green, 0, 0.42, 0));
+    const stem = part(new THREE.BoxGeometry(0.62, 0.85, 0.5), ICON_MAT.green, 0, -0.38, 0);
+    g.add(stem);
+    g.children.forEach(c => { c.rotation.y = Math.PI / 4; });
+  },
+  house(g) {
+    g.add(part(new THREE.BoxGeometry(1.25, 0.95, 1.1), ICON_MAT.cream, 0, -0.35, 0));
+    const roof = part(new THREE.ConeGeometry(1.05, 0.85, 4), ICON_MAT.red, 0, 0.5, 0);
+    roof.rotation.y = Math.PI / 4;
+    g.add(roof);
+    g.add(part(new THREE.BoxGeometry(0.38, 0.55, 0.1), ICON_MAT.amber, 0, -0.5, 0.56));
+  },
+  clipboard(g) {
+    g.add(part(new THREE.BoxGeometry(1.35, 1.7, 0.16), ICON_MAT.amber, 0, -0.05, 0));
+    g.add(part(new THREE.BoxGeometry(1.1, 1.35, 0.06), ICON_MAT.white, 0, -0.12, 0.11));
+    g.add(part(new THREE.BoxGeometry(0.5, 0.28, 0.22), ICON_MAT.slate, 0, 0.82, 0.04));
+    for (let i = 0; i < 3; i++)
+      g.add(part(new THREE.BoxGeometry(0.72, 0.09, 0.03), ICON_MAT.slate, 0, 0.25 - i * 0.34, 0.15));
+  },
+  trophy(g) {
+    g.add(part(new THREE.CylinderGeometry(0.52, 0.36, 0.75, 18), ICON_MAT.gold, 0, 0.42, 0));
+    g.add(part(new THREE.SphereGeometry(0.52, 18, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
+      ICON_MAT.gold, 0, 0.05, 0));
+    for (const s of [-1, 1]) {
+      const h = part(new THREE.TorusGeometry(0.26, 0.07, 8, 18, Math.PI), ICON_MAT.gold, s * 0.6, 0.42, 0);
+      h.rotation.z = s > 0 ? -Math.PI / 2 : Math.PI / 2;
+      g.add(h);
+    }
+    g.add(part(new THREE.CylinderGeometry(0.13, 0.13, 0.4, 12), ICON_MAT.gold, 0, -0.35, 0));
+    g.add(part(new THREE.CylinderGeometry(0.55, 0.62, 0.28, 18), ICON_MAT.slate, 0, -0.68, 0));
+  },
+  cart(g) {
+    g.add(part(new THREE.BoxGeometry(1.35, 0.85, 0.9), ICON_MAT.blue, 0.1, 0.1, 0));
+    g.add(part(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8), ICON_MAT.slate, -0.75, 0.45, 0));
+    for (const s of [-1, 1])
+      g.add(part(new THREE.SphereGeometry(0.2, 12, 10), ICON_MAT.dark, 0.1 + s * 0.42, -0.55, 0));
+  },
+  clock(g) {
+    for (const sx of [-1, 1]) {
+      const bell = part(new THREE.SphereGeometry(0.26, 14, 12), ICON_MAT.red, sx * 0.6, 0.62, -0.05);
+      g.add(bell);
+    }
+    const body = part(new THREE.CylinderGeometry(0.88, 0.88, 0.34, 26), ICON_MAT.red);
+    body.rotation.x = Math.PI / 2;
+    g.add(body);
+    const face = part(new THREE.CylinderGeometry(0.7, 0.7, 0.12, 26), ICON_MAT.cream, 0, 0, 0.16);
+    face.rotation.x = Math.PI / 2;
+    g.add(face);
+    g.add(part(new THREE.BoxGeometry(0.09, 0.44, 0.07), ICON_MAT.dark, 0, 0.17, 0.24));
+    const min = part(new THREE.BoxGeometry(0.08, 0.32, 0.07), ICON_MAT.dark, 0.11, -0.02, 0.24);
+    min.rotation.z = -1.15;
+    g.add(min);
+    for (const sx of [-1, 1]) {
+      const foot = part(new THREE.CylinderGeometry(0.08, 0.11, 0.24, 10), ICON_MAT.dark, sx * 0.45, -0.85, 0);
+      foot.rotation.z = sx * 0.4;
+      g.add(foot);
+    }
+  },
+  burst(g) {
+    g.add(part(extrude(starShape(8, 1.0, 0.42), 0.3), ICON_MAT.amber));
+    g.add(part(extrude(starShape(8, 0.6, 0.24), 0.34), ICON_MAT.gold, 0, 0, 0.1));
+  },
+  star(g) {
+    g.add(part(extrude(starShape(5, 1.0, 0.45), 0.3), ICON_MAT.gold));
+  },
+  lock(g) {
+    g.add(part(new THREE.BoxGeometry(1.2, 0.95, 0.6), ICON_MAT.gold, 0, -0.3, 0));
+    const sh = part(new THREE.TorusGeometry(0.42, 0.13, 10, 20, Math.PI), ICON_MAT.cream, 0, 0.32, 0);
+    g.add(sh);
+    g.add(part(new THREE.CylinderGeometry(0.1, 0.1, 0.22, 10), ICON_MAT.dark, 0, -0.28, 0.32));
+  },
+  speaker(g) {
+    g.add(part(new THREE.BoxGeometry(0.55, 0.62, 0.55), ICON_MAT.cream, -0.5, 0, 0));
+    const horn = part(new THREE.ConeGeometry(0.72, 1.0, 20), ICON_MAT.cream, -0.02, 0, 0);
+    horn.rotation.z = -Math.PI / 2;
+    g.add(horn);
+    for (let i = 0; i < 3; i++) {
+      const w = part(new THREE.TorusGeometry(0.34 + i * 0.26, 0.075, 8, 20, 1.5), ICON_MAT.gold, 0.5, 0, 0);
+      w.rotation.z = -0.75;
+      g.add(w);
+    }
+  },
+};
+
+// One renderer, used once at boot and thrown away. A second WebGL context
+// alongside the game's is fine for a handful of 256px frames.
+function renderIcons(names, size = 192) {
+  const out = {};
+  let r;
+  try {
+    r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  } catch (e) {
+    return out;                       // no second context: emoji stay
+  }
+  r.setSize(size, size);
+  r.setPixelRatio(1);
+  r.shadowMap.enabled = true;
+  r.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const cam = new THREE.OrthographicCamera(-1.5, 1.5, 1.5, -1.5, 0.1, 40);
+  cam.position.set(1.5, 2.0, 4.2);
+  cam.lookAt(0, 0, 0);
+
+  for (const name of names) {
+    const build = ICON_BUILDERS[name];
+    if (!build) continue;
+    const sc = new THREE.Scene();
+    sc.add(new THREE.HemisphereLight('#ffffff', '#8a7fd0', 1.35));
+    const key = new THREE.DirectionalLight('#fff8e8', 1.5);
+    key.position.set(3, 5, 4);
+    sc.add(key);
+    const rim = new THREE.DirectionalLight('#bfe6f7', 0.5);
+    rim.position.set(-4, 1, -2);
+    sc.add(rim);
+    const g = new THREE.Group();
+    build(g);
+    g.rotation.y = -0.30;
+    g.rotation.x = 0.14;
+    // Fit each icon to the same frame: modelled from different primitives,
+    // they otherwise come out at wildly different sizes next to each other.
+    const box = new THREE.Box3().setFromObject(g);
+    const span = Math.max(box.max.x - box.min.x, box.max.y - box.min.y) || 1;
+    const holder = new THREE.Group();
+    holder.add(g);
+    holder.scale.setScalar(2.35 / span);
+    const mid = box.getCenter(new THREE.Vector3());
+    g.position.sub(mid);
+    sc.add(holder);
+    r.render(sc, cam);
+    try { out[name] = r.domElement.toDataURL('image/png'); } catch (e) { /* tainted: skip */ }
+  }
+  r.dispose();
+  return out;
+}
+
+// Swap the emoji in the markup for the rendered images.
+function applyIcons() {
+  Object.assign(ICONS, renderIcons([...new Set([
+    ...Object.values(ICON_FOR), ...Object.values(BOOSTER_ICON), 'lock', 'speaker',
+  ])]));
+  if (!Object.keys(ICONS).length) return;
+
+  const dress = (el, name) => {
+    const url = ICONS[name];
+    if (!el || !url) return;
+    el.textContent = '';
+    el.classList.add('icon3d');
+    el.style.backgroundImage = `url(${url})`;
+  };
+  for (const [id, name] of Object.entries(ICON_FOR)) {
+    const b = document.getElementById(id);
+    if (b) dress(b.querySelector('.ic'), name);
+  }
+  const sound = document.getElementById('menuSound');
+  if (sound && ICONS.speaker) {
+    sound.textContent = '';
+    sound.classList.add('icon3d');
+    sound.style.backgroundImage = `url(${ICONS.speaker})`;
+  }
+}
+
+// Markup for one interface icon: the rendered image when it is available,
+// the emoji it replaces when it is not.
+function iconHTML(name, emoji, cls) {
+  const url = ICONS[name];
+  return url
+    ? `<span class="${cls} icon3d" style="background-image:url(${url})"></span>`
+    : `<span class="${cls}">${emoji}</span>`;
+}
+
+// Same thing for containers that already carry their own background — the
+// image goes inside them instead of replacing it.
+function iconInner(name, emoji) {
+  const url = ICONS[name];
+  return url ? `<i class="icoImg" style="background-image:url(${url})"></i>` : emoji;
+}
+
 // Read-only window onto the numbers the HUD does not show, so level balance
 // can be measured instead of guessed at. Builds a level's field without
 // starting a run, and reports what the clock is up against.
@@ -2971,6 +3245,7 @@ function tick(now) {
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
+applyIcons();
 requestAnimationFrame(tick);
 </script>
 </body>
