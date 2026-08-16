@@ -255,10 +255,14 @@
   /* A slab seated in a tray, not a pill with a ring drawn round it. The
      tray is deeper below the button than above, which is what makes the
      button look dropped into it rather than stuck on top. */
-  #playTray { margin-top: auto; padding: 9px 11px 15px; border-radius: 28px;
+  #playTray { position: relative; margin-top: auto; padding: 9px 11px 15px; border-radius: 28px;
     background: linear-gradient(180deg,#7a68d8,#4a3a99);
     box-shadow: inset 0 3px 0 rgba(255,255,255,.28), 0 7px 0 #362a78,
       0 16px 22px rgba(0,0,0,.3); }
+  /* contact shadow, so the tray rests on the sand instead of hovering */
+  #playTray::after { content: ''; position: absolute; z-index: -1;
+    left: 6%; right: 6%; bottom: -14px; height: 20px; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 50%, rgba(120,74,10,.34) 0 55%, rgba(120,74,10,0) 72%); }
   #playBtn { display: block; padding: 15px 72px; font-size: 30px; color: #fff;
     border-radius: 19px; border: none; margin: 0;
     -webkit-text-stroke: 4px #123c0c; paint-order: stroke fill;
@@ -316,6 +320,30 @@
   #menuNav .nav.alert::after { content: ''; position: absolute; right: 24%; top: 12px;
     width: 12px; height: 12px; border-radius: 50%; background: #ff3b30;
     border: 2px solid #fff; animation: bump 1.1s ease infinite; }
+
+  /* Stone courses across the bar, the way these menus dress the bottom
+     strip — flat purple was the last undecorated surface on the screen. */
+  #menuNav { position: relative; }
+  #menuNav::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(0,0,0,.16) 0 2px, rgba(0,0,0,0) 2px 62px),
+      repeating-linear-gradient(180deg,
+        rgba(255,255,255,.10) 0 1px, rgba(0,0,0,0) 1px 26px,
+        rgba(0,0,0,.14) 26px 28px, rgba(0,0,0,0) 28px 52px);
+    background-position: 0 0, 31px 0; opacity: .8; }
+  #menuNav > * { position: relative; z-index: 1; }
+
+  /* things left lying on the beach, so the lower sand is not bare */
+  #menuProps { position: absolute; z-index: 0; left: 0; right: 0; bottom: 15%;
+    height: 30%; pointer-events: none; }
+  #menuProps span { position: absolute; line-height: 1;
+    filter: drop-shadow(0 3px 3px rgba(120,74,10,.35)); }
+  #menuProps span:nth-child(1) { left: 7%;  bottom: 6%;  font-size: 30px; transform: rotate(-14deg); }
+  #menuProps span:nth-child(2) { right: 8%; bottom: 2%;  font-size: 26px; transform: rotate(11deg); }
+  #menuProps span:nth-child(3) { left: 15%; bottom: 46%; font-size: 22px; transform: rotate(6deg); }
+  #menuProps span:nth-child(4) { right: 13%; bottom: 52%; font-size: 25px; transform: rotate(-9deg); }
+  #menuProps span:nth-child(5) { left: 46%; bottom: 76%; font-size: 19px; transform: rotate(17deg); }
 
   /* what the sand used to be: empty. It now shows what is coming next and
      what is already earned, which is the only reason to look at a menu. */
@@ -396,6 +424,9 @@
       <span class="lvl"><small>Level</small><b id="menuLvlN">1</b></span>
     </div>
     <p id="menuSub">Level 1</p>
+    <div id="menuProps">
+      <span>🍉</span><span>🍓</span><span>🐚</span><span>🍌</span><span>⭐</span>
+    </div>
     <div id="playTray"><button class="btn" id="playBtn">Play</button></div>
     <div id="menuNav">
       <button class="nav" id="shopBtn"><span class="ic">🛒</span><span class="lb">Shop</span></button>
