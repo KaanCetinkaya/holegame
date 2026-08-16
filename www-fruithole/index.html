@@ -313,17 +313,17 @@
   /* Centre column: a lighter block standing proud of the bar with a hole
      cut into it that the house sits in — the same hole the whole game is
      about, and the reason the middle tab reads as the home you return to. */
-  #menuNav .nav:nth-child(3) { background: linear-gradient(180deg,#9887ee,#6d5ac6);
+  #menuNav .nav.mid { background: linear-gradient(180deg,#9887ee,#6d5ac6);
     box-shadow: inset 0 4px 0 rgba(255,255,255,.34), 0 -3px 0 rgba(0,0,0,.12);
     margin-top: -20px; padding-top: 26px; border-radius: 18px 18px 0 0; }
-  #menuNav .nav:nth-child(3) .ic { font-size: 38px; position: relative; z-index: 1;
+  #menuNav .nav.mid .ic { font-size: 38px; position: relative; z-index: 1;
     transform: translateY(4px); }
-  #menuNav .nav:nth-child(3) .ic::before { content: ''; position: absolute; z-index: -1;
+  #menuNav .nav.mid .ic::before { content: ''; position: absolute; z-index: -1;
     left: 50%; bottom: 2px; transform: translateX(-50%);
     width: 54px; height: 22px; border-radius: 50%;
     background: radial-gradient(ellipse at 50% 35%, #1a1140 0 58%, #3a2a7a 78%, #6d5ac6 100%);
     box-shadow: inset 0 3px 5px rgba(0,0,0,.6); }
-  #menuNav .nav:nth-child(3) .lb { color: #fff; font-size: 11px; }
+  #menuNav .nav.mid .lb { color: #fff; font-size: 11px; }
 
   #menuNav .nav.alert::after { content: ''; position: absolute; right: 24%; top: 12px;
     width: 12px; height: 12px; border-radius: 50%; background: #ff3b30;
@@ -441,8 +441,9 @@
     <div id="playTray"><button class="btn" id="playBtn">Play</button></div>
     <div id="menuNav">
       <button class="nav" id="shopBtn"><span class="ic">🛒</span><span class="lb">Shop</span></button>
+      <button class="nav" id="dailyTabBtn"><span class="ic">🎁</span><span class="lb">Daily</span></button>
       <button class="nav" id="upgBtn"><span class="ic">⬆️</span><span class="lb">Upgrades</span></button>
-      <button class="nav" id="homeBtn"><span class="ic">🏠</span><span class="lb">Home</span></button>
+      <button class="nav mid" id="homeBtn"><span class="ic">🏠</span><span class="lb">Home</span></button>
       <button class="nav" id="goalsBtn"><span class="ic">📋</span><span class="lb">Goals</span></button>
       <button class="nav" id="awardsBtn"><span class="ic">🏆</span><span class="lb">Awards</span></button>
     </div>
@@ -1169,6 +1170,8 @@ document.getElementById('goalsClose').addEventListener('click', () => {
 
 // Home is the tab you are already on: it just makes sure nothing else is
 // covering the menu.
+document.getElementById('dailyTabBtn').addEventListener('click', () => { showDaily(); });
+
 document.getElementById('homeBtn').addEventListener('click', () => {
   ['goals', 'upgrades', 'shop', 'daily'].forEach(id =>
     document.getElementById(id).classList.remove('show'));
@@ -1263,7 +1266,11 @@ async function buyProduct(p, btn) {
 }
 
 if (!SHOW_SHOP) {
+  // Without billing the shop cannot appear, so the daily reward takes its
+  // slot and the bar keeps its five tabs with Home in the middle.
   document.getElementById('shopBtn').style.display = 'none';
+} else {
+  document.getElementById('dailyTabBtn').style.display = 'none';
 }
 document.getElementById('shopBtn').addEventListener('click', () => {
   renderShop();
@@ -1287,16 +1294,26 @@ document.getElementById('restoreBtn').addEventListener('click', async (e) => {
 // ---------------------------------------------------------------------
 // Daily reward
 // ---------------------------------------------------------------------
-function maybeShowDaily() {
+// Opens the reward screen whether or not today's is still unclaimed, so the
+// nav tab always has somewhere to go; returns false when there was nothing
+// to collect, which is what the launch path uses to skip straight to menu.
+function showDaily() {
   ensureDaily();
-  if (daily.rewardClaimed) return false;
   const t = TYPE_BY_ID[daily.loot.type];
-  document.getElementById('dailySub').textContent = `Day ${daily.streak} streak`;
+  const got = daily.rewardClaimed;
+  document.getElementById('dailySub').textContent = got
+    ? `Day ${daily.streak} streak — come back tomorrow`
+    : `Day ${daily.streak} streak`;
   document.getElementById('dailyLoot').innerHTML =
     `<span class="pill">${daily.loot.amount} ${t.label}</span>`;
+  document.getElementById('dailyBtn').textContent = got ? 'Close' : 'Claim';
   menuEl.classList.remove('show');
   document.getElementById('daily').classList.add('show');
-  return true;
+  return !got;
+}
+function maybeShowDaily() {
+  ensureDaily();
+  return daily.rewardClaimed ? false : showDaily();
 }
 
 document.getElementById('dailyBtn').addEventListener('click', () => {
