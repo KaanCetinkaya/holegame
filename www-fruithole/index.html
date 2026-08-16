@@ -2567,6 +2567,22 @@ app.addEventListener('pointercancel', endDrag);
 
 document.getElementById('playBtn').addEventListener('click', () => { ensureAudio(); startLevel(); });
 
+// Read-only window onto the numbers the HUD does not show, so level balance
+// can be measured instead of guessed at. Builds a level's field without
+// starting a run, and reports what the clock is up against.
+window.fruitHoleProbe = (n) => {
+  level = n; sizeStage = n;
+  rows = Math.min(22 + Math.floor((n - 1) / 2) * 2, 34);
+  buildField();
+  resetHole();
+  return {
+    fruit: fruits.length, rocks: rocks.length, seconds: levelTime(),
+    pattern: currentPattern.name,
+    holeR: holeRadius, holeMax: HOLE_MAX, speed: BASE_MOVE_SPEED,
+    fieldW: fieldHalfX * 2, fieldH: fieldHalfZ * 2,
+  };
+};
+
 // ---------------------------------------------------------------------
 // Boot + main loop
 // ---------------------------------------------------------------------
