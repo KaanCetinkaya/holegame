@@ -300,18 +300,18 @@
   #menuNav .nav { pointer-events: auto; cursor: pointer; flex: 1; border: none; background: transparent;
     padding: 10px 2px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px;
     position: relative; border-radius: 0 0 16px 16px; }
-  #menuNav .nav .ic { font-size: 30px; line-height: 1;
+  #menuNav .nav .ic { font-size: 27px; line-height: 1;
     filter: drop-shadow(0 3px 2px rgba(30,16,70,.55)); transition: transform .08s; }
   #menuNav .nav:active .ic { transform: translateY(3px) scale(.94); }
-  #menuNav .nav .lb { font-size: 11px; font-weight: 800; color: #d9d2ff;
+  #menuNav .nav .lb { font-size: 10px; font-weight: 800; color: #d9d2ff;
     text-shadow: 0 2px 0 rgba(0,0,0,.3); }
 
   /* centre column: lighter panel, larger icon, sitting proud of the bar */
-  #menuNav .nav:nth-child(2) { background: linear-gradient(180deg,#8b79e8,#6d5ac6);
+  #menuNav .nav:nth-child(3) { background: linear-gradient(180deg,#8b79e8,#6d5ac6);
     box-shadow: inset 0 3px 0 rgba(255,255,255,.3); margin-top: -14px;
     padding-top: 22px; border-radius: 16px 16px 16px 16px; }
-  #menuNav .nav:nth-child(2) .ic { font-size: 36px; }
-  #menuNav .nav:nth-child(2) .lb { color: #fff; }
+  #menuNav .nav:nth-child(3) .ic { font-size: 36px; }
+  #menuNav .nav:nth-child(3) .lb { color: #fff; }
 
   #menuNav .nav.alert::after { content: ''; position: absolute; right: 24%; top: 12px;
     width: 12px; height: 12px; border-radius: 50%; background: #ff3b30;
@@ -398,9 +398,11 @@
     <p id="menuSub">Level 1</p>
     <div id="playTray"><button class="btn" id="playBtn">Play</button></div>
     <div id="menuNav">
-      <button class="nav" id="upgBtn"><span class="ic">⬆️</span><span class="lb">Upgrades</span></button>
-      <button class="nav" id="goalsBtn"><span class="ic">📋</span><span class="lb">Goals</span></button>
       <button class="nav" id="shopBtn"><span class="ic">🛒</span><span class="lb">Shop</span></button>
+      <button class="nav" id="upgBtn"><span class="ic">⬆️</span><span class="lb">Upgrades</span></button>
+      <button class="nav" id="homeBtn"><span class="ic">🏠</span><span class="lb">Home</span></button>
+      <button class="nav" id="goalsBtn"><span class="ic">📋</span><span class="lb">Goals</span></button>
+      <button class="nav" id="awardsBtn"><span class="ic">🏆</span><span class="lb">Awards</span></button>
     </div>
   </div>
 
@@ -1119,6 +1121,24 @@ document.getElementById('goalsBtn').addEventListener('click', () => {
 document.getElementById('goalsClose').addEventListener('click', () => {
   document.getElementById('goals').classList.remove('show');
   showMenu();
+});
+
+// Home is the tab you are already on: it just makes sure nothing else is
+// covering the menu.
+document.getElementById('homeBtn').addEventListener('click', () => {
+  ['goals', 'upgrades', 'shop', 'daily'].forEach(id =>
+    document.getElementById(id).classList.remove('show'));
+  showMenu();
+});
+
+// Awards is the same screen as Goals, opened at the achievements half.
+document.getElementById('awardsBtn').addEventListener('click', () => {
+  saveStats();
+  renderGoals();
+  menuEl.classList.remove('show');
+  const g = document.getElementById('goals');
+  g.classList.add('show');
+  document.getElementById('achList').scrollIntoView({ block: 'center' });
 });
 
 // ---------------------------------------------------------------------
