@@ -92,6 +92,6 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 - `2-play.png` — gameplay
 - `3-rocks.png` — later level with rocks and a grown hole
 - `4-upgrades.png` — upgrade screen
-- `5-goals.png` — daily missions and achievements
+- `5-levels.png` — the level map with star ratings
 
 Screenshots are 1080×1920, captured from real play.

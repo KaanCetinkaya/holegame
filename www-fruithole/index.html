@@ -118,6 +118,11 @@
 
   #goals { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
     padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+  /* Same backdrop as the other secondary screens — without it the map sat
+     transparent over the playfield and nothing on it could be read. */
+  #levels { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+
   /* Level map: every level you have reached, with the stars you took. The
      locked ones are shown too, so there is something to climb towards. */
   #levelGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px;
