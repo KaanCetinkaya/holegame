@@ -633,20 +633,18 @@
   #menuBanner .bt { color: #fff; font-size: 13px; font-weight: 800;
     text-shadow: 0 2px 0 rgba(0,0,0,.35); }
 
-  #menuShelf { position: absolute; z-index: 1; inset: 22% 12px auto 12px;
+  #menuShelf { position: absolute; z-index: 1; inset: 19.5% 12px auto 12px;
     display: flex; justify-content: space-between; pointer-events: none; }
   /* item standing on a plinth, label on a chip beneath it */
   #menuShelf .slot2 { width: 78px; text-align: center; }
   #menuShelf .slot2 .ic { display: grid; place-items: center; width: 62px; height: 62px;
-    margin: 0 auto 5px; border-radius: 20px; font-size: 30px; line-height: 1;
-    background: linear-gradient(180deg,#fffdf5,#ffe9bd); border: 3px solid #fff;
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.7), 0 5px 0 rgba(90,50,0,.3);
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
+    margin: 0 auto 2px; border-radius: 20px; font-size: 30px; line-height: 1; }
+  /* the pedestal is part of the render, so no plate is drawn behind it */
+  #menuShelf .slot2 .ic.icon3d { width: 74px; height: 84px; background-size: contain;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,.28)); }
   #menuShelf .slot2 .tx { display: inline-block; padding: 3px 10px; border-radius: 999px;
     font-size: 11px; font-weight: 800; color: #fff;
     background: #4a3a99; border: 2px solid #7a68d8; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
-  #menuShelf .slot2.locked .ic { background: linear-gradient(180deg,#e6e2d6,#cfc9b8);
-    border-color: #f2efe6; }
   #menuShelf .slot2.locked .ic { filter: grayscale(1); opacity: .8; }
   #overlay { background: rgba(60,35,10,.62); backdrop-filter: blur(3px); }
   #overlay .stats { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
@@ -1183,7 +1181,7 @@ function refreshMenuLevel() {
     const open = boosterUnlocked(b);
     const el = document.createElement('div');
     el.className = 'slot2' + (open ? '' : ' locked');
-    el.innerHTML = `<span class="ic">${iconInner(BOOSTER_ICON[b.id], b.icon)}</span>` +
+    el.innerHTML = iconHTML('plinth_' + BOOSTER_ICON[b.id], b.icon, 'ic') +
       `<span class="tx">${open ? '×' + (boosters[b.id] || 0) : 'Lvl ' + b.unlock}</span>`;
     shelf.appendChild(el);
   });
@@ -3035,7 +3033,10 @@ const ICON_BUILDERS = {
 
 // One renderer, used once at boot and thrown away. A second WebGL context
 // alongside the game's is fine for a handful of 256px frames.
-function renderIcons(names, size = 192) {
+// `plinth` puts the icon on a stand and lets it drop a shadow onto it, so
+// the pedestals on the menu are modelled rather than drawn in CSS behind a
+// picture — the shadow is the part that cannot be faked convincingly.
+function renderIcons(names, size = 192, plinth = false) {
   const out = {};
   let r;
   try {
@@ -3043,14 +3044,15 @@ function renderIcons(names, size = 192) {
   } catch (e) {
     return out;                       // no second context: emoji stay
   }
-  r.setSize(size, size);
+  r.setSize(size, plinth ? Math.round(size * 1.18) : size);
   r.setPixelRatio(1);
   r.shadowMap.enabled = true;
   r.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  const cam = new THREE.OrthographicCamera(-1.5, 1.5, 1.5, -1.5, 0.1, 40);
+  const halfV = plinth ? 1.77 : 1.5;
+  const cam = new THREE.OrthographicCamera(-1.5, 1.5, halfV, -halfV, 0.1, 40);
   cam.position.set(1.5, 2.0, 4.2);
-  cam.lookAt(0, 0, 0);
+  cam.lookAt(0, plinth ? -0.25 : 0, 0);
 
   for (const name of names) {
     const build = ICON_BUILDERS[name];
@@ -3059,6 +3061,10 @@ function renderIcons(names, size = 192) {
     sc.add(new THREE.HemisphereLight('#ffffff', '#8a7fd0', 1.35));
     const key = new THREE.DirectionalLight('#fff8e8', 1.5);
     key.position.set(3, 5, 4);
+    key.castShadow = true;
+    key.shadow.mapSize.set(512, 512);
+    key.shadow.camera.left = -3; key.shadow.camera.right = 3;
+    key.shadow.camera.top = 3; key.shadow.camera.bottom = -3;
     sc.add(key);
     const rim = new THREE.DirectionalLight('#bfe6f7', 0.5);
     rim.position.set(-4, 1, -2);
@@ -3076,6 +3082,21 @@ function renderIcons(names, size = 192) {
     holder.scale.setScalar(2.35 / span);
     const mid = box.getCenter(new THREE.Vector3());
     g.position.sub(mid);
+    if (plinth) {
+      holder.scale.setScalar(1.85 / span);
+      holder.position.y = 0.42;
+      const top = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.15, 1.15, 0.3, 28),
+        new THREE.MeshStandardMaterial({ color: '#7a68d8', roughness: 0.45 }));
+      top.position.y = -0.95;
+      top.receiveShadow = true;
+      sc.add(top);
+      const base = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.24, 1.32, 0.26, 28),
+        new THREE.MeshStandardMaterial({ color: '#43349c', roughness: 0.55 }));
+      base.position.y = -1.22;
+      sc.add(base);
+    }
     sc.add(holder);
     r.render(sc, cam);
     try { out[name] = r.domElement.toDataURL('image/png'); } catch (e) { /* tainted: skip */ }
@@ -3089,6 +3110,9 @@ function applyIcons() {
   Object.assign(ICONS, renderIcons([...new Set([
     ...Object.values(ICON_FOR), ...Object.values(BOOSTER_ICON), 'lock', 'speaker',
   ])]));
+  for (const [k, v] of Object.entries(renderIcons(Object.values(BOOSTER_ICON), 192, true))) {
+    ICONS['plinth_' + k] = v;
+  }
   if (!Object.keys(ICONS).length) return;
 
   const dress = (el, name) => {
