@@ -233,35 +233,32 @@
      painted scene faked with gradients, and it leaves the hole as the
      loudest thing on screen. The logo used to be the emoji, which every
      phone draws differently (Samsung paints it as a blue disc). */
+  /* No background of its own: the live diorama behind it is the backdrop.
+     A soft wash at the top and bottom keeps the wallet and the nav legible
+     over whatever the scene happens to show there. */
   #menu { gap: 8px; justify-content: flex-start; padding: 0 20px;
-    background: #ffd76b url('assets/menu-bg.png') center top / cover no-repeat;
+    background:
+      linear-gradient(180deg, rgba(10,60,70,.5) 0, rgba(10,60,70,0) 20%),
+      linear-gradient(0deg, rgba(10,60,70,.42) 0, rgba(10,60,70,0) 16%);
     overflow: hidden; }
   #menu > * { position: relative; z-index: 1; }
 
   /* the hole, with the level you are about to play sitting inside it */
   #menu .logo { position: relative; width: clamp(148px,45vw,215px); aspect-ratio: 1;
-    display: grid; place-items: center; margin: 12vh 0 0; }
-  #menu .logo::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
-    background: radial-gradient(ellipse at 50% 42%,
-      #123048 0 60%, #0b2033 67%, #eef2f6 69%, #ffffff 79%, #b9c3cd 89%, #79838f 100%);
-    box-shadow: 0 12px 0 rgba(0,0,0,.16), 0 20px 28px rgba(0,0,0,.25),
-      inset 0 -10px 20px rgba(0,0,0,.45); }
+    display: grid; place-items: center; margin: 17vh 0 0; pointer-events: none; }
+  /* Sits over the real hole in the scene behind, so it needs its own dark
+     halo rather than the disc it used to be printed on. */
   #menu .logo .lvl { position: relative; text-align: center; line-height: 1; color: #fff;
     -webkit-text-stroke: 3px #0b2033; paint-order: stroke fill;
-    text-shadow: 0 3px 0 rgba(0,0,0,.3); }
+    text-shadow: 0 3px 0 rgba(0,0,0,.45), 0 0 22px rgba(0,0,0,.6); }
   #menu .logo .lvl small { display: block; font-size: clamp(12px,3.8vw,16px); font-weight: 800;
     letter-spacing: 1px; text-transform: uppercase; color: #bfe6f7; -webkit-text-stroke-width: 2px; }
   #menu .logo .lvl b { display: block; font-size: clamp(42px,14vw,64px); font-weight: 800; }
-  #menu .logo .pip { position: absolute; font-size: clamp(28px,9vw,42px);
-    filter: drop-shadow(0 4px 4px rgba(0,0,0,.3)); }
-  #menu .logo .pip:nth-child(1) { left: -11%;  top: 3%;   transform: rotate(-16deg); }
-  #menu .logo .pip:nth-child(2) { right: -12%; top: -3%;  transform: rotate(14deg); }
-  #menu .logo .pip:nth-child(3) { right: -9%;  bottom: 6%;  transform: rotate(-9deg); }
 
   #menu h1 { margin-top: 8.5vh; font-size: clamp(32px,10.5vw,50px); letter-spacing: -1px; color: #fff;
     -webkit-text-stroke: 3px #0d7b8c; paint-order: stroke fill;
     text-shadow: 0 5px 0 #0d7b8c, 0 9px 14px rgba(0,0,0,.22); }
-  #menuSub { margin: 10px 0 auto; letter-spacing: 2px; font-size: 16px; font-weight: 800;
+  #menuSub { margin: 12vh 0 auto; letter-spacing: 2px; font-size: 16px; font-weight: 800;
     color: #fff; -webkit-text-stroke: 3px #d08a12; paint-order: stroke fill;
     text-shadow: 0 2px 0 rgba(120,60,0,.28); }
 
@@ -364,16 +361,244 @@
     background-position: 0 0, 39px 34px; }
   #menuNav > * { position: relative; z-index: 1; }
 
-  /* things left lying on the beach, so the lower sand is not bare */
-  #menuProps { position: absolute; z-index: 0; left: 0; right: 0; bottom: 15%;
-    height: 30%; pointer-events: none; }
-  #menuProps span { position: absolute; line-height: 1;
-    filter: drop-shadow(0 3px 3px rgba(120,74,10,.35)); }
-  #menuProps span:nth-child(1) { left: 7%;  bottom: 6%;  font-size: 30px; transform: rotate(-14deg); }
-  #menuProps span:nth-child(2) { right: 8%; bottom: 2%;  font-size: 26px; transform: rotate(11deg); }
-  #menuProps span:nth-child(3) { left: 15%; bottom: 46%; font-size: 22px; transform: rotate(6deg); }
-  #menuProps span:nth-child(4) { right: 13%; bottom: 52%; font-size: 25px; transform: rotate(-9deg); }
-  #menuProps span:nth-child(5) { left: 46%; bottom: 76%; font-size: 19px; transform: rotate(17deg); }
+  /* Level map: every level you have reached, with the stars you took. The
+     locked ones are shown too, so there is something to climb towards. */
+  #levelGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px;
+    width: min(94vw, 420px); max-height: 56vh; overflow-y: auto; padding: 4px; }
+  .lvBtn { pointer-events: auto; cursor: pointer; border: 3px solid #fff; border-radius: 16px;
+    padding: 8px 0 6px; background: linear-gradient(180deg,#8ce063,#4fb63a);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.4), 0 4px 0 #2f7d24; }
+  .lvBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #2f7d24; }
+  .lvBtn .n { display: block; color: #fff; font-size: 19px; font-weight: 800;
+    -webkit-text-stroke: 2px #1f6b18; paint-order: stroke fill; }
+  .lvBtn .s { display: block; font-size: 11px; color: #ffe27a; letter-spacing: 1px; }
+  .lvBtn.now { background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.5), 0 4px 0 #c67e12; }
+  .lvBtn.now .n { -webkit-text-stroke-color: #8a5406; }
+  .lvBtn.locked { background: linear-gradient(180deg,#cfc9b8,#a9a293); box-shadow: 0 4px 0 #837c6e;
+    cursor: default; }
+  .lvBtn.locked .n { -webkit-text-stroke-color: #6f6a5e; }
+  .lvBtn.locked .s { color: #f0ece2; }
+
+  #missionList, #achList { display: flex; flex-direction: column; gap: 9px;
+    width: min(94vw, 420px); margin-bottom: 4px; }
+  .upg.done { border-color: rgba(126,231,135,.6); background: rgba(126,231,135,.14); }
+  .mbar { height: 6px; border-radius: 999px; background: rgba(255,255,255,.2);
+    margin-top: 5px; overflow: hidden; }
+  .mfill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#7ee787,#39c760); }
+
+  #daily { background: rgba(60,35,10,.8); backdrop-filter: blur(4px); }
+  #dailyLoot .pill { font-size: 16px; }
+
+  #shop { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+  #shopList { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin-bottom: 4px; }
+  .screen .muted { font-size: 12px; opacity: .7; max-width: min(94vw, 420px); }
+  .upg .buy.owned { background: rgba(126,231,135,.3); color: #eaffef; box-shadow: none; }
+
+  #pause { background: rgba(40,22,8,.8); backdrop-filter: blur(4px); }
+
+  /* size badge pinned under the hole, like the other hole games */
+  #sizeTag { position: fixed; left: 0; top: 0; display: none; z-index: 6; pointer-events: none;
+    transform: translate(-50%, 0); white-space: nowrap;
+    background: linear-gradient(180deg,#4aa8ff,#1f77dd); color: #fff;
+    font-weight: 800; font-size: 14px; border-radius: 999px; padding: 5px 16px;
+    border: 2px solid rgba(255,255,255,.5); box-shadow: 0 3px 0 rgba(0,0,0,.22); }
+  #sizeTag.show { display: block; }
+  #sizeTag.grow { animation: sizePop .38s ease; }
+  @keyframes sizePop { 0%{transform:translate(-50%,0) scale(1)} 45%{transform:translate(-50%,0) scale(1.3)} 100%{transform:translate(-50%,0) scale(1)} }
+
+  /* boosters */
+  #boosterBar { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 52px);
+    display: none; gap: 16px; justify-content: center; z-index: 7; }
+  #boosterBar.show { display: flex; }
+  /* Chunky keys: white rim, lit top edge, thick dark base that the button
+     drops onto when pressed, and a count badge that overhangs the corner. */
+  .slot { position: relative; pointer-events: auto; cursor: pointer;
+    width: 66px; height: 66px; border-radius: 20px; font-size: 30px;
+    border: 3px solid #fff;
+    background: linear-gradient(180deg,#9b81e6 0%,#7d61d2 45%,#6247b5 100%);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.4),
+      inset 0 -6px 10px rgba(30,16,70,.35),
+      0 6px 0 #43308f, 0 10px 14px rgba(0,0,0,.3);
+    display: flex; align-items: center; justify-content: center;
+    text-shadow: 0 2px 3px rgba(30,16,70,.5); }
+  .slot:active { transform: translateY(4px);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.4), 0 2px 0 #43308f; }
+  .slot.locked { background: linear-gradient(180deg,#8d84ac,#635b85);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.25), 0 6px 0 #3e3660;
+    font-size: 12px; font-weight: 800; color: #fff; cursor: default; }
+  .slot.empty { filter: grayscale(.6); opacity: .6; }
+  .slot .badge { position: absolute; top: -9px; right: -9px; min-width: 26px; height: 26px;
+    border-radius: 999px; background: linear-gradient(180deg,#ff5a5a,#d5252d);
+    border: 3px solid #fff; color: #fff; font-size: 13px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; padding: 0 5px;
+    box-shadow: 0 3px 0 rgba(120,10,20,.55); }
+
+  #hint { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
+    text-align: center; pointer-events: none; color: #7a5a2a; font-size: 14px; font-weight: 600;
+    opacity: 0; transition: opacity .5s ease; z-index: 5; text-shadow: 0 1px 0 rgba(255,255,255,.4); }
+
+  /* ---- joystick ---- */
+  #joyBase { position: fixed; width: 110px; height: 110px; margin: -55px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.5); background: rgba(255,255,255,.12);
+    opacity: 0; pointer-events: none; z-index: 8; transition: opacity .15s ease; }
+  #joyKnob { position: fixed; width: 46px; height: 46px; margin: -23px; border-radius: 50%;
+    background: rgba(255,255,255,.55); pointer-events: none; z-index: 9; opacity: 0; transition: opacity .15s ease; }
+  #joyBase.show, #joyKnob.show { opacity: .55; }
+  #joyBase.drag, #joyKnob.drag { opacity: 1; }
+
+  /* ---- screens ---- */
+  .screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center;
+    justify-content: center; gap: 14px; z-index: 20; text-align: center; padding: 26px; }
+  .screen.show { display: flex; }
+  .screen h1 { color: #fff; font-size: clamp(30px,10vw,52px); font-weight: 800;
+    text-shadow: 0 3px 12px rgba(0,0,0,.45); letter-spacing: -.5px; }
+  .screen p { color: #fff; font-size: clamp(14px,4.2vw,18px); font-weight: 600; opacity: .92;
+    text-shadow: 0 2px 8px rgba(0,0,0,.4); }
+  .screen .btn { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
+    padding: 15px 46px; font-size: 19px; font-weight: 800; color: #5a3200;
+    background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow: 0 5px 0 #c67e12; margin-top: 6px; }
+  .screen .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #c67e12; }
+  .screen .btn.ghost { background: rgba(255,255,255,.18); color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.22);
+    padding: 12px 34px; font-size: 16px; }
+  .screen .btn.ghost:active { box-shadow: 0 2px 0 rgba(0,0,0,.22); }
+  .screen .btn[hidden] { display: none; }
+
+  /* ---- main menu ----
+     Three flat bands: grass, the sand the level is played on, grass again
+     under the nav bar. Flat colour reads cleaner at phone size than a
+     painted scene faked with gradients, and it leaves the hole as the
+     loudest thing on screen. The logo used to be the emoji, which every
+     phone draws differently (Samsung paints it as a blue disc). */
+  /* No background of its own: the live diorama behind it is the backdrop.
+     A soft wash at the top and bottom keeps the wallet and the nav legible
+     over whatever the scene happens to show there. */
+  #menu { gap: 8px; justify-content: flex-start; padding: 0 20px;
+    background:
+      linear-gradient(180deg, rgba(10,60,70,.5) 0, rgba(10,60,70,0) 20%),
+      linear-gradient(0deg, rgba(10,60,70,.42) 0, rgba(10,60,70,0) 16%);
+    overflow: hidden; }
+  #menu > * { position: relative; z-index: 1; }
+
+  /* the hole, with the level you are about to play sitting inside it */
+  #menu .logo { position: relative; width: clamp(148px,45vw,215px); aspect-ratio: 1;
+    display: grid; place-items: center; margin: 17vh 0 0; pointer-events: none; }
+  /* Sits over the real hole in the scene behind, so it needs its own dark
+     halo rather than the disc it used to be printed on. */
+  #menu .logo .lvl { position: relative; text-align: center; line-height: 1; color: #fff;
+    -webkit-text-stroke: 3px #0b2033; paint-order: stroke fill;
+    text-shadow: 0 3px 0 rgba(0,0,0,.45), 0 0 22px rgba(0,0,0,.6); }
+  #menu .logo .lvl small { display: block; font-size: clamp(12px,3.8vw,16px); font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase; color: #bfe6f7; -webkit-text-stroke-width: 2px; }
+  #menu .logo .lvl b { display: block; font-size: clamp(42px,14vw,64px); font-weight: 800; }
+
+  #menu h1 { margin-top: 8.5vh; font-size: clamp(32px,10.5vw,50px); letter-spacing: -1px; color: #fff;
+    -webkit-text-stroke: 3px #0d7b8c; paint-order: stroke fill;
+    text-shadow: 0 5px 0 #0d7b8c, 0 9px 14px rgba(0,0,0,.22); }
+  #menuSub { margin: 12vh 0 auto; letter-spacing: 2px; font-size: 16px; font-weight: 800;
+    color: #fff; -webkit-text-stroke: 3px #d08a12; paint-order: stroke fill;
+    text-shadow: 0 2px 0 rgba(120,60,0,.28); }
+
+  /* the primary action is the one thing that should shout */
+  /* A slab seated in a tray, not a pill with a ring drawn round it. The
+     tray is deeper below the button than above, which is what makes the
+     button look dropped into it rather than stuck on top. */
+  #playTray { position: relative; margin-top: auto; padding: 9px 11px 15px; border-radius: 28px;
+    background: linear-gradient(180deg,#7a68d8,#4a3a99);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.28), 0 7px 0 #362a78,
+      0 16px 22px rgba(0,0,0,.3); }
+  /* contact shadow, so the tray rests on the sand instead of hovering */
+  #playTray::after { content: ''; position: absolute; z-index: -1;
+    left: 6%; right: 6%; bottom: -14px; height: 20px; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 50%, rgba(120,74,10,.34) 0 55%, rgba(120,74,10,0) 72%); }
+  #playBtn { display: block; padding: 15px 72px; font-size: 30px; color: #fff;
+    border-radius: 19px; border: none; margin: 0;
+    -webkit-text-stroke: 4px #123c0c; paint-order: stroke fill;
+    background: linear-gradient(180deg,#6ade46 0%,#4cc32f 52%,#37a521 100%);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.5),
+      inset 0 -5px 8px rgba(20,60,10,.35), 0 5px 0 #2a8419; }
+  #playTray:active { padding-bottom: 11px; padding-top: 13px; }
+  #playTray:active #playBtn { box-shadow: inset 0 3px 0 rgba(255,255,255,.5), 0 2px 0 #2a8419; }
+
+  /* top strip: fruit counts on the left, sound on the right */
+  #menuTop { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top,0px) + 10px);
+    left: 10px; right: 10px; display: flex; align-items: center; gap: 6px; }
+  /* Every control shares one shape: cream face, white rim, dark bottom edge.
+     Flat chips beside a bevelled Play button look like a different app. */
+  #menuWallet { display: flex; gap: 6px; }
+  #menuWallet .mw { display: flex; align-items: center; gap: 5px; padding: 5px 12px 5px 5px;
+    border-radius: 999px; background: linear-gradient(180deg,#fffdf5,#ffefcf);
+    border: 3px solid #fff; box-shadow: 0 4px 0 rgba(90,50,0,.3); }
+  #menuWallet .mw i { width: 19px; height: 19px; border-radius: 50%; border: 2px solid #fff;
+    box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5),
+      0 2px 0 rgba(90,50,0,.25); }
+  #menuWallet .mw b { color: #6b3d00; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  /* The shop no longer takes a slot in the nav bar — it only exists when a
+     billing plugin is wired, and a tab that vanishes on the phone left the
+     bar lopsided. It sits up here beside the sound key instead. */
+  .topKey { pointer-events: auto; cursor: pointer;
+    width: 44px; height: 44px; border-radius: 14px; border: 3px solid #fff;
+    font-size: 19px; line-height: 1; color: #fff; flex: none;
+    background: linear-gradient(180deg,#7a68d8,#5444ab);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.3), 0 4px 0 #3d2f86; }
+  .topKey:active { transform: translateY(2px); box-shadow: 0 2px 0 #3d2f86; }
+  #shopBtn { margin-left: auto; }
+  #menuSound { margin-left: 6px; }
+
+  /* bottom bar, so the secondary screens stop competing with Play */
+  /* One solid bar across the bottom instead of three floating cards.
+     The icons stand free rather than on tiles — that is what the bars in
+     these games actually look like — and the selected column gets a lighter
+     panel behind it instead of a badge. */
+  #menuNav { display: flex; gap: 0; width: calc(100% + 40px); margin: 3.5vh -20px 0;
+    padding: 6px 6px calc(env(safe-area-inset-bottom,0px) + 8px);
+    background: linear-gradient(180deg,#6a58c9 0 5px,#5b49b4 5px,#4a3a99 100%);
+    box-shadow: inset 0 5px 0 rgba(255,255,255,.22); }
+  #menuNav .nav { pointer-events: auto; cursor: pointer; flex: 1; border: none; background: transparent;
+    padding: 10px 2px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    position: relative; border-radius: 0 0 16px 16px; }
+  #menuNav .nav .ic { font-size: 27px; line-height: 1;
+    filter: drop-shadow(0 3px 2px rgba(30,16,70,.55)); transition: transform .08s; }
+  #menuNav .nav:active .ic { transform: translateY(3px) scale(.94); }
+  #menuNav .nav .lb { font-size: 10px; font-weight: 800; color: #d9d2ff;
+    text-shadow: 0 2px 0 rgba(0,0,0,.3); }
+
+  /* Centre column: a lighter block standing proud of the bar with a hole
+     cut into it that the house sits in — the same hole the whole game is
+     about, and the reason the middle tab reads as the home you return to. */
+  #menuNav .nav.mid { background: linear-gradient(180deg,#9887ee,#6d5ac6);
+    box-shadow: inset 0 4px 0 rgba(255,255,255,.34), 0 -3px 0 rgba(0,0,0,.12);
+    margin-top: -20px; padding-top: 26px; border-radius: 18px 18px 0 0; }
+  #menuNav .nav.mid .ic { font-size: 38px; position: relative; z-index: 1;
+    transform: translateY(4px); }
+  #menuNav .nav.mid .ic::before { content: ''; position: absolute; z-index: -1;
+    left: 50%; bottom: 2px; transform: translateX(-50%);
+    width: 54px; height: 22px; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 35%, #1a1140 0 58%, #3a2a7a 78%, #6d5ac6 100%);
+    box-shadow: inset 0 3px 5px rgba(0,0,0,.6); }
+  #menuNav .nav.mid .lb { color: #fff; font-size: 11px; }
+
+  #menuNav .nav.alert::after { content: ''; position: absolute; right: 24%; top: 12px;
+    width: 12px; height: 12px; border-radius: 50%; background: #ff3b30;
+    border: 2px solid #fff; animation: bump 1.1s ease infinite; }
+
+  /* Stone courses across the bar, the way these menus dress the bottom
+     strip — flat purple was the last undecorated surface on the screen. */
+  #menuNav { position: relative; }
+  #menuNav::before { content: ''; position: absolute; inset: 5px 0 0; pointer-events: none;
+    background:
+      /* mortar between the blocks, offset every other course */
+      repeating-linear-gradient(90deg,
+        rgba(20,10,60,.42) 0 4px, rgba(0,0,0,0) 4px 78px),
+      repeating-linear-gradient(180deg,
+        rgba(255,255,255,.16) 0 2px,
+        rgba(0,0,0,0) 2px 32px,
+        rgba(20,10,60,.42) 32px 36px,
+        rgba(0,0,0,0) 36px 68px);
+    background-position: 0 0, 39px 34px; }
+  #menuNav > * { position: relative; z-index: 1; }
+
 
   /* what the sand used to be: empty. It now shows what is coming next and
      what is already earned, which is the only reason to look at a menu. */
@@ -451,13 +676,9 @@
     <div id="menuBanner"></div>
     <div id="menuShelf"></div>
     <div class="logo">
-      <span class="pip">🍓</span><span class="pip">🍉</span><span class="pip">🍌</span>
       <span class="lvl"><small>Level</small><b id="menuLvlN">1</b></span>
     </div>
     <p id="menuSub">Level 1</p>
-    <div id="menuProps">
-      <span>🍉</span><span>🍓</span><span>🐚</span><span>🍌</span><span>⭐</span>
-    </div>
     <div id="playTray"><button class="btn" id="playBtn">Play</button></div>
     <div id="menuNav">
       <button class="nav" id="levelsBtn"><span class="ic">🗺️</span><span class="lb">Levels</span></button>
@@ -934,9 +1155,43 @@ function refreshMenuLevel() {
   });
 }
 
+// A small island with the hole in the middle and a ring of fruit around it,
+// built from the same meshes the game uses. Drawn live behind the menu so
+// the front screen is 3D like the rest of the game instead of a flat picture.
+function buildMenuDiorama() {
+  fieldGroup.clear();
+  fieldGroup.rotation.y = 0;
+  fruits = [];
+  rocks = [];
+  eatenCount = 0; levelGoal = 0;
+  fieldHalfX = 4.6; fieldHalfZ = 4.2;
+  fitGround();
+
+  const ids = TYPES.map(t => t.id);
+  const N = 14;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2 + 0.3;
+    const rad = 2.5 + (i % 3) * 0.42;
+    const type = ids[i % ids.length];
+    const vis = fruitVisual(type, NORMAL_R * (i % 4 === 0 ? 1.25 : 1));
+    const mesh = new THREE.Mesh(vis.geo, vis.mat);
+    mesh.scale.set(vis.sx, vis.sy, vis.sx);
+    mesh.position.set(Math.cos(a) * rad, vis.baseY, Math.sin(a) * rad * 0.86);
+    mesh.rotation.y = Math.random() * Math.PI * 2;
+    mesh.rotation.x = (Math.random() - 0.5) * 0.18;
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    fieldGroup.add(mesh);
+  }
+  holeX = 0; holeZ = 0;
+  holeRadius = 1.35;
+  camX = 0; camZ = 0;
+}
+
 // Every route back to the menu goes through here, so the counts shown are
 // never the ones from before the run.
 function showMenu() {
+  state = 'menu';
+  buildMenuDiorama();
   buildMenuWallet();
   refreshMenuLevel();
   menuEl.classList.add('show');
@@ -2695,11 +2950,21 @@ function tick(now) {
   const s = holeRadius / BASE_HOLE_R;
   holeGroup.scale.set(s, 1, s);
 
-  camX += (holeX - camX) * 0.09;
-  camZ += (holeZ - camZ) * 0.09;
-  clampCamera();
-  camera.position.set(camX, 14, camZ + 2.0);
-  camera.lookAt(camX, 0, camZ);
+  if (state === 'menu') {
+    // The menu looks at a real diorama rather than a painted picture: same
+    // island, same hole, same fruit, lit and shadowed by the engine. It sits
+    // still and turns slowly, and the camera leans further back than in play
+    // so the fruit are seen from the side and read as solid.
+    fieldGroup.rotation.y += dt * 0.12;
+    camera.position.set(0, 11, 8.5);
+    camera.lookAt(0, 0, -0.4);
+  } else {
+    camX += (holeX - camX) * 0.09;
+    camZ += (holeZ - camZ) * 0.09;
+    clampCamera();
+    camera.position.set(camX, 14, camZ + 2.0);
+    camera.lookAt(camX, 0, camZ);
+  }
   camera.updateMatrixWorld();
   if (state === 'playing') updateSizeTag();
 
