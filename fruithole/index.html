@@ -118,6 +118,25 @@
 
   #goals { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
     padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+  /* Level map: every level you have reached, with the stars you took. The
+     locked ones are shown too, so there is something to climb towards. */
+  #levelGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px;
+    width: min(94vw, 420px); max-height: 56vh; overflow-y: auto; padding: 4px; }
+  .lvBtn { pointer-events: auto; cursor: pointer; border: 3px solid #fff; border-radius: 16px;
+    padding: 8px 0 6px; background: linear-gradient(180deg,#8ce063,#4fb63a);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.4), 0 4px 0 #2f7d24; }
+  .lvBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #2f7d24; }
+  .lvBtn .n { display: block; color: #fff; font-size: 19px; font-weight: 800;
+    -webkit-text-stroke: 2px #1f6b18; paint-order: stroke fill; }
+  .lvBtn .s { display: block; font-size: 11px; color: #ffe27a; letter-spacing: 1px; }
+  .lvBtn.now { background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.5), 0 4px 0 #c67e12; }
+  .lvBtn.now .n { -webkit-text-stroke-color: #8a5406; }
+  .lvBtn.locked { background: linear-gradient(180deg,#cfc9b8,#a9a293); box-shadow: 0 4px 0 #837c6e;
+    cursor: default; }
+  .lvBtn.locked .n { -webkit-text-stroke-color: #6f6a5e; }
+  .lvBtn.locked .s { color: #f0ece2; }
+
   #missionList, #achList { display: flex; flex-direction: column; gap: 9px;
     width: min(94vw, 420px); margin-bottom: 4px; }
   .upg.done { border-color: rgba(126,231,135,.6); background: rgba(126,231,135,.14); }
@@ -285,12 +304,17 @@
     box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5),
       0 2px 0 rgba(90,50,0,.25); }
   #menuWallet .mw b { color: #6b3d00; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
-  #menuSound { margin-left: auto; pointer-events: auto; cursor: pointer;
+  /* The shop no longer takes a slot in the nav bar — it only exists when a
+     billing plugin is wired, and a tab that vanishes on the phone left the
+     bar lopsided. It sits up here beside the sound key instead. */
+  .topKey { pointer-events: auto; cursor: pointer;
     width: 44px; height: 44px; border-radius: 14px; border: 3px solid #fff;
-    font-size: 19px; line-height: 1; color: #fff;
+    font-size: 19px; line-height: 1; color: #fff; flex: none;
     background: linear-gradient(180deg,#7a68d8,#5444ab);
     box-shadow: inset 0 2px 0 rgba(255,255,255,.3), 0 4px 0 #3d2f86; }
-  #menuSound:active { transform: translateY(2px); box-shadow: 0 2px 0 #3d2f86; }
+  .topKey:active { transform: translateY(2px); box-shadow: 0 2px 0 #3d2f86; }
+  #shopBtn { margin-left: auto; }
+  #menuSound { margin-left: 6px; }
 
   /* bottom bar, so the secondary screens stop competing with Play */
   /* One solid bar across the bottom instead of three floating cards.
@@ -425,7 +449,8 @@
   <div id="menu" class="screen show">
     <div id="menuTop">
       <div id="menuWallet"></div>
-      <button id="menuSound">🔊</button>
+      <button id="shopBtn" class="topKey">🛒</button>
+      <button id="menuSound" class="topKey">🔊</button>
     </div>
     <h1>Fruit Hole</h1>
     <div id="menuBanner"></div>
@@ -440,8 +465,7 @@
     </div>
     <div id="playTray"><button class="btn" id="playBtn">Play</button></div>
     <div id="menuNav">
-      <button class="nav" id="shopBtn"><span class="ic">🛒</span><span class="lb">Shop</span></button>
-      <button class="nav" id="dailyTabBtn"><span class="ic">🎁</span><span class="lb">Daily</span></button>
+      <button class="nav" id="levelsBtn"><span class="ic">🗺️</span><span class="lb">Levels</span></button>
       <button class="nav" id="upgBtn"><span class="ic">⬆️</span><span class="lb">Upgrades</span></button>
       <button class="nav mid" id="homeBtn"><span class="ic">🏠</span><span class="lb">Home</span></button>
       <button class="nav" id="goalsBtn"><span class="ic">📋</span><span class="lb">Goals</span></button>
@@ -466,6 +490,13 @@
     <p class="sect">🏆 Achievements</p>
     <div id="achList"></div>
     <button class="btn ghost" id="goalsClose">Close</button>
+  </div>
+
+  <div id="levels" class="screen">
+    <h1>🗺️ Levels</h1>
+    <p id="levelsSub" class="muted"></p>
+    <div id="levelGrid"></div>
+    <button class="btn ghost" id="levelsClose">Close</button>
   </div>
 
   <div id="daily" class="screen">
@@ -1170,10 +1201,49 @@ document.getElementById('goalsClose').addEventListener('click', () => {
 
 // Home is the tab you are already on: it just makes sure nothing else is
 // covering the menu.
-document.getElementById('dailyTabBtn').addEventListener('click', () => { showDaily(); });
+// ---------------------------------------------------------------------
+// Level map
+//
+// `level` is the furthest you have got. Anything below it can be replayed
+// to improve its star rating; anything above is locked. Replaying sets
+// `level` for the run, so finishing it must not push your progress
+// backwards — onCleared already keeps the higher of the two.
+// ---------------------------------------------------------------------
+function renderLevels() {
+  const grid = document.getElementById('levelGrid');
+  const top = level + 8;                    // a few locked ones to aim at
+  const done = Object.keys(stars).length;
+  document.getElementById('levelsSub').textContent =
+    `${done} cleared · ${Object.values(stars).reduce((a, b) => a + b, 0)} stars`;
+  grid.innerHTML = '';
+  for (let n = 1; n <= top; n++) {
+    const got = stars[n] || 0;
+    const locked = n > level;
+    const b = document.createElement('button');
+    b.className = 'lvBtn' + (n === level ? ' now' : locked ? ' locked' : '');
+    b.innerHTML = `<span class="n">${n}</span>` +
+      `<span class="s">${locked ? '🔒' : '★'.repeat(got) + '☆'.repeat(3 - got)}</span>`;
+    if (!locked) b.onclick = () => {
+      document.getElementById('levels').classList.remove('show');
+      level = n;
+      ensureAudio();
+      startLevel();
+    };
+    grid.appendChild(b);
+  }
+}
+document.getElementById('levelsBtn').addEventListener('click', () => {
+  renderLevels();
+  menuEl.classList.remove('show');
+  document.getElementById('levels').classList.add('show');
+});
+document.getElementById('levelsClose').addEventListener('click', () => {
+  document.getElementById('levels').classList.remove('show');
+  showMenu();
+});
 
 document.getElementById('homeBtn').addEventListener('click', () => {
-  ['goals', 'upgrades', 'shop', 'daily'].forEach(id =>
+  ['goals', 'upgrades', 'shop', 'daily', 'levels'].forEach(id =>
     document.getElementById(id).classList.remove('show'));
   showMenu();
 });
@@ -1266,11 +1336,8 @@ async function buyProduct(p, btn) {
 }
 
 if (!SHOW_SHOP) {
-  // Without billing the shop cannot appear, so the daily reward takes its
-  // slot and the bar keeps its five tabs with Home in the middle.
   document.getElementById('shopBtn').style.display = 'none';
-} else {
-  document.getElementById('dailyTabBtn').style.display = 'none';
+  document.getElementById('menuSound').style.marginLeft = 'auto';
 }
 document.getElementById('shopBtn').addEventListener('click', () => {
   renderShop();
@@ -2383,7 +2450,10 @@ function onCleared() {
   saveDaily();
   refreshGoalsBadge();
 
-  level++;
+  // Replaying an earlier level from the map must not roll progress back:
+  // finishing level 3 when you had reached 10 leaves you on 10.
+  const progress = parseInt(localStorage.getItem('fruithole_level') || '1', 10);
+  level = Math.max(cleared + 1, progress);
   localStorage.setItem('fruithole_level', String(level));
   refreshMenuLevel();
   const sub = isBest && prevBest > 0 ? 'New best!' : `Next: level ${level}`;
