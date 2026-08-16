@@ -181,11 +181,11 @@ Mağaza ekran görüntüleri (`fruithole/store/1-menu.png` … `5-goals.png`,
 [`store/listing-en.md`](store/listing-en.md) dosyasında.
 
 Reklam gösterildiği için gizlilik politikasının bir adreste **yayınlanması**
-zorunlu; bu yüzden [`docs/privacy-policy.html`](../docs/privacy-policy.html)
+zorunlu; bu yüzden [`docs/privacy.html`](../docs/privacy.html)
 GitHub Pages ile yayınlanıyor:
 
 ```
-https://kaancetinkaya.github.io/holegame/privacy-policy.html
+https://kaancetinkaya.github.io/holegame/privacy.html
 ```
 
 Politikayı değiştirirsen `docs/` altındaki dosyayı düzenle — Pages doğrudan

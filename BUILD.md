@@ -79,7 +79,7 @@ keyPassword=SIFREN
 ### Gizlilik politikasını yayınlama (bir kez)
 
 Reklam olduğu için Play, politikanın **açık bir adreste** durmasını istiyor.
-Dosya depoda `docs/privacy-policy.html`; depo herkese açık olduğu için
+Dosya depoda `docs/privacy.html`; depo herkese açık olduğu için
 GitHub Pages bedava yayınlıyor:
 
 GitHub → **Settings → Pages** → Source: **Deploy from a branch** →
@@ -88,7 +88,7 @@ Branch: `claude/game-development-continue-awblv7`, klasör: **`/docs`** → Save
 Birkaç dakika sonra adres hazır:
 
 ```
-https://kaancetinkaya.github.io/holegame/privacy-policy.html
+https://kaancetinkaya.github.io/holegame/privacy.html
 ```
 
 Bunu Play Console → Uygulama içeriği → **Gizlilik politikası** alanına yaz.
