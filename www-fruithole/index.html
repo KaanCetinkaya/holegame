@@ -2221,10 +2221,35 @@ let streak = 0, lastEatAt = -9999;
 let runStart = 0;
 let revivedThisLevel = false;
 
+// Seconds a perfect boustrophedon sweep of the whole board would take. The
+// hole clears a lane of its own diameter and that diameter grows as it eats,
+// so the area is integrated rather than divided by one average radius — the
+// first pass is made with a small hole and is by far the slowest part.
+function sweepSeconds() {
+  const area = fieldHalfX * 2 * fieldHalfZ * 2;
+  const steps = 60, dA = area / steps;
+  let t = 0;
+  for (let i = 0; i < steps; i++) {
+    const eaten = levelGoal * ((i + 0.5) / steps);
+    const r = Math.min(HOLE_MAX, holeRadius + eaten * 0.017);
+    t += dA / (2 * r * BASE_MOVE_SPEED);
+  }
+  return t;
+}
+
 function levelTime() {
-  // A grown hole sweeps several columns per pass, so the clock scales
-  // with the area to cover rather than with the fruit count.
-  const base = Math.round(60 + levelGoal * 0.35);
+  // Derived from the route the hole actually has to travel, not from the
+  // fruit count. Counting fruit gave sparse patterns like Island a short
+  // clock for a full-size board to sweep, while dense ones like Blocks got a
+  // long clock they did not need — Island came out impossible at the same
+  // setting that left Blocks 64% spare. Measuring the sweep makes every
+  // pattern the same difficulty.
+  //
+  // 2.6x leaves roughly a third of the clock unused on a clean run and none
+  // at all on a wandering one. The old formula (60 + fruit * 0.35) left
+  // 42-82% spare everywhere: no level could be lost, every level scored
+  // three stars, and the rewarded "+15 seconds" ad never appeared.
+  const base = Math.round(sweepSeconds() * 2.6);
   const squeeze = 1 - Math.min(0.28, tier() * 0.07);   // later cycles are tighter
   return Math.round(base * squeeze) + upg('time') * 5;
 }
