@@ -1946,6 +1946,31 @@ function fruitVisual(type, radius) {
 
 const NORMAL_R = 0.50, BIG_R = 0.72;   // cell is 1.05, so fruit almost touches
 
+// Everything on the board lies flat, and from this camera a field of discs
+// has no skyline. A totem is a post with a fruit set on top: it stands
+// clear of the surface, throws a long shadow, and has to be grown into.
+const TOTEM_POST = new THREE.CylinderGeometry(0.19, 0.23, 1, 14);
+const TOTEM_MAT = new THREE.MeshStandardMaterial({ color: '#a9713c', roughness: 0.8 });
+const TOTEM_H = 1.5;
+
+function makeTotem(type, radius) {
+  const g = new THREE.Group();
+  const post = new THREE.Mesh(TOTEM_POST, TOTEM_MAT);
+  post.scale.y = TOTEM_H;
+  post.position.y = TOTEM_H / 2;
+  post.castShadow = true; post.receiveShadow = true;
+  g.add(post);
+
+  const vis = fruitVisual(type, radius);
+  const cap = new THREE.Mesh(vis.geo, vis.mat);
+  cap.scale.set(vis.sx, vis.sy, vis.sx);
+  cap.position.y = TOTEM_H + vis.baseY * 0.7;
+  cap.rotation.y = Math.random() * Math.PI * 2;
+  cap.castShadow = true;
+  g.add(cap);
+  return g;
+}
+
 const ROCK_GEO = bumpySphere(5, 0.16, 18, 12);
 ROCK_GEO.scale(1, 0.72, 1);
 function rockTexture() {
@@ -2316,6 +2341,16 @@ function buildField() {
       // hole takes the whole stack as it passes and the pile drops in.
       const height = currentPattern.stack ? Math.max(1, currentPattern.stack(r, c)) : 1;
       for (let k = 0; k < height; k++) {
+        // Roughly one piece in twelve stands on a post instead of lying
+        // flat, so the field has a skyline to steer by.
+        if (k === height - 1 && Math.random() < 0.09) {
+          const g = makeTotem(type, radius);
+          g.position.set(x, 0, z);
+          fieldGroup.add(g);
+          fruits.push({ mesh: g, x, z, r: radius * 1.5, type, big: true,
+            eaten: false, baseY: 0, nudge: 0, totem: true });
+          continue;
+        }
         // A little jitter in size and lean. Without it every cell holds an
         // identical object and the field reads as a printed grid rather than
         // fruit that was dropped there.
@@ -3184,6 +3219,7 @@ window.fruitHoleProbe = (n) => {
   resetHole();
   return {
     fruit: fruits.length, rocks: rocks.length, seconds: levelTime(),
+    totems: fruits.filter(f => f.totem).length,
     pattern: currentPattern.name,
     holeR: holeRadius, holeMax: HOLE_MAX, speed: BASE_MOVE_SPEED,
     fieldW: fieldHalfX * 2, fieldH: fieldHalfZ * 2,
@@ -3284,8 +3320,12 @@ function tick(now) {
     camX += (holeX - camX) * 0.09;
     camZ += (holeZ - camZ) * 0.09;
     clampCamera();
-    camera.position.set(camX, 14, camZ + 2.0);
-    camera.lookAt(camX, 0, camZ);
+    // Tilted well off vertical: at the old 8 degrees anything standing was
+    // foreshortened into a disc, so a board of round fruit had no skyline
+    // and a post looked like a coin. This is enough to see the sides of
+    // things without losing the plan view the steering depends on.
+    camera.position.set(camX, 13, camZ + 6.2);
+    camera.lookAt(camX, 0, camZ - 0.4);
   }
   camera.updateMatrixWorld();
   if (state === 'playing') updateSizeTag();
