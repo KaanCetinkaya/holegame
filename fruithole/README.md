@@ -14,8 +14,6 @@ kökteki [`README.md`](../README.md) → "Hangi uygulama paketleniyor?".
 - Delik değdiği **her** meyveyi yutar ve her yutuşta biraz büyür.
 - Bazı meyveler normalden iri; delik yeterince büyümeden onları yutamaz,
   değdiğinde meyve titrer ("henüz değil" geri bildirimi).
-- **Kayalar** hiçbir boyutta yutulmaz ve deliği durdurur; etraflarından
-  dolaşmak gerekir. Bölüm 3'ten itibaren çıkarlar.
 - Arka arkaya yenen meyveler **kombo çarpanı** kazandırır (x5'e kadar),
   yani bir öbeği tek geçişte süpürmek tek tek toplamaktan kazançlıdır.
 - Tarlayı süre bitmeden temizlersen bölüm biter. Kalan süreye göre
@@ -49,9 +47,9 @@ değil deliğin tarayacağı alana göre hesaplanır (`60 + meyve × 0.35` saniy
 çünkü büyüyen delik bir geçişte birkaç sütun birden süpürür. Bölüm 1'de bu
 ~2:20, ileri bölümlerde ~3:30 ediyor.
 
-On iki desen bittiğinde oyun durmaz: her tam tur bir **kademe** sayılır,
-kademe başına süre %7 kısalır (en fazla %28) ve tarlaya daha çok kaya girer.
-Yani desenler tekrar eder, zorluk etmez.
+On iki desen bittiğinde oyun durmaz: her tam tur bir **kademe** sayılır ve
+kademe başına süre %7 kısalır (en fazla %28). Yani desenler tekrar eder,
+zorluk etmez.
 
 ## Teknik notlar
 
