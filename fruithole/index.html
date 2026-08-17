@@ -2368,58 +2368,81 @@ let holeRadius = BASE_HOLE_R;
 let holeX = 0, holeZ = 0;
 let holeGroup;
 
-// The ground is a solid plane, so the pit cannot be real geometry without
-// a stencil cut-out. From this near-overhead camera a disc painted as a
-// brick shaft falling away into darkness reads as depth just as well.
+
+// The pit cannot be cut out of a solid ground plane without a stencil pass,
+// and a shaft modelled below the plane is simply hidden by it — the ground
+// has no opening for it to show through. The mouth is therefore painted,
+// but painted as a shaft: courses of brick receding into the dark, lit down
+// one side and shadowed down the other, so it reads as depth from the side
+// as well as from overhead.
 function holeInteriorTexture() {
-  const S = 256, [c, ctx] = newCanvas(S);
+  const S = 512, [c, ctx] = newCanvas(S);
   const cx = S / 2, cy = S / 2, R = S / 2;
   ctx.save();
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
-  ctx.fillStyle = '#5c3517';
+  ctx.fillStyle = '#4a2a12';
   ctx.fillRect(0, 0, S, S);
-  const rings = 5;
+
+  // brick courses, each ring smaller and darker than the one above it
+  const rings = 7;
   for (let i = 0; i < rings; i++) {
     const r0 = R * (1 - i / rings), r1 = R * (1 - (i + 1) / rings);
-    const seg = 14 + i * 2;
-    for (let s = 0; s < seg; s++) {
-      const a0 = (s / seg) * Math.PI * 2 + (i % 2 ? Math.PI / seg : 0);
-      const a1 = a0 + (Math.PI * 2 / seg) * 0.86;
-      ctx.fillStyle = ['#6b3d18', '#5a3213', '#7a4a20'][s % 3];
+    const seg = 16 + i * 3;
+    for (let sg = 0; sg < seg; sg++) {
+      const a0 = (sg / seg) * Math.PI * 2 + (i % 2 ? Math.PI / seg : 0);
+      const a1 = a0 + (Math.PI * 2 / seg) * 0.88;
+      // light falls from the upper left, so bricks facing that way are lit
+      const mid = (a0 + a1) / 2;
+      const lit = Math.max(0, Math.cos(mid - Math.PI * 1.25));
+      const base = 74 + lit * 58 - i * 7;
+      ctx.fillStyle = `rgb(${base | 0}, ${(base * 0.62) | 0}, ${(base * 0.34) | 0})`;
       ctx.beginPath();
       ctx.arc(cx, cy, r0, a0, a1);
       ctx.arc(cx, cy, r1, a1, a0, true);
       ctx.closePath(); ctx.fill();
     }
   }
-  const g = ctx.createRadialGradient(cx, cy, R * 0.04, cx, cy, R);
+
+  // and the dark that swallows it
+  const g = ctx.createRadialGradient(cx, cy, R * 0.03, cx, cy, R);
   g.addColorStop(0, 'rgba(0,0,0,1)');
-  g.addColorStop(0.45, 'rgba(0,0,0,.94)');
-  g.addColorStop(1, 'rgba(0,0,0,.18)');
+  g.addColorStop(0.5, 'rgba(0,0,0,.92)');
+  g.addColorStop(0.86, 'rgba(0,0,0,.42)');
+  g.addColorStop(1, 'rgba(0,0,0,.1)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, S, S);
   ctx.restore();
   return finishTexture(c);
 }
 const HOLE_INTERIOR_MAT = new THREE.MeshBasicMaterial({ map: holeInteriorTexture() });
+const HOLE_RIM_MAT = new THREE.MeshStandardMaterial({
+  color: '#f59321', roughness: 0.35, metalness: 0.05,
+});
+const HOLE_LIP_MAT = new THREE.MeshStandardMaterial({ color: '#ffc978', roughness: 0.5 });
 
 function buildHole() {
   if (holeGroup) scene.remove(holeGroup);
   holeGroup = new THREE.Group();
-  const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(BASE_HOLE_R, 0.14, 14, 32),
-    new THREE.MeshStandardMaterial({ color: '#f59321', roughness: 0.42 })
-  );
+
+  // Collar: real geometry, so it takes the scene's light and throws a
+  // shadow onto the sand — the part that makes the hole sit in the ground
+  // rather than on it.
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(BASE_HOLE_R, 0.17, 18, 44), HOLE_RIM_MAT);
   rim.rotation.x = Math.PI / 2;
   rim.position.y = 0.02;
   rim.castShadow = true;
-  const inner = new THREE.Mesh(
-    new THREE.CircleGeometry(BASE_HOLE_R * 0.92, 32),
-    HOLE_INTERIOR_MAT
-  );
+  rim.receiveShadow = true;
+
+  // pale inner lip, to catch the light where the ground breaks away
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(BASE_HOLE_R * 0.91, 0.055, 12, 40), HOLE_LIP_MAT);
+  lip.rotation.x = Math.PI / 2;
+  lip.position.y = 0.055;
+
+  const inner = new THREE.Mesh(new THREE.CircleGeometry(BASE_HOLE_R * 0.9, 44), HOLE_INTERIOR_MAT);
   inner.rotation.x = -Math.PI / 2;
   inner.position.y = 0.03;
-  holeGroup.add(rim, inner);
+
+  holeGroup.add(rim, lip, inner);
   scene.add(holeGroup);
 }
 
