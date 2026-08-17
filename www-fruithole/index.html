@@ -79,7 +79,16 @@
   /* fruit wallet cards under the level badge — kept small and slightly
      see-through: they sit over the playfield, so they must read as a
      counter, not as a wall the fruit hides behind */
-  #wallet { position: absolute; left: 12px; top: 82px; display: flex; gap: 4px; opacity: .88; }
+  /* A band behind the readouts, so the HUD sits on its own surface instead
+     of floating over the fruit — the counters were unreadable against a
+     packed board and looked like part of it. */
+  /* z-index rather than a stacking rule on the children — the badge and the
+     pause key are absolutely positioned and `position: relative` on them
+     threw the whole bar out of place. */
+  #topbar::before { content: ''; position: absolute; inset: -1px 0 auto 0; height: 152px;
+    z-index: -1; background: linear-gradient(180deg, rgba(12,60,68,.62) 0 62%, rgba(12,60,68,0) 100%);
+    pointer-events: none; }
+  #wallet { position: absolute; left: 12px; top: 82px; display: flex; gap: 4px; }
   .card { width: 36px; border-radius: 11px; background: linear-gradient(180deg,#7a5fd0,#5b3fb0);
     border: 2px solid rgba(255,255,255,.45); box-shadow: 0 3px 0 rgba(0,0,0,.22);
     padding: 3px 0 4px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
@@ -90,9 +99,9 @@
   @keyframes bump { 0%{transform:scale(1)} 45%{transform:scale(1.35)} 100%{transform:scale(1)} }
 
   /* clears the wallet row above it, so the level name stays readable */
-  #patternTag { position: absolute; left: 0; right: 0; top: 126px; text-align: center;
-    color: #7a5a2a; font-weight: 700; font-size: 12px; opacity: .8;
-    text-shadow: 0 1px 0 rgba(255,255,255,.4); }
+  #patternTag { position: absolute; left: 0; right: 0; top: 124px; text-align: center;
+    color: #fff; font-weight: 800; font-size: 13px; letter-spacing: .04em;
+    text-shadow: 0 2px 0 rgba(0,0,0,.45), 0 0 10px rgba(0,0,0,.5); }
 
   #combo { position: fixed; top: 30%; left: 0; right: 0; text-align: center; pointer-events: none;
     font-weight: 800; font-size: clamp(24px, 8vw, 52px); color: #ffd23f; z-index: 6;
@@ -147,197 +156,6 @@
      transparent over the playfield and nothing on it could be read. */
   #levels { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
     padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
-
-  /* Level map: every level you have reached, with the stars you took. The
-     locked ones are shown too, so there is something to climb towards. */
-  #levelGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px;
-    width: min(94vw, 420px); max-height: 56vh; overflow-y: auto; padding: 4px; }
-  .lvBtn { pointer-events: auto; cursor: pointer; border: 3px solid #fff; border-radius: 16px;
-    padding: 8px 0 6px; background: linear-gradient(180deg,#8ce063,#4fb63a);
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.4), 0 4px 0 #2f7d24; }
-  .lvBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #2f7d24; }
-  .lvBtn .n { display: block; color: #fff; font-size: 19px; font-weight: 800;
-    -webkit-text-stroke: 2px #1f6b18; paint-order: stroke fill; }
-  .lvBtn .s { display: block; font-size: 11px; color: #ffe27a; letter-spacing: 1px; }
-  .lvBtn.now { background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow:
-      inset 0 2px 0 rgba(255,255,255,.5), 0 4px 0 #c67e12; }
-  .lvBtn.now .n { -webkit-text-stroke-color: #8a5406; }
-  .lvBtn.locked { background: linear-gradient(180deg,#cfc9b8,#a9a293); box-shadow: 0 4px 0 #837c6e;
-    cursor: default; }
-  .lvBtn.locked .n { -webkit-text-stroke-color: #6f6a5e; }
-  .lvBtn.locked .s { color: #f0ece2; }
-
-  #missionList, #achList { display: flex; flex-direction: column; gap: 9px;
-    width: min(94vw, 420px); margin-bottom: 4px; }
-  .upg.done { border-color: rgba(126,231,135,.6); background: rgba(126,231,135,.14); }
-  .mbar { height: 6px; border-radius: 999px; background: rgba(255,255,255,.2);
-    margin-top: 5px; overflow: hidden; }
-  .mfill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#7ee787,#39c760); }
-
-  #daily { background: rgba(60,35,10,.8); backdrop-filter: blur(4px); }
-  #dailyLoot .pill { font-size: 16px; }
-
-  #shop { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
-    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
-  #shopList { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin-bottom: 4px; }
-  .screen .muted { font-size: 12px; opacity: .7; max-width: min(94vw, 420px); }
-  .upg .buy.owned { background: rgba(126,231,135,.3); color: #eaffef; box-shadow: none; }
-
-  #pause { background: rgba(40,22,8,.8); backdrop-filter: blur(4px); }
-
-  /* size badge pinned under the hole, like the other hole games */
-  #sizeTag { position: fixed; left: 0; top: 0; display: none; z-index: 6; pointer-events: none;
-    transform: translate(-50%, 0); white-space: nowrap;
-    background: linear-gradient(180deg,#4aa8ff,#1f77dd); color: #fff;
-    font-weight: 800; font-size: 14px; border-radius: 999px; padding: 5px 16px;
-    border: 2px solid rgba(255,255,255,.5); box-shadow: 0 3px 0 rgba(0,0,0,.22); }
-  #sizeTag.show { display: block; }
-  #sizeTag.grow { animation: sizePop .38s ease; }
-  @keyframes sizePop { 0%{transform:translate(-50%,0) scale(1)} 45%{transform:translate(-50%,0) scale(1.3)} 100%{transform:translate(-50%,0) scale(1)} }
-
-  /* boosters */
-  #boosterBar { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 52px);
-    display: none; gap: 16px; justify-content: center; z-index: 7; }
-  #boosterBar.show { display: flex; }
-  /* Chunky keys: white rim, lit top edge, thick dark base that the button
-     drops onto when pressed, and a count badge that overhangs the corner. */
-  .slot { position: relative; pointer-events: auto; cursor: pointer;
-    width: 66px; height: 66px; border-radius: 20px; font-size: 30px;
-    border: 3px solid #fff;
-    background: linear-gradient(180deg,#9b81e6 0%,#7d61d2 45%,#6247b5 100%);
-    box-shadow: inset 0 3px 0 rgba(255,255,255,.4),
-      inset 0 -6px 10px rgba(30,16,70,.35),
-      0 6px 0 #43308f, 0 10px 14px rgba(0,0,0,.3);
-    display: flex; align-items: center; justify-content: center;
-    text-shadow: 0 2px 3px rgba(30,16,70,.5); }
-  .slot:active { transform: translateY(4px);
-    box-shadow: inset 0 3px 0 rgba(255,255,255,.4), 0 2px 0 #43308f; }
-  .slot.locked { background: linear-gradient(180deg,#8d84ac,#635b85);
-    box-shadow: inset 0 3px 0 rgba(255,255,255,.25), 0 6px 0 #3e3660;
-    font-size: 12px; font-weight: 800; color: #fff; cursor: default; }
-  .slot.empty { filter: grayscale(.6); opacity: .6; }
-  .slot .badge { position: absolute; top: -9px; right: -9px; min-width: 26px; height: 26px;
-    border-radius: 999px; background: linear-gradient(180deg,#ff5a5a,#d5252d);
-    border: 3px solid #fff; color: #fff; font-size: 13px; font-weight: 800;
-    display: flex; align-items: center; justify-content: center; padding: 0 5px;
-    box-shadow: 0 3px 0 rgba(120,10,20,.55); }
-
-  #hint { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
-    text-align: center; pointer-events: none; color: #7a5a2a; font-size: 14px; font-weight: 600;
-    opacity: 0; transition: opacity .5s ease; z-index: 5; text-shadow: 0 1px 0 rgba(255,255,255,.4); }
-
-  /* ---- joystick ---- */
-  #joyBase { position: fixed; width: 110px; height: 110px; margin: -55px; border-radius: 50%;
-    border: 3px solid rgba(255,255,255,.5); background: rgba(255,255,255,.12);
-    opacity: 0; pointer-events: none; z-index: 8; transition: opacity .15s ease; }
-  #joyKnob { position: fixed; width: 46px; height: 46px; margin: -23px; border-radius: 50%;
-    background: rgba(255,255,255,.55); pointer-events: none; z-index: 9; opacity: 0; transition: opacity .15s ease; }
-  #joyBase.show, #joyKnob.show { opacity: .55; }
-  #joyBase.drag, #joyKnob.drag { opacity: 1; }
-
-  /* ---- screens ---- */
-  .screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center;
-    justify-content: center; gap: 14px; z-index: 20; text-align: center; padding: 26px; }
-  .screen.show { display: flex; }
-  .screen h1 { color: #fff; font-size: clamp(30px,10vw,52px); font-weight: 800;
-    text-shadow: 0 3px 12px rgba(0,0,0,.45); letter-spacing: -.5px; }
-  .screen p { color: #fff; font-size: clamp(14px,4.2vw,18px); font-weight: 600; opacity: .92;
-    text-shadow: 0 2px 8px rgba(0,0,0,.4); }
-  /* Chunky keys everywhere, matching the menu — these were flat pills. */
-  .screen .btn { pointer-events: auto; cursor: pointer; border: 3px solid #fff; border-radius: 18px;
-    padding: 14px 44px; font-size: 20px; font-weight: 800; color: #5a3200; margin-top: 6px;
-    background: linear-gradient(180deg,#ffdc7a,#ffb02e);
-    box-shadow: inset 0 3px 0 rgba(255,255,255,.6), 0 6px 0 #c67e12; }
-  .screen .btn:active { transform: translateY(3px);
-    box-shadow: inset 0 3px 0 rgba(255,255,255,.6), 0 3px 0 #c67e12; }
-  .screen .btn.ghost { background: linear-gradient(180deg,#8878e2,#6a58c9); color: #fff;
-    border-color: rgba(255,255,255,.55); padding: 11px 30px; font-size: 16px;
-    box-shadow: inset 0 3px 0 rgba(255,255,255,.3), 0 5px 0 #43349c; }
-  .screen .btn.ghost:active { box-shadow: inset 0 3px 0 rgba(255,255,255,.3), 0 2px 0 #43349c; }
-  .screen .btn[hidden] { display: none; }
-
-  /* ---- main menu ----
-     Three flat bands: grass, the sand the level is played on, grass again
-     under the nav bar. Flat colour reads cleaner at phone size than a
-     painted scene faked with gradients, and it leaves the hole as the
-     loudest thing on screen. The logo used to be the emoji, which every
-     phone draws differently (Samsung paints it as a blue disc). */
-  /* No background of its own: the live diorama behind it is the backdrop.
-     A soft wash at the top and bottom keeps the wallet and the nav legible
-     over whatever the scene happens to show there. */
-  #menu { gap: 8px; justify-content: flex-start; padding: 0 20px;
-    background:
-      linear-gradient(180deg, rgba(10,60,70,.5) 0, rgba(10,60,70,0) 20%),
-      linear-gradient(0deg, rgba(10,60,70,.42) 0, rgba(10,60,70,0) 16%);
-    overflow: hidden; }
-  #menu > * { position: relative; z-index: 1; }
-
-  /* the hole, with the level you are about to play sitting inside it */
-  #menu .logo { position: relative; width: clamp(148px,45vw,215px); aspect-ratio: 1;
-    display: grid; place-items: center; margin: 17vh 0 0; pointer-events: none; }
-  /* Sits over the real hole in the scene behind, so it needs its own dark
-     halo rather than the disc it used to be printed on. */
-  #menu .logo .lvl { position: relative; text-align: center; line-height: 1; color: #fff;
-    -webkit-text-stroke: 3px #0b2033; paint-order: stroke fill;
-    text-shadow: 0 3px 0 rgba(0,0,0,.45), 0 0 22px rgba(0,0,0,.6); }
-  #menu .logo .lvl small { display: block; font-size: clamp(12px,3.8vw,16px); font-weight: 800;
-    letter-spacing: 1px; text-transform: uppercase; color: #bfe6f7; -webkit-text-stroke-width: 2px; }
-  #menu .logo .lvl b { display: block; font-size: clamp(42px,14vw,64px); font-weight: 800; }
-
-  #menu h1 { margin-top: 8.5vh; font-size: clamp(32px,10.5vw,50px); letter-spacing: -1px; color: #fff;
-    -webkit-text-stroke: 3px #0d7b8c; paint-order: stroke fill;
-    text-shadow: 0 5px 0 #0d7b8c, 0 9px 14px rgba(0,0,0,.22); }
-  #menuSub { margin: 12vh 0 auto; letter-spacing: 2px; font-size: 16px; font-weight: 800;
-    color: #fff; -webkit-text-stroke: 3px #d08a12; paint-order: stroke fill;
-    text-shadow: 0 2px 0 rgba(120,60,0,.28); }
-
-  /* the primary action is the one thing that should shout */
-  /* A slab seated in a tray, not a pill with a ring drawn round it. The
-     tray is deeper below the button than above, which is what makes the
-     button look dropped into it rather than stuck on top. */
-  #playTray { position: relative; margin-top: auto; padding: 9px 11px 15px; border-radius: 28px;
-    background: linear-gradient(180deg,#7a68d8,#4a3a99);
-    box-shadow: inset 0 3px 0 rgba(255,255,255,.28), 0 7px 0 #362a78,
-      0 16px 22px rgba(0,0,0,.3); }
-  /* contact shadow, so the tray rests on the sand instead of hovering */
-  #playTray::after { content: ''; position: absolute; z-index: -1;
-    left: 6%; right: 6%; bottom: -14px; height: 20px; border-radius: 50%;
-    background: radial-gradient(ellipse at 50% 50%, rgba(120,74,10,.34) 0 55%, rgba(120,74,10,0) 72%); }
-  #playBtn { display: block; padding: 15px 72px; font-size: 30px; color: #fff;
-    border-radius: 19px; border: none; margin: 0;
-    -webkit-text-stroke: 4px #123c0c; paint-order: stroke fill;
-    background: linear-gradient(180deg,#6ade46 0%,#4cc32f 52%,#37a521 100%);
-    box-shadow: inset 0 3px 0 rgba(255,255,255,.5),
-      inset 0 -5px 8px rgba(20,60,10,.35), 0 5px 0 #2a8419; }
-  #playTray:active { padding-bottom: 11px; padding-top: 13px; }
-  #playTray:active #playBtn { box-shadow: inset 0 3px 0 rgba(255,255,255,.5), 0 2px 0 #2a8419; }
-
-  /* top strip: fruit counts on the left, sound on the right */
-  #menuTop { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top,0px) + 10px);
-    left: 10px; right: 10px; display: flex; align-items: center; gap: 6px; }
-  /* Every control shares one shape: cream face, white rim, dark bottom edge.
-     Flat chips beside a bevelled Play button look like a different app. */
-  #menuWallet { display: flex; gap: 6px; }
-  #menuWallet .mw { display: flex; align-items: center; gap: 5px; padding: 5px 12px 5px 5px;
-    border-radius: 999px; background: linear-gradient(180deg,#fffdf5,#ffefcf);
-    border: 3px solid #fff; box-shadow: 0 4px 0 rgba(90,50,0,.3); }
-  #menuWallet .mw i { width: 19px; height: 19px; border-radius: 50%; border: 2px solid #fff;
-    box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5),
-      0 2px 0 rgba(90,50,0,.25); }
-  #menuWallet .mw b { color: #6b3d00; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
-  /* The shop no longer takes a slot in the nav bar — it only exists when a
-     billing plugin is wired, and a tab that vanishes on the phone left the
-     bar lopsided. It sits up here beside the sound key instead. */
-  .topKey { pointer-events: auto; cursor: pointer;
-    width: 44px; height: 44px; border-radius: 14px; border: 3px solid #fff;
-    font-size: 19px; line-height: 1; color: #fff; flex: none;
-    background: linear-gradient(180deg,#7a68d8,#5444ab);
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.3), 0 4px 0 #3d2f86; }
-  .topKey:active { transform: translateY(2px); box-shadow: 0 2px 0 #3d2f86; }
-  #shopBtn { margin-left: auto; }
-  #menuSound { margin-left: 6px; }
-
-  /* bottom bar, so the secondary screens stop competing with Play */
   /* A clean slab, not a brick wall. The bars these menus use are one light
      periwinkle surface with a lit top edge — the stone courses I had put on
      it were the loudest thing on the screen and nothing in the reference has
@@ -452,9 +270,10 @@
     display: flex; align-items: center; justify-content: center; padding: 0 5px;
     box-shadow: 0 3px 0 rgba(120,10,20,.55); }
 
-  #hint { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
-    text-align: center; pointer-events: none; color: #7a5a2a; font-size: 14px; font-weight: 600;
-    opacity: 0; transition: opacity .5s ease; z-index: 5; text-shadow: 0 1px 0 rgba(255,255,255,.4); }
+  #hint { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 132px);
+    text-align: center; pointer-events: none; font-size: 13px; font-weight: 800;
+    opacity: 0; transition: opacity .5s ease; z-index: 5; padding: 0 24px;
+    color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.45), 0 0 10px rgba(0,0,0,.5); }
 
   /* ---- joystick ---- */
   #joyBase { position: fixed; width: 110px; height: 110px; margin: -55px; border-radius: 50%;
