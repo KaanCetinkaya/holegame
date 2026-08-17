@@ -48,10 +48,9 @@ once, and 8 seconds of super magnetism. They unlock as you climb the levels.
 Three fresh missions every day, a login reward that grows with your streak, and
 achievements to chase.
 
-🪨 OBSTACLES
-Rocks start showing up as you progress. You can't swallow them at any size —
-you have to learn your way around them. And some fruit simply won't fit until
-you've grown into it.
+🗼 STACKS
+Fruit is piled into towers you take down in one pass, and some pieces simply
+won't fit until you've grown into them.
 
 ⚡ ONE FINGER, FULLY OFFLINE
 Press anywhere and drag. That's the whole control scheme. No connection needed.
@@ -90,7 +89,7 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 - `feature-1024x500.png` — feature graphic (required)
 - `1-menu.png` — main menu
 - `2-play.png` — gameplay
-- `3-rocks.png` — later level with rocks and a grown hole
+- `3-towers.png` — later level with stacked fruit and a grown hole
 - `4-upgrades.png` — upgrade screen
 - `5-levels.png` — the level map with star ratings
 
