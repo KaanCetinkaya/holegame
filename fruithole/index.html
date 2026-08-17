@@ -97,20 +97,29 @@
     box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5); }
   #upgWallet .counter .n { color: #fff; font-weight: 800; font-size: 13px; }
   #upgList { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin: 4px 0 8px; }
-  .upg { display: flex; align-items: center; gap: 10px; text-align: left;
-    background: rgba(255,255,255,.13); border: 2px solid rgba(255,255,255,.18);
-    border-radius: 16px; padding: 9px 11px; }
-  .upg .ico { font-size: 24px; width: 30px; text-align: center; }
+  /* Same weight as the menu: a raised card with a lit top edge, not a
+     translucent strip. These screens were left behind by the redesign. */
+  .upg { display: flex; align-items: center; gap: 11px; text-align: left;
+    background: linear-gradient(180deg,#8878e2,#6a58c9);
+    border: 3px solid rgba(255,255,255,.5); border-radius: 20px; padding: 9px 12px;
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.35), 0 5px 0 rgba(40,24,110,.45); }
+  .upg .ico { font-size: 26px; width: 46px; height: 46px; flex: none; text-align: center; }
+  .upg .ico.icon3d { background-size: contain;
+    filter: drop-shadow(0 3px 3px rgba(20,10,50,.45)); }
   .upg .mid { flex: 1; min-width: 0; }
   .upg .nm { color: #fff; font-weight: 800; font-size: 15px; }
-  .upg .ds { color: rgba(255,255,255,.75); font-weight: 600; font-size: 12px; }
+  .upg .ds { color: rgba(255,255,255,.85); font-weight: 600; font-size: 12px; }
   .upg .pips { display: flex; gap: 3px; margin-top: 4px; }
   .upg .pip { width: 16px; height: 5px; border-radius: 999px; background: rgba(255,255,255,.22); }
-  .upg .pip.on { background: linear-gradient(90deg,#ffd97a,#ffb23f); }
-  .upg .buy { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
-    padding: 9px 13px; font-weight: 800; font-size: 13px; color: #5a3200; white-space: nowrap;
-    background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow: 0 3px 0 #c67e12; }
-  .upg .buy:disabled { background: rgba(255,255,255,.16); color: rgba(255,255,255,.5); box-shadow: none; }
+  .upg .pip.on { background: linear-gradient(90deg,#ffe27a,#ffb02e);
+    box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+  .upg .buy { pointer-events: auto; cursor: pointer; border: 3px solid #fff; border-radius: 16px;
+    padding: 8px 13px; font-weight: 800; font-size: 13px; color: #5a3200; white-space: nowrap;
+    background: linear-gradient(180deg,#ffdc7a,#ffb02e);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), 0 4px 0 #c67e12; }
+  .upg .buy:active { transform: translateY(2px); box-shadow: 0 2px 0 #c67e12; }
+  .upg .buy:disabled { background: linear-gradient(180deg,#b7aee0,#948ac4); border-color: rgba(255,255,255,.4);
+    color: rgba(255,255,255,.72); box-shadow: 0 3px 0 rgba(40,24,110,.35); }
   .upg .buy .cost { display: block; font-size: 11px; font-weight: 700; opacity: .85; }
   #upgrades .sect, #goals .sect { font-size: 15px; font-weight: 800; opacity: .9; margin-top: 2px; }
   .menuRow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
@@ -218,13 +227,17 @@
     text-shadow: 0 3px 12px rgba(0,0,0,.45); letter-spacing: -.5px; }
   .screen p { color: #fff; font-size: clamp(14px,4.2vw,18px); font-weight: 600; opacity: .92;
     text-shadow: 0 2px 8px rgba(0,0,0,.4); }
-  .screen .btn { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
-    padding: 15px 46px; font-size: 19px; font-weight: 800; color: #5a3200;
-    background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow: 0 5px 0 #c67e12; margin-top: 6px; }
-  .screen .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #c67e12; }
-  .screen .btn.ghost { background: rgba(255,255,255,.18); color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.22);
-    padding: 12px 34px; font-size: 16px; }
-  .screen .btn.ghost:active { box-shadow: 0 2px 0 rgba(0,0,0,.22); }
+  /* Chunky keys everywhere, matching the menu — these were flat pills. */
+  .screen .btn { pointer-events: auto; cursor: pointer; border: 3px solid #fff; border-radius: 18px;
+    padding: 14px 44px; font-size: 20px; font-weight: 800; color: #5a3200; margin-top: 6px;
+    background: linear-gradient(180deg,#ffdc7a,#ffb02e);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.6), 0 6px 0 #c67e12; }
+  .screen .btn:active { transform: translateY(3px);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.6), 0 3px 0 #c67e12; }
+  .screen .btn.ghost { background: linear-gradient(180deg,#8878e2,#6a58c9); color: #fff;
+    border-color: rgba(255,255,255,.55); padding: 11px 30px; font-size: 16px;
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.3), 0 5px 0 #43349c; }
+  .screen .btn.ghost:active { box-shadow: inset 0 3px 0 rgba(255,255,255,.3), 0 2px 0 #43349c; }
   .screen .btn[hidden] { display: none; }
 
   /* ---- main menu ----
@@ -444,13 +457,17 @@
     text-shadow: 0 3px 12px rgba(0,0,0,.45); letter-spacing: -.5px; }
   .screen p { color: #fff; font-size: clamp(14px,4.2vw,18px); font-weight: 600; opacity: .92;
     text-shadow: 0 2px 8px rgba(0,0,0,.4); }
-  .screen .btn { pointer-events: auto; cursor: pointer; border: none; border-radius: 999px;
-    padding: 15px 46px; font-size: 19px; font-weight: 800; color: #5a3200;
-    background: linear-gradient(180deg,#ffd97a,#ffb23f); box-shadow: 0 5px 0 #c67e12; margin-top: 6px; }
-  .screen .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #c67e12; }
-  .screen .btn.ghost { background: rgba(255,255,255,.18); color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.22);
-    padding: 12px 34px; font-size: 16px; }
-  .screen .btn.ghost:active { box-shadow: 0 2px 0 rgba(0,0,0,.22); }
+  /* Chunky keys everywhere, matching the menu — these were flat pills. */
+  .screen .btn { pointer-events: auto; cursor: pointer; border: 3px solid #fff; border-radius: 18px;
+    padding: 14px 44px; font-size: 20px; font-weight: 800; color: #5a3200; margin-top: 6px;
+    background: linear-gradient(180deg,#ffdc7a,#ffb02e);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.6), 0 6px 0 #c67e12; }
+  .screen .btn:active { transform: translateY(3px);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.6), 0 3px 0 #c67e12; }
+  .screen .btn.ghost { background: linear-gradient(180deg,#8878e2,#6a58c9); color: #fff;
+    border-color: rgba(255,255,255,.55); padding: 11px 30px; font-size: 16px;
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.3), 0 5px 0 #43349c; }
+  .screen .btn.ghost:active { box-shadow: inset 0 3px 0 rgba(255,255,255,.3), 0 2px 0 #43349c; }
   .screen .btn[hidden] { display: none; }
 
   /* ---- main menu ----
@@ -557,6 +574,11 @@
   #menuShelf .slot2 .ic.icon3d { background-size: 72%; }
   .slot .ic3 { width: 40px; height: 40px; background-repeat: no-repeat;
     background-position: center; background-size: contain; }
+  /* headings carry the same models as the rest of the interface */
+  .hIco, .sIco { display: inline-block; vertical-align: -0.18em; background-repeat: no-repeat;
+    background-position: center; background-size: contain; margin-right: 8px; }
+  .hIco { width: 1.05em; height: 1.05em; }
+  .sIco { width: 1.25em; height: 1.25em; vertical-align: -0.3em; margin-right: 5px; }
   .icoImg { display: block; width: 76%; height: 76%; background-repeat: no-repeat;
     background-position: center; background-size: contain; }
 
@@ -585,7 +607,12 @@
     font-size: 11px; font-weight: 800; color: #fff;
     background: #4a3a99; border: 2px solid #7a68d8; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
   #menuShelf .slot2.locked .ic { filter: grayscale(1); opacity: .8; }
-  #overlay { background: rgba(60,35,10,.62); backdrop-filter: blur(3px); }
+  #overlay { background: rgba(30,18,60,.72); backdrop-filter: blur(4px); }
+  #overlay h1 { -webkit-text-stroke: 4px #3b2a86; paint-order: stroke fill;
+    text-shadow: 0 5px 0 #3b2a86, 0 10px 18px rgba(0,0,0,.4); }
+  #overlay .stats .pill { background: linear-gradient(180deg,#8878e2,#6a58c9);
+    border: 3px solid rgba(255,255,255,.5); box-shadow: inset 0 2px 0 rgba(255,255,255,.35),
+      0 4px 0 rgba(40,24,110,.45); color: #fff; font-weight: 800; }
   #overlay .stats { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
   #overlay .pill { background: rgba(255,255,255,.16); border-radius: 999px; padding: 6px 14px;
     color: #fff; font-weight: 700; font-size: 14px; }
@@ -650,7 +677,7 @@
   </div>
 
   <div id="shop" class="screen">
-    <h1>🛒 Shop</h1>
+    <h1><span class="hIco" data-icon="cart"></span>Shop</h1>
     <div id="shopList"></div>
     <p id="shopNote" class="muted"></p>
     <div class="menuRow">
@@ -660,33 +687,33 @@
   </div>
 
   <div id="goals" class="screen">
-    <h1>📋 Goals</h1>
+    <h1><span class="hIco" data-icon="clipboard"></span>Goals</h1>
     <p class="sect">Daily missions</p>
     <div id="missionList"></div>
-    <p class="sect">🏆 Achievements</p>
+    <p class="sect"><span class="sIco" data-icon="trophy"></span>Achievements</p>
     <div id="achList"></div>
     <button class="btn ghost" id="goalsClose">Close</button>
   </div>
 
   <div id="levels" class="screen">
-    <h1>🗺️ Levels</h1>
+    <h1><span class="hIco" data-icon="map"></span>Levels</h1>
     <p id="levelsSub" class="muted"></p>
     <div id="levelGrid"></div>
     <button class="btn ghost" id="levelsClose">Close</button>
   </div>
 
   <div id="daily" class="screen">
-    <h1>🎁 Daily Reward</h1>
+    <h1><span class="hIco" data-icon="star"></span>Daily Reward</h1>
     <p id="dailySub"></p>
     <div class="stats" id="dailyLoot"></div>
     <button class="btn" id="dailyBtn">Claim</button>
   </div>
 
   <div id="upgrades" class="screen">
-    <h1>⬆️ Upgrades</h1>
+    <h1><span class="hIco" data-icon="arrow"></span>Upgrades</h1>
     <div id="upgWallet"></div>
     <div id="upgList"></div>
-    <p class="sect">🎁 Boosters</p>
+    <p class="sect"><span class="sIco" data-icon="burst"></span>Boosters</p>
     <div id="boostShop"></div>
     <button class="btn ghost" id="upgClose">Close</button>
   </div>
@@ -739,6 +766,7 @@ const ICON_FOR = {
   goalsBtn: 'clipboard', awardsBtn: 'trophy', shopBtn: 'cart',
 };
 const BOOSTER_ICON = { time: 'clock', grow: 'burst', magnet: 'star' };
+const UPGRADE_ICON = { speed: 'dash', size: 'ring', time: 'clock', magnet: 'magnet' };
 
 const COLS = 13;
 let rows = 22;
@@ -1199,7 +1227,7 @@ function renderUpgrades() {
     const row = document.createElement('div');
     row.className = 'upg';
     row.innerHTML =
-      `<span class="ico">${u.icon}</span>` +
+      iconHTML(UPGRADE_ICON[u.id], u.icon, 'ico') +
       `<span class="mid">` +
         `<span class="nm">${u.name}</span>` +
         `<div class="ds">${lv ? u.desc(lv) : 'Not upgraded yet'}</div>` +
@@ -1235,7 +1263,7 @@ function renderBoostShop() {
     const row = document.createElement('div');
     row.className = 'upg';
     row.innerHTML =
-      `<span class="ico">${b.icon}</span>` +
+      iconHTML(BOOSTER_ICON[b.id], b.icon, 'ico') +
       `<span class="mid">` +
         `<span class="nm">${b.name}</span>` +
         `<div class="ds">${b.desc}</div>` +
@@ -2978,6 +3006,29 @@ const ICON_BUILDERS = {
     g.add(part(new THREE.SphereGeometry(0.16, 12, 10), ICON_MAT.green, 0.06, 0.02, 0.3));
     g.add(part(new THREE.SphereGeometry(0.16, 12, 10), ICON_MAT.gold, 0.4, 0.02, 0.26));
   },
+  // horseshoe magnet
+  magnet(g) {
+    const arc = part(new THREE.TorusGeometry(0.6, 0.26, 12, 24, Math.PI), ICON_MAT.red, 0, -0.1, 0);
+    g.add(arc);
+    for (const sx of [-1, 1]) {
+      g.add(part(new THREE.CylinderGeometry(0.26, 0.26, 0.42, 16), ICON_MAT.cream, sx * 0.6, -0.31, 0));
+    }
+  },
+  // open ring, for starting size
+  ring(g) {
+    const r = part(new THREE.TorusGeometry(0.72, 0.22, 14, 28), ICON_MAT.gold);
+    r.rotation.x = 0.5;
+    g.add(r);
+  },
+  // three speed streaks
+  dash(g) {
+    for (let i = 0; i < 3; i++) {
+      const bar = part(new THREE.CapsuleGeometry(0.13, 0.9 - i * 0.22, 6, 12),
+        ICON_MAT.blue, 0.1 * i, 0.5 - i * 0.5, 0);
+      bar.rotation.z = Math.PI / 2;
+      g.add(bar);
+    }
+  },
   clock(g) {
     for (const sx of [-1, 1])
       g.add(part(new THREE.SphereGeometry(0.26, 14, 12), ICON_MAT.red, sx * 0.6, 0.62, -0.05));
@@ -3139,7 +3190,11 @@ function applyIcons() {
   // Nav icons share the bar's palette; the boosters keep their own colours
   // because they sit on pedestals over the scene, not in the bar.
   Object.assign(ICONS, renderIcons(Object.values(ICON_FOR), 192, false, NAV_PALETTE));
-  Object.assign(ICONS, renderIcons([...Object.values(BOOSTER_ICON), 'lock', 'speaker']));
+  for (const [k, v] of Object.entries(ICONS)) ICONS['nav_' + k] = v;
+  Object.assign(ICONS, renderIcons([...new Set([
+    ...Object.values(BOOSTER_ICON), ...Object.values(UPGRADE_ICON),
+    'lock', 'speaker', 'trophy', 'clipboard', 'map', 'cart',
+  ])]));
   for (const [k, v] of Object.entries(renderIcons(Object.values(BOOSTER_ICON), 192, true))) {
     ICONS['plinth_' + k] = v;
   }
@@ -3154,8 +3209,14 @@ function applyIcons() {
   };
   for (const [id, name] of Object.entries(ICON_FOR)) {
     const b = document.getElementById(id);
-    if (b) dress(b.querySelector('.ic'), name);
+    if (b) dress(b.querySelector('.ic'), 'nav_' + name);
   }
+  // headings and section labels
+  document.querySelectorAll('.hIco, .sIco').forEach(el => {
+    const url = ICONS[el.dataset.icon];
+    if (url) el.style.backgroundImage = `url(${url})`;
+  });
+
   const sound = document.getElementById('menuSound');
   if (sound && ICONS.speaker) {
     sound.textContent = '';
