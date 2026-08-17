@@ -2306,6 +2306,10 @@ const PATTERNS = [
 
 function buildField() {
   fieldGroup.clear();
+  // The menu diorama turns this group, and clear() does not touch the
+  // transform — without this the board starts rotated by however long you
+  // sat on the menu, so the rows run diagonally and the whole field leans.
+  fieldGroup.rotation.set(0, 0, 0);
   fruits = [];
   eatenCount = 0;
   fieldHalfX = (COLS * CELL) / 2;
@@ -2334,15 +2338,16 @@ function buildField() {
         // A little jitter in size and lean. Without it every cell holds an
         // identical object and the field reads as a printed grid rather than
         // fruit that was dropped there.
-        const jit = 0.92 + Math.random() * 0.16;
+        const jit = 0.96 + Math.random() * 0.08;
         const mesh = new THREE.Mesh(vis.geo, vis.mat);
         const y = vis.baseY * jit + k * vis.sy * 2.05;
         mesh.scale.set(vis.sx * jit, vis.sy * jit, vis.sx * jit);
         mesh.position.set(x, y, z);
         mesh.userData.ox = x; mesh.userData.oz = z;
+        // Spin only about the upright axis. Leaning them was meant to look
+        // casual, but a tilted disc seen from above sits off its own centre
+        // and the rows come out wavy — the whole grid reads as crooked.
         mesh.rotation.y = Math.random() * Math.PI * 2;
-        mesh.rotation.x = (Math.random() - 0.5) * 0.16;
-        mesh.rotation.z = (Math.random() - 0.5) * 0.16;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         fieldGroup.add(mesh);
@@ -3255,6 +3260,23 @@ function iconInner(name, emoji) {
 // placed in — zero unless something is pulling them.
 window.fruitHoleDrift = () => fruits.reduce((a, f) =>
   a + (f.eaten ? 0 : Math.hypot(f.x - f.mesh.userData.ox, f.z - f.mesh.userData.oz)), 0);
+
+// Frames a whole level from straight above and draws one frame — used to
+// check that a pattern still reads as its shape.
+window.fruitHoleFieldRot = () => fieldGroup.rotation.y;
+
+window.fruitHoleTopDown = (n, aspect) => {
+  window.fruitHoleProbe(n);
+  const h = Math.max(fieldHalfX, fieldHalfZ) * 1.12;
+  camera.left = -h; camera.right = h;
+  camera.top = h * aspect; camera.bottom = -h * aspect;
+  camera.updateProjectionMatrix();
+  camera.position.set(0, 40, 0.001);
+  camera.lookAt(0, 0, 0);
+  camera.updateMatrixWorld();
+  renderer.render(scene, camera);
+  return currentPattern.name;
+};
 
 window.fruitHoleProbe = (n) => {
   level = n; sizeStage = n;
