@@ -1554,13 +1554,22 @@ const camera = new THREE.OrthographicCamera(-8, 8, 8, -8, 0.1, 100);
 // into shade and reads as muddy at this size.
 scene.add(new THREE.HemisphereLight('#ffffff', '#f0b877', 1.5));
 scene.add(new THREE.AmbientLight('#fff4de', 0.45));
+// Nearly overhead. A low sun throws a shadow as long as the tower is tall,
+// and once every cell holds a tower the board is covered in parallel streaks
+// running off to one side — which is read, correctly, as everything leaning.
 const sun = new THREE.DirectionalLight('#fff8e8', 0.72);
-sun.position.set(5, 12, 6);
+const SUN_OFFSET = new THREE.Vector3(3, 15, 3.6);
+sun.position.copy(SUN_OFFSET);
 sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
 sun.shadow.camera.left = -12; sun.shadow.camera.right = 12;
 sun.shadow.camera.top = 12; sun.shadow.camera.bottom = -12;
+sun.shadow.bias = -0.0006;
 scene.add(sun);
+// A directional light aims at its target, and the target does not move on
+// its own. Left at the origin the shadow box stays where the field started,
+// so the far half of a big level had no shadows at all.
+scene.add(sun.target);
 
 // ---------------------------------------------------------------------
 // Fruit look: procedural textures + per-type geometry
@@ -1606,12 +1615,18 @@ function strawberryTexture(t) {
     }
   }
 
-  // sheen down one side so the body does not read flat
-  const sh = ctx.createLinearGradient(0, 0, S * 0.55, 0);
-  sh.addColorStop(0, 'rgba(255,255,255,.30)');
+  // Sheen down one side so the body does not read flat. It has to fade in
+  // and out inside the canvas: the left and right edges meet on the sphere,
+  // so a band that is still bright where it stops leaves a hard vertical
+  // line down the berry — which looked like a pale panel slid off to one
+  // side, and made a whole stack of them read as leaning.
+  const sh = ctx.createLinearGradient(0, 0, S, 0);
+  sh.addColorStop(0, 'rgba(255,255,255,0)');
+  sh.addColorStop(0.3, 'rgba(255,255,255,.26)');
+  sh.addColorStop(0.62, 'rgba(255,255,255,0)');
   sh.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.fillStyle = sh;
-  ctx.fillRect(0, 0, S * 0.55, S);
+  ctx.fillRect(0, 0, S, S);
 
   // calyx: green star across the pole band, plus a stub of stem at the centre
   ctx.fillStyle = '#3f9a3a';
@@ -2222,6 +2237,10 @@ function buildField() {
         // casual, but a tilted disc seen from above sits off its own centre
         // and the rows come out wavy — the whole grid reads as crooked.
         mesh.rotation.y = Math.random() * Math.PI * 2;
+        // Casts onto the ground, but never receives. In a tower each piece
+        // sits square in the shadow of the one above it, leaving a lit sliver
+        // down one side — every ball then looks shoved off its own centre and
+        // the stack reads as toppling. Fruit lit only by the sky is cleaner.
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         fieldGroup.add(mesh);
@@ -3247,6 +3266,40 @@ window.fruitHoleDrift = () => fruits.reduce((a, f) =>
 window.fruitHoleFieldRot = () => fieldGroup.rotation.y;
 window.fruitHoleFlecks = () => flecks.length;
 
+// "Are the stacks leaning?" — projects the tallest tower's foot and crown
+// into screen space. Under the orthographic camera a plumb tower must come
+// out perfectly vertical, so any sideways drift here is a real lean.
+window.fruitHoleLean = () => {
+  let best = null;
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    if (!best || f.mesh.position.y > best.mesh.position.y) best = f;
+  }
+  if (!best) return null;
+  const v = new THREE.Vector3();
+  const toScreen = (y) => {
+    v.set(best.mesh.position.x, y, best.mesh.position.z).project(camera);
+    return { x: (v.x + 1) * 0.5 * innerWidth, y: (1 - v.y) * 0.5 * innerHeight };
+  };
+  const foot = toScreen(0), crown = toScreen(best.mesh.position.y);
+  const at = (r, c) => {
+    const g = gridToWorld(r, c);
+    v.set(g.x, 0, g.z).project(camera);
+    return { x: (v.x + 1) * 0.5 * innerWidth, y: (1 - v.y) * 0.5 * innerHeight };
+  };
+  const deg = (a, b) => +(Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI).toFixed(2);
+  const o = at(10, 0), alongRow = at(10, 12), alongCol = at(20, 0);
+  return {
+    fieldRotY: fieldGroup.rotation.y,
+    towerHeight: +best.mesh.position.y.toFixed(3),
+    screenDx: +(crown.x - foot.x).toFixed(2),
+    screenDy: +(crown.y - foot.y).toFixed(2),
+    rowAngleDeg: deg(o, alongRow),   // a grid row across the screen: want 0
+    colAngleDeg: deg(o, alongCol),   // a grid column down the screen: want 90
+    sun: [sun.position.x, sun.position.y, sun.position.z],
+  };
+};
+
 window.fruitHoleTopDown = (n, aspect, tilt = 0) => {
   window.fruitHoleProbe(n);
   const h = Math.max(fieldHalfX, fieldHalfZ) * 1.12;
@@ -3380,6 +3433,10 @@ function tick(now) {
     camera.lookAt(camX + kx, 0, camZ - 0.4 + kz);
   }
   camera.updateMatrixWorld();
+  // Carry the shadow box along with the view so the whole field is shadowed
+  // the same way, not just the patch around the origin.
+  sun.target.position.set(camera.position.x, 0, camera.position.z - 3);
+  sun.position.copy(sun.target.position).add(SUN_OFFSET);
   if (state === 'playing') updateSizeTag();
 
   renderer.render(scene, camera);
