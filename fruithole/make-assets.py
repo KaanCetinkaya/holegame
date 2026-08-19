@@ -12,7 +12,12 @@ paletiyle aynı kalır ve boyutlar tek komutla yeniden üretilebilir.
     fruithole/assets/icon-background.png  1024x1024  (adaptive arka plan)
     fruithole/assets/splash.png           2732x2732
     fruithole/assets/splash-dark.png      2732x2732
-    fruithole/store/feature-1024x500.png  (Play Console feature grafiği)
+
+Feature grafiği burada değil: artık oyunun kendi görüntüsünden çekiliyor,
+çünkü tarla artık istiflenmiş kulelerden oluşuyor ve elle çizilmiş düz
+daireler oyunun görüntüsüne benzemiyor.
+
+    node fruithole/make-feature.mjs
 """
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -185,59 +190,9 @@ def make_splash():
         img.save(ASSETS / name)
 
 
-FONT_BOLD = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-
-
-def load_font(size):
-    try:
-        from PIL import ImageFont
-        return ImageFont.truetype(FONT_BOLD, size)
-    except Exception:
-        return None
-
-
-def outlined_text(d, xy, text, font, fill, outline, width):
-    """Kum zeminde okunsun diye yazıyı koyu bir konturla çizer."""
-    x, y = xy
-    for dx in range(-width, width + 1):
-        for dy in range(-width, width + 1):
-            if dx or dy:
-                d.text((x + dx, y + dy), text, font=font, fill=outline)
-    d.text((x, y), text, font=font, fill=fill)
-
-
-def make_feature():
-    w, h = 1024, 500
-    img = Image.new('RGB', (w, h), SAND)
-    d = ImageDraw.Draw(img)
-    for y in range(h):
-        d.line([(0, y), (w, y)], fill=lerp(SAND, SAND_DARK, y / h))
-
-    # sağda çukur sahnesi, solda oyunun adı
-    scene(d, w * 0.76, h * 0.5, 0.60)
-
-    import math
-    row = [strawberry, watermelon, banana]
-    for i in range(6):
-        a = i * 1.1
-        row[i % 3](d, 66 + i * 30, 428 + math.sin(a) * 14, 26)
-
-    title = load_font(92)
-    sub = load_font(34)
-    if title:
-        outlined_text(d, (58, 132), 'FRUIT', title, (255, 255, 255), (120, 68, 16), 4)
-        outlined_text(d, (58, 232), 'HOLE', title, (255, 216, 92), (120, 68, 16), 4)
-    if sub:
-        outlined_text(d, (62, 344), 'Swallow it all, grow, clear the field', sub, (255, 255, 255), (120, 68, 16), 3)
-
-    STORE.mkdir(parents=True, exist_ok=True)
-    img.save(STORE / 'feature-1024x500.png')
-
-
 if __name__ == '__main__':
     make_icon()
     make_splash()
-    make_feature()
     for p in sorted(list(ASSETS.glob('*.png')) + list(STORE.glob('*.png'))):
         print(f'{p.relative_to(ROOT.parent)}  {Image.open(p).size}')
 

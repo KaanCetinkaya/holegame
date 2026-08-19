@@ -3300,6 +3300,15 @@ window.fruitHoleLean = () => {
   };
 };
 
+// Pull the play camera back without changing its angle — used to shoot store
+// art, where a screenful of six giant fruit says nothing about the level.
+window.fruitHoleZoom = (halfWidth) => {
+  const aspect = innerWidth / innerHeight;
+  camera.left = -halfWidth; camera.right = halfWidth;
+  camera.top = halfWidth / aspect; camera.bottom = -halfWidth / aspect;
+  camera.updateProjectionMatrix();
+};
+
 window.fruitHoleTopDown = (n, aspect, tilt = 0) => {
   window.fruitHoleProbe(n);
   const h = Math.max(fieldHalfX, fieldHalfZ) * 1.12;
