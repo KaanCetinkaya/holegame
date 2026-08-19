@@ -14,6 +14,10 @@ kökteki [`README.md`](../README.md) → "Hangi uygulama paketleniyor?".
 - Delik değdiği **her** meyveyi yutar ve her yutuşta biraz büyür.
 - Bazı meyveler normalden iri; delik yeterince büyümeden onları yutamaz,
   değdiğinde meyve titrer ("henüz değil" geri bildirimi).
+- Her tarlada 4-6 tane de **dev meyve** var: ağzın iki katından geniş,
+  çevresi boş bırakılmış. Bölüm 1'de birini açmak için tarlanın yaklaşık
+  üçte birini süpürmek gerekiyor; karşılığında 12 kat meyve ve tek
+  seferde ciddi bir büyüme veriyor. Bir turda hedef alacağın şey bunlar.
 - Arka arkaya yenen meyveler **kombo çarpanı** kazandırır (x5'e kadar),
   yani bir öbeği tek geçişte süpürmek tek tek toplamaktan kazançlıdır.
 - Tarlayı süre bitmeden temizlersen bölüm biter. Kalan süreye göre

@@ -48,9 +48,11 @@ once, and 8 seconds of super magnetism. They unlock as you climb the levels.
 Three fresh missions every day, a login reward that grows with your streak, and
 achievements to chase.
 
-🗼 STACKS
-Fruit is piled into towers you take down in one pass, and some pieces simply
-won't fit until you've grown into them.
+🗼 STACKS AND GIANTS
+Fruit is piled into towers you take down in one pass. Scattered across every
+field are giants — pieces more than twice the width of your opening, sitting
+on cleared ground. You cannot touch them at the start. Sweep enough of the
+field, grow into one, and it pays for the whole trip.
 
 ⚡ ONE FINGER, FULLY OFFLINE
 Press anywhere and drag. That's the whole control scheme. No connection needed.

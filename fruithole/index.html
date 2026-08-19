@@ -1841,6 +1841,14 @@ function fruitVisual(type, radius) {
 
 const NORMAL_R = 0.50, BIG_R = 0.72;   // cell is 1.05, so fruit almost touches
 
+// A third tier, far wider than a cell. The hole opens at 0.62 and a "big"
+// fruit at 0.72 needs it barely a tenth larger, so the size gate never
+// really bit — you could eat everything on the board from the first second.
+// A giant sits at more than twice the opening: it is visibly out of reach
+// when the level starts, and clearing enough small fruit to take it is the
+// thing you aim at while sweeping.
+const GIANT_R = 1.34;
+
 
 // ---------------------------------------------------------------------
 // Ground
@@ -1906,6 +1914,13 @@ function fitGround() {
 const CELL = 1.05;
 let fieldHalfX = (COLS * CELL) / 2;
 let fieldHalfZ = (rows * CELL) / 2;
+
+// Where a level starts. It has a name because the field builder has to keep
+// the giants off it, and the value is not the origin — the hole opens near
+// the bottom edge, so "away from the middle of the board" is a different
+// place entirely.
+const SPAWN_X = 0;
+const spawnZ = () => fieldHalfZ * 0.55;
 const fieldGroup = new THREE.Group();
 scene.add(fieldGroup);
 let fruits = [];
@@ -2248,8 +2263,67 @@ function buildField() {
       }
     }
   }
+  placeGiants();
   // A level ends when every fruit on the field has been eaten.
   levelGoal = fruits.length;
+}
+
+// Drop a few giants into the field, each on its own patch of open ground.
+//
+// They are placed after the grid rather than inside it because one is wider
+// than three cells: it has to clear the small fruit it stands on, or it would
+// sit half-buried in a tower and there would be no way to tell it apart.
+// The gap it leaves is the tell — an object too big to take, with room around
+// it, reads as a target rather than as scenery.
+function placeGiants() {
+  const spots = [];
+  for (const f of fruits) {
+    if (f.big) continue;
+    if (Math.hypot(f.x - SPAWN_X, f.z - spawnZ()) < 3.4) continue;   // not on the spawn
+    spots.push(f);
+  }
+  if (!spots.length) return;
+
+  const want = 3 + Math.floor(Math.random() * 3) + Math.min(3, Math.floor(rows / 12));
+  const placed = [];
+  const CLEAR = GIANT_R + NORMAL_R * 1.5;
+
+  for (let tries = 0; tries < want * 30 && placed.length < want; tries++) {
+    const seed = spots[Math.floor(Math.random() * spots.length)];
+    if (seed.eaten) continue;                       // already cleared by a giant
+    // Two giants touching read as one lump, so keep them well apart.
+    if (placed.some(g => Math.hypot(g.x - seed.x, g.z - seed.z) < GIANT_R * 4.5)) continue;
+    // and inside the board, not hanging off the last row
+    if (Math.abs(seed.x) > fieldHalfX - GIANT_R || Math.abs(seed.z) > fieldHalfZ - GIANT_R) continue;
+
+    // clear its footprint
+    for (const f of fruits) {
+      if (f.eaten) continue;
+      if (Math.hypot(f.x - seed.x, f.z - seed.z) > CLEAR) continue;
+      fieldGroup.remove(f.mesh);
+      f.eaten = true;                               // dropped before the level starts
+      f.mesh.visible = false;
+    }
+
+    const type = seed.type;
+    const vis = fruitVisual(type, GIANT_R);
+    const mesh = new THREE.Mesh(vis.geo, vis.mat);
+    mesh.scale.set(vis.sx, vis.sy, vis.sx);
+    mesh.position.set(seed.x, vis.baseY, seed.z);
+    mesh.userData.ox = seed.x; mesh.userData.oz = seed.z;
+    mesh.rotation.y = Math.random() * Math.PI * 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    fieldGroup.add(mesh);
+    const g = { mesh, x: seed.x, z: seed.z, r: GIANT_R, type,
+                big: true, giant: true, eaten: false, baseY: vis.baseY, nudge: 0 };
+    fruits.push(g);
+    placed.push(g);
+  }
+
+  // The pieces a giant displaced were marked eaten so nothing else lands on
+  // them; drop them from the list so they are not counted towards the goal.
+  fruits = fruits.filter(f => !f.eaten);
 }
 
 // ---------------------------------------------------------------------
@@ -2258,7 +2332,7 @@ function buildField() {
 const BASE_HOLE_R = 0.62;
 const HOLE_MAX = BASE_HOLE_R + 2.2;
 let holeRadius = BASE_HOLE_R;
-let holeX = 0, holeZ = 0;
+let holeX = SPAWN_X, holeZ = 0;
 let holeGroup;
 
 
@@ -2341,8 +2415,8 @@ function buildHole() {
 
 function resetHole() {
   holeRadius = BASE_HOLE_R + (sizeStage - 1) * 0.05 + upg('size') * 0.06;
-  holeX = 0;
-  holeZ = fieldHalfZ * 0.55;
+  holeX = SPAWN_X;
+  holeZ = spawnZ();
   buildHole();
 }
 
@@ -2666,7 +2740,11 @@ function checkEat(now) {
       // over the opening is enough -- it falls in. Demanding a near-exact
       // pass over each centre made sweeping a field far too slow.
       if (dist < holeRadius * 0.95) eatFruit(f, now);
-    } else if (dist < holeRadius && f.nudge <= 0) {
+    } else if (dist < holeRadius + f.r * 0.55 && f.nudge <= 0) {
+      // Bumping it is the feedback, so it has to fire on contact. Waiting
+      // until the hole's centre reached the fruit's meant a giant, which is
+      // wider than the opening, sat there silently while the hole slid
+      // underneath it.
       f.nudge = 0.28;
       sfx.blocked();
     }
@@ -2749,7 +2827,9 @@ function eatFruit(f, now) {
   streak = (now - lastEatAt < 900) ? streak + 1 : 1;
   lastEatAt = now;
   const mult = Math.min(5, 1 + Math.floor(streak / 4));
-  bumpCurrency(f.type, mult);
+  // A giant is worth what it cost to grow into it, otherwise the reward for
+  // the one thing on the board you had to work towards is a single fruit.
+  bumpCurrency(f.type, f.giant ? mult * 12 : mult);
   stats.fruits++;
   daily.fruits = (daily.fruits || 0) + 1;
   if (mult > stats.bestCombo) stats.bestCombo = mult;
@@ -2758,7 +2838,10 @@ function eatFruit(f, now) {
   updateProgressUI();
   sfx.eat(streak);
   // clamp must never shrink a hole that already starts above the cap
-  if (holeRadius < HOLE_MAX) holeRadius = Math.min(holeRadius + (f.big ? 0.05 : 0.017), HOLE_MAX);
+  if (holeRadius < HOLE_MAX) {
+    const grow = f.giant ? 0.16 : f.big ? 0.05 : 0.017;
+    holeRadius = Math.min(holeRadius + grow, HOLE_MAX);
+  }
 
   burst(f.x, f.mesh.position.y, f.z, f.type);
   rimPulse = 1;
@@ -3264,6 +3347,20 @@ window.fruitHoleDrift = () => fruits.reduce((a, f) =>
 // Frames a whole level from straight above and draws one frame — used to
 // check that a pattern still reads as its shape.
 window.fruitHoleFieldRot = () => fieldGroup.rotation.y;
+
+// Giants per level, and how far the nearest one is from the opening.
+window.fruitHoleGiants = () => {
+  const g = fruits.filter(f => f.giant && !f.eaten);
+  return {
+    count: g.length,
+    total: fruits.filter(f => !f.eaten).length,
+    nearestToSpawn: g.length
+      ? +Math.min(...g.map(f => Math.hypot(f.x - SPAWN_X, f.z - spawnZ()))).toFixed(2)
+      : null,
+    holeR: +holeRadius.toFixed(2),
+    needR: +(GIANT_R / 0.92).toFixed(2),
+  };
+};
 window.fruitHoleFlecks = () => flecks.length;
 
 // "Are the stacks leaning?" — projects the tallest tower's foot and crown
