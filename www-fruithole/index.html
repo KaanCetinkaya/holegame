@@ -1839,6 +1839,154 @@ function fruitVisual(type, radius) {
   return { geo: GEO[type], mat: MAT[type], sx: radius, sy: radius, baseY: radius };
 }
 
+// ---------------------------------------------------------------------
+// Props
+//
+// Everyday objects scattered through the fruit. A field of nothing but
+// discs and spheres reads as one texture however many colours are in it —
+// there is no landmark, so nowhere on the board looks different from
+// anywhere else and you cannot tell at a glance where you have already
+// swept. An object with a silhouette fixes that.
+//
+// Each one is built once as a template and cloned per instance, so a
+// hundred donuts are a hundred transforms over one geometry.
+//
+// They are drawn to be read from almost straight overhead, which rules out
+// most of what you might pick: a television or a fridge is a plain rectangle
+// from the top and says nothing. What survives is objects with a hole, a
+// handle, or a limb sticking out.
+//
+// A prop is not a fifth currency. Each one pays into one of the four fruit
+// counters, so the shop, the upgrades and the goal counting never learn that
+// props exist.
+// ---------------------------------------------------------------------
+const PROP_MAT = (color, rough = 0.38) =>
+  new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0.03 });
+
+function propTemplates() {
+  const T = {};
+  const put = (g, mesh, x, y, z, rx = 0, ry = 0, rz = 0) => {
+    mesh.position.set(x, y, z);
+    mesh.rotation.set(rx, ry, rz);
+    mesh.castShadow = true;
+    g.add(mesh);
+    return mesh;
+  };
+
+  // Ice lolly — a rounded slab with a stick out of one end. The stick is
+  // what makes it read; without it this is a lozenge.
+  {
+    const g = new THREE.Group();
+    const body = PROP_MAT('#63d0f5');
+    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 1.5, 4), body);
+    bar.rotation.y = Math.PI / 4;
+    put(g, bar, 0, 0.3, 0, Math.PI / 2, Math.PI / 4, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.62, 8), PROP_MAT('#e2b062')),
+        0, 0.26, 1.0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.63, 0.63, 0.22, 4), PROP_MAT('#ff5f8d')),
+        0, 0.3, -0.62, Math.PI / 2, Math.PI / 4, 0);
+    T.lolly = { g, h: 0.62, currency: 'banana' };
+  }
+
+  // Donut — the one object that is unmistakable from directly above,
+  // because the hole in the middle is the whole silhouette.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.66, 0.33, 12, 24), PROP_MAT('#d8974f')),
+        0, 0.33, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.66, 0.28, 12, 24), PROP_MAT('#ff8fc4')),
+        0, 0.42, 0, Math.PI / 2, 0, 0);
+    T.donut = { g, h: 0.72, currency: 'lychee' };
+  }
+
+  // Mug — a cylinder is just a slice from above, so the handle is doing all
+  // of the work here.
+  {
+    const g = new THREE.Group();
+    const c = PROP_MAT('#f5f2ea');
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.52, 0.9, 20), c), 0, 0.45, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.06, 18), PROP_MAT('#6b4326')),
+        0, 0.88, 0);
+    // The handle has to lie flat, not stand up. A torus turned about Y keeps
+    // its hole pointing sideways and is seen edge-on from overhead — it read
+    // as a white sliver floating next to the cup. Turned about X the ring
+    // lies in the ground plane, which is the shape you recognise from above.
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.085, 8, 16), c),
+        0.68, 0.62, 0, Math.PI / 2, 0, 0);
+    T.mug = { g, h: 0.92, currency: 'melon' };
+  }
+
+  // Beach ball — panels rather than a plain sphere, or it is indistinguishable
+  // from the fruit it is standing next to.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.72, 20, 16), PROP_MAT('#ffffff', 0.3)),
+        0, 0.72, 0);
+    const cols = ['#ff5b5b', '#ffd23f', '#3fa9ff', '#57d16a'];
+    cols.forEach((col, i) => {
+      const seg = new THREE.Mesh(
+        new THREE.SphereGeometry(0.735, 12, 14, (i / cols.length) * Math.PI * 2,
+                                 (Math.PI * 2 / cols.length) * 0.82),
+        PROP_MAT(col, 0.3));
+      put(g, seg, 0, 0.72, 0);
+    });
+    T.ball = { g, h: 1.44, currency: 'berry' };
+  }
+
+  // Toy car — from above this is the outline everyone knows: a body with a
+  // cabin set back and four wheels poking out of the sides.
+  {
+    const g = new THREE.Group();
+    const body = PROP_MAT('#ff6b3d');
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.42, 1.7), body), 0, 0.42, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.4, 0.8), PROP_MAT('#7fd6ff', 0.22)),
+        0, 0.78, -0.12);
+    const tyre = new THREE.CylinderGeometry(0.26, 0.26, 0.2, 12);
+    const rubber = PROP_MAT('#33323a', 0.7);
+    for (const sx of [-0.52, 0.52]) for (const sz of [-0.56, 0.56])
+      put(g, new THREE.Mesh(tyre, rubber), sx, 0.26, sz, 0, 0, Math.PI / 2);
+    T.car = { g, h: 0.98, currency: 'banana' };
+  }
+
+  // Rubber duck — a beak and a tail, which is more silhouette than anything
+  // round on the board has.
+  {
+    const g = new THREE.Group();
+    // Seen from overhead a duck is body, head and beak in a line. The first
+    // version had the head sitting on top of the body, so the two circles
+    // overlapped into one yellow blob and the beak was hidden behind it.
+    // Everything is spread along z now and the beak lies flat.
+    const y = PROP_MAT('#ffd60a', 0.3);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.58, 16, 12), y), 0, 0.48, 0.22);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.34, 14, 12), y), 0, 0.7, -0.5);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.44, 10), PROP_MAT('#ff8c1a')),
+        0, 0.66, -0.92, -Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), PROP_MAT('#2b2118')),
+        0.2, 0.86, -0.58);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), PROP_MAT('#2b2118')),
+        -0.2, 0.86, -0.58);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.52, 8), y),
+        0, 0.6, 0.78, -Math.PI / 2.2, 0, 0);
+    T.duck = { g, h: 1.04, currency: 'berry' };
+  }
+
+  return T;
+}
+
+const PROPS = propTemplates();
+const PROP_IDS = Object.keys(PROPS);
+const pickProp = () => PROP_IDS[Math.floor(Math.random() * PROP_IDS.length)];
+
+// Props are authored at half-width 1 sitting on the ground, so they scale
+// uniformly and never need the baseY offset a centred cylinder does.
+function propVisual(id, radius) {
+  const p = PROPS[id];
+  return {
+    make: () => p.g.clone(),
+    sx: radius, sy: radius, baseY: 0, uniform: true, currency: p.currency,
+  };
+}
+
 const NORMAL_R = 0.50, BIG_R = 0.72;   // cell is 1.05, so fruit almost touches
 
 // A third tier, far wider than a cell. The hole opens at 0.62 and a "big"
@@ -1938,6 +2086,50 @@ function gridToWorld(row, col) {
   };
 }
 
+// The two ways a field can be laid out. Both hand back the same thing — a
+// list of world positions, each carrying the two indices its pattern reads —
+// so the builder does not branch beyond choosing which one to call.
+function gridCells() {
+  const out = [];
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < COLS; c++)
+      out.push({ a: r, b: c, ...gridToWorld(r, c) });
+  return out;
+}
+
+// Rings around the opening. Slots per ring follow the circumference, so two
+// neighbours are a cell apart whether they sit on the second ring or the
+// twentieth — otherwise the outer rings come out as a scatter of dots and the
+// inner ones as a solid disc.
+//
+// Rings are centred on the spawn, not on the board, so the first thing you
+// see is the pattern you are standing in the middle of. They keep going past
+// the sides of the board and are clipped there, which leaves arcs running off
+// screen rather than a disc floating on empty ground.
+function polarCells() {
+  const out = [];
+  const cx = SPAWN_X, cz = spawnZ();
+  const reach = Math.hypot(fieldHalfX + Math.abs(cx), fieldHalfZ + Math.abs(cz));
+  const edgeX = fieldHalfX - CELL * 0.5, edgeZ = fieldHalfZ - CELL * 0.5;
+  for (let ring = 1; ring * CELL <= reach; ring++) {
+    const rad = ring * CELL;
+    const slots = Math.max(6, Math.round((2 * Math.PI * rad) / CELL));
+    for (let slot = 0; slot < slots; slot++) {
+      // Stagger every other ring, or the slots line up into spokes and the
+      // whole thing reads as a wheel instead of as rings.
+      // b is the fraction of a turn, not the slot number: a pattern wants to
+      // ask "where am I around this ring", and slot counts differ per ring.
+      const turn = (slot + (ring % 2 ? 0.5 : 0)) / slots;
+      const ang = turn * Math.PI * 2;
+      const x = cx + Math.cos(ang) * rad;
+      const z = cz + Math.sin(ang) * rad;
+      if (Math.abs(x) > edgeX || Math.abs(z) > edgeZ) continue;
+      out.push({ a: ring, b: turn, x, z });
+    }
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------
 // Level patterns
 //
@@ -1950,6 +2142,14 @@ function gridToWorld(row, col) {
 //   big(r, c)  -> true if the cell holds an oversized fruit (optional;
 //                 oversized fruit needs a grown hole, so where they sit
 //                 is what actually shapes the route)
+//
+// A pattern may instead set `polar: true`, and then it is laid out in rings
+// around the opening rather than in rows and columns. Its functions are
+// called with (ring, slot) instead of (row, col) — ring 1 is the circle
+// closest to the hole, and slot runs around it. Slots per ring grow with the
+// circumference, so the spacing between neighbours stays the same however
+// far out you are. Everything downstream — stacks, giants, the clock —
+// works off the placed list and does not care which of the two made it.
 // ---------------------------------------------------------------------
 const ID = TYPES.map(t => t.id);
 function midCol() { return (COLS - 1) / 2; }
@@ -2203,6 +2403,55 @@ const PATTERNS = [
     type: (r, c) => typeFromNoise(r, c, 0.24, 97),
     big: (r, c) => blob(r, c, 0.42, 33) > 0.74,
   },
+
+  // --- laid out in rings rather than rows -----------------------------
+  // These read completely differently in play. On a grid you sweep in
+  // straight lines; here the whole field turns around you, so the efficient
+  // route is a circle and the shape of the level is legible from the first
+  // frame instead of only once the camera has travelled.
+  {
+    name: 'Orbits', icon: '🎯', polar: true,
+    // Solid bands with a clear gap every fourth ring, so it reads as a
+    // target: rings of one fruit each, with room to turn between them.
+    // Two rings on, two off. A ring is a whole circumference of fruit, so
+    // filling three in four put 900 pieces on the board — twice the largest
+    // grid level, and about fifteen swallows a second.
+    empty: (ring) => ring % 4 >= 2,
+    type: (ring) => ID[Math.floor(ring / 4) % ID.length],
+    stack: (ring) => (ring % 4 === 1 ? 2 : 1),
+    big: (ring, turn) => ring % 4 === 1 && Math.abs(Math.sin(turn * Math.PI * 5)) > 0.93,
+  },
+  {
+    name: 'Whirl', icon: '🌀', polar: true,
+    // Three arms winding outward. A slot is on an arm when its angle is
+    // close to where the arm has turned to by that radius, which is what
+    // makes the arm a curve rather than a straight spoke.
+    empty: (ring, turn) => {
+      const arm = (turn - ring * 0.045) * 3;
+      const d = Math.abs(arm - Math.round(arm));
+      return d > 0.21;
+    },
+    type: (ring, turn) => {
+      const arm = Math.round((turn - ring * 0.045) * 3);
+      return ID[((arm % ID.length) + ID.length) % ID.length];
+    },
+    stack: (ring) => 1 + (ring % 5 === 0 ? 2 : 0),
+    big: (ring) => ring % 6 === 3,
+  },
+  {
+    name: 'Bloom', icon: '🌸', polar: true,
+    // Five petals: a slot survives while its ring is still inside the petal
+    // reaching out along that spoke, so the outline scallops. The reach is
+    // kept near the half-width of the board — a petal longer than that is
+    // simply clipped off at the sides and the flower loses its shape.
+    empty: (ring, turn) => ring > 1.5 + 5 * Math.abs(Math.sin(turn * Math.PI * 5)),
+    type: (ring, turn) => {
+      const petal = Math.floor((turn * 5) % 5);
+      return ID[(petal + (ring > 4 ? 1 : 0)) % ID.length];
+    },
+    stack: (ring) => ridge(Math.min(1, ring / 5), 3),
+    big: (ring, turn) => ring > 3 && Math.abs(Math.sin(turn * Math.PI * 5)) > 0.9,
+  },
 ];
 
 function buildField() {
@@ -2220,14 +2469,17 @@ function buildField() {
   fieldHalfZ = (rows * CELL) / 2;
   fitGround();
   currentPattern = PATTERNS[(level - 1) % PATTERNS.length];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < COLS; c++) {
-      if (currentPattern.empty && currentPattern.empty(r, c)) continue;
-      const type = currentPattern.type(r, c);
-      const big = currentPattern.big ? currentPattern.big(r, c) : scatter(0.12);
+  for (const cell of currentPattern.polar ? polarCells() : gridCells()) {
+      const { a, b, x, z } = cell;
+      if (currentPattern.empty && currentPattern.empty(a, b)) continue;
+      const big = currentPattern.big ? currentPattern.big(a, b) : scatter(0.12);
       const radius = big ? BIG_R : NORMAL_R;
-      const vis = fruitVisual(type, radius);
-      const { x, z } = gridToWorld(r, c);
+      // Every so often a cell holds an object instead of a fruit. It pays
+      // into one of the four counters all the same, so nothing downstream
+      // has to know: only the shape on the board changes.
+      const prop = !big && Math.random() < 0.09 ? pickProp() : null;
+      const vis = prop ? propVisual(prop, radius * 1.15) : fruitVisual(currentPattern.type(a, b), radius);
+      const type = prop ? vis.currency : currentPattern.type(a, b);
 
       // A cell can hold a pile. Each fruit in it is its own entry, so the
       // hole takes the whole stack as it passes and the pile drops in.
@@ -2236,14 +2488,16 @@ function buildField() {
       // high, so from above the board was a single flat layer. These are
       // tall enough to see against the ground and they topple in one go when
       // the hole passes under them.
-      let height = currentPattern.stack ? Math.max(1, currentPattern.stack(r, c)) : 1;
-      if (Math.random() < 0.07) height = Math.max(height, 3 + Math.floor(Math.random() * 3));
+      // Props stand alone. Stacked they interlock into an unreadable pile,
+      // and their whole reason for being on the board is being recognisable.
+      let height = prop || !currentPattern.stack ? 1 : Math.max(1, currentPattern.stack(a, b));
+      if (!prop && Math.random() < 0.07) height = Math.max(height, 3 + Math.floor(Math.random() * 3));
       for (let k = 0; k < height; k++) {
         // A little jitter in size and lean. Without it every cell holds an
         // identical object and the field reads as a printed grid rather than
         // fruit that was dropped there.
         const jit = 0.96 + Math.random() * 0.08;
-        const mesh = new THREE.Mesh(vis.geo, vis.mat);
+        const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
         const y = vis.baseY * jit + k * vis.sy * 2.05;
         mesh.scale.set(vis.sx * jit, vis.sy * jit, vis.sx * jit);
         mesh.position.set(x, y, z);
@@ -2261,7 +2515,6 @@ function buildField() {
         fieldGroup.add(mesh);
         fruits.push({ mesh, x, z, r: radius, type, big, eaten: false, baseY: y, nudge: 0 });
       }
-    }
   }
   placeGiants();
   // A level ends when every fruit on the field has been eaten.
@@ -2296,29 +2549,49 @@ function placeGiants() {
     // and inside the board, not hanging off the last row
     if (Math.abs(seed.x) > fieldHalfX - GIANT_R || Math.abs(seed.z) > fieldHalfZ - GIANT_R) continue;
 
-    // clear its footprint
-    for (const f of fruits) {
-      if (f.eaten) continue;
-      if (Math.hypot(f.x - seed.x, f.z - seed.z) > CLEAR) continue;
-      fieldGroup.remove(f.mesh);
-      f.eaten = true;                               // dropped before the level starts
-      f.mesh.visible = false;
-    }
+    // Some of them come as a huddle of three rather than one on its own.
+    // A single giant is an obstacle; three of the same fruit leaning on each
+    // other is a landmark you steer by, and it gives the far end of a long
+    // board something worth crossing to.
+    const huddle = Math.random() < 0.4;
+    // A third of them are an object rather than an outsized fruit. At this
+    // scale the silhouette is the strongest thing on the board, which is
+    // exactly what a landmark you steer towards should be.
+    const prop = Math.random() < 0.34 ? pickProp() : null;
+    const offsets = huddle
+      ? [[0, -GIANT_R * 1.02], [-GIANT_R * 0.9, GIANT_R * 0.55], [GIANT_R * 0.9, GIANT_R * 0.55]]
+      : [[0, 0]];
+    // The seed clears the spawn, but a sibling offset towards it need not:
+    // every member has to be checked, or a huddle drops one on the opening.
+    if (offsets.some(([ox, oz]) =>
+      Math.abs(seed.x + ox) > fieldHalfX - GIANT_R ||
+      Math.abs(seed.z + oz) > fieldHalfZ - GIANT_R ||
+      Math.hypot(seed.x + ox - SPAWN_X, seed.z + oz - spawnZ()) < 3.4)) continue;
 
-    const type = seed.type;
-    const vis = fruitVisual(type, GIANT_R);
-    const mesh = new THREE.Mesh(vis.geo, vis.mat);
-    mesh.scale.set(vis.sx, vis.sy, vis.sx);
-    mesh.position.set(seed.x, vis.baseY, seed.z);
-    mesh.userData.ox = seed.x; mesh.userData.oz = seed.z;
-    mesh.rotation.y = Math.random() * Math.PI * 2;
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    fieldGroup.add(mesh);
-    const g = { mesh, x: seed.x, z: seed.z, r: GIANT_R, type,
-                big: true, giant: true, eaten: false, baseY: vis.baseY, nudge: 0 };
-    fruits.push(g);
-    placed.push(g);
+    for (const [ox, oz] of offsets) {
+      const gx = seed.x + ox, gz = seed.z + oz;
+      for (const f of fruits) {                     // clear its footprint
+        if (f.eaten) continue;
+        if (Math.hypot(f.x - gx, f.z - gz) > CLEAR) continue;
+        fieldGroup.remove(f.mesh);
+        f.eaten = true;                             // dropped before the level starts
+        f.mesh.visible = false;
+      }
+      const vis = prop ? propVisual(prop, GIANT_R * 1.1) : fruitVisual(seed.type, GIANT_R);
+      const type = prop ? vis.currency : seed.type;
+      const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
+      mesh.scale.set(vis.sx, vis.sy, vis.sx);
+      mesh.position.set(gx, vis.baseY, gz);
+      mesh.userData.ox = gx; mesh.userData.oz = gz;
+      mesh.rotation.y = Math.random() * Math.PI * 2;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      fieldGroup.add(mesh);
+      const g = { mesh, x: gx, z: gz, r: GIANT_R, type,
+                  big: true, giant: true, eaten: false, baseY: vis.baseY, nudge: 0 };
+      fruits.push(g);
+      placed.push(g);
+    }
   }
 
   // The pieces a giant displaced were marked eaten so nothing else lands on
@@ -3347,6 +3620,31 @@ window.fruitHoleDrift = () => fruits.reduce((a, f) =>
 // Frames a whole level from straight above and draws one frame — used to
 // check that a pattern still reads as its shape.
 window.fruitHoleFieldRot = () => fieldGroup.rotation.y;
+
+// Lay one of each prop out in a row, to check they still read from the
+// angle the game is actually played at.
+window.fruitHolePropSheet = () => {
+  buildField();
+  for (const f of fruits) fieldGroup.remove(f.mesh);
+  fruits = [];
+  const ids = Object.keys(PROPS);
+  ids.forEach((id, i) => {
+    const vis = propVisual(id, 1.1);
+    const m = vis.make();
+    m.scale.set(vis.sx, vis.sy, vis.sx);
+    m.position.set((i - (ids.length - 1) / 2) * 2.9, 0, 0);
+    fieldGroup.add(m);
+  });
+  const h = ids.length * 1.6;
+  camera.left = -h; camera.right = h;
+  camera.top = h * (innerHeight / innerWidth); camera.bottom = -h * (innerHeight / innerWidth);
+  camera.position.set(0, 13, 6.2);
+  camera.lookAt(0, 0, -0.4);
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  renderer.render(scene, camera);
+  return ids.join(', ');
+};
 
 // Giants per level, and how far the nearest one is from the opening.
 window.fruitHoleGiants = () => {
