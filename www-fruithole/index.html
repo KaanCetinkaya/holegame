@@ -2220,16 +2220,61 @@ function groundTexture() {
 // it ties the board to the app icon, and it gives the field a visible edge —
 // before this you could not tell where the board stopped.
 const WATER = '#22c9cd';
+
+// Ripples, drawn so the tile wraps: every wave is a whole number of periods
+// across the canvas, so scrolling the texture never shows a seam. A flat
+// colour was fine when it was only a border, but the board is a beach now
+// and still water reads as a painted floor.
+function waterTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  const img = ctx.createImageData(S, S);
+  const lo = [0x1b, 0xb3, 0xbb], hi = [0x5a, 0xe6, 0xe2];
+  const TAU = Math.PI * 2;
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      const u = x / S, v = y / S;
+      // two crossing wave trains plus a slow swell, all integer-period
+      const w = Math.sin(TAU * (2 * u + 1 * v) + Math.sin(TAU * 3 * v) * 0.6)
+              + Math.sin(TAU * (3 * v - 2 * u)) * 0.7
+              + Math.sin(TAU * 1 * u) * 0.4;
+      const t = Math.min(1, Math.max(0, (w / 2.1 + 1) / 2));
+      const i = (y * S + x) * 4;
+      for (let k = 0; k < 3; k++) img.data[i + k] = lo[k] + (hi[k] - lo[k]) * t;
+      img.data[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  // glints on the crests
+  ctx.globalAlpha = 0.34;
+  ctx.fillStyle = '#eafeff';
+  for (let i = 0; i < 150; i++) {
+    const x = Math.random() * S, y = Math.random() * S;
+    const r = 0.5 + Math.random() * 1.2;
+    ctx.beginPath(); ctx.ellipse(x, y, r * 2.4, r, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  // A tile has to land at a couple of world units across. At the first repeat
+  // I tried, one wave was five units from crest to crest — across the strip of
+  // sea you can actually see that is a single gradient, and it read as flat
+  // colour with some white specks floating on it.
+  tex.repeat.set(58, 58);
+  return tex;
+}
+const waterTex = waterTexture();
 const water = new THREE.Mesh(
   new THREE.PlaneGeometry(200, 200),
-  new THREE.MeshStandardMaterial({ color: WATER, roughness: 0.35, metalness: 0.05 })
+  new THREE.MeshStandardMaterial({ map: waterTex, roughness: 0.3, metalness: 0.08 })
 );
 water.rotation.x = -Math.PI / 2;
 water.position.y = -0.06;
 scene.add(water);
 
-// Foam ring just inside the shoreline, so the two colours do not meet on a
-// hard edge at this camera distance.
+// Foam just inside the shoreline, so the two colours do not meet on a hard
+// edge at this camera distance. Two bands rather than one: they breathe in
+// and out against each other, which is what a wave running up a beach looks
+// like from above and costs two numbers a frame.
 const shore = new THREE.Mesh(
   new THREE.PlaneGeometry(1, 1),
   new THREE.MeshBasicMaterial({ color: '#bff3f5' })
@@ -2237,6 +2282,14 @@ const shore = new THREE.Mesh(
 shore.rotation.x = -Math.PI / 2;
 shore.position.y = -0.03;
 scene.add(shore);
+
+const surf = new THREE.Mesh(
+  new THREE.PlaneGeometry(1, 1),
+  new THREE.MeshBasicMaterial({ color: '#ecfeff', transparent: true, opacity: 0.85 })
+);
+surf.rotation.x = -Math.PI / 2;
+surf.position.y = -0.02;
+scene.add(surf);
 
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(1, 1),
@@ -2248,11 +2301,26 @@ scene.add(ground);
 
 // Called whenever the field changes size; the beach keeps a constant margin
 // so the hole always has somewhere to stand at the edge of the board.
+let shoreW = 1, shoreH = 1;
 function fitGround() {
   const w = fieldHalfX * 2 + 3.0;
   const h = fieldHalfZ * 2 + 3.0;
   ground.scale.set(w, h, 1);
-  shore.scale.set(w + 1.4, h + 1.4, 1);
+  shoreW = w + 1.4; shoreH = h + 1.4;
+  shore.scale.set(shoreW, shoreH, 1);
+  surf.scale.set(shoreW, shoreH, 1);
+}
+
+// Scroll the ripples and run the surf up the sand. Both are driven by the
+// wall clock rather than by accumulated frames, so the sea moves at the same
+// speed however the frame rate is doing.
+function stepWater(now) {
+  waterTex.offset.x = now * 0.000013;
+  waterTex.offset.y = now * 0.000021;
+  const swell = Math.sin(now * 0.0011);
+  const wash = Math.sin(now * 0.0011 - 0.9);
+  shore.scale.set(shoreW - swell * 0.5, shoreH - swell * 0.5, 1);
+  surf.scale.set(shoreW - 0.75 - wash * 0.62, shoreH - 0.75 - wash * 0.62, 1);
 }
 
 // ---------------------------------------------------------------------
@@ -3819,6 +3887,7 @@ window.fruitHoleDrift = () => fruits.reduce((a, f) =>
 // Frames a whole level from straight above and draws one frame — used to
 // check that a pattern still reads as its shape.
 window.fruitHoleFieldRot = () => fieldGroup.rotation.y;
+window.fruitHoleWater = () => ({ offsetX: waterTex.offset.x, surf: surf.scale.x });
 
 // Lay one of each prop out in a row, to check they still read from the
 // angle the game is actually played at.
@@ -4006,6 +4075,7 @@ function tick(now) {
   }
 
   stepFlecks(dt);
+  stepWater(now);
 
   // The collar swells a little on a swallow and settles back.
   rimPulse = Math.max(0, rimPulse - dt * 5.5);
