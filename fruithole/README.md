@@ -14,6 +14,12 @@ kökteki [`README.md`](../README.md) → "Hangi uygulama paketleniyor?".
 - Delik değdiği **her** meyveyi yutar ve her yutuşta biraz büyür.
 - Bazı meyveler normalden iri; delik yeterince büyümeden onları yutamaz,
   değdiğinde meyve titrer ("henüz değil" geri bildirimi).
+- Tarlaya meyve dışında **eşyalar** da karışıyor: dondurma, donut, kupa,
+  plaj topu, oyuncak araba, ördek, deniz yıldızı, deniz kabuğu, güneş
+  gözlüğü, parmak arası terlik, kova-kürek, külah. Şemsiye, can simidi,
+  şezlong ve flamingo şişme yalnızca **dev** boyda çıkıyor — küçültünce
+  okunaklılıklarını veren detay kayboluyor. Hepsi dört meyve sayacından
+  birine ödeme yapıyor, yani beşinci bir para birimi yok.
 - Her tarlada 4-6 tane de **dev meyve** var: ağzın iki katından geniş,
   çevresi boş bırakılmış. Bölüm 1'de birini açmak için tarlanın yaklaşık
   üçte birini süpürmek gerekiyor; karşılığında 12 kat meyve ve tek

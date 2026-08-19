@@ -1873,6 +1873,26 @@ function propTemplates() {
     return mesh;
   };
 
+  // Lay a part flat and point it outward at an angle.
+  //
+  // Doing this with one Euler does not work. Three applies 'XYZ' as
+  // Rx·Ry·Rz, so the Y turn happens to the part *before* it is tipped over —
+  // and a cone still standing on its axis is unchanged by a spin about that
+  // axis. Every arm of the first starfish came out pointing the same way.
+  // Tipping on the inner object and turning the wrapper keeps the two in
+  // the order the shape needs.
+  const spoke = (g, mesh, angle, dist, y, tilt = Math.PI / 2) => {
+    mesh.rotation.x = tilt;
+    mesh.castShadow = true;
+    const arm = new THREE.Group();
+    arm.add(mesh);
+    arm.position.set(0, y, 0);
+    arm.rotation.y = angle;
+    mesh.position.set(0, 0, dist);
+    g.add(arm);
+    return mesh;
+  };
+
   // Ice lolly — a rounded slab with a stick out of one end. The stick is
   // what makes it read; without it this is a lozenge.
   {
@@ -1970,12 +1990,191 @@ function propTemplates() {
     T.duck = { g, h: 1.04, currency: 'berry' };
   }
 
+  // --- summer, small -------------------------------------------------
+  // The board is a strip of sand between two bands of sea. Everything below
+  // belongs on that beach, which is the one thing the setting was not doing
+  // any work with.
+
+  // Starfish — five arms is about the strongest outline anything can have
+  // from directly overhead.
+  {
+    const g = new THREE.Group();
+    const m = PROP_MAT('#ff9a3c', 0.5);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.46, 14, 10), m), 0, 0.17, 0).scale.y = 0.42;
+    for (let i = 0; i < 5; i++) {
+      const arm = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.9, 7), m);
+      arm.scale.z = 0.4;                       // flattened once it is lying down
+      spoke(g, arm, (i / 5) * Math.PI * 2, 0.46, 0.17);
+    }
+    T.starfish = { g, h: 0.34, currency: 'melon' };
+  }
+
+  // Scallop shell — a fan of ribs hinged at one end.
+  {
+    const g = new THREE.Group();
+    const m = PROP_MAT('#ffd9c2', 0.5);
+    const fan = new THREE.Group();
+    for (let i = 0; i < 7; i++) {
+      const rib = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.17, 0.98, 6), m);
+      rib.scale.z = 0.45;
+      spoke(fan, rib, (i - 3) * 0.21, 0.44, 0.17);
+    }
+    fan.position.z = 0.36;                     // hinge at the back, fan forward
+    g.add(fan);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), PROP_MAT('#f0b48f', 0.5)),
+        0, 0.13, 0.36).scale.y = 0.6;
+    T.shell = { g, h: 0.36, currency: 'lychee' };
+  }
+
+  // Sunglasses — two flat rings and a bridge. Unmistakable, and completely
+  // flat, so it does not fight the fruit for height.
+  {
+    const g = new THREE.Group();
+    const frame = PROP_MAT('#2a2f3a', 0.3);
+    const lens = PROP_MAT('#39c6ff', 0.15);
+    for (const sx of [-0.42, 0.42]) {
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.08, 8, 18), frame),
+          sx, 0.12, 0, Math.PI / 2, 0, 0);
+      put(g, new THREE.Mesh(new THREE.CircleGeometry(0.3, 18), lens),
+          sx, 0.15, 0, -Math.PI / 2, 0, 0);
+    }
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.1), frame), 0, 0.12, 0);
+    for (const sx of [-0.6, 0.6])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.07, 0.72), frame), sx, 0.12, 0.5);
+    T.shades = { g, h: 0.2, currency: 'berry' };
+  }
+
+  // Flip-flop — sole plus the Y strap, which is the whole recognition.
+  {
+    const g = new THREE.Group();
+    const sole = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.16, 18), PROP_MAT('#ff5f8d'));
+    sole.scale.z = 1.55;
+    put(g, sole, 0, 0.08, 0);
+    // The Y strap has to lie on the sole, not arch over it: standing up it is
+    // foreshortened to nothing from overhead and the flip-flop is a pink oval.
+    const strap = PROP_MAT('#ffffff', 0.4);
+    for (const s of [-1, 1]) {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.62), strap);
+      b.rotation.y = s * 0.62;
+      put(g, b, s * 0.17, 0.18, -0.06);
+    }
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), strap), 0, 0.18, -0.38);
+    T.flipflop = { g, h: 0.28, currency: 'banana' };
+  }
+
+  // Bucket and spade.
+  {
+    const g = new THREE.Group();
+    const blue = PROP_MAT('#2f9df4');
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.34, 0.66, 16), blue), -0.2, 0.33, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.06, 6, 16), PROP_MAT('#ffd23f')),
+        -0.2, 0.66, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.05, 6, 14, Math.PI), PROP_MAT('#ffd23f')),
+        -0.2, 0.66, 0, 0, 0, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.07, 0.36), PROP_MAT('#ff5f3c')),
+        0.55, 0.05, -0.2);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.62, 8), PROP_MAT('#ff5f3c')),
+        0.55, 0.09, 0.28, Math.PI / 2, 0, 0);
+    T.bucket = { g, h: 0.72, currency: 'lychee' };
+  }
+
+  // Ice cream cone, tipped over the way one always ends up on a beach.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.34, 1.0, 12), PROP_MAT('#e0a355', 0.6)),
+        0.24, 0.3, 0.3, Math.PI / 2, 0, 0.5);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.33, 12, 10), PROP_MAT('#ff8fb4')), -0.26, 0.32, -0.12);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.29, 12, 10), PROP_MAT('#fff3d0')), -0.5, 0.3, 0.22);
+    T.cone = { g, h: 0.66, currency: 'berry' };
+  }
+
+  // --- summer, large -------------------------------------------------
+  // These only ever appear as giants. At small size the detail that makes
+  // them readable disappears and they turn into coloured lumps.
+
+  // Beach parasol.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.5, 8), PROP_MAT('#c9c4bb')),
+        0, 0.75, 0);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(1.0, 0.5, 16), PROP_MAT('#ff4d5e')), 0, 1.4, 0);
+    for (let i = 0; i < 4; i++) {
+      const wedge = new THREE.Mesh(new THREE.ConeGeometry(1.005, 0.505, 16, 1, false,
+        (i / 4) * Math.PI * 2, Math.PI / 4), PROP_MAT('#fffaf0'));
+      put(g, wedge, 0, 1.4, 0);
+    }
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), PROP_MAT('#ffd23f')), 0, 1.68, 0);
+    T.parasol = { g, h: 1.78, currency: 'melon', only: 'giant' };
+  }
+
+  // Swim ring.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.32, 12, 26), PROP_MAT('#fdfdfd', 0.28)),
+        0, 0.32, 0, Math.PI / 2, 0, 0);
+    for (let i = 0; i < 4; i += 2) {
+      const seg = new THREE.Mesh(
+        new THREE.TorusGeometry(0.702, 0.325, 10, 10, Math.PI / 2), PROP_MAT('#ff4d5e', 0.28));
+      put(g, seg, 0, 0.32, 0, Math.PI / 2, 0, (i / 4) * Math.PI * 2);
+    }
+    T.swimring = { g, h: 0.66, currency: 'lychee', only: 'giant' };
+  }
+
+  // Sun lounger, slats and all.
+  {
+    const g = new THREE.Group();
+    const frame = PROP_MAT('#e8e3d8', 0.45);
+    const slat = PROP_MAT('#2fb5c9', 0.4);
+    // Slats alone read as a ladder from above. The side rails and the raised
+    // backrest are what make it furniture — and the towel, which is the only
+    // part of it you can see is not a ladder at a glance.
+    for (let i = 0; i < 5; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.08, 0.22), slat), 0, 0.36, -0.28 + i * 0.32);
+    for (let i = 0; i < 4; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.08, 0.22), slat),
+          0, 0.42 + i * 0.2, -0.5 - i * 0.16);
+    for (const sx of [-0.55, 0.55])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.1, 2.0), frame), sx, 0.36, 0.1);
+    for (const sx of [-0.55, 0.55])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.1, 0.95), frame),
+          sx, 0.66, -0.72, -0.62, 0, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.16, 0.44), PROP_MAT('#ffd23f', 0.5)),
+        0, 0.5, 0.42);
+    for (const sx of [-0.5, 0.5]) for (const sz of [-0.5, 0.9])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.32, 8), frame), sx, 0.16, sz);
+    T.lounger = { g, h: 1.0, currency: 'banana', only: 'giant' };
+  }
+
+  // Flamingo float — a ring with a neck, which is the one summer object
+  // everybody recognises from the air.
+  {
+    const g = new THREE.Group();
+    const pink = PROP_MAT('#ff7bb0', 0.3);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.28, 12, 24), pink),
+        0, 0.28, 0.2, Math.PI / 2, 0, 0);
+    for (let i = 0; i < 4; i++)
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.2 - i * 0.012, 10, 8), pink),
+          0, 0.42 + i * 0.3, -0.28 - i * 0.1);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 10), pink), 0, 1.62, -0.78);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.4, 8), PROP_MAT('#2a2f3a')),
+        0, 1.5, -1.06, -Math.PI / 2.4, 0, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), PROP_MAT('#2a2f3a')), 0.14, 1.72, -0.9);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), PROP_MAT('#2a2f3a')), -0.14, 1.72, -0.9);
+    T.flamingo = { g, h: 1.9, currency: 'berry', only: 'giant' };
+  }
+
   return T;
 }
 
 const PROPS = propTemplates();
-const PROP_IDS = Object.keys(PROPS);
-const pickProp = () => PROP_IDS[Math.floor(Math.random() * PROP_IDS.length)];
+// A parasol or a lounger shrunk to fit a cell is a coloured lump — the slats
+// and the canopy segments are what make them readable, and neither survives
+// at that size. They are marked so they only ever turn up as giants.
+const SMALL_PROPS = Object.keys(PROPS).filter(k => PROPS[k].only !== 'giant');
+const GIANT_PROPS = Object.keys(PROPS).filter(k => PROPS[k].only !== 'small');
+const pick = list => list[Math.floor(Math.random() * list.length)];
+const pickProp = () => pick(SMALL_PROPS);
+const pickGiantProp = () => pick(GIANT_PROPS);
 
 // Props are authored at half-width 1 sitting on the ground, so they scale
 // uniformly and never need the baseY offset a centred cylinder does.
@@ -2478,7 +2677,7 @@ function buildField() {
       // into one of the four counters all the same, so nothing downstream
       // has to know: only the shape on the board changes.
       const prop = !big && Math.random() < 0.09 ? pickProp() : null;
-      const vis = prop ? propVisual(prop, radius * 1.15) : fruitVisual(currentPattern.type(a, b), radius);
+      const vis = prop ? propVisual(prop, radius * 1.45) : fruitVisual(currentPattern.type(a, b), radius);
       const type = prop ? vis.currency : currentPattern.type(a, b);
 
       // A cell can hold a pile. Each fruit in it is its own entry, so the
@@ -2557,7 +2756,7 @@ function placeGiants() {
     // A third of them are an object rather than an outsized fruit. At this
     // scale the silhouette is the strongest thing on the board, which is
     // exactly what a landmark you steer towards should be.
-    const prop = Math.random() < 0.34 ? pickProp() : null;
+    const prop = Math.random() < 0.42 ? pickGiantProp() : null;
     const offsets = huddle
       ? [[0, -GIANT_R * 1.02], [-GIANT_R * 0.9, GIANT_R * 0.55], [GIANT_R * 0.9, GIANT_R * 0.55]]
       : [[0, 0]];
@@ -3628,14 +3827,18 @@ window.fruitHolePropSheet = () => {
   for (const f of fruits) fieldGroup.remove(f.mesh);
   fruits = [];
   const ids = Object.keys(PROPS);
+  const cols = 4;
+  const rowsN = Math.ceil(ids.length / cols);
   ids.forEach((id, i) => {
     const vis = propVisual(id, 1.1);
     const m = vis.make();
     m.scale.set(vis.sx, vis.sy, vis.sx);
-    m.position.set((i - (ids.length - 1) / 2) * 2.9, 0, 0);
+    m.position.set(((i % cols) - (cols - 1) / 2) * 3.2,
+                   0,
+                   (Math.floor(i / cols) - (rowsN - 1) / 2) * 3.2);
     fieldGroup.add(m);
   });
-  const h = ids.length * 1.6;
+  const h = cols * 1.75;
   camera.left = -h; camera.right = h;
   camera.top = h * (innerHeight / innerWidth); camera.bottom = -h * (innerHeight / innerWidth);
   camera.position.set(0, 13, 6.2);
