@@ -2163,6 +2163,122 @@ function propTemplates() {
     T.flamingo = { g, h: 1.9, currency: 'berry', only: 'giant' };
   }
 
+  // --- world cup -----------------------------------------------------
+
+  // Football. The panels are separate flattened discs stuck to the surface
+  // rather than a texture: the camera looks almost straight down the north
+  // pole, which is exactly where a sphere's UVs pinch, so a painted ball
+  // would have its pattern smeared into a star right where you look at it.
+  {
+    const g = new THREE.Group();
+    const R = 0.7;
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(R, 22, 18), PROP_MAT('#fbfbfb', 0.34)),
+        0, R, 0);
+    const dark = PROP_MAT('#22242c', 0.34);
+    const centre = new THREE.Vector3(0, R, 0);
+    const patch = (theta, phi) => {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.23, 10, 8), dark);
+      m.position.set(
+        Math.sin(theta) * Math.cos(phi) * R * 0.94,
+        R + Math.cos(theta) * R * 0.94,
+        Math.sin(theta) * Math.sin(phi) * R * 0.94);
+      m.lookAt(centre);
+      m.scale.set(1, 1, 0.3);
+      m.castShadow = true;
+      g.add(m);
+    };
+    patch(0, 0);
+    for (let i = 0; i < 5; i++) patch(1.05, (i / 5) * Math.PI * 2);
+    for (let i = 0; i < 5; i++) patch(2.1, ((i + 0.5) / 5) * Math.PI * 2);
+    T.football = { g, h: 1.4, currency: 'lychee' };
+  }
+
+  // Football boot — from above it is a sole with a heel and three stripes.
+  {
+    const g = new THREE.Group();
+    // Built at the size of the other props, not half of it — the first one
+    // was a red pebble next to the football. The white sole is left showing
+    // all round the upper, because that outline is what says "shoe".
+    const body = PROP_MAT('#ff3b30', 0.32);
+    const sole = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.14, 18), PROP_MAT('#f7f7f7'));
+    sole.scale.z = 1.9;
+    put(g, sole, 0, 0.07, 0);
+    const upper = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 12), body);
+    upper.scale.set(0.92, 0.62, 1.5);
+    put(g, upper, 0, 0.16, 0.2);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.33, 12, 10), body), 0, 0.24, 0.56).scale.y = 0.78;
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.04, 0.08), PROP_MAT('#ffffff')),
+          0, 0.4, -0.02 + i * 0.2);
+    T.boot = { g, h: 0.5, currency: 'banana' };
+  }
+
+  // Training marker — a cone on a square base. Rings from above.
+  {
+    const g = new THREE.Group();
+    // The base was as wide as the cone was tall, so from above the whole prop
+    // was an orange square with a dot in it. It is a skirt now, not a slab.
+    const orange = PROP_MAT('#ff6a13');
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.07, 0.78), orange), 0, 0.035, 0);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.46, 1.0, 14), orange), 0, 0.56, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.16, 14), PROP_MAT('#ffffff')),
+        0, 0.6, 0);
+    T.marker = { g, h: 1.06, currency: 'melon' };
+  }
+
+  // Shirt, laid out flat on the ground the way kit is before a match.
+  {
+    const g = new THREE.Group();
+    const kit = PROP_MAT('#1a63d8', 0.5);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.08, 1.1), kit), 0, 0.04, 0.1);
+    for (const s of [-1, 1]) {
+      const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.08, 0.4), kit);
+      sleeve.rotation.y = s * 0.35;
+      put(g, sleeve, s * 0.6, 0.04, -0.24);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.09, 14), PROP_MAT('#f4f6fb')),
+        0, 0.05, -0.42);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.03, 0.44), PROP_MAT('#f4f6fb')), 0, 0.09, 0.2);
+    T.shirt = { g, h: 0.16, currency: 'berry' };
+  }
+
+  // The cup itself. Gold gets its own material — the flat props one has no
+  // metalness and a trophy without a highlight is a yellow vase.
+  {
+    const g = new THREE.Group();
+    const gold = new THREE.MeshStandardMaterial({ color: '#f5c542', roughness: 0.18, metalness: 0.75 });
+    const plinth = PROP_MAT('#2f2a24', 0.4);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.66, 0.22, 20), plinth), 0, 0.11, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.34, 14), gold), 0, 0.39, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.2, 0.62, 20), gold), 0, 0.87, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.06, 8, 22), gold),
+        0, 1.17, 0, Math.PI / 2, 0, 0);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.055, 8, 14, Math.PI), gold),
+          s * 0.52, 0.94, 0, 0, 0, s > 0 ? -Math.PI / 2 : Math.PI / 2);
+    T.trophy = { g, h: 1.24, currency: 'melon', only: 'giant' };
+  }
+
+  // Goal. From overhead this is a crossbar and a lattice, which is enough.
+  {
+    const g = new THREE.Group();
+    const post = PROP_MAT('#f7f7f7', 0.4);
+    const net = PROP_MAT('#dfe6ee', 0.7);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 1.0, 10), post), s * 1.0, 0.5, -0.5);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 2.15, 10), post),
+        0, 1.0, -0.5, 0, 0, Math.PI / 2);
+    for (let i = 0; i < 7; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.95), net),
+          -0.9 + i * 0.3, 0.96, -0.02);
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.04, 0.04), net), 0, 0.96, -0.05 + i * 0.4);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8), post),
+          s * 1.0, 0.62, -0.05, 0.9, 0, 0);
+    T.goal = { g, h: 1.1, currency: 'banana', only: 'giant' };
+  }
+
   return T;
 }
 
