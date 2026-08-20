@@ -220,3 +220,28 @@ Play'e yüklenmez, elde denemek içindir.
 
 **Anahtarı kaybetme.** GitHub secret'ı bir yedek değil; oradan geri okunamaz.
 Uygulamayı bir daha güncelleyebilmenin tek yolu o `.jks` dosyası.
+
+---
+
+## Play Console kısayolları (Fruit Hole)
+
+Console adresleri geliştirici ve uygulama kimliğini içeriyor, o yüzden menüde
+aramak yerine buradan:
+
+| Sayfa | Bağlantı |
+|---|---|
+| Test kullanıcıları | [tracks/…?tab=testers](https://play.google.com/console/u/2/developers/5308536581047917243/app/4976403972530837161/tracks/4699802296034577937?tab=testers) |
+| Sürümler | [tracks/…?tab=releases](https://play.google.com/console/u/2/developers/5308536581047917243/app/4976403972530837161/tracks/4699802296034577937?tab=releases) |
+
+Kimlikler: geliştirici `5308536581047917243`, uygulama `4976403972530837161`,
+kapalı test parkuru (Alpha) `4699802296034577937`. Bunlar gizli değil —
+Console'u açtığında adres çubuğunda zaten görünüyorlar.
+
+Tester bağlantıları:
+
+- Grup: https://groups.google.com/g/fruit-hole-testers
+- Opt-in: https://play.google.com/apps/testing/com.kaancetinkaya.fruithole
+
+**Grup üyesi sayısı ile Play'in saydığı tester sayısı aynı şey değil.** Play,
+gruba katılmış *ve* opt-in linkinden "Become a tester" demiş kişileri sayıyor;
+gruba girip linki açmayan biri grupta görünür, sayaçta görünmez.
