@@ -147,6 +147,12 @@
     color: rgba(255,255,255,.72); box-shadow: 0 3px 0 rgba(40,24,110,.35); }
   .upg .buy .cost { display: block; font-size: 11px; font-weight: 700; opacity: .85; }
   #upgrades .sect, #goals .sect { font-size: 15px; font-weight: 800; opacity: .9; margin-top: 2px; }
+  /* A ring of collar colour round a pale lip round the dark, which is the
+     hole seen from above — so the swatch is the thing, not a colour chip. */
+  .skinDot { border-radius: 50%; background:
+    radial-gradient(circle at 50% 50%, #140c06 0 42%, var(--lip) 42% 56%, var(--rim) 56% 100%);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.35); }
+  .upg.on { outline: 2px solid #8fd94a; outline-offset: -2px; }
   .menuRow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .menuRow .btn { margin-top: 0; }
 
@@ -557,6 +563,8 @@
     <div id="upgList"></div>
     <p class="sect"><span class="sIco" data-icon="burst"></span>Boosters</p>
     <div id="boostShop"></div>
+    <p class="sect"><span class="sIco" data-icon="ring"></span>Hole skins</p>
+    <div id="skinShop"></div>
     <button class="btn ghost" id="upgClose">Close</button>
   </div>
 
@@ -669,6 +677,50 @@ const BOOSTERS = [
   { id: 'magnet', icon: '🌟', name: 'Super magnet', unlock: 10, pay: 'melon', cost: 45, free: 1,
     desc: '8 seconds of strong pull' },
 ];
+
+// ---------------------------------------------------------------------
+// Skins
+//
+// The one thing the game had no answer to: nothing is ever *unlocked*. The
+// upgrades raise numbers and the boosters are consumed, so an hour of play
+// leaves nothing on the screen that says you were here. A skin does — it is
+// the object you steer, it is visible every second of every run, and it
+// costs nothing to run because the hole is three meshes and two materials.
+//
+// Half are earned by reaching a level and half are bought with fruit, so
+// both the playing and the collecting lead somewhere.
+// ---------------------------------------------------------------------
+const SKINS = [
+  { id: 'classic', name: 'Classic',  rim: '#f59321', lip: '#ffc978', level: 1 },
+  { id: 'mint',    name: 'Mint',     rim: '#2fc4a8', lip: '#9df0dd', level: 3 },
+  { id: 'grape',   name: 'Grape',    rim: '#8b5cf6', lip: '#c9b4ff', level: 6 },
+  { id: 'coral',   name: 'Coral',    rim: '#ff5f7a', lip: '#ffc0cb', level: 9 },
+  { id: 'ink',     name: 'Ink',      rim: '#2b3040', lip: '#7c88a0', level: 12 },
+  { id: 'lime',    name: 'Lime',     rim: '#8fd94a', lip: '#d8f5a8', pay: 'melon',  cost: 300 },
+  { id: 'candy',   name: 'Candy',    rim: '#ff8fc4', lip: '#ffe0ef', pay: 'berry',  cost: 400 },
+  { id: 'ocean',   name: 'Ocean',    rim: '#1e88e5', lip: '#8fd6ff', pay: 'lychee', cost: 500 },
+  // The two that are not flat colour. Metal reads completely differently
+  // under the same light, which is what makes the last ones feel like a prize
+  // rather than another swatch.
+  { id: 'gold',    name: 'Gold',     rim: '#f5c542', lip: '#fff0b8', metal: 0.85, rough: 0.16,
+    pay: 'banana', cost: 900 },
+  { id: 'chrome',  name: 'Chrome',   rim: '#cfd8e3', lip: '#ffffff', metal: 0.95, rough: 0.1,
+    level: 15 },
+];
+
+const skinStore = JSON.parse(localStorage.getItem('fruithole_skins') || 'null') || {};
+let ownedSkins = new Set(skinStore.owned || ['classic']);
+let activeSkin = skinStore.active || 'classic';
+function saveSkins() {
+  localStorage.setItem('fruithole_skins',
+    JSON.stringify({ owned: [...ownedSkins], active: activeSkin }));
+}
+const skinById = id => SKINS.find(s => s.id === id) || SKINS[0];
+// A level-gated skin is owned the moment you reach the level; there is no
+// claim step, because a reward you have to go and collect is a chore.
+function skinOwned(s) {
+  return ownedSkins.has(s.id) || (s.level !== undefined && level >= s.level);
+}
 
 const boosterStore = JSON.parse(localStorage.getItem('fruithole_boosters') || 'null');
 const boosters = boosterStore || Object.fromEntries(BOOSTERS.map(b => [b.id, b.free]));
@@ -1099,6 +1151,69 @@ function renderUpgrades() {
   });
 
   renderBoostShop();
+  renderSkinShop();
+}
+
+function renderSkinShop() {
+  const shop = document.getElementById('skinShop');
+  shop.innerHTML = '';
+  for (const sk of SKINS) {
+    const owned = skinOwned(sk);
+    const active = activeSkin === sk.id;
+    const pay = sk.pay ? TYPE_BY_ID[sk.pay] : null;
+
+    const row = document.createElement('div');
+    row.className = 'upg' + (active ? ' on' : '');
+    // The swatch is the collar and the lip in the same relationship they have
+    // on the board, so what you are buying is what you will be steering.
+    row.innerHTML =
+      `<span class="ico skinDot" style="--rim:${sk.rim};--lip:${sk.lip}"></span>` +
+      `<span class="mid">` +
+        `<span class="nm">${sk.name}</span>` +
+        `<div class="ds">${
+          owned ? (active ? 'In use' : 'Tap to wear')
+                : sk.level !== undefined ? `Reach level ${sk.level}`
+                : `${sk.cost} ${pay.label}`}</div>` +
+      `</span>`;
+
+    const btn = document.createElement('button');
+    btn.className = 'buy';
+    if (active) {
+      btn.textContent = '✓';
+      btn.disabled = true;
+    } else if (owned) {
+      btn.textContent = 'Wear';
+      btn.onclick = () => wearSkin(sk);
+    } else if (sk.level !== undefined) {
+      btn.textContent = '🔒';
+      btn.disabled = true;
+    } else {
+      btn.innerHTML = `Buy<span class="cost">${sk.cost} ${pay.label}</span>`;
+      btn.disabled = currency[sk.pay] < sk.cost;
+      btn.onclick = () => buySkin(sk);
+    }
+    row.appendChild(btn);
+    shop.appendChild(row);
+  }
+}
+
+function wearSkin(sk) {
+  activeSkin = sk.id;
+  ownedSkins.add(sk.id);
+  saveSkins();
+  applySkin(sk.id);
+  sfx.booster();
+  renderSkinShop();
+  refreshMenuLevel();
+}
+
+function buySkin(sk) {
+  if (currency[sk.pay] < sk.cost) return;
+  currency[sk.pay] -= sk.cost;
+  saveCurrency();
+  ownedSkins.add(sk.id);
+  wearSkin(sk);
+  renderUpgrades();
 }
 
 function renderBoostShop() {
@@ -3359,6 +3474,20 @@ const HOLE_RIM_MAT = new THREE.MeshStandardMaterial({
 });
 const HOLE_LIP_MAT = new THREE.MeshStandardMaterial({ color: '#ffc978', roughness: 0.5 });
 
+// One pair of materials, recoloured, rather than a set per skin: the hole is
+// rebuilt whenever it resets and ten spare materials would just be ten things
+// to keep in step.
+function applySkin(id) {
+  const s = skinById(id);
+  HOLE_RIM_MAT.color.set(s.rim);
+  HOLE_RIM_MAT.metalness = s.metal ?? 0.05;
+  HOLE_RIM_MAT.roughness = s.rough ?? 0.35;
+  HOLE_LIP_MAT.color.set(s.lip);
+  HOLE_LIP_MAT.metalness = s.metal ? s.metal * 0.6 : 0;
+  HOLE_LIP_MAT.roughness = s.rough ?? 0.5;
+}
+applySkin(activeSkin);
+
 function buildHole() {
   if (holeGroup) scene.remove(holeGroup);
   holeGroup = new THREE.Group();
@@ -4260,7 +4389,7 @@ function applyIcons() {
   Object.assign(ICONS, renderIcons([...new Set([
     ...Object.values(BOOSTER_ICON), ...Object.values(UPGRADE_ICON),
     ...Object.values(GOAL_ICON),
-    'lock', 'speaker', 'trophy', 'clipboard', 'map', 'cart', 'house',
+    'lock', 'speaker', 'trophy', 'clipboard', 'map', 'cart', 'house', 'ring',
   ])]));
   for (const [k, v] of Object.entries(renderIcons(Object.values(BOOSTER_ICON), 192, true))) {
     ICONS['plinth_' + k] = v;
@@ -4337,6 +4466,18 @@ window.fruitHoleTheme = () => {
   };
 };
 window.fruitHoleLevelName = () => currentPattern.name;
+
+// Skins, read off the live material rather than off the saved value — the
+// point is whether the thing on the board changed, not whether a flag did.
+window.fruitHoleSkin = () => ({
+  active: activeSkin,
+  rim: '#' + HOLE_RIM_MAT.color.getHexString(),
+  metal: +HOLE_RIM_MAT.metalness.toFixed(2),
+});
+window.fruitHoleSkinOwned = id => skinOwned(skinById(id));
+window.fruitHoleWear = id => wearSkin(skinById(id));
+window.fruitHoleBuySkin = id => buySkin(skinById(id));
+window.fruitHoleWallet = () => ({ ...currency });
 
 // Lay one of each prop out in a row, to check they still read from the
 // angle the game is actually played at.

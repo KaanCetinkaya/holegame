@@ -40,9 +40,16 @@ kökteki [`README.md`](../README.md) → "Hangi uygulama paketleniyor?".
 - **Günlük görevler** her gün yenilenir, **günlük ödül** üst üste girişle
   büyür, beş **başarım** kalıcıdır.
 
+- **Delik görünümleri** (yükseltmeler ekranının altında): 10 tane. Beşi bir
+  bölüme ulaşınca kendiliğinden açılıyor (talep etme adımı yok), beşi meyveyle
+  alınıyor. İkisi metalik — aynı ışık altında tamamen farklı okunduğu için
+  sondakiler ödül gibi duruyor. Oyunda "bir şey açtım" anını veren tek şey bu;
+  yükseltmeler sayı artırıyor, boosterlar tükeniyor.
+
 Kayıtlar `localStorage`'da: `fruithole_level`, `fruithole_currency`,
 `fruithole_stars`, `fruithole_upgrades`, `fruithole_boosters`,
-`fruithole_daily`, `fruithole_stats`, `fruithole_ach`, `fruithole_muted`.
+`fruithole_daily`, `fruithole_stats`, `fruithole_ach`, `fruithole_muted`,
+`fruithole_skins`.
 
 ## Bölüm yapısı
 
