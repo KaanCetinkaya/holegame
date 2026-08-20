@@ -26,10 +26,11 @@ Finishing isn't enough — how fast you finish is what counts. The more time lef
 on the clock, the more stars you take. Your best rating on every level is kept,
 so you can always come back and beat it.
 
-🎨 TWELVE HAND-BUILT LAYOUTS
+🎨 FIFTEEN HAND-BUILT LAYOUTS
 Every level is a shape sitting on open ground: a pyramid, a heart, a star, an
-island, a ring, a diamond, a spiral arm, a cross, stacks of crates, a staircase,
-scattered towers, winding walls. No two levels look alike.
+island, a ring, a diamond, a cross, a staircase, winding walls. Three of them
+throw out the grid entirely and lay the field in rings around you — orbits,
+a five-petalled bloom, three spiral arms winding outward. No two look alike.
 
 🔥 CHAIN COMBOS
 Eat fruit back to back and the multiplier climbs. Sweeping a whole patch in one
@@ -50,9 +51,16 @@ achievements to chase.
 
 🗼 STACKS AND GIANTS
 Fruit is piled into towers you take down in one pass. Scattered across every
-field are giants — pieces more than twice the width of your opening, sitting
-on cleared ground. You cannot touch them at the start. Sweep enough of the
-field, grow into one, and it pays for the whole trip.
+field are giants — more than twice the width of your opening, sitting on
+cleared ground, sometimes three of a kind huddled together. You cannot touch
+them at the start. Sweep enough of the field, grow into one, and it pays for
+the whole trip.
+
+🏖️ NOT ONLY FRUIT
+The board is a beach, and there is more on it than the crop: lollies and
+donuts, sunglasses and flip-flops, a starfish, a bucket and spade. Sunloungers,
+parasols, swim rings and an inflatable flamingo turn up at giant size. So does
+a football, a pair of boots, a shirt, a goal — and the cup itself.
 
 ⚡ ONE FINGER, FULLY OFFLINE
 Press anywhere and drag. That's the whole control scheme. No connection needed.
