@@ -39,6 +39,10 @@ kökteki [`README.md`](../README.md) → "Hangi uygulama paketleniyor?".
   Sırasıyla bölüm 4, 7 ve 10'da açılır; her biri bir adet hediye gelir.
 - **Günlük görevler** her gün yenilenir, **günlük ödül** üst üste girişle
   büyür, beş **başarım** kalıcıdır.
+- **Bölüm sonu sandığı**: bitiş ekranında bir sandık çıkar, dokununca patlar
+  ve `40 + yıldız×30 + bölüm×4` kadar rastgele bir meyve verir. O bölümde bir
+  görünüm açıldıysa haberi de buradan verir — tekrar oynanan bölümde yeniden
+  vermez.
 
 - **Delik görünümleri** (yükseltmeler ekranının altında): 10 tane. Beşi bir
   bölüme ulaşınca kendiliğinden açılıyor (talep etme adımı yok), beşi meyveyle
@@ -92,6 +96,12 @@ zorluk etmez.
   geçen süreyi kullanıyor, yoksa düşük FPS'te süre yavaş akıyor.
 - **Ses dosyasız.** Bütün efektler WebAudio ile sentezleniyor; arka arkaya
   yedikçe yeme sesi tizleşiyor. Titreşim varsa `navigator.vibrate` ile.
+- **Müzik de dosyasız.** Dört akorluk (F–C–G–Am) bir döngü aynı sentezle
+  çalınıyor: bas + arpej. Notalar zamanlayıcıyla değil **ses saatine** yarım
+  saniye önceden kuyruklanıyor — `setInterval` kayıyor ve arka plan sekmesinde
+  kısılıyor, bu kadar kısa bir döngüde bu duyulur bir aksama oluyor. Oyun
+  sırasında ses seviyesi düşüyor (0.09), menüde yükseliyor (0.15); efektler
+  saniyede birkaç kez çaldığı için ikisi aynı seviyede yarışırsa ucuz duruyor.
 
 ## Dil
 

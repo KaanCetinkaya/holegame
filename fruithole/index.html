@@ -147,6 +147,28 @@
     color: rgba(255,255,255,.72); box-shadow: 0 3px 0 rgba(40,24,110,.35); }
   .upg .buy .cost { display: block; font-size: 11px; font-weight: 700; opacity: .85; }
   #upgrades .sect, #goals .sect { font-size: 15px; font-weight: 800; opacity: .9; margin-top: 2px; }
+  #reward { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 2px 0 4px; }
+  #chest { background: none; border: 0; padding: 0; cursor: pointer; line-height: 0;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); animation: chestNudge 1.5s ease-in-out infinite; }
+  #chest:disabled { animation: none; cursor: default; }
+  #chest .cIco { display: block; width: 104px; height: 104px; background-size: contain;
+    background-repeat: no-repeat; background-position: center; }
+  /* It rocks until it is tapped, because a prize that sits still is scenery */
+  @keyframes chestNudge {
+    0%, 68%, 100% { transform: rotate(0) scale(1); }
+    74% { transform: rotate(-6deg) scale(1.05); }
+    82% { transform: rotate(6deg) scale(1.05); }
+    90% { transform: rotate(-3deg) scale(1.02); }
+  }
+  #chest.open .cIco { animation: chestPop .5s ease-out; }
+  @keyframes chestPop {
+    0% { transform: scale(1); } 35% { transform: scale(1.28); } 100% { transform: scale(1.1); }
+  }
+  #rewardLine { margin: 0; font-size: 15px; font-weight: 800; color: #ffe9a8;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+  /* the pips that fly out of it */
+  .pip3 { position: fixed; width: 12px; height: 12px; border-radius: 50%; pointer-events: none;
+    z-index: 60; will-change: transform, opacity; }
   /* A ring of collar colour round a pale lip round the dark, which is the
      hole seen from above — so the swatch is the thing, not a colour chip. */
   .skinDot { border-radius: 50%; background:
@@ -572,6 +594,10 @@
     <h1 id="overlayTitle">Level Complete!</h1>
     <p id="overlaySub"></p>
     <div class="stats" id="overlayStats"></div>
+    <div id="reward" hidden>
+      <button id="chest" aria-label="Open reward"><span class="cIco" data-icon="chest"></span></button>
+      <p id="rewardLine">Tap the chest</p>
+    </div>
     <button class="btn" id="reviveBtn">📺 +15 seconds</button>
     <div class="menuRow">
       <button class="btn ghost" id="actionBtn">Next</button>
@@ -979,6 +1005,91 @@ const sfx = {
   booster()   { ensureAudio(); [660, 880, 1180].forEach((f, i) => beep(f, 0.13, 'triangle', 0.17, i * 0.06)); vibrate([15, 30]); },
 };
 
+// ---------------------------------------------------------------------
+// Music
+//
+// A game with no music reads as a prototype however good it looks, and this
+// one had none. No file: the same synth the effects use, playing a four-bar
+// loop of a bass note and an arpeggio.
+//
+// Notes are scheduled against the audio clock a fraction of a second ahead
+// rather than played from a timer. setInterval drifts by whole milliseconds
+// and is throttled in a background tab, and on a loop this short that lands
+// as an audible stagger every few bars.
+// ---------------------------------------------------------------------
+const hz = midi => 440 * Math.pow(2, (midi - 69) / 12);
+
+// F – C – G – Am. Four chords that cannot go wrong under anything, which is
+// what a loop you will hear for an hour needs to be.
+const CHORDS = [
+  [53, 57, 60, 65],
+  [48, 52, 55, 60],
+  [55, 59, 62, 67],
+  [57, 60, 64, 69],
+];
+const STEP = 0.30;          // eighth notes at 100bpm
+const STEPS_PER_BAR = 8;
+
+const music = {
+  timer: null, gain: null, step: 0, nextAt: 0, target: 0,
+
+  volume(v) {
+    this.target = v;
+    if (this.gain && _actx) {
+      this.gain.gain.linearRampToValueAtTime(muted ? 0 : v, _actx.currentTime + 0.6);
+    }
+  },
+
+  start(v) {
+    ensureAudio();
+    if (!_actx || muted) return;
+    if (!this.gain) {
+      this.gain = _actx.createGain();
+      this.gain.gain.value = 0;
+      this.gain.connect(_actx.destination);
+    }
+    this.volume(v);
+    if (this.timer) return;
+    this.nextAt = _actx.currentTime + 0.1;
+    this.timer = setInterval(() => this.pump(), 120);
+  },
+
+  stop() {
+    this.volume(0);
+    clearInterval(this.timer);
+    this.timer = null;
+  },
+
+  pump() {
+    if (!_actx || muted) { this.stop(); return; }
+    // fill the next half second, whatever the timer did
+    while (this.nextAt < _actx.currentTime + 0.5) {
+      this.note(this.nextAt, this.step);
+      this.step = (this.step + 1) % (STEPS_PER_BAR * CHORDS.length);
+      this.nextAt += STEP;
+    }
+  },
+
+  note(at, step) {
+    const chord = CHORDS[Math.floor(step / STEPS_PER_BAR)];
+    const beat = step % STEPS_PER_BAR;
+    const voice = (m, dur, type, vol) => {
+      const o = _actx.createOscillator(), g = _actx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(hz(m), at);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(vol, at + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      o.connect(g); g.connect(this.gain);
+      o.start(at); o.stop(at + dur + 0.02);
+    };
+    // root on the downbeat and the half bar, an octave down
+    if (beat === 0 || beat === 4) voice(chord[0] - 12, 0.5, 'sine', 0.5);
+    // arpeggio over the top, skipping a beat so it breathes
+    if (beat !== 3 && beat !== 7) voice(chord[1 + (beat % 3)] + 12, 0.26, 'triangle', 0.16);
+  },
+};
+
 // sound is toggled from the pause screen; nothing to mirror in the HUD
 // The menu has its own sound toggle; the pause screen has another. Both
 // change the same flag, so both labels are redrawn from it.
@@ -988,8 +1099,17 @@ function refreshMuteBtn() {
 }
 document.addEventListener('pointerdown', (e) => {
   ensureAudio();
+  // Browsers will not start audio until the page has been touched, so this
+  // is the earliest the loop can begin.
+  refreshMusic();
   if (e.target.closest && e.target.closest('button')) sfx.click();
 }, true);
+
+// A hidden tab throttles timers but not the audio clock, so the scheduler
+// would come back having queued a backlog and play it all at once.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) music.stop(); else refreshMusic();
+});
 
 // ---------------------------------------------------------------------
 // HUD
@@ -1087,6 +1207,7 @@ function buildMenuDiorama() {
 // never the ones from before the run.
 function showMenu() {
   state = 'menu';
+  refreshMusic();
   buildMenuDiorama();
   buildMenuWallet();
   refreshMenuLevel();
@@ -1334,6 +1455,7 @@ function refreshGoalsBadge() {
 // no way to reach upgrades or goals again once a run has started.
 function toMenu() {
   state = 'menu';
+  refreshMusic();
   overlayEl.classList.remove('show');
   boosterBarEl.classList.remove('show');
   sizeTagEl.classList.remove('show');
@@ -1359,6 +1481,7 @@ function pauseGame() {
   if (state !== 'playing') return;
   pausedFrom = state;
   state = 'paused';
+  refreshMusic();
   joyX = 0; joyY = 0; touchId = null;
   joyBaseEl.classList.remove('drag'); joyKnobEl.classList.remove('drag');
   boosterBarEl.classList.remove('show');
@@ -1377,10 +1500,19 @@ function resumeGame() {
   lastT = performance.now();
   state = pausedFrom || 'playing';
   pausedFrom = null;
+  refreshMusic();
 }
 
 function refreshPauseMute() {
   document.getElementById('pauseMute').textContent = muted ? '🔇 Sound' : '🔊 Sound';
+}
+
+// The loop runs the whole time the app is open, but it steps back during a
+// run: that is when the effects fire several times a second, and two things
+// competing at the same level is what makes a game sound cheap.
+function refreshMusic() {
+  if (muted) { music.stop(); return; }
+  music.start(state === 'playing' ? 0.09 : 0.15);
 }
 
 document.getElementById('pauseBtn').addEventListener('click', pauseGame);
@@ -1390,6 +1522,7 @@ document.getElementById('pauseMute').addEventListener('click', () => {
   localStorage.setItem('fruithole_muted', muted ? '1' : '0');
   refreshMuteBtn();
   refreshPauseMute();
+  refreshMusic();
   if (!muted) { ensureAudio(); sfx.click(); }
 });
 document.getElementById('pauseMenu').addEventListener('click', () => {
@@ -1403,6 +1536,7 @@ document.getElementById('menuSound').addEventListener('click', () => {
   localStorage.setItem('fruithole_muted', muted ? '1' : '0');
   refreshMuteBtn();
   refreshPauseMute();
+  refreshMusic();
   if (!muted) { ensureAudio(); sfx.click(); }
 });
 
@@ -3725,6 +3859,7 @@ function startLevel() {
   topbarEl.classList.add('show');
   hintEl.style.opacity = '.8';
   state = 'playing';
+  refreshMusic();
 }
 
 function updateTimeUI() {
@@ -3739,6 +3874,89 @@ function updateTimeUI() {
   timeTagEl.classList.toggle('low', s <= 10);
 }
 
+// ---------------------------------------------------------------------
+// Level reward
+//
+// Finishing a level used to hand over a star and a sentence. A star is a
+// score, not a prize — nothing arrives, so there is no reason to want the
+// next level beyond the level itself. The chest is the arrival: you tap it,
+// it bursts, and fruit lands in the counter you watched go up all run.
+//
+// It also carries the skin unlocks, so the first time a new one opens you
+// find out here rather than by wandering into a menu.
+// ---------------------------------------------------------------------
+const rewardEl = document.getElementById('reward');
+const chestEl = document.getElementById('chest');
+const rewardLineEl = document.getElementById('rewardLine');
+let pendingReward = null;
+
+// unlockedAt is the level you have just *reached*, or 0 when this was a
+// replay. A skin gated on level 3 opens when level 2 is cleared, and it must
+// not be handed over again every time that level is replayed afterwards.
+function offerReward(earnedStars, clearedLevel, unlockedAt) {
+  const type = TYPES[Math.floor(Math.random() * TYPES.length)];
+  const amount = 40 + earnedStars * 30 + clearedLevel * 4;
+  const skin = unlockedAt
+    ? SKINS.find(sk => sk.level === unlockedAt && !ownedSkins.has(sk.id))
+    : null;
+  pendingReward = { type, amount, skin };
+
+  rewardEl.hidden = false;
+  chestEl.disabled = false;
+  chestEl.classList.remove('open');
+  rewardLineEl.textContent = 'Tap the chest';
+  applyIcons();
+}
+
+function takeReward() {
+  if (!pendingReward) return;
+  const { type, amount, skin } = pendingReward;
+  pendingReward = null;
+  chestEl.disabled = true;
+  chestEl.classList.add('open');
+
+  bumpCurrency(type.id, amount);
+  sfx.booster();
+  burstPips(chestEl, type.uiBase || type.base);
+
+  rewardLineEl.textContent = `+${amount} ${type.label}`;
+  if (skin) {
+    ownedSkins.add(skin.id);
+    saveSkins();
+    // Two lines of news at once is one line too many; the skin waits a beat
+    // so it is read as its own event.
+    setTimeout(() => {
+      rewardLineEl.textContent = `New skin: ${skin.name}!`;
+      burstPips(chestEl, skin.rim);
+      sfx.win();
+    }, 900);
+  }
+}
+chestEl.addEventListener('click', takeReward);
+
+// Confetti out of an element, in DOM rather than in the scene: the overlay
+// sits above the canvas, so anything thrown in the scene would be behind it.
+function burstPips(from, colour) {
+  const r = from.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  for (let i = 0; i < 18; i++) {
+    const el = document.createElement('div');
+    el.className = 'pip3';
+    el.style.background = colour;
+    el.style.left = (cx - 6) + 'px';
+    el.style.top = (cy - 6) + 'px';
+    document.body.appendChild(el);
+    const a = (i / 18) * Math.PI * 2 + Math.random() * 0.3;
+    const dist = 70 + Math.random() * 110;
+    el.animate([
+      { transform: 'translate(0,0) scale(1)', opacity: 1 },
+      { transform: `translate(${Math.cos(a) * dist}px, ${Math.sin(a) * dist + 60}px) scale(.4)`,
+        opacity: 0 },
+    ], { duration: 700 + Math.random() * 300, easing: 'cubic-bezier(.2,.7,.4,1)' })
+      .onfinish = () => el.remove();
+  }
+}
+
 function showOverlay(title, sub, btnText, action, offerRevive) {
   overlayTitleEl.textContent = title;
   overlaySubEl.textContent = sub;
@@ -3746,6 +3964,8 @@ function showOverlay(title, sub, btnText, action, offerRevive) {
   actionBtnEl.onclick = action;
   actionBtnEl.classList.toggle('ghost', !!offerRevive);
   reviveBtnEl.hidden = !offerRevive;
+  rewardEl.hidden = true;
+  pendingReward = null;
   boosterBarEl.classList.remove('show');
   sizeTagEl.classList.remove('show');
   joyBaseEl.classList.remove('show'); joyKnobEl.classList.remove('show');
@@ -3812,11 +4032,13 @@ function onCleared() {
   // Replaying an earlier level from the map must not roll progress back:
   // finishing level 3 when you had reached 10 leaves you on 10.
   const progress = parseInt(localStorage.getItem('fruithole_level') || '1', 10);
+  const advanced = cleared + 1 > progress;
   level = Math.max(cleared + 1, progress);
   localStorage.setItem('fruithole_level', String(level));
   refreshMenuLevel();
   const sub = isBest && prevBest > 0 ? 'New best!' : `Next: level ${level}`;
   showOverlay('Level Complete! 🎉', sub, 'Next', nextLevel, false);
+  offerReward(earned, cleared, advanced ? level : 0);
 }
 
 function onTimeUp() {
@@ -4089,6 +4311,23 @@ function part(geo, mat, x = 0, y = 0, z = 0) {
 
 // Each builder returns a group roughly two units across, facing +Z.
 const ICON_BUILDERS = {
+  // Chest, lid tilted back so it reads as open even standing still — a
+  // closed box at this size is just a box.
+  chest(g) {
+    g.add(part(new THREE.BoxGeometry(1.5, 0.9, 1.0), ICON_MAT.amber, 0, -0.35, 0));
+    g.add(part(new THREE.BoxGeometry(1.56, 0.16, 1.06), ICON_MAT.gold, 0, -0.35, 0));
+    g.add(part(new THREE.BoxGeometry(0.26, 0.94, 1.08), ICON_MAT.gold, 0, -0.35, 0));
+    const lid = part(new THREE.CylinderGeometry(0.52, 0.52, 1.5, 12, 1, false, 0, Math.PI),
+                     ICON_MAT.amber, 0, 0.16, -0.24);
+    lid.rotation.z = Math.PI / 2;
+    lid.rotation.x = -0.55;
+    g.add(lid);
+    g.add(part(new THREE.SphereGeometry(0.16, 12, 10), ICON_MAT.gold, 0, -0.1, 0.52));
+    // what is inside, spilling over the front lip
+    g.add(part(new THREE.SphereGeometry(0.2, 12, 10), ICON_MAT.red, -0.34, 0.16, 0.24));
+    g.add(part(new THREE.SphereGeometry(0.17, 12, 10), ICON_MAT.green, 0.3, 0.14, 0.3));
+    g.add(part(new THREE.SphereGeometry(0.15, 12, 10), ICON_MAT.gold, 0.02, 0.28, 0.36));
+  },
   // A closed book, not a folded sheet. Thin plates read as paper cut-outs at
   // this size; the reference set is all solid volumes.
   map(g) {
@@ -4389,7 +4628,7 @@ function applyIcons() {
   Object.assign(ICONS, renderIcons([...new Set([
     ...Object.values(BOOSTER_ICON), ...Object.values(UPGRADE_ICON),
     ...Object.values(GOAL_ICON),
-    'lock', 'speaker', 'trophy', 'clipboard', 'map', 'cart', 'house', 'ring',
+    'lock', 'speaker', 'trophy', 'clipboard', 'map', 'cart', 'house', 'ring', 'chest',
   ])]));
   for (const [k, v] of Object.entries(renderIcons(Object.values(BOOSTER_ICON), 192, true))) {
     ICONS['plinth_' + k] = v;
@@ -4408,7 +4647,7 @@ function applyIcons() {
     if (b) dress(b.querySelector('.ic'), 'nav_' + name);
   }
   // headings and section labels
-  document.querySelectorAll('.hIco, .sIco, .bIco').forEach(el => {
+  document.querySelectorAll('.hIco, .sIco, .bIco, .cIco').forEach(el => {
     const url = ICONS[el.dataset.icon];
     if (url) el.style.backgroundImage = `url(${url})`;
   });
@@ -4478,6 +4717,18 @@ window.fruitHoleSkinOwned = id => skinOwned(skinById(id));
 window.fruitHoleWear = id => wearSkin(skinById(id));
 window.fruitHoleBuySkin = id => buySkin(skinById(id));
 window.fruitHoleWallet = () => ({ ...currency });
+// Finish a level without playing it, so the win path can be exercised.
+window.fruitHoleClear = () => {
+  const now = performance.now();
+  for (const f of fruits) if (!f.eaten) eatFruit(f, now);
+  onCleared();
+};
+window.fruitHoleMusic = () => ({
+  running: !!music.timer,
+  target: music.target,
+  muted,
+  state,
+});
 
 // Lay one of each prop out in a row, to check they still read from the
 // angle the game is actually played at.
