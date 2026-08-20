@@ -2764,7 +2764,7 @@ const PATTERNS = [
     big: () => false,
   },
   {
-    name: 'Walls', icon: '🧱', theme: 'pitch',
+    name: 'Walls', icon: '🧱', theme: 'beach',
     // winding walls with open corridors to work along
     empty: (r, c) => Math.abs(blob(r, c, 0.19, 77) - 0.5) > 0.11,
     stack: (r, c) => ridge(1 - Math.abs(blob(r, c, 0.19, 77) - 0.5) / 0.11, 3),
@@ -2784,7 +2784,7 @@ const PATTERNS = [
     big: (r, c) => blockType(r, c, 4, 3, 55) === 'melon' && r % 3 === 1 && c % 4 === 2,
   },
   {
-    name: 'Stairs', icon: '🪜', theme: 'beach',
+    name: 'Stairs', icon: '🪜', theme: 'mixed',
     // the mass descends across the board in broad steps
     empty: (r, c) => {
       const stepH = 3;
@@ -2796,7 +2796,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 47) > 0.76,
   },
   {
-    name: 'Heart', icon: '💛', theme: 'mixed',
+    name: 'Heart', icon: '💛', theme: 'beach',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const x = nx / 0.9, y = -ny / 0.85 + 0.28;
@@ -2812,7 +2812,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 12) > 0.74,
   },
   {
-    name: 'Star', icon: '⭐', theme: 'pitch',
+    name: 'Star', icon: '⭐', theme: 'home',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const d = Math.hypot(nx, ny * 0.95);
@@ -2927,7 +2927,7 @@ const PATTERNS = [
     big: (ring, turn) => ring % 4 === 1 && Math.abs(Math.sin(turn * Math.PI * 5)) > 0.93,
   },
   {
-    name: 'Whirl', icon: '🌀', polar: true, theme: 'beach',
+    name: 'Whirl', icon: '🌀', polar: true, theme: 'pitch',
     // Three arms winding outward. A slot is on an arm when its angle is
     // close to where the arm has turned to by that radius, which is what
     // makes the arm a curve rather than a straight spoke.
@@ -2944,7 +2944,7 @@ const PATTERNS = [
     big: (ring) => ring % 6 === 3,
   },
   {
-    name: 'Bloom', icon: '🌸', polar: true, theme: 'home',
+    name: 'Bloom', icon: '🌸', polar: true, theme: 'beach',
     // Five petals: a slot survives while its ring is still inside the petal
     // reaching out along that spoke, so the outline scallops. The reach is
     // kept near the half-width of the board — a petal longer than that is
@@ -2958,6 +2958,21 @@ const PATTERNS = [
     big: (ring, turn) => ring > 3 && Math.abs(Math.sin(turn * Math.PI * 5)) > 0.9,
   },
 ];
+
+// The order levels are played in is not the order the patterns are written
+// in. The three ring layouts were added last and so landed at levels 13-15 —
+// the most distinctive thing in the game sat where most players never reach.
+// This puts one at level 3, and spaces the settings so the same place never
+// turns up two levels running.
+const LEVEL_ORDER = [
+  'Pyramid', 'Piles', 'Orbits', 'Walls', 'Blocks',
+  'Stairs', 'Heart', 'Whirl', 'Star', 'Island',
+  'Ring', 'Diamond', 'Bloom', 'Spiral', 'Cross',
+];
+for (const p of PATTERNS) {
+  if (!LEVEL_ORDER.includes(p.name)) throw new Error(`LEVEL_ORDER is missing ${p.name}`);
+}
+PATTERNS.sort((a, b) => LEVEL_ORDER.indexOf(a.name) - LEVEL_ORDER.indexOf(b.name));
 
 function buildField() {
   for (const f of flecks) { scene.remove(f.m); FLECK_POOL.push(f.m); }
@@ -3049,17 +3064,25 @@ function placeGiants() {
   }
   if (!spots.length) return;
 
+  // Size the giants to the board. The hole grows 0.017 a fruit, so a full-size
+  // giant takes about fifty swallows to open — fine on a field of three
+  // hundred, but two thirds of the whole level on one of eighty, and a target
+  // you reach at the very end is not a target. This is the widest giant a
+  // player can open having cleared about a third of the field.
+  const reach = 0.92 * (BASE_HOLE_R + fruits.length * 0.35 * 0.017);
+  const giantR = Math.max(0.95, Math.min(GIANT_R, reach));
+
   const want = 3 + Math.floor(Math.random() * 3) + Math.min(3, Math.floor(rows / 12));
   const placed = [];
-  const CLEAR = GIANT_R + NORMAL_R * 1.5;
+  const CLEAR = giantR + NORMAL_R * 1.5;
 
   for (let tries = 0; tries < want * 30 && placed.length < want; tries++) {
     const seed = spots[Math.floor(Math.random() * spots.length)];
     if (seed.eaten) continue;                       // already cleared by a giant
     // Two giants touching read as one lump, so keep them well apart.
-    if (placed.some(g => Math.hypot(g.x - seed.x, g.z - seed.z) < GIANT_R * 4.5)) continue;
+    if (placed.some(g => Math.hypot(g.x - seed.x, g.z - seed.z) < giantR * 4.5)) continue;
     // and inside the board, not hanging off the last row
-    if (Math.abs(seed.x) > fieldHalfX - GIANT_R || Math.abs(seed.z) > fieldHalfZ - GIANT_R) continue;
+    if (Math.abs(seed.x) > fieldHalfX - giantR || Math.abs(seed.z) > fieldHalfZ - giantR) continue;
 
     // Some of them come as a huddle of three rather than one on its own.
     // A single giant is an obstacle; three of the same fruit leaning on each
@@ -3072,13 +3095,13 @@ function placeGiants() {
     const giantPool = (currentTheme.props || GIANT_PROPS).filter(id => GIANT_PROPS.includes(id));
     const prop = giantPool.length && Math.random() < 0.42 ? pick(giantPool) : null;
     const offsets = huddle
-      ? [[0, -GIANT_R * 1.02], [-GIANT_R * 0.9, GIANT_R * 0.55], [GIANT_R * 0.9, GIANT_R * 0.55]]
+      ? [[0, -giantR * 1.02], [-giantR * 0.9, giantR * 0.55], [giantR * 0.9, giantR * 0.55]]
       : [[0, 0]];
     // The seed clears the spawn, but a sibling offset towards it need not:
     // every member has to be checked, or a huddle drops one on the opening.
     if (offsets.some(([ox, oz]) =>
-      Math.abs(seed.x + ox) > fieldHalfX - GIANT_R ||
-      Math.abs(seed.z + oz) > fieldHalfZ - GIANT_R ||
+      Math.abs(seed.x + ox) > fieldHalfX - giantR ||
+      Math.abs(seed.z + oz) > fieldHalfZ - giantR ||
       Math.hypot(seed.x + ox - SPAWN_X, seed.z + oz - spawnZ()) < 3.4)) continue;
 
     for (const [ox, oz] of offsets) {
@@ -3090,7 +3113,7 @@ function placeGiants() {
         f.eaten = true;                             // dropped before the level starts
         f.mesh.visible = false;
       }
-      const vis = prop ? propVisual(prop, GIANT_R * 1.1) : fruitVisual(seed.type, GIANT_R);
+      const vis = prop ? propVisual(prop, giantR * 1.1) : fruitVisual(seed.type, giantR);
       const type = prop ? vis.currency : seed.type;
       const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
       mesh.scale.set(vis.sx, vis.sy, vis.sx);
@@ -3100,7 +3123,7 @@ function placeGiants() {
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       fieldGroup.add(mesh);
-      const g = { mesh, x: gx, z: gz, r: GIANT_R, type, prop,
+      const g = { mesh, x: gx, z: gz, r: giantR, type, prop,
                   big: true, giant: true, eaten: false, baseY: vis.baseY, nudge: 0 };
       fruits.push(g);
       placed.push(g);
@@ -4147,8 +4170,10 @@ window.fruitHoleTheme = () => {
     propCount: on.length,
     kinds,
     stray: allowed ? kinds.filter(k => !allowed.includes(k)) : [],
+    polar: !!currentPattern.polar,
   };
 };
+window.fruitHoleLevelName = () => currentPattern.name;
 
 // Lay one of each prop out in a row, to check they still read from the
 // angle the game is actually played at.
@@ -4188,8 +4213,9 @@ window.fruitHoleGiants = () => {
     nearestToSpawn: g.length
       ? +Math.min(...g.map(f => Math.hypot(f.x - SPAWN_X, f.z - spawnZ()))).toFixed(2)
       : null,
-    holeR: +holeRadius.toFixed(2),
-    needR: +(GIANT_R / 0.92).toFixed(2),
+    // From a fresh hole, not from whatever the last probe left behind.
+    holeR: +(BASE_HOLE_R + (sizeStage - 1) * 0.05 + upg('size') * 0.06).toFixed(2),
+    needR: g.length ? +(Math.max(...g.map(f => f.r)) / 0.92).toFixed(2) : null,
   };
 };
 window.fruitHoleFlecks = () => flecks.length;
