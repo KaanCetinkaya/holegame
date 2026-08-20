@@ -170,3 +170,53 @@ eski kurulumun yolunu çağırıyordu.
 - [ ] Play Console'da 4 uygulama içi ürün oluşturuldu mu
       (`fruithole_remove_ads`, `fruithole_starter`, `fruithole_pack_small`, `fruithole_pack_large`)
 - [ ] Ödeme SDK'sı bağlandı mı (`purchase()` / `restorePurchases()`)
+
+---
+
+## Bilgisayarsız sürüm çıkarmak (GitHub Actions)
+
+`.aab` üretmek normalde Node + Gradle + JDK + imzalama anahtarı ister, yani
+bir bilgisayar. `.github/workflows/build-aab.yml` bunu GitHub'ın makinesinde
+yapıyor; telefondan tetikleyip çıkan dosyayı indirebilirsin.
+
+### Bir kereye mahsus kurulum
+
+Anahtarı base64'e çevir (kendi bilgisayarında, bir kez):
+
+```bash
+# macOS / Linux
+base64 -i fruithole-key.jks | tr -d '\n' > key.txt
+
+# Windows PowerShell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("fruithole-key.jks")) > key.txt
+```
+
+`key.txt` içindekini GitHub'a gizli değer olarak ekle:
+**Settings → Secrets and variables → Actions → New repository secret**
+
+| Ad | Değer |
+|---|---|
+| `KEYSTORE_BASE64` | `key.txt` içeriği |
+| `KEYSTORE_PASSWORD` | anahtar deposu şifresi |
+| `KEY_ALIAS` | takma ad (ör. `fruithole`) |
+| `KEY_PASSWORD` | anahtar şifresi (çoğu zaman aynısı) |
+
+Bittikten sonra `key.txt`'yi sil. Anahtarın kendisi depoya **girmez**.
+
+### Her sürümde
+
+1. GitHub'da depoyu aç → **Actions** → **Build signed bundle**
+2. **Run workflow**: uygulama (`fruithole`), biçim (`aab`), istersen
+   versionCode'u elle gir (boş bırakırsan `app-version.json`'daki kullanılır)
+3. 5-10 dakika bekle
+4. Çalışmanın sayfasındaki **Artifacts** altından `fruithole-1.1-6.aab`'yi indir
+5. Play Console → Kapalı test → yeni sürüm → dosyayı yükle
+
+Telefondan da aynı adımlar; Play Console'da yükleme için Chrome'da
+"Masaüstü sitesi"ni açmak işi kolaylaştırıyor.
+
+`apk` seçersen imzası aynı ama telefona doğrudan kurulabilen dosya çıkar —
+Play'e yüklenmez, elde denemek içindir.
+
+**Anahtarı kaybetme.** GitHub secret'ı bir yedek değil; oradan geri okunamaz.
+Uygulamayı bir daha güncelleyebilmenin tek yolu o `.jks` dosyası.
