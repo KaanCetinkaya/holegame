@@ -98,9 +98,13 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 - `icon-512.png` — store icon, exactly 512×512 (required)
 - `feature-1024x500.png` — feature graphic (required)
 - `1-menu.png` — main menu
-- `2-play.png` — gameplay
-- `3-towers.png` — later level with stacked fruit and a grown hole
+- `2-play.png` — a Match Day level: towers on a mown pitch
+- `3-towers.png` — the same board with the hole grown and a swathe cleared
 - `4-upgrades.png` — upgrade screen
 - `5-levels.png` — the level map with star ratings
+- `6-indoors.png` — an Indoors level: floorboards, toy cars, mugs
+- `7-beach.png` — a Beach level: sand, sea, parasols
 
-Screenshots are 1080×1920, captured from real play.
+Screenshots are 1080×1920, captured from real play. Upload them in that
+order — the first two are what shows in search results, and between them they
+have to say "hole", "fruit" and "this level is somewhere".
