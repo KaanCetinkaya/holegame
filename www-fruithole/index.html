@@ -1003,6 +1003,8 @@ const sfx = {
   lose()      { ensureAudio(); [420, 320, 240].forEach((f, i) => beep(f, 0.22, 'sawtooth', 0.14, i * 0.1)); vibrate(70); },
   tick()      { ensureAudio(); beep(760, 0.05, 'square', 0.08); },
   booster()   { ensureAudio(); [660, 880, 1180].forEach((f, i) => beep(f, 0.13, 'triangle', 0.17, i * 0.06)); vibrate([15, 30]); },
+  // The board landing: a run of soft thumps spreading out with the wave.
+  drop()      { ensureAudio(); for (let i = 0; i < 7; i++) beep(90 + i * 9, 0.1, 'sine', 0.09, i * 0.075); },
 };
 
 // ---------------------------------------------------------------------
@@ -3458,6 +3460,69 @@ function buildField() {
   placeGiants();
   // A level ends when every fruit on the field has been eaten.
   levelGoal = fruits.length;
+  armDrop();
+}
+
+// ---------------------------------------------------------------------
+// The level arriving
+//
+// A field used to be simply *there* on the first frame — four hundred pieces
+// of fruit appearing out of nothing, which reads as a screen being drawn
+// rather than a place you have turned up at. Now it falls in.
+//
+// The delay on each piece follows its distance from the opening, so the
+// board lands as a wave running outward from where you are standing. Timing
+// it by row would sweep across the screen instead, which tells you nothing
+// about where you are; from the hole outward, the first thing to settle is
+// the fruit you are about to eat.
+// ---------------------------------------------------------------------
+const DROP_HEIGHT = 9;
+const DROP_FALL = 0.42;        // seconds for one piece, once it starts
+let timeFull = 0;              // the clock the level was handed, before any of it ran
+let dropStart = 0;             // performance.now() when the level landed
+let dropSpan = 0;              // seconds until the last piece has settled
+
+function armDrop() {
+  let far = 0;
+  for (const f of fruits) {
+    const d = Math.hypot(f.x - SPAWN_X, f.z - spawnZ());
+    f.dropAt = d * 0.035;
+    if (f.dropAt > far) far = f.dropAt;
+    f.mesh.position.y = f.baseY + DROP_HEIGHT;
+  }
+  dropStart = performance.now();
+  dropSpan = far + DROP_FALL + 0.12;
+}
+
+const dropping = () => (performance.now() - dropStart) / 1000 < dropSpan;
+
+// Put the board down at once. The measuring probes build a level and read it
+// in the same breath, with no frames in between to fall through.
+function landNow() {
+  for (const f of fruits) f.mesh.position.y = f.baseY;
+  dropSpan = 0;
+}
+
+// Returns false once everything has landed, so the caller can stop asking.
+function stepDrop(now) {
+  if (dropSpan === 0) return false;
+  const t = (now - dropStart) / 1000;
+  // Land everything explicitly on the way out. A piece whose fall straddles
+  // the last frame of the window would otherwise be left wherever it was, and
+  // stay there: at a low frame rate that stranded half the board in the air.
+  // It also stops this looping over four hundred pieces on every later frame.
+  if (t >= dropSpan) { landNow(); return false; }
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    const p = (t - f.dropAt) / DROP_FALL;
+    if (p >= 1) { f.mesh.position.y = f.baseY; continue; }
+    if (p <= 0) { f.mesh.position.y = f.baseY + DROP_HEIGHT; continue; }
+    // accelerate all the way down, then one small bounce off the ground
+    const fall = p * p;
+    const bounce = Math.sin(p * Math.PI) * 0.06 * (1 - p);
+    f.mesh.position.y = f.baseY + DROP_HEIGHT * (1 - fall) + bounce * DROP_HEIGHT;
+  }
+  return true;
 }
 
 // Drop a few giants into the field, each on its own patch of open ground.
@@ -3836,12 +3901,13 @@ function startLevel() {
   resetHole();
   camX = holeX; camZ = holeZ;
   fitCamera();
-  timeLeft = levelTime();
+  timeLeft = timeFull = levelTime();
   lastWholeSecond = -1;
   streak = 0;
   revivedThisLevel = false;
   runStart = performance.now();
   showBanner();
+  sfx.drop();
   refreshLevelTag();
   updateTimeUI();
   lastProgPct = -1; lastStarCount = -1;
@@ -4723,6 +4789,17 @@ window.fruitHoleClear = () => {
   for (const f of fruits) if (!f.eaten) eatFruit(f, now);
   onCleared();
 };
+// How much of the board is still in the air, and whether the clock has been
+// allowed to start.
+window.fruitHoleDrop = () => ({
+  dropping: dropping(),
+  above: fruits.filter(f => !f.eaten && f.mesh.position.y > f.baseY + 0.05).length,
+  total: fruits.filter(f => !f.eaten).length,
+  timeLeft: +timeLeft.toFixed(1),
+  span: +dropSpan.toFixed(2),
+  full: +timeFull.toFixed(1),
+  age: +((performance.now() - dropStart) / 1000).toFixed(2),
+});
 window.fruitHoleMusic = () => ({
   running: !!music.timer,
   target: music.target,
@@ -4734,6 +4811,7 @@ window.fruitHoleMusic = () => ({
 // angle the game is actually played at.
 window.fruitHolePropSheet = () => {
   buildField();
+  landNow();
   for (const f of fruits) fieldGroup.remove(f.mesh);
   fruits = [];
   const ids = Object.keys(PROPS);
@@ -4835,6 +4913,7 @@ window.fruitHoleProbe = (n) => {
   level = n; sizeStage = n;
   rows = Math.min(22 + Math.floor((n - 1) / 2) * 2, 34);
   buildField();
+  landNow();
   resetHole();
   return {
     fruit: fruits.length, seconds: levelTime(),
@@ -4863,7 +4942,15 @@ function tick(now) {
   const dt = Math.min(0.05, elapsed);   // movement stays stable on frame spikes
   lastT = now;
 
-  if (state === 'playing') {
+  // While the level is still landing the clock is held and the hole does not
+  // answer the stick: a second and a half of a countdown you cannot play
+  // against is a second and a half stolen from the player.
+  // Run the drop whatever the state is. buildField also lays the menu
+  // diorama, and if only a live run settled it, the menu would sit there
+  // with its fruit stranded nine units in the air.
+  const settling = stepDrop(now);
+
+  if (state === 'playing' && !settling) {
     // countdown follows wall-clock so it is not slowed by a low frame rate,
     // but a backgrounded tab must not drain the whole clock at once
     timeLeft -= Math.min(0.25, elapsed);

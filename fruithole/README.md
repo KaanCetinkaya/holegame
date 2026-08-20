@@ -96,6 +96,12 @@ zorluk etmez.
   geçen süreyi kullanıyor, yoksa düşük FPS'te süre yavaş akıyor.
 - **Ses dosyasız.** Bütün efektler WebAudio ile sentezleniyor; arka arkaya
   yedikçe yeme sesi tizleşiyor. Titreşim varsa `navigator.vibrate` ile.
+- **Bölüm yukarıdan dökülüyor.** Her parçanın gecikmesi deliğe olan
+  uzaklığına bağlı, yani tarla durduğun yerden dışarı yayılan bir dalga
+  hâlinde iniyor. Satıra göre zamanlamak ekranı süpürürdü ve nerede olduğun
+  hakkında hiçbir şey söylemezdi; delikten dışarı olunca ilk oturan şey birazdan
+  yiyeceğin meyve oluyor. **Sayaç ve kontrol bu sırada duruyor** — oynayamadığın
+  bir buçuk saniyelik geri sayım oyuncudan çalınmış demektir.
 - **Müzik de dosyasız.** Dört akorluk (F–C–G–Am) bir döngü aynı sentezle
   çalınıyor: bas + arpej. Notalar zamanlayıcıyla değil **ses saatine** yarım
   saniye önceden kuyruklanıyor — `setInterval` kayıyor ve arka plan sekmesinde
