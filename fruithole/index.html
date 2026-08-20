@@ -1050,7 +1050,11 @@ function refreshLevelTag() {
   const p = currentPattern;
   const best = stars[level] ? '  ' + '★'.repeat(stars[level]) : '';
   levelNEl.textContent = level;
-  patternTagEl.textContent = (p ? `${p.icon} ${p.name}` : '') + best;
+  // Both halves of what makes this level itself: where you are, and what
+  // shape the field is in.
+  const th = p && THEMES[p.theme];
+  patternTagEl.textContent =
+    (p ? `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}` : '') + best;
 }
 
 // ---------------------------------------------------------------------
@@ -2332,6 +2336,64 @@ function groundTexture() {
   tex.repeat.set(14, 14);
   return tex;
 }
+
+// A mown pitch. The stripes are the whole trick — plain green is a felt mat,
+// and the alternating bands are what makes it read as a football ground from
+// the first frame, before you have seen a single ball.
+function grassTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = i % 2 ? '#4fae42' : '#59bd4a';
+    ctx.fillRect(0, (i * S) / 4, S, S / 4);
+  }
+  for (let i = 0; i < 2600; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.07;
+    ctx.fillStyle = Math.random() < 0.5 ? '#3f9a36' : '#79d268';
+    const x = Math.random() * S, y = Math.random() * S;
+    ctx.fillRect(x, y, 1.2, 2 + Math.random() * 3);
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(6, 6);
+  return tex;
+}
+
+// Floorboards. Seams run one way only, so the repeat has to be square or the
+// planks come out as tiles.
+function woodTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  const planks = 5, ph = S / planks;
+  for (let i = 0; i < planks; i++) {
+    const shade = 0.86 + Math.random() * 0.22;
+    ctx.fillStyle = `rgb(${(196 * shade) | 0}, ${(148 * shade) | 0}, ${(96 * shade) | 0})`;
+    ctx.fillRect(0, i * ph, S, ph);
+    // grain
+    ctx.globalAlpha = 0.13;
+    ctx.strokeStyle = '#7d5730';
+    for (let k = 0; k < 9; k++) {
+      const y = i * ph + 3 + Math.random() * (ph - 6);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.bezierCurveTo(S / 3, y + 2, (2 * S) / 3, y - 2, S, y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#8a5f34';
+    ctx.fillRect(0, i * ph, S, 2);
+  }
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(7, 7);
+  return tex;
+}
+
+// Built the first time a theme is played rather than all at boot: two of the
+// three are a couple of hundred thousand canvas operations and most sessions
+// never reach the levels that need them.
+const GROUND_TEX = {};
+const groundTex = kind => GROUND_TEX[kind] ||
+  (GROUND_TEX[kind] = ({ sand: groundTexture, grass: grassTexture, wood: woodTexture })[kind]());
 // The sand is an island in turquoise water rather than sand to the horizon:
 // it ties the board to the app icon, and it gives the field a visible edge —
 // before this you could not tell where the board stopped.
@@ -2417,6 +2479,61 @@ scene.add(ground);
 
 // Called whenever the field changes size; the beach keeps a constant margin
 // so the hole always has somewhere to stand at the edge of the board.
+// ---------------------------------------------------------------------
+// Themes
+//
+// Every level is already a different shape. A different *place* on top of
+// that is what makes one level memorable and the next one distinct — with
+// one setting and one pool of props, the twenty-second level looks exactly
+// like the second no matter how the fruit is arranged.
+//
+// A theme decides what the ground is, what surrounds it, and which objects
+// turn up. It never touches the fruit: the crop is the same everywhere,
+// because that is what the four counters and the whole shop are built on.
+// ---------------------------------------------------------------------
+const THEMES = {
+  beach: {
+    name: 'Beach', icon: '🏖️',
+    ground: 'sand', surround: '#22c9cd', ripples: true,
+    edge: '#bff3f5', surf: '#ecfeff',
+    props: ['starfish', 'shell', 'shades', 'flipflop', 'bucket', 'cone',
+            'parasol', 'swimring', 'lounger', 'flamingo', 'ball', 'lolly'],
+  },
+  pitch: {
+    name: 'Match Day', icon: '⚽',
+    // The white band the beach uses for foam becomes the touchline here, and
+    // the sea becomes the dark of a stadium floor beyond it.
+    ground: 'grass', surround: '#2d3b4d', ripples: false,
+    edge: '#f4f7fa', surf: null,
+    props: ['football', 'boot', 'marker', 'shirt', 'trophy', 'goal'],
+  },
+  home: {
+    name: 'Indoors', icon: '🏠',
+    ground: 'wood', surround: '#4a382a', ripples: false,
+    edge: '#7c5c3c', surf: null,
+    props: ['lolly', 'donut', 'mug', 'ball', 'car', 'duck'],
+  },
+  mixed: {
+    name: 'Everything', icon: '🎲',
+    ground: 'sand', surround: '#22c9cd', ripples: true,
+    edge: '#bff3f5', surf: '#ecfeff',
+    props: null,                       // null: draw from the whole pool
+  },
+};
+let currentTheme = THEMES.beach;
+
+function applyTheme(theme) {
+  currentTheme = theme;
+  ground.material.map = groundTex(theme.ground);
+  ground.material.needsUpdate = true;
+  water.material.map = theme.ripples ? waterTex : null;
+  water.material.color.set(theme.ripples ? '#ffffff' : theme.surround);
+  water.material.needsUpdate = true;
+  shore.material.color.set(theme.edge);
+  surf.visible = !!theme.surf;
+  if (theme.surf) surf.material.color.set(theme.surf);
+}
+
 let shoreW = 1, shoreH = 1;
 function fitGround() {
   const w = fieldHalfX * 2 + 3.0;
@@ -2431,6 +2548,11 @@ function fitGround() {
 // wall clock rather than by accumulated frames, so the sea moves at the same
 // speed however the frame rate is doing.
 function stepWater(now) {
+  if (!currentTheme.ripples) {
+    // A touchline does not lap, and neither does a skirting board.
+    shore.scale.set(shoreW, shoreH, 1);
+    return;
+  }
   waterTex.offset.x = now * 0.000013;
   waterTex.offset.y = now * 0.000021;
   const swell = Math.sin(now * 0.0011);
@@ -2612,7 +2734,7 @@ function fromCentre(r, c) {
 
 const PATTERNS = [
   {
-    name: 'Pyramid', icon: '🔺',
+    name: 'Pyramid', icon: '🔺', theme: 'beach',
     // wide at the bottom, narrowing to a point at the top -- and piled
     // higher toward the middle, so it is a pyramid from the side too
     empty: (r, c) => {
@@ -2634,7 +2756,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.5, 71) > 0.72,
   },
   {
-    name: 'Piles', icon: '🥞',
+    name: 'Piles', icon: '🥞', theme: 'home',
     // sparse ground with tall piles dotted across it
     empty: (r, c) => !(r % 2 === 1 && c % 2 === 1) || blob(r, c, 0.35, 13) < 0.32,
     stack: (r, c) => ridge((blob(r, c, 0.35, 13) - 0.32) / 0.68, 3),
@@ -2642,7 +2764,7 @@ const PATTERNS = [
     big: () => false,
   },
   {
-    name: 'Walls', icon: '🧱',
+    name: 'Walls', icon: '🧱', theme: 'pitch',
     // winding walls with open corridors to work along
     empty: (r, c) => Math.abs(blob(r, c, 0.19, 77) - 0.5) > 0.11,
     stack: (r, c) => ridge(1 - Math.abs(blob(r, c, 0.19, 77) - 0.5) / 0.11, 3),
@@ -2650,7 +2772,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 9) > 0.76,
   },
   {
-    name: 'Blocks', icon: '🧊',
+    name: 'Blocks', icon: '🧊', theme: 'home',
     // rectangular crates of one fruit, mass ending in a stepped edge
     empty: (r, c) => {
       const qr = stepped(r, 3), qc = stepped(c, 3);
@@ -2662,7 +2784,7 @@ const PATTERNS = [
     big: (r, c) => blockType(r, c, 4, 3, 55) === 'melon' && r % 3 === 1 && c % 4 === 2,
   },
   {
-    name: 'Stairs', icon: '🪜',
+    name: 'Stairs', icon: '🪜', theme: 'beach',
     // the mass descends across the board in broad steps
     empty: (r, c) => {
       const stepH = 3;
@@ -2674,7 +2796,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 47) > 0.76,
   },
   {
-    name: 'Heart', icon: '💛',
+    name: 'Heart', icon: '💛', theme: 'mixed',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const x = nx / 0.9, y = -ny / 0.85 + 0.28;
@@ -2690,7 +2812,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 12) > 0.74,
   },
   {
-    name: 'Star', icon: '⭐',
+    name: 'Star', icon: '⭐', theme: 'pitch',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const d = Math.hypot(nx, ny * 0.95);
@@ -2703,7 +2825,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 88) > 0.74,
   },
   {
-    name: 'Island', icon: '🏝️',
+    name: 'Island', icon: '🏝️', theme: 'beach',
     // a ragged blob, the least regular of the set
     empty: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -2719,7 +2841,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 3) > 0.73,
   },
   {
-    name: 'Ring', icon: '🎯',
+    name: 'Ring', icon: '🎯', theme: 'pitch',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const d = Math.hypot(nx, ny * 0.95);
@@ -2740,7 +2862,7 @@ const PATTERNS = [
     },
   },
   {
-    name: 'Diamond', icon: '💎',
+    name: 'Diamond', icon: '💎', theme: 'home',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       return Math.abs(nx) + Math.abs(ny) * 0.9 > 0.9 + wob;
@@ -2754,7 +2876,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 19) > 0.75,
   },
   {
-    name: 'Spiral', icon: '🌀',
+    name: 'Spiral', icon: '🌀', theme: 'mixed',
     // an arm curling out from the middle
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
@@ -2769,7 +2891,7 @@ const PATTERNS = [
     big: () => scatter(0.1),
   },
   {
-    name: 'Cross', icon: '🔀',
+    name: 'Cross', icon: '🔀', theme: 'pitch',
     // two broad bands crossing, leaving four open corners
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
@@ -2793,7 +2915,7 @@ const PATTERNS = [
   // route is a circle and the shape of the level is legible from the first
   // frame instead of only once the camera has travelled.
   {
-    name: 'Orbits', icon: '🎯', polar: true,
+    name: 'Orbits', icon: '🎯', polar: true, theme: 'pitch',
     // Solid bands with a clear gap every fourth ring, so it reads as a
     // target: rings of one fruit each, with room to turn between them.
     // Two rings on, two off. A ring is a whole circumference of fruit, so
@@ -2805,7 +2927,7 @@ const PATTERNS = [
     big: (ring, turn) => ring % 4 === 1 && Math.abs(Math.sin(turn * Math.PI * 5)) > 0.93,
   },
   {
-    name: 'Whirl', icon: '🌀', polar: true,
+    name: 'Whirl', icon: '🌀', polar: true, theme: 'beach',
     // Three arms winding outward. A slot is on an arm when its angle is
     // close to where the arm has turned to by that radius, which is what
     // makes the arm a curve rather than a straight spoke.
@@ -2822,7 +2944,7 @@ const PATTERNS = [
     big: (ring) => ring % 6 === 3,
   },
   {
-    name: 'Bloom', icon: '🌸', polar: true,
+    name: 'Bloom', icon: '🌸', polar: true, theme: 'home',
     // Five petals: a slot survives while its ring is still inside the petal
     // reaching out along that spoke, so the outline scallops. The reach is
     // kept near the half-width of the board — a petal longer than that is
@@ -2852,6 +2974,9 @@ function buildField() {
   fieldHalfZ = (rows * CELL) / 2;
   fitGround();
   currentPattern = PATTERNS[(level - 1) % PATTERNS.length];
+  applyTheme(THEMES[currentPattern.theme] || THEMES.mixed);
+  const pool = currentTheme.props || SMALL_PROPS;
+  const themePool = pool.filter(id => SMALL_PROPS.includes(id));
   for (const cell of currentPattern.polar ? polarCells() : gridCells()) {
       const { a, b, x, z } = cell;
       if (currentPattern.empty && currentPattern.empty(a, b)) continue;
@@ -2860,7 +2985,11 @@ function buildField() {
       // Every so often a cell holds an object instead of a fruit. It pays
       // into one of the four counters all the same, so nothing downstream
       // has to know: only the shape on the board changes.
-      const prop = !big && Math.random() < 0.09 ? pickProp() : null;
+      // One cell in six rather than one in eleven. At the old rate a level
+      // held a handful of objects spread over a board you only ever see a
+      // fraction of at a time, which is not enough for the place to register
+      // as anywhere in particular.
+      const prop = !big && themePool.length && Math.random() < 0.17 ? pick(themePool) : null;
       const vis = prop ? propVisual(prop, radius * 1.45) : fruitVisual(currentPattern.type(a, b), radius);
       const type = prop ? vis.currency : currentPattern.type(a, b);
 
@@ -2896,7 +3025,7 @@ function buildField() {
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         fieldGroup.add(mesh);
-        fruits.push({ mesh, x, z, r: radius, type, big, eaten: false, baseY: y, nudge: 0 });
+        fruits.push({ mesh, x, z, r: radius, type, big, prop, eaten: false, baseY: y, nudge: 0 });
       }
   }
   placeGiants();
@@ -2940,7 +3069,8 @@ function placeGiants() {
     // A third of them are an object rather than an outsized fruit. At this
     // scale the silhouette is the strongest thing on the board, which is
     // exactly what a landmark you steer towards should be.
-    const prop = Math.random() < 0.42 ? pickGiantProp() : null;
+    const giantPool = (currentTheme.props || GIANT_PROPS).filter(id => GIANT_PROPS.includes(id));
+    const prop = giantPool.length && Math.random() < 0.42 ? pick(giantPool) : null;
     const offsets = huddle
       ? [[0, -GIANT_R * 1.02], [-GIANT_R * 0.9, GIANT_R * 0.55], [GIANT_R * 0.9, GIANT_R * 0.55]]
       : [[0, 0]];
@@ -2970,7 +3100,7 @@ function placeGiants() {
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       fieldGroup.add(mesh);
-      const g = { mesh, x: gx, z: gz, r: GIANT_R, type,
+      const g = { mesh, x: gx, z: gz, r: GIANT_R, type, prop,
                   big: true, giant: true, eaten: false, baseY: vis.baseY, nudge: 0 };
       fruits.push(g);
       placed.push(g);
@@ -4004,6 +4134,21 @@ window.fruitHoleDrift = () => fruits.reduce((a, f) =>
 // check that a pattern still reads as its shape.
 window.fruitHoleFieldRot = () => fieldGroup.rotation.y;
 window.fruitHoleWater = () => ({ offsetX: waterTex.offset.x, surf: surf.scale.x });
+
+// What theme a level actually built with, and whether anything from another
+// theme's set slipped onto the board.
+window.fruitHoleTheme = () => {
+  const on = fruits.filter(f => !f.eaten && f.prop);
+  const kinds = [...new Set(on.map(f => f.prop))].sort();
+  const allowed = currentTheme.props;
+  return {
+    theme: currentTheme.name,
+    ground: currentTheme.ground,
+    propCount: on.length,
+    kinds,
+    stray: allowed ? kinds.filter(k => !allowed.includes(k)) : [],
+  };
+};
 
 // Lay one of each prop out in a row, to check they still read from the
 // angle the game is actually played at.

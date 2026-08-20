@@ -46,6 +46,14 @@ Kayıtlar `localStorage`'da: `fruithole_level`, `fruithole_currency`,
 
 ## Bölüm yapısı
 
+Her bölümün **iki** ayırt edici özelliği var: **dizilişi** (desen) ve
+**konsepti** (tema). Dört tema var — 🏖️ Beach (kum + deniz), ⚽ Match Day
+(biçilmiş çim + taç çizgisi + stadyum zemini), 🏠 Indoors (parke), 🎲
+Everything (kum, bütün eşyalar karışık). Tema zemini, çevreleyen düzlemi ve o
+bölümde çıkan **eşyaları** belirler; meyvelere dokunmaz — dört sayaç ve
+mağaza ona bağlı olduğu için ürün her yerde aynı. Üstteki etikette ikisi
+birden yazar: `⚽ 🔀 Cross`.
+
 Tarla 13 sütun geniş, 22 satırdan başlayıp bölüm bölüm 34'e uzar; ekrandan
 taştığı için kamera deliği takip eder. Her bölüm **bir şekildir** — piramit,
 kalp, yıldız, ada, halka, elmas, sarmal, çapraz, bloklar, merdiven, yığınlar,
