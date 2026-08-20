@@ -2283,6 +2283,134 @@ function propTemplates() {
     T.goal = { g, h: 1.1, currency: 'banana', only: 'giant' };
   }
 
+  // --- winter ---------------------------------------------------------
+
+  // Snowman. Three circles inside one another from above, with a carrot
+  // pointing out of the smallest — that offset nose is the whole read.
+  {
+    const g = new THREE.Group();
+    const snow = PROP_MAT('#fbfdff', 0.5);
+    const coal = PROP_MAT('#2b2b30', 0.5);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.52, 16, 12), snow), 0, 0.46, 0.1);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 12), snow), 0, 0.98, 0.02);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 12), snow), 0, 1.42, -0.06);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.4, 8), PROP_MAT('#ff8c1a')),
+        0, 1.42, -0.34, -Math.PI / 2, 0, 0);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), coal), s * 0.12, 1.55, -0.2);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.07, 8, 16), PROP_MAT('#e0392b')),
+        0, 1.2, -0.02, Math.PI / 2, 0, 0);
+    T.snowman = { g, h: 1.7, currency: 'lychee' };
+  }
+
+  // Mitten, lying flat. The thumb is what stops it being a red pebble.
+  {
+    const g = new THREE.Group();
+    const wool = PROP_MAT('#d6303f', 0.75);
+    const palm = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.18, 16), wool);
+    palm.scale.z = 1.35;
+    put(g, palm, 0, 0.09, -0.1);
+    const thumb = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.42, 10), wool);
+    put(g, thumb, 0.4, 0.09, 0.02, Math.PI / 2, 0, 0).rotation.z = 0.5;
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.22, 16), PROP_MAT('#f6f8fb', 0.8)),
+        0, 0.11, 0.52);
+    T.mitten = { g, h: 0.3, currency: 'berry' };
+  }
+
+  // Candy cane, laid down. Standing up it is a stick seen end-on; on its
+  // side the hook is unmistakable.
+  {
+    const g = new THREE.Group();
+    const white = PROP_MAT('#fdfdfd', 0.3);
+    const red = PROP_MAT('#e0392b', 0.3);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 1.1, 12), white),
+        -0.1, 0.13, 0.36, Math.PI / 2, 0, 0);
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.135, 0.16, 12), red),
+          -0.1, 0.13, 0.05 + i * 0.34, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.13, 8, 16, Math.PI * 1.15), white),
+        0.18, 0.13, -0.2, Math.PI / 2, 0, Math.PI * 0.42);
+    T.candycane = { g, h: 0.28, currency: 'banana' };
+  }
+
+  // Penguin — dark oval, white front, orange point. Same trick as the duck:
+  // everything spread along z so the circles do not stack into one blob.
+  {
+    const g = new THREE.Group();
+    const black = PROP_MAT('#2b3040', 0.45);
+    const white = PROP_MAT('#fbfdff', 0.45);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 12), black);
+    body.scale.set(0.92, 1.05, 1.05);
+    put(g, body, 0, 0.5, 0.12);
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(0.42, 14, 12), white);
+    belly.scale.set(0.8, 0.95, 0.62);
+    put(g, belly, 0, 0.5, -0.2);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 12), black), 0, 0.98, -0.02);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), white), 0, 0.94, -0.22)
+      .scale.set(0.9, 0.9, 0.5);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.28, 8), PROP_MAT('#ff9d1a')),
+        0, 0.94, -0.42, -Math.PI / 2, 0, 0);
+    for (const s of [-1, 1]) {
+      const flip = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), black);
+      flip.scale.set(0.32, 0.6, 1);
+      put(g, flip, s * 0.48, 0.5, 0.1);
+    }
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), PROP_MAT('#141821')),
+          s * 0.12, 1.06, -0.26);
+    T.penguin = { g, h: 1.28, currency: 'melon' };
+  }
+
+  // Igloo — a dome with a doorway. Giant only: at cell size the tunnel that
+  // tells you what it is disappears and you are left with a white bump.
+  {
+    const g = new THREE.Group();
+    const ice = PROP_MAT('#e9f3fb', 0.55);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.86, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2), ice),
+        0, 0, 0);
+    // courses, so the dome is built rather than moulded
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.84 - i * 0.2, 0.025, 6, 24),
+          PROP_MAT('#c9dced', 0.6)), 0, 0.16 + i * 0.24, 0, Math.PI / 2, 0, 0);
+    // The doorway faces the camera. Pointing it away put it behind the dome,
+    // where it is invisible from overhead — and then an igloo is a white bump.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.62, 12, 1, false, 0, Math.PI), ice),
+        0, 0.3, 0.82, Math.PI / 2, 0, Math.PI);
+    put(g, new THREE.Mesh(new THREE.CircleGeometry(0.28, 12), PROP_MAT('#33465c', 0.8)),
+        0, 0.28, 1.12);
+    T.igloo = { g, h: 0.9, currency: 'lychee', only: 'giant' };
+  }
+
+  // Toboggan.
+  {
+    const g = new THREE.Group();
+    const wood = PROP_MAT('#c98a45', 0.6);
+    const steel = PROP_MAT('#9aa7b4', 0.35);
+    for (const s of [-1, 1]) {
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 1.7), steel), s * 0.42, 0.12, 0.1);
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.05, 6, 12, Math.PI / 2), steel),
+          s * 0.42, 0.34, -0.75, 0, Math.PI / 2, Math.PI);
+    }
+    for (let i = 0; i < 6; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.07, 0.2), wood), 0, 0.24, -0.6 + i * 0.29);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.9, 6), PROP_MAT('#e0392b')),
+        0, 0.42, -0.86, 0, 0, Math.PI / 2);
+    T.sled = { g, h: 0.5, currency: 'banana', only: 'giant' };
+  }
+
+  // Fir tree — tiers, so it is rings from above and a silhouette from the side.
+  {
+    const g = new THREE.Group();
+    const green = PROP_MAT('#2f7d4f', 0.7);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.4, 8), PROP_MAT('#6b4326', 0.8)),
+        0, 0.2, 0);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.86, 0.72, 12), green), 0, 0.62, 0);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.66, 0.66, 12), green), 0, 1.06, 0);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.44, 0.6, 12), green), 0, 1.46, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), PROP_MAT('#ffd23f')), 0, 1.78, 0);
+    T.pine = { g, h: 1.86, currency: 'melon', only: 'giant' };
+  }
+
   return T;
 }
 
@@ -2388,12 +2516,39 @@ function woodTexture() {
   return tex;
 }
 
+// Snow. Almost white, but not white: a flat white ground blows out under the
+// hemisphere light and the fruit lose their shadows into it. This is a cold
+// off-white with a blue cast, scuffed and sparkling.
+function snowTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#eef4fb';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 900; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? '#d5e4f2' : '#ffffff';
+    const x = Math.random() * S, y = Math.random() * S, r = 2 + Math.random() * 7;
+    ctx.beginPath(); ctx.ellipse(x, y, r * 1.6, r, Math.random() * 3, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 0.75;
+  ctx.fillStyle = '#ffffff';
+  for (let i = 0; i < 500; i++) {
+    const x = Math.random() * S, y = Math.random() * S;
+    ctx.fillRect(x, y, 1.3, 1.3);
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(10, 10);
+  return tex;
+}
+
 // Built the first time a theme is played rather than all at boot: two of the
 // three are a couple of hundred thousand canvas operations and most sessions
 // never reach the levels that need them.
 const GROUND_TEX = {};
 const groundTex = kind => GROUND_TEX[kind] ||
-  (GROUND_TEX[kind] = ({ sand: groundTexture, grass: grassTexture, wood: woodTexture })[kind]());
+  (GROUND_TEX[kind] = ({ sand: groundTexture, grass: grassTexture,
+     wood: woodTexture, snow: snowTexture })[kind]());
 // The sand is an island in turquoise water rather than sand to the horizon:
 // it ties the board to the app icon, and it gives the field a visible edge —
 // before this you could not tell where the board stopped.
@@ -2512,6 +2667,14 @@ const THEMES = {
     ground: 'wood', surround: '#4a382a', ripples: false,
     edge: '#7c5c3c', surf: null,
     props: ['lolly', 'donut', 'mug', 'ball', 'car', 'duck'],
+  },
+  snow: {
+    name: 'Snow Day', icon: '❄️',
+    // The band that laps on the beach is a snow bank here, and the sea beyond
+    // it is ice.
+    ground: 'snow', surround: '#78b4dd', ripples: false,
+    edge: '#f4fafe', surf: null,
+    props: ['snowman', 'mitten', 'candycane', 'penguin', 'igloo', 'sled', 'pine', 'mug'],
   },
   mixed: {
     name: 'Everything', icon: '🎲',
@@ -2764,7 +2927,7 @@ const PATTERNS = [
     big: () => false,
   },
   {
-    name: 'Walls', icon: '🧱', theme: 'beach',
+    name: 'Walls', icon: '🧱', theme: 'snow',
     // winding walls with open corridors to work along
     empty: (r, c) => Math.abs(blob(r, c, 0.19, 77) - 0.5) > 0.11,
     stack: (r, c) => ridge(1 - Math.abs(blob(r, c, 0.19, 77) - 0.5) / 0.11, 3),
@@ -2812,7 +2975,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 12) > 0.74,
   },
   {
-    name: 'Star', icon: '⭐', theme: 'home',
+    name: 'Star', icon: '⭐', theme: 'snow',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const d = Math.hypot(nx, ny * 0.95);
@@ -2862,7 +3025,7 @@ const PATTERNS = [
     },
   },
   {
-    name: 'Diamond', icon: '💎', theme: 'home',
+    name: 'Diamond', icon: '💎', theme: 'snow',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       return Math.abs(nx) + Math.abs(ny) * 0.9 > 0.9 + wob;
