@@ -26,11 +26,15 @@ Finishing isn't enough — how fast you finish is what counts. The more time lef
 on the clock, the more stars you take. Your best rating on every level is kept,
 so you can always come back and beat it.
 
-🎨 FIFTEEN HAND-BUILT LAYOUTS
-Every level is a shape sitting on open ground: a pyramid, a heart, a star, an
-island, a ring, a diamond, a cross, a staircase, winding walls. Three of them
-throw out the grid entirely and lay the field in rings around you — orbits,
-a five-petalled bloom, three spiral arms winding outward. No two look alike.
+🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
+Fifteen hand-built layouts: a pyramid, a heart, a star, an island, a ring, a
+diamond, a cross, a staircase, winding walls. Three throw out the grid and lay
+the field in rings around you — orbits, a five-petalled bloom, three spiral
+arms winding outward.
+
+And each one is somewhere. A beach with the sea running up the sand. A mown
+football pitch with a touchline. Floorboards indoors. Fresh snow with ice
+beyond the bank. The ground changes, and so does what is lying on it.
 
 🔥 CHAIN COMBOS
 Eat fruit back to back and the multiplier climbs. Sweeping a whole patch in one
@@ -57,10 +61,20 @@ them at the start. Sweep enough of the field, grow into one, and it pays for
 the whole trip.
 
 🏖️ NOT ONLY FRUIT
-The board is a beach, and there is more on it than the crop: lollies and
-donuts, sunglasses and flip-flops, a starfish, a bucket and spade. Sunloungers,
-parasols, swim rings and an inflatable flamingo turn up at giant size. So does
-a football, a pair of boots, a shirt, a goal — and the cup itself.
+Twenty-nine objects are scattered through the crop, and which ones you meet
+depends on where you are. Lollies, donuts, sunglasses, flip-flops, a starfish,
+a bucket and spade on the beach. A football, boots, a shirt, a goal and the
+cup itself on the pitch. Toy cars and coffee mugs indoors. A snowman, a
+penguin, a candy cane, an igloo and a toboggan in the snow.
+
+🕳️ TEN HOLE SKINS
+Mint, grape, coral, ink, lime, candy, ocean — and gold and chrome, which
+catch the light in a way flat colour cannot. Half open as you climb the
+levels, half are bought with fruit.
+
+🎁 A CHEST EVERY LEVEL
+Clear a field and a chest drops. Tap it, it bursts, and fruit lands in your
+counters — more of it the faster you finished.
 
 ⚡ ONE FINGER, FULLY OFFLINE
 Press anywhere and drag. That's the whole control scheme. No connection needed.
@@ -100,11 +114,12 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 - `1-menu.png` — main menu
 - `2-play.png` — a Match Day level: towers on a mown pitch
 - `3-towers.png` — the same board with the hole grown and a swathe cleared
-- `4-upgrades.png` — upgrade screen
-- `5-levels.png` — the level map with star ratings
-- `6-indoors.png` — an Indoors level: floorboards, toy cars, mugs
-- `7-beach.png` — a Beach level: sand, sea, parasols
+- `4-snow.png` — a Snow Day level: snowmen, penguins, candy canes
+- `5-indoors.png` — an Indoors level: floorboards, toy cars, mugs
+- `6-skins.png` — the ten hole skins
+- `7-levels.png` — the level map with star ratings
 
 Screenshots are 1080×1920, captured from real play. Upload them in that
-order — the first two are what shows in search results, and between them they
-have to say "hole", "fruit" and "this level is somewhere".
+order. Only the first two show in search results, and the set as a whole has
+to say four things: this is a hole game, the fruit is stacked, a level is a
+place, and there is something to collect.

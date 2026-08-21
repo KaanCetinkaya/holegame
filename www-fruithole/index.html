@@ -1293,10 +1293,12 @@ function renderSkinShop() {
       `<span class="ico skinDot" style="--rim:${sk.rim};--lip:${sk.lip}"></span>` +
       `<span class="mid">` +
         `<span class="nm">${sk.name}</span>` +
+        // The price is already on the button; repeating it here just made
+        // the row say "400 Strawberry" twice.
         `<div class="ds">${
           owned ? (active ? 'In use' : 'Tap to wear')
                 : sk.level !== undefined ? `Reach level ${sk.level}`
-                : `${sk.cost} ${pay.label}`}</div>` +
+                : 'Not yours yet'}</div>` +
       `</span>`;
 
     const btn = document.createElement('button');
