@@ -119,7 +119,15 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 - `6-skins.png` — the ten hole skins
 - `7-levels.png` — the level map with star ratings
 
-Screenshots are 1080×1920, captured from real play. Upload them in that
+Phone screenshots are 1080×1920, captured from real play. Upload them in that
 order. Only the first two show in search results, and the set as a whole has
 to say four things: this is a hole game, the fruit is stacked, a level is a
 place, and there is something to collect.
+
+`tablet/` holds the same seven at 1440×2560 — that is exactly the 9:16 Play
+asks for in the tablet slots, and the same files go in both the 7-inch and the
+10-inch section. Those slots are required here because the track covers
+tablets, Chrome OS and Play Games on PC.
+
+Only screenshots go in those sections. The feature graphic and the icon each
+have their own field further up the page.
