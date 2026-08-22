@@ -4013,7 +4013,7 @@ PATTERNS.sort((a, b) => LEVEL_ORDER.indexOf(a.name) - LEVEL_ORDER.indexOf(b.name
 function buildField() {
   for (const f of flecks) { scene.remove(f.m); FLECK_POOL.push(f.m); }
   flecks.length = 0;
-  rimPulse = 0; shake = 0;
+  rimPulse = 0; shake = 0; shakeT = 0; shakeMult = 1;
   fieldGroup.clear();
   // The menu diorama turns this group, and clear() does not touch the
   // transform — without this the board starts rotated by however long you
@@ -4827,8 +4827,14 @@ function stepFlecks(dt) {
 
 // The collar swells for a moment on each swallow; repeated eats keep it up.
 let rimPulse = 0;
-// And a chain gives the camera a small kick, decaying on its own.
-let shake = 0;
+// And a chain gives the camera a small kick, decaying on its own. It fires
+// when the multiplier *climbs*, not on every eat above a threshold: with a
+// grown hole on a dense board you swallow several fruit a frame, so topping
+// the kick up per fruit pinned it at the ceiling and the view buzzed for the
+// whole level instead of thumping once per step. shakeT drives a smooth
+// decaying wobble; a fresh random offset every frame is a vibration, not a
+// kick.
+let shake = 0, shakeT = 0, shakeMult = 1;
 
 function eatFruit(f, now) {
   f.eaten = true;
@@ -4856,7 +4862,11 @@ function eatFruit(f, now) {
 
   burst(f.x, f.mesh.position.y, f.z, f.type);
   rimPulse = 1;
-  if (mult >= 3) shake = Math.min(0.5, shake + 0.14 * (mult - 2));
+  if (mult >= 3 && mult > shakeMult) {
+    shake = Math.min(0.16, shake + 0.055 * (mult - 2));
+    shakeT = 0;
+  }
+  shakeMult = streak > 1 ? Math.max(shakeMult, mult) : mult;
 
   // A piece high on a tower is not sucked straight down — it topples off
   // the stack first, then falls in. Without the delay a whole column
@@ -5375,6 +5385,13 @@ window.fruitHoleDrift = () => fruits.reduce((a, f) =>
 // Frames a whole level from straight above and draws one frame — used to
 // check that a pattern still reads as its shape.
 window.fruitHoleFieldRot = () => fieldGroup.rotation.y;
+// Camera settle: how far the view jumps between one frame and the next while
+// a combo is running. White-noise shake shows up here as a large mean, a
+// decaying wobble as a small one.
+window.fruitHoleShake = () => ({
+  shake: +shake.toFixed(3), mult: shakeMult, streak,
+  camX: +camera.position.x.toFixed(4), camZ: +camera.position.z.toFixed(4),
+});
 window.fruitHoleWater = () => ({ offsetX: waterTex.offset.x, surf: surf.scale.x });
 
 // What theme a level actually built with, and whether anything from another
@@ -5645,14 +5662,21 @@ function tick(now) {
     camera.position.set(0, 11, 8.5);
     camera.lookAt(0, 0, -0.4);
   } else {
-    camX += (holeX - camX) * 0.09;
-    camZ += (holeZ - camZ) * 0.09;
+    // Framerate-independent follow. A flat per-frame fraction chases the hole
+    // at whatever speed the phone happens to be running, so a dropped frame
+    // showed up as a lurch.
+    const follow = 1 - Math.pow(1 - 0.09, dt * 60);
+    camX += (holeX - camX) * follow;
+    camZ += (holeZ - camZ) * follow;
     clampCamera();
     // A chain of eats kicks the camera; it decays on its own so a long
-    // sweep does not leave the view permanently unsettled.
-    shake = Math.max(0, shake - dt * 1.9);
-    const kx = shake ? (Math.random() - 0.5) * shake * 0.5 : 0;
-    const kz = shake ? (Math.random() - 0.5) * shake * 0.5 : 0;
+    // sweep does not leave the view permanently unsettled. Two frequencies
+    // that do not divide into each other, so the kick traces a small loop
+    // rather than sliding along one axis.
+    shake = Math.max(0, shake - dt * 1.15);
+    shakeT += dt;
+    const kx = shake ? Math.sin(shakeT * 34) * shake : 0;
+    const kz = shake ? Math.cos(shakeT * 27) * shake : 0;
     // Tilted well off vertical: at the old 8 degrees anything standing was
     // foreshortened into a disc, so a board of round fruit had no skyline
     // and a post looked like a coin. This is enough to see the sides of
