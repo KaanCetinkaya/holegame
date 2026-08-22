@@ -2736,18 +2736,27 @@ function propTemplates() {
     const g = new THREE.Group();
     const cloth = PROP_MAT('#d8c9a4', 0.85);
     const body = new THREE.Mesh(new THREE.SphereGeometry(0.78, 18, 14), cloth);
-    body.scale.set(1, 0.86, 1);
-    put(g, body, 0, 0.66, 0);
-    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.34, 0.34, 14), cloth), 0, 1.28, 0);
-    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.07, 8, 18), PROP_MAT('#8a6a3a', 0.7)),
-        0, 1.22, 0, Math.PI / 2, 0, 0);
-    for (const s of [-1, 1])
-      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), cloth), s * 0.2, 1.5, 0)
-        .scale.set(0.7, 1.3, 0.7);
-    // the mark on the side, tipped up so it is not edge-on from above
+    body.scale.set(1, 0.8, 1);
+    put(g, body, 0, 0.6, 0);
+    // The neck is tied off at the back and flops away from the camera. Stood
+    // upright in the middle it is a nose, and with the tie under it a mouth.
+    const neck = new THREE.Group();
+    neck.position.set(0, 0.94, -0.34);
+    neck.rotation.x = -0.75;
+    g.add(neck);
+    put(neck, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 0.44, 14), cloth), 0, 0.2, 0);
+    put(neck, new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.07, 8, 18), PROP_MAT('#8a6a3a', 0.7)),
+        0, 0.1, 0, Math.PI / 2, 0, 0);
+    // The mark lies flat on the shoulder of the sack. The first version stood
+    // two bumps on the neck and tipped the mark up the front of the bag,
+    // which from overhead was two eyes and a mouth — a smiling face rather
+    // than a bag of money.
     const face = new THREE.MeshStandardMaterial({
-      map: coinFace('dollar', '#d8c9a4', '#5c4a22'), roughness: 0.85, transparent: true });
-    put(g, new THREE.Mesh(new THREE.CircleGeometry(0.42, 20), face), 0, 0.9, 0.5, -0.9, 0, 0);
+      map: coinFace('dollar', '#d8c9a4', '#5c4a22'), roughness: 0.85 });
+    // Just clear of the cloth: the sack's crown is at 1.22, and at 1.03 the
+    // disc was inside the sphere and invisible.
+    put(g, new THREE.Mesh(new THREE.CircleGeometry(0.44, 20), face),
+        0, 1.25, 0.1, -Math.PI / 2, 0, 0);
     T.moneybag = { g, h: 1.6, currency: 'berry', only: 'giant' };
   }
 
@@ -2755,18 +2764,102 @@ function propTemplates() {
   {
     const g = new THREE.Group();
     const gold = new THREE.MeshStandardMaterial({ color: '#f2c230', roughness: 0.2, metalness: 0.8 });
-    const bar = new THREE.CylinderGeometry(0.34, 0.44, 0.26, 4);
-    const row = (n, y, z0) => {
+    // Boxes, not squashed four-sided cylinders. Scaling one of those along an
+    // axis and then turning it shears the square section into a rhombus, and
+    // the stack came out as a pile of flat sheared plates.
+    const bar = new THREE.BoxGeometry(0.94, 0.25, 0.44);
+    const row = (n, y) => {
       for (let i = 0; i < n; i++) {
-        const b = new THREE.Mesh(bar, gold);
-        b.scale.set(1, 1, 2.4);
-        put(g, b, (i - (n - 1) / 2) * 0.82, y, z0, 0, Math.PI / 4, 0);
+        put(g, new THREE.Mesh(bar, gold), (i - (n - 1) / 2) * 0.5, y, 0);
       }
     };
-    row(3, 0.13, 0);
-    row(2, 0.39, 0);
-    row(1, 0.65, 0);
+    row(3, 0.13);
+    row(2, 0.39);
+    row(1, 0.65);
     T.goldbars = { g, h: 0.78, currency: 'banana', only: 'giant' };
+  }
+
+  // --- space ----------------------------------------------------------
+
+  // Satellite — a body between two panels. The panels are what read: two
+  // dark rectangles either side of a bright core is a shape nothing else on
+  // any board has.
+  {
+    const g = new THREE.Group();
+    const hull = PROP_MAT('#d8dee6', 0.35);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.7, 12), hull),
+        0, 0.3, 0, Math.PI / 2, 0, 0);
+    const panel = new THREE.MeshStandardMaterial({ color: '#1b3b6f', roughness: 0.22, metalness: 0.4 });
+    for (const s of [-1, 1]) {
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.05, 0.5), panel), s * 0.62, 0.3, 0);
+      for (let i = 0; i < 3; i++)
+        put(g, new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.06, 0.5), hull),
+            s * 0.62 + (i - 1) * 0.22, 0.3, 0);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.2, 6), hull),
+          s * 0.32, 0.3, 0, 0, 0, Math.PI / 2);
+    }
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+        PROP_MAT('#f0f3f7', 0.3)), 0, 0.5, 0.24, -0.5, 0, 0);
+    T.satellite = { g, h: 0.62, currency: 'lychee' };
+  }
+
+  // A little planet with a ring, which is the only silhouette in the sky
+  // everyone knows without being told.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.5, 18, 14), PROP_MAT('#c98f4a', 0.5)), 0, 0.5, 0);
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.505, 18, 4, 0, Math.PI * 2,
+          0.7 + i * 0.5, 0.22), PROP_MAT(['#a86f34', '#e0b070', '#8f5c28'][i], 0.6)), 0, 0.5, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.82, 0.06, 6, 30), PROP_MAT('#e8d3a8', 0.45)),
+        0, 0.5, 0, Math.PI / 2 - 0.22, 0, 0).scale.z = 0.35;
+    T.planet = { g, h: 1.0, currency: 'melon' };
+  }
+
+  // Astronaut helmet — a white ball with a gold visor across the front.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.5, 18, 14), PROP_MAT('#f4f6fa', 0.3)), 0, 0.5, 0);
+    const visor = new THREE.Mesh(new THREE.SphereGeometry(0.505, 16, 12, -0.9, 1.8, 0.6, 1.0),
+      new THREE.MeshStandardMaterial({ color: '#f5c542', roughness: 0.12, metalness: 0.85 }));
+    put(g, visor, 0, 0.5, 0, 0, Math.PI, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.44, 0.05, 8, 20), PROP_MAT('#c8ced8', 0.4)),
+        0, 0.16, 0, Math.PI / 2, 0, 0);
+    T.helmet = { g, h: 1.0, currency: 'berry' };
+  }
+
+  // Fuel drum, banded.
+  {
+    const g = new THREE.Group();
+    const body = PROP_MAT('#d24b3a', 0.45);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.9, 18), body), 0, 0.45, 0);
+    for (const y of [0.24, 0.66])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.43, 0.05, 6, 20), PROP_MAT('#8f2f22', 0.5)),
+          0, y, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.06, 18), PROP_MAT('#e9e2d4', 0.5)),
+        0, 0.92, 0);
+    T.drum = { g, h: 0.95, currency: 'banana' };
+  }
+
+  // Rocket, giant only — standing it up leaves a circle from overhead, so it
+  // lies on its side with the fins and the nose spread along the ground.
+  {
+    const g = new THREE.Group();
+    const shell = PROP_MAT('#f2f4f8', 0.32);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.9, 20), shell),
+        0, 0.44, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.8, 20), PROP_MAT('#e0392b', 0.35)),
+        0, 0.44, -1.34, -Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.42, 0.34, 20), PROP_MAT('#3d4653', 0.5)),
+        0, 0.44, 1.08, Math.PI / 2, 0, 0);
+    for (const s of [-1, 1]) {
+      const fin = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.7, 3), PROP_MAT('#e0392b', 0.35));
+      fin.scale.set(1, 1, 0.3);
+      put(g, fin, s * 0.46, 0.24, 0.78, Math.PI / 2, 0, s > 0 ? 0.4 : -0.4);
+    }
+    put(g, new THREE.Mesh(new THREE.CircleGeometry(0.2, 16), PROP_MAT('#7fd6ff', 0.2)),
+        0, 0.86, -0.36, -Math.PI / 2, 0, 0);
+    T.rocket = { g, h: 0.9, currency: 'melon', only: 'giant' };
   }
 
   // Fir tree — tiers, so it is rings from above and a silhouette from the side.
@@ -2944,13 +3037,43 @@ function marbleTexture() {
   return tex;
 }
 
+// A station deck: dark panels with a bright seam between them and a scatter
+// of rivets. It has to stay dark — this is the one theme whose surround is
+// black, and a pale floor against black looks like a hole cut in the night
+// rather than a place standing in it.
+function deckTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#39414d';
+  ctx.fillRect(0, 0, S, S);
+  ctx.fillStyle = '#424b58';
+  ctx.fillRect(0, 0, S / 2 - 2, S / 2 - 2);
+  ctx.fillRect(S / 2 + 2, S / 2 + 2, S / 2 - 2, S / 2 - 2);
+  ctx.strokeStyle = '#59657a';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(0, 0, S, S);
+  ctx.beginPath();
+  ctx.moveTo(S / 2, 0); ctx.lineTo(S / 2, S);
+  ctx.moveTo(0, S / 2); ctx.lineTo(S, S / 2);
+  ctx.stroke();
+  ctx.fillStyle = '#6c7789';
+  for (let i = 0; i < 26; i++) {
+    const x = 14 + Math.random() * (S - 28), y = 14 + Math.random() * (S - 28);
+    ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
+  }
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(8, 8);
+  return tex;
+}
+
 // Built the first time a theme is played rather than all at boot: two of the
 // three are a couple of hundred thousand canvas operations and most sessions
 // never reach the levels that need them.
 const GROUND_TEX = {};
 const groundTex = kind => GROUND_TEX[kind] ||
   (GROUND_TEX[kind] = ({ sand: groundTexture, grass: grassTexture,
-     wood: woodTexture, snow: snowTexture, marble: marbleTexture })[kind]());
+     wood: woodTexture, snow: snowTexture, marble: marbleTexture,
+     deck: deckTexture })[kind]());
 // The sand is an island in turquoise water rather than sand to the horizon:
 // it ties the board to the app icon, and it gives the field a visible edge —
 // before this you could not tell where the board stopped.
@@ -3083,6 +3206,15 @@ const THEMES = {
     ground: 'marble', surround: '#1e2a2c', ripples: false,
     edge: '#b9922f', surf: null,
     props: ['bitcoin', 'euro', 'rupee', 'peso', 'notes', 'moneybag', 'goldbars', 'trophy'],
+  },
+  space: {
+    name: 'Orbit', icon: '🚀',
+    // The one theme whose surround is not ground at all. Every other level
+    // sits on something that carries on past the edge; this one ends, and
+    // what is past the edge is the dark.
+    ground: 'deck', surround: '#080b18', ripples: false,
+    edge: '#3d4a66', surf: null,
+    props: ['satellite', 'planet', 'helmet', 'drum', 'rocket', 'marker'],
   },
   mixed: {
     name: 'Everything', icon: '🎲',
@@ -3327,7 +3459,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.5, 71) > 0.72,
   },
   {
-    name: 'Piles', icon: '🥞', theme: 'home',
+    name: 'Piles', icon: '🥞', theme: 'space',
     // sparse ground with tall piles dotted across it
     empty: (r, c) => !(r % 2 === 1 && c % 2 === 1) || blob(r, c, 0.35, 13) < 0.32,
     stack: (r, c) => ridge((blob(r, c, 0.35, 13) - 0.32) / 0.68, 3),
@@ -3367,7 +3499,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 47) > 0.76,
   },
   {
-    name: 'Heart', icon: '💛', theme: 'beach',
+    name: 'Heart', icon: '💛', theme: 'space',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const x = nx / 0.9, y = -ny / 0.85 + 0.28;
@@ -3462,7 +3594,7 @@ const PATTERNS = [
     big: () => scatter(0.1),
   },
   {
-    name: 'Cross', icon: '🔀', theme: 'pitch',
+    name: 'Cross', icon: '🔀', theme: 'space',
     // two broad bands crossing, leaving four open corners
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);

@@ -62,8 +62,16 @@ Her bölümün **iki** ayırt edici özelliği var: **dizilişi** (desen) ve
 (biçilmiş çim + taç çizgisi + stadyum zemini), 🏠 Indoors (parke),
 ❄️ Snow Day (kar + buz), 💰 Payday (altın damarlı mermer banka zemini,
 bitcoin/euro/rupi/peso madeni paraları, banknot desteleri, dev para kesesi
-ve altın külçeleri), 🎲 Everything (kum, bütün eşyalar karışık). Tema zemini, çevreleyen düzlemi ve o
-bölümde çıkan **eşyaları** belirler; meyvelere dokunmaz — dört sayaç ve
+ve altın külçeleri), 🚀 Orbit (perçinli istasyon güvertesi, uydu, halkalı
+gezegen, astronot kaskı, yakıt varili, dev roket), 🎲 Everything (kum, bütün
+eşyalar karışık).
+
+Orbit'in çevreleyen düzlemi **zemin değil**: diğer bütün bölümlerde etraf
+kenardan sonra devam ediyor, orada bitiyor ve ötesi karanlık. Bu yüzden
+güverte dokusu koyu tutuldu — siyahın üstünde açık renk bir zemin, üstünde
+durulan bir yer değil, geceye açılmış bir delik gibi duruyor.
+
+Tema zemini, çevreleyen düzlemi ve o bölümde çıkan **eşyaları** belirler; meyvelere dokunmaz — dört sayaç ve
 mağaza ona bağlı olduğu için ürün her yerde aynı. Üstteki etikette ikisi
 birden yazar: `⚽ 🔀 Cross`.
 
