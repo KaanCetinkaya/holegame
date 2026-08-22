@@ -2862,6 +2862,236 @@ function propTemplates() {
     T.rocket = { g, h: 0.9, currency: 'melon', only: 'giant' };
   }
 
+  // --- the bar ---------------------------------------------------------
+  //
+  // A glass from directly above is a circle, which is what half this board
+  // already is. What makes a drink a drink here is everything sticking out of
+  // it — the straw across the rim and the little paper umbrella beside it.
+
+  {
+    const g = new THREE.Group();
+    // The liquid is the prop. A tumbler drawn honestly — clear glass over a
+    // narrower column of juice — comes out a muddy brown from overhead,
+    // because you are looking through two tinted walls before you reach the
+    // colour. So the drink fills the glass to the brim and the glass is only
+    // a lip and a foot around it.
+    const glass = new THREE.MeshStandardMaterial({
+      color: '#eaf7fb', roughness: 0.06, metalness: 0.05, transparent: true, opacity: 0.32 });
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.34, 0.86, 20), glass), 0, 0.43, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.47, 0.31, 0.78, 20), PROP_MAT('#ff7a1f', 0.3)),
+        0, 0.41, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.04, 8, 22), PROP_MAT('#f7fdff', 0.1)),
+        0, 0.86, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.2, 8), PROP_MAT('#ff3b6b', 0.4)),
+        0.2, 0.78, -0.12, 0.5, 0, 0.35);
+    // the umbrella: a shallow cone, which from overhead is a bright disc
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.18, 8), PROP_MAT('#ff5fa2', 0.6)),
+        -0.4, 1.02, 0.2);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 6), PROP_MAT('#e8dcc0', 0.7)),
+        -0.4, 0.74, 0.2);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), PROP_MAT('#e0392b', 0.4)),
+        0.3, 0.94, 0.26);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), PROP_MAT('#b7e04a', 0.45)),
+        -0.02, 0.94, -0.36);
+    T.cocktail = { g, h: 1.08, currency: 'berry' };
+  }
+
+  // Lime wedge — a quarter disc, rind out. Nothing else on any board is a
+  // quarter of anything.
+  {
+    const g = new THREE.Group();
+    const wedge = new THREE.CylinderGeometry(0.5, 0.5, 0.24, 16, 1, false, 0, Math.PI / 2);
+    put(g, new THREE.Mesh(wedge, PROP_MAT('#b7e04a', 0.5)), 0, 0.12, 0);
+    const flesh = new THREE.CylinderGeometry(0.44, 0.44, 0.26, 16, 1, false, 0, Math.PI / 2);
+    put(g, new THREE.Mesh(flesh, PROP_MAT('#e8f7a8', 0.45)), 0, 0.12, 0);
+    for (let i = 0; i < 4; i++) {
+      const a = 0.16 + i * 0.36;
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.28, 0.3), PROP_MAT('#cfe88a', 0.5)),
+          Math.sin(a) * 0.22, 0.12, Math.cos(a) * 0.22).rotation.y = a;
+    }
+    T.lime = { g, h: 0.26, currency: 'melon' };
+  }
+
+  // Shaker. There is no environment map in this scene, so a high metalness
+  // has nothing to reflect and the whole thing comes out charcoal — the first
+  // build of this read as a bin. Bright base colour, metalness kept low, and
+  // a gold collar so the tiers are visible from straight above.
+  {
+    const g = new THREE.Group();
+    const steel = new THREE.MeshStandardMaterial({ color: '#e9eef3', roughness: 0.2, metalness: 0.35 });
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.46, 0.76, 20), steel), 0, 0.38, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.1, 20), PROP_MAT('#d4a02a', 0.3)),
+        0, 0.78, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.4, 0.22, 20), steel), 0, 0.93, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.2, 16), steel), 0, 1.13, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), steel), 0, 1.24, 0);
+    T.shaker = { g, h: 1.34, currency: 'lychee' };
+  }
+
+  // Bottle.
+  {
+    const g = new THREE.Group();
+    const glass = new THREE.MeshStandardMaterial({
+      color: '#2f6b3a', roughness: 0.12, metalness: 0.1, transparent: true, opacity: 0.85 });
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.8, 16), glass), 0, 0.4, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.26, 0.32, 14), glass), 0, 0.94, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.4, 14), glass), 0, 1.28, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.12, 14), PROP_MAT('#d4a02a', 0.35)),
+        0, 1.5, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.285, 0.285, 0.34, 16), PROP_MAT('#e8dcc0', 0.7)),
+        0, 0.44, 0);
+    T.bottle = { g, h: 1.56, currency: 'banana' };
+  }
+
+  // Ice bucket with a bottle out of it — giant only, because the neck is the
+  // tell and it is gone at cell size.
+  {
+    const g = new THREE.Group();
+    const steel = new THREE.MeshStandardMaterial({ color: '#dbe2e8', roughness: 0.18, metalness: 0.7 });
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.56, 0.9, 20), steel), 0, 0.45, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.07, 8, 22), steel), 0, 0.88, 0, Math.PI / 2, 0, 0);
+    for (const sx of [-0.78, 0.78])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.05, 6, 14, Math.PI), steel),
+          sx, 0.6, 0, 0, 0, sx > 0 ? -Math.PI / 2 : Math.PI / 2);
+    const ice = new THREE.MeshStandardMaterial({
+      color: '#eaf6ff', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.8 });
+    for (let i = 0; i < 7; i++) {
+      const a = i * 0.9;
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 0.24), ice),
+          Math.cos(a) * 0.4, 0.92, Math.sin(a) * 0.36).rotation.y = a;
+    }
+    const bot = new THREE.Group();
+    bot.position.set(0.1, 0.8, -0.1);
+    bot.rotation.x = 0.55;
+    g.add(bot);
+    const dark = PROP_MAT('#20342a', 0.2);
+    put(bot, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.7, 14), dark), 0, 0.35, 0);
+    put(bot, new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.24, 0.3, 12), dark), 0, 0.85, 0);
+    put(bot, new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.34, 12), dark), 0, 1.16, 0);
+    put(bot, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.14, 12), PROP_MAT('#d4a02a', 0.3)),
+        0, 1.38, 0);
+    T.icebucket = { g, h: 1.5, currency: 'melon', only: 'giant' };
+  }
+
+  // --- the drive-in -----------------------------------------------------
+
+  // Burger: concentric rings from above, which is exactly what one is.
+  {
+    const g = new THREE.Group();
+    const bun = PROP_MAT('#e0a355', 0.7);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.56, 0.2, 20), bun), 0, 0.1, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.66, 0.16, 20), PROP_MAT('#5a3a22', 0.75)),
+        0, 0.26, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 1.2), PROP_MAT('#f5c542', 0.5)),
+        0, 0.36, 0).rotation.y = 0.5;
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.08, 22), PROP_MAT('#63b34a', 0.7)),
+        0, 0.42, 0);
+    const top = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), bun);
+    top.scale.y = 0.62;
+    put(g, top, 0, 0.46, 0);
+    for (let i = 0; i < 9; i++) {
+      const a = i * 0.7, r = 0.14 + (i % 3) * 0.16;
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), PROP_MAT('#fff3d0', 0.7)),
+          Math.cos(a) * r, 0.46 + 0.36 * Math.sqrt(Math.max(0, 1 - (r / 0.62) ** 2)), Math.sin(a) * r);
+    }
+    T.burger = { g, h: 0.86, currency: 'lychee' };
+  }
+
+  // Fries: a red carton with the sticks fanned out of the top.
+  {
+    const g = new THREE.Group();
+    const carton = PROP_MAT('#e0392b', 0.6);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.28, 0.66, 4), carton), 0, 0.33, 0)
+      .rotation.y = Math.PI / 4;
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.2, 4), PROP_MAT('#f5f5f5', 0.7)),
+        0, 0.62, 0).rotation.y = Math.PI / 4;
+    for (let i = 0; i < 8; i++) {
+      const a = i * 0.8;
+      const fry = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.5, 0.09), PROP_MAT('#f2c230', 0.6));
+      fry.rotation.set((Math.random() - 0.5) * 0.4, a, (Math.random() - 0.5) * 0.4);
+      put(g, fry, Math.cos(a) * 0.16, 0.85, Math.sin(a) * 0.16);
+    }
+    T.fries = { g, h: 1.1, currency: 'banana' };
+  }
+
+  // Soda cup — lid, and a straw out of it at an angle.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.3, 0.9, 18), PROP_MAT('#e8e8ea', 0.6)),
+        0, 0.45, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.5, 18), PROP_MAT('#d24b3a', 0.55)),
+        0, 0.45, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.43, 0.43, 0.1, 20), PROP_MAT('#f7f7f8', 0.5)),
+        0, 0.93, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.8, 8), PROP_MAT('#e0392b', 0.4)),
+        0.1, 1.2, -0.06, 0.3, 0, 0.22);
+    T.soda = { g, h: 1.5, currency: 'melon' };
+  }
+
+  // Pizza slice.
+  {
+    const g = new THREE.Group();
+    const base = new THREE.CylinderGeometry(0.78, 0.78, 0.1, 20, 1, false, 0, 0.9);
+    put(g, new THREE.Mesh(base, PROP_MAT('#e8b96a', 0.7)), 0, 0.05, 0);
+    const cheese = new THREE.CylinderGeometry(0.7, 0.7, 0.12, 20, 1, false, 0.04, 0.82);
+    put(g, new THREE.Mesh(cheese, PROP_MAT('#f5c95a', 0.55)), 0, 0.1, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.79, 0.79, 0.2, 20, 1, false, 0.82, 0.09),
+        PROP_MAT('#d9a24e', 0.75)), 0, 0.1, 0);
+    for (let i = 0; i < 4; i++) {
+      const a = 0.2 + i * 0.18, r = 0.3 + (i % 2) * 0.24;
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.05, 12), PROP_MAT('#c33a2f', 0.5)),
+          Math.sin(a) * r, 0.17, Math.cos(a) * r);
+    }
+    T.pizza = { g, h: 0.2, currency: 'berry' };
+  }
+
+  // Saloon car — giant only. The toy car covers the small end; this one has a
+  // windscreen and a boot and reads as a real one.
+  {
+    const g = new THREE.Group();
+    const paint = PROP_MAT('#2f7de0', 0.28);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.46, 3.1), paint), 0, 0.5, 0);
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.32, 0.5, 1.5), paint);
+    put(g, cabin, 0, 0.96, -0.1);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.42, 0.1), PROP_MAT('#9fd8f5', 0.15)),
+        0, 0.96, 0.66);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.42, 0.1), PROP_MAT('#9fd8f5', 0.15)),
+        0, 0.96, -0.86);
+    for (const sx of [-0.67, 0.67])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.36, 1.3), PROP_MAT('#9fd8f5', 0.15)),
+          sx, 0.96, -0.1);
+    const tyre = new THREE.CylinderGeometry(0.34, 0.34, 0.24, 14);
+    const rubber = PROP_MAT('#26262c', 0.75);
+    for (const sx of [-0.78, 0.78]) for (const sz of [-1.02, 1.02])
+      put(g, new THREE.Mesh(tyre, rubber), sx, 0.34, sz, 0, 0, Math.PI / 2);
+    for (const sx of [-0.48, 0.48])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.08), PROP_MAT('#fff3c4', 0.3)),
+          sx, 0.56, 1.56);
+    for (const sx of [-0.48, 0.48])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.08), PROP_MAT('#e0392b', 0.35)),
+          sx, 0.56, -1.56);
+    T.sedan = { g, h: 1.24, currency: 'lychee', only: 'giant' };
+  }
+
+  // Pickup — same read, open bed at the back so it is not the same shape.
+  {
+    const g = new THREE.Group();
+    const paint = PROP_MAT('#d9483a', 0.28);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 3.0), paint), 0, 0.52, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.56, 1.1), paint), 0, 1.03, 0.6);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.44, 0.1), PROP_MAT('#9fd8f5', 0.15)),
+        0, 1.03, 1.14);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.34, 0.3, 1.6), PROP_MAT('#a8362a', 0.4)),
+        0, 0.9, -0.68);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.26, 1.44), PROP_MAT('#5c1f18', 0.6)),
+        0, 0.94, -0.68);
+    const tyre = new THREE.CylinderGeometry(0.36, 0.36, 0.26, 14);
+    const rubber = PROP_MAT('#26262c', 0.75);
+    for (const sx of [-0.78, 0.78]) for (const sz of [-0.96, 0.96])
+      put(g, new THREE.Mesh(tyre, rubber), sx, 0.36, sz, 0, 0, Math.PI / 2);
+    T.pickup = { g, h: 1.34, currency: 'banana', only: 'giant' };
+  }
+
   // Fir tree — tiers, so it is rings from above and a silhouette from the side.
   {
     const g = new THREE.Group();
@@ -3066,6 +3296,73 @@ function deckTexture() {
   return tex;
 }
 
+// A bar top: dark lacquered wood, planks running one way, and the rings
+// glasses leave behind. The rings are what separates it from the floorboards
+// indoors — same material, different room, and without them the two themes
+// look like one theme played twice.
+function barTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  const planks = 4, ph = S / planks;
+  for (let i = 0; i < planks; i++) {
+    const shade = 0.88 + Math.random() * 0.2;
+    ctx.fillStyle = `rgb(${(84 * shade) | 0}, ${(48 * shade) | 0}, ${(32 * shade) | 0})`;
+    ctx.fillRect(0, i * ph, S, ph);
+    ctx.globalAlpha = 0.16;
+    ctx.strokeStyle = '#c98f4e';
+    for (let k = 0; k < 7; k++) {
+      const y = i * ph + 4 + Math.random() * (ph - 8);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.bezierCurveTo(S / 3, y + 3, (2 * S) / 3, y - 3, S, y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#2b1810';
+    ctx.fillRect(0, i * ph, S, 2);
+  }
+  // glass rings
+  ctx.lineWidth = 2.4;
+  for (let i = 0; i < 5; i++) {
+    ctx.globalAlpha = 0.1 + Math.random() * 0.12;
+    ctx.strokeStyle = '#f0d9b0';
+    const x = 20 + Math.random() * (S - 40), y = 20 + Math.random() * (S - 40);
+    ctx.beginPath(); ctx.arc(x, y, 13 + Math.random() * 9, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(7, 7);
+  return tex;
+}
+
+// A car park. Asphalt on its own is a grey void, so the bay lines carry it:
+// they run one way only, which is the one thing on any board that tells you
+// which way you are facing.
+function asphaltTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#464a52';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2600; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.09;
+    ctx.fillStyle = Math.random() < 0.5 ? '#33363c' : '#5e636d';
+    const x = Math.random() * S, y = Math.random() * S, r = 1 + Math.random() * 2.4;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // one bay line down each edge, so tiling gives evenly spaced bays
+  ctx.fillStyle = '#e8e4d2';
+  ctx.fillRect(0, 0, 7, S);
+  ctx.fillRect(S - 7, 0, 7, S);
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = '#f5c542';
+  ctx.fillRect(0, S / 2 - 2, S, 4);
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(6, 6);
+  return tex;
+}
+
 // Built the first time a theme is played rather than all at boot: two of the
 // three are a couple of hundred thousand canvas operations and most sessions
 // never reach the levels that need them.
@@ -3073,7 +3370,7 @@ const GROUND_TEX = {};
 const groundTex = kind => GROUND_TEX[kind] ||
   (GROUND_TEX[kind] = ({ sand: groundTexture, grass: grassTexture,
      wood: woodTexture, snow: snowTexture, marble: marbleTexture,
-     deck: deckTexture })[kind]());
+     deck: deckTexture, bar: barTexture, asphalt: asphaltTexture })[kind]());
 // The sand is an island in turquoise water rather than sand to the horizon:
 // it ties the board to the app icon, and it gives the field a visible edge —
 // before this you could not tell where the board stopped.
@@ -3215,6 +3512,20 @@ const THEMES = {
     ground: 'deck', surround: '#080b18', ripples: false,
     edge: '#3d4a66', surf: null,
     props: ['satellite', 'planet', 'helmet', 'drum', 'rocket', 'marker'],
+  },
+  cocktail: {
+    name: 'Happy Hour', icon: '🍹',
+    // Warm dark wood inside a band of brass, and beyond that the dim of a
+    // room rather than the outdoors — the only theme lit like it is evening.
+    ground: 'bar', surround: '#241612', ripples: false,
+    edge: '#c98f4e', surf: null,
+    props: ['cocktail', 'lime', 'shaker', 'bottle', 'icebucket', 'lolly', 'parasol'],
+  },
+  drivein: {
+    name: 'Drive-In', icon: '🍔',
+    ground: 'asphalt', surround: '#2b2e35', ripples: false,
+    edge: '#e8e4d2', surf: null,
+    props: ['burger', 'fries', 'soda', 'pizza', 'sedan', 'pickup', 'car', 'cone', 'donut'],
   },
   mixed: {
     name: 'Everything', icon: '🎲',
@@ -3459,7 +3770,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.5, 71) > 0.72,
   },
   {
-    name: 'Piles', icon: '🥞', theme: 'space',
+    name: 'Piles', icon: '🥞', theme: 'drivein',
     // sparse ground with tall piles dotted across it
     empty: (r, c) => !(r % 2 === 1 && c % 2 === 1) || blob(r, c, 0.35, 13) < 0.32,
     stack: (r, c) => ridge((blob(r, c, 0.35, 13) - 0.32) / 0.68, 3),
@@ -3487,7 +3798,7 @@ const PATTERNS = [
     big: (r, c) => blockType(r, c, 4, 3, 55) === 'melon' && r % 3 === 1 && c % 4 === 2,
   },
   {
-    name: 'Stairs', icon: '🪜', theme: 'mixed',
+    name: 'Stairs', icon: '🪜', theme: 'cocktail',
     // the mass descends across the board in broad steps
     empty: (r, c) => {
       const stepH = 3;
@@ -3528,7 +3839,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 88) > 0.74,
   },
   {
-    name: 'Island', icon: '🏝️', theme: 'money',
+    name: 'Island', icon: '🏝️', theme: 'beach',
     // a ragged blob, the least regular of the set
     empty: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -3544,7 +3855,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 3) > 0.73,
   },
   {
-    name: 'Ring', icon: '🎯', theme: 'pitch',
+    name: 'Ring', icon: '🎯', theme: 'drivein',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const d = Math.hypot(nx, ny * 0.95);
@@ -3647,7 +3958,7 @@ const PATTERNS = [
     big: (ring) => ring % 6 === 3,
   },
   {
-    name: 'Bloom', icon: '🌸', polar: true, theme: 'beach',
+    name: 'Bloom', icon: '🌸', polar: true, theme: 'cocktail',
     // Five petals: a slot survives while its ring is still inside the petal
     // reaching out along that spoke, so the outline scallops. The reach is
     // kept near the half-width of the board — a petal longer than that is
@@ -5098,12 +5409,12 @@ window.fruitHoleMusic = () => ({
 
 // Lay one of each prop out in a row, to check they still read from the
 // angle the game is actually played at.
-window.fruitHolePropSheet = () => {
+window.fruitHolePropSheet = (only) => {
   buildField();
   landNow();
   for (const f of fruits) fieldGroup.remove(f.mesh);
   fruits = [];
-  const ids = Object.keys(PROPS);
+  const ids = only && only.length ? only : Object.keys(PROPS);
   const cols = 4;
   const rowsN = Math.ceil(ids.length / cols);
   ids.forEach((id, i) => {

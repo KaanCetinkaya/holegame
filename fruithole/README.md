@@ -58,13 +58,26 @@ Kayıtlar `localStorage`'da: `fruithole_level`, `fruithole_currency`,
 ## Bölüm yapısı
 
 Her bölümün **iki** ayırt edici özelliği var: **dizilişi** (desen) ve
-**konsepti** (tema). Altı tema var — 🏖️ Beach (kum + deniz), ⚽ Match Day
+**konsepti** (tema). Sekiz tema var — 🏖️ Beach (kum + deniz), ⚽ Match Day
 (biçilmiş çim + taç çizgisi + stadyum zemini), 🏠 Indoors (parke),
 ❄️ Snow Day (kar + buz), 💰 Payday (altın damarlı mermer banka zemini,
 bitcoin/euro/rupi/peso madeni paraları, banknot desteleri, dev para kesesi
 ve altın külçeleri), 🚀 Orbit (perçinli istasyon güvertesi, uydu, halkalı
-gezegen, astronot kaskı, yakıt varili, dev roket), 🎲 Everything (kum, bütün
-eşyalar karışık).
+gezegen, astronot kaskı, yakıt varili, dev roket), 🍹 Happy Hour (koyu cilalı
+bar tezgâhı + bardak halkaları, kokteyl, limon dilimi, shaker, şişe, dev buz
+kovası), 🍔 Drive-In (asfalt + park yeri çizgileri, burger, patates, kola,
+pizza dilimi, dev sedan ve kamyonet). Bir de 🎲 Everything var (kum, bütün
+eşyalar karışık) — bölüm listesinde kullanılmıyor, temasız bir desene
+düşüldüğünde devreye giren yedek.
+
+Kokteylin camı **saydam çizilmiyor**: dürüst bir bardak — berrak cam, içinde
+daha dar bir sıvı sütunu — tepeden bakınca çamur rengi çıkıyor, çünkü renge
+varmadan önce iki boyalı duvardan geçiyorsun. Bu yüzden içki bardağı ağzına
+kadar dolduruyor, cam da etrafında sadece bir dudak ve bir taban.
+
+Shaker'ın metalliği düşük tutuldu: sahnede environment map yok, yüksek
+metalness'ın yansıtacak bir şeyi olmadığı için ilk hali kömür karası bir çöp
+kovası gibi görünüyordu.
 
 Orbit'in çevreleyen düzlemi **zemin değil**: diğer bütün bölümlerde etraf
 kenardan sonra devam ediyor, orada bitiyor ve ötesi karanlık. Bu yüzden

@@ -34,7 +34,10 @@ arms winding outward.
 
 And each one is somewhere. A beach with the sea running up the sand. A mown
 football pitch with a touchline. Floorboards indoors. Fresh snow with ice
-beyond the bank. The ground changes, and so does what is lying on it.
+beyond the bank. A marble bank floor veined with gold. A riveted station deck
+with nothing but the dark past its edge. A lacquered bar top ringed by glasses.
+A car park with the bay lines painted on. The ground changes, and so does what
+is lying on it.
 
 🔥 CHAIN COMBOS
 Eat fruit back to back and the multiplier climbs. Sweeping a whole patch in one
@@ -61,11 +64,15 @@ them at the start. Sweep enough of the field, grow into one, and it pays for
 the whole trip.
 
 🏖️ NOT ONLY FRUIT
-Twenty-nine objects are scattered through the crop, and which ones you meet
+Fifty-two objects are scattered through the crop, and which ones you meet
 depends on where you are. Lollies, donuts, sunglasses, flip-flops, a starfish,
 a bucket and spade on the beach. A football, boots, a shirt, a goal and the
 cup itself on the pitch. Toy cars and coffee mugs indoors. A snowman, a
-penguin, a candy cane, an igloo and a toboggan in the snow.
+penguin, a candy cane, an igloo and a toboggan in the snow. Bitcoin, euros,
+rupees and pesos on the bank floor, with a money bag and gold bars to grow
+into. A satellite, a ringed planet and a whole rocket in orbit. Cocktails,
+lime wedges, a shaker and an ice bucket at the bar. And burgers, fries, a
+soda, a slice of pizza and parked cars at the drive-in.
 
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, ink, lime, candy, ocean — and gold and chrome, which
