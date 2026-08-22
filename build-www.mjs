@@ -72,7 +72,23 @@ if (existsSync(r('www', 'three.module.js'))) {
 }
 console.log('www-slicer/index.html güncellendi (Slice Rush).');
 
+// ---- Motor Works -> www-tycoon/ ----
+mkdirSync(r('www-tycoon'), { recursive: true });
+let tycoon = readFileSync(r('tycoon', 'index.html'), 'utf8');
+tycoon = swap(tycoon,
+  '"three": "https://esm.sh/three@0.161.0"',
+  '"three": "./three.module.js"', 'tycoon/index.html');
+writeFileSync(r('www-tycoon', 'index.html'), tycoon);
+
+if (existsSync(r('www', 'three.module.js'))) {
+  copyFileSync(r('www', 'three.module.js'), r('www-tycoon', 'three.module.js'));
+} else {
+  console.warn('UYARI: www/three.module.js yok, www-tycoon/ kütüphanesiz kaldı.');
+}
+console.log('www-tycoon/index.html güncellendi (Motor Works).');
+
 console.log('\nSonra:');
 console.log('  npm run sync:hole        # Hole');
 console.log('  npm run sync:fruithole   # Fruit Hole');
 console.log('  npm run sync:slicer      # Slice Rush');
+console.log('  npm run sync:tycoon      # Motor Works');
