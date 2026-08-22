@@ -2651,6 +2651,124 @@ function propTemplates() {
     T.sled = { g, h: 0.5, currency: 'banana', only: 'giant' };
   }
 
+  // --- money ----------------------------------------------------------
+  //
+  // A coin seen from overhead is a disc with a mark on it, which is the one
+  // thing this camera angle renders perfectly. The face is a canvas texture
+  // on a cylinder cap — the same trick the sliced fruit already use.
+
+  // Currency marks, drawn rather than typed.
+  //
+  // ₿, ₹ and ₱ are recent additions to Unicode and plenty of phones have no
+  // glyph for them — this canvas is rendered on the player's device, so a
+  // missing glyph is a tofu box on the board, not something a test would
+  // catch here. Every mark is therefore a Latin letter every font has, plus
+  // the bars that make it a currency, drawn as rectangles.
+  const MARKS = {
+    bitcoin: { letter: 'B', bars: [[106, 18, 12, 44], [138, 18, 12, 44],
+                                   [106, 194, 12, 44], [138, 194, 12, 44]] },
+    euro:    { letter: 'C', bars: [[48, 112, 132, 13], [48, 142, 132, 13]] },
+    rupee:   { letter: 'R', bars: [[56, 54, 142, 13], [56, 96, 142, 13]] },
+    peso:    { letter: 'P', bars: [[48, 110, 128, 13], [48, 140, 128, 13]] },
+    dollar:  { letter: 'S', bars: [[122, 34, 13, 188]] },
+  };
+
+  const coinFace = (mark, face, ink) => {
+    const S = 256, [c, ctx] = newCanvas(S);
+    ctx.fillStyle = face;
+    ctx.beginPath(); ctx.arc(S / 2, S / 2, S / 2, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.3; ctx.strokeStyle = ink; ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.arc(S / 2, S / 2, S / 2 - 22, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1;
+    // A cylinder's cap lands the canvas a quarter turn clockwise, so the mark
+    // is drawn a quarter turn the other way to come out upright. The fruit
+    // caps never showed this because a cut apple looks the same either way.
+    const m = MARKS[mark];
+    ctx.save();
+    ctx.translate(S / 2, S / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.translate(-S / 2, -S / 2);
+    ctx.fillStyle = ink;
+    ctx.font = 'bold 150px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(m.letter, S / 2, S / 2 + 6);
+    for (const [x, y, w, h] of m.bars) ctx.fillRect(x, y, w, h);
+    ctx.restore();
+    return finishTexture(c);
+  };
+
+  const coin = (id, symbol, face, ink, edge, currency, r) => {
+    const g = new THREE.Group();
+    const cap = new THREE.MeshStandardMaterial({
+      map: coinFace(symbol, face, ink), roughness: 0.28, metalness: 0.5 });
+    const rim = new THREE.MeshStandardMaterial({ color: edge, roughness: 0.32, metalness: 0.6 });
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.2, 30), [rim, cap, cap]), 0, 0.1, 0);
+    // Not spun on the spot like the rest: a currency mark turned forty
+    // degrees is not a currency mark, it is a squiggle.
+    T[id] = { g, h: 0.2, currency, upright: true };
+  };
+
+  coin('bitcoin', 'bitcoin', '#f7a90a', '#6b3f00', '#c47c00', 'banana', 0.66);
+  coin('euro',    'euro',    '#cfd6dd', '#2f3a46', '#9aa5b1', 'lychee', 0.6);
+  coin('rupee',   'rupee',   '#d99a5b', '#4a2a10', '#b07636', 'melon',  0.58);
+  coin('peso',    'peso',    '#e3c766', '#4a3a10', '#b99f42', 'berry',  0.58);
+
+  // A banded bundle of notes. Flat, so it never fights the coins for height.
+  {
+    const g = new THREE.Group();
+    const paper = PROP_MAT('#8fc08a', 0.8);
+    for (let i = 0; i < 4; i++) {
+      const note = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.045, 0.58), paper);
+      note.rotation.y = (i - 1.5) * 0.05;
+      put(g, note, 0, 0.03 + i * 0.045, 0);
+    }
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.22, 0.62), PROP_MAT('#e05a4a', 0.6)),
+        0, 0.11, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 18), PROP_MAT('#3f6b3c', 0.7)),
+        -0.36, 0.21, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 18), PROP_MAT('#3f6b3c', 0.7)),
+        0.36, 0.21, 0);
+    T.notes = { g, h: 0.24, currency: 'melon' };
+  }
+
+  // Money bag — the neck and the tie are what stop it being a beige boulder.
+  {
+    const g = new THREE.Group();
+    const cloth = PROP_MAT('#d8c9a4', 0.85);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.78, 18, 14), cloth);
+    body.scale.set(1, 0.86, 1);
+    put(g, body, 0, 0.66, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.34, 0.34, 14), cloth), 0, 1.28, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.07, 8, 18), PROP_MAT('#8a6a3a', 0.7)),
+        0, 1.22, 0, Math.PI / 2, 0, 0);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), cloth), s * 0.2, 1.5, 0)
+        .scale.set(0.7, 1.3, 0.7);
+    // the mark on the side, tipped up so it is not edge-on from above
+    const face = new THREE.MeshStandardMaterial({
+      map: coinFace('dollar', '#d8c9a4', '#5c4a22'), roughness: 0.85, transparent: true });
+    put(g, new THREE.Mesh(new THREE.CircleGeometry(0.42, 20), face), 0, 0.9, 0.5, -0.9, 0, 0);
+    T.moneybag = { g, h: 1.6, currency: 'berry', only: 'giant' };
+  }
+
+  // Gold bars, stacked in a pyramid.
+  {
+    const g = new THREE.Group();
+    const gold = new THREE.MeshStandardMaterial({ color: '#f2c230', roughness: 0.2, metalness: 0.8 });
+    const bar = new THREE.CylinderGeometry(0.34, 0.44, 0.26, 4);
+    const row = (n, y, z0) => {
+      for (let i = 0; i < n; i++) {
+        const b = new THREE.Mesh(bar, gold);
+        b.scale.set(1, 1, 2.4);
+        put(g, b, (i - (n - 1) / 2) * 0.82, y, z0, 0, Math.PI / 4, 0);
+      }
+    };
+    row(3, 0.13, 0);
+    row(2, 0.39, 0);
+    row(1, 0.65, 0);
+    T.goldbars = { g, h: 0.78, currency: 'banana', only: 'giant' };
+  }
+
   // Fir tree — tiers, so it is rings from above and a silhouette from the side.
   {
     const g = new THREE.Group();
@@ -2683,7 +2801,8 @@ function propVisual(id, radius) {
   const p = PROPS[id];
   return {
     make: () => p.g.clone(),
-    sx: radius, sy: radius, baseY: 0, uniform: true, currency: p.currency,
+    sx: radius, sy: radius, baseY: 0, uniform: true,
+    currency: p.currency, upright: !!p.upright,
   };
 }
 
@@ -2795,13 +2914,43 @@ function snowTexture() {
   return tex;
 }
 
+// Polished stone with gold seams — a bank floor. The seams are the whole
+// point: an unbroken slab of marble reads as fog at this camera distance,
+// and the grid is what tells you the ground is a floor rather than a haze.
+function marbleTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#2f4640';
+  ctx.fillRect(0, 0, S, S);
+  ctx.globalAlpha = 0.5;
+  for (let i = 0; i < 40; i++) {
+    ctx.strokeStyle = i % 3 ? '#3d5a52' : '#597a6d';
+    ctx.lineWidth = 0.6 + Math.random() * 2.2;
+    ctx.beginPath();
+    let x = Math.random() * S, y = Math.random() * S;
+    ctx.moveTo(x, y);
+    for (let k = 0; k < 4; k++) {
+      x += (Math.random() - 0.5) * 90; y += (Math.random() - 0.5) * 90;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#b9922f';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(0, 0, S, S);
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(9, 9);
+  return tex;
+}
+
 // Built the first time a theme is played rather than all at boot: two of the
 // three are a couple of hundred thousand canvas operations and most sessions
 // never reach the levels that need them.
 const GROUND_TEX = {};
 const groundTex = kind => GROUND_TEX[kind] ||
   (GROUND_TEX[kind] = ({ sand: groundTexture, grass: grassTexture,
-     wood: woodTexture, snow: snowTexture })[kind]());
+     wood: woodTexture, snow: snowTexture, marble: marbleTexture })[kind]());
 // The sand is an island in turquoise water rather than sand to the horizon:
 // it ties the board to the app icon, and it gives the field a visible edge —
 // before this you could not tell where the board stopped.
@@ -2928,6 +3077,12 @@ const THEMES = {
     ground: 'snow', surround: '#78b4dd', ripples: false,
     edge: '#f4fafe', surf: null,
     props: ['snowman', 'mitten', 'candycane', 'penguin', 'igloo', 'sled', 'pine', 'mug'],
+  },
+  money: {
+    name: 'Payday', icon: '💰',
+    ground: 'marble', surround: '#1e2a2c', ripples: false,
+    edge: '#b9922f', surf: null,
+    props: ['bitcoin', 'euro', 'rupee', 'peso', 'notes', 'moneybag', 'goldbars', 'trophy'],
   },
   mixed: {
     name: 'Everything', icon: '🎲',
@@ -3188,7 +3343,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 9) > 0.76,
   },
   {
-    name: 'Blocks', icon: '🧊', theme: 'home',
+    name: 'Blocks', icon: '🧊', theme: 'money',
     // rectangular crates of one fruit, mass ending in a stepped edge
     empty: (r, c) => {
       const qr = stepped(r, 3), qc = stepped(c, 3);
@@ -3241,7 +3396,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 88) > 0.74,
   },
   {
-    name: 'Island', icon: '🏝️', theme: 'beach',
+    name: 'Island', icon: '🏝️', theme: 'money',
     // a ragged blob, the least regular of the set
     empty: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -3278,7 +3433,7 @@ const PATTERNS = [
     },
   },
   {
-    name: 'Diamond', icon: '💎', theme: 'snow',
+    name: 'Diamond', icon: '💎', theme: 'home',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       return Math.abs(nx) + Math.abs(ny) * 0.9 > 0.9 + wob;
@@ -3292,7 +3447,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 19) > 0.75,
   },
   {
-    name: 'Spiral', icon: '🌀', theme: 'mixed',
+    name: 'Spiral', icon: '🌀', theme: 'money',
     // an arm curling out from the middle
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
@@ -3448,7 +3603,7 @@ function buildField() {
         // Spin only about the upright axis. Leaning them was meant to look
         // casual, but a tilted disc seen from above sits off its own centre
         // and the rows come out wavy — the whole grid reads as crooked.
-        mesh.rotation.y = Math.random() * Math.PI * 2;
+        mesh.rotation.y = vis.upright ? 0 : Math.random() * Math.PI * 2;
         // Casts onto the ground, but never receives. In a tower each piece
         // sits square in the shadow of the one above it, leaving a lit sliver
         // down one side — every ball then looks shoved off its own centre and
@@ -3598,7 +3753,7 @@ function placeGiants() {
       mesh.scale.set(vis.sx, vis.sy, vis.sx);
       mesh.position.set(gx, vis.baseY, gz);
       mesh.userData.ox = gx; mesh.userData.oz = gz;
-      mesh.rotation.y = Math.random() * Math.PI * 2;
+      mesh.rotation.y = vis.upright ? 0 : Math.random() * Math.PI * 2;
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       fieldGroup.add(mesh);

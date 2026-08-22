@@ -58,9 +58,11 @@ Kayıtlar `localStorage`'da: `fruithole_level`, `fruithole_currency`,
 ## Bölüm yapısı
 
 Her bölümün **iki** ayırt edici özelliği var: **dizilişi** (desen) ve
-**konsepti** (tema). Dört tema var — 🏖️ Beach (kum + deniz), ⚽ Match Day
-(biçilmiş çim + taç çizgisi + stadyum zemini), 🏠 Indoors (parke), 🎲
-Everything (kum, bütün eşyalar karışık). Tema zemini, çevreleyen düzlemi ve o
+**konsepti** (tema). Altı tema var — 🏖️ Beach (kum + deniz), ⚽ Match Day
+(biçilmiş çim + taç çizgisi + stadyum zemini), 🏠 Indoors (parke),
+❄️ Snow Day (kar + buz), 💰 Payday (altın damarlı mermer banka zemini,
+bitcoin/euro/rupi/peso madeni paraları, banknot desteleri, dev para kesesi
+ve altın külçeleri), 🎲 Everything (kum, bütün eşyalar karışık). Tema zemini, çevreleyen düzlemi ve o
 bölümde çıkan **eşyaları** belirler; meyvelere dokunmaz — dört sayaç ve
 mağaza ona bağlı olduğu için ürün her yerde aynı. Üstteki etikette ikisi
 birden yazar: `⚽ 🔀 Cross`.
