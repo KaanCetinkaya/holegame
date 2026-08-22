@@ -1918,22 +1918,38 @@ function appleCapTexture(t) {
   ctx.fillStyle = g;
   ctx.beginPath(); ctx.arc(cx, cy, R * 0.87, 0, Math.PI * 2); ctx.fill();
 
-  // core: two lobes with a pip in each, plus the stalk line
-  ctx.fillStyle = 'rgba(214,186,140,.65)';
-  for (const s of [-1, 1]) {
-    ctx.beginPath();
-    ctx.ellipse(cx + s * R * 0.16, cy, R * 0.13, R * 0.2, s * 0.34, 0, Math.PI * 2);
-    ctx.fill();
+  // The core, cut across rather than lengthways. The lengthways cut — two
+  // pips side by side with the stalk line above them — read as a little face
+  // from directly overhead, and the cylinder cap turns the canvas a quarter
+  // turn, so the stalk landed beside the pips like a mouth. Across the apple
+  // the core is a five-pointed star with a pip in each arm: unmistakably an
+  // apple, and radially symmetric, so the cap's turn cannot reach it.
+  const ARMS = 5, TURN = -Math.PI / 2;            // one arm straight up
+  ctx.fillStyle = 'rgba(206,176,126,.55)';
+  ctx.beginPath();
+  for (let i = 0; i < ARMS * 2; i++) {
+    const a = TURN + (i * Math.PI) / ARMS;
+    const rad = i % 2 ? R * 0.12 : R * 0.34;
+    const x = cx + Math.cos(a) * rad, y = cy + Math.sin(a) * rad;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
   }
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(168,132,80,.45)';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
   ctx.fillStyle = '#5a3b18';
-  for (const s of [-1, 1]) {
+  for (let i = 0; i < ARMS; i++) {
+    const a = TURN + (i * 2 * Math.PI) / ARMS;
+    ctx.save();
+    ctx.translate(cx + Math.cos(a) * R * 0.21, cy + Math.sin(a) * R * 0.21);
+    ctx.rotate(a + Math.PI / 2);
     ctx.beginPath();
-    ctx.ellipse(cx + s * R * 0.16, cy, R * 0.055, R * 0.085, s * 0.34, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, R * 0.045, R * 0.075, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
   }
-  ctx.strokeStyle = 'rgba(150,110,60,.5)';
-  ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(cx, cy - R * 0.34); ctx.lineTo(cx, cy - R * 0.72); ctx.stroke();
   return finishTexture(c);
 }
 
@@ -2002,7 +2018,10 @@ function bananaCapTexture(t) {
   g.addColorStop(1, t.base);
   ctx.fillStyle = g;
   ctx.beginPath(); ctx.arc(cx, cy, R * 0.88, 0, Math.PI * 2); ctx.fill();
-  // three-lobed core with seeds
+  // Three-lobed core — a banana really does have three carpels — but the
+  // seeds go in an even ring rather than one per lobe. Three specks with two
+  // of them side by side is a face, and this is a big pale disc seen from
+  // straight above, which is the worst place to put one.
   ctx.fillStyle = 'rgba(210,165,60,.5)';
   ctx.beginPath(); ctx.arc(cx, cy, R * 0.24, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(180,135,45,.55)';
@@ -2013,9 +2032,12 @@ function bananaCapTexture(t) {
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx + Math.cos(a) * R * 0.24, cy + Math.sin(a) * R * 0.24);
     ctx.stroke();
-    ctx.fillStyle = 'rgba(120,85,25,.75)';
+  }
+  ctx.fillStyle = 'rgba(120,85,25,.7)';
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 - Math.PI / 2 + Math.PI / 6;
     ctx.beginPath();
-    ctx.arc(cx + Math.cos(a + 1.05) * R * 0.12, cy + Math.sin(a + 1.05) * R * 0.12, R * 0.035, 0, Math.PI * 2);
+    ctx.arc(cx + Math.cos(a) * R * 0.13, cy + Math.sin(a) * R * 0.13, R * 0.028, 0, Math.PI * 2);
     ctx.fill();
   }
   return finishTexture(c);
