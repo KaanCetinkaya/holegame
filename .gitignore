@@ -4,5 +4,7 @@ node_modules/
 .DS_Store
 *.log
 /android-fruithole/
+/android-slicer/
 www-fruithole/three.module.js
+www-slicer/three.module.js
 keystore.properties

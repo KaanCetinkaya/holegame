@@ -57,6 +57,22 @@ if (existsSync(r('www', 'three.module.js'))) {
 }
 console.log('www-fruithole/index.html güncellendi (Fruit Hole).');
 
+// ---- Slice Rush -> www-slicer/ ----
+mkdirSync(r('www-slicer'), { recursive: true });
+let slicer = readFileSync(r('slicer', 'index.html'), 'utf8');
+slicer = swap(slicer,
+  '"three": "https://esm.sh/three@0.161.0"',
+  '"three": "./three.module.js"', 'slicer/index.html');
+writeFileSync(r('www-slicer', 'index.html'), slicer);
+
+if (existsSync(r('www', 'three.module.js'))) {
+  copyFileSync(r('www', 'three.module.js'), r('www-slicer', 'three.module.js'));
+} else {
+  console.warn('UYARI: www/three.module.js yok, www-slicer/ kütüphanesiz kaldı.');
+}
+console.log('www-slicer/index.html güncellendi (Slice Rush).');
+
 console.log('\nSonra:');
 console.log('  npm run sync:hole        # Hole');
 console.log('  npm run sync:fruithole   # Fruit Hole');
+console.log('  npm run sync:slicer      # Slice Rush');
