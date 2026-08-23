@@ -94,6 +94,36 @@ kalp, yıldız, ada, halka, elmas, sarmal, çapraz, bloklar, merdiven, yığınl
 duvarlar — ve şeklin dışı boş kalır. Bir hücre birden çok meyve taşıyabilir
 (istif), delik geçerken kule toptan dökülür.
 
+## Delik ne kadar hızlı büyüyor
+
+Meyve başına artış **sabit değil, tarlaya oranlı**: tarlanın %90'ını süpürmek
+deliği tavana götürüyor, hangi bölümde olursan ol.
+
+Önceden meyve başına düz 0.017'ydi. Ama tarla 1. bölümde 157 meyveden 15.
+bölümde 475'e çıkıyor, dolayısıyla bir devi açmak için süpürmen gereken
+oran çöküyordu:
+
+| bölüm | eski | yeni |
+|---|---|---|
+| 1 | %31 | %34 |
+| 5 | %11 | %31 |
+| 11 | **%4** | %26 |
+| 15 | **%2** | %23 |
+
+Yani oyun tam da zorlaşması gereken yerde kolaylaşıyordu ve devler — bir
+turda neye çalıştığının cevabı — bedavaya geliyordu. Artık bir dev her
+bölümde tarlanın yaklaşık üçte birine mal oluyor.
+
+Bölüm başına açılış bonusu da 0.05'ten 0.02'ye indi: 15. bölümde delik
+1.32'de başlıyordu, dev için gereken 1.46 — neredeyse hazır doğuyordun ve
+onu hak etmesi gereken süpürmenin yapacak bir şeyi kalmıyordu.
+
+Dev meyvelerin boyutu da aynı birimden hesaplanıyor, o yüzden artık her
+bölümde tam boy (1.34). Eskiden küçük tarlalarda 0.95'e iniyorlardı.
+
+`GROW_SWEEP` ve `growthUnit()` — `fruithole/index.html`. Ölçüm:
+`scratchpad/holebalance.mjs`.
+
 Bölüm, tarladaki **her meyve** yendiğinde biter. Süre meyve sayısına göre
 değil deliğin tarayacağı alana göre hesaplanır (`60 + meyve × 0.35` saniye),
 çünkü büyüyen delik bir geçişte birkaç sütun birden süpürür. Bölüm 1'de bu
