@@ -100,28 +100,53 @@ ve bir idle oyunun bir akşam yerine bir hafta tutmasının sebebi.
 Devrettiğinde fabrika sıfırlanır, karşılığında **kalıcı puan** kazanırsın:
 
     puan   = 20 × √(ömür boyu kazanç / 1e6)
-    çarpan = 1.02 ^ puan
+    çarpan = 1 + puan × 0.02
 
-İki ayrıntı da ölçümle bulundu:
+**Ölçek.** Puan `/1e9` ile hesaplanırken üç saatlik bir tur beş puan (+%10)
+ediyordu — koca bir fabrikayı teslim etmek için kimsenin kabul etmeyeceği bir
+zam. `/1e6` ile ilk devir yüzlerce puan veriyor.
 
-- **Ölçek.** Puan `/1e9` ile hesaplanırken üç saatlik bir tur beş puan (+%10)
-  ediyordu. Koca bir fabrikayı teslim etmek için kimsenin kabul etmeyeceği
-  bir zam. `/1e6` ile ilk tur ~2.6 kat veriyor.
-- **Bileşik olması.** Çarpan `1 + 0.02 × puan` iken sistem bir sabit noktaya
-  yakınsıyordu: tur kazancı ≈ çarpan × erişim, puan bunun karekökü, kökü düz
-  bir çizgiden geçirince yakınsıyor. Altı şube boyunca ölçüldü — kazanç
-  artışı %59, %10, %21, %10, %4 diye söndü, o noktadan sonra devretmenin bir
-  anlamı kalmıyor. Puan başına yüzde ikinin **bileşiği** ise ıraksıyor:
-  önce yavaş, sonra idle oyunun olması gerektiği gibi.
+**Bir ara bileşikti, geri alındı.** Doğrusal çarpan yakınsıyor görünüyordu:
+altı şube boyunca kazanç artışı %59, %10, %21, %10, %4 diye sönüyordu. Onun
+üzerine `1.02^puan` yapıldı. Ama o yakınsama **tampon tavanının kendisiydi**
+(bkz. Tamponlar) — erişim büyüyemediği için sadece gelir büyüyordu, gelir de
+tek başına karekökten geçip düz bir çizgiye girince sabit noktaya düşüyor.
+
+Tavan kaldırılınca erişim kendi kendine büyümeye başladı ve bileşik çarpan
+çift üstel oldu: 205x → 2.9e107 → `Infinity` → kayıtta `NaN`. Doğrusala
+dönüldü; artık fazlasıyla yetiyor.
 
 Ölçülen sonuç — 30 dakikalık turlarla, altı şube:
 
-| şube | gelir/sn | çarpan |
-|---|---|---|
-| 1 | 17K | 1.0× |
-| 2 | 45K | 2.6× |
-| 4 | 107K | 6.2× |
-| 6 | 194K | 11.2× |
+| şube | 30 dk sonunda | gelir/sn | çarpan |
+|---|---|---|---|
+| 1 | 150/147/150/149 | 235K | 1.0× |
+| 2 | 177/177/177/181 | 1.81M | 6.4× |
+| 3 | 193/193/194/196 | 5.82M | 18.8× |
+| 4 | 203/206/208/212 | 25.1M | 38.6× |
+| 5 | 215/213/218/222 | 45.6M | 66.9× |
+| 6 | 225/229/225/222 | 255M | 105.6× |
+
+Seviyeler de geliri de büyüyor — asıl istenen buydu. 6. şubede Spor (220)
+açılıyor, yani ürün hattının havucu da yerini buluyor.
+
+## Tamponlar
+
+Bir istasyon, arkasındaki tamponda ne varsa o kadar çalışabiliyor ve
+önündeki tamponda ne kadar yer varsa o kadar üretebiliyor.
+
+Depolama **birim değil, saniye** cinsinden: bir sonraki istasyonun altı
+saniyede tüketebileceği kadar. Önceden sabit 480 birimdi ve bu **bütün
+ekonomiyi boğuyordu** — bir istasyon adım başına en fazla bir tampon dolusu
+mal taşıyabildiği için, hızlar 480'i geçince zincir kendi hızıyla değil o
+tavanla akıyor. 1e86'lık bir prestij çarpanıyla ölçüldü: ekran 1e79/sn
+yazarken kasaya dakikada 218 bin giriyordu, seviyeler 144'te çakılı
+kalıyordu ve son iki ürün hiç açılmıyordu. Tavan kalkınca aynı çarpan beş
+dakikada seviye tavanına ve en üst ürüne ulaşıyor.
+
+Sonsuz bir tampon da olmaz: fazla alınmış bir istasyon saatlerce mal
+biriktirip sonrasını tek seferde ödetiyordu. Altı saniye, bir istasyon
+geride kaldığında yığılmayı göstermeye yetiyor — tamponun tek işi bu.
 
 ## Çevrimdışı kazanç
 

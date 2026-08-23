@@ -1,3 +1,6 @@
+// Çarpan formülü oyunla aynı olmalı: bir ara 1.02^puan'dı, oyun doğrusala
+// döndüğünde bu satır güncellenmeyince tablo 4.7e7x gibi olmayan sayılar
+// yazdı ve düzelttiğim şeyin hâlâ bozuk olduğunu sandım.
 // Does prestige actually pay? Play to a stall, hand the factory in, and see
 // how far the next run gets in the same time.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
@@ -31,7 +34,7 @@ console.log('-----+----------------------+-----------+------+--------+----------
 for (let run = 1; run <= 6; run++) {
   const r = await play(30);
   const pend = r.pending;
-  console.log(` ${String(run).padStart(3)} | ${r.lvl.join('/').padEnd(20)} | ${F(r.income).padStart(9)} | ${String(r.points).padStart(4)} | ${(Math.pow(1.02,r.points)).toFixed(1)}x | +${pend} puan`);
+  console.log(` ${String(run).padStart(3)} | ${r.lvl.join('/').padEnd(20)} | ${F(r.income).padStart(9)} | ${String(r.points).padStart(4)} | ${(1 + r.points*0.02).toFixed(1)}x | +${pend} puan`);
   const before = r.points;
   await pg.evaluate(() => window.jePrestige());
   const after = (await pg.evaluate(() => window.jeProbe())).points;
