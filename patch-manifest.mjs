@@ -23,6 +23,18 @@ const APPS = {
     dir: 'android-fruithole',
     appId: 'ca-app-pub-2542927456156553~4653695871',
   },
+  // Yeni oyunların kendi AdMob uygulamaları henüz açılmadı. Google'ın
+  // herkese açık test App ID'si kullanılıyor: gerçek reklam göstermiyor
+  // ama manifest'te bir kimlik olmadan uygulama açılışta çöküyor.
+  // AdMob'da uygulama açınca buradaki değeri değiştirmek yeterli.
+  slicer: {
+    dir: 'android-slicer',
+    appId: 'ca-app-pub-3940256099942544~3347511713',
+  },
+  tycoon: {
+    dir: 'android-tycoon',
+    appId: 'ca-app-pub-3940256099942544~3347511713',
+  },
 };
 
 const app = APPS[process.env.APP || 'hole'];

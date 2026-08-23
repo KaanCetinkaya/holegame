@@ -7,5 +7,13 @@
   "fruithole": {
     "versionCode": 8,
     "versionName": "1.2.1"
+  },
+  "slicer": {
+    "versionCode": 1,
+    "versionName": "1.0"
+  },
+  "tycoon": {
+    "versionCode": 1,
+    "versionName": "1.0"
   }
 }

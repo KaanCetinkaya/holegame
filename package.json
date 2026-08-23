@@ -2,7 +2,7 @@
   "name": "hole",
   "version": "1.0.0",
   "private": true,
-  "description": "Hole and Fruit Hole - single-file Three.js hole games, packaged for mobile via Capacitor",
+  "description": "Hole, Fruit Hole, Slice Rush and Motor Works - single-file Three.js games, packaged for mobile via Capacitor",
   "scripts": {
     "build:www": "node build-www.mjs",
     "add:hole": "npx cap add android && node patch-manifest.mjs",
@@ -16,7 +16,17 @@
     "aab:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android && cross-env APP=fruithole node patch-manifest.mjs && cross-env APP=fruithole node build-aab.mjs",
     "aab:hole": "node build-www.mjs && npx cap sync android && node patch-manifest.mjs && node build-aab.mjs",
     "apk:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android && cross-env APP=fruithole node patch-manifest.mjs && cross-env APP=fruithole node build-aab.mjs apk",
-    "apk:hole": "node build-www.mjs && npx cap sync android && node patch-manifest.mjs && node build-aab.mjs apk"
+    "apk:hole": "node build-www.mjs && npx cap sync android && node patch-manifest.mjs && node build-aab.mjs apk",
+    "add:slicer": "cross-env APP=slicer npx cap add android && cross-env APP=slicer node patch-manifest.mjs",
+    "sync:slicer": "node build-www.mjs && cross-env APP=slicer npx cap sync android && cross-env APP=slicer node patch-manifest.mjs",
+    "open:slicer": "cross-env APP=slicer npx cap open android",
+    "aab:slicer": "node build-www.mjs && cross-env APP=slicer npx cap sync android && cross-env APP=slicer node patch-manifest.mjs && cross-env APP=slicer node build-aab.mjs",
+    "apk:slicer": "node build-www.mjs && cross-env APP=slicer npx cap sync android && cross-env APP=slicer node patch-manifest.mjs && cross-env APP=slicer node build-aab.mjs apk",
+    "add:tycoon": "cross-env APP=tycoon npx cap add android && cross-env APP=tycoon node patch-manifest.mjs",
+    "sync:tycoon": "node build-www.mjs && cross-env APP=tycoon npx cap sync android && cross-env APP=tycoon node patch-manifest.mjs",
+    "open:tycoon": "cross-env APP=tycoon npx cap open android",
+    "aab:tycoon": "node build-www.mjs && cross-env APP=tycoon npx cap sync android && cross-env APP=tycoon node patch-manifest.mjs && cross-env APP=tycoon node build-aab.mjs",
+    "apk:tycoon": "node build-www.mjs && cross-env APP=tycoon npx cap sync android && cross-env APP=tycoon node patch-manifest.mjs && cross-env APP=tycoon node build-aab.mjs apk"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.1.0",

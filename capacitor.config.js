@@ -1,5 +1,5 @@
-// Bu depo iki ayrı oyun barındırıyor: Hole (kök index.html) ve
-// Fruit Hole (fruithole/index.html).
+// Bu depo dört ayrı oyun barındırıyor: Hole (kök index.html),
+// Fruit Hole (fruithole/), Slice Rush (slicer/) ve Motor Works (tycoon/).
 //
 // Capacitor kök dizindeki tek bir config dosyasını okur; sync/copy için
 // bir --config bayrağı yoktur. Bu yüzden hedef uygulamayı APP ortam
@@ -9,6 +9,8 @@
 //   npm run build:www                        # iki www dizinini de üretir
 //   npx cap sync android                     -> Hole (varsayılan)
 //   APP=fruithole npx cap sync android       -> Fruit Hole
+//   APP=slicer npx cap sync android          -> Slice Rush
+//   APP=tycoon npx cap sync android          -> Motor Works
 //
 // Not: Capacitor .ts > .js > .json sırasıyla bakar, bu dosya JSON'un
 // yerini aldı; ikisi birden bulunursa JSON okunmaz.
@@ -33,6 +35,28 @@ const apps = {
     android: {
       path: 'android-fruithole',
       backgroundColor: '#e8c07d',
+    },
+  },
+
+  slicer: {
+    appId: 'com.kaancetinkaya.slicerush',
+    appName: 'Slice Rush',
+    webDir: 'www-slicer',
+    backgroundColor: '#1b1230',
+    android: {
+      path: 'android-slicer',
+      backgroundColor: '#1b1230',
+    },
+  },
+
+  tycoon: {
+    appId: 'com.kaancetinkaya.motorworks',
+    appName: 'Motor Works',
+    webDir: 'www-tycoon',
+    backgroundColor: '#22242b',
+    android: {
+      path: 'android-tycoon',
+      backgroundColor: '#22242b',
     },
   },
 };

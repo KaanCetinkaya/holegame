@@ -62,11 +62,19 @@
     background: #ffc44d; color: #3a2a08; font-size: 11px; font-weight: 900;
     border-radius: 8px; padding: 1px 5px; border: 2px solid #1a1d24;
   }
-  .st .mid { flex: 1 1 auto; min-width: 0; }
-  .st .nm { font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 6px; }
-  .st .nm em { font-style: normal; font-size: 11px; font-weight: 800;
-               background: #d8a13a; color: #2c1f06; border-radius: 6px; padding: 1px 5px; }
-  .st .sub { font-size: 12px; opacity: .72; margin-top: 2px; }
+  .st .mid { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .st .nm { font-weight: 800; font-size: 15px; white-space: nowrap; }
+  /* The bottleneck marker lives on the line below rather than beside the
+     name: on a 412px screen the name, a badge and two buttons do not fit,
+     and the badge ended up under the buy button — then, once the name was
+     allowed to shrink instead, "Sevkiyat" came out as "S..". The row's own
+     border carries the signal too, so it reads before the text does. */
+  .st.neck { border-color: #d8a13a; background: rgba(216,161,58,.12); }
+  .st .meta em { font-style: normal; font-weight: 900; color: #ffc44d; }
+  .st .sub { font-size: 12px; opacity: .78; margin-top: 2px; white-space: nowrap;
+             overflow: hidden; text-overflow: ellipsis; }
+  .st .meta { font-size: 11px; opacity: .6; margin-top: 1px; white-space: nowrap; }
+  .st .meta b { color: #ffc44d; font-weight: 900; }
   .st .buf { height: 5px; border-radius: 999px; background: rgba(0,0,0,.35); margin-top: 5px; overflow: hidden; }
   .st .buf i { display: block; height: 100%; width: 0%; background: #7fd66a; border-radius: 999px; }
   .st .buf i.full { background: #e8603c; }
@@ -124,6 +132,20 @@
   .btn.alt:active { box-shadow: 0 2px 0 #5334ad; }
   .btn[disabled] { filter: grayscale(.7) brightness(.75); box-shadow: 0 5px 0 #6b5a45; }
 
+  #boostBtn {
+    position: absolute; right: 12px;
+    top: calc(env(safe-area-inset-top, 0px) + 74px);
+    width: 74px; padding: 8px 4px 7px; z-index: 3; cursor: pointer;
+    background: linear-gradient(180deg, #7fd66a, #3f9a45);
+    border: 3px solid #fff; border-radius: 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.32);
+    text-align: center; font-weight: 900; font-size: 12px; line-height: 1.2;
+  }
+  #boostBtn .big { display: block; font-size: 21px; }
+  #boostBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.32); }
+  #boostBtn.on { background: linear-gradient(180deg, #ffc44d, #eb9412); color: #3a2708; }
+  #boostBtn.cool { background: linear-gradient(180deg, #6a7280, #474e59); }
+
   #float {
     position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4;
   }
@@ -148,6 +170,8 @@
     </div>
     <div class="pill" id="menuBtn">☰</div>
   </div>
+
+  <div id="boostBtn"><span class="big">⚡</span><span id="boostTxt">×3</span></div>
 
   <div id="float"></div>
 
@@ -288,21 +312,52 @@ const saveNow = () => { try { localStorage.setItem(KEY, JSON.stringify(G)); } ca
 // bottleneck walks up and down the chain the whole way. baseRate is 1 for
 // all four — with the costs this close there is nothing left to compensate
 // for, and a flat rate is one less thing that has to be right.
+//
+// The growth rates themselves started at 1.2 down to 1.128 and had to come
+// down to 1.09-1.075. Cost climbs as g^level while income climbs with level:
+// an exponential against a straight line, and the exponential always wins in
+// the end. At 1.2 it won at level 70, about half an hour in, and the three
+// hours after that bought seventeen more levels. Flatter curves move the
+// wall out far enough for a run to be worth playing. Prestige is what gets
+// past it.
 const STATIONS = [
   { id: 'foundry',  name: 'Döküm',    icon: '🔥', unit: 'külçe',
-    baseRate: 1, baseCost: 15, costGrow: 1.200, mgrCost: 4.0e4, cap: 90 },
+    baseRate: 1, baseCost: 15, costGrow: 1.090, mgrCost: 4.0e4, cap: 1000 },
   { id: 'stamping', name: 'Pres',     icon: '🔩', unit: 'panel',
-    baseRate: 1, baseCost: 22, costGrow: 1.175, mgrCost: 1.1e5, cap: 90 },
+    baseRate: 1, baseCost: 22, costGrow: 1.085, mgrCost: 1.1e5, cap: 1000 },
   { id: 'assembly', name: 'Montaj',   icon: '🤖', unit: 'araba',
-    baseRate: 1, baseCost: 32, costGrow: 1.150, mgrCost: 3.0e5, cap: 90 },
+    baseRate: 1, baseCost: 32, costGrow: 1.080, mgrCost: 3.0e5, cap: 1000 },
   { id: 'dispatch', name: 'Sevkiyat', icon: '🚛', unit: 'sevkiyat',
-    baseRate: 1, baseCost: 45, costGrow: 1.128, mgrCost: 8.0e5, cap: 90, price: 10 },
+    baseRate: 1, baseCost: 45, costGrow: 1.075, mgrCost: 8.0e5, cap: 1000, price: 10 },
 ];
 const LAST = STATIONS.length - 1;
 
 // A manager doubles a station and is priced like a milestone rather than an
 // upgrade: it is the thing you save for when every next level feels the same.
 const MGR_MULT = 2;
+
+// Milestones. Levelling a station adds one unit of rate whatever level it is
+// at, so past the first hour every purchase felt identical and the game was
+// over. These double the whole station as it passes each mark, which turns a
+// flat climb into a series of targets — the genre's answer, and the reason
+// an idle game can hold someone for a week rather than an evening.
+//
+// Nine of them, doubling each time: a station at 1000 is 512 times itself
+// before its level is even counted.
+const MILESTONES = [10, 25, 50, 100, 200, 350, 500, 750, 1000];
+const milestonesHit = i => {
+  let n = 0;
+  for (const m of MILESTONES) if (G.lvl[i] >= m) n++;
+  return n;
+};
+const nextMilestone = i => MILESTONES.find(m => G.lvl[i] < m) || null;
+
+// A short burst of speed, on a cooldown. It exists to be sold: this is where
+// a rewarded video goes, and the shape is already right — the player asks
+// for it, it runs out, they can ask again.
+const BOOST_MULT = 3;
+const BOOST_SECS = 180;
+const BOOST_COOL = 900;
 const BUFFER_MAX = 40;       // how much a station may stockpile ahead
 const OFFLINE_CAP = 4 * 3600;
 
@@ -310,11 +365,14 @@ const G = Object.assign({
   cash: 0,
   totalEarned: 0,
   branches: 0,
+  lifetime: 0,            // earned across every branch, what points come off
   lvl: [1, 1, 1, 1],
   mgr: [false, false, false, false],
   buf: [0, 0, 0],            // one buffer between each pair
   muted: false,
   seen: Date.now(),
+  boostUntil: 0,
+  boostReady: 0,
 }, load());
 // A save from an older build can be short an array entry; a missing level
 // silently becomes NaN and the whole economy goes to nothing.
@@ -322,8 +380,36 @@ while (G.lvl.length < STATIONS.length) G.lvl.push(0);
 while (G.mgr.length < STATIONS.length) G.mgr.push(false);
 while (G.buf.length < STATIONS.length - 1) G.buf.push(0);
 
-const branchMult = () => 1 + G.branches * 0.25;
-const rateOf = i => G.lvl[i] * STATIONS[i].baseRate * (G.mgr[i] ? MGR_MULT : 1) * branchMult();
+// Prestige points, and the whole late game.
+//
+// A flat +25% per branch was worthless: past the wall a run has to come back
+// several times stronger, not a quarter stronger, or there is no reason to
+// hand in a working factory. Points come off the square root of everything
+// ever earned, so a longer run is worth more but with diminishing returns —
+// which keeps the second branch reachable without making the tenth trivial.
+// Calibrated against a played run rather than guessed: a first run stalls
+// around twenty minutes having earned a few million, and that has to be
+// worth coming back for. At 1e9 the same run banked five points — a two per
+// cent raise for handing in the whole factory, which nobody would take.
+const pointsFor = t => Math.floor(20 * Math.sqrt(Math.max(0, t) / 1e6));
+const MIN_POINTS = 30;                   // do not offer a reset worth less
+const bankedPoints = () => pointsFor(G.lifetime);
+const pendingPoints = () => pointsFor(G.lifetime + G.totalEarned) - bankedPoints();
+// Compounding, not additive. A multiplier of 1 + 0.02*points converges: a
+// run earns about (multiplier x reach), points go as the square root of
+// that, and feeding the root back through a straight line lands on a fixed
+// point — measured over six branches it did exactly that, gaining 59% then
+// 10% then 21% then 10% then 4%, at which point there is no reason to hand
+// the factory in again. Two per cent per point compounded diverges instead,
+// slowly at first and then the way an idle game is supposed to.
+const branchMult = () => Math.pow(1.02, bankedPoints());
+const boostLeft = () => Math.max(0, (G.boostUntil - Date.now()) / 1000);
+const boostMult = () => (boostLeft() > 0 ? BOOST_MULT : 1);
+const rateOf = i =>
+  G.lvl[i] * STATIONS[i].baseRate
+  * Math.pow(2, milestonesHit(i))
+  * (G.mgr[i] ? MGR_MULT : 1)
+  * branchMult() * boostMult();
 const costOf = (i, n) => {
   // sum of a geometric run, so "buy 10" is one number rather than ten
   const s = STATIONS[i], g = s.costGrow;
@@ -728,8 +814,9 @@ for (let i = 0; i < STATIONS.length; i++) {
   el.innerHTML = `
     <div class="ico">${s.icon}<b>0</b></div>
     <div class="mid">
-      <div class="nm">${s.name}<em style="display:none">DARBOĞAZ</em></div>
+      <div class="nm">${s.name}</div>
       <div class="sub">—</div>
+      <div class="meta"></div>
       <div class="buf"><i></i></div>
     </div>
     <button class="buy"></button>
@@ -738,8 +825,8 @@ for (let i = 0; i < STATIONS.length; i++) {
   rows.push({
     el,
     lvl: el.querySelector('.ico b'),
-    neck: el.querySelector('.nm em'),
     sub: el.querySelector('.sub'),
+    meta: el.querySelector('.meta'),
     buf: el.querySelector('.buf i'),
     bufWrap: el.querySelector('.buf'),
     buy: el.querySelector('.buy'),
@@ -790,9 +877,15 @@ function refreshPanel() {
     const n = buyCount(i);
     const cost = n > 0 ? costOf(i, n) : Infinity;
     r.lvl.textContent = G.lvl[i];
-    r.neck.style.display = i === ch.neck ? '' : 'none';
-    r.sub.textContent = `${fmt(rateOf(i))} ${s.unit}/sn` +
-      (G.mgr[i] ? '  ·  müdür ×2' : '');
+    r.el.classList.toggle('neck', i === ch.neck);
+    const hits = milestonesHit(i), nxt = nextMilestone(i);
+    r.sub.textContent = `${fmt(rateOf(i))} ${s.unit}/sn`;
+    const bits = [];
+    if (i === ch.neck) bits.push('<em>DARBOĞAZ</em>');
+    if (hits) bits.push(`<b>×${fmt(Math.pow(2, hits))}</b>`);
+    if (G.mgr[i]) bits.push('müdür');
+    if (nxt) bits.push(`${nxt}'de <b>×2</b>`);
+    r.meta.innerHTML = bits.join(' · ');
     if (i < STATIONS.length - 1) {
       const p = Math.min(100, (G.buf[i] / roomOf(i)) * 100);
       r.buf.style.width = p + '%';
@@ -825,19 +918,27 @@ function refreshPanel() {
 // ---------------------------------------------------------------------
 // Overlays
 // ---------------------------------------------------------------------
-const PRESTIGE_AT = () => 2.5e6 * Math.pow(4, G.branches);
+// Worth doing once the run would bank at least one point; below that the
+// player would be handing in a factory for nothing.
+const canPrestige = () => pendingPoints() >= MIN_POINTS;
+const PRESTIGE_AT = () => {
+  const want = bankedPoints() + MIN_POINTS;
+  return Math.max(0, Math.pow(want / 20, 2) * 1e6 - G.lifetime - G.totalEarned);
+};
 
 $('menuBtn').onclick = () => {
   const ch = chain();
   $('kBranch').textContent = G.branches + 1;
-  $('kBonus').textContent = '+' + Math.round(G.branches * 25) + '%';
+  $('kBonus').textContent = `×${fmt(branchMult())}  (${bankedPoints()} puan)`;
   $('kTotal').textContent = fmt(G.totalEarned);
   $('kRate').textContent = fmt(ch.income) + ' / sn';
   $('kNeck').textContent = STATIONS[ch.neck].name;
-  const ok = G.totalEarned >= PRESTIGE_AT();
+  const ok = canPrestige();
   const b = $('prestigeBtn');
   b.disabled = !ok;
-  b.textContent = ok ? 'YENİ ŞUBE AÇ' : `YENİ ŞUBE: ${fmt(PRESTIGE_AT())} kazanç gerek`;
+  b.textContent = ok
+    ? `YENİ ŞUBE AÇ  (+${pendingPoints()} puan)`
+    : `YENİ ŞUBE: ${fmt(PRESTIGE_AT())} daha kazan`;
   $('muteBtn').textContent = 'SES: ' + (G.muted ? 'KAPALI' : 'AÇIK');
   $('menu').classList.add('show');
 };
@@ -847,14 +948,18 @@ $('muteBtn').onclick = () => {
   $('muteBtn').textContent = 'SES: ' + (G.muted ? 'KAPALI' : 'AÇIK');
 };
 $('prestigeBtn').onclick = () => {
-  if (G.totalEarned < PRESTIGE_AT()) return;
-  $('pNow').textContent = '+' + Math.round(G.branches * 25) + '%';
-  $('pNext').textContent = '+' + Math.round((G.branches + 1) * 25) + '%';
+  if (!canPrestige()) return;
+  $('pNow').textContent = '×' + fmt(branchMult());
+  $('pNext').textContent =
+    `×${fmt(Math.pow(1.02, bankedPoints() + pendingPoints()))}  (+${pendingPoints()} puan)`;
   $('prestige').classList.add('show');
 };
 $('pNo').onclick = () => $('prestige').classList.remove('show');
 $('pGo').onclick = () => {
+  if (!canPrestige()) return;
   G.branches++;
+  G.lifetime += G.totalEarned;
+  G.totalEarned = 0;
   G.cash = 0;
   G.lvl = [1, 1, 1, 1];
   G.mgr = [false, false, false, false];
@@ -868,6 +973,28 @@ $('pGo').onclick = () => {
 };
 
 $('wOk').onclick = () => $('welcome').classList.remove('show');
+
+// The boost. Free on a cooldown for now; when ads go in, the cooldown
+// becomes the ad and the button becomes the offer. Nothing else has to move.
+$('boostBtn').onclick = () => {
+  if (boostLeft() > 0 || Date.now() < G.boostReady) return;
+  G.boostUntil = Date.now() + BOOST_SECS * 1000;
+  G.boostReady = Date.now() + (BOOST_SECS + BOOST_COOL) * 1000;
+  saveNow();
+  ping(740, 0.2);
+  refreshBoost();
+};
+
+function refreshBoost() {
+  const el = $('boostBtn'), t = $('boostTxt');
+  const left = boostLeft();
+  const cool = Math.max(0, (G.boostReady - Date.now()) / 1000);
+  el.classList.toggle('on', left > 0);
+  el.classList.toggle('cool', left <= 0 && cool > 0);
+  if (left > 0) t.textContent = Math.ceil(left) + 'sn';
+  else if (cool > 0) t.textContent = fmtTime(cool);
+  else t.textContent = '×' + BOOST_MULT;
+}
 
 // floating "+money" over the dispatch bay, so income has a place it comes from
 const floatEl = $('float');
@@ -986,7 +1113,7 @@ function tick(now) {
   camera.lookAt(0, 0, -12);
 
   sinceUI += dt;
-  if (sinceUI > 0.12) { sinceUI = 0; refreshPanel(); }
+  if (sinceUI > 0.12) { sinceUI = 0; refreshPanel(); refreshBoost(); }
   sinceFloat += dt;
   if (sinceFloat > 0.55 && floatAcc > 0) {
     sinceFloat = 0;
@@ -1024,6 +1151,8 @@ window.jeProbe = () => {
   const ch = chain();
   return {
     cash: G.cash, total: G.totalEarned, branches: G.branches,
+    points: bankedPoints(), pending: pendingPoints(),
+    boost: +boostLeft().toFixed(0), miles: [0, 1, 2, 3].map(milestonesHit),
     lvl: [...G.lvl], mgr: [...G.mgr], buf: G.buf.map(b => +b.toFixed(2)),
     flow: +ch.flow.toFixed(3), neck: STATIONS[ch.neck].name,
     income: +ch.income.toFixed(2),
@@ -1036,6 +1165,13 @@ window.jeOffline = sec => { G.seen = Date.now() - sec * 1000; return offlineCatc
 window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
 window.jeReset = () => { localStorage.removeItem(KEY); location.reload(); };
 window.jeFmt = fmt;
+window.jeBoost = () => $('boostBtn').click();
+window.jePrestige = () => { $('prestigeBtn').click(); $('pGo').click(); };
+
+// A boost does not run while the app is shut: the away calculation reads the
+// chain's rate at the moment of return, and a boost still ticking would pay
+// triple for hours nobody watched.
+if (G.boostUntil > Date.now()) G.boostUntil = 0;
 
 const back = offlineCatchUp();
 if (back) showWelcome(back);

@@ -20,7 +20,12 @@ import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
-const APPS = { hole: 'android', fruithole: 'android-fruithole' };
+const APPS = {
+  hole: 'android',
+  fruithole: 'android-fruithole',
+  slicer: 'android-slicer',
+  tycoon: 'android-tycoon',
+};
 
 const appName = process.env.APP || 'hole';
 const projectDir = APPS[appName];
