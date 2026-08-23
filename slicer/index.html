@@ -49,7 +49,8 @@
   }
   #hud.show { display: flex; }
   #levelTag { background: #fffaf1; color: #4a2a7a; border-color: #fff; }
-  #scoreTag { min-width: 92px; justify-content: center; }
+  #scoreTag, #coinTag { min-width: 82px; justify-content: center; }
+  #coinTag { background: linear-gradient(180deg, #ffc44d, #eb9412); color: #40260a; }
   #pauseBtn { pointer-events: auto; padding: 7px 13px; cursor: pointer; }
 
   #barWrap {
@@ -107,6 +108,21 @@
   .stars { font-size: 38px; letter-spacing: 6px; margin: 4px 0 14px; }
   .stars .off { opacity: .22; }
   .stack { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 11px; }
+
+  #blades { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px;
+            width: 100%; max-width: 340px; margin-bottom: 16px; }
+  .blade {
+    background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.16);
+    border-radius: 15px; padding: 9px 5px 7px; text-align: center; cursor: pointer;
+  }
+  .blade.on { border-color: #ffd23f; background: rgba(255,210,63,.16); }
+  .blade.locked { opacity: .55; }
+  /* The swatch is the blade's own wedge, not a colour square: a shop that
+     shows a rectangle tells you nothing about what you are buying. */
+  .blade .sw { height: 26px; margin: 2px auto 7px; width: 86%;
+               clip-path: polygon(0 22%, 78% 46%, 78% 54%, 0 78%); }
+  .blade .nm { font-size: 12px; font-weight: 800; }
+  .blade .pr { font-size: 11px; font-weight: 800; color: #ffd23f; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -114,6 +130,7 @@
   <div id="hud">
     <div class="pill" id="levelTag">BÖLÜM 1</div>
     <div class="pill" id="scoreTag">🔪 0</div>
+    <div class="pill" id="coinTag">🪙 0</div>
     <div class="pill" id="pauseBtn">⏸</div>
   </div>
   <div id="barWrap"><div id="bar"></div></div>
@@ -127,9 +144,20 @@
       <div class="row"><span>Bölüm</span><span id="mLevel">1</span></div>
       <div class="row"><span>Toplam yıldız</span><span id="mStars">0</span></div>
       <div class="row"><span>En iyi kombo</span><span id="mCombo">0</span></div>
+      <div class="row"><span>Kasa</span><span id="mCoins">🪙 0</span></div>
     </div>
     <div class="stack">
       <button class="btn" id="playBtn">OYNA</button>
+      <button class="btn alt" id="shopBtn">BIÇAKLAR</button>
+    </div>
+  </div>
+
+  <div class="screen" id="shop">
+    <h2>Bıçaklar</h2>
+    <p>Uzun bıçak daha erken değiyor — dar boşluklarda işe yarıyor.</p>
+    <div id="blades"></div>
+    <div class="stack">
+      <button class="btn alt" id="shopClose">KAPAT</button>
     </div>
   </div>
 
@@ -145,7 +173,8 @@
     <h2 id="overTitle">Demire çarptın!</h2>
     <p id="overSub">Bölümü baştan al.</p>
     <div class="stack">
-      <button class="btn" id="retryBtn">TEKRAR DENE</button>
+      <button class="btn" id="reviveBtn">📺 REKLAM İZLE, DEVAM ET</button>
+      <button class="btn alt" id="retryBtn">TEKRAR DENE</button>
       <button class="btn alt" id="overQuitBtn">ANA MENÜ</button>
     </div>
   </div>
@@ -156,8 +185,10 @@
     <div class="card">
       <div class="row"><span>Kesilen</span><span id="cCut">0 / 0</span></div>
       <div class="row"><span>En uzun kombo</span><span id="cCombo">0</span></div>
+      <div class="row"><span>Toplanan</span><span id="cCoins">🪙 0</span></div>
     </div>
     <div class="stack">
+      <button class="btn" id="dblBtn">📺 REKLAM İZLE, ×2 AL</button>
       <button class="btn" id="nextBtn">SONRAKİ BÖLÜM</button>
       <button class="btn alt" id="clearQuitBtn">ANA MENÜ</button>
     </div>
@@ -201,9 +232,63 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
+// ---------------------------------------------------------------------
+// Ads
+//
+// Rewarded video only, and both placements are asked for rather than
+// imposed: continue after a crash, and double the level's coins. A level
+// game like this has an obvious slot for an interstitial between levels,
+// and that is exactly the ad players uninstall over.
+//
+// Everything is a no-op off-device and showRewarded() resolves true there,
+// so the browser build walks the same flow.
+// ---------------------------------------------------------------------
+const _Cap = window.Capacitor;
+const _AdMob = _Cap && _Cap.Plugins ? _Cap.Plugins.AdMob : null;
+const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _AdMob);
+// Google's public test unit. Slice Rush has no AdMob app yet; swap this and
+// set ADS_TESTING to false before release.
+const AD_UNITS = { rewarded: 'ca-app-pub-3940256099942544/5224354917' };
+const ADS_TESTING = true;
+
+async function adsInit() {
+  if (!ADS_ON) return;
+  try { await _AdMob.initialize({ initializeForTesting: ADS_TESTING }); } catch (e) {}
+}
+function showRewarded() {
+  if (!ADS_ON) return Promise.resolve(true);
+  return new Promise(async resolve => {
+    let got = false, subR = null, subD = null;
+    const cleanup = () => { subR?.remove?.(); subD?.remove?.(); };
+    try {
+      subR = await _AdMob.addListener('onRewardedVideoAdReward', () => { got = true; });
+      subD = await _AdMob.addListener('onRewardedVideoAdDismissed', () => { cleanup(); resolve(got); });
+      await _AdMob.prepareRewardVideoAd({ adId: AD_UNITS.rewarded });
+      await _AdMob.showRewardVideoAd();
+    } catch (e) { cleanup(); resolve(false); }
+  });
+}
+adsInit();
+
 let level      = store.get('slicerush_level', 1);
 let starsByLvl = store.get('slicerush_stars', {});
 let bestCombo  = store.get('slicerush_combo', 0);
+let coins      = store.get('slicerush_coins', 0);
+let ownedBlades = store.get('slicerush_blades', [0]);
+let activeBlade = store.get('slicerush_blade', 0);
+
+// What the coins buy. `reach` is how far in front of its centre the blade
+// cuts: a longer blade meets a stack sooner, which is worth something in the
+// tight gaps late on. One stat, because a shop of pure colours is not worth
+// saving for and two stats would need every level retuned per blade.
+const BLADES = [
+  { name: 'Çelik',   steel: '#eef3f8', edge: '#8fe4ff', grip: '#8b3f2a', price: 0,    reach: 0 },
+  { name: 'Bakır',   steel: '#e0a06a', edge: '#ffd9a0', grip: '#5c3a22', price: 300,  reach: 0.04 },
+  { name: 'Zümrüt',  steel: '#8ce0b0', edge: '#c8ffe4', grip: '#24503c', price: 900,  reach: 0.08 },
+  { name: 'Safir',   steel: '#8ab4ff', edge: '#d6e8ff', grip: '#23335c', price: 2200, reach: 0.12 },
+  { name: 'Altın',   steel: '#ffd257', edge: '#fff2b8', grip: '#6b4a10', price: 5000, reach: 0.17 },
+  { name: 'Obsidyen',steel: '#4a4f5c', edge: '#ff7ad1', grip: '#1c1f26', price: 11000, reach: 0.22 },
+];
 const totalStars = () => Object.values(starsByLvl).reduce((a, b) => a + b, 0);
 
 // ---------------------------------------------------------------------
@@ -359,10 +444,10 @@ scene.add(sky);
 // pitch and yaw in one Euler cannot both be had: 'XYZ' turns the object
 // before it tips it, so a single rotation that aimed the knife down the
 // course could no longer nose it up and down.
-function buildBlade() {
+function buildBlade(spec) {
   const g = new THREE.Group();
   const steel = new THREE.MeshStandardMaterial({
-    color: '#eef3f8', roughness: 0.14, metalness: 0.55 });
+    color: spec.steel, roughness: 0.14, metalness: 0.55 });
 
   const b = new THREE.BufferGeometry();
   const T = 0.06;
@@ -389,14 +474,14 @@ function buildBlade() {
   const edge = new THREE.Mesh(
     new THREE.BoxGeometry(1.3, 0.05, 0.15),
     new THREE.MeshStandardMaterial({
-      color: '#ffffff', emissive: '#8fe4ff', emissiveIntensity: 1.1, roughness: 0.1 }));
+      color: '#ffffff', emissive: spec.edge, emissiveIntensity: 1.1, roughness: 0.1 }));
   edge.position.set(0.14, -0.17, 0);
   edge.rotation.z = 0.17;
   g.add(edge);
 
   const grip = new THREE.Mesh(
     new THREE.CylinderGeometry(0.12, 0.14, 0.66, 12),
-    new THREE.MeshStandardMaterial({ color: '#8b3f2a', roughness: 0.7 }));
+    new THREE.MeshStandardMaterial({ color: spec.grip, roughness: 0.7 }));
   grip.rotation.z = Math.PI / 2;
   grip.position.set(-0.86, 0, 0);
   grip.castShadow = true;
@@ -410,9 +495,14 @@ function buildBlade() {
   return g;
 }
 const blade = new THREE.Group();
-const bladeModel = buildBlade();
-bladeModel.rotation.y = -Math.PI / 2;      // nose down the course
-blade.add(bladeModel);
+let bladeModel = null;
+function fitBlade() {
+  if (bladeModel) blade.remove(bladeModel);
+  bladeModel = buildBlade(BLADES[activeBlade]);
+  bladeModel.rotation.y = -Math.PI / 2;    // nose down the course
+  blade.add(bladeModel);
+}
+fitBlade();
 scene.add(blade);
 
 // The trail: past blade positions as a fading ribbon. Without it the blade
@@ -820,9 +910,11 @@ let bladeY  = 2.4;
 let targetY = 2.4;
 let speed   = 8;
 let cutCount = 0, totalCuts = 0, streak = 0, runBest = 0;
+let runCoins = 0, revived = false, hitItem = null, paidOut = false;
 let last = performance.now();
 
-const screens = { menu: $('menu'), pause: $('pause'), over: $('over'), clear: $('clear') };
+const screens = { menu: $('menu'), shop: $('shop'), pause: $('pause'),
+                  over: $('over'), clear: $('clear') };
 function showScreen(name) {
   for (const k in screens) screens[k].classList.toggle('show', k === name);
   $('hud').classList.toggle('show', name === null);
@@ -833,11 +925,47 @@ function refreshMenu() {
   $('mLevel').textContent = level;
   $('mStars').textContent = totalStars();
   $('mCombo').textContent = bestCombo;
+  $('mCoins').textContent = '🪙 ' + coins;
+}
+
+// ---------------------------------------------------------------------
+// Blade shop
+// ---------------------------------------------------------------------
+function renderShop() {
+  const wrap = $('blades');
+  wrap.innerHTML = '';
+  BLADES.forEach((b, i) => {
+    const owned = ownedBlades.includes(i);
+    const el = document.createElement('div');
+    el.className = 'blade' + (i === activeBlade ? ' on' : '') + (owned ? '' : ' locked');
+    el.innerHTML = `
+      <div class="sw" style="background:linear-gradient(90deg, ${b.grip} 0 14%, ${b.steel} 14% 82%, ${b.edge})"></div>
+      <div class="nm">${b.name}</div>
+      <div class="pr">${owned ? (i === activeBlade ? 'TAKILI' : 'SEÇ') : '🪙 ' + b.price}</div>`;
+    el.onclick = () => {
+      if (owned) {
+        activeBlade = i;
+      } else if (coins >= b.price) {
+        coins -= b.price;
+        ownedBlades.push(i);
+        activeBlade = i;
+        store.set('slicerush_coins', coins);
+        store.set('slicerush_blades', ownedBlades);
+        sfx.clear();
+      } else return;
+      store.set('slicerush_blade', activeBlade);
+      fitBlade();
+      renderShop();
+      refreshMenu();
+    };
+    wrap.appendChild(el);
+  });
 }
 
 function startLevel() {
   totalCuts = buildCourse(level);
   cutCount = 0; streak = 0; runBest = 0;
+  runCoins = 0; revived = false; hitItem = null; paidOut = false;
   dist = START_D;
   bladeY = targetY = (LANE_LOW + LANE_HIGH) / 2;
   speed = Math.min(8 + (level - 1) * 0.45, 15);
@@ -846,11 +974,26 @@ function startLevel() {
   shards.length = 0;
   $('levelTag').textContent = 'BÖLÜM ' + level;
   $('scoreTag').textContent = '🔪 0';
+  $('coinTag').textContent = '🪙 0';
   $('bar').style.width = '0%';
   state = 'playing';
   showScreen(null);
   $('hint').classList.add('show');
   setTimeout(() => $('hint').classList.remove('show'), 2600);
+}
+
+// Coins are banked here rather than as they are cut, so a crash costs the
+// run's takings unless the player continues. paidOut guards the double: the
+// clear screen's two buttons both bank, and without it a fast pair of taps
+// paid twice.
+function bankCoins(mult) {
+  if (paidOut) return 0;
+  paidOut = true;
+  const got = runCoins * mult;
+  coins += got;
+  store.set('slicerush_coins', coins);
+  refreshMenu();
+  return got;
 }
 
 function endRun(ok) {
@@ -866,11 +1009,19 @@ function endRun(ok) {
       `<span class="${i < stars ? '' : 'off'}">★</span>`).join('');
     $('cCut').textContent = `${cutCount} / ${totalCuts}`;
     $('cCombo').textContent = runBest;
+    $('cCoins').textContent = '🪙 ' + runCoins;
+    $('dblBtn').disabled = false;
+    $('dblBtn').textContent = '📺 REKLAM İZLE, ×2 AL';
     state = 'clear';
     showScreen('clear');
     sfx.clear();
   } else {
-    $('overSub').textContent = `${cutCount} / ${totalCuts} kesildi.`;
+    $('overSub').textContent = `${cutCount} / ${totalCuts} kesildi · 🪙 ${runCoins}`;
+    // One continue per run. Two would turn any level into a matter of
+    // patience rather than steering.
+    $('reviveBtn').style.display = revived ? 'none' : '';
+    $('reviveBtn').disabled = false;
+    $('reviveBtn').textContent = '📺 REKLAM İZLE, DEVAM ET';
     state = 'over';
     showScreen('over');
     sfx.crash();
@@ -915,13 +1066,56 @@ addEventListener('keydown', e => {
 // Buttons
 // ---------------------------------------------------------------------
 $('playBtn').onclick      = () => { audio(); startLevel(); };
+$('shopBtn').onclick      = () => { renderShop(); showScreen('shop'); };
+$('shopClose').onclick    = () => showScreen('menu');
+
+// Continue after a crash. The bar that was hit is taken off the course and
+// the blade is nudged past where it stood — dropping the player back in
+// front of the same obstacle at the same height is not a continue, it is the
+// same crash again.
+$('reviveBtn').onclick = async () => {
+  const b = $('reviveBtn');
+  if (b.disabled || revived) return;
+  b.disabled = true;
+  b.textContent = 'REKLAM AÇILIYOR…';
+  const ok = await showRewarded();
+  if (!ok) { b.disabled = false; b.textContent = '📺 REKLAM İZLE, DEVAM ET'; return; }
+  revived = true;
+  if (hitItem) {
+    scene.remove(hitItem.mesh);
+    const i = items.indexOf(hitItem);
+    if (i >= 0) items.splice(i, 1);
+    hitItem = null;
+  }
+  dist += 2.5;
+  streak = 0;
+  history.length = 0;
+  last = performance.now();
+  state = 'playing';
+  showScreen(null);
+};
+
+$('dblBtn').onclick = async () => {
+  const b = $('dblBtn');
+  if (b.disabled) return;
+  b.disabled = true;
+  b.textContent = 'REKLAM AÇILIYOR…';
+  const ok = await showRewarded();
+  const got = bankCoins(ok ? 2 : 1);
+  $('cCoins').textContent = '🪙 ' + got;
+  b.textContent = ok ? '×2 ALINDI ✓' : 'REKLAM AÇILMADI';
+};
 $('pauseBtn').onclick     = () => { if (state === 'playing') { state = 'paused'; showScreen('pause'); } };
 $('resumeBtn').onclick    = () => { state = 'playing'; showScreen(null); last = performance.now(); };
 $('quitBtn').onclick      = () => { state = 'menu'; refreshMenu(); showScreen('menu'); };
-$('retryBtn').onclick     = () => startLevel();
-$('overQuitBtn').onclick  = () => { state = 'menu'; refreshMenu(); showScreen('menu'); };
-$('nextBtn').onclick      = () => startLevel();
-$('clearQuitBtn').onclick = () => { state = 'menu'; refreshMenu(); showScreen('menu'); };
+// Every way out of a finished run banks the coins first. Leaving that to
+// the clear screen's own button meant quitting to the menu threw the level's
+// takings away without saying so.
+const leaveRun = () => { bankCoins(1); };
+$('retryBtn').onclick     = () => { leaveRun(); startLevel(); };
+$('overQuitBtn').onclick  = () => { leaveRun(); state = 'menu'; refreshMenu(); showScreen('menu'); };
+$('nextBtn').onclick      = () => { leaveRun(); startLevel(); };
+$('clearQuitBtn').onclick = () => { leaveRun(); state = 'menu'; refreshMenu(); showScreen('menu'); };
 
 // ---------------------------------------------------------------------
 // Collision
@@ -945,11 +1139,15 @@ function collide(d0, y0, d1, y1) {
       if (Math.abs(yAt - it.y) < it.half + 0.2) return { hit: it, y: yAt };
       continue;
     }
-    if (Math.abs(yAt - it.y) < it.r + 0.14) {
+    if (Math.abs(yAt - it.y) < it.r + 0.14 + BLADES[activeBlade].reach) {
       sliceObject(it, yAt);
       streak++;
       runBest = Math.max(runBest, streak);
       cutCount++;
+      // A cut is worth more inside a run than on its own: the combo is the
+      // only thing in the game that rewards steering well rather than
+      // steering safely.
+      runCoins += 1 + Math.floor(streak / 4);
       spark(yAt, -it.d, it.spec.flesh);
       sfx.slice(streak);
       if (streak >= 3 && streak % 3 === 0) {
@@ -960,6 +1158,7 @@ function collide(d0, y0, d1, y1) {
         el.classList.add('pop');
       }
       $('scoreTag').textContent = '🔪 ' + cutCount;
+      $('coinTag').textContent = '🪙 ' + runCoins;
     }
   }
   return null;
@@ -983,6 +1182,7 @@ function tick(now) {
     const hit = collide(d0, y0, dist, bladeY);
     if (hit) {
       spark(hit.y, -hit.hit.d, '#ffd23f');
+      hitItem = hit.hit;
       endRun(false);
     } else if (dist > courseEnd) {
       endRun(true);
@@ -1053,6 +1253,19 @@ window.sliceAutoPlay = () => {
   return best.kind;
 };
 window.sliceStart = n => { if (n) level = n; startLevel(); };
+window.sliceMeta = () => ({
+  coins, runCoins, banked: paidOut, revived,
+  blade: activeBlade, owned: [...ownedBlades],
+  reach: BLADES[activeBlade].reach,
+});
+window.sliceGive = n => { coins += n; store.set('slicerush_coins', coins); refreshMenu(); };
+window.sliceRevive = () => $('reviveBtn').click();
+window.sliceDouble = () => $('dblBtn').click();
+window.sliceReset = () => {
+  for (const k of ['level', 'stars', 'combo', 'coins', 'blades', 'blade'])
+    localStorage.removeItem('slicerush_' + k);
+  location.reload();
+};
 
 buildCourse(level);
 refreshMenu();
