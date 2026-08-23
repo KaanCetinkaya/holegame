@@ -146,6 +146,31 @@
   #boostBtn.on { background: linear-gradient(180deg, #ffc44d, #eb9412); color: #3a2708; }
   #boostBtn.cool { background: linear-gradient(180deg, #6a7280, #474e59); }
 
+  .goal { display: flex; align-items: center; gap: 10px; padding: 8px 0;
+          border-bottom: 1px solid rgba(255,255,255,.09); }
+  .goal:last-child { border-bottom: 0; }
+  .goal .gi { font-size: 22px; width: 30px; text-align: center; flex: 0 0 30px; }
+  .goal .gm { flex: 1 1 auto; min-width: 0; }
+  .goal .gt { font-size: 14px; font-weight: 800; }
+  .goal .gp { height: 5px; border-radius: 999px; background: rgba(0,0,0,.35);
+              margin-top: 5px; overflow: hidden; }
+  .goal .gp i { display: block; height: 100%; background: #7fd66a; border-radius: 999px; }
+  .goal .gb { flex: 0 0 auto; min-width: 74px; font-size: 12px; font-weight: 900;
+              padding: 7px 8px; border: 0; border-radius: 10px; cursor: pointer;
+              background: linear-gradient(180deg, #ffc44d, #f59321); color: #40260a;
+              box-shadow: 0 3px 0 #c67613; }
+  .goal .gb[disabled] { filter: grayscale(.8) brightness(.7); box-shadow: 0 3px 0 #6b5a45; }
+  .goal.done { opacity: .45; }
+
+  /* A dot on the menu button when something is waiting to be collected.
+     Without it the goals screen is a room nobody opens twice. */
+  #goalDot {
+    position: absolute; right: 14px; width: 14px; height: 14px; border-radius: 50%;
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    background: #e8603c; border: 2px solid #fff; z-index: 4; display: none;
+  }
+  #goalDot.show { display: block; }
+
   #float {
     position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4;
   }
@@ -172,6 +197,7 @@
   </div>
 
   <div id="boostBtn"><span class="big">⚡</span><span id="boostTxt">×3</span></div>
+  <div id="goalDot" title="alınacak ödül var"></div>
 
   <div id="float"></div>
 
@@ -193,7 +219,28 @@
       <div class="row"><span>Kazanç</span><span id="wCash">—</span></div>
     </div>
     <div class="stack">
-      <button class="btn" id="wOk">TOPLA</button>
+      <button class="btn" id="wDouble">📺 REKLAM İZLE, ×2 AL</button>
+      <button class="btn alt" id="wOk">TOPLA</button>
+    </div>
+  </div>
+
+  <div class="screen" id="daily">
+    <h2>Günlük ödül 🎁</h2>
+    <p id="dSub">Üst üste geldiğin her gün ödülü büyütüyor.</p>
+    <div class="card">
+      <div class="row"><span>Gün</span><span id="dStreak">1</span></div>
+      <div class="row"><span>Ödül</span><span id="dCash">—</span></div>
+    </div>
+    <div class="stack">
+      <button class="btn" id="dOk">AL</button>
+    </div>
+  </div>
+
+  <div class="screen" id="goals">
+    <h2>Görevler</h2>
+    <div class="card" id="goalList" style="max-height:52vh;overflow-y:auto"></div>
+    <div class="stack">
+      <button class="btn alt" id="goalsClose">KAPAT</button>
     </div>
   </div>
 
@@ -207,6 +254,7 @@
       <div class="row"><span>Darboğaz</span><span id="kNeck">—</span></div>
     </div>
     <div class="stack">
+      <button class="btn alt" id="goalsBtn">GÖREVLER</button>
       <button class="btn" id="prestigeBtn">YENİ ŞUBE AÇ</button>
       <button class="btn alt" id="muteBtn">SES: AÇIK</button>
       <button class="btn alt" id="closeMenu">KAPAT</button>
@@ -286,6 +334,45 @@ function fmtTime(sec) {
 const KEY = 'motorworks_save';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
 const saveNow = () => { try { localStorage.setItem(KEY, JSON.stringify(G)); } catch {} };
+
+// ---------------------------------------------------------------------
+// Ads
+//
+// Rewarded video only. An idle game's screen is a factory the player is
+// watching and a panel they are tapping, and there is nowhere to put a
+// banner that does not sit on one of the two. Rewarded is also where the
+// money is in this genre: the player asks for it.
+//
+// Everything degrades to a no-op off-device, and showRewarded() resolves
+// true there so the browser build can still walk the flow.
+// ---------------------------------------------------------------------
+const _Cap = window.Capacitor;
+const _AdMob = _Cap && _Cap.Plugins ? _Cap.Plugins.AdMob : null;
+const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _AdMob);
+
+// Google's public test units. Motor Works has no AdMob app of its own yet;
+// swap these for the real ids and set ADS_TESTING to false before release.
+const AD_UNITS = { rewarded: 'ca-app-pub-3940256099942544/5224354917' };
+const ADS_TESTING = true;
+
+async function adsInit() {
+  if (!ADS_ON) return;
+  try { await _AdMob.initialize({ initializeForTesting: ADS_TESTING }); } catch (e) {}
+}
+function showRewarded() {
+  if (!ADS_ON) return Promise.resolve(true);
+  return new Promise(async resolve => {
+    let got = false, subR = null, subD = null;
+    const cleanup = () => { subR?.remove?.(); subD?.remove?.(); };
+    try {
+      subR = await _AdMob.addListener('onRewardedVideoAdReward', () => { got = true; });
+      subD = await _AdMob.addListener('onRewardedVideoAdDismissed', () => { cleanup(); resolve(got); });
+      await _AdMob.prepareRewardVideoAd({ adId: AD_UNITS.rewarded });
+      await _AdMob.showRewardVideoAd();
+    } catch (e) { cleanup(); resolve(false); }
+  });
+}
+adsInit();
 
 // ---------------------------------------------------------------------
 // Economy
@@ -373,7 +460,12 @@ const G = Object.assign({
   seen: Date.now(),
   boostUntil: 0,
   boostReady: 0,
+  dayLast: 0,             // gün numarası, ardışıklığı bundan buluyoruz
+  dayStreak: 0,
+  boosts: 0,
+  claimed: [],            // alınan görev ödülleri
 }, load());
+if (!Array.isArray(G.claimed)) G.claimed = [];
 // A save from an older build can be short an array entry; a missing level
 // silently becomes NaN and the whole economy goes to nothing.
 while (G.lvl.length < STATIONS.length) G.lvl.push(0);
@@ -972,17 +1064,164 @@ $('pGo').onclick = () => {
   ping(660, 0.3);
 };
 
-$('wOk').onclick = () => $('welcome').classList.remove('show');
+// ---------------------------------------------------------------------
+// Goals
+//
+// Rewards are paid in seconds of the player's own income rather than a
+// fixed sum. A flat 50,000 is a fortune in the first ten minutes and a
+// rounding error by the second branch; "an hour of what you make" is worth
+// the same at both ends, so the list stays worth opening all game.
+// ---------------------------------------------------------------------
+const GOALS = [
+  { id: 'earn1',  icon: '💰', text: 'Toplam 1M kazan',        pay: 900,
+    at: () => G.lifetime + G.totalEarned, need: 1e6 },
+  { id: 'earn2',  icon: '💰', text: 'Toplam 500M kazan',      pay: 1800,
+    at: () => G.lifetime + G.totalEarned, need: 5e8 },
+  { id: 'earn3',  icon: '💎', text: 'Toplam 100B kazan',      pay: 3600,
+    at: () => G.lifetime + G.totalEarned, need: 1e11 },
+  { id: 'lvl50',  icon: '🔧', text: 'Bir istasyonu 50. seviyeye çıkar', pay: 900,
+    at: () => Math.max(...G.lvl), need: 50 },
+  { id: 'lvl100', icon: '🔧', text: 'Bir istasyonu 100. seviyeye çıkar', pay: 1800,
+    at: () => Math.max(...G.lvl), need: 100 },
+  { id: 'lvl200', icon: '🏗️', text: 'Bir istasyonu 200. seviyeye çıkar', pay: 3600,
+    at: () => Math.max(...G.lvl), need: 200 },
+  { id: 'all100', icon: '⚖️', text: 'Dört istasyonu da 100. seviyeye çıkar', pay: 2700,
+    at: () => Math.min(...G.lvl), need: 100 },
+  { id: 'mgr1',   icon: '👔', text: 'İlk müdürü işe al',      pay: 600,
+    at: () => G.mgr.filter(Boolean).length, need: 1 },
+  { id: 'mgr4',   icon: '👔', text: 'Dört müdürü de işe al',  pay: 2700,
+    at: () => G.mgr.filter(Boolean).length, need: 4 },
+  { id: 'br1',    icon: '🏭', text: 'İlk şubeyi aç',          pay: 1800,
+    at: () => G.branches, need: 1 },
+  { id: 'br5',    icon: '🏭', text: '5 şube aç',              pay: 5400,
+    at: () => G.branches, need: 5 },
+  { id: 'boost10',icon: '⚡', text: '10 kez hız kutusu kullan', pay: 1200,
+    at: () => G.boosts, need: 10 },
+];
+const goalDone  = g => g.at() >= g.need;
+const goalTaken = g => G.claimed.includes(g.id);
+const goalReady = () => GOALS.some(g => goalDone(g) && !goalTaken(g));
+// Paid at the chain's rate without the boost, or watching an ad while a
+// goal is ready would triple every reward on the list at once.
+const goalPay = g => g.pay * chain().income / boostMult();
 
-// The boost. Free on a cooldown for now; when ads go in, the cooldown
-// becomes the ad and the button becomes the offer. Nothing else has to move.
-$('boostBtn').onclick = () => {
-  if (boostLeft() > 0 || Date.now() < G.boostReady) return;
+function renderGoals() {
+  const list = $('goalList');
+  list.innerHTML = '';
+  for (const g of GOALS) {
+    const done = goalDone(g), taken = goalTaken(g);
+    const pct = Math.min(100, (g.at() / g.need) * 100);
+    const el = document.createElement('div');
+    el.className = 'goal' + (taken ? ' done' : '');
+    el.innerHTML = `
+      <div class="gi">${g.icon}</div>
+      <div class="gm">
+        <div class="gt">${g.text}</div>
+        <div class="gp"><i style="width:${pct}%"></i></div>
+      </div>
+      <button class="gb"${done && !taken ? '' : ' disabled'}>${
+        taken ? 'ALINDI' : done ? 'AL<br>' + fmt(goalPay(g)) : Math.floor(pct) + '%'}</button>`;
+    el.querySelector('.gb').onclick = () => {
+      if (!goalDone(g) || goalTaken(g)) return;
+      const pay = goalPay(g);
+      G.cash += pay;
+      G.totalEarned += pay;
+      G.claimed.push(g.id);
+      saveNow();
+      ping(880, 0.22);
+      floatCash('+' + fmt(pay));
+      renderGoals();
+      refreshGoalDot();
+    };
+    list.appendChild(el);
+  }
+}
+function refreshGoalDot() { $('goalDot').classList.toggle('show', goalReady()); }
+
+// The menu is dismissed rather than stacked under: both are .screen overlays
+// at the same depth, and the menu is later in the document, so it painted on
+// top of the goals list and swallowed every tap meant for it.
+$('goalsBtn').onclick = () => {
+  renderGoals();
+  $('menu').classList.remove('show');
+  $('goals').classList.add('show');
+};
+$('goalsClose').onclick = () => {
+  $('goals').classList.remove('show');
+  $('menuBtn').onclick();
+};
+
+// ---------------------------------------------------------------------
+// Daily reward
+// ---------------------------------------------------------------------
+// Days are counted in the player's own timezone rather than UTC: a reward
+// that resets at 3am local is a reward nobody understands. Miss a day and
+// the streak restarts; the same day twice pays once.
+const dayNumber = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+const dailyPay = () => chain().income / boostMult() * 1800 * Math.min(7, G.dayStreak);
+
+function checkDaily() {
+  const d = dayNumber();
+  if (G.dayLast === d) return;
+  G.dayStreak = (d - G.dayLast === 1) ? G.dayStreak + 1 : 1;
+  G.dayLast = d;
+  saveNow();
+  $('dStreak').textContent = G.dayStreak + '. gün' + (G.dayStreak >= 7 ? ' (en yüksek)' : '');
+  $('dCash').textContent = fmt(dailyPay());
+  $('daily').classList.add('show');
+}
+$('dOk').onclick = () => {
+  const pay = dailyPay();
+  G.cash += pay;
+  G.totalEarned += pay;
+  saveNow();
+  ping(820, 0.22);
+  floatCash('+' + fmt(pay));
+  $('daily').classList.remove('show');
+};
+
+// ---------------------------------------------------------------------
+// Offline, doubled
+// ---------------------------------------------------------------------
+let pendingOffline = 0;
+$('wOk').onclick = () => { pendingOffline = 0; $('welcome').classList.remove('show'); };
+$('wDouble').onclick = async () => {
+  const btn = $('wDouble');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'REKLAM AÇILIYOR…';
+  const ok = await showRewarded();
+  if (ok && pendingOffline > 0) {
+    G.cash += pendingOffline;
+    G.totalEarned += pendingOffline;
+    floatCash('+' + fmt(pendingOffline));
+    ping(900, 0.24);
+    saveNow();
+  }
+  pendingOffline = 0;
+  btn.disabled = false;
+  btn.textContent = '📺 REKLAM İZLE, ×2 AL';
+  $('welcome').classList.remove('show');
+};
+
+// The boost, behind a rewarded video. The cooldown it used to sit behind is
+// gone: the ad is the cost now, which is the whole point of building it this
+// shape. Off-device showRewarded() resolves true, so the browser keeps the
+// short cooldown as its own brake.
+$('boostBtn').onclick = async () => {
+  if (boostLeft() > 0) return;
+  if (!ADS_ON && Date.now() < G.boostReady) return;
+  const t = $('boostTxt');
+  t.textContent = '…';
+  const ok = await showRewarded();
+  if (!ok) { refreshBoost(); return; }
   G.boostUntil = Date.now() + BOOST_SECS * 1000;
   G.boostReady = Date.now() + (BOOST_SECS + BOOST_COOL) * 1000;
+  G.boosts++;
   saveNow();
   ping(740, 0.2);
   refreshBoost();
+  refreshGoalDot();
 };
 
 function refreshBoost() {
@@ -992,7 +1231,7 @@ function refreshBoost() {
   el.classList.toggle('on', left > 0);
   el.classList.toggle('cool', left <= 0 && cool > 0);
   if (left > 0) t.textContent = Math.ceil(left) + 'sn';
-  else if (cool > 0) t.textContent = fmtTime(cool);
+  else if (!ADS_ON && cool > 0) t.textContent = fmtTime(cool);
   else t.textContent = '×' + BOOST_MULT;
 }
 
@@ -1113,7 +1352,7 @@ function tick(now) {
   camera.lookAt(0, 0, -12);
 
   sinceUI += dt;
-  if (sinceUI > 0.12) { sinceUI = 0; refreshPanel(); refreshBoost(); }
+  if (sinceUI > 0.12) { sinceUI = 0; refreshPanel(); refreshBoost(); refreshGoalDot(); }
   sinceFloat += dt;
   if (sinceFloat > 0.55 && floatAcc > 0) {
     sinceFloat = 0;
@@ -1136,6 +1375,7 @@ addEventListener('visibilitychange', () => {
 addEventListener('pagehide', () => { G.seen = Date.now(); saveNow(); });
 
 function showWelcome(r) {
+  pendingOffline = r.got;         // the same again, if they watch
   $('wTime').textContent = fmtTime(r.gone);
   $('wCash').textContent = fmt(r.got);
   $('wSub').textContent = r.gone >= OFFLINE_CAP
@@ -1161,11 +1401,23 @@ window.jeProbe = () => {
 };
 window.jeGive = n => { G.cash += n; refreshPanel(); };
 window.jeRun = sec => runFactory(sec);
-window.jeOffline = sec => { G.seen = Date.now() - sec * 1000; return offlineCatchUp(); };
+// Goes through showWelcome like the real return does, so the probe exercises
+// the same path the player takes — including the pending amount the rewarded
+// video pays out a second time.
+window.jeOffline = sec => {
+  G.seen = Date.now() - sec * 1000;
+  const r = offlineCatchUp();
+  if (r) showWelcome(r);
+  return r;
+};
 window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
 window.jeReset = () => { localStorage.removeItem(KEY); location.reload(); };
 window.jeFmt = fmt;
 window.jeBoost = () => $('boostBtn').click();
+window.jeGoals = () => GOALS.map(g => ({
+  id: g.id, at: +g.at().toFixed(0), need: g.need,
+  done: goalDone(g), taken: goalTaken(g), pay: +goalPay(g).toFixed(0) }));
+window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().toFixed(0) });
 window.jePrestige = () => { $('prestigeBtn').click(); $('pGo').click(); };
 
 // A boost does not run while the app is shut: the away calculation reads the
@@ -1176,7 +1428,9 @@ if (G.boostUntil > Date.now()) G.boostUntil = 0;
 const back = offlineCatchUp();
 if (back) showWelcome(back);
 G.seen = Date.now();
+checkDaily();
 refreshPanel();
+refreshGoalDot();
 requestAnimationFrame(tick);
 </script>
 </body>

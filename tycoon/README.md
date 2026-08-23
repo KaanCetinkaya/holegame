@@ -114,6 +114,46 @@ başka hiçbir şeyin değişmesi gerekmez.
 Kapalıyken boost işlemiyor: çevrimdışı hesap dönüş anındaki hızı okuyor,
 boost hâlâ işliyor olsaydı kimsenin izlemediği saatler için üç kat öderdi.
 
+## Görevler
+
+On iki görev: kazanç eşikleri, istasyon seviyeleri, müdürler, şubeler, hız
+kutusu kullanımı. Menü → GÖREVLER.
+
+Ödüller sabit para değil, **oyuncunun kendi gelirinin saniyesi** cinsinden.
+Sabit 50.000 ilk on dakikada servet, ikinci şubede yuvarlama hatası; "bir
+saatlik kazancın" iki uçta da aynı şeyi ifade ediyor, böylece liste oyun
+boyunca açmaya değer kalıyor. Ödül hesabı boost'suz gelirle yapılıyor —
+yoksa reklam izlerken görev almak bütün listeyi üçe katlardı.
+
+Alınacak ödül varken sağ üstte kırmızı bir nokta çıkıyor. Onsuz görevler
+ekranı ikinci kez açılmayan bir oda oluyor.
+
+## Günlük ödül
+
+Yarım saatlik gelir × ardışık gün (en fazla 7). Gün numarası **oyuncunun
+kendi saat diliminde** hesaplanıyor: gece 3'te sıfırlanan bir ödülü kimse
+anlamıyor. Bir gün kaçırınca seri başa dönüyor, aynı gün ikinci kez ödeme
+yapmıyor.
+
+## Reklamlar
+
+Yalnızca **ödüllü video**. Idle oyunun ekranı bir yanda izlenen fabrika, bir
+yanda dokunulan panel — banner'ı koyacak yer ikisinden birinin üstü. Ödüllü
+zaten türün para kazandığı yer, çünkü oyuncu kendi istiyor.
+
+İki yerde:
+
+- **Hız kutusu** — 3 dakika ×3. Eskiden 15 dakikalık beklemenin arkasındaydı;
+  artık bedeli reklam. Zaten bu şekilde kurulmuştu.
+- **Çevrimdışı kazanç ×2** — dönüş ekranındaki ikinci düğme.
+
+Cihaz dışında `showRewarded()` `true` dönüyor, yani tarayıcıda akış
+yürünebiliyor; orada hız kutusu eski beklemesini fren olarak koruyor.
+
+Şu an Google'ın **herkese açık test birimleri** kullanılıyor. Yayından önce
+AdMob'da uygulama açıp `AD_UNITS` içindeki kimliği değiştirmek ve
+`ADS_TESTING = false` yapmak gerekiyor.
+
 ## Kayıt
 
 Tek anahtar: `motorworks_save`. İçinde kasa, ömür boyu kazanç, şube sayısı,
@@ -127,13 +167,15 @@ var. Eski bir kayıt eksik dizi elemanıyla gelebilir; eksik seviye sessizce
     node scratchpad/tycoon.mjs     # işlevsel: zincir, darboğaz, çevrimdışı, sayı biçimi
     node scratchpad/tycoon2.mjs    # üç saatlik ilerleme eğrisi
     node scratchpad/tycoon3.mjs    # altı şubelik prestij döngüsü
+    node scratchpad/tycoon4.mjs    # görevler, günlük ödül, çevrimdışı x2
 
 `window.jeProbe()` oyunun bütün durumunu döndürür; `jeGive`, `jeRun`, `jeBuy`,
-`jeOffline`, `jeBoost`, `jePrestige`, `jeReset` testlerin oyunu parmaksız
-oynamasını sağlar.
+`jeOffline`, `jeBoost`, `jePrestige`, `jeGoals`, `jeDaily`, `jeReset` testlerin
+oyunu parmaksız oynamasını sağlar.
 
 ## Eksikler
 
-- Reklam yok (`@capacitor-community/admob` bağlanacak, AdMob uygulaması açılacak)
-- Günlük ödül, başarımlar, araştırma ağacı yok
+- AdMob uygulaması açılmadı; test reklam kimlikleri kullanılıyor
+- Araştırma ağacı / ikinci para birimi yok
+- Uygulama içi satın alma yok
 - Mağaza metni ve ekran görüntüleri hazırlanmadı
