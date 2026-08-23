@@ -50,13 +50,23 @@ const SHOTS = [
       });
       return p;
     } },
+  // Demire yapışık bir kare kırmızı bir duvardan ibaret. Bir engelin
+  // ilerisini, aradaki boşluk görünürken yakala.
   { name: '3-bars', lvl: 9, cap: 'Kırmızı demire çarpma',
-    run: pg => drive(pg, p => p.dist > 20, 120) },
+    run: pg => drive(pg, p => p.dist > 34, 160) },
+  // drive() oyun bittiği anda dönüyor — 'clear' beklemek yetmiyor, çarpınca
+  // da dönüyor ve kare "üç yıldız al" başlığıyla çarpma ekranını gösteriyordu.
+  // Bitene kadar tekrar dene.
   { name: '4-clear', lvl: 2, cap: 'Hepsini kes, üç yıldız al',
     run: async pg => {
-      const p = await drive(pg, q => q.state === 'clear');
-      await pg.waitForTimeout(300);
-      return p;
+      for (let k = 0; k < 6; k++) {
+        const p = await drive(pg, q => q.state === 'clear');
+        if (p.state === 'clear') { await pg.waitForTimeout(400); return p; }
+        await pg.evaluate(() => window.sliceStart(2));
+        await pg.waitForTimeout(300);
+        await pg.evaluate(() => document.getElementById('hint').classList.remove('show'));
+      }
+      return null;
     } },
   { name: '5-blades', lvl: 1, cap: 'Kestikçe biriktir, bıçak al',
     run: async pg => {
