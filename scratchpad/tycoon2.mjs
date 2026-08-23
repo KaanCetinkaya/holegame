@@ -17,7 +17,7 @@ await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 
 await pg.waitForTimeout(800);
 
 const F = n => n>=1e12?(n/1e12).toFixed(2)+'T':n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toFixed(0);
-console.log(' oyun içi süre |  seviyeler        | kilometre taşı | gelir/sn   | darboğaz');
+console.log(' oyun içi süre |  seviyeler        | kilometre taşı | gelir/sn   | ürün');
 console.log('---------------+-------------------+----------------+------------+---------');
 let mins = 0;
 for (let step = 0; step < 180; step++) {
@@ -30,13 +30,16 @@ for (let step = 0; step < 180; step++) {
   });
   mins++;
   if ([1,5,15,30,60,90,120,150,180].includes(mins)) {
-    console.log(` ${String(mins).padStart(4)} dk       | ${r.lvl.join('/').padEnd(17)} | ${r.miles.join('/').padEnd(14)} | ${F(r.income).padStart(10)} | ${r.neck}`);
+    console.log(` ${String(mins).padStart(4)} dk       | ${r.lvl.join('/').padEnd(17)} | ${r.miles.join('/').padEnd(14)} | ${F(r.income).padStart(10)} | ${r.product}`);
   }
 }
 // boost check
-const bo = await pg.evaluate(() => {
+// Boost düğmesi artık async (ödüllü reklamı bekliyor); tıklayıp hemen
+// okumak boost uygulanmadan ölçüyordu.
+const bo = await pg.evaluate(async () => {
   const before = window.jeProbe().income;
   window.jeBoost();
+  await new Promise(r => setTimeout(r, 300));
   const after = window.jeProbe();
   return { before, after: after.income, secs: after.boost };
 });

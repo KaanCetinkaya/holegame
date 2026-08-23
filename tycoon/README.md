@@ -54,6 +54,37 @@ seviyede, yarım saat içinde geliyordu; sonraki üç saat yalnızca on yedi
 seviye alıyordu. Daha düz eğriler duvarı bir turun değeceği kadar öteye
 itiyor. Duvarı **aşan** şey prestij.
 
+## Ürün hattı
+
+    Şehir ▸ SUV ▸ Kamyonet ▸ Spor ▸ Lüks
+    ×1     ×3.2  ×10        ×34    ×115   araç başına fiyat
+
+Fabrikanın en büyük eksiği **görünmemekti**: beşinci dakikada da üçüncü
+saatte de aynı şehir arabası çıkıyordu, sadece tezgâh sayısı artıyordu.
+Kademe atlayınca montaj hattındaki gövdeler, tırlardaki yük ve üçüncü
+bandın kasaları o ürünün rengini alıyor, gövdeler de büyüyor — malzemeler
+paylaşımlı olduğu için rengi değiştirmek yetiyor, mesh'lere dokunmuyoruz.
+
+Kademe **zincirin en zayıf halkasına** bakıyor, en güçlüsüne değil. Tek bir
+istasyonu 200. seviyeye çıkarıp yeni ürün açabilmek, oyunun bütün öğrettiği
+"dengeli büyüt" fikrinin tam tersi olurdu. Ölçüldü: 201/1/1/1 hâlâ Şehir.
+
+Eşikler en zayıf istasyonun seviyesi: **0 / 45 / 110 / 220 / 400**.
+
+İlk hali 0/60/150/300/520'ydi ve ölçünce oyuncunun SUV'da takıldığı görüldü:
+otuz dakikada 119. seviyeye geliyor, üç saatte ancak 148'e — Kamyonet için
+gereken 150'nin tam dibinde. Üçüncü ürünü görüp bir türlü alamamak motive
+etmiyor, sinirlendiriyor. Eşikler indirildi: ilk turda iki ürün rahat
+açılıyor, üçüncüsü prestijden sonrasına kalan havuç oluyor.
+
+| en zayıf | ürün | araç başına | gelir/sn |
+|---|---|---|---|
+| 1 | Şehir | 10 | 10 |
+| 45 | SUV | 32 | — |
+| 110 | Kamyonet | 100 | — |
+| 220 | Spor | 340 | — |
+| 400 | Lüks | 1.1K | — |
+
 ## Kilometre taşları
 
 10, 25, 50, 100, 200, 350, 500, 750, 1000. Her biri o istasyonun tamamını
@@ -167,6 +198,7 @@ var. Eski bir kayıt eksik dizi elemanıyla gelebilir; eksik seviye sessizce
     node scratchpad/tycoon2.mjs    # üç saatlik ilerleme eğrisi
     node scratchpad/tycoon3.mjs    # altı şubelik prestij döngüsü
     node scratchpad/tycoon4.mjs    # görevler, günlük ödül, çevrimdışı x2
+    node scratchpad/tycoon5.mjs    # ürün kademeleri ve fiyat
 
 `window.jeProbe()` oyunun bütün durumunu döndürür; `jeGive`, `jeRun`, `jeBuy`,
 `jeOffline`, `jeBoost`, `jePrestige`, `jeGoals`, `jeDaily`, `jeReset` testlerin

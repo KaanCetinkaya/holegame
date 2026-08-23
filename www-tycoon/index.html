@@ -36,6 +36,13 @@
   #rate { font-size: 13px; opacity: .85; font-weight: 700; margin-top: 3px; text-align: center; }
   #cashWrap { display: flex; flex-direction: column; align-items: center; }
   #branchPill { font-size: 15px; }
+  #leftWrap { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+  /* Ne ürettiğin ve sıradakine ne kaldığı. Ürün kademesi geliri otuz kata
+     kadar katlıyor; oyuncunun bunun var olduğunu bilmediği bir sistem
+     olamaz. */
+  #prodTag { font-size: 12px; font-weight: 800; opacity: .9; padding-left: 4px;
+             text-shadow: 0 1px 3px rgba(0,0,0,.6); white-space: nowrap; }
+  #prodTag b { color: #ffc44d; }
   #menuBtn { pointer-events: auto; cursor: pointer; padding: 7px 12px; }
 
   /* ---- station panel -------------------------------------------------- */
@@ -188,7 +195,10 @@
 <body>
 <div id="app">
   <div id="top">
-    <div class="pill" id="branchPill">🏭 1</div>
+    <div id="leftWrap">
+      <div class="pill" id="branchPill">🏭 1</div>
+      <div id="prodTag">🚗 Şehir</div>
+    </div>
     <div id="cashWrap">
       <div class="pill" id="cashPill">💰 0</div>
       <div id="rate">0 / sn</div>
@@ -252,6 +262,8 @@
       <div class="row"><span>Toplam kazanç</span><span id="kTotal">0</span></div>
       <div class="row"><span>Saniyelik gelir</span><span id="kRate">0</span></div>
       <div class="row"><span>Darboğaz</span><span id="kNeck">—</span></div>
+      <div class="row"><span>Ürün</span><span id="kProd">—</span></div>
+      <div class="row"><span>Araç başına</span><span id="kPrice">—</span></div>
     </div>
     <div class="stack">
       <button class="btn alt" id="goalsBtn">GÖREVLER</button>
@@ -423,6 +435,32 @@ const LAST = STATIONS.length - 1;
 // upgrade: it is the thing you save for when every next level feels the same.
 const MGR_MULT = 2;
 
+// Ürün hattı.
+//
+// Fabrikanın en büyük eksiği görünmemekti: beşinci dakikada da üçüncü saatte
+// de aynı şehir arabası çıkıyordu, sadece tezgâh sayısı artıyordu. Idle
+// oyunda ilerlemenin gözle görülmesi gerekiyor.
+//
+// Kademe, ZİNCİRİN EN ZAYIF halkasına bakıyor — en güçlüsüne değil. Tek bir
+// istasyonu yükselterek yeni ürün açmak, oyunun bütün öğrettiği "dengeli
+// büyüt" fikrinin tam tersi olurdu.
+const PRODUCTS = [
+  { name: 'Şehir',    at: 0,   mult: 1,   body: '#3f7de0', roof: '#356ec9', big: 1.00 },
+  { name: 'SUV',      at: 45,  mult: 3.2, body: '#3f9a6a', roof: '#33805a', big: 1.14 },
+  { name: 'Kamyonet', at: 110, mult: 10,  body: '#e8a33a', roof: '#c9861e', big: 1.26 },
+  { name: 'Spor',     at: 220, mult: 34,  body: '#d9483a', roof: '#b93a2e', big: 1.08 },
+  { name: 'Lüks',     at: 400, mult: 115, body: '#8a52d0', roof: '#7343b3', big: 1.18 },
+];
+const productTier = () => {
+  const weakest = Math.min(...G.lvl);
+  let t = 0;
+  for (let i = 0; i < PRODUCTS.length; i++) if (weakest >= PRODUCTS[i].at) t = i;
+  return t;
+};
+const product = () => PRODUCTS[productTier()];
+const nextProduct = () => PRODUCTS[productTier() + 1] || null;
+const unitPrice = () => STATIONS[LAST].price * product().mult;
+
 // Milestones. Levelling a station adds one unit of rate whatever level it is
 // at, so past the first hour every purchase felt identical and the game was
 // over. These double the whole station as it passes each mark, which turns a
@@ -525,7 +563,7 @@ function chain() {
     const r = rateOf(i);
     if (r < flow) { flow = r; neck = i; }
   }
-  return { flow, neck, income: flow * STATIONS[LAST].price };
+  return { flow, neck, income: flow * unitPrice() };
 }
 
 // How much station i may stockpile before the one after it. Storage grows
@@ -555,7 +593,7 @@ function runFactory(dt) {
       // No branch multiplier here: rateOf() already carries it, and applying
       // it again squared the bonus — the readout and the bank disagreed from
       // the first prestige onwards.
-      else earned += made * STATIONS[LAST].price;
+      else earned += made * unitPrice();
     }
   }
   G.cash += earned;
@@ -572,7 +610,7 @@ function offlineCatchUp() {
   const gone = Math.min(OFFLINE_CAP, Math.max(0, (Date.now() - G.seen) / 1000));
   if (gone < 60) return null;
   const ch = chain();
-  const got = ch.flow * STATIONS[LAST].price * gone;
+  const got = ch.flow * unitPrice() * gone;
   for (let i = 0; i < G.buf.length; i++) G.buf[i] = i < ch.neck ? roomOf(i) : 0;
   G.cash += got;
   G.totalEarned += got;
@@ -754,7 +792,9 @@ function assemblyBay() {
   DECK(g, '#5c6570');
   put(g, new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.22, 1.5), MAT('#3d444e', 0.7, 0.3)), 0, 0.4, -0.2);
   const arm = MAT('#f2a23a', 0.4, 0.25), joint = MAT('#3d444e', 0.5, 0.5);
-  const shells = ['#d9483a', '#2f7de0', '#3f9a6a', '#e8c33a', '#8a52d0', '#e0e4ea'];
+  // Gövdeler üretilen ürünün rengini alıyor; malzemeler saklanıyor ki
+  // kademe atlayınca yerinde değiştirilebilsin.
+  const bodyMats = [];
   for (let i = 0; i < 6; i++) {
     const u = new THREE.Group();
     u.position.set(-3.5 + (i % 3) * 3.5, 0.3, i < 3 ? -0.2 : 1.6);
@@ -762,7 +802,8 @@ function assemblyBay() {
     // a car body on the line, in the colour this cell is running
     const car = new THREE.Group();
     car.position.set(0, 0.55, 0);
-    const paint = MAT(shells[i], 0.35);
+    const paint = MAT(product().body, 0.35);
+    bodyMats.push(paint);
     put(car, new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.3, 1.9), paint), 0, 0.2, 0);
     put(car, new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.32, 0.9), paint), 0, 0.5, -0.1);
     for (const sx of [-0.5, 0.5]) for (const sz of [-0.62, 0.62])
@@ -790,13 +831,13 @@ function assemblyBay() {
     g.add(u);
     if (i >= 1) { u.visible = false; grow.push(u); }
   }
-  return { g, grow, moving };
+  return { g, grow, moving, bodyMats, cars: moving.filter(p => p.kind === 'slide') };
 }
 
 // Dispatch: car transporters, loaded. The ramp and the cars on the deck are
 // what make it a transporter rather than a lorry.
 function dispatchBay() {
-  const g = new THREE.Group(), grow = [], moving = [];
+  const g = new THREE.Group(), grow = [], moving = [], loadMats = [];
   DECK(g, '#4c5560');
   put(g, new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.06, 1.2), MAT('#e8d060', 0.8)), 0, 0.32, 2.0);
   for (let i = 0; i < 4; i++) {
@@ -811,11 +852,13 @@ function dispatchBay() {
     put(t, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.12, 2.6), MAT('#8a929c', 0.5, 0.4)), 0, 1.45, -0.7);
     for (const sz of [-2.0, 0.8])
       put(t, new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), MAT('#6d757f', 0.5, 0.4)), 0.5, 1.0, sz);
-    // the load
+    // Yük: taşınan şey neyse o. Fabrika lüks araba üretirken tırda hâlâ
+    // şehir arabası duruyorsa zincirin sonu yalan söylüyor demektir.
     for (let k = 0; k < 4; k++) {
-      const c = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.32, 1.15),
-        MAT(['#e0e4ea', '#d9483a', '#2f7de0', '#3f9a6a'][(i + k) % 4], 0.35));
+      const m = MAT(k % 2 ? product().body : product().roof, 0.35);
+      const c = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.32, 1.15), m);
       put(t, c, 0, k < 2 ? 0.77 : 1.67, (k % 2 ? -1.5 : -0.1));
+      loadMats.push(m);
     }
     const tyre = new THREE.CylinderGeometry(0.26, 0.26, 0.2, 12), rub = MAT('#26262c', 0.8);
     for (const sx of [-0.58, 0.58]) for (const sz of [-1.8, -0.4, 1.5])
@@ -824,7 +867,7 @@ function dispatchBay() {
     moving.push({ m: t, kind: 'bob', phase: i * 1.1, base: 0.3 });
     if (i >= 1) { t.visible = false; grow.push(t); }
   }
-  return { g, grow, moving };
+  return { g, grow, moving, loadMats };
 }
 
 const BUILDERS = [foundryBay, stampBay, assemblyBay, dispatchBay];
@@ -873,6 +916,8 @@ for (let i = 0; i < 3; i++) {
 // same box in three colours would have made the chain look like one step
 // repeated.
 const CRATE_MAT = [GLOW('#e8791e', 0.55), MAT('#aeb6c0', 0.3, 0.7), MAT('#d9483a', 0.35)];
+// Üçüncü bant montajdan çıkan bitmiş arabaları taşıyor, yani onun rengi de
+// ürünle değişmeli.
 const CRATE_SHAPE = [
   new THREE.BoxGeometry(0.46, 0.22, 0.46),
   new THREE.BoxGeometry(0.66, 0.08, 0.5),
@@ -1005,6 +1050,9 @@ function refreshPanel() {
   $('cashPill').textContent = '💰 ' + fmt(G.cash);
   $('rate').textContent = fmt(ch.income) + ' / sn';
   $('branchPill').textContent = '🏭 ' + (G.branches + 1);
+  const nx = nextProduct();
+  $('prodTag').innerHTML = `🚗 ${product().name}` +
+    (nx ? ` · <b>${nx.name}</b>: hepsi ${nx.at}. sv` : ' · en üst');
 }
 
 // ---------------------------------------------------------------------
@@ -1025,6 +1073,8 @@ $('menuBtn').onclick = () => {
   $('kTotal').textContent = fmt(G.totalEarned);
   $('kRate').textContent = fmt(ch.income) + ' / sn';
   $('kNeck').textContent = STATIONS[ch.neck].name;
+  $('kProd').textContent = `${product().name} (×${fmt(product().mult)})`;
+  $('kPrice').textContent = fmt(unitPrice());
   const ok = canPrestige();
   const b = $('prestigeBtn');
   b.disabled = !ok;
@@ -1271,6 +1321,7 @@ function ping(freq, gain = 0.12) {
 // ---------------------------------------------------------------------
 let last = performance.now();
 let sinceSave = 0, sinceUI = 0, sinceFloat = 0, floatAcc = 0;
+let shownTier = -1;
 let spawnAcc = [0, 0, 0];
 
 function tick(now) {
@@ -1303,6 +1354,21 @@ function tick(now) {
       c.m.position.set(0, 0.95, b.z0 - b.len * c.t);
       c.m.rotation.y = c.t * 2;
     }
+  }
+
+  // Ürün kademesi atladığında fabrikanın rengi değişiyor: montajdaki
+  // gövdeler, tırlardaki yük ve üçüncü bandın kasaları. Malzemeler paylaşımlı
+  // olduğu için renk atamak yeterli, mesh'lere dokunmaya gerek yok.
+  const tier = productTier();
+  if (tier !== shownTier) {
+    shownTier = tier;
+    const pr = PRODUCTS[tier];
+    for (const m of bays[2].bodyMats) m.color.set(pr.body);
+    for (const m of bays[3].loadMats) m.color.set(pr.roof);
+    CRATE_MAT[2].color.set(pr.body);
+    for (const c of bays[2].cars) c.m.scale.setScalar(pr.big);
+    ping(560 + tier * 80, 0.2);
+    if (tier > 0) floatCash('🚗 ' + pr.name.toUpperCase() + ' AÇILDI');
   }
 
   // bays reveal their extra units as the station levels up
@@ -1392,6 +1458,7 @@ window.jeProbe = () => {
   return {
     cash: G.cash, total: G.totalEarned, branches: G.branches,
     points: bankedPoints(), pending: pendingPoints(),
+    product: product().name, tier: productTier(), price: unitPrice(),
     boost: +boostLeft().toFixed(0), miles: [0, 1, 2, 3].map(milestonesHit),
     lvl: [...G.lvl], mgr: [...G.mgr], buf: G.buf.map(b => +b.toFixed(2)),
     flow: +ch.flow.toFixed(3), neck: STATIONS[ch.neck].name,
@@ -1413,6 +1480,7 @@ window.jeOffline = sec => {
 window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
 window.jeReset = () => { localStorage.removeItem(KEY); location.reload(); };
 window.jeFmt = fmt;
+window.jeSeenTier = () => shownTier;
 // Kameranın çerçevesi. Mağaza görselleri dikey telefon için ayarlanmış
 // çerçeveyi kullanamıyor: yatay bir grafikte fabrika minicik kalıyor.
 window.jeCam = (h, shift) => {
