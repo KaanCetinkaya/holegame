@@ -521,18 +521,27 @@ while (G.buf.length < STATIONS.length - 1) G.buf.push(0);
 // around twenty minutes having earned a few million, and that has to be
 // worth coming back for. At 1e9 the same run banked five points — a two per
 // cent raise for handing in the whole factory, which nobody would take.
-const pointsFor = t => Math.floor(20 * Math.sqrt(Math.max(0, t) / 1e6));
+const pointsFor = t => {
+  const p = Math.floor(20 * Math.sqrt(Math.max(0, t) / 1e6));
+  return Number.isFinite(p) ? p : 0;
+};
 const MIN_POINTS = 30;                   // do not offer a reset worth less
 const bankedPoints = () => pointsFor(G.lifetime);
 const pendingPoints = () => pointsFor(G.lifetime + G.totalEarned) - bankedPoints();
-// Compounding, not additive. A multiplier of 1 + 0.02*points converges: a
-// run earns about (multiplier x reach), points go as the square root of
-// that, and feeding the root back through a straight line lands on a fixed
-// point — measured over six branches it did exactly that, gaining 59% then
-// 10% then 21% then 10% then 4%, at which point there is no reason to hand
-// the factory in again. Two per cent per point compounded diverges instead,
-// slowly at first and then the way an idle game is supposed to.
-const branchMult = () => Math.pow(1.02, bankedPoints());
+// Linear in points, and that is now enough.
+//
+// This was 1.02^points for a while. The compound form was put in because a
+// straight line converged: six branches gained 59%, 10%, 21%, 10%, 4% and
+// then there was no reason to hand the factory in again. But that
+// convergence was an artefact of the buffer ceiling — reach could not grow,
+// so only income did, and income alone feeds a square root back through a
+// line and lands on a fixed point.
+//
+// With the ceiling gone reach grows on its own: branch 2 now reaches level
+// 245 where branch 1 reached 150. A linear multiplier is plenty on top of
+// that, and the compound one was catastrophic — 2.9e107 by branch three,
+// Infinity by branch four, and NaN in the save from then on.
+const branchMult = () => 1 + bankedPoints() * 0.02;
 const boostLeft = () => Math.max(0, (G.boostUntil - Date.now()) / 1000);
 const boostMult = () => (boostLeft() > 0 ? BOOST_MULT : 1);
 const rateOf = i =>
@@ -566,10 +575,19 @@ function chain() {
   return { flow, neck, income: flow * unitPrice() };
 }
 
-// How much station i may stockpile before the one after it. Storage grows
-// with the station drawing from it but is capped: an unbounded buffer let an
-// over-bought station bank hours of work that the next one paid out at once.
-const roomOf = i => Math.min(BUFFER_MAX * 12, BUFFER_MAX * Math.max(1, G.lvl[i + 1] * 0.5));
+// How much station i may stockpile before the one after it.
+//
+// Storage is measured in SECONDS of what the next station can consume, not
+// in units. A fixed ceiling — it was 480 — throttles the entire economy the
+// moment rates pass it: a station can only move one buffer's worth per step,
+// so beyond that point the chain runs at the cap rather than at its own
+// speed. Measured with a prestige multiplier of 1e86 the readout said 1e79
+// a second while the bank took 218K a minute, levels stalled at 144, and
+// every prestige point past the first few bought nothing at all.
+//
+// Six seconds is enough to show a backlog building when a station falls
+// behind, which is all the buffer is for.
+const roomOf = i => Math.max(BUFFER_MAX, rateOf(i + 1) * 6);
 
 // One step of the factory. Stations pull from the buffer behind them, so a
 // starved station simply does less — no special case for it.
@@ -596,6 +614,10 @@ function runFactory(dt) {
       else earned += made * unitPrice();
     }
   }
+  // Bir kez sonsuza ya da NaN'a düşen kayıt bir daha düzelmiyor: bütün
+  // ekonomi o değerden besleniyor ve oyuncunun elinde kurtarılamaz bir
+  // dosya kalıyor. Tek satırlık bekçi, üstel bir ekonomide ucuz sigorta.
+  if (!Number.isFinite(earned)) return 0;
   G.cash += earned;
   G.totalEarned += earned;
   return earned;
@@ -1069,7 +1091,7 @@ const PRESTIGE_AT = () => {
 $('menuBtn').onclick = () => {
   const ch = chain();
   $('kBranch').textContent = G.branches + 1;
-  $('kBonus').textContent = `×${fmt(branchMult())}  (${bankedPoints()} puan)`;
+  $('kBonus').textContent = `×${fmt(branchMult())}  (${fmt(bankedPoints())} puan)`;
   $('kTotal').textContent = fmt(G.totalEarned);
   $('kRate').textContent = fmt(ch.income) + ' / sn';
   $('kNeck').textContent = STATIONS[ch.neck].name;
@@ -1079,7 +1101,7 @@ $('menuBtn').onclick = () => {
   const b = $('prestigeBtn');
   b.disabled = !ok;
   b.textContent = ok
-    ? `YENİ ŞUBE AÇ  (+${pendingPoints()} puan)`
+    ? `YENİ ŞUBE AÇ  (+${fmt(pendingPoints())} puan)`
     : `YENİ ŞUBE: ${fmt(PRESTIGE_AT())} daha kazan`;
   $('muteBtn').textContent = 'SES: ' + (G.muted ? 'KAPALI' : 'AÇIK');
   $('menu').classList.add('show');
@@ -1093,7 +1115,7 @@ $('prestigeBtn').onclick = () => {
   if (!canPrestige()) return;
   $('pNow').textContent = '×' + fmt(branchMult());
   $('pNext').textContent =
-    `×${fmt(Math.pow(1.02, bankedPoints() + pendingPoints()))}  (+${pendingPoints()} puan)`;
+    `×${fmt(1 + (bankedPoints() + pendingPoints()) * 0.02)}  (+${fmt(pendingPoints())} puan)`;
   $('prestige').classList.add('show');
 };
 $('pNo').onclick = () => $('prestige').classList.remove('show');
@@ -1481,6 +1503,7 @@ window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
 window.jeReset = () => { localStorage.removeItem(KEY); location.reload(); };
 window.jeFmt = fmt;
 window.jeSeenTier = () => shownTier;
+window.jeSetLifetime = t => { G.lifetime = t; refreshPanel(); };
 // Kameranın çerçevesi. Mağaza görselleri dikey telefon için ayarlanmış
 // çerçeveyi kullanamıyor: yatay bir grafikte fabrika minicik kalıyor.
 window.jeCam = (h, shift) => {
