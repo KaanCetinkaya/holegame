@@ -600,11 +600,11 @@ const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -50, 120);
 // Wide enough to hold all four bays at once. The first framing was half
 // this and sat inside the assembly line: handsome, and useless — the chain
 // is the whole idea, and you could see one link of it.
-const VIEW_H = 36;
+let VIEW_H = 36;
 // The station panel owns the bottom of the screen, so the frustum is pushed
 // down in camera space to lift the factory clear of it. Centring the view
 // and letting the panel cover the last bay was the alternative.
-const VIEW_SHIFT = -0.17;
+let VIEW_SHIFT = -0.17;
 function fit() {
   const a = innerWidth / innerHeight;
   const off = VIEW_H * VIEW_SHIFT;
@@ -1413,6 +1413,13 @@ window.jeOffline = sec => {
 window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
 window.jeReset = () => { localStorage.removeItem(KEY); location.reload(); };
 window.jeFmt = fmt;
+// Kameranın çerçevesi. Mağaza görselleri dikey telefon için ayarlanmış
+// çerçeveyi kullanamıyor: yatay bir grafikte fabrika minicik kalıyor.
+window.jeCam = (h, shift) => {
+  if (h) VIEW_H = h;
+  if (shift !== undefined) VIEW_SHIFT = shift;
+  fit();
+};
 window.jeBoost = () => $('boostBtn').click();
 window.jeGoals = () => GOALS.map(g => ({
   id: g.id, at: +g.at().toFixed(0), need: g.need,

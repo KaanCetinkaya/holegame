@@ -106,10 +106,9 @@ tek hamlede değil, adım adım yürütülüyor.
 
 ## Hız kutusu
 
-3 dakika ×3, sonra 15 dakika bekleme. Şu an bedava — **ödüllü reklamın
-gireceği yer burası**. Şekli zaten doğru: oyuncu istiyor, bitiyor, tekrar
-isteyebiliyor. Reklam eklendiğinde bekleme süresinin yerini reklam alır,
-başka hiçbir şeyin değişmesi gerekmez.
+3 dakika ×3, bedeli bir ödüllü video (bkz. Reklamlar). Önce 15 dakikalık
+bir beklemenin arkasındaydı; şekil zaten doğruydu — oyuncu istiyor, bitiyor,
+tekrar isteyebiliyor — reklam yalnızca beklemenin yerini aldı.
 
 Kapalıyken boost işlemiyor: çevrimdışı hesap dönüş anındaki hızı okuyor,
 boost hâlâ işliyor olsaydı kimsenin izlemediği saatler için üç kat öderdi.
@@ -172,6 +171,27 @@ var. Eski bir kayıt eksik dizi elemanıyla gelebilir; eksik seviye sessizce
 `window.jeProbe()` oyunun bütün durumunu döndürür; `jeGive`, `jeRun`, `jeBuy`,
 `jeOffline`, `jeBoost`, `jePrestige`, `jeGoals`, `jeDaily`, `jeReset` testlerin
 oyunu parmaksız oynamasını sağlar.
+
+## Mağaza
+
+`tycoon/store/` içinde ikon, öne çıkan grafik, altı telefon ve altı tablet
+ekran görüntüsü, ve iki dilde mağaza metni (`listing.md`) hazır duruyor.
+Görsellerin hepsi gerçek oynanıştan üretiliyor:
+
+    node build-www.mjs
+    node scratchpad/tyshots.mjs      # 6 telefon + 6 tablet
+    node scratchpad/tyfeature.mjs    # 1024x500 öne çıkan grafik
+
+İlk iki kare aramada görünen tek karelerdir ve tek işleri büyümeyi
+anlatmak: **aynı açıdan, biri dolu bir fabrika, biri ilk dakikalar.** İlk
+denemede ikisi de olgun fabrikayı gösteriyordu ve mağazada aynı resmin iki
+kopyası gibi duruyordu.
+
+Öne çıkan grafik oyunun kamerasını yeniden çerçeveliyor (`window.jeCam`):
+dikey telefon için ayarlanmış 36 birimlik görüş, 1024×500'lük bir yatay
+grafikte fabrikayı bir noktaya indiriyor.
+
+Yayın öncesi yapılacaklar `store/listing.md` sonundaki listede.
 
 ## Eksikler
 
