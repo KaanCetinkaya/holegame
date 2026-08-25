@@ -95,6 +95,30 @@ yazı tura olur.
 Engeller ilk dört yuvada çıkmıyor: tur kesecek bir şeyle açılmalı, yoksa
 oyunun öğrettiği ilk şey kaybetmek oluyor.
 
+**Engeller arası aralık zorunlu.** Yerleştirmede hiç aralık kuralı yoktu ve
+iki zıt engel yan yana yuvalara düşebiliyordu. Bir yuva bölüm 1'de 0.42
+saniye, bölüm 15'te 0.24 saniye; bıçağın şeridi bir uçtan diğerine geçmesi
+ise yaklaşık 1 saniye sürüyor. Yani dizi zor değil, **geçilemezdi** — bölüm
+1'in bile çarpma sebebi buydu.
+
+Artık her engel, bir öncekinin bıraktığı boşluktan oraya varılacak parkur
+var mı diye kontrol ediliyor; yoksa o yuvaya engel yerine meyve konuyor.
+`scratchpad/slicegaps.mjs` her bölümü on iki kez üretip en dar geçişi
+ölçüyor.
+
+## Otomatik oyuncu
+
+`sliceAutoPlay()` testlerin oyunu parmaksız oynamasını sağlıyor. İlk hali
+sadece **en yakın** nesneye bakıyordu: önünde engelden daha yakın bir meyve
+varsa ona yöneliyor, engeli de kaçacak yer kalmayınca fark ediyordu. Turlar
+rastgele ölüyordu ve onunla alınan her ölçüm gürültüydü. Artık engellere
+öncelik veriyor ve onları daha uzaktan (bıçağın şeridi geçme süresi kadar)
+değerlendiriyor.
+
+Yine de mükemmel değil — bir sonraki engele bakıyor, ondan sonrakine değil —
+bu yüzden turların bir kısmında çarpıyor. Parkurun geçilebilir olup
+olmadığının ölçüsü bu değil, `slicegaps.mjs`.
+
 Yıldızlar kesilen orana göre: %90 / %70 / %40.
 
 ## Kayıt
@@ -108,6 +132,7 @@ Yıldızlar kesilen orana göre: %90 / %70 / %40.
     node scratchpad/slice.mjs      # açılış + bir turda kesme
     node scratchpad/slicefull.mjs  # üç bölümü baştan sona bitir
     node scratchpad/slicemeta.mjs  # para, çift ödeme, devam etme, dükkân
+    node scratchpad/slicegaps.mjs  # engel dizileri geçilebilir mi
 
 `window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceStart`, `sliceSetTarget`,
 `sliceAutoPlay`, `sliceGive`, `sliceRevive`, `sliceDouble`, `sliceReset` testlerin

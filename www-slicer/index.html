@@ -672,6 +672,27 @@ const boltMat = new THREE.MeshStandardMaterial({
   color: '#7a1a12', roughness: 0.5, metalness: 0.5 });
 const BAR_GEO = new THREE.BoxGeometry(5.2, 1, 0.42);
 const BOLT_GEO = new THREE.CylinderGeometry(0.17, 0.17, 0.5, 8);
+// Uyarı şeridi: sarı-siyah çizgili, demirin boşluğa bakan kenarında.
+function hazardTexture() {
+  const W = 128, H = 32, [c, ctx] = newCanvas(W, H);
+  ctx.fillStyle = '#f2c230';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#1c1a24';
+  for (let i = -1; i < 8; i++) {
+    ctx.save();
+    ctx.translate(i * 20, 0);
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(11, 0); ctx.lineTo(-11, H); ctx.lineTo(-22, H);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  const t = finish(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(4, 1);
+  return t;
+}
+const LIP_GEO = new THREE.BoxGeometry(5.3, 0.34, 0.5);
+const lipMat = new THREE.MeshStandardMaterial({ map: hazardTexture(), roughness: 0.5 });
 
 // ---------------------------------------------------------------------
 // The cut
@@ -863,6 +884,14 @@ function buildCourse(n) {
   const obstacleChance = Math.min(0.1 + n * 0.022, 0.3);
   let y = (LANE_LOW + LANE_HIGH) / 2;
 
+  // How fast this level runs, worked out here because startLevel sets the
+  // real `speed` only after the course is built.
+  const runSpeed = Math.min(8 + (n - 1) * 0.45, 15);
+  // The blade crosses the four-unit lane in about eight tenths of a second,
+  // so call it five units a second and leave a little margin.
+  const CLIMB = 5;
+  let lastBar = null;               // { d, gapY } — where the last bar forced it
+
   for (let i = 0; i < slots; i++) {
     const d = i * SPACING;
     y += (Math.random() - 0.5) * 3.0;
@@ -875,12 +904,29 @@ function buildCourse(n) {
       // the floor, and the gap it leaves is where the blade has to be.
       const fromTop = Math.random() < 0.5;
       const h = fromTop ? (LANE_HIGH + 2.2) - (y + 0.95) : (y - 0.95) - (LANE_LOW - 2.2);
-      if (h > 0.6) {
+
+      // Can the blade get from the last bar's gap to this one in the course
+      // between them? Nothing stopped two opposing bars landing in adjacent
+      // slots: at level 1 that is four tenths of a second to cross a lane
+      // that takes a full second, which is not difficulty, it is a wall with
+      // no way through. If there is not room, this slot grows fruit instead.
+      const gapY = fromTop ? LANE_LOW + 0.4 : LANE_HIGH - 0.4;
+      const reachable = !lastBar ||
+        (d - lastBar.d) / runSpeed >= Math.abs(gapY - lastBar.gapY) / CLIMB;
+
+      if (h > 0.6 && reachable) {
         const mesh = new THREE.Group();
         const bar = new THREE.Mesh(BAR_GEO, barMat);
         bar.scale.y = h;
         bar.castShadow = true;
         mesh.add(bar);
+        // Boşluğa bakan kenara uyarı şeridi. Demir düz bir kırmızı levha
+        // olarak duruyordu ve oyuncunun okuması gereken şey levha değil,
+        // bıraktığı boşluk — şerit o kenarı işaretliyor.
+        const lip = new THREE.Mesh(LIP_GEO, lipMat);
+        lip.position.y = fromTop ? -h / 2 : h / 2;
+        lip.position.z = 0.02;
+        mesh.add(lip);
         for (const sx of [-2.2, 2.2]) {
           const bolt = new THREE.Mesh(BOLT_GEO, boltMat);
           bolt.position.set(sx, fromTop ? h / 2 - 0.3 : -h / 2 + 0.3, 0);
@@ -890,6 +936,7 @@ function buildCourse(n) {
         mesh.position.set(0, cy, -d);
         scene.add(mesh);
         items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop });
+        lastBar = { d, gapY };
         continue;
       }
     }
@@ -1231,9 +1278,12 @@ function tick(now) {
   // kapatacak kadar şişirdi ve ileriyi göremez oldun — parkuru ekranın içine
   // çevirmenin tek sebebi buydu. Mesafe geri verildi, bıçak kendi boyuyla
   // büyütüldü.
+  // Bıçak x=0'da duruyor; kamerayı 1.1'e koymak onu ekranın sol kenarına
+  // itiyordu. Yandan bakış derinlik veriyor, ama bu kadarı oyuncunun
+  // yönettiği şeyi köşeye sürgün ediyor.
   const eye = bladeY * 0.34 + 2.8;
-  camera.position.set(1.1, eye, -dist + 8.2);
-  camera.lookAt(0.2, eye - 0.74, -dist - 11);
+  camera.position.set(0.45, eye, -dist + 8.2);
+  camera.lookAt(0.08, eye - 0.74, -dist - 11);
   // Nearly overhead. Low and to the side stretched every shadow into a long
   // smear that read as another object lying on the floor.
   sun.position.set(-3.5, 19, -dist + 3);
@@ -1256,22 +1306,37 @@ window.sliceProbe = () => ({
 });
 window.sliceSetTarget = y => { targetY = Math.max(LANE_LOW, Math.min(LANE_HIGH, y)); };
 window.sliceAutoPlay = () => {
-  // steer onto whatever is next, so a run can be played without a finger
-  let best = null;
+  // Steer for whatever is next, so a run can be played without a finger.
+  //
+  // Bars come first, and from further off. The first version simply took the
+  // nearest item of any kind: with a fruit sitting closer than a bar it
+  // steered onto the fruit and only noticed the bar with no room left to
+  // climb, so runs died at random and every measurement taken with it was
+  // noise. The blade needs about a second to cross the lane, which at these
+  // speeds is roughly ten units of course.
+  const LOOK = Math.max(10, speed * 1.1);
+  let bar = null, fruit = null;
   for (const it of items) {
     if (it.d < dist + 0.6) continue;
-    if (it.kind === 'fruit' && it.cut) continue;
-    if (!best || it.d < best.d) best = it;
+    if (it.kind === 'bar') {
+      if (it.d < dist + LOOK && (!bar || it.d < bar.d)) bar = it;
+    } else if (!it.cut && (!fruit || it.d < fruit.d)) fruit = it;
   }
-  if (!best) return null;
-  if (best.kind === 'bar') {
-    window.sliceSetTarget(best.fromTop ? LANE_LOW + 0.2 : LANE_HIGH - 0.2);
-  } else {
-    window.sliceSetTarget(best.y);
+  if (bar) {
+    window.sliceSetTarget(bar.fromTop ? LANE_LOW + 0.25 : LANE_HIGH - 0.25);
+    return 'dodge';
   }
-  return best.kind;
+  if (fruit) { window.sliceSetTarget(fruit.y); return 'cut'; }
+  return null;
 };
 window.sliceStart = n => { if (n) level = n; startLevel(); };
+// Engellerin yeri ve bıraktıkları boşluk — dizinin geçilebilir olduğunu
+// dışarıdan doğrulamak için.
+window.sliceBars = () => items.filter(i => i.kind === 'bar').map(i => ({
+  d: +i.d.toFixed(2), y: +i.y.toFixed(2), half: +i.half.toFixed(2),
+  fromTop: i.fromTop,
+  gapY: i.fromTop ? LANE_LOW + 0.4 : LANE_HIGH - 0.4,
+})).sort((a, b) => a.d - b.d);
 window.sliceMeta = () => ({
   coins, runCoins, banked: paidOut, revived,
   blade: activeBlade, owned: [...ownedBlades],
