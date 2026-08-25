@@ -876,89 +876,167 @@ const shadowMat = new THREE.MeshBasicMaterial({
 // opposite ends of the lane with no room to travel between them is not a
 // challenge, it is a coin toss. Consecutive heights stay within reach of the
 // climb rate, so every course is playable.
+// Parkur, rastgele yürüyüş değil, elle kurulmuş parçalardan diziliyor.
+//
+// Yuva yuva rastgele yükseklik seçmek her bölümü birbirinin aynısı yapıyordu:
+// hep aynı dağınık yığın, hatırlanacak hiçbir an yok. Bir kesme oyununda iyi
+// hissettiren şey niyet — aynı hizada uzun bir sıra (tek geçişte büyük
+// kombo), tırmanan bir merdiven, iki demir arasında uzun düz bir tünel.
+//
+// Her parça nereden başladığını ve nerede bittiğini biliyor, böylece bir
+// sonraki parça oradan devam edebiliyor ve engel aralığı kuralı bozulmuyor.
+const PIECES = [
+  // Aynı hizada sıra: kombonun yeri.
+  { id: 'run', minLevel: 1, weight: 3, build(c) {
+      const n = 5 + ((Math.random() * 4) | 0);
+      for (let k = 0; k < n; k++) c.fruit(c.y);
+      return c.y;
+    } },
+  // Merdiven: tek yönde düzenli tırmanış ya da iniş.
+  { id: 'stair', minLevel: 1, weight: 3, build(c) {
+      const n = 5 + ((Math.random() * 4) | 0);
+      const up = c.y < (LANE_LOW + LANE_HIGH) / 2 ? 1 : -1;
+      const step = (LANE_HIGH - LANE_LOW) / (n + 2);
+      for (let k = 0; k < n; k++) c.fruit(c.clamp(c.y + up * step * (k + 1)));
+      return c.clamp(c.y + up * step * n);
+    } },
+  // Zikzak: yukarı aşağı, ama her adım bıçağın yetişebileceği kadar.
+  { id: 'zig', minLevel: 3, weight: 2, build(c) {
+      const n = 4 + ((Math.random() * 3) | 0);
+      const span = Math.min(2.2, c.reach(SPACING) * 0.9);
+      let up = Math.random() < 0.5 ? 1 : -1, at = c.y;
+      for (let k = 0; k < n; k++) {
+        at = c.clamp(at + up * span);
+        c.fruit(at);
+        up *= -1;
+      }
+      return at;
+    } },
+  // Kapı: bir demir, hemen ardından boşluk hizasında birkaç meyve. Doğru
+  // yerde olmanın ödülü hemen geliyor.
+  { id: 'gate', minLevel: 2, weight: 3, build(c) {
+      const fromTop = Math.random() < 0.5;
+      const gapY = fromTop ? LANE_LOW + 0.55 : LANE_HIGH - 0.55;
+      if (!c.bar(fromTop, gapY)) { c.fruit(c.y); return c.y; }
+      for (let k = 0; k < 3 + ((Math.random() * 3) | 0); k++) c.fruit(gapY);
+      return gapY;
+    } },
+  // Tünel: iki demir aynı taraftan, arada uzun düz bir koşu.
+  { id: 'tunnel', minLevel: 5, weight: 2, build(c) {
+      const fromTop = Math.random() < 0.5;
+      const gapY = fromTop ? LANE_LOW + 0.55 : LANE_HIGH - 0.55;
+      if (!c.bar(fromTop, gapY)) { c.fruit(c.y); return c.y; }
+      for (let k = 0; k < 4 + ((Math.random() * 3) | 0); k++) c.fruit(gapY);
+      c.bar(fromTop, gapY);
+      for (let k = 0; k < 2; k++) c.fruit(gapY);
+      return gapY;
+    } },
+  // Nefes: kısa bir boşluk. Her yuvası dolu bir parkur okunmuyor.
+  { id: 'rest', minLevel: 1, weight: 1, build(c) {
+      c.skip(1 + ((Math.random() * 2) | 0));
+      return c.y;
+    } },
+];
+
 function buildCourse(n) {
   for (const it of items) { scene.remove(it.mesh); if (it.shadow) scene.remove(it.shadow); }
   items = [];
 
   const slots = Math.min(24 + n * 2, 48);
-  const obstacleChance = Math.min(0.1 + n * 0.022, 0.3);
-  let y = (LANE_LOW + LANE_HIGH) / 2;
-
   // How fast this level runs, worked out here because startLevel sets the
   // real `speed` only after the course is built.
   const runSpeed = Math.min(8 + (n - 1) * 0.45, 15);
   // The blade crosses the four-unit lane in about eight tenths of a second,
   // so call it five units a second and leave a little margin.
   const CLIMB = 5;
+
+  let slot = 0;
   let lastBar = null;               // { d, gapY } — where the last bar forced it
 
-  for (let i = 0; i < slots; i++) {
-    const d = i * SPACING;
-    y += (Math.random() - 0.5) * 3.0;
-    y = Math.max(LANE_LOW, Math.min(LANE_HIGH, y));
+  // Parçaların kullandığı kalem. Yuva sayacını, son engeli ve ulaşılabilirlik
+  // kuralını tek yerde tutuyor.
+  const c = {
+    y: (LANE_LOW + LANE_HIGH) / 2,
+    clamp: v => Math.max(LANE_LOW, Math.min(LANE_HIGH, v)),
+    // Bıçak bu kadar parkurda ne kadar yükselebilir?
+    reach: span => (span / runSpeed) * CLIMB,
+    skip(k) { slot += k; },
+    fruit(at) {
+      if (slot >= slots) return;
+      const d = slot++ * SPACING;
+      const spec = SLICEABLES[(Math.random() * SLICEABLES.length) | 0];
+      const mesh = new THREE.Mesh(GEO[spec.id], SKIN_MAT[spec.id]);
+      mesh.position.set(0, at, -d);
+      mesh.rotation.y = Math.random() * Math.PI * 2;
+      mesh.castShadow = true;
+      scene.add(mesh);
 
-    // never an obstacle in the first four slots — the run has to open with
-    // something to cut, or the first thing the game teaches is losing
-    if (i > 3 && Math.random() < obstacleChance) {
-      // A bar is a wall with a gap: it hangs from the ceiling or stands off
-      // the floor, and the gap it leaves is where the blade has to be.
-      const fromTop = Math.random() < 0.5;
-      const h = fromTop ? (LANE_HIGH + 2.2) - (y + 0.95) : (y - 0.95) - (LANE_LOW - 2.2);
+      // A blob on the floor under each object. Without it nothing had a place
+      // in the corridor — everything simply hung in the air at no distance in
+      // particular, and judging which was next was guesswork.
+      const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.set(0, 0.02, -d);
+      shadow.scale.setScalar(spec.r * 2.4 * (1 - Math.min(0.5, at * 0.08)));
+      scene.add(shadow);
 
+      items.push({ kind: 'fruit', spec, mesh, shadow, d, y: at, r: spec.r, vz: 0, cut: false });
+    },
+    // Engel. Yerleştirilemezse false döner ve parça meyveye düşer.
+    bar(fromTop, gapY) {
+      if (slot >= slots) return false;
+      const d = slot * SPACING;
       // Can the blade get from the last bar's gap to this one in the course
       // between them? Nothing stopped two opposing bars landing in adjacent
       // slots: at level 1 that is four tenths of a second to cross a lane
       // that takes a full second, which is not difficulty, it is a wall with
-      // no way through. If there is not room, this slot grows fruit instead.
-      const gapY = fromTop ? LANE_LOW + 0.4 : LANE_HIGH - 0.4;
-      const reachable = !lastBar ||
-        (d - lastBar.d) / runSpeed >= Math.abs(gapY - lastBar.gapY) / CLIMB;
+      // no way through.
+      if (lastBar && (d - lastBar.d) / runSpeed < Math.abs(gapY - lastBar.gapY) / CLIMB)
+        return false;
+      const edge = fromTop ? gapY + 0.55 : gapY - 0.55;
+      const h = fromTop ? (LANE_HIGH + 2.2) - edge : edge - (LANE_LOW - 2.2);
+      if (h <= 0.6) return false;
 
-      if (h > 0.6 && reachable) {
-        const mesh = new THREE.Group();
-        const bar = new THREE.Mesh(BAR_GEO, barMat);
-        bar.scale.y = h;
-        bar.castShadow = true;
-        mesh.add(bar);
-        // Boşluğa bakan kenara uyarı şeridi. Demir düz bir kırmızı levha
-        // olarak duruyordu ve oyuncunun okuması gereken şey levha değil,
-        // bıraktığı boşluk — şerit o kenarı işaretliyor.
-        const lip = new THREE.Mesh(LIP_GEO, lipMat);
-        lip.position.y = fromTop ? -h / 2 : h / 2;
-        lip.position.z = 0.02;
-        mesh.add(lip);
-        for (const sx of [-2.2, 2.2]) {
-          const bolt = new THREE.Mesh(BOLT_GEO, boltMat);
-          bolt.position.set(sx, fromTop ? h / 2 - 0.3 : -h / 2 + 0.3, 0);
-          mesh.add(bolt);
-        }
-        const cy = fromTop ? (LANE_HIGH + 2.2) - h / 2 : (LANE_LOW - 2.2) + h / 2;
-        mesh.position.set(0, cy, -d);
-        scene.add(mesh);
-        items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop });
-        lastBar = { d, gapY };
-        continue;
+      slot++;
+      const mesh = new THREE.Group();
+      const bar = new THREE.Mesh(BAR_GEO, barMat);
+      bar.scale.y = h;
+      bar.castShadow = true;
+      mesh.add(bar);
+      // Boşluğa bakan kenara uyarı şeridi. Demir düz bir kırmızı levha
+      // olarak duruyordu ve oyuncunun okuması gereken şey levha değil,
+      // bıraktığı boşluk — şerit o kenarı işaretliyor.
+      const lip = new THREE.Mesh(LIP_GEO, lipMat);
+      lip.position.y = fromTop ? -h / 2 : h / 2;
+      lip.position.z = 0.02;
+      mesh.add(lip);
+      for (const sx of [-2.2, 2.2]) {
+        const bolt = new THREE.Mesh(BOLT_GEO, boltMat);
+        bolt.position.set(sx, fromTop ? h / 2 - 0.3 : -h / 2 + 0.3, 0);
+        mesh.add(bolt);
       }
-    }
+      const cy = fromTop ? (LANE_HIGH + 2.2) - h / 2 : (LANE_LOW - 2.2) + h / 2;
+      mesh.position.set(0, cy, -d);
+      scene.add(mesh);
+      items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop });
+      lastBar = { d, gapY };
+      return true;
+    },
+  };
 
-    const spec = SLICEABLES[(Math.random() * SLICEABLES.length) | 0];
-    const mesh = new THREE.Mesh(GEO[spec.id], SKIN_MAT[spec.id]);
-    mesh.position.set(0, y, -d);
-    mesh.rotation.y = Math.random() * Math.PI * 2;
-    mesh.castShadow = true;
-    scene.add(mesh);
+  // Açılış hep kesilecek bir şey: tur kesmekle başlamalı, yoksa oyunun
+  // öğrettiği ilk şey kaybetmek oluyor.
+  for (let k = 0; k < 4; k++) c.fruit(c.y);
 
-    // A blob on the floor under each object. Without it nothing had a place
-    // in the corridor — everything simply hung in the air at no distance in
-    // particular, and judging which was next was guesswork.
-    const shadow = new THREE.Mesh(shadowGeo, shadowMat);
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.set(0, 0.02, -d);
-    shadow.scale.setScalar(spec.r * 2.4 * (1 - Math.min(0.5, y * 0.08)));
-    scene.add(shadow);
-
-    items.push({ kind: 'fruit', spec, mesh, shadow, d, y, r: spec.r, vz: 0, cut: false });
+  const pool = PIECES.filter(p => n >= p.minLevel);
+  const total = pool.reduce((a, p) => a + p.weight, 0);
+  let guard = 0;
+  while (slot < slots && guard++ < 200) {
+    let roll = Math.random() * total, pick = pool[0];
+    for (const p of pool) { roll -= p.weight; if (roll <= 0) { pick = p; break; } }
+    c.y = c.clamp(pick.build(c));
   }
+
   courseEnd = (slots - 1) * SPACING + 6;
   return items.filter(i => i.kind === 'fruit').length;
 }

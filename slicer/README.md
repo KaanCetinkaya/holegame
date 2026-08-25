@@ -85,15 +85,34 @@ Cihaz dışında `showRewarded()` `true` dönüyor, yani tarayıcıda akış
 yürünebiliyor. Şu an Google'ın herkese açık test birimi kullanılıyor; yayından
 önce `AD_UNITS` ve `ADS_TESTING` değişmeli.
 
-## Bölümler
+## Bölümler ve set parçaları
 
-Parkur her bölümde yeniden üretiliyor: 24 + 2×bölüm yuva, en fazla 48. Yuva
-yükseklikleri rastgele seçilmiyor, **yürütülüyor** — koridorun iki ucunda
-arka arkaya iki nesne, aralarında gidecek yer olmadığı için zorluk değil
-yazı tura olur.
+Parkur her bölümde yeniden üretiliyor: 24 + 2×bölüm yuva, en fazla 48.
 
-Engeller ilk dört yuvada çıkmıyor: tur kesecek bir şeyle açılmalı, yoksa
-oyunun öğrettiği ilk şey kaybetmek oluyor.
+Yuva yuva rastgele yükseklik seçiliyordu ve bu her bölümü birbirinin aynısı
+yapıyordu — hep aynı dağınık yığın, hatırlanacak hiçbir an yok. Artık parkur
+**elle kurulmuş parçalardan** diziliyor:
+
+| parça | ne yapıyor | açılış |
+|---|---|---|
+| **run** | 5-8 nesne aynı hizada — kombonun kurulduğu yer | 1 |
+| **stair** | tek yönde düzenli tırmanış/iniş | 1 |
+| **zig** | yukarı-aşağı, her adım bıçağın yetişebileceği kadar | 3 |
+| **gate** | bir demir, ardından boşluk hizasında meyveler | 2 |
+| **tunnel** | iki demir aynı taraftan, arada uzun düz koşu | 5 |
+| **rest** | kısa boşluk; her yuvası dolu parkur okunmuyor | 1 |
+
+Her parça nereden başladığını ve nerede bittiğini biliyor, bir sonraki
+oradan devam ediyor. Yeni bir parça türünün açılması da bir ilerleme
+biçimi: zikzak 3., tünel 5. bölümde giriyor.
+
+Parçalar `c` kalemiyle çiziyor — `fruit`, `bar`, `skip`, `clamp`, `reach`.
+Yuva sayacı ve engel aralığı kuralı orada tutuluyor, yani bir parça
+kurallara aykırı bir şey yazamıyor: `bar()` yerleştiremezse `false` dönüyor
+ve parça meyveye düşüyor.
+
+Açılış hep dört meyve: tur kesmekle başlamalı, yoksa oyunun öğrettiği ilk
+şey kaybetmek oluyor.
 
 **Engeller arası aralık zorunlu.** Yerleştirmede hiç aralık kuralı yoktu ve
 iki zıt engel yan yana yuvalara düşebiliyordu. Bir yuva bölüm 1'de 0.42
