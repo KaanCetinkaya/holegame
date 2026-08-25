@@ -123,6 +123,35 @@
                clip-path: polygon(0 22%, 78% 46%, 78% 54%, 0 78%); }
   .blade .nm { font-size: 12px; font-weight: 800; }
   .blade .pr { font-size: 11px; font-weight: 800; color: #ffd23f; margin-top: 2px; }
+
+  /* ---- level map ------------------------------------------------------
+     Scrolls inside itself rather than growing the screen: at level 60 the
+     grid is taller than the phone and the KAPAT button has to stay put. */
+  #mapGrid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px;
+    width: 100%; max-width: 340px; margin-bottom: 16px;
+    max-height: 46vh; overflow-y: auto; padding: 2px;
+  }
+  .lv {
+    aspect-ratio: 1; border-radius: 15px; cursor: pointer;
+    background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.16);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .lv .n { font-size: 19px; font-weight: 800; line-height: 1; }
+  .lv .s { font-size: 10px; letter-spacing: 1px; color: #ffd23f; margin-top: 3px; height: 12px; }
+  .lv .s .off { opacity: .22; }
+  .lv.next { border-color: #ffd23f; background: rgba(255,210,63,.16); }
+  .lv.shut { opacity: .4; cursor: default; }
+  .lv.shut .n { font-size: 15px; }
+
+  /* ---- daily reward --------------------------------------------------- */
+  #dayRow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+            width: 100%; max-width: 340px; margin-bottom: 18px; }
+  .day { border-radius: 10px; padding: 7px 2px; text-align: center;
+         background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.14); }
+  .day.done { background: rgba(255,210,63,.16); border-color: #ffd23f; }
+  .day .d { font-size: 10px; font-weight: 800; opacity: .7; }
+  .day .c { font-size: 11px; font-weight: 800; color: #ffd23f; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -148,7 +177,26 @@
     </div>
     <div class="stack">
       <button class="btn" id="playBtn">OYNA</button>
+      <button class="btn alt" id="mapBtn">BÖLÜMLER</button>
       <button class="btn alt" id="shopBtn">BIÇAKLAR</button>
+    </div>
+  </div>
+
+  <div class="screen" id="map">
+    <h2>Bölümler</h2>
+    <p>Geçtiğin bölümü tekrar oynayıp yıldızını yükseltebilirsin.</p>
+    <div id="mapGrid"></div>
+    <div class="stack">
+      <button class="btn alt" id="mapClose">KAPAT</button>
+    </div>
+  </div>
+
+  <div class="screen" id="daily">
+    <h2>Günlük ödül 🎁</h2>
+    <p id="dStreak">1. gün</p>
+    <div id="dayRow"></div>
+    <div class="stack">
+      <button class="btn" id="dOk">🪙 <span id="dCoins">0</span> AL</button>
     </div>
   </div>
 
@@ -270,7 +318,14 @@ function showRewarded() {
 }
 adsInit();
 
-let level      = store.get('slicerush_level', 1);
+// Two different numbers, and conflating them was the bug the level map
+// exposed: `maxLevel` is how far the player has got — the save — and `level`
+// is whichever level is on screen right now. With one variable, replaying
+// level 3 to chase a third star rewound a player who was on level 30.
+// `slicerush_level` keeps its old meaning (the first level not yet cleared),
+// so existing saves carry over untouched.
+let maxLevel   = store.get('slicerush_level', 1);
+let level      = maxLevel;
 let starsByLvl = store.get('slicerush_stars', {});
 let bestCombo  = store.get('slicerush_combo', 0);
 let coins      = store.get('slicerush_coins', 0);
@@ -1053,7 +1108,7 @@ let cutCount = 0, totalCuts = 0, streak = 0, runBest = 0;
 let runCoins = 0, revived = false, hitItem = null, paidOut = false;
 let last = performance.now();
 
-const screens = { menu: $('menu'), shop: $('shop'), pause: $('pause'),
+const screens = { menu: $('menu'), map: $('map'), shop: $('shop'), pause: $('pause'),
                   over: $('over'), clear: $('clear') };
 function showScreen(name) {
   for (const k in screens) screens[k].classList.toggle('show', k === name);
@@ -1062,7 +1117,7 @@ function showScreen(name) {
 }
 
 function refreshMenu() {
-  $('mLevel').textContent = level;
+  $('mLevel').textContent = maxLevel;
   $('mStars').textContent = totalStars();
   $('mCombo').textContent = bestCombo;
   $('mCoins').textContent = '🪙 ' + coins;
@@ -1101,6 +1156,75 @@ function renderShop() {
     wrap.appendChild(el);
   });
 }
+
+// ---------------------------------------------------------------------
+// Level map
+// ---------------------------------------------------------------------
+// "Sonraki bölüm" was the only way forward, so the stars were scored and
+// then never seen again — nothing asked the player to go back for the third
+// one. The map is where progress lives: every cleared level with what it
+// gave, and three locked ones past the frontier so there is visibly more.
+const MAP_AHEAD = 3;
+
+function renderMap() {
+  const wrap = $('mapGrid');
+  wrap.innerHTML = '';
+  let frontier = null;
+  for (let n = 1; n <= maxLevel + MAP_AHEAD; n++) {
+    const open = n <= maxLevel;
+    const stars = starsByLvl[n] || 0;
+    const el = document.createElement('div');
+    el.className = 'lv' + (n === maxLevel ? ' next' : '') + (open ? '' : ' shut');
+    el.innerHTML = open
+      ? `<div class="n">${n}</div><div class="s">${
+          [0, 1, 2].map(i => `<span class="${i < stars ? '' : 'off'}">★</span>`).join('')}</div>`
+      : `<div class="n">🔒</div><div class="s"></div>`;
+    if (open) el.onclick = () => { audio(); level = n; startLevel(); };
+    if (n === maxLevel) frontier = el;
+    wrap.appendChild(el);
+  }
+  // A player on level 40 should not open the map onto level 1.
+  if (frontier) wrap.scrollTop = Math.max(0, frontier.offsetTop - wrap.clientHeight / 2);
+}
+
+// ---------------------------------------------------------------------
+// Daily reward
+// ---------------------------------------------------------------------
+// Days count in the player's own timezone; a reward that rolls over at 3am
+// local is one nobody can plan around. The streak is only written when the
+// coins are actually taken — closing the app on the overlay used to burn the
+// day and pay nothing.
+const DAILY = [30, 45, 65, 95, 140, 200, 300];
+const dayNumber = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+let dayLast    = store.get('slicerush_dayLast', 0);
+let dayStreak  = store.get('slicerush_dayStreak', 0);
+let dayPending = 0;
+
+function checkDaily() {
+  const d = dayNumber();
+  if (dayLast === d) return;
+  dayPending = (d - dayLast === 1) ? Math.min(7, dayStreak + 1) : 1;
+  $('dStreak').textContent = dayPending + '. gün' + (dayPending >= 7 ? ' — en yüksek' : '');
+  $('dCoins').textContent = DAILY[dayPending - 1];
+  $('dayRow').innerHTML = DAILY.map((c, i) =>
+    `<div class="day${i < dayPending ? ' done' : ''}"><div class="d">${i + 1}</div><div class="c">${c}</div></div>`
+  ).join('');
+  $('daily').classList.add('show');
+}
+
+$('dOk').onclick = () => {
+  if (!dayPending) return;
+  coins += DAILY[dayPending - 1];
+  dayStreak = dayPending;
+  dayLast = dayNumber();
+  dayPending = 0;
+  store.set('slicerush_coins', coins);
+  store.set('slicerush_dayStreak', dayStreak);
+  store.set('slicerush_dayLast', dayLast);
+  $('daily').classList.remove('show');
+  refreshMenu();
+  sfx.clear();
+};
 
 function startLevel() {
   totalCuts = buildCourse(level);
@@ -1143,8 +1267,10 @@ function endRun(ok) {
     starsByLvl[level] = Math.max(starsByLvl[level] || 0, stars);
     store.set('slicerush_stars', starsByLvl);
     if (runBest > bestCombo) { bestCombo = runBest; store.set('slicerush_combo', bestCombo); }
-    level++;
-    store.set('slicerush_level', level);
+    // Only the frontier moves here. `level` advances when the player asks
+    // for the next one, so clearing an old level again does not skip them
+    // forward through levels they were replaying past.
+    if (level + 1 > maxLevel) { maxLevel = level + 1; store.set('slicerush_level', maxLevel); }
     $('clearStars').innerHTML = [0, 1, 2].map(i =>
       `<span class="${i < stars ? '' : 'off'}">★</span>`).join('');
     $('cCut').textContent = `${cutCount} / ${totalCuts}`;
@@ -1205,7 +1331,14 @@ addEventListener('keydown', e => {
 // ---------------------------------------------------------------------
 // Buttons
 // ---------------------------------------------------------------------
-$('playBtn').onclick      = () => { audio(); startLevel(); };
+// OYNA goes straight to the level the player has not cleared yet — one tap
+// from cold start to playing. The map is the second button, for going back.
+$('playBtn').onclick      = () => { audio(); level = maxLevel; startLevel(); };
+// Shown before it is filled: a hidden element measures zero, so working out
+// where to scroll while the screen was still display:none put every player
+// at level 1 no matter how far they had got.
+$('mapBtn').onclick       = () => { showScreen('map'); renderMap(); };
+$('mapClose').onclick     = () => showScreen('menu');
 $('shopBtn').onclick      = () => { renderShop(); showScreen('shop'); };
 $('shopClose').onclick    = () => showScreen('menu');
 
@@ -1254,7 +1387,7 @@ $('quitBtn').onclick      = () => { state = 'menu'; refreshMenu(); showScreen('m
 const leaveRun = () => { bankCoins(1); };
 $('retryBtn').onclick     = () => { leaveRun(); startLevel(); };
 $('overQuitBtn').onclick  = () => { leaveRun(); state = 'menu'; refreshMenu(); showScreen('menu'); };
-$('nextBtn').onclick      = () => { leaveRun(); startLevel(); };
+$('nextBtn').onclick      = () => { leaveRun(); level = Math.min(level + 1, maxLevel); startLevel(); };
 $('clearQuitBtn').onclick = () => { leaveRun(); state = 'menu'; refreshMenu(); showScreen('menu'); };
 
 // ---------------------------------------------------------------------
@@ -1378,7 +1511,7 @@ function tick(now) {
 // Probes — for the automated checks, not the game
 // ---------------------------------------------------------------------
 window.sliceProbe = () => ({
-  state, level, dist: +dist.toFixed(2), bladeY: +bladeY.toFixed(2),
+  state, level, maxLevel, dist: +dist.toFixed(2), bladeY: +bladeY.toFixed(2),
   cut: cutCount, total: totalCuts, streak, shards: shards.length,
   items: items.length, courseEnd: +courseEnd.toFixed(1),
 });
@@ -1423,14 +1556,32 @@ window.sliceMeta = () => ({
 window.sliceGive = n => { coins += n; store.set('slicerush_coins', coins); refreshMenu(); };
 window.sliceRevive = () => $('reviveBtn').click();
 window.sliceDouble = () => $('dblBtn').click();
+window.sliceMap = () => ({
+  maxLevel, shown: $('mapGrid').children.length,
+  open: [...$('mapGrid').children].filter(e => !e.classList.contains('shut')).length,
+  stars: { ...starsByLvl },
+});
+window.sliceDaily = () => ({ last: dayLast, streak: dayStreak, pending: dayPending,
+                             pay: dayPending ? DAILY[dayPending - 1] : 0,
+                             open: $('daily').classList.contains('show') });
+// Pretend the last claim was `back` days ago, then re-run the check.
+window.sliceSetDay = (back, streak) => {
+  dayLast = dayNumber() - back;
+  dayStreak = streak;
+  store.set('slicerush_dayLast', dayLast);
+  store.set('slicerush_dayStreak', dayStreak);
+  $('daily').classList.remove('show');
+  checkDaily();
+};
 window.sliceReset = () => {
-  for (const k of ['level', 'stars', 'combo', 'coins', 'blades', 'blade'])
+  for (const k of ['level', 'stars', 'combo', 'coins', 'blades', 'blade', 'dayLast', 'dayStreak'])
     localStorage.removeItem('slicerush_' + k);
   location.reload();
 };
 
 buildCourse(level);
 refreshMenu();
+checkDaily();
 fit();
 requestAnimationFrame(tick);
 

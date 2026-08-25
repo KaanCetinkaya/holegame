@@ -140,10 +140,45 @@ olmadığının ölçüsü bu değil, `slicegaps.mjs`.
 
 Yıldızlar kesilen orana göre: %90 / %70 / %40.
 
+## Bölüm haritası
+
+Önceden ileri gitmenin tek yolu "sonraki bölüm" düğmesiydi: yıldızlar
+veriliyor ama bir daha görünmüyordu, dolayısıyla hiçbir şey oyuncuyu üçüncü
+yıldız için geri çağırmıyordu. Harita ilerlemenin durduğu yer — geçilen her
+bölüm ve ne verdiği, ardından **üç kilitli bölüm** daha, ki devamı olduğu
+görünsün.
+
+Bu, kayıtta duran sayının ikiye ayrılmasını gerektirdi:
+
+- **`maxLevel`** — oyuncunun geldiği yer, `slicerush_level` olarak kaydediliyor
+- **`level`** — şu an ekranda olan bölüm
+
+Tek değişkenle 30. bölümdeki biri üçüncü yıldız için 3'ü tekrar oynadığında
+kaydı 4'e geri sarıyordu. Bölüm bitince yalnızca `maxLevel` ilerliyor; `level`
+oyuncu "sonraki" dediğinde artıyor.
+
+Harita **gösterildikten sonra** dolduruluyor. Gizli bir eleman sıfır ölçer,
+dolayısıyla `display:none` iken hesaplanan kaydırma herkesi 1. bölümde
+bırakıyordu — 40. bölümdeki oyuncunun haritası da baştan açılıyordu.
+
+## Günlük ödül
+
+7 günlük seri: 30 / 45 / 65 / 95 / 140 / 200 / 300 para. Yedide tavan
+yapıyor, bir gün atlanınca başa dönüyor. Bakır bıçak 300 para, yani seriyi
+tamamlamak ilk bıçağın üçte ikisini veriyor — turlardan kazanılanın yerine
+geçmeyecek, ama geri gelmeye değecek kadar.
+
+Günler **oyuncunun kendi saat diliminde** sayılıyor; gece 3'te sıfırlanan bir
+ödülü kimse planlayamaz.
+
+Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamadan
+çıkmak günü yakıp hiçbir şey ödememeliydi.
+
 ## Kayıt
 
 `slicerush_level`, `slicerush_stars`, `slicerush_combo`, `slicerush_coins`,
-`slicerush_blades`, `slicerush_blade`.
+`slicerush_blades`, `slicerush_blade`, `slicerush_dayLast`,
+`slicerush_dayStreak`.
 
 ## Test
 
@@ -152,14 +187,15 @@ Yıldızlar kesilen orana göre: %90 / %70 / %40.
     node scratchpad/slicefull.mjs  # üç bölümü baştan sona bitir
     node scratchpad/slicemeta.mjs  # para, çift ödeme, devam etme, dükkân
     node scratchpad/slicegaps.mjs  # engel dizileri geçilebilir mi
+    node scratchpad/slicemap.mjs   # harita, ilerleme, günlük ödül serisi
 
-`window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceStart`, `sliceSetTarget`,
-`sliceAutoPlay`, `sliceGive`, `sliceRevive`, `sliceDouble`, `sliceReset` testlerin
-oyunu parmaksız oynamasını sağlar.
+`window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceMap`, `sliceDaily`,
+`sliceStart`, `sliceSetTarget`, `sliceAutoPlay`, `sliceGive`, `sliceRevive`,
+`sliceDouble`, `sliceSetDay`, `sliceReset` testlerin oyunu parmaksız
+oynamasını sağlar.
 
 ## Eksikler
 
 - AdMob uygulaması açılmadı; test reklam kimlikleri kullanılıyor
-- Bölüm haritası yok (sadece "sonraki bölüm")
-- Günlük ödül / başarım yok
-- Parkurlar tamamen üretilmiş; elle kurulmuş birkaç "set parça" çeşitliliği artırırdı
+- Başarım yok (günlük ödül var, hedef listesi yok)
+- Telefonda hiç denenmedi
