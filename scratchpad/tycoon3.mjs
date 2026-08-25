@@ -1,6 +1,8 @@
-// Çarpan formülü oyunla aynı olmalı: bir ara 1.02^puan'dı, oyun doğrusala
-// döndüğünde bu satır güncellenmeyince tablo 4.7e7x gibi olmayan sayılar
-// yazdı ve düzelttiğim şeyin hâlâ bozuk olduğunu sandım.
+// Çarpanı BU DOSYA HESAPLAMASIN. İki kere yandı: bir ara 1.02^puan'dı ve
+// oyun doğrusala dönünce tablo 4.7e7x yazdı; sonra puanlar harcanabilir
+// olunca harcanmadıkça çarpan 1 kaldı ama tablo yine kendi sayısını yazdı ve
+// çalışan bir prestij döngüsü "seviyeler hiç büyümüyor" diye göründü.
+// Artık oyundan okunuyor.
 // Does prestige actually pay? Play to a stall, hand the factory in, and see
 // how far the next run gets in the same time.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
@@ -20,6 +22,9 @@ await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 
 await pg.waitForTimeout(600);
 
 const F = n => n>=1e12?(n/1e12).toFixed(2)+'T':n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toFixed(0);
+// Prestijden sonra puanlar kendiliğinden çarpan olmuyor; oyuncunun yapacağı
+// şeyi yap ve hepsini hat hızına koy.
+const spend = () => pg.evaluate(() => window.jeResBuy('line', 999999));
 const play = m => pg.evaluate(mins => {
   for (let k = 0; k < mins; k++) {
     window.jeRun(60);
@@ -34,9 +39,11 @@ console.log('-----+----------------------+-----------+------+--------+----------
 for (let run = 1; run <= 6; run++) {
   const r = await play(30);
   const pend = r.pending;
-  console.log(` ${String(run).padStart(3)} | ${r.lvl.join('/').padEnd(20)} | ${F(r.income).padStart(9)} | ${String(r.points).padStart(4)} | ${(1 + r.points*0.02).toFixed(1)}x | +${pend} puan`);
+  const mult = (await pg.evaluate(() => window.jeRes())).mult;
+  console.log(` ${String(run).padStart(3)} | ${r.lvl.join('/').padEnd(20)} | ${F(r.income).padStart(9)} | ${String(r.points).padStart(4)} | ${mult.toFixed(1)}x | +${pend} puan`);
   const before = r.points;
   await pg.evaluate(() => window.jePrestige());
+  await spend();
   const after = (await pg.evaluate(() => window.jeProbe())).points;
   if (after === before) console.log('      (devir eşiğine ulaşılmadı, aynı şubede devam)');
 }

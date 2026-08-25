@@ -169,6 +169,23 @@
   .goal .gb[disabled] { filter: grayscale(.8) brightness(.7); box-shadow: 0 3px 0 #6b5a45; }
   .goal.done { opacity: .45; }
 
+  /* Research rows reuse the goal row's shape — same list, different verb. */
+  .res { display: flex; align-items: center; gap: 10px; padding: 9px 0;
+         border-bottom: 1px solid rgba(255,255,255,.09); }
+  .res:last-child { border-bottom: 0; }
+  .res .ri { font-size: 21px; width: 30px; text-align: center; flex: 0 0 30px; }
+  .res .rm { flex: 1 1 auto; min-width: 0; }
+  .res .rt { font-size: 14px; font-weight: 800; }
+  .res .rd { font-size: 11px; opacity: .72; margin-top: 2px; }
+  .res .rb { flex: 0 0 auto; min-width: 74px; font-size: 12px; font-weight: 900;
+             padding: 7px 8px; border: 0; border-radius: 10px; cursor: pointer;
+             background: linear-gradient(180deg, #8fd3ff, #4aa6e8); color: #0b2a40;
+             box-shadow: 0 3px 0 #2f7fb8; line-height: 1.25; }
+  .res .rb small { display: block; font-size: 9px; opacity: .8; font-weight: 800; }
+  .res .rb[disabled] { filter: grayscale(.8) brightness(.7); box-shadow: 0 3px 0 #566773; }
+  .res.max .rb { display: none; }
+  .res.max .rt::after { content: ' · TAM'; font-size: 10px; color: #7fd66a; }
+
   /* A dot on the menu button when something is waiting to be collected.
      Without it the goals screen is a room nobody opens twice. */
   #goalDot {
@@ -254,6 +271,17 @@
     </div>
   </div>
 
+  <div class="screen" id="research">
+    <h2>Araştırma 🔬</h2>
+    <p>Şube puanları kalıcı. Nereye harcadığın sana kalmış —<br>
+       harcanmamış puan hiçbir şey yapmıyor.</p>
+    <div class="card"><div class="row"><span>Harcanabilir puan</span><span id="rFree">0</span></div></div>
+    <div class="card" id="resList" style="max-height:46vh;overflow-y:auto"></div>
+    <div class="stack">
+      <button class="btn alt" id="resClose">KAPAT</button>
+    </div>
+  </div>
+
   <div class="screen" id="menu">
     <h2>Fabrika</h2>
     <div class="card">
@@ -267,6 +295,7 @@
     </div>
     <div class="stack">
       <button class="btn alt" id="goalsBtn">GÖREVLER</button>
+      <button class="btn alt" id="resBtn">ARAŞTIRMA</button>
       <button class="btn" id="prestigeBtn">YENİ ŞUBE AÇ</button>
       <button class="btn alt" id="muteBtn">SES: AÇIK</button>
       <button class="btn alt" id="closeMenu">KAPAT</button>
@@ -276,11 +305,11 @@
   <div class="screen" id="prestige">
     <h2>Yeni şube 🏭</h2>
     <p>Bu fabrikayı devrediyorsun: bütün istasyonlar sıfırlanır, para
-       sıfırlanır. Karşılığında <b>her yeni şube kalıcı olarak geliri
-       artırır</b> ve bir dahaki tur çok daha hızlı ilerler.</p>
+       sıfırlanır. Karşılığında <b>şube puanı</b> kazanırsın — puanlar
+       kalıcıdır ve <b>Araştırma</b> ekranında harcanır.</p>
     <div class="card">
-      <div class="row"><span>Şu anki bonus</span><span id="pNow">+0%</span></div>
-      <div class="row"><span>Yeni bonus</span><span id="pNext">+25%</span></div>
+      <div class="row"><span>Şu an</span><span id="pNow">0 puan boşta</span></div>
+      <div class="row"><span>Bu devirden</span><span id="pNext">+0 puan</span></div>
     </div>
     <div class="stack">
       <button class="btn" id="pGo">DEVRET VE BAŞLA</button>
@@ -345,7 +374,15 @@ function fmtTime(sec) {
 // ---------------------------------------------------------------------
 const KEY = 'motorworks_save';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
-const saveNow = () => { try { localStorage.setItem(KEY, JSON.stringify(G)); } catch {} };
+// `wiped` exists for jeReset. Clearing the key and reloading was not enough:
+// the reload fires pagehide, pagehide saves, and the state that was just
+// deleted is written straight back. Every test that thought it started from
+// a clean save was inheriting the one before it.
+let wiped = false;
+const saveNow = () => {
+  if (wiped) return;
+  try { localStorage.setItem(KEY, JSON.stringify(G)); } catch {}
+};
 
 // ---------------------------------------------------------------------
 // Ads
@@ -459,7 +496,7 @@ const productTier = () => {
 };
 const product = () => PRODUCTS[productTier()];
 const nextProduct = () => PRODUCTS[productTier() + 1] || null;
-const unitPrice = () => STATIONS[LAST].price * product().mult;
+const unitPrice = () => STATIONS[LAST].price * product().mult * (1 + resLvl('price') * 0.05);
 
 // Milestones. Levelling a station adds one unit of rate whatever level it is
 // at, so past the first hour every purchase felt identical and the game was
@@ -482,9 +519,11 @@ const nextMilestone = i => MILESTONES.find(m => G.lvl[i] < m) || null;
 // for it, it runs out, they can ask again.
 const BOOST_MULT = 3;
 const BOOST_SECS = 180;
+const boostSecs = () => BOOST_SECS + resLvl('boost') * 15;
 const BOOST_COOL = 900;
 const BUFFER_MAX = 40;       // how much a station may stockpile ahead
-const OFFLINE_CAP = 4 * 3600;
+const OFFLINE_BASE = 4 * 3600;
+const offlineCap = () => OFFLINE_BASE + resLvl('offline') * 3600;
 
 const G = Object.assign({
   cash: 0,
@@ -502,8 +541,10 @@ const G = Object.assign({
   dayStreak: 0,
   boosts: 0,
   claimed: [],            // alınan görev ödülleri
+  res: {},                // araştırma seviyeleri, puanla alınıyor
 }, load());
 if (!Array.isArray(G.claimed)) G.claimed = [];
+if (!G.res || typeof G.res !== 'object') G.res = {};
 // A save from an older build can be short an array entry; a missing level
 // silently becomes NaN and the whole economy goes to nothing.
 while (G.lvl.length < STATIONS.length) G.lvl.push(0);
@@ -528,6 +569,46 @@ const pointsFor = t => {
 const MIN_POINTS = 30;                   // do not offer a reset worth less
 const bankedPoints = () => pointsFor(G.lifetime);
 const pendingPoints = () => pointsFor(G.lifetime + G.totalEarned) - bankedPoints();
+
+// ---------------------------------------------------------------------
+// Research — what the points are actually for
+// ---------------------------------------------------------------------
+// The multiplier used to be `1 + points * 0.02` and nothing else: points
+// arrived, the number went up, and the player never made a decision about
+// them. Prestige is the whole late game and it had no choice in it.
+//
+// So the points are spent now. The costs are deliberately **flat** per
+// level rather than geometric: with a geometric ladder the multiplier grows
+// like the log of the points, and the late game — where a branch banks
+// thousands — flattens into nothing. Flat costs keep the trade honest at
+// every scale.
+//
+// `line` is priced at exactly 1 point for +2%, so a player who puts
+// everything into it lands on the old curve to the digit. Nothing about the
+// balance measured over three attempts moves; the other six upgrades are
+// what those points now compete against. The utility ones are capped, which
+// is what makes them a real decision early and a solved one late: past a
+// few branches they are all maxed and `line` is the only sink left.
+const RES = [
+  { id: 'line',    name: 'Hat hızı',       icon: '⚙️',  cost: 1, cap: Infinity,
+    text: l => `+${(l * 2)}% bütün istasyonlar`,        step: '+2% hız' },
+  { id: 'price',   name: 'Ürün kalitesi',  icon: '💎', cost: 3, cap: 60,
+    text: l => `+${(l * 5)}% araç fiyatı`,               step: '+5% fiyat' },
+  { id: 'cheap',   name: 'Toplu alım',     icon: '🏷️', cost: 5, cap: 30,
+    text: l => `-${+(l * 1.5).toFixed(1)}% yükseltme`,   step: '-1.5% maliyet' },
+  { id: 'mgr',     name: 'İnsan kaynak.',  icon: '👔', cost: 4, cap: 15,
+    text: l => `-${(l * 4)}% müdür ücreti`,              step: '-4% müdür' },
+  { id: 'start',   name: 'Hazır hat',      icon: '🏗️', cost: 6, cap: 10,
+    text: l => `yeni şube ${1 + l}. seviyeden`,          step: '+1 başlangıç' },
+  { id: 'offline', name: 'Gece vardiyası', icon: '🌙', cost: 8, cap: 12,
+    text: l => `${4 + l} saat çevrimdışı`,               step: '+1 saat' },
+  { id: 'boost',   name: 'Turbo',          icon: '🚀', cost: 6, cap: 20,
+    text: l => `${180 + l * 15} sn hızlandırma`,         step: '+15 sn' },
+];
+const resLvl = id => G.res[id] | 0;
+const spentPoints = () => RES.reduce((a, r) => a + r.cost * resLvl(r.id), 0);
+const freePoints  = () => Math.max(0, bankedPoints() - spentPoints());
+
 // Linear in points, and that is now enough.
 //
 // This was 1.02^points for a while. The compound form was put in because a
@@ -541,7 +622,7 @@ const pendingPoints = () => pointsFor(G.lifetime + G.totalEarned) - bankedPoints
 // 245 where branch 1 reached 150. A linear multiplier is plenty on top of
 // that, and the compound one was catastrophic — 2.9e107 by branch three,
 // Infinity by branch four, and NaN in the save from then on.
-const branchMult = () => 1 + bankedPoints() * 0.02;
+const branchMult = () => 1 + resLvl('line') * 0.02;
 const boostLeft = () => Math.max(0, (G.boostUntil - Date.now()) / 1000);
 const boostMult = () => (boostLeft() > 0 ? BOOST_MULT : 1);
 const rateOf = i =>
@@ -549,15 +630,19 @@ const rateOf = i =>
   * Math.pow(2, milestonesHit(i))
   * (G.mgr[i] ? MGR_MULT : 1)
   * branchMult() * boostMult();
+// Research discounts multiply the whole ladder, so the geometric sum and its
+// inverse below stay exact rather than needing a per-level correction.
+const cheapMult = () => 1 - resLvl('cheap') * 0.015;
+const mgrCostOf = i => STATIONS[i].mgrCost * (1 - resLvl('mgr') * 0.04);
 const costOf = (i, n) => {
   // sum of a geometric run, so "buy 10" is one number rather than ten
   const s = STATIONS[i], g = s.costGrow;
-  const first = s.baseCost * Math.pow(g, G.lvl[i]);
+  const first = s.baseCost * Math.pow(g, G.lvl[i]) * cheapMult();
   return first * (Math.pow(g, n) - 1) / (g - 1);
 };
 const affordable = i => {
   const s = STATIONS[i], g = s.costGrow;
-  const first = s.baseCost * Math.pow(g, G.lvl[i]);
+  const first = s.baseCost * Math.pow(g, G.lvl[i]) * cheapMult();
   if (G.cash < first) return 0;
   // invert the geometric sum for the largest n the cash covers
   const n = Math.floor(Math.log(1 + (G.cash * (g - 1)) / first) / Math.log(g));
@@ -629,7 +714,7 @@ function runFactory(dt) {
 // closed form, and stepping four hours a second at a time gave the same
 // answer for fourteen thousand times the work.
 function offlineCatchUp() {
-  const gone = Math.min(OFFLINE_CAP, Math.max(0, (Date.now() - G.seen) / 1000));
+  const gone = Math.min(offlineCap(), Math.max(0, (Date.now() - G.seen) / 1000));
   if (gone < 60) return null;
   const ch = chain();
   const got = ch.flow * unitPrice() * gone;
@@ -1021,8 +1106,9 @@ function buyLevels(i) {
 }
 
 function buyManager(i) {
-  if (G.mgr[i] || G.cash < STATIONS[i].mgrCost) return;
-  G.cash -= STATIONS[i].mgrCost;
+  const price = mgrCostOf(i);
+  if (G.mgr[i] || G.cash < price) return;
+  G.cash -= price;
   G.mgr[i] = true;
   ping(880, 0.2);
   refreshPanel();
@@ -1065,8 +1151,8 @@ function refreshPanel() {
     const showMgr = !G.mgr[i] && G.lvl[i] >= 8;
     r.mgr.style.display = showMgr ? '' : 'none';
     if (showMgr) {
-      r.mgr.innerHTML = `${fmt(s.mgrCost)}<small>MÜDÜR ×2</small>`;
-      r.mgr.disabled = G.cash < s.mgrCost;
+      r.mgr.innerHTML = `${fmt(mgrCostOf(i))}<small>MÜDÜR ×2</small>`;
+      r.mgr.disabled = G.cash < mgrCostOf(i);
     }
   }
   $('cashPill').textContent = '💰 ' + fmt(G.cash);
@@ -1091,7 +1177,10 @@ const PRESTIGE_AT = () => {
 $('menuBtn').onclick = () => {
   const ch = chain();
   $('kBranch').textContent = G.branches + 1;
-  $('kBonus').textContent = `×${fmt(branchMult())}  (${fmt(bankedPoints())} puan)`;
+  $('kBonus').textContent = `×${fmt(branchMult())}  (${fmt(freePoints())} puan boşta)`;
+  $('resBtn').textContent = freePoints() > 0
+    ? `ARAŞTIRMA  ● ${fmt(freePoints())} PUAN`
+    : 'ARAŞTIRMA';
   $('kTotal').textContent = fmt(G.totalEarned);
   $('kRate').textContent = fmt(ch.income) + ' / sn';
   $('kNeck').textContent = STATIONS[ch.neck].name;
@@ -1113,9 +1202,8 @@ $('muteBtn').onclick = () => {
 };
 $('prestigeBtn').onclick = () => {
   if (!canPrestige()) return;
-  $('pNow').textContent = '×' + fmt(branchMult());
-  $('pNext').textContent =
-    `×${fmt(1 + (bankedPoints() + pendingPoints()) * 0.02)}  (+${fmt(pendingPoints())} puan)`;
+  $('pNow').textContent = `${fmt(freePoints())} puan boşta`;
+  $('pNext').textContent = `+${fmt(pendingPoints())} puan`;
   $('prestige').classList.add('show');
 };
 $('pNo').onclick = () => $('prestige').classList.remove('show');
@@ -1125,7 +1213,10 @@ $('pGo').onclick = () => {
   G.lifetime += G.totalEarned;
   G.totalEarned = 0;
   G.cash = 0;
-  G.lvl = [1, 1, 1, 1];
+  // "Hazır hat" skips the opening minutes rather than paying cash for them:
+  // a starting purse is worth a different amount every branch, a starting
+  // level is worth the same thing at every scale.
+  G.lvl = STATIONS.map(() => 1 + resLvl('start'));
   G.mgr = [false, false, false, false];
   G.buf = [0, 0, 0];
   for (const b of belts) { for (const c of b.crates) dropCrate(c.m); b.crates.length = 0; }
@@ -1224,6 +1315,49 @@ $('goalsClose').onclick = () => {
 };
 
 // ---------------------------------------------------------------------
+// Research screen
+// ---------------------------------------------------------------------
+function renderResearch() {
+  $('rFree').textContent = fmt(freePoints());
+  const wrap = $('resList');
+  wrap.innerHTML = '';
+  for (const r of RES) {
+    const lvl = resLvl(r.id);
+    const maxed = lvl >= r.cap;
+    const can = !maxed && freePoints() >= r.cost;
+    const el = document.createElement('div');
+    el.className = 'res' + (maxed ? ' max' : '');
+    el.innerHTML = `
+      <div class="ri">${r.icon}</div>
+      <div class="rm">
+        <div class="rt">${r.name} · ${lvl}${r.cap === Infinity ? '' : '/' + r.cap}</div>
+        <div class="rd">${r.text(lvl)}</div>
+      </div>
+      <button class="rb"${can ? '' : ' disabled'}>${r.cost} puan<small>${r.step}</small></button>`;
+    const b = el.querySelector('.rb');
+    if (b) b.onclick = () => {
+      if (resLvl(r.id) >= r.cap || freePoints() < r.cost) return;
+      G.res[r.id] = resLvl(r.id) + 1;
+      saveNow();
+      ping(760, 0.16);
+      renderResearch();
+      refreshPanel();
+    };
+    wrap.appendChild(el);
+  }
+}
+
+$('resBtn').onclick = () => {
+  renderResearch();
+  $('menu').classList.remove('show');
+  $('research').classList.add('show');
+};
+$('resClose').onclick = () => {
+  $('research').classList.remove('show');
+  $('menuBtn').onclick();
+};
+
+// ---------------------------------------------------------------------
 // Daily reward
 // ---------------------------------------------------------------------
 // Days are counted in the player's own timezone rather than UTC: a reward
@@ -1287,8 +1421,9 @@ $('boostBtn').onclick = async () => {
   t.textContent = '…';
   const ok = await showRewarded();
   if (!ok) { refreshBoost(); return; }
-  G.boostUntil = Date.now() + BOOST_SECS * 1000;
-  G.boostReady = Date.now() + (BOOST_SECS + BOOST_COOL) * 1000;
+  const secs = boostSecs();
+  G.boostUntil = Date.now() + secs * 1000;
+  G.boostReady = Date.now() + (secs + BOOST_COOL) * 1000;
   G.boosts++;
   saveNow();
   ping(740, 0.2);
@@ -1466,7 +1601,7 @@ function showWelcome(r) {
   pendingOffline = r.got;         // the same again, if they watch
   $('wTime').textContent = fmtTime(r.gone);
   $('wCash').textContent = fmt(r.got);
-  $('wSub').textContent = r.gone >= OFFLINE_CAP
+  $('wSub').textContent = r.gone >= offlineCap()
     ? 'Fabrika en fazla 4 saat stok tutabiliyor — dolmuş.'
     : 'Sen yokken fabrika çalışmaya devam etti.';
   $('welcome').classList.add('show');
@@ -1500,10 +1635,13 @@ window.jeOffline = sec => {
   return r;
 };
 window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
-window.jeReset = () => { localStorage.removeItem(KEY); location.reload(); };
+window.jeReset = () => { wiped = true; localStorage.removeItem(KEY); location.reload(); };
 window.jeFmt = fmt;
 window.jeSeenTier = () => shownTier;
 window.jeSetLifetime = t => { G.lifetime = t; refreshPanel(); };
+// jeGive only tops up the purse; prestige is gated on what the branch has
+// *earned*, so a test that wants to hand a factory in needs this one.
+window.jeSetEarned = t => { G.totalEarned = t; refreshPanel(); };
 // Kameranın çerçevesi. Mağaza görselleri dikey telefon için ayarlanmış
 // çerçeveyi kullanamıyor: yatay bir grafikte fabrika minicik kalıyor.
 window.jeCam = (h, shift) => {
@@ -1517,6 +1655,21 @@ window.jeGoals = () => GOALS.map(g => ({
   done: goalDone(g), taken: goalTaken(g), pay: +goalPay(g).toFixed(0) }));
 window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().toFixed(0) });
 window.jePrestige = () => { $('prestigeBtn').click(); $('pGo').click(); };
+window.jeRes = () => ({
+  free: freePoints(), spent: spentPoints(), banked: bankedPoints(),
+  lvl: Object.fromEntries(RES.map(r => [r.id, resLvl(r.id)])),
+  mult: branchMult(), price: unitPrice(), cheap: cheapMult(),
+  offline: offlineCap(), boost: boostSecs(), mgr0: mgrCostOf(0),
+});
+window.jeResBuy = (id, n = 1) => {
+  const r = RES.find(x => x.id === id);
+  for (let k = 0; k < n; k++) {
+    if (!r || resLvl(id) >= r.cap || freePoints() < r.cost) break;
+    G.res[id] = resLvl(id) + 1;
+  }
+  saveNow(); refreshPanel();
+  return resLvl(id);
+};
 
 // A boost does not run while the app is shut: the away calculation reads the
 // chain's rate at the moment of return, and a boost still ticking would pay

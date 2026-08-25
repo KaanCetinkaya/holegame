@@ -116,14 +116,15 @@ Tavan kaldırılınca erişim kendi kendine büyümeye başladı ve bileşik ça
 çift üstel oldu: 205x → 2.9e107 → `Infinity` → kayıtta `NaN`. Doğrusala
 dönüldü; artık fazlasıyla yetiyor.
 
-Ölçülen sonuç — 30 dakikalık turlarla, altı şube:
+Ölçülen sonuç — 30 dakikalık turlarla, altı şube, her devirde puanların
+tamamı **hat hızına** konarak (bkz. Araştırma):
 
 | şube | 30 dk sonunda | gelir/sn | çarpan |
 |---|---|---|---|
 | 1 | 150/147/150/149 | 235K | 1.0× |
 | 2 | 177/177/177/181 | 1.81M | 6.4× |
 | 3 | 193/193/194/196 | 5.82M | 18.8× |
-| 4 | 203/206/208/212 | 25.1M | 38.6× |
+| 4 | 203/206/208/213 | 25.1M | 38.6× |
 | 5 | 215/213/218/222 | 45.6M | 66.9× |
 | 6 | 225/229/225/222 | 255M | 105.6× |
 
@@ -212,8 +213,8 @@ AdMob'da uygulama açıp `AD_UNITS` içindeki kimliği değiştirmek ve
 ## Kayıt
 
 Tek anahtar: `motorworks_save`. İçinde kasa, ömür boyu kazanç, şube sayısı,
-seviyeler, müdürler, tamponlar, boost zamanlayıcıları ve son görülme zamanı
-var. Eski bir kayıt eksik dizi elemanıyla gelebilir; eksik seviye sessizce
+seviyeler, müdürler, tamponlar, araştırma seviyeleri, boost zamanlayıcıları
+ve son görülme zamanı var. Eski bir kayıt eksik dizi elemanıyla gelebilir; eksik seviye sessizce
 `NaN` olup bütün ekonomiyi sıfırladığı için yükleme sırasında tamamlanıyor.
 
 ## Test
@@ -224,10 +225,13 @@ var. Eski bir kayıt eksik dizi elemanıyla gelebilir; eksik seviye sessizce
     node scratchpad/tycoon3.mjs    # altı şubelik prestij döngüsü
     node scratchpad/tycoon4.mjs    # görevler, günlük ödül, çevrimdışı x2
     node scratchpad/tycoon5.mjs    # ürün kademeleri ve fiyat
+    node scratchpad/tycoon6.mjs    # MAKS alımı ve yüksek çarpanla 30 dakika
+    node scratchpad/tycoonres.mjs  # araştırma: puan muhasebesi ve yedi etki
 
 `window.jeProbe()` oyunun bütün durumunu döndürür; `jeGive`, `jeRun`, `jeBuy`,
-`jeOffline`, `jeBoost`, `jePrestige`, `jeGoals`, `jeDaily`, `jeReset` testlerin
-oyunu parmaksız oynamasını sağlar.
+`jeOffline`, `jeBoost`, `jePrestige`, `jeGoals`, `jeDaily`, `jeRes`,
+`jeResBuy`, `jeSetLifetime`, `jeSetEarned`, `jeReset` testlerin oyunu
+parmaksız oynamasını sağlar.
 
 ## Mağaza
 
@@ -250,9 +254,47 @@ grafikte fabrikayı bir noktaya indiriyor.
 
 Yayın öncesi yapılacaklar `store/listing.md` sonundaki listede.
 
+## Araştırma
+
+Prestij puanları eskiden **harcanmıyordu**: puan geliyordu, çarpan
+kendiliğinden büyüyordu, oyuncu hiçbir karar vermiyordu. Oyunun bütün geç
+oyunu buydu ve içinde tek bir seçim yoktu. Artık puanlar bir para birimi.
+
+| yükseltme | etki | puan/seviye | tavan |
+|---|---|---|---|
+| **Hat hızı** | +%2 bütün istasyonlar | 1 | yok |
+| **Ürün kalitesi** | +%5 araç fiyatı | 3 | 60 |
+| **Toplu alım** | -%1.5 yükseltme maliyeti | 5 | 30 |
+| **İnsan kaynakları** | -%4 müdür ücreti | 4 | 15 |
+| **Hazır hat** | yeni şube +1 seviyeden başlar | 6 | 10 |
+| **Gece vardiyası** | +1 saat çevrimdışı | 8 | 12 |
+| **Turbo** | +15 sn reklam hızlandırması | 6 | 20 |
+
+Maliyetler seviye başına **sabit**, katlanarak artmıyor. Katlanan bir merdivende
+çarpan puanın logaritması gibi büyür ve binlerce puan basan geç oyun dümdüz
+olur. Sabit maliyet takası her ölçekte anlamlı tutuyor.
+
+**Hat hızı tam olarak 1 puan = +%2 fiyatlandırıldı**, yani her şeyi ona koyan
+oyuncu eski `1 + puan × 0.02` eğrisine birebir oturuyor. Üç denemede ölçülen
+dengeden hiçbir şey oynamıyor; diğer altı yükseltme o puanlarla yarışan
+seçenekler. Faydacı olanların tavanı var: erken oyunda gerçek bir karar,
+birkaç şubeden sonra hepsi doluyor ve geriye tek sonsuz kuyu olarak hat hızı
+kalıyor.
+
+`scratchpad/tycoonres.mjs` puan muhasebesini, yedi etkinin formüllere
+girdiğini ve "hepsi hat hızına → eski eğri" iddiasını beş ayrı puan
+değerinde ölçüyor.
+
+### Sıfırlama gerçekten sıfırlamıyordu
+
+`jeReset` anahtarı siliyor ve sayfayı yeniliyordu. Ama yenileme `pagehide`
+tetikliyor, `pagehide` kaydediyor, ve az önce silinen durum olduğu gibi geri
+yazılıyordu. Temiz kayıtla başladığını sanan her test bir öncekinin
+durumunu devralıyordu — araştırma testinin on bir kontrolü bu yüzden hatalı
+görünmüştü. Artık `wiped` bayrağı sıfırlamadan sonra kaydı susturuyor.
+
 ## Eksikler
 
 - AdMob uygulaması açılmadı; test reklam kimlikleri kullanılıyor
-- Araştırma ağacı / ikinci para birimi yok
 - Uygulama içi satın alma yok
-- Mağaza metni ve ekran görüntüleri hazırlanmadı
+- Telefonda hiç denenmedi

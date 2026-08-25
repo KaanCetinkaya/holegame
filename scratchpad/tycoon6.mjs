@@ -45,8 +45,12 @@ await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 
 await pg.waitForTimeout(400);
 // yapay olarak yüksek ömür boyu kazanç ver -> yüksek puan
 await pg.evaluate(() => { window.jeSetLifetime?.(2.5e11); });
+// Puanlar artık kendiliğinden çarpan olmuyor, harcanıyor. Hepsini hat hızına
+// koymak eski davranışın aynısı — bu ölçüm onu ölçmek için var.
+await pg.evaluate(() => { window.jeResBuy?.('line', 999999); });
 const start = await pg.evaluate(() => window.jeProbe());
-console.log(`  başlangıç çarpanı: ${(Math.pow(1.02, start.points)).toFixed(0)}x  (${start.points} puan)`);
+const res0 = await pg.evaluate(() => window.jeRes?.());
+console.log(`  başlangıç çarpanı: ${res0.mult.toFixed(0)}x  (${start.points} puan, hepsi hat hızında)`);
 for (let m = 1; m <= 30; m++) {
   const r = await pg.evaluate(() => {
     window.jeRun(60);
