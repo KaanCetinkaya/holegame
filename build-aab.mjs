@@ -50,37 +50,44 @@ function ensureLocalProperties() {
   const target = join(projectPath, 'local.properties');
   if (existsSync(target)) return;
 
-  let sdk = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || '';
+  // Gradle bu dosyayı bir Java properties dosyası olarak okuyor: ters eğik
+  // çizgi ve iki nokta kaçış karakteri. Yani dosyadaki değer ZATEN kaçırılmış
+  // halde. İlk sürüm kardeş projeden okuduğu satırı bir kez daha kaçırıyordu
+  // ve C\:\\Users\\HP yerine C\:\\\\Users\\\\HP yazıyordu — Gradle da
+  // olmayan bir klasör arıyordu. Bu yüzden iki ayrı yol var: hazır satır
+  // olduğu gibi kopyalanıyor, ham işletim sistemi yolu ise kaçırılıyor.
+  let line = null;                  // dosyadan gelen, kaçırılmış satır
+  let raw = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || '';
 
-  if (!sdk) {
+  if (!raw) {
     for (const dir of Object.values(APPS)) {
       const f = join(ROOT, dir, 'local.properties');
       if (!existsSync(f)) continue;
-      const m = readFileSync(f, 'utf8').match(/^sdk\.dir\s*=\s*(.+)$/m);
-      if (m) { sdk = m[1].trim(); break; }
+      const m = readFileSync(f, 'utf8').match(/^sdk\.dir\s*=.*$/m);
+      if (m) { line = m[0]; break; }
     }
   }
-  if (!sdk) {
+  if (!raw && !line) {
     const home = process.env.LOCALAPPDATA || process.env.HOME || '';
     for (const guess of [
       join(home, 'Android', 'Sdk'),
       join(home, 'Library', 'Android', 'sdk'),
       join(home, 'Android', 'sdk'),
-    ]) if (existsSync(guess)) { sdk = guess; break; }
+    ]) if (existsSync(guess)) { raw = guess; break; }
   }
-  if (!sdk) {
+  if (!raw && !line) {
     console.error(
       `\n${projectDir}/local.properties yok ve Android SDK bulunamadı.\n\n` +
-      `Çözüm: ANDROID_HOME ortam değişkenini kurun, ya da elle oluşturun:\n` +
-      `  ${target}\n` +
-      `içine tek satır (ters eğik çizgiler ikişer olacak):\n` +
-      `  sdk.dir=C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Android\\\\Sdk\n`);
+      `Çözüm: ANDROID_HOME ortam değişkenini kurun, ya da çalışan bir\n` +
+      `projeden kopyalayın:\n` +
+      `  Copy-Item android-fruithole\\local.properties ${projectDir}\\local.properties\n`);
     process.exit(1);
   }
-  // Gradle bu dosyayı Properties olarak okuyor: ters eğik çizgi kaçış
-  // karakteri, tek tek yazılırsa yol bozuluyor.
-  writeFileSync(target, `sdk.dir=${sdk.replace(/\\/g, '\\\\')}\n`);
-  console.log(`local.properties yazıldı -> ${sdk}`);
+
+  const escape = v => v.replace(/\\/g, '\\\\').replace(/:/g, '\\:');
+  const out = line || `sdk.dir=${escape(raw)}`;
+  writeFileSync(target, out + '\n');
+  console.log(`local.properties yazıldı -> ${out}`);
 }
 ensureLocalProperties();
 
