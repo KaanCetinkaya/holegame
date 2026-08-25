@@ -5,6 +5,8 @@ node_modules/
 *.log
 /android-fruithole/
 /android-slicer/
+/android-tycoon/
 www-fruithole/three.module.js
 www-slicer/three.module.js
+www-tycoon/three.module.js
 keystore.properties
