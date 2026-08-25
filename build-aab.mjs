@@ -40,6 +40,50 @@ if (!existsSync(projectPath)) {
   process.exit(1);
 }
 
+// --- Android SDK'nın yerini bul ---
+// `cap add` local.properties üretmiyor; onu Android Studio yazıyor. Yeni bir
+// native proje eklendiğinde Gradle SDK'yı bulamayıp "SDK location not found"
+// ile düşüyor. Var olan kardeş projelerden ya da ortam değişkeninden
+// devralıyoruz, böylece üçüncü ve dördüncü uygulama için de kendiliğinden
+// çalışıyor.
+function ensureLocalProperties() {
+  const target = join(projectPath, 'local.properties');
+  if (existsSync(target)) return;
+
+  let sdk = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || '';
+
+  if (!sdk) {
+    for (const dir of Object.values(APPS)) {
+      const f = join(ROOT, dir, 'local.properties');
+      if (!existsSync(f)) continue;
+      const m = readFileSync(f, 'utf8').match(/^sdk\.dir\s*=\s*(.+)$/m);
+      if (m) { sdk = m[1].trim(); break; }
+    }
+  }
+  if (!sdk) {
+    const home = process.env.LOCALAPPDATA || process.env.HOME || '';
+    for (const guess of [
+      join(home, 'Android', 'Sdk'),
+      join(home, 'Library', 'Android', 'sdk'),
+      join(home, 'Android', 'sdk'),
+    ]) if (existsSync(guess)) { sdk = guess; break; }
+  }
+  if (!sdk) {
+    console.error(
+      `\n${projectDir}/local.properties yok ve Android SDK bulunamadı.\n\n` +
+      `Çözüm: ANDROID_HOME ortam değişkenini kurun, ya da elle oluşturun:\n` +
+      `  ${target}\n` +
+      `içine tek satır (ters eğik çizgiler ikişer olacak):\n` +
+      `  sdk.dir=C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Android\\\\Sdk\n`);
+    process.exit(1);
+  }
+  // Gradle bu dosyayı Properties olarak okuyor: ters eğik çizgi kaçış
+  // karakteri, tek tek yazılırsa yol bozuluyor.
+  writeFileSync(target, `sdk.dir=${sdk.replace(/\\/g, '\\\\')}\n`);
+  console.log(`local.properties yazıldı -> ${sdk}`);
+}
+ensureLocalProperties();
+
 const propsFile = join(ROOT, 'keystore.properties');
 if (!existsSync(propsFile)) {
   console.error(
