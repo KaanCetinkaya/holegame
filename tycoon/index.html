@@ -847,6 +847,7 @@ function foundryBay() {
   const g = new THREE.Group(), grow = [], moving = [];
   DECK(g, '#5a5f68');
   const shell = MAT('#8a5a3a', 0.75), steel = MAT('#9aa3ad', 0.4, 0.55);
+  const tierMats = [steel];
   for (let i = 0; i < 6; i++) {
     const u = new THREE.Group();
     u.position.set(-3.3 + (i % 3) * 3.3, 0.3, i < 3 ? -1.2 : 1.4);
@@ -863,7 +864,7 @@ function foundryBay() {
     g.add(u);
     if (i >= 1) { u.visible = false; grow.push(u); }
   }
-  return { g, grow, moving };
+  return { g, grow, moving, tierMats };
 }
 
 // Stamping: a press is a hammer that comes down. Nothing else on the floor
@@ -872,6 +873,7 @@ function stampBay() {
   const g = new THREE.Group(), grow = [], moving = [];
   DECK(g, '#5c6570');
   const frame = MAT('#7d868f', 0.45, 0.45), body = MAT('#3f7de0', 0.4, 0.2);
+  const tierMats = [frame];
   for (let i = 0; i < 6; i++) {
     const u = new THREE.Group();
     u.position.set(-3.3 + (i % 3) * 3.3, 0.3, i < 3 ? -1.2 : 1.4);
@@ -888,7 +890,7 @@ function stampBay() {
     g.add(u);
     if (i >= 1) { u.visible = false; grow.push(u); }
   }
-  return { g, grow, moving };
+  return { g, grow, moving, tierMats };
 }
 
 // Assembly: robot arms over a line with car bodies on it. The arms sweep, so
@@ -899,6 +901,7 @@ function assemblyBay() {
   DECK(g, '#5c6570');
   put(g, new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.22, 1.5), MAT('#3d444e', 0.7, 0.3)), 0, 0.4, -0.2);
   const arm = MAT('#f2a23a', 0.4, 0.25), joint = MAT('#3d444e', 0.5, 0.5);
+  const tierMats = [arm];
   // Gövdeler üretilen ürünün rengini alıyor; malzemeler saklanıyor ki
   // kademe atlayınca yerinde değiştirilebilsin.
   const bodyMats = [];
@@ -938,13 +941,15 @@ function assemblyBay() {
     g.add(u);
     if (i >= 1) { u.visible = false; grow.push(u); }
   }
-  return { g, grow, moving, bodyMats, cars: moving.filter(p => p.kind === 'slide') };
+  return { g, grow, moving, bodyMats, tierMats, cars: moving.filter(p => p.kind === 'slide') };
 }
 
 // Dispatch: car transporters, loaded. The ramp and the cars on the deck are
 // what make it a transporter rather than a lorry.
 function dispatchBay() {
   const g = new THREE.Group(), grow = [], moving = [], loadMats = [];
+  const rail = MAT('#8a929c', 0.5, 0.4), post = MAT('#6d757f', 0.5, 0.4);
+  const tierMats = [rail, post];
   DECK(g, '#4c5560');
   put(g, new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.06, 1.2), MAT('#e8d060', 0.8)), 0, 0.32, 2.0);
   for (let i = 0; i < 4; i++) {
@@ -955,10 +960,10 @@ function dispatchBay() {
     put(t, new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.8, 1.0), paint), 0, 0.78, 1.5);
     put(t, new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.34, 0.09), MAT('#9fd8f5', 0.15)), 0, 0.92, 2.0);
     // trailer decks
-    put(t, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.12, 3.0), MAT('#8a929c', 0.5, 0.4)), 0, 0.55, -0.6);
-    put(t, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.12, 2.6), MAT('#8a929c', 0.5, 0.4)), 0, 1.45, -0.7);
+    put(t, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.12, 3.0), rail), 0, 0.55, -0.6);
+    put(t, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.12, 2.6), rail), 0, 1.45, -0.7);
     for (const sz of [-2.0, 0.8])
-      put(t, new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), MAT('#6d757f', 0.5, 0.4)), 0.5, 1.0, sz);
+      put(t, new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), post), 0.5, 1.0, sz);
     // Yük: taşınan şey neyse o. Fabrika lüks araba üretirken tırda hâlâ
     // şehir arabası duruyorsa zincirin sonu yalan söylüyor demektir.
     for (let k = 0; k < 4; k++) {
@@ -974,7 +979,82 @@ function dispatchBay() {
     moving.push({ m: t, kind: 'bob', phase: i * 1.1, base: 0.3 });
     if (i >= 1) { t.visible = false; grow.push(t); }
   }
-  return { g, grow, moving, loadMats };
+  return { g, grow, moving, loadMats, tierMats };
+}
+
+// --- the factory has to look like it is getting somewhere ---------------
+//
+// Every bay hides five of its six units and reveals them at level/6, so the
+// floor fills up over the first thirty levels and then never changes again.
+// A player runs to level 250 and hands the factory in six times seeing
+// exactly the same picture — measured side by side, branch 1 at level 150
+// and branch 6 at level 230 were pixel-identical.
+//
+// So the equipment itself is re-fitted at each pair of milestones. Only the
+// accent parts change — the chimneys, the press frames, the arms, the
+// trailer rails — because recolouring a furnace stops it reading as a
+// furnace. Silhouette stays, finish improves: rusted iron, plain steel,
+// works blue, chrome, gold.
+//
+// The ramp is brightness, not hue. A middle tier of works blue was tried and
+// it painted every chimney, press frame and robot arm the same strong colour
+// at once — the whole factory went one shade and read worse than the grey it
+// replaced. And metalness has to stay low whatever it looks like in an
+// editor: there is no environment map in this scene, so a metal surface has
+// nothing to reflect and renders near black.
+const TIERS = [
+  { col: '#8a929c', rough: 0.62, metal: 0.10, name: 'demir' },
+  { col: '#a6b0bb', rough: 0.50, metal: 0.16, name: 'çelik' },
+  { col: '#c4cdd8', rough: 0.38, metal: 0.22, name: 'parlak çelik' },
+  { col: '#e4ebf3', rough: 0.26, metal: 0.28, name: 'krom' },
+  { col: '#f0c85a', rough: 0.30, metal: 0.30, name: 'altın' },
+];
+// Nine milestones, five fittings: a re-fit every second milestone, and the
+// last one is where a long-running branch ends up rather than a place
+// nobody sees.
+const tierOf = i => Math.min(TIERS.length - 1, Math.floor(milestonesHit(i) / 2));
+
+const shownTiers = [-1, -1, -1, -1];
+let shownBranches = -1;
+
+// Finished stock parked along the far side of the yard, one row per branch
+// handed in. They are built once and hidden; a prestige simply shows the
+// next one, so the reward lands the moment the button is pressed.
+// Kept small on purpose. Three cars a row two columns wide was busier than
+// the factory by the sixth branch and the eye went to the car park instead
+// of the line it is supposed to be reading; and the near column sat on top
+// of the assembly deck. Two cars, further out, one column.
+const PARK_MAX = 10;
+const parked = [];
+{
+  const yardG = new THREE.Group();
+  const shell = MAT('#7f8792', 0.55, 0.3);
+  const tyre = new THREE.CylinderGeometry(0.2, 0.2, 0.16, 10), rub = MAT('#26262c', 0.85);
+  const glassM = MAT('#9fd8f5', 0.2);
+  const COLS = ['#3f7de0', '#d9483a', '#e8a33a', '#3f9a6a', '#8a6ad9', '#d95fa0'];
+  for (let k = 0; k < PARK_MAX; k++) {
+    const row = new THREE.Group();
+    // one column down the far left, walking away from the camera
+    row.position.set(-8.2, 0, -14 - k * 3.0);
+    for (let c = 0; c < 2; c++) {
+      const car = new THREE.Group();
+      car.position.set(0, 0, -c * 1.5 - 0.2);
+      car.rotation.y = Math.PI / 2;
+      const paint = MAT(COLS[(k * 2 + c) % COLS.length], 0.35);
+      put(car, new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.28, 1.8), paint), 0, 0.34, 0);
+      put(car, new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.3, 0.85), paint), 0, 0.62, -0.1);
+      put(car, new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.2, 0.06), glassM), 0, 0.64, 0.33);
+      for (const sx of [-0.47, 0.47]) for (const sz of [-0.6, 0.6])
+        put(car, new THREE.Mesh(tyre, rub), sx, 0.2, sz, 0, 0, Math.PI / 2);
+      row.add(car);
+    }
+    // a low kerb so the row reads as a bay rather than cars left on concrete
+    put(row, new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.18), shell), 0, 0.06, 1.0);
+    row.visible = false;
+    yardG.add(row);
+    parked.push(row);
+  }
+  scene.add(yardG);
 }
 
 const BUILDERS = [foundryBay, stampBay, assemblyBay, dispatchBay];
@@ -1534,6 +1614,35 @@ function tick(now) {
     for (let k = 0; k < bays[i].grow.length; k++) bays[i].grow[k].visible = k < need;
   }
 
+  // ...and once the floor is full, the equipment is what keeps changing.
+  // Only reapplied when a station actually crosses into a new fitting, so
+  // this is four integer comparisons a frame rather than a material walk.
+  for (let i = 0; i < bays.length; i++) {
+    const tr = tierOf(i);
+    if (tr === shownTiers[i]) continue;
+    const first = shownTiers[i] < 0;
+    shownTiers[i] = tr;
+    const T = TIERS[tr];
+    for (const m of bays[i].tierMats) {
+      m.color.set(T.col);
+      m.roughness = T.rough;
+      m.metalness = T.metal;
+    }
+    if (!first && tr > 0) {
+      ping(700 + tr * 60, 0.18);
+      floatCash(`${STATIONS[i].icon} ${STATIONS[i].name.toUpperCase()}: ${T.name.toUpperCase()} DONANIM`);
+    }
+  }
+
+  // The yard fills as branches are handed in. Prestige is the one thing in
+  // the game with nothing to show for it — the counter went up and the floor
+  // looked the same, so the reward for giving away a working factory was a
+  // number in the corner.
+  if (G.branches !== shownBranches) {
+    shownBranches = G.branches;
+    for (let k = 0; k < parked.length; k++) parked[k].visible = k < Math.min(parked.length, G.branches);
+  }
+
   // Machines move at the rate their own station is running, not at a fixed
   // beat. A press hammering flat out while its buffer sits empty is the
   // factory lying about itself — and the buffers are the one thing the
@@ -1638,6 +1747,13 @@ window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
 window.jeReset = () => { wiped = true; localStorage.removeItem(KEY); location.reload(); };
 window.jeFmt = fmt;
 window.jeSeenTier = () => shownTier;
+window.jeLook = () => ({
+  tiers: [0, 1, 2, 3].map(tierOf),
+  shown: [...shownTiers],
+  units: bays.map((b, i) => 1 + b.grow.filter(u => u.visible).length),
+  parked: parked.filter(r => r.visible).length,
+  branches: G.branches,
+});
 window.jeSetLifetime = t => { G.lifetime = t; refreshPanel(); };
 // jeGive only tops up the purse; prestige is gated on what the branch has
 // *earned*, so a test that wants to hand a factory in needs this one.

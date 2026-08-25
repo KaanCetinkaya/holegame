@@ -126,6 +126,37 @@ check(JSON.stringify(afterReload.lvl) === JSON.stringify(beforeReload.lvl),
 check(Number.isFinite(afterReload.mult) && Number.isFinite(afterReload.price),
   'çarpanlar sonlu (NaN yok)', [afterReload.mult, afterReload.price]);
 
+// --- 6. fabrika ilerledikçe görünüyor mu ----------------------------------
+// Şube 1'de 150. seviye ile şube 6'da 230. seviye piksel piksel aynıydı:
+// bütün birimler 30. seviyede açılıyor ve sonra hiçbir şey değişmiyor.
+console.log('\n6) Görsel ilerleme');
+await pg.evaluate(() => jeReset());
+await pg.waitForTimeout(500);
+await pg.waitForFunction(() => typeof window.jeLook === 'function');
+let look = await pg.evaluate(() => jeLook());
+check(look.tiers.every(t => t === 0), 'başlangıçta donanım demir', look.tiers);
+check(look.units.every(u => u === 1), 'her istasyonda tek birim', look.units);
+check(look.parked === 0, 'avlu boş', look.parked);
+
+// 250. seviye: bütün birimler açık, donanım tavanda
+await pg.evaluate(() => { jeGive(1e30); for (let i = 0; i < 4; i++) jeBuy(i, 'max'); });
+await pg.waitForTimeout(400);
+look = await pg.evaluate(() => jeLook());
+// Sevkiyat dörtle sınırlı — tır, ocaktan büyük.
+check(JSON.stringify(look.units) === '[6,6,6,4]', 'yüksek seviyede bütün birimler açık', look.units);
+check(look.tiers.every(t => t >= 3), 'donanım en az kroma çıktı', look.tiers);
+check(JSON.stringify(look.shown) === JSON.stringify(look.tiers),
+  'sahne kademeyi uygulamış', [look.shown, look.tiers]);
+
+// prestij avluyu dolduruyor
+const b0 = look.branches;
+await pg.evaluate(() => { jeSetLifetime(1e10); jeSetEarned(1e12); jePrestige(); });
+await pg.waitForTimeout(400);
+look = await pg.evaluate(() => jeLook());
+check(look.branches === b0 + 1, 'şube sayısı arttı', look.branches);
+check(look.parked === look.branches, 'avluda şube başına bir sıra', [look.parked, look.branches]);
+check(look.tiers.every(t => t === 0), 'yeni şubede donanım başa döndü', look.tiers);
+
 console.log('\nhatalar: ' + (errs.length ? errs.join(' | ') : 'yok'));
 console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');
 await br.close();

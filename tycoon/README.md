@@ -293,8 +293,40 @@ yazılıyordu. Temiz kayıtla başladığını sanan her test bir öncekinin
 durumunu devralıyordu — araştırma testinin on bir kontrolü bu yüzden hatalı
 görünmüştü. Artık `wiped` bayrağı sıfırlamadan sonra kaydı susturuyor.
 
+## Fabrika ilerlediğini gösteriyor
+
+Her bandın altı biriminin beşi gizli ve `seviye/6`'da açılıyor — yani zemin
+ilk otuz seviyede doluyor, **sonra hiçbir şey değişmiyor**. Yan yana koyup
+ölçtüm: şube 1'de 150. seviye ile şube 6'da 230. seviye **birebir aynı
+kareydi**. Oyuncu 250. seviyeye çıkıyor, fabrikayı altı kez devrediyor ve
+hep aynı resmi görüyor.
+
+İki şey değişiyor artık:
+
+**Donanım kilometre taşlarıyla yenileniyor.** Her iki kilometre taşında bir
+kademe: demir → çelik → parlak çelik → krom → altın. Sadece **aksesuar
+parçalar** değişiyor — bacalar, pres kasaları, robot kolları, tır rayları —
+çünkü bir ocağı baştan boyarsan ocak olmaktan çıkıyor. Siluet duruyor,
+işçilik iyileşiyor.
+
+İlk denemede ortada "boyalı mavi" bir kademe vardı ve o kademede bütün
+fabrika tek renge dönüyordu; yerini bıraktığı griden daha kötü okuyordu.
+Rampa artık renk değil **parlaklık**. Metalik değer de düşük tutuluyor:
+sahnede ortam haritası yok, yani metalik bir yüzeyin yansıtacağı bir şey yok
+ve neredeyse siyah çıkıyor.
+
+**Avlu şubelerle doluyor.** Devredilen her fabrika için sol tarafa bir sıra
+bitmiş araç park ediyor. Prestijin gösterecek hiçbir şeyi yoktu — sayaç
+artıyordu ve zemin aynı kalıyordu, yani çalışan bir fabrikayı vermenin
+karşılığı köşedeki bir sayıydı.
+
+Sıralar küçük tutuldu. İlk hali sıra başına üç araç ve iki sütundu; altıncı
+şubede fabrikadan kalabalık oluyordu ve göz okuması gereken hattı bırakıp
+otoparka gidiyordu — üstelik yakın sütun montaj bandının üstüne biniyordu.
+
 ## Eksikler
 
 - AdMob uygulaması açılmadı; test reklam kimlikleri kullanılıyor
 - Uygulama içi satın alma yok
+- Müdürler her devirde yeniden alınıyor ve geç şubelerde bedava sayılıyor
 - Telefonda hiç denenmedi
