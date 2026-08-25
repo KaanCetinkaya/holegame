@@ -40,9 +40,23 @@ npm run apk:fruithole
 
 Çıktı: `android-fruithole/app/build/outputs/apk/release/app-release.apk`
 
-USB kablo / WhatsApp "Kendine mesaj" / Drive ile telefona at, dosyaya dokun,
-"Bilinmeyen kaynaklardan kuruluma izin ver" de. Aynı keystore ile imzalı,
-yani Play'den gelen sürümle **aynı** uygulama sayılır.
+Telefona geçirmenin en kolay yolu **kablo değil**, aynı Wi-Fi:
+
+```bash
+npm run send:fruithole
+```
+
+Ekrana `http://192.168.x.x:8787` gibi bir adres yazıyor. Telefonun
+tarayıcısına onu yaz, düğmeye bas, APK iniyor. Windows ilk seferde güvenlik
+duvarı izni sorarsa "İzin ver" de. İşin bitince Ctrl+C.
+
+> Bunun için kendi küçük sunucumuz var (`serve-apk.mjs`), çünkü tarayıcının
+> `.apk`'yı kurulabilir dosya sayması için doğru MIME türüyle
+> (`application/vnd.android.package-archive`) sunulması gerekiyor —
+> sıradan bir dosya sunucusu onu `.zip` diye indiriyor.
+
+USB kablo / WhatsApp "Kendine mesaj" / Drive de olur. Aynı keystore ile
+imzalı, yani Play'den gelen sürümle **aynı** uygulama sayılır.
 
 > Play'den gelen sürüm zaten kuruluysa APK "uygulama yüklenemedi" diyebilir.
 > Önce Play sürümünü kaldır, ya da tersi.

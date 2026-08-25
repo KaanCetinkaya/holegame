@@ -26,7 +26,11 @@
     "sync:tycoon": "node build-www.mjs && cross-env APP=tycoon npx cap sync android && cross-env APP=tycoon node patch-manifest.mjs",
     "open:tycoon": "cross-env APP=tycoon npx cap open android",
     "aab:tycoon": "node build-www.mjs && cross-env APP=tycoon npx cap sync android && cross-env APP=tycoon node patch-manifest.mjs && cross-env APP=tycoon node build-aab.mjs",
-    "apk:tycoon": "node build-www.mjs && cross-env APP=tycoon npx cap sync android && cross-env APP=tycoon node patch-manifest.mjs && cross-env APP=tycoon node build-aab.mjs apk"
+    "apk:tycoon": "node build-www.mjs && cross-env APP=tycoon npx cap sync android && cross-env APP=tycoon node patch-manifest.mjs && cross-env APP=tycoon node build-aab.mjs apk",
+    "send:hole": "node serve-apk.mjs hole",
+    "send:fruithole": "node serve-apk.mjs fruithole",
+    "send:slicer": "node serve-apk.mjs slicer",
+    "send:tycoon": "node serve-apk.mjs tycoon"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.1.0",
