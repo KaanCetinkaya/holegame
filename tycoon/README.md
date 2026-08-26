@@ -121,15 +121,36 @@ tamamı **hat hızına** konarak (bkz. Araştırma):
 
 | şube | 30 dk sonunda | gelir/sn | çarpan |
 |---|---|---|---|
-| 1 | 150/147/150/149 | 235K | 1.0× |
-| 2 | 177/177/177/181 | 1.81M | 6.4× |
-| 3 | 193/193/194/196 | 5.82M | 18.8× |
-| 4 | 203/206/208/213 | 25.1M | 38.6× |
-| 5 | 215/213/218/222 | 45.6M | 66.9× |
-| 6 | 225/229/225/222 | 255M | 105.6× |
+| 1 | 156/157/159/160 | 499K | 1.0× |
+| 2 | 191/192/194/192 | 5.24M | 8.6× |
+| 3 | 215/213/217/221 | 44.6M | 32.7× |
+| 4 | 237/239/238/249 | 450M | 87.3× |
+| 5 | 255/255/259/258 | 1.29B | 231.8× |
+| 6 | 267/266/267/273 | 2.83B | 489.0× |
 
 Seviyeler de geliri de büyüyor — asıl istenen buydu. 6. şubede Spor (220)
 açılıyor, yani ürün hattının havucu da yerini buluyor.
+
+Bu tablo bir öncekinin iki-üç katı. Sebebi oyunun kolaylaşması değil,
+**ölçümün düzelmesi**: sahte oyuncu müdür almıyordu, yani her istasyondaki
+×2 hiç hesaba girmiyordu ve tablo gerçek oyunu olduğundan zayıf gösteriyordu.
+Gerçek oyuncu müdürü görür görmez alıyor, çünkü ×2 her zaman kârlı.
+
+## Müdürler devirde duruyor
+
+Müdür bir istasyonu ikiye katlıyor ve yükseltme gibi değil, kilometre taşı
+gibi fiyatlanıyor: her seviyenin aynı hissettirdiği yerde uğruna para
+biriktirilen şey. İlk şubede tam olarak bu işi görüyor.
+
+Ama her devirde sıfırlanıyorlardı ve altıncı şubede bir müdür saniyelik
+gelirin binde biri ediyordu — tur başlamadan önce bedavaya basılması gereken
+dört düğme. Zaten hiçbir zaman bir karar da değillerdi: bir istasyonda ×2,
+kaç seviye alırsan al onu geçiyor. Fiyat sadece bir kapıydı, ve bir kapıdan
+bir kere geçmek yeter.
+
+Artık kalıyorlar. Dördü de ×2 olduğu ve zincir en yavaş halkasının hızında
+aktığı için akış ×16 değil **×2** artıyor — ikinci şubeden itibaren kalıcı
+ve ölçülü bir ödül.
 
 ## Tamponlar
 
@@ -328,5 +349,4 @@ otoparka gidiyordu — üstelik yakın sütun montaj bandının üstüne biniyor
 
 - AdMob uygulaması açılmadı; test reklam kimlikleri kullanılıyor
 - Uygulama içi satın alma yok
-- Müdürler her devirde yeniden alınıyor ve geç şubelerde bedava sayılıyor
 - Telefonda hiç denenmedi

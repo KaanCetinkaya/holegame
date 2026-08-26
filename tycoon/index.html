@@ -1297,7 +1297,14 @@ $('pGo').onclick = () => {
   // a starting purse is worth a different amount every branch, a starting
   // level is worth the same thing at every scale.
   G.lvl = STATIONS.map(() => 1 + resLvl('start'));
-  G.mgr = [false, false, false, false];
+  // Managers are kept. They used to reset with everything else, and by the
+  // sixth branch a manager cost a thousandth of a second of income — four
+  // buttons the player had to press for free before the run could start.
+  // Nor were they ever a decision: ×2 on a station beats any number of
+  // levels, so the price was only ever a gate, and a gate is worth passing
+  // once. The saving-up moment on the first branch is the point of them and
+  // that is left alone. Rate is ×2 on every station equally, so the chain's
+  // flow is ×2, not ×16.
   G.buf = [0, 0, 0];
   for (const b of belts) { for (const c of b.crates) dropCrate(c.m); b.crates.length = 0; }
   saveNow();
@@ -1744,6 +1751,7 @@ window.jeOffline = sec => {
   return r;
 };
 window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
+window.jeBuyManager = i => { buyManager(i); return G.mgr[i]; };
 window.jeReset = () => { wiped = true; localStorage.removeItem(KEY); location.reload(); };
 window.jeFmt = fmt;
 window.jeSeenTier = () => shownTier;

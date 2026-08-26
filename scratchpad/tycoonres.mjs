@@ -157,6 +157,24 @@ check(look.branches === b0 + 1, 'şube sayısı arttı', look.branches);
 check(look.parked === look.branches, 'avluda şube başına bir sıra', [look.parked, look.branches]);
 check(look.tiers.every(t => t === 0), 'yeni şubede donanım başa döndü', look.tiers);
 
+// --- 7. müdürler devirde duruyor mu ---------------------------------------
+console.log('\n7) Müdürler');
+await pg.evaluate(() => jeReset());
+await pg.waitForTimeout(500);
+await pg.waitForFunction(() => typeof window.jeProbe === 'function');
+await pg.evaluate(() => { jeGive(1e9); for (let i = 0; i < 4; i++) jeBuy(i, 10); });
+await pg.waitForTimeout(200);
+await pg.evaluate(() => { for (let i = 0; i < 4; i++) jeBuyManager?.(i); });
+let pr = await pg.evaluate(() => jeProbe());
+check(pr.mgr.every(Boolean), 'dört müdür de alındı', pr.mgr);
+const rate0 = pr.income;
+await pg.evaluate(() => { jeSetLifetime(1e10); jeSetEarned(1e12); jePrestige(); });
+await pg.waitForTimeout(300);
+pr = await pg.evaluate(() => jeProbe());
+check(pr.mgr.every(Boolean), 'devirden sonra müdürler duruyor', pr.mgr);
+check(pr.lvl.every(l => l === 1), 'seviyeler yine sıfırlandı', pr.lvl);
+console.log(`     (devir öncesi gelir ${rate0.toFixed(0)}, sonrası ${pr.income.toFixed(0)})`);
+
 console.log('\nhatalar: ' + (errs.length ? errs.join(' | ') : 'yok'));
 console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');
 await br.close();

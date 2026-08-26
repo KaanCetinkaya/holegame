@@ -25,10 +25,13 @@ const F = n => n>=1e12?(n/1e12).toFixed(2)+'T':n>=1e9?(n/1e9).toFixed(2)+'B':n>=
 // Prestijden sonra puanlar kendiliğinden çarpan olmuyor; oyuncunun yapacağı
 // şeyi yap ve hepsini hat hızına koy.
 const spend = () => pg.evaluate(() => window.jeResBuy('line', 999999));
+// Gerçek oyuncu müdürü görür görmez alıyor — ×2 her zaman kârlı. Sahte
+// oyuncu almazsa müdürlerin kalıcı olmasının etkisi ölçüme hiç girmiyor.
 const play = m => pg.evaluate(mins => {
   for (let k = 0; k < mins; k++) {
     window.jeRun(60);
     const p = window.jeProbe();
+    for (let i = 0; i < 4; i++) if (!p.mgr[i]) window.jeBuyManager(i);
     window.jeBuy(['Döküm','Pres','Montaj','Sevkiyat'].indexOf(p.neck), 'max');
   }
   return window.jeProbe();
@@ -40,7 +43,7 @@ for (let run = 1; run <= 6; run++) {
   const r = await play(30);
   const pend = r.pending;
   const mult = (await pg.evaluate(() => window.jeRes())).mult;
-  console.log(` ${String(run).padStart(3)} | ${r.lvl.join('/').padEnd(20)} | ${F(r.income).padStart(9)} | ${String(r.points).padStart(4)} | ${mult.toFixed(1)}x | +${pend} puan`);
+  console.log(` ${String(run).padStart(3)} | ${r.lvl.join('/').padEnd(20)} | ${F(r.income).padStart(9)} | ${String(r.points).padStart(4)} | ${mult.toFixed(1)}x | +${pend} puan | müdür ${r.mgr.filter(Boolean).length}/4`);
   const before = r.points;
   await pg.evaluate(() => window.jePrestige());
   await spend();
