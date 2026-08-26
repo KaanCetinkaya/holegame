@@ -49,12 +49,14 @@ Android Studio'da:
 
 ## Reklam (AdMob)
 
-Reklam kodu oyunda **hazır ve bağlı** (`index.html` içindeki `AD_UNITS`, `showRewarded`, `showInterstitial`):
+Reklam kodu oyunda **hazır ve bağlı** (`index.html` içindeki `AD_UNITS`, `showRewarded`, `showInterstitial`, `showBanner`):
 - "2× Coin" butonu → **rewarded** reklam (izlenince ödül verilir)
 - Her 2 level'da bir ve başarısızlıkta → **interstitial** ara reklam
+- Ana ekranda alt **banner** reklam
 - Tarayıcıda reklam **no-op**'tur (oyun aynı çalışır); sadece native uygulamada gösterilir.
 
-Şu an **Google resmi TEST reklam ID'leri** kullanılıyor — geliştirmede güvenle çalışır.
+`AD_UNITS` içindeki üç birim **senin gerçek AdMob reklam birimi ID'lerin**
+(yayıncı: `ca-app-pub-2542927456156553`). Test ID'si kalmadı.
 
 Kurulum (Android):
 ```bash
@@ -65,14 +67,15 @@ npx cap sync
 ```xml
 <meta-data
   android:name="com.google.android.gms.ads.APPLICATION_ID"
-  android:value="ca-app-pub-3940256099942544~3347511713"/>
+  android:value="ca-app-pub-2542927456156553~XXXXXXXXXX"/>
 ```
+> `~` sonrası kısım **AdMob App ID**'dir (reklam birimi ID'sinden farklı).
+> AdMob → Uygulamalar → Hole → Uygulama ayarları'ndan kopyala ve `XXXXXXXXXX`
+> yerine yapıştır. Bu adım yapılmazsa uygulama açılışta AdMob ile çöker.
 
-**Yayına çıkmadan önce** (kendi AdMob hesabınla):
-1. AdMob'da uygulama + reklam birimleri (rewarded, interstitial) oluştur.
-2. Yukarıdaki manifest App ID'sini kendi **App ID**'nle değiştir.
-3. `index.html` içindeki `AD_UNITS.rewarded` ve `AD_UNITS.interstitial` değerlerini kendi **reklam birimi ID**'lerinle değiştir, sonra `npm run build:www && npx cap sync`.
-4. Reklam varsa Play Console'da **gizlilik politikası** ve **veri güvenliği** formu zorunlu.
+Reklam olduğu için Play Console'da **gizlilik politikası URL'si** ve
+**veri güvenliği** formu zorunlu (`store/privacy-policy.html` hazır — bir yere
+yayınlayıp URL'sini gir; ör. GitHub Pages).
 
 ## İkon & Splash
 
@@ -97,6 +100,21 @@ PNG'leri değiştirip komutu tekrar çalıştır.
 Play Console'da: en az 2 ekran görüntüsü + feature grafiği + 512×512 ikon
 (ikon `@capacitor/assets` çıktısından veya `assets/icon-only.png`'den) yükle.
 
-## Sonraki adımlar (opsiyonel)
+## Yayına çıkış kontrol listesi (kalan işler)
 
-- **Banner reklam**, günlük ödül, daha çok skin, level haritası vb.
+Kod tarafı bitti. Kalanlar **senin bilgisayarında / hesaplarında** yapılacak adımlar:
+
+- [ ] `npm install && npx cap add android && npx cap sync`
+- [ ] `npx @capacitor/assets generate --android` (ikon + splash üret)
+- [ ] `AndroidManifest.xml` içine **kendi AdMob App ID**'ni ekle (yukarıdaki `~XXXXXXXXXX`)
+- [ ] Gerçek cihazda test: reklamlar, ses/titreşim, kayıt (coin/skin/görev) çalışıyor mu
+- [ ] **Keystore** oluştur, imzalı `.aab` üret ve keystore'u güvenli sakla (kaybolursa güncelleme yapamazsın)
+- [ ] `store/privacy-policy.html`'i yayınla, URL'sini not al
+- [ ] Play Console: uygulama oluştur (paket adı `com.kaancetinkaya.hole`), `.aab` yükle
+- [ ] Mağaza listesi: `store/listing-tr.md` metinleri + `store/` görselleri + 512×512 ikon
+- [ ] İçerik derecelendirme anketi, veri güvenliği formu, hedef kitle (reklam var → "çocuklara yönelik değil" seç)
+- [ ] İç test → Kapalı test → Üretim
+
+## Sonraki adımlar (opsiyonel, oyun içi)
+
+- Daha çok level/şehir teması, yeni skinler, liderlik tablosu, bulut kayıt.
