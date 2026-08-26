@@ -76,12 +76,13 @@ linkini telefondan aç.
 | Bağımlılıklar | `npm install` |
 | Native proje | `npm run add:fruithole` |
 | İkon/splash | `npm run assets:fruithole` |
-
-> Diğer oyunlar için aynısı: `add:slicer` / `assets:slicer`,
-> `add:tycoon` / `assets:tycoon`, `add:hole` / `assets:hole`.
 | Keystore | Android Studio → Generate Signed Bundle → Create new, **ya da** `keytool` |
 | `keystore.properties` | depo kökünde, aşağıdaki biçimde (git'e girmez) |
 | Gizlilik politikası | GitHub → Settings → Pages → Source: `/docs` (aşağı bak) |
+
+> Diğer oyunlar için aynısı: `add:slicer` / `assets:slicer`,
+> `add:tycoon` / `assets:tycoon`, `add:hole` / `assets:hole`. Keystore ve
+> `keystore.properties` ortak — tek anahtar dört uygulamayı da imzalıyor.
 
 ```properties
 storeFile=C:/Users/HP/Desktop/fruithole-key.jks
