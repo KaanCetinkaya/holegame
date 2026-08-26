@@ -13,6 +13,8 @@
     "open:fruithole": "cross-env APP=fruithole npx cap open android",
     "assets:fruithole": "cross-env APP=fruithole npx @capacitor/assets generate --assetPath fruithole/assets --androidProject android-fruithole --android",
     "assets:hole": "npx @capacitor/assets generate --assetPath assets --androidProject android --android",
+    "assets:slicer": "cross-env APP=slicer npx @capacitor/assets generate --assetPath slicer/assets --androidProject android-slicer --android",
+    "assets:tycoon": "cross-env APP=tycoon npx @capacitor/assets generate --assetPath tycoon/assets --androidProject android-tycoon --android",
     "aab:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android && cross-env APP=fruithole node patch-manifest.mjs && cross-env APP=fruithole node build-aab.mjs",
     "aab:hole": "node build-www.mjs && npx cap sync android && node patch-manifest.mjs && node build-aab.mjs",
     "apk:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android && cross-env APP=fruithole node patch-manifest.mjs && cross-env APP=fruithole node build-aab.mjs apk",
