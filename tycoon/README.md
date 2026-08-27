@@ -23,6 +23,17 @@ Oyunun bütün öğretisi bu tamponlarda. Dolan çubuk oyuncuya neyi yükseltece
 söylüyor; başka bir istasyonu yükseltmek gözle görülür şekilde hiçbir şey
 yapmıyor. Eğitim ekranı, "önerilen" oku ya da açıklama metni yok.
 
+**Ama çubuk tek başına yetmiyordu.** Oyunu telefonda oynayan ilk kişi
+"kırmızı olunca ne oluyor" diye sordu — üç istasyon tıkalıydı, cevap aynı
+ekranda **DARBOĞAZ** etiketiyle duruyordu ve ikisi arasındaki bağı kimse
+kurmuyordu. Çubuk neyin yanlış olduğunu söylüyor, ne yapılacağını
+söylemiyordu. Artık tıkalı istasyonun satırı beklediği istasyonun **adını**
+yazıyor: `DOLU — Sevkiyat'ı yükselt`, çubuğun kendi kırmızısıyla.
+
+Kilometre taşı ipucu o sırada gizleniyor: satıra sığmıyor, üstelik üzerine
+basılmayacak tek bilgi o — çıkışı tıkalı bir istasyonu yükseltmek hiçbir şey
+almıyor.
+
 ## Denge — üç deneme
 
 Denge, hep darboğazı satın alan sahte bir oyuncu simüle edilerek ölçüldü
@@ -248,6 +259,7 @@ ve son görülme zamanı var. Eski bir kayıt eksik dizi elemanıyla gelebilir; 
     node scratchpad/tycoon5.mjs    # ürün kademeleri ve fiyat
     node scratchpad/tycoon6.mjs    # MAKS alımı ve yüksek çarpanla 30 dakika
     node scratchpad/tycoonres.mjs  # araştırma: puan muhasebesi ve yedi etki
+    node scratchpad/tyblock.mjs    # tıkalı hat: kırmızı çubuk ve yönlendirme
 
 `window.jeProbe()` oyunun bütün durumunu döndürür; `jeGive`, `jeRun`, `jeBuy`,
 `jeOffline`, `jeBoost`, `jePrestige`, `jeGoals`, `jeDaily`, `jeRes`,

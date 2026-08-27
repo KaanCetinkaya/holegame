@@ -78,6 +78,9 @@
      border carries the signal too, so it reads before the text does. */
   .st.neck { border-color: #d8a13a; background: rgba(216,161,58,.12); }
   .st .meta em { font-style: normal; font-weight: 900; color: #ffc44d; }
+  /* Same weight as DARBOĞAZ but in the bar's own red, so the words and the
+     colour that prompted them read as one thing. */
+  .st .meta u { text-decoration: none; font-weight: 900; color: #e8603c; }
   .st .sub { font-size: 12px; opacity: .78; margin-top: 2px; white-space: nowrap;
              overflow: hidden; text-overflow: ellipsis; }
   .st .meta { font-size: 11px; opacity: .6; margin-top: 1px; white-space: nowrap; }
@@ -1205,16 +1208,26 @@ function refreshPanel() {
     r.el.classList.toggle('neck', i === ch.neck);
     const hits = milestonesHit(i), nxt = nextMilestone(i);
     r.sub.textContent = `${fmt(rateOf(i))} ${s.unit}/sn`;
+    // A full bar turning red was meant to be self-explanatory and it was not:
+    // the first person to play it on a phone asked what red meant while three
+    // stations sat blocked and the answer — buy the one marked DARBOĞAZ — was
+    // on the same screen. The bar says what is wrong; it never said what to
+    // do about it, so it now names the station everything is waiting for.
+    const blocked = i < LAST && G.buf[i] >= roomOf(i) * 0.92;
     const bits = [];
     if (i === ch.neck) bits.push('<em>DARBOĞAZ</em>');
+    else if (blocked) bits.push(`<u>DOLU — ${STATIONS[ch.neck].name}'ı yükselt</u>`);
     if (hits) bits.push(`<b>×${fmt(Math.pow(2, hits))}</b>`);
     if (G.mgr[i]) bits.push('müdür');
-    if (nxt) bits.push(`${nxt}'de <b>×2</b>`);
+    // The milestone hint is dropped while blocked. It does not fit next to
+    // the instruction and it is the one line that is not worth acting on:
+    // levelling a station whose output has nowhere to go buys nothing.
+    if (nxt && !blocked) bits.push(`${nxt}'de <b>×2</b>`);
     r.meta.innerHTML = bits.join(' · ');
-    if (i < STATIONS.length - 1) {
+    if (i < LAST) {
       const p = Math.min(100, (G.buf[i] / roomOf(i)) * 100);
       r.buf.style.width = p + '%';
-      r.buf.classList.toggle('full', p > 92);
+      r.buf.classList.toggle('full', blocked);
       r.bufWrap.style.visibility = '';
     } else {
       r.bufWrap.style.visibility = 'hidden';
