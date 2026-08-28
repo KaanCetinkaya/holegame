@@ -114,6 +114,39 @@ uçtakiler kenardan taşmayacak kadar içeride — hem 26 hem 34 satırda ölç�
 (`scratchpad/holecircles.mjs`). Ölçü göz kararı olamazdı: `nx`/`ny` ile
 çizilmiş bir elips de tepeden bakınca "yuvarlak" görünüyor.
 
+## Deliğin görüntüsü
+
+Ağız üç parça: dışta ince koyu bir kenar, içinde **geniş düz bir yaka**, onun
+da içinde aşağı inen kuyu.
+
+Önceden yaka ince bir simit, içinde daha da ince bir tane daha vardı — yani
+telefonda bir çukurun etrafına dolanmış ipti. Deliğin bir bölümün çoğunu
+geçirdiği boyutta yaka iki üç piksellik renk ediyordu ve gözün tutunacağı
+hiçbir şey kalmıyordu. Geniş bant her boyutta okunuyor.
+
+Kuyunun içindeki tuğla sıraları soğuk taşa çevrildi. Üstündeki karartma
+gradyanı %92 opak düz siyahtı ve boyanan her şeyi yutuyordu: ağız, bir yere
+inen bir şey değil, sayfaya açılmış bir delik gibi duruyordu.
+
+### Boyut yayı
+
+Yakanın dışında dönen renkli yay, deliğin bu bölümde ulaşabileceği en büyük
+boyuta ne kadar yaklaştığını gösteriyor. Deliğin büyümesi oyunun bütün
+ilerlemesi ve bunun tek işareti deliğin büyümüş olmasıydı — ki aynı anda
+tahta da değiştiği için gözle kıyaslanamıyor. Yay **kaplamanın rengini**
+taşıyor, yani satın aldığın şey hâlâ gördüğün şey.
+
+Ölçüm bölümün başladığı yarıçapa göre: başlangıç boyutu yükseltmesini almış
+bir oyuncu yolun bir kısmını çoktan geçmiş oluyor, yay ilk meyvede boş
+görünmeli.
+
+Yay kırk adıma yuvarlanıyor ve ancak bir adım değişince yeniden üretiliyor,
+yani bir bölüm en fazla kırk küçük geometri harcıyor. İlk denemede tam
+çemberlik tek bir simit tutulup `setDrawRange` ile kısaltılıyordu; **çalışmaz**
+— THREE simiti dış döngü halka, iç döngü tüp olacak şekilde kuruyor, yani
+ardışık indeksler yayın değil **tüpün** etrafında ilerliyor. İlk N indeksi
+çizmek tüpün bir dilimini veriyor, ekranda da hiçbir şey görünmüyordu.
+
 ## Delik ne kadar hızlı büyüyor
 
 Meyve başına artış **sabit değil, tarlaya oranlı**: tarlanın %90'ını süpürmek

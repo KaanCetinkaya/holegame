@@ -4317,6 +4317,9 @@ const growthUnit = () =>
 let holeRadius = BASE_HOLE_R;
 let holeX = SPAWN_X, holeZ = 0;
 let holeGroup;
+// Where the hole started this level, so the size arc can measure growth
+// from there rather than from nothing.
+let startRadius = BASE_HOLE_R;
 
 
 // The pit cannot be cut out of a solid ground plane without a stencil pass,
@@ -4330,7 +4333,7 @@ function holeInteriorTexture() {
   const cx = S / 2, cy = S / 2, R = S / 2;
   ctx.save();
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
-  ctx.fillStyle = '#4a2a12';
+  ctx.fillStyle = '#141c2c';
   ctx.fillRect(0, 0, S, S);
 
   // brick courses, each ring smaller and darker than the one above it
@@ -4344,8 +4347,10 @@ function holeInteriorTexture() {
       // light falls from the upper left, so bricks facing that way are lit
       const mid = (a0 + a1) / 2;
       const lit = Math.max(0, Math.cos(mid - Math.PI * 1.25));
-      const base = 74 + lit * 58 - i * 7;
-      ctx.fillStyle = `rgb(${base | 0}, ${(base * 0.62) | 0}, ${(base * 0.34) | 0})`;
+      // Cool stone rather than brick. Brown courses under a pale collar read
+      // as a plant pot; the shaft wants to look like it goes somewhere cold.
+      const base = 52 + lit * 44 - i * 5;
+      ctx.fillStyle = `rgb(${(base * 0.66) | 0}, ${(base * 0.82) | 0}, ${base | 0})`;
       ctx.beginPath();
       ctx.arc(cx, cy, r0, a0, a1);
       ctx.arc(cx, cy, r1, a1, a0, true);
@@ -4354,11 +4359,15 @@ function holeInteriorTexture() {
   }
 
   // and the dark that swallows it
+  // Tinted rather than flat black, and a little more transparent than it
+  // was. Pure black at .92 swallowed the shaft whole: the courses were
+  // repainted in cool stone and none of it reached the screen, so the mouth
+  // was a hole punched in the page rather than somewhere that goes down.
   const g = ctx.createRadialGradient(cx, cy, R * 0.03, cx, cy, R);
-  g.addColorStop(0, 'rgba(0,0,0,1)');
-  g.addColorStop(0.5, 'rgba(0,0,0,.92)');
-  g.addColorStop(0.86, 'rgba(0,0,0,.42)');
-  g.addColorStop(1, 'rgba(0,0,0,.1)');
+  g.addColorStop(0, 'rgba(4,8,16,.97)');
+  g.addColorStop(0.5, 'rgba(7,13,25,.82)');
+  g.addColorStop(0.86, 'rgba(10,18,32,.34)');
+  g.addColorStop(1, 'rgba(12,20,36,.06)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, S, S);
   ctx.restore();
@@ -4384,30 +4393,79 @@ function applySkin(id) {
 }
 applySkin(activeSkin);
 
+// The mouth is a wide flat collar with a dark outline, not a tube of rope.
+//
+// It was a thin torus with a thinner one inside it, and on a phone that is a
+// piece of string round a pit: at the size the hole spends most of a level
+// the collar was two or three pixels of colour and the eye had nothing to
+// hold. A broad band reads at any size, and it is what every game in this
+// genre does. The band takes the skin's pale colour, the outline sits just
+// outside it, and the skin's own colour goes on the arc.
+let sizeArc = null;
+const HOLE_EDGE_MAT = new THREE.MeshStandardMaterial({ color: '#1d2230', roughness: 0.7 });
+const ARC_SEGMENTS = 40;
+
 function buildHole() {
   if (holeGroup) scene.remove(holeGroup);
   holeGroup = new THREE.Group();
 
-  // Collar: real geometry, so it takes the scene's light and throws a
-  // shadow onto the sand — the part that makes the hole sit in the ground
-  // rather than on it.
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(BASE_HOLE_R, 0.17, 18, 44), HOLE_RIM_MAT);
-  rim.rotation.x = Math.PI / 2;
-  rim.position.y = 0.02;
-  rim.castShadow = true;
-  rim.receiveShadow = true;
+  // The collar proper: a flat annulus, lit and shadowed like the ground it
+  // is set into rather than floating over it.
+  const band = new THREE.Mesh(
+    new THREE.RingGeometry(BASE_HOLE_R * 0.70, BASE_HOLE_R * 0.99, 48), HOLE_LIP_MAT);
+  band.rotation.x = -Math.PI / 2;
+  band.position.y = 0.045;
+  band.receiveShadow = true;
 
-  // pale inner lip, to catch the light where the ground breaks away
-  const lip = new THREE.Mesh(new THREE.TorusGeometry(BASE_HOLE_R * 0.91, 0.055, 12, 40), HOLE_LIP_MAT);
-  lip.rotation.x = Math.PI / 2;
-  lip.position.y = 0.055;
+  // A dark edge round the outside. Without it a pale collar on pale sand has
+  // no boundary at all and the hole loses its shape on the lighter themes.
+  const edge = new THREE.Mesh(
+    new THREE.TorusGeometry(BASE_HOLE_R * 1.0, 0.038, 10, 44), HOLE_EDGE_MAT);
+  edge.rotation.x = Math.PI / 2;
+  edge.position.y = 0.03;
+  edge.castShadow = true;
 
-  const inner = new THREE.Mesh(new THREE.CircleGeometry(BASE_HOLE_R * 0.9, 44), HOLE_INTERIOR_MAT);
+  // How close the hole is to the biggest it can get this level, drawn as an
+  // arc riding outside the collar. The hole growing is the whole of the
+  // game's progress and until now the only sign of it was the hole being
+  // bigger — which you cannot judge against a board that is also changing.
+  // It carries the skin's colour, so the thing you buy is still the thing
+  // you see.
+  sizeArc = new THREE.Mesh(new THREE.BufferGeometry(), HOLE_RIM_MAT);
+  sizeArc.rotation.x = Math.PI / 2;
+  sizeArc.position.y = 0.02;
+  sizeArc.castShadow = true;
+  arcSteps = -1;
+  setSizeArc(0);
+
+  const inner = new THREE.Mesh(new THREE.CircleGeometry(BASE_HOLE_R * 0.71, 44), HOLE_INTERIOR_MAT);
   inner.rotation.x = -Math.PI / 2;
   inner.position.y = 0.03;
 
-  holeGroup.add(rim, lip, inner);
+  holeGroup.add(edge, band, sizeArc, inner);
   scene.add(holeGroup);
+}
+
+// The arc is quantised to forty steps and only rebuilt when it crosses one,
+// so a whole level costs at most forty small geometries rather than one a
+// frame.
+//
+// The first attempt kept one full-sweep torus and moved its draw range,
+// which does not work: THREE builds a torus with the radial loop outside and
+// the tubular loop inside, so consecutive indices run around the *tube*, not
+// around the ring. Drawing the first N of them gives a sliver of the tube —
+// on screen, nothing at all, which is exactly what it looked like.
+let arcSteps = -1;
+function setSizeArc(frac) {
+  if (!sizeArc) return;
+  const n = Math.round(Math.max(0, Math.min(1, frac)) * ARC_SEGMENTS);
+  if (n === arcSteps) return;
+  arcSteps = n;
+  sizeArc.geometry.dispose();
+  sizeArc.visible = n > 0;
+  if (n === 0) { sizeArc.geometry = new THREE.BufferGeometry(); return; }
+  sizeArc.geometry = new THREE.TorusGeometry(
+    BASE_HOLE_R * 1.14, 0.075, 8, Math.max(2, n), (n / ARC_SEGMENTS) * Math.PI * 2);
 }
 
 function resetHole() {
@@ -4415,6 +4473,7 @@ function resetHole() {
   // needs — you were born almost ready, and the sweep that was supposed to
   // earn it had nothing left to do.
   holeRadius = BASE_HOLE_R + (sizeStage - 1) * 0.02 + upg('size') * 0.06;
+  startRadius = holeRadius;
   holeX = SPAWN_X;
   holeZ = spawnZ();
   buildHole();
@@ -5482,6 +5541,13 @@ window.fruitHoleKick = (mult = 5) => {
   return shake;
 };
 window.fruitHoleWater = () => ({ offsetX: waterTex.offset.x, surf: surf.scale.x });
+// Set the hole to a fraction of the growth it can do this level, so the
+// collar and the size arc can be looked at at any size without playing to
+// get there.
+window.fruitHoleSetSize = f => {
+  holeRadius = startRadius + (HOLE_MAX - startRadius) * Math.max(0, Math.min(1, f));
+  return holeRadius;
+};
 
 // The circles of the Bubbles pattern as the board actually built them: their
 // measured width and depth in world units, the narrowest gap between any two,
@@ -5792,6 +5858,10 @@ function tick(now) {
   holeGroup.position.set(holeX, 0, holeZ);
   const s = holeRadius / BASE_HOLE_R;
   holeGroup.scale.set(s * pulse, 1 + rimPulse * 0.5, s * pulse);
+  // Measured against where the hole started this level, not against zero:
+  // the arc has to be empty at the first fruit and full at the cap, and a
+  // player who bought the starting-size upgrade begins part of the way up.
+  setSizeArc((holeRadius - startRadius) / Math.max(0.001, HOLE_MAX - startRadius));
 
   if (state === 'menu') {
     // The menu looks at a real diorama rather than a painted picture: same
