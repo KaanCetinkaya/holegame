@@ -3768,6 +3768,43 @@ function fromCentre(r, c) {
   return Math.min(1, Math.hypot(nx, ny * 0.85));
 }
 
+// A circle that is actually round.
+//
+// Every other shape here works in nx/ny, where both axes run -1..1 — but the
+// board is thirteen cells across and twenty-two to thirty-four deep, so a
+// circle drawn that way comes out as an oval stretched down the length of
+// the field. Cells are square in world space (1.05 units each way), so a
+// round circle is a plain distance in *cells*.
+//
+// Positions are given as fractions of the board so a level keeps its layout
+// as the field grows with the level number, and radii are in cells so a
+// circle is the same size however long the board gets.
+// Five, not six, and placed by working the distances out rather than by eye.
+// The first pass had six and two pairs of them ended up 0.7 of a cell apart:
+// on the board that is not two circles, it is one peanut. Every pair here
+// clears its neighbour by at least a cell and a half of open floor, and the
+// end ones sit far enough in that a circle is never cut off by the edge of
+// the field — checked at both 26 rows and 34, the range this pattern sees.
+const CIRCLES = [
+  { u: 0.13, x: 0.22, r: 3.0 },
+  { u: 0.32, x: 0.78, r: 2.6 },
+  { u: 0.51, x: 0.30, r: 3.4 },
+  { u: 0.70, x: 0.80, r: 2.5 },
+  { u: 0.88, x: 0.34, r: 3.1 },
+];
+// Which circle a cell falls in, and how deep into it. -1 for open ground.
+// Returns the *first* match: the circles are placed not to overlap much, and
+// where they do the earlier one wins so the join reads as one in front of
+// the other rather than a lump with two centres.
+function circleAt(r, c) {
+  for (let i = 0; i < CIRCLES.length; i++) {
+    const k = CIRCLES[i];
+    const d = Math.hypot(c - k.x * (COLS - 1), r - k.u * (rows - 1));
+    if (d <= k.r) return { i, t: 1 - d / k.r };
+  }
+  return null;
+}
+
 const PATTERNS = [
   {
     name: 'Pyramid', icon: '🔺', theme: 'beach',
@@ -3945,6 +3982,23 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.42, 33) > 0.74,
   },
 
+  {
+    name: 'Bubbles', icon: '🫧', theme: 'home',
+    // Six round islands on open ground. Each one is a single fruit, which is
+    // what makes them read as separate things rather than one lumpy mass —
+    // and it changes how the level is played: you clear a circle, cross open
+    // floor, start the next. Every other pattern rewards one long sweep.
+    empty: (r, c) => !circleAt(r, c),
+    type: (r, c) => { const k = circleAt(r, c); return ID[k ? k.i % ID.length : 0]; },
+    // Domed, so a circle reads as a mound rather than a coin lying flat.
+    stack: (r, c) => { const k = circleAt(r, c); return ridge(k ? k.t : 0, 3); },
+    // One oversized fruit sitting at the middle of the three larger circles.
+    big: (r, c) => {
+      const k = circleAt(r, c);
+      return !!k && k.t > 0.8 && CIRCLES[k.i].r >= 3;
+    },
+  },
+
   // --- laid out in rings rather than rows -----------------------------
   // These read completely differently in play. On a grid you sweep in
   // straight lines; here the whole field turns around you, so the efficient
@@ -4001,9 +4055,10 @@ const PATTERNS = [
 // This puts one at level 3, and spaces the settings so the same place never
 // turns up two levels running.
 const LEVEL_ORDER = [
-  'Pyramid', 'Piles', 'Orbits', 'Walls', 'Blocks',
-  'Stairs', 'Heart', 'Whirl', 'Star', 'Island',
-  'Ring', 'Diamond', 'Bloom', 'Spiral', 'Cross',
+  'Pyramid', 'Piles', 'Orbits', 'Walls', 'Bubbles',
+  'Blocks', 'Stairs', 'Heart', 'Whirl', 'Star',
+  'Island', 'Ring', 'Diamond', 'Bloom', 'Spiral',
+  'Cross',
 ];
 for (const p of PATTERNS) {
   if (!LEVEL_ORDER.includes(p.name)) throw new Error(`LEVEL_ORDER is missing ${p.name}`);
@@ -5427,6 +5482,41 @@ window.fruitHoleKick = (mult = 5) => {
   return shake;
 };
 window.fruitHoleWater = () => ({ offsetX: waterTex.offset.x, surf: surf.scale.x });
+
+// The circles of the Bubbles pattern as the board actually built them: their
+// measured width and depth in world units, the narrowest gap between any two,
+// and how many run off the edge of the field. A circle drawn in nx/ny would
+// pass a glance and fail this — the board is thirteen cells across and up to
+// thirty-four deep, so that circle is an oval a metre and a half long.
+window.fruitHoleCircleCells = () => {
+  const seen = CIRCLES.map(() => ({ minX: 1e9, maxX: -1e9, minZ: 1e9, maxZ: -1e9, n: 0 }));
+  let clipped = 0;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < COLS; c++) {
+    const k = circleAt(r, c);
+    if (!k) continue;
+    const g = gridToWorld(r, c), s = seen[k.i];
+    s.minX = Math.min(s.minX, g.x); s.maxX = Math.max(s.maxX, g.x);
+    s.minZ = Math.min(s.minZ, g.z); s.maxZ = Math.max(s.maxZ, g.z);
+    s.n++;
+  }
+  // A circle whose centre is closer to an edge than its own radius has been
+  // cut off by the board rather than drawn on it.
+  CIRCLES.forEach((k, i) => {
+    const row = k.u * (rows - 1), col = k.x * (COLS - 1);
+    if (row - k.r < -0.5 || row + k.r > rows - 0.5) clipped++;
+    else if (col - k.r < -0.5 || col + k.r > COLS - 0.5) clipped++;
+  });
+  let minGap = Infinity;
+  for (let i = 0; i < CIRCLES.length; i++) for (let j = i + 1; j < CIRCLES.length; j++) {
+    const a = CIRCLES[i], b = CIRCLES[j];
+    const d = Math.hypot((a.x - b.x) * (COLS - 1), (a.u - b.u) * (rows - 1));
+    minGap = Math.min(minGap, d - a.r - b.r);
+  }
+  return {
+    circles: seen.map((s, i) => ({ i, n: s.n, w: s.maxX - s.minX, h: s.maxZ - s.minZ })),
+    minGap, clipped,
+  };
+};
 
 // What theme a level actually built with, and whether anything from another
 // theme's set slipped onto the board.

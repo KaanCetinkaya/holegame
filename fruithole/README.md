@@ -91,8 +91,28 @@ birden yazar: `⚽ 🔀 Cross`.
 Tarla 13 sütun geniş, 22 satırdan başlayıp bölüm bölüm 34'e uzar; ekrandan
 taştığı için kamera deliği takip eder. Her bölüm **bir şekildir** — piramit,
 kalp, yıldız, ada, halka, elmas, sarmal, çapraz, bloklar, merdiven, yığınlar,
-duvarlar — ve şeklin dışı boş kalır. Bir hücre birden çok meyve taşıyabilir
-(istif), delik geçerken kule toptan dökülür.
+duvarlar, daireler — ve şeklin dışı boş kalır. Bir hücre birden çok meyve
+taşıyabilir (istif), delik geçerken kule toptan dökülür.
+
+### Yuvarlak olan bir daire (🫧 Bubbles)
+
+Diğer bütün şekiller `nx`/`ny` ile çiziliyor; ikisi de -1..1 arası, ama tarla
+13 hücre geniş ve 22-34 hücre derin. O koordinatlarda çizilen bir çember
+ekranda **uzunlamasına bir elips** oluyor. Hücreler dünya uzayında kare
+(1.05 × 1.05 birim), dolayısıyla gerçek daire demek **hücre mesafesi** demek —
+`hypot(c - cx, r - cy)`.
+
+Beş yuvarlak ada, her biri **tek bir meyveden**. Şeklin ayrı ayrı okunmasını
+sağlayan şey bu; aynı meyve karışımı olsa tek bir topak gibi görünürdü. Oynanışı
+da değiştiriyor: bir daireyi temizliyor, boş zemini geçiyor, ötekine
+başlıyorsun. Diğer bütün desenler tek uzun bir süpürmeyi ödüllendiriyor.
+
+Yerleşim hesaplandı, gözle konmadı. İlk deneme altı daireydi ve iki çift
+0.7 hücre aralıkla düşmüştü: tahtada o iki daire değil, bir fıstık oluyor.
+Şimdi her çift komşusundan en az **1.5 hücre** açık zeminle ayrılıyor ve
+uçtakiler kenardan taşmayacak kadar içeride — hem 26 hem 34 satırda ölçüldü
+(`scratchpad/holecircles.mjs`). Ölçü göz kararı olamazdı: `nx`/`ny` ile
+çizilmiş bir elips de tepeden bakınca "yuvarlak" görünüyor.
 
 ## Delik ne kadar hızlı büyüyor
 
@@ -280,6 +300,7 @@ npm run build:www        # -> www-fruithole/
 node scratchpad/holegrow.mjs     # delik ne kadar hızlı büyüyor
 node scratchpad/holebalance.mjs  # süpürme süresi ve dev meyve eşiği
 node scratchpad/holeshake.mjs    # kombo tekmesinin profili
+node scratchpad/holecircles.mjs  # Bubbles daireleri yuvarlak ve ayrık mı
 ```
 
 `window.fruitHoleShake()` sarsıntının anlık halini, `fruitHoleKick(çarpan)`
