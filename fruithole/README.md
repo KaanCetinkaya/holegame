@@ -155,6 +155,32 @@ zorluk etmez.
   hakkında hiçbir şey söylemezdi; delikten dışarı olunca ilk oturan şey birazdan
   yiyeceğin meyve oluyor. **Sayaç ve kontrol bu sırada duruyor** — oynayamadığın
   bir buçuk saniyelik geri sayım oyuncudan çalınmış demektir.
+- **Kombo tekmesi bir salınım, sıçrama değil.** Çarpan yükseldiğinde kamera
+  küçük bir tekme yiyor. İki tuzağa arka arkaya düşüldü.
+
+  İlki: tekme *her yemede* tazeleniyordu. Büyük delikle yoğun tarlada bir
+  karede birkaç meyve birden yutuluyor, dolayısıyla sarsıntı tavanda
+  çakılı kalıyordu ve bütün bölüm boyunca görüntü uğulduyordu. Artık
+  yalnızca çarpan **yükseldiğinde** tetikleniyor.
+
+  İkincisi ve asıl "deprem" olanı: eksenlerden biri kosinüstü ve her tekmede
+  `shakeT` sıfırlanıyor, yani `cos(0) = 1` kamerayı **ilk karede tam
+  genliğe ışınlıyordu**. Sarsıntının kendisi 0.16 birimken iki kare arası
+  sıçrama da 0.16 birimdi: göz sallantı değil, ışınlanma görüyordu — üstelik
+  tam oyuncunun iyi gittiği anda. İki eksen de sinüs olunca tekme sıfırdan
+  başlayıp birkaç karede şişiyor.
+
+  | | eski | yeni |
+  |---|---|---|
+  | tepe genlik | 0.16 | 0.07 |
+  | ilk karedeki sıçrama (60 FPS) | 0.16 | 0.022 |
+  | süre | 0.14 sn | 0.15 sn |
+  | frekans | 5.4 / 4.3 Hz | 3.2 / 2.4 Hz |
+
+  Arada bir de fazla kısıldı: genlik düşürülüp çürüme 1.5/sn yapılınca
+  zarf, sinüs kendi tepesine varmadan ölüyordu ve geriye tek karelik bir
+  pop kalıyordu. **Çürüme yükselişten uzun yaşamalı.**
+
 - **Müzik de dosyasız.** Dört akorluk (F–C–G–Am) bir döngü aynı sentezle
   çalınıyor: bas + arpej. Notalar zamanlayıcıyla değil **ses saatine** yarım
   saniye önceden kuyruklanıyor — `setInterval` kayıyor ve arka plan sekmesinde
@@ -247,6 +273,19 @@ gerekir). Paketlenecek, kütüphanesi yerel sürümü üretmek için depo kökü
 ```bash
 npm run build:www        # -> www-fruithole/
 ```
+
+Ölçümler:
+
+```bash
+node scratchpad/holegrow.mjs     # delik ne kadar hızlı büyüyor
+node scratchpad/holebalance.mjs  # süpürme süresi ve dev meyve eşiği
+node scratchpad/holeshake.mjs    # kombo tekmesinin profili
+```
+
+`window.fruitHoleShake()` sarsıntının anlık halini, `fruitHoleKick(çarpan)`
+ise bölüm oynamadan tek bir tekmeyi tetikler — tekmeyi gerçek bir turla
+ölçmek bölüm başına dakikalar sürüyor ve sahte oyuncunun kombo kurabilmesine
+bağlı kalıyordu.
 
 ## İkon, splash ve mağaza görselleri
 

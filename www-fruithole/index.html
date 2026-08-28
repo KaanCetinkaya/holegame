@@ -4888,7 +4888,7 @@ function eatFruit(f, now) {
   burst(f.x, f.mesh.position.y, f.z, f.type);
   rimPulse = 1;
   if (mult >= 3 && mult > shakeMult) {
-    shake = Math.min(0.16, shake + 0.055 * (mult - 2));
+    shake = Math.min(0.07, shake + 0.025 * (mult - 2));
     shakeT = 0;
   }
   shakeMult = streak > 1 ? Math.max(shakeMult, mult) : mult;
@@ -5417,6 +5417,15 @@ window.fruitHoleShake = () => ({
   shake: +shake.toFixed(3), mult: shakeMult, streak,
   camX: +camera.position.x.toFixed(4), camZ: +camera.position.z.toFixed(4),
 });
+// Fire a kick without playing a level. Measuring this by driving a real run
+// took minutes a level and still depended on how well the fake player
+// chained; the thing actually worth measuring is the shape of one kick —
+// above all how far the view moves in the single frame it starts on.
+window.fruitHoleKick = (mult = 5) => {
+  shake = Math.min(0.07, shake + 0.025 * (mult - 2));
+  shakeT = 0;
+  return shake;
+};
 window.fruitHoleWater = () => ({ offsetX: waterTex.offset.x, surf: surf.scale.x });
 
 // What theme a level actually built with, and whether anything from another
@@ -5714,10 +5723,24 @@ function tick(now) {
     // sweep does not leave the view permanently unsettled. Two frequencies
     // that do not divide into each other, so the kick traces a small loop
     // rather than sliding along one axis.
-    shake = Math.max(0, shake - dt * 1.15);
+    shake = Math.max(0, shake - dt * 0.4);
     shakeT += dt;
-    const kx = shake ? Math.sin(shakeT * 34) * shake : 0;
-    const kz = shake ? Math.cos(shakeT * 27) * shake : 0;
+    // Both axes are sines, and that is the fix. The second one was a cosine,
+    // and `shakeT` restarts at zero on every kick — so cos(0) = 1 put the
+    // camera at full offset in the *first* frame. The shake itself peaked at
+    // 0.10 units but the jump between two frames measured 0.21: the eye was
+    // not seeing a wobble, it was seeing the view teleport, and it did it
+    // exactly when the player was doing well.
+    //
+    // The decay has to outlast the rise or there is no kick at all, only a
+    // pop. First correction dropped the amplitude and sped the decay up to
+    // 1.5/s: at these frequencies a quarter period is about 0.08s and the
+    // envelope died in 0.06, so the sine never reached its own peak and the
+    // whole effect measured one frame long. 0.4/s gives the kick about a
+    // sixth of a second — half a swing, which reads as one thump that
+    // settles rather than a rattle.
+    const kx = shake ? Math.sin(shakeT * 20) * shake : 0;
+    const kz = shake ? Math.sin(shakeT * 15) * shake : 0;
     // Tilted well off vertical: at the old 8 degrees anything standing was
     // foreshortened into a disc, so a board of round fruit had no skyline
     // and a post looked like a coin. This is enough to see the sides of
