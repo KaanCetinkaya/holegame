@@ -215,6 +215,36 @@ yani bir bölüm en fazla kırk küçük geometri harcıyor. İlk denemede tam
 ardışık indeksler yayın değil **tüpün** etrafında ilerliyor. İlk N indeksi
 çizmek tüpün bir dilimini veriyor, ekranda da hiçbir şey görünmüyordu.
 
+## Dev meyveler bütün, dilim değil
+
+Dört meyvenin üçü kesilmiş dilim (silindir): yatıyorlar, siluetleri yok ve
+bir tahta dolusu meyve bozuk para yığını gibi okunuyor. Devler bölümde
+uğruna çalıştığın tek şey ve onlar da **daha büyük bir bozuk paraydı**.
+
+Artık dev olan her meyve bütün ve dik duruyor:
+
+- **karpuz** — çizgili küre
+- **elma** — sapı ve yaprağı olan küre
+- **muz** — yarım simit, yani yukarıdan da yandan da hilal
+- **çilek** — zaten küreydi
+
+Dilimler olduğu gibi kaldı: bir deliğin yuttuğu şey onlar, ve hepsini topa
+çevirmek meyvenin ne olduğunu söyleyen kesik yüzleri götürürdü.
+
+Üç ayrıntı ölçerek değil, **bakarak** çıktı:
+
+- Kabuk dokusu silindir yanı için çizilmiş ve dört kez tekrarlıyor. Küreye
+  sarılınca otuz küsur şerit ediyor ve karpuz yeşil bir deniz kestanesine
+  dönüyor. Bütün form için tekrar 1.4'e indi — gerçek bir karpuzda bir düzine
+  kadar şerit var.
+- **Elmanın sapı şart.** Sapsız bütün elma kırmızı bir top, ve tahtada zaten
+  kırmızı bir top var: çilek. Bölümün ayırt etmeni istediği iki dev
+  yukarıdan aynı görünüyordu.
+- **Devler ayrı bir yoldan kuruluyor.** `placeGiants()` ızgaradan sonra
+  çalışıyor, dolayısıyla desenin `big` dediği meyveler yuvarlanmışken
+  yerleştirilen devler dilim kalmıştı — aynı tahtada ikisi birden hata gibi
+  duruyordu, ki öyleydi.
+
 ## Delik ne kadar hızlı büyüyor
 
 Meyve başına artış **sabit değil, tarlaya oranlı**: tarlanın %90'ını süpürmek

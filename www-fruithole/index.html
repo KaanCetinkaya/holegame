@@ -2109,7 +2109,71 @@ TYPES.forEach(t => {
 // half their height; round fruit sit on the ground at y = radius.
 const SLICE_H = { banana: 0.5, melon: 0.62, lychee: 0.56 };
 
-function fruitVisual(type, radius) {
+// Whole fruit, standing up, for the giants.
+//
+// Three of the four are cut slices, which means a board of them is a pile of
+// coins: flat discs lying down, no silhouette, nothing standing. The giant is
+// the one thing on a level you have to work towards, and it was a bigger
+// coin. A whole fruit reads from across the board because it has a top.
+//
+// The slices stay as they are — they are what a hole full of fruit is made
+// of, and turning every one of them into a ball would cost the cut faces
+// that say what fruit it is at all.
+function wholeGeometries() {
+  const melon = new THREE.SphereGeometry(1, 22, 16);
+  const apple = new THREE.SphereGeometry(1, 20, 15);
+  apple.scale(1, 0.92, 1);
+  // A banana is not a ball. Half a torus, laid on its side, is a crescent
+  // from overhead and still a crescent from the play camera's angle.
+  const banana = new THREE.TorusGeometry(0.72, 0.3, 10, 20, Math.PI * 1.05);
+  banana.rotateX(Math.PI / 2);
+  return { melon, lychee: apple, banana };
+}
+const WHOLE_GEO = wholeGeometries();
+
+// The rind is drawn for the side of a cylinder and repeats four times round
+// it. Wrapped on a sphere, where u runs right round the fruit, that came to
+// thirty-odd stripes and the melon read as a green sea urchin. A watermelon
+// has about a dozen.
+const WHOLE_RIND = watermelonRindTexture(TYPES[3]);
+WHOLE_RIND.repeat.set(1.4, 1);
+
+const WHOLE_MAT = {
+  melon: new THREE.MeshStandardMaterial({ map: WHOLE_RIND, roughness: 0.55 }),
+  lychee: new THREE.MeshStandardMaterial({ color: TYPES[1].speck, roughness: 0.34 }),
+  banana: new THREE.MeshStandardMaterial({ color: TYPES[2].base, roughness: 0.4 }),
+};
+const STALK_MAT = new THREE.MeshStandardMaterial({ color: '#7a4a22', roughness: 0.7 });
+const LEAF_MAT = new THREE.MeshStandardMaterial({ color: '#4aa83c', roughness: 0.6 });
+// Sitting height of each whole form, as a fraction of its radius.
+const WHOLE_Y = { melon: 1, lychee: 0.92, banana: 0.34 };
+
+// A whole apple needs a stalk. Without one it is a red ball, and the board
+// already has a red ball on it — the strawberry — so the two giants a level
+// most wants you to tell apart looked the same from overhead.
+function makeWholeApple() {
+  const g = new THREE.Group();
+  const add = m => { m.castShadow = true; g.add(m); return m; };
+  add(new THREE.Mesh(WHOLE_GEO.lychee, WHOLE_MAT.lychee));
+  const stalk = add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.075, 0.42, 6), STALK_MAT));
+  stalk.position.set(0, 0.98, 0);
+  stalk.rotation.z = 0.22;
+  const leaf = add(new THREE.Mesh(new THREE.SphereGeometry(0.26, 8, 6), LEAF_MAT));
+  leaf.scale.set(1, 0.22, 0.55);
+  leaf.position.set(0.3, 1.02, 0.04);
+  leaf.rotation.y = 0.5;
+  return g;
+}
+
+function fruitVisual(type, radius, whole = false) {
+  if (whole && WHOLE_GEO[type]) {
+    const v = {
+      geo: WHOLE_GEO[type], mat: WHOLE_MAT[type],
+      sx: radius, sy: radius, baseY: radius * WHOLE_Y[type], upright: true,
+    };
+    if (type === 'lychee') v.make = makeWholeApple;
+    return v;
+  }
   const h = SLICE_H[type];
   if (h) {
     const sy = radius * h;
@@ -4188,7 +4252,9 @@ function buildField() {
       // steps that are the whole point of the shape.
       const propRate = currentPattern.props ?? 0.17;
       const prop = !big && themePool.length && Math.random() < propRate ? pick(themePool) : null;
-      const vis = prop ? propVisual(prop, radius * 1.45) : fruitVisual(currentPattern.type(a, b), radius);
+      // Giants are built whole; everything else stays a slice.
+      const vis = prop ? propVisual(prop, radius * 1.45)
+                       : fruitVisual(currentPattern.type(a, b), radius, big);
       const type = prop ? vis.currency : currentPattern.type(a, b);
 
       // A cell can hold a pile. Each fruit in it is its own entry, so the
@@ -4359,7 +4425,11 @@ function placeGiants() {
         f.eaten = true;                             // dropped before the level starts
         f.mesh.visible = false;
       }
-      const vis = prop ? propVisual(prop, giantR * 1.1) : fruitVisual(seed.type, giantR);
+      // Whole, like the pattern's own big fruit. Giants went through this
+      // path rather than the grid's, so they stayed slices while everything
+      // else the level called big had already been rounded — a board with
+      // both on it looked like a mistake, because it was one.
+      const vis = prop ? propVisual(prop, giantR * 1.1) : fruitVisual(seed.type, giantR, true);
       const type = prop ? vis.currency : seed.type;
       const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
       mesh.scale.set(vis.sx, vis.sy, vis.sx);
