@@ -94,6 +94,29 @@ kalp, yıldız, ada, halka, elmas, sarmal, çapraz, bloklar, merdiven, yığınl
 duvarlar, daireler — ve şeklin dışı boş kalır. Bir hücre birden çok meyve
 taşıyabilir (istif), delik geçerken kule toptan dökülür.
 
+### Basamaklı piramit (🔺 Pyramid)
+
+İlk hali düz kenarlı bir kamaydı: sayılarla üçgen, ekranda topak. İki sebep
+var — meyveler durdukları hücreden geniş çiziliyor, yani eğik bir kenar her
+iki yandan yarım meyve bulanıyor; ve istifleme ortayı kendi siluetini
+gizleyecek kadar yükseltiyor.
+
+Merdiven bunların ikisinden de kurtuluyor. Altı taraça, her biri üç satır
+derin ve bir üstündekinden iki sütun geniş — kenar, bulanık bir köşegen
+değil, köşeler dizisi. Satır sayısıyla yazıldı, normalize koordinatla değil:
+`nx`/`ny` ile basamaklar tarlayla birlikte uzardı ve 30. bölümde piramit
+başka bir şekil olurdu.
+
+**Her taraça tek bir meyve.** Basamakların sayılabilir olmasını sağlayan şey
+bu; kat içinde meyve karışınca taraçalar yine birbirine akıyor.
+
+Yükseklik ortaya değil **tepeye** doğru tırmanıyor: en küçük taraça en
+yüksek olanı. Basamaklı bir piramidi yandan da piramit yapan şey bu.
+
+Bir de eşyalar bu bölümde seyrek (1/25, normalde 1/6): taraçaların okunması
+her katın tek parça olmasına bağlı ve normal oranda plaj topları basamakların
+tam ortasında delik açıyordu. Desen artık kendi eşya oranını isteyebiliyor.
+
 ### Yuvarlak olan bir daire (🫧 Bubbles)
 
 Diğer bütün şekiller `nx`/`ny` ile çiziliyor; ikisi de -1..1 arası, ama tarla

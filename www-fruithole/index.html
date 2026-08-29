@@ -3805,34 +3805,41 @@ function circleAt(r, c) {
   return null;
 }
 
+// Six terraces from the far end of the board to the near one. Written as a
+// count of rows rather than in normalised coordinates so a step is the same
+// depth however long the field gets — in nx/ny the steps would stretch with
+// the board and the pyramid would be a different shape at level 30.
+const PYRAMID_TIERS = 6;
+function pyramidTier(r) {
+  const top = 1;                                  // a row of open ground behind it
+  const step = Math.max(2, Math.floor((rows - 3 - top) / PYRAMID_TIERS));
+  const i = Math.floor((r - top) / step);
+  return (r < top || i >= PYRAMID_TIERS) ? -1 : i;
+}
+
 const PATTERNS = [
   {
     name: 'Pyramid', icon: '🔺', theme: 'beach',
-    // wide at the bottom, narrowing to a point at the top -- and piled
-    // higher toward the middle, so it is a pyramid from the side too
-    empty: (r, c) => {
-      const { nx, ny, wob } = shapeCoords(r, c);
-      // The edge wobble is scaled by how wide the pyramid is at that row.
-      // A flat ±0.11 is nothing against a base half a board wide and
-      // everything against an apex that is meant to be a point: the tip came
-      // out as a ragged column of fruit wandering left and right rather than
-      // a peak.
-      const halfWidth = (ny + 1) * 0.46;
-      return ny > 0.82 || Math.abs(nx) > halfWidth + wob * Math.min(1, halfWidth / 0.3);
-    },
-    stack: (r, c) => {
-      const { nx, ny } = shapeCoords(r, c);
-      const edge = (ny + 1) * 0.46;
-      // Height has to fall off towards both ends, not just towards the
-      // sides. Keyed only to the centre line it spiked at the tip — the
-      // narrowest row is also the one nearest its own centre — and the
-      // pyramid came out as a needle.
-      const across = Math.max(0, 1 - Math.abs(nx) / Math.max(0.15, edge));
-      const along = Math.max(0, 1 - Math.abs(ny - 0.15) / 0.85);
-      return ridge(across * along, 3);
-    },
-    type: (r, c) => typeFromNoise(r, c, 0.2, 3),
-    big: (r, c) => blob(r, c, 0.5, 71) > 0.72,
+    // Terraces, not a smooth triangle.
+    //
+    // The first version was a straight-sided wedge and it was a triangle by
+    // the numbers and a blob on the screen: fruit are drawn wider than the
+    // cell they stand in, so a sloping edge is blurred by half a fruit
+    // either way, and the stacking piled the middle high enough to hide its
+    // own outline from above. A staircase survives all of that — each step
+    // is three rows deep and two columns wider than the one above it, so
+    // the edge is a line of corners rather than a fuzzy diagonal.
+    //
+    // Height climbs toward the apex rather than toward the middle: the
+    // smallest terrace is the tallest, which is the thing that makes a
+    // stepped pyramid look like one from the side as well as from above.
+    props: 0.04,
+    empty: (r, c) => pyramidTier(r) < 0 || Math.abs(c - midCol()) > pyramidTier(r) + 1,
+    // One fruit a terrace. It is what makes the steps countable — mixed
+    // fruit across a step and the terraces run together again.
+    type: (r) => ID[Math.max(0, pyramidTier(r)) % ID.length],
+    stack: (r) => 1 + Math.round((PYRAMID_TIERS - 1 - Math.max(0, pyramidTier(r))) * 0.7),
+    big: (r, c) => pyramidTier(r) === 0 && c === Math.round(midCol()),
   },
   {
     name: 'Piles', icon: '🥞', theme: 'drivein',
@@ -4101,7 +4108,13 @@ function buildField() {
       // held a handful of objects spread over a board you only ever see a
       // fraction of at a time, which is not enough for the place to register
       // as anywhere in particular.
-      const prop = !big && themePool.length && Math.random() < 0.17 ? pick(themePool) : null;
+      //
+      // A pattern can ask for fewer. The pyramid does: its terraces are only
+      // legible while each one is a single unbroken run of one fruit, and at
+      // one in six the beach balls were punching holes straight through the
+      // steps that are the whole point of the shape.
+      const propRate = currentPattern.props ?? 0.17;
+      const prop = !big && themePool.length && Math.random() < propRate ? pick(themePool) : null;
       const vis = prop ? propVisual(prop, radius * 1.45) : fruitVisual(currentPattern.type(a, b), radius);
       const type = prop ? vis.currency : currentPattern.type(a, b);
 
