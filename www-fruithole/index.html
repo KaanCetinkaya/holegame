@@ -3812,7 +3812,13 @@ const PATTERNS = [
     // higher toward the middle, so it is a pyramid from the side too
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
-      return ny > 0.82 || Math.abs(nx) > (ny + 1) * 0.46 + wob;
+      // The edge wobble is scaled by how wide the pyramid is at that row.
+      // A flat ±0.11 is nothing against a base half a board wide and
+      // everything against an apex that is meant to be a point: the tip came
+      // out as a ragged column of fruit wandering left and right rather than
+      // a peak.
+      const halfWidth = (ny + 1) * 0.46;
+      return ny > 0.82 || Math.abs(nx) > halfWidth + wob * Math.min(1, halfWidth / 0.3);
     },
     stack: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
