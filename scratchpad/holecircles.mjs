@@ -36,9 +36,18 @@ const check = (ok, what, saw) => {
   if (!ok) fails.push(what);
 };
 
-// Bubbles LEVEL_ORDER'da 5. sırada, yani 5, 21, 37... bölümlerinde çıkıyor.
-// 5'te 26 satır, 21'de 34 (tavan) — desenin göreceği bütün aralık bu.
-for (const lvl of [5, 21, 37]) {
+// Bölüm numaraları sabit yazılmıyor: desen listesine bir yeni desen
+// eklenince Bubbles kayıyor ve test, oyunda hiçbir şey bozulmamışken
+// "desen Bubbles değil" diye patlıyor. Bir kere böyle oldu.
+const LEVELS = [];
+for (let n = 1; n <= 60 && LEVELS.length < 3; n++) {
+  const p = await pg.evaluate(l => window.fruitHoleProbe(l), n);
+  if (p.pattern === 'Bubbles') LEVELS.push(n);
+}
+if (!LEVELS.length) { console.log('Bubbles hiçbir bölümde çıkmıyor'); process.exit(1); }
+console.log('Bubbles bölümleri:', LEVELS.join(', '));
+
+for (const lvl of LEVELS) {
   const p = await pg.evaluate(l => window.fruitHoleProbe(l), lvl);
   console.log(`\nbölüm ${lvl} — ${p.pattern}, ${p.fruit} meyve, tarla ${p.fieldW.toFixed(1)}x${p.fieldH.toFixed(1)}`);
   check(p.pattern === 'Bubbles', 'desen Bubbles', p.pattern);
