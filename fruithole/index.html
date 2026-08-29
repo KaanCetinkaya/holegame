@@ -5616,6 +5616,19 @@ window.fruitHoleDrift = () => fruits.reduce((a, f) =>
 // Frames a whole level from straight above and draws one frame — used to
 // check that a pattern still reads as its shape.
 window.fruitHoleFieldRot = () => fieldGroup.rotation.y;
+// Stop the menu turntable and square the board up.
+//
+// Every screenshot taken of a pattern was of the diorama mid-spin: the menu
+// turns the field 0.12 radians a second and a shot takes a couple of
+// seconds to set up, so a level was being photographed up to twenty degrees
+// round and read as leaning. The board is square in play — startLevel calls
+// buildField, which zeroes the rotation — but the pictures said otherwise.
+let dioramaHeld = false;
+window.fruitHoleHold = (on = true) => {
+  dioramaHeld = on;
+  if (on) fieldGroup.rotation.set(0, 0, 0);
+  return fieldGroup.rotation.y;
+};
 // Camera settle: how far the view jumps between one frame and the next while
 // a combo is running. White-noise shake shows up here as a large mean, a
 // decaying wobble as a small one.
@@ -5974,7 +5987,7 @@ function tick(now) {
     // island, same hole, same fruit, lit and shadowed by the engine. It sits
     // still and turns slowly, and the camera leans further back than in play
     // so the fruit are seen from the side and read as solid.
-    fieldGroup.rotation.y += dt * 0.12;
+    if (!dioramaHeld) fieldGroup.rotation.y += dt * 0.12;
     camera.position.set(0, 11, 8.5);
     camera.lookAt(0, 0, -0.4);
   } else {
