@@ -3835,6 +3835,34 @@ function pyramidTier(r, c) {
   return Math.min(PYRAMID_H.length - 1, Math.floor(ring / PYRAMID_STEP));
 }
 
+// Towers standing on open ground — a colonnade rather than a carpet.
+//
+// Kept to four column lines with three cells of floor between them: a pillar
+// is only a pillar if you can walk round it, and the hole has to be able to
+// pass between two without touching either. The lines are placed
+// symmetrically about the middle of the board so the nave reads as a nave.
+const PILLAR_COLS = [1, 4, 8, 11];
+// Per line, because a stack count is not a height — see stack(). Tuned so
+// the inner towers stand about 5 units and the outer ones about 3.8.
+//
+// Six units was too tall to stand four cells apart: at the play camera's
+// angle a tower projects about h·sin(27°) up the screen plus its own width,
+// which at six units came to 3.7 against a 3.7 gap — the inner colonnades
+// closed up into unbroken ribbons. Five clears it.
+const PILLAR_H = [4, 9, 11, 7];
+const PILLAR_ROW_STEP = 4;
+const PILLAR_ROW_0 = 2;
+// The outer lines are offset by half a step. Everything on the same rows
+// made four ranks marching in lockstep, and a nine-high pillar every three
+// rows ran into the one behind it on screen — the inner colonnades read as
+// unbroken ribbons rather than as columns you could walk between.
+function pillarAt(r, c) {
+  const i = PILLAR_COLS.indexOf(c);
+  if (i < 0 || r > rows - 2) return -1;
+  const rr = r - PILLAR_ROW_0 - (i === 0 || i === 3 ? PILLAR_ROW_STEP / 2 : 0);
+  return rr >= 0 && rr % PILLAR_ROW_STEP === 0 ? i : -1;
+}
+
 const PATTERNS = [
   {
     name: 'Pyramid', icon: '🔺', theme: 'beach',
@@ -3866,6 +3894,32 @@ const PATTERNS = [
     empty: (r, c) => !(r % 2 === 1 && c % 2 === 1) || blob(r, c, 0.35, 13) < 0.32,
     stack: (r, c) => ridge((blob(r, c, 0.35, 13) - 0.32) / 0.68, 3),
     type: (r, c) => typeFromNoise(r, c, 0.5, 29),
+    big: () => false,
+  },
+  {
+    name: 'Pillars', icon: '🏛️', theme: 'space',
+    // The two inner lines stand a head taller than the outer ones, so the
+    // board has a middle. Even heights everywhere and it is wallpaper.
+    //
+    // The counts are per line because **a stack count is not a height**.
+    // Measured: six strawberries stand 5.63 units and ten watermelon slices
+    // stand 3.34 — a strawberry is a sphere and a slice is a disc. Writing
+    // "inner 10, outer 6" gave the tallest tower on the board to an outer
+    // line, which is the opposite of the rule it was meant to express.
+    // These land the inner lines near 6 units and the outer ones near 3.8.
+    empty: (r, c) => pillarAt(r, c) < 0,
+    stack: (r, c) => PILLAR_H[pillarAt(r, c)],
+    // A whole line of pillars is one fruit. Walking the colour along the
+    // line instead gave four rows of unrelated columns and the eye grouped
+    // them by colour rather than by line — the colonnade stopped being a
+    // colonnade. Same rule as the pyramid's terraces and the circles: one
+    // structure, one fruit.
+    type: (r, c) => ID[pillarAt(r, c) % ID.length],
+    // No props at all here, and not for tidiness: a prop cell is built one
+    // piece high whatever the pattern asked for, so a single oil drum
+    // deleted an entire ten-fruit pillar. One line was measured with 33
+    // pieces where the shape called for 60.
+    props: 0,
     big: () => false,
   },
   {
@@ -4087,10 +4141,10 @@ const PATTERNS = [
 // This puts one at level 3, and spaces the settings so the same place never
 // turns up two levels running.
 const LEVEL_ORDER = [
-  'Pyramid', 'Piles', 'Orbits', 'Walls', 'Bubbles',
-  'Blocks', 'Stairs', 'Heart', 'Whirl', 'Star',
-  'Island', 'Ring', 'Diamond', 'Bloom', 'Spiral',
-  'Cross',
+  'Pyramid', 'Piles', 'Orbits', 'Pillars', 'Bubbles',
+  'Walls', 'Blocks', 'Stairs', 'Heart', 'Whirl',
+  'Star', 'Island', 'Ring', 'Diamond', 'Bloom',
+  'Spiral', 'Cross',
 ];
 for (const p of PATTERNS) {
   if (!LEVEL_ORDER.includes(p.name)) throw new Error(`LEVEL_ORDER is missing ${p.name}`);
@@ -5719,6 +5773,20 @@ window.fruitHoleGiants = () => {
   };
 };
 window.fruitHoleFlecks = () => flecks.length;
+// How tall each colonnade actually stands, in world units. A stack count is
+// not a height: a strawberry is a sphere and a banana is a thin slice, so
+// the same number of pieces gives towers of very different size.
+window.fruitHolePillars = () => PILLAR_COLS.map((col, i) => {
+  let top = 0, n = 0;
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    const c = Math.round(f.x / CELL + (COLS - 1) / 2);
+    if (c !== col) continue;
+    top = Math.max(top, f.mesh.position.y);
+    n++;
+  }
+  return { line: i, col, top: +top.toFixed(2), pieces: n };
+});
 
 // The hole as it actually is right now, not as it started. Balance questions
 // about growth cannot be answered with the opening radius.

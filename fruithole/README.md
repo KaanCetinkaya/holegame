@@ -91,7 +91,7 @@ birden yazar: `⚽ 🔀 Cross`.
 Tarla 13 sütun geniş, 22 satırdan başlayıp bölüm bölüm 34'e uzar; ekrandan
 taştığı için kamera deliği takip eder. Her bölüm **bir şekildir** — piramit,
 kalp, yıldız, ada, halka, elmas, sarmal, çapraz, bloklar, merdiven, yığınlar,
-duvarlar, daireler — ve şeklin dışı boş kalır. Bir hücre birden çok meyve
+duvarlar, daireler, sütunlar — ve şeklin dışı boş kalır. Bir hücre birden çok meyve
 taşıyabilir (istif), delik geçerken kule toptan dökülür.
 
 ### Basamaklı piramit (🔺 Pyramid)
@@ -130,6 +130,37 @@ basamak yüzeyleri tırtıklı çıkıyor.
 Eşyalar bu bölümde seyrek (1/25, normalde 1/6): taraçaların okunması her
 katın tek parça olmasına bağlı ve normal oranda plaj topları basamakların
 tam ortasında delik açıyordu. Desen artık kendi eşya oranını isteyebiliyor.
+
+### Kuleler (🏛️ Pillars)
+
+Açık zeminde duran dört sıra kule. Sütun hatları arasında üç hücre boşluk
+var: bir sütun ancak etrafından dolaşabiliyorsan sütundur, ve deliğin iki
+kulenin arasından hiçbirine değmeden geçebilmesi gerekiyor. İç iki hat
+dıştakilerden bir baş uzun — her yer aynı yükseklikte olunca duvar kâğıdı
+oluyor.
+
+Dış hatlar yarım adım kaydırılmış. Hepsi aynı satırlarda olunca dört sıra
+aynı anda yürüyor gibi duruyordu.
+
+Bir hattın tamamı **tek meyve**. Rengi hat boyunca yürütmeyi denedim; göz o
+zaman sütunları hatlarına göre değil renklerine göre grupluyor ve kolonad
+kolonad olmaktan çıkıyor. Piramidin taraçaları ve dairelerde olduğu gibi:
+bir yapı, bir meyve.
+
+**İstif sayısı yükseklik değil.** Ölçüldü: altı çilek 5.63 birim, on karpuz
+dilimi 3.34 birim — çilek küre, dilim disk. "İç 10, dış 6" diye yazınca
+tahtadaki en uzun kule *dıştaki* hatta düştü, yani kuralın tam tersi oldu.
+Yükseklikler artık hat başına ayrı yazılıyor ve iç hatlar ~5, dış hatlar
+~3.8 birimde duruyor.
+
+Altı birim, dört hücre aralıkta durabilmek için fazlaydı: oyun kamerasının
+açısında bir kule ekrana yaklaşık `h·sin(27°)` kadar artı kendi genişliği
+kadar düşüyor, altı birimde bu 3.7 ediyor ve aralık da 3.7 — iç kolonadlar
+kesintisiz şeride dönüşüyordu.
+
+**Bu bölümde hiç eşya yok**, düzen kaygısından değil: eşya konan hücre
+desenin istediğine bakmaksızın tek katlı kuruluyor, yani bir varil koca bir
+on meyvelik kuleyi siliyordu. Bir hat 60 parça olması gerekirken 33 ölçüldü.
 
 ### Yuvarlak olan bir daire (🫧 Bubbles)
 
