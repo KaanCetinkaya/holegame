@@ -96,25 +96,39 @@ taşıyabilir (istif), delik geçerken kule toptan dökülür.
 
 ### Basamaklı piramit (🔺 Pyramid)
 
-İlk hali düz kenarlı bir kamaydı: sayılarla üçgen, ekranda topak. İki sebep
-var — meyveler durdukları hücreden geniş çiziliyor, yani eğik bir kenar her
-iki yandan yarım meyve bulanıyor; ve istifleme ortayı kendi siluetini
-gizleyecek kadar yükseltiyor.
+Üç denemede oturdu; ilk ikisi de **piramit değildi**.
 
-Merdiven bunların ikisinden de kurtuluyor. Altı taraça, her biri üç satır
-derin ve bir üstündekinden iki sütun geniş — kenar, bulanık bir köşegen
-değil, köşeler dizisi. Satır sayısıyla yazıldı, normalize koordinatla değil:
-`nx`/`ny` ile basamaklar tarlayla birlikte uzardı ve 30. bölümde piramit
-başka bir şekil olurdu.
+**1. deneme — düz kenarlı kama.** Sayılarla üçgen, ekranda topak. Meyveler
+durdukları hücreden geniş çiziliyor, yani eğik bir kenar iki yandan yarım
+meyve bulanıyor; üstelik istifleme ortayı kendi siluetini gizleyecek kadar
+yükseltiyordu.
 
-**Her taraça tek bir meyve.** Basamakların sayılabilir olmasını sağlayan şey
-bu; kat içinde meyve karışınca taraçalar yine birbirine akıyor.
+**2. deneme — basamaklı ama tek eksende.** Genişlik satıra göre değişiyordu,
+yani yukarıdan bakınca üçgen ama üç boyutta **merdiven**: kameradan uzağa
+tırmanan bir rampa. Piramit her yöne birden daralır.
 
-Yükseklik ortaya değil **tepeye** doğru tırmanıyor: en küçük taraça en
-yüksek olanı. Basamaklı bir piramidi yandan da piramit yapan şey bu.
+**3. deneme (mevcut).** Tarlanın ortasından dışa doğru **kare halkalar**
+(Chebyshev uzaklığı, yani çember değil kare kontur). Dört taraça, her biri
+**iki hücre basamak genişliğinde** — tek hücrelik basamakta ayağını basacak
+düz bir yüzey kalmıyor ve şey, içine bir sivri saplanmış alçak bir tümsek
+gibi duruyordu.
 
-Bir de eşyalar bu bölümde seyrek (1/25, normalde 1/6): taraçaların okunması
-her katın tek parça olmasına bağlı ve normal oranda plaj topları basamakların
+    halka   0-1   2-3   4-5    6
+    kat      5     3     2     1     istif yüksekliği
+    meyve  çilek  elma  muz  karpuz
+
+Hücre cinsinden ölçülüyor, normalize koordinatla değil: hücreler dünya
+uzayında kare, dolayısıyla satır ve sütunda eşit adım her tarla boyunda kare
+tabanlı bir piramit veriyor. `nx`/`ny` ile taban tarlayla birlikte uzar ve
+30. bölüm uzun bir sırt olurdu.
+
+Orta satır yuvarlanıyor; yarım satırlık merkezde halkalar iç içe geçiyor ve
+basamak yüzeyleri tırtıklı çıkıyor.
+
+**Her taraça tek meyve.** Basamakların sayılabilir olmasını sağlayan bu.
+
+Eşyalar bu bölümde seyrek (1/25, normalde 1/6): taraçaların okunması her
+katın tek parça olmasına bağlı ve normal oranda plaj topları basamakların
 tam ortasında delik açıyordu. Desen artık kendi eşya oranını isteyebiliyor.
 
 ### Yuvarlak olan bir daire (🫧 Bubbles)
