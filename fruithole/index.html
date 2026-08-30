@@ -3927,6 +3927,28 @@ function pillarAt(r, c) {
   return rr >= 0 && rr % PILLAR_ROW_STEP === 0 ? i : -1;
 }
 
+// Chevrons funnelling towards the near end of the board.
+//
+// Every other pattern is a *shape sitting on* the field — a pyramid, a set
+// of circles, a colonnade. This one is a **route**: two lines converging to
+// a point in front of you, then another pair behind it, so the board tells
+// you where to go instead of waiting to be swept. It is the one layout that
+// uses the fact that the field is long and the camera looks down it.
+//
+// Mirrored about the middle column by construction, so it cannot come out
+// lopsided.
+const CHEV_W = 7;                      // rows per chevron, last one left open
+function chevronAt(r, c) {
+  const t = r % CHEV_W;
+  if (t === CHEV_W - 1) return -1;     // a clear row between one and the next
+  const arm = CHEV_W - 2 - t;          // apex nearest the camera
+  const d = Math.abs(c - midCol());
+  // Three cells of arm, not two. At two the level came to 120 pieces, which
+  // is thinner than any other board in the game and this one is second in
+  // the order — the player's second impression of what a level looks like.
+  return (d >= arm && d <= arm + 2) ? Math.floor(r / CHEV_W) : -1;
+}
+
 const PATTERNS = [
   {
     name: 'Pyramid', icon: '🔺', theme: 'beach',
@@ -3951,6 +3973,19 @@ const PATTERNS = [
     stack: (r, c) => PYRAMID_H[pyramidTier(r, c)],
     // The capstone.
     big: (r, c) => pyramidRing(r, c) === 0,
+  },
+  {
+    name: 'Chevrons', icon: '🔽', theme: 'pitch',
+    empty: (r, c) => chevronAt(r, c) < 0,
+    // One fruit a chevron, so the arms read as one line rather than as a
+    // scatter that happens to be diagonal.
+    type: (r, c) => ID[chevronAt(r, c) % ID.length],
+    // The inner arm stands a course higher, which is what makes a chevron
+    // look like it has an edge you are being funnelled along.
+    stack: (r, c) => (Math.abs(c - midCol()) === CHEV_W - 2 - (r % CHEV_W) ? 3 : 2),
+    // A giant sits in the mouth of every other funnel.
+    big: (r, c) => r % (CHEV_W * 2) === CHEV_W - 2 && c === Math.round(midCol()),
+    props: 0.05,
   },
   {
     name: 'Piles', icon: '🥞', theme: 'drivein',
@@ -4205,10 +4240,10 @@ const PATTERNS = [
 // This puts one at level 3, and spaces the settings so the same place never
 // turns up two levels running.
 const LEVEL_ORDER = [
-  'Pyramid', 'Piles', 'Orbits', 'Pillars', 'Bubbles',
-  'Walls', 'Blocks', 'Stairs', 'Heart', 'Whirl',
-  'Star', 'Island', 'Ring', 'Diamond', 'Bloom',
-  'Spiral', 'Cross',
+  'Pyramid', 'Chevrons', 'Orbits', 'Pillars', 'Bubbles',
+  'Piles', 'Walls', 'Blocks', 'Stairs', 'Heart',
+  'Whirl', 'Star', 'Island', 'Ring', 'Diamond',
+  'Bloom', 'Spiral', 'Cross',
 ];
 for (const p of PATTERNS) {
   if (!LEVEL_ORDER.includes(p.name)) throw new Error(`LEVEL_ORDER is missing ${p.name}`);

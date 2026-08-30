@@ -91,7 +91,7 @@ birden yazar: `⚽ 🔀 Cross`.
 Tarla 13 sütun geniş, 22 satırdan başlayıp bölüm bölüm 34'e uzar; ekrandan
 taştığı için kamera deliği takip eder. Her bölüm **bir şekildir** — piramit,
 kalp, yıldız, ada, halka, elmas, sarmal, çapraz, bloklar, merdiven, yığınlar,
-duvarlar, daireler, sütunlar — ve şeklin dışı boş kalır. Bir hücre birden çok meyve
+duvarlar, daireler, sütunlar, huniler — ve şeklin dışı boş kalır. Bir hücre birden çok meyve
 taşıyabilir (istif), delik geçerken kule toptan dökülür.
 
 ### Basamaklı piramit (🔺 Pyramid)
@@ -130,6 +130,24 @@ basamak yüzeyleri tırtıklı çıkıyor.
 Eşyalar bu bölümde seyrek (1/25, normalde 1/6): taraçaların okunması her
 katın tek parça olmasına bağlı ve normal oranda plaj topları basamakların
 tam ortasında delik açıyordu. Desen artık kendi eşya oranını isteyebiliyor.
+
+### Huniler (🔽 Chevrons)
+
+Diğer bütün desenler tarlaya **oturan bir şekil** — piramit, daireler,
+kolonad. Bu bir **rota**: önünde bir noktada birleşen iki hat, arkasında bir
+tane daha, yani tahta süpürülmeyi beklemek yerine sana nereye gideceğini
+söylüyor. Tarlanın uzun olmasını ve kameranın onun boyunca bakmasını
+kullanan tek yerleşim bu.
+
+Orta sütuna göre **yapısı gereği simetrik**, yani çarpık çıkması mümkün değil.
+
+Her huni tek meyve — kollar çizgi olarak okunsun diye; karışık meyve
+koyunca çapraz duran bir dağınıklığa dönüyor. İç kol bir kat yüksek, huninin
+içinde ilerlediğin bir kenarı olsun diye.
+
+Kollar üç hücre kalın. İki hücreyken bölüm 120 parçaya düşüyordu — oyundaki
+en ince tahtadan da az, üstelik bu desen sıralamada ikinci, yani oyuncunun
+bir bölümün nasıl göründüğüne dair **ikinci izlenimi**.
 
 ### Kuleler (🏛️ Pillars)
 
