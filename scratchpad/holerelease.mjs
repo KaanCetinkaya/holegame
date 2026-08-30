@@ -56,6 +56,12 @@ check(seen.size === 19, `19 desen var (${seen.size})`);
 check(lo >= 80, `en seyrek bölüm 80+ meyve (${lo})`);
 check(hi <= 600, `en dolu bölüm 600'ü aşmıyor (${hi})`);
 
+// --- eşya sayısı ---
+// Metinde "elli iki nesne" yazıyordu; sayıyı elle takip etmek yerine
+// oyundan okuyoruz.
+const propIds = (await pg.evaluate(() => window.fruitHolePropSheet())).split(', ');
+console.log(`\n  ${propIds.length} eşya`);
+
 // --- mağaza metnindeki sayılar ---
 const polar = await pg.evaluate(() =>
   window.fruitHoleProbe && (() => {
@@ -65,6 +71,9 @@ const polar = await pg.evaluate(() =>
 const listing = readFileSync(`${ROOT}/fruithole/store/listing-en.md`, 'utf8');
 check(!/Fifteen hand-built/.test(listing), 'mağaza metni "Fifteen" demiyor');
 check(listing.includes('Nineteen'), 'mağaza metni "Nineteen" diyor');
+const WORDS = { 52: 'Fifty-two', 63: 'Sixty-three', 64: 'Sixty-four', 65: 'Sixty-five' };
+check(listing.includes(`${WORDS[propIds.length]} objects`),
+  `mağaza metni "${WORDS[propIds.length] || propIds.length} objects" diyor`);
 check(/Three throw out the grid/.test(listing) === (polar.length === 3),
   `mağaza metni ${polar.length} kutupsal desen diyor`);
 

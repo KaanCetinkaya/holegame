@@ -38,8 +38,8 @@ And each one is somewhere. A beach with the sea running up the sand. A mown
 football pitch with a touchline. Floorboards indoors. Fresh snow with ice
 beyond the bank. A marble bank floor veined with gold. A riveted station deck
 with nothing but the dark past its edge. A lacquered bar top ringed by glasses.
-A car park with the bay lines painted on. The ground changes, and so does what
-is lying on it.
+A car park with the bay lines painted on. A dark shop floor with the panel
+seams running through it. The ground changes, and so does what is lying on it.
 
 🔥 CHAIN COMBOS
 Eat fruit back to back and the multiplier climbs. Sweeping a whole patch in one
@@ -68,15 +68,17 @@ start. Sweep enough of the field, grow into one, and it pays for the whole
 trip.
 
 🏖️ NOT ONLY FRUIT
-Fifty-two objects are scattered through the crop, and which ones you meet
+Sixty-three objects are scattered through the crop, and which ones you meet
 depends on where you are. Lollies, donuts, sunglasses, flip-flops, a starfish,
 a bucket and spade on the beach. A football, boots, a shirt, a goal and the
 cup itself on the pitch. Toy cars and coffee mugs indoors. A snowman, a
 penguin, a candy cane, an igloo and a toboggan in the snow. Bitcoin, euros,
 rupees and pesos on the bank floor, with a money bag and gold bars to grow
 into. A satellite, a ringed planet and a whole rocket in orbit. Cocktails,
-lime wedges, a shaker and an ice bucket at the bar. And burgers, fries, a
-soda, a slice of pizza and parked cars at the drive-in.
+lime wedges, a shaker and an ice bucket at the bar. Burgers, fries, a soda, a
+slice of pizza and parked cars at the drive-in. And on the shop floor:
+televisions, toy keyboards, headphones, hair dryers, a boombox, a desk fan, a
+laptop, a phone, a game pad — with a fridge and a toy helicopter to grow into.
 
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, ink, lime, candy, ocean — and gold and chrome, which
@@ -101,6 +103,10 @@ but the closed test is Turkish-speaking.
 
 English:
 ```
+A new place to play: a gadget shop floor, with televisions, toy keyboards,
+headphones, hair dryers and a boombox lying among the fruit — and a fridge and
+a toy helicopter to grow into.
+
 Four new level shapes: a stepped pyramid, four standing towers, chevrons, and
 rings you sweep the inside of.
 
@@ -115,6 +121,10 @@ The camera kick on a big combo is a swing now, not a jolt.
 
 Türkçe:
 ```
+Yeni bir mekân: teknoloji mağazasının zemini. Meyvelerin arasında televizyonlar,
+oyuncak org, kulaklık, saç kurutma makinesi, teyp — ve büyüyüp yutacağın bir
+buzdolabıyla oyuncak helikopter.
+
 Dört yeni bölüm şekli: basamaklı piramit, dört kule, ok başları ve içini
 süpürdüğün halkalar.
 

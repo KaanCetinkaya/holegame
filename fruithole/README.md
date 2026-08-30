@@ -278,6 +278,34 @@ Dilimler olduğu gibi kaldı: bir deliğin yuttuğu şey onlar, ve hepsini topa
   yerleştirilen devler dilim kalmıştı — aynı tahtada ikisi birden hata gibi
   duruyordu, ki öyleydi.
 
+## Teknoloji mağazası (📺 Gadget Shop)
+
+Dokuzuncu mekân, ve eşyaları oyunun geri kalanından iki bakımdan ayrılıyor.
+
+**Ayırt edici bilgi üst yüze konuyor.** Bu kamera neredeyse tepeden bakıyor.
+Gerçek bir televizyon gibi modellenmiş bir televizyon — ekranı öne bakan —
+buradan turuncu bir sandıktır, o kadar. Ekran kapağa taşındı; düğmeler ön
+kenara dizildi, çünkü düğmesiz haliyle bu bir kasa. Aynı sebeple vantilatör
+sırtüstü yatıyor: ayakta duran bir vantilatör yukarıdan bir çizgi, yatınca
+halka + dört kanat + göbek oluyor.
+
+**Zemin oyunun en koyusu.** Eşyaların hepsi parlak kalıp plastik — turuncu,
+mor, pembe — ve açık zeminlerin herhangi birinde bölüm lapaya dönüyor. Panel
+dokusundaki dikiş de şart: düz koyu bir kare zemin değil, tahtadaki delik gibi
+okunuyor.
+
+Küçük eşyalar: televizyon, oyuncak org, kulaklık, saç kurutma makinesi, teyp,
+vantilatör, dizüstü, telefon, oyun kolu. Devler: buzdolabı ve oyuncak
+helikopter — helikopterin dört pervanesi gövdeden geniş bir artı çiziyor, ki
+tahtada başka hiçbir şeyin silueti artı değil.
+
+Saç kurutma makinesinin sapı ilk halinde namlunun **bittiği yerden**
+başlıyordu; yukarıdan iki ayrı nesne aynı hücreye düşmüş gibi duruyordu. Sap
+artık namlunun üstüne biniyor.
+
+Tema üç desende çıkıyor: Orbits (3), Blocks (9), Whirl (12). Üçü de daha önce
+çim ya da mermer zemindeydi; koyu zemin meyveyi de belirgin hale getirdi.
+
 ## Delik ne kadar hızlı büyüyor
 
 Meyve başına artış **sabit değil, tarlaya oranlı**: tarlanın %90'ını süpürmek

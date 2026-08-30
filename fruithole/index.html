@@ -3191,6 +3191,228 @@ function propTemplates() {
     T.pine = { g, h: 1.86, currency: 'melon', only: 'giant' };
   }
 
+  // --- electronics ----------------------------------------------------
+  //
+  // Every one of these has to be legible from almost directly overhead, so
+  // the detail that identifies it goes on the TOP face, not the front. A
+  // television modelled the way a television actually looks — screen facing
+  // you — is a plain orange box from this camera. The screen goes on the lid.
+  //
+  // They are also the only prop family that is mostly right angles. The
+  // fruit are all round, so a field of boxes reads as "not fruit" instantly,
+  // which is exactly what a prop is for.
+
+  // Television. Bright shell, screen inset into the top, three coloured
+  // knobs along the front edge — the knobs are what stop it being a crate.
+  {
+    const g = new THREE.Group();
+    const shell = PROP_MAT('#f57c1f', 0.34);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.34, 0.62, 1.1), shell), 0, 0.31, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.1, 0.8), PROP_MAT('#ffc233', 0.3)),
+        0, 0.63, -0.1);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.06, 0.62), PROP_MAT('#7fc4ea', 0.12)),
+        0, 0.68, -0.1);
+    ['#e0392b', '#ffd23f', '#4fae42'].forEach((c, i) =>
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.07, 10), PROP_MAT(c)),
+          -0.3 + i * 0.3, 0.65, 0.4));
+    T.tv = { g, h: 0.71, currency: 'melon' };
+  }
+
+  // Toy keyboard. The white key strip with black ticks along it is the read;
+  // without the ticks this is a purple slab with a white stripe.
+  {
+    const g = new THREE.Group();
+    const shell = PROP_MAT('#9457d6', 0.34);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.26, 0.86), shell), 0, 0.13, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.34, 0.08, 0.42), PROP_MAT('#f7f7fa', 0.3)),
+        0, 0.29, 0.18);
+    for (let i = 0; i < 8; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.24), PROP_MAT('#22232b', 0.4)),
+          -0.53 + i * 0.15, 0.3, 0.1);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.06, 14),
+          PROP_MAT('#5c2f9c', 0.5)), s * 0.52, 0.28, -0.22);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.14), PROP_MAT('#ffd23f')),
+        0, 0.28, -0.24);
+    T.piano = { g, h: 0.35, currency: 'banana' };
+  }
+
+  // Headphones. Two circles joined by an arc — the one shape here that is
+  // more readable from above than from any other angle.
+  {
+    const g = new THREE.Group();
+    const pink = PROP_MAT('#ff6fae', 0.3);
+    const pad = PROP_MAT('#c73f83', 0.5);
+    for (const s of [-1, 1]) {
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.22, 18), pink),
+          s * 0.62, 0.11, 0.1);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.26, 16), pad),
+          s * 0.62, 0.14, 0.1);
+    }
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.09, 8, 20, Math.PI), pink),
+        0, 0.1, 0.1, Math.PI / 2, 0, 0);
+    T.headphones = { g, h: 0.3, currency: 'berry' };
+  }
+
+  // Hair dryer, lying on its side the way one does on a shelf. Barrel and
+  // handle make an L from above; the pink nozzle ring says which end blows.
+  {
+    const g = new THREE.Group();
+    const body = PROP_MAT('#2fa8e0', 0.3);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.4, 1.0, 18), body),
+        0, 0.36, -0.1, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.16, 18), PROP_MAT('#ff6fae', 0.3)),
+        0, 0.36, -0.68, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.1, 18), PROP_MAT('#1a2733', 0.6)),
+        0, 0.36, -0.74, Math.PI / 2, 0, 0);
+    // The handle has to overlap the barrel, not start where the barrel ends.
+    // Set beside it, the two parts read as two objects that happen to be in
+    // the same cell.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.34, 0.86), body),
+        0.16, 0.17, 0.42, 0, -0.45, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.06, 0.14), PROP_MAT('#ff9d29')),
+        0, 0.52, 0.18);
+    T.hairdryer = { g, h: 0.76, currency: 'lychee' };
+  }
+
+  // Boombox. Two speaker circles on the lid and a carry handle standing over
+  // the top — the handle is the only part that breaks the top-down silhouette.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.46, 0.78), PROP_MAT('#f2903a', 0.34)),
+        0, 0.23, 0);
+    for (const s of [-1, 1]) {
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.06, 18),
+          PROP_MAT('#2e3440', 0.6)), s * 0.46, 0.47, 0);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.08, 14),
+          PROP_MAT('#59606f', 0.5)), s * 0.46, 0.48, 0);
+    }
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.46), PROP_MAT('#ffe9b0', 0.3)),
+        0, 0.47, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.05, 8, 18, Math.PI),
+        PROP_MAT('#3ec6c6')), 0, 0.46, -0.3);
+    T.radio = { g, h: 0.86, currency: 'banana' };
+  }
+
+  // Desk fan laid on its back, which is the only way a fan is a fan from
+  // overhead: a ring, four blades and a hub. Standing up it is a line.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.7, 0.14, 22),
+        PROP_MAT('#eef1f6', 0.3)), 0, 0.07, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.05, 8, 26),
+        PROP_MAT('#c8ced9', 0.35)), 0, 0.26, 0, Math.PI / 2, 0, 0);
+    for (let i = 0; i < 4; i++) {
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.22),
+        PROP_MAT('#7fd0f0', 0.25));
+      blade.castShadow = true;
+      blade.position.set(0.3, 0, 0);
+      const arm = new THREE.Group();
+      arm.add(blade);
+      arm.position.set(0, 0.22, 0);
+      arm.rotation.y = i * Math.PI / 2 + 0.4;
+      g.add(arm);
+    }
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), PROP_MAT('#2fa8e0')),
+        0, 0.24, 0);
+    T.fan = { g, h: 0.4, currency: 'melon' };
+  }
+
+  // Laptop, open. The lid standing at an angle is the whole silhouette —
+  // closed, this is a grey biscuit.
+  {
+    const g = new THREE.Group();
+    const shell = PROP_MAT('#aeb6c4', 0.3);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.1, 0.9), shell), 0, 0.05, 0.24);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.06, 0.03, 0.6), PROP_MAT('#2b3140', 0.5)),
+        0, 0.11, 0.28);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.9, 0.08), shell), 0, 0.42, -0.3, -0.35, 0, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.06, 0.68, 0.03), PROP_MAT('#4aa3e0', 0.15)),
+        0, 0.44, -0.25, -0.35, 0, 0);
+    T.laptop = { g, h: 0.86, currency: 'berry' };
+  }
+
+  // Phone. The smallest prop in the game and the only one that is nearly
+  // flat — it fills a cell without adding another tower to look past.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.1, 1.2), PROP_MAT('#2b3140', 0.35)),
+        0, 0.05, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 1.0), PROP_MAT('#63d0f5', 0.12)),
+        0, 0.11, 0.02);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.05, 12),
+        PROP_MAT('#1a1d26', 0.5)), 0, 0.12, -0.5);
+    T.phone = { g, h: 0.15, currency: 'lychee' };
+  }
+
+  // Game pad. A cross on one side and four coloured buttons on the other —
+  // that asymmetry is what tells it apart from the boombox at a glance.
+  {
+    const g = new THREE.Group();
+    const body = PROP_MAT('#3ec6c6', 0.32);
+    const dark = PROP_MAT('#2b3140', 0.5);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.28, 0.6), body), 0, 0.14, 0);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 0.28, 18), body),
+          s * 0.55, 0.14, 0.08);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.08, 0.1), dark), -0.55, 0.3, 0.08);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.34), dark), -0.55, 0.3, 0.08);
+    const btn = new THREE.CylinderGeometry(0.09, 0.09, 0.07, 12);
+    const face = ['#e0392b', '#ffd23f', '#4fae42', '#4aa3e0'];
+    [[0, -0.16], [0.16, 0], [0, 0.16], [-0.16, 0]].forEach(([dx, dz], i) =>
+      put(g, new THREE.Mesh(btn, PROP_MAT(face[i])), 0.55 + dx, 0.3, 0.08 + dz));
+    T.gamepad = { g, h: 0.34, currency: 'berry' };
+  }
+
+  // Fridge — the giant of this set. From straight above it is a rectangle,
+  // so the door seam and the two handles are cut into the top face as well
+  // as the front, and the top panel is a lighter shade.
+  {
+    const g = new THREE.Group();
+    const shell = PROP_MAT('#8fd94f', 0.3);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.7, 1.3), shell), 0, 0.85, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.42, 0.06, 1.22), PROP_MAT('#b6ef7c', 0.35)),
+        0, 1.71, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.54, 0.07, 1.34), PROP_MAT('#5da12f', 0.4)),
+        0, 1.12, 0);
+    for (const y of [0.72, 1.42])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.44, 0.12), PROP_MAT('#f2f6fa', 0.3)),
+          0.5, y, 0.7);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.08, 0.1), PROP_MAT('#f2f6fa', 0.3)),
+        0, 1.74, 0.5);
+    T.fridge = { g, h: 1.74, currency: 'melon', only: 'giant' };
+  }
+
+  // Toy helicopter. Four rotor blades make a cross wider than the body, and
+  // a cross is the one silhouette nothing else on the board has.
+  {
+    const g = new THREE.Group();
+    const body = PROP_MAT('#2fa8e0', 0.3);
+    const trim = PROP_MAT('#ffd23f', 0.3);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.72, 18, 14), body), 0, 0.78, 0.3);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.46, 16, 12), PROP_MAT('#bfe9ff', 0.15)),
+        0, 0.82, -0.3);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.13, 1.5, 12), body),
+        0, 0.88, 1.3, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.08, 14), trim),
+        0, 0.95, 1.95, 0, 0, Math.PI / 2);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.32, 10), trim), 0, 1.62, 0.3);
+    for (let i = 0; i < 4; i++) {
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.06, 0.22), trim);
+      blade.castShadow = true;
+      blade.position.set(1.05, 0, 0);
+      const arm = new THREE.Group();
+      arm.add(blade);
+      arm.position.set(0, 1.76, 0.3);
+      arm.rotation.y = i * Math.PI / 2;
+      g.add(arm);
+    }
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 1.5), PROP_MAT('#f2f6fa', 0.4)),
+          s * 0.48, 0.05, 0.3);
+    T.heli = { g, h: 1.82, currency: 'banana', only: 'giant' };
+  }
+
   return T;
 }
 
@@ -3449,6 +3671,38 @@ function asphaltTexture() {
   return tex;
 }
 
+// A showroom floor: dark slate panels with a seam between them. It has to be
+// this dark. Everything standing on it is bright moulded plastic — orange,
+// purple, pink — and on any of the light grounds the whole level goes to
+// mush. The seam is the only pattern; a plain dark square reads as a hole in
+// the board rather than a floor.
+function tileTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#3b4759';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2200; i++) {
+    ctx.globalAlpha = 0.04 + Math.random() * 0.07;
+    ctx.fillStyle = Math.random() < 0.5 ? '#2e3949' : '#4d5c72';
+    const x = Math.random() * S, y = Math.random() * S, r = 1 + Math.random() * 2.2;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // Seams on two edges only, so tiling puts one seam between panels rather
+  // than a double-width line where two tiles meet.
+  ctx.fillStyle = '#2a3342';
+  ctx.fillRect(0, 0, S, 5);
+  ctx.fillRect(0, 0, 5, S);
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = '#586a83';
+  ctx.fillRect(0, 5, S, 2);
+  ctx.fillRect(5, 0, 2, S);
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(7, 7);
+  return tex;
+}
+
 // Built the first time a theme is played rather than all at boot: two of the
 // three are a couple of hundred thousand canvas operations and most sessions
 // never reach the levels that need them.
@@ -3456,7 +3710,8 @@ const GROUND_TEX = {};
 const groundTex = kind => GROUND_TEX[kind] ||
   (GROUND_TEX[kind] = ({ sand: groundTexture, grass: grassTexture,
      wood: woodTexture, snow: snowTexture, marble: marbleTexture,
-     deck: deckTexture, bar: barTexture, asphalt: asphaltTexture })[kind]());
+     deck: deckTexture, bar: barTexture, asphalt: asphaltTexture,
+     tiles: tileTexture })[kind]());
 // The sand is an island in turquoise water rather than sand to the horizon:
 // it ties the board to the app icon, and it gives the field a visible edge —
 // before this you could not tell where the board stopped.
@@ -3612,6 +3867,16 @@ const THEMES = {
     ground: 'asphalt', surround: '#2b2e35', ripples: false,
     edge: '#e8e4d2', surf: null,
     props: ['burger', 'fries', 'soda', 'pizza', 'sedan', 'pickup', 'car', 'cone', 'donut'],
+  },
+  tech: {
+    name: 'Gadget Shop', icon: '📺',
+    // The only theme where the props outnumber the fruit for attention: a
+    // television is a bright orange box the size of a cell and the eye goes
+    // to it first, which is why the ground is the darkest in the game.
+    ground: 'tiles', surround: '#151b26', ripples: false,
+    edge: '#46536a', surf: null,
+    props: ['tv', 'piano', 'headphones', 'hairdryer', 'radio', 'fan',
+            'laptop', 'phone', 'gamepad', 'fridge', 'heli'],
   },
   mixed: {
     name: 'Everything', icon: '🎲',
@@ -4056,7 +4321,7 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 9) > 0.76,
   },
   {
-    name: 'Blocks', icon: '🧊', theme: 'money',
+    name: 'Blocks', icon: '🧊', theme: 'tech',
     // rectangular crates of one fruit, mass ending in a stepped edge
     empty: (r, c) => {
       const qr = stepped(r, 3), qc = stepped(c, 3);
@@ -4232,7 +4497,7 @@ const PATTERNS = [
   // route is a circle and the shape of the level is legible from the first
   // frame instead of only once the camera has travelled.
   {
-    name: 'Orbits', icon: '🎯', polar: true, theme: 'pitch',
+    name: 'Orbits', icon: '🎯', polar: true, theme: 'tech',
     // Solid bands with a clear gap every fourth ring, so it reads as a
     // target: rings of one fruit each, with room to turn between them.
     // Two rings on, two off. A ring is a whole circumference of fruit, so
@@ -4244,7 +4509,7 @@ const PATTERNS = [
     big: (ring, turn) => ring % 4 === 1 && Math.abs(Math.sin(turn * Math.PI * 5)) > 0.93,
   },
   {
-    name: 'Whirl', icon: '🌀', polar: true, theme: 'pitch',
+    name: 'Whirl', icon: '🌀', polar: true, theme: 'tech',
     // Three arms winding outward. A slot is on an arm when its angle is
     // close to where the arm has turned to by that radius, which is what
     // makes the arm a curve rather than a straight spoke.
