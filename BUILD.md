@@ -184,6 +184,9 @@ eski kurulumun yolunu çağırıyordu.
 - [ ] `fruithole/index.html` içinde `ADS_TESTING = false` yap
       (kendi reklamına tıklamak AdMob hesabını kapattırır; test ederken `true` kalmalı)
 - [ ] `app-version.json` → `versionCode` artırıldı mı
+- [ ] "Yenilikler" metni yazıldı mı — Play her yüklemede istiyor, mağaza
+      açıklamasından ayrı bir alan. Hazırı: `fruithole/store/listing-en.md`
+      → "What's new" bölümü (İngilizce + Türkçe)
 - [ ] Gizlilik politikası bir adreste yayınlandı mı (reklam olduğu için zorunlu)
 - [ ] Play Console'da 4 uygulama içi ürün oluşturuldu mu
       (`fruithole_remove_ads`, `fruithole_starter`, `fruithole_pack_small`, `fruithole_pack_large`)

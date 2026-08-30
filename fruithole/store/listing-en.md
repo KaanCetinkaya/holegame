@@ -27,10 +27,12 @@ on the clock, the more stars you take. Your best rating on every level is kept,
 so you can always come back and beat it.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
-Fifteen hand-built layouts: a pyramid, a heart, a star, an island, a ring, a
-diamond, a cross, a staircase, winding walls. Three throw out the grid and lay
-the field in rings around you — orbits, a five-petalled bloom, three spiral
-arms winding outward.
+Nineteen hand-built layouts: a stepped pyramid you take down terrace by
+terrace, four towers standing over the field, chevrons pointing the way home,
+solid circles, hollow rings, a heart, a star, an island, a diamond, a cross, a
+staircase, winding walls. Three throw out the grid and lay the field in rings
+around you — orbits opening outward from where you stand, a five-petalled
+bloom, three spiral arms winding outward.
 
 And each one is somewhere. A beach with the sea running up the sand. A mown
 football pitch with a touchline. Floorboards indoors. Fresh snow with ice
@@ -59,9 +61,11 @@ achievements to chase.
 🗼 STACKS AND GIANTS
 Fruit is piled into towers you take down in one pass. Scattered across every
 field are giants — more than twice the width of your opening, sitting on
-cleared ground, sometimes three of a kind huddled together. You cannot touch
-them at the start. Sweep enough of the field, grow into one, and it pays for
-the whole trip.
+cleared ground, sometimes three of a kind huddled together. A giant is never a
+slice: it is the whole fruit standing up, a striped melon, an apple with its
+stalk and leaf, a banana curving off the ground. You cannot touch them at the
+start. Sweep enough of the field, grow into one, and it pays for the whole
+trip.
 
 🏖️ NOT ONLY FRUIT
 Fifty-two objects are scattered through the crop, and which ones you meet
@@ -87,6 +91,40 @@ counters — more of it the faster you finished.
 Press anywhere and drag. That's the whole control scheme. No connection needed.
 
 Ready to clear the field?
+```
+
+## What's new — 1.4 / versionCode 10 (≤ 500 chars per language)
+
+Play asks for this on every upload, in the release itself rather than the store
+listing. It is per-language: the English box is required, Turkish is optional
+but the closed test is Turkish-speaking.
+
+English:
+```
+Four new level shapes: a stepped pyramid, four standing towers, chevrons, and
+rings you sweep the inside of.
+
+Giants are now whole fruit standing up — a striped melon, an apple with its
+stalk, a banana curving off the ground — instead of flat slices.
+
+The hole has a proper rim, and an arc around it fills as you grow toward full
+size.
+
+The camera kick on a big combo is a swing now, not a jolt.
+```
+
+Türkçe:
+```
+Dört yeni bölüm şekli: basamaklı piramit, dört kule, ok başları ve içini
+süpürdüğün halkalar.
+
+Devler artık dilim değil, ayakta duran bütün meyveler — çizgili karpuz, sapıyla
+elma, yerden kıvrılan muz.
+
+Deliğin düzgün bir kenarı var; etrafındaki yay, tam boyuta doğru büyüdükçe
+doluyor.
+
+Büyük komboda kameranın tepmesi artık sarsıntı değil, salınım.
 ```
 
 ## Category / tags
