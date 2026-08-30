@@ -4560,7 +4560,7 @@ PATTERNS.sort((a, b) => LEVEL_ORDER.indexOf(a.name) - LEVEL_ORDER.indexOf(b.name
 function buildField() {
   for (const f of flecks) { scene.remove(f.m); FLECK_POOL.push(f.m); }
   flecks.length = 0;
-  rimPulse = 0; shake = 0; shakeT = 0; shakeMult = 1;
+  rimPulse = 0;
   fieldGroup.clear();
   // The menu diorama turns this group, and clear() does not touch the
   // transform — without this the board starts rotated by however long you
@@ -5407,10 +5407,9 @@ function checkEat(now) {
 // Swallow feedback
 //
 // A fruit used to shrink and vanish, which gives the moment no weight. It
-// now bursts into flecks of its own colour, the hole's collar pulses, and a
-// long enough chain shakes the camera. All three are pooled and reused —
-// this fires many times a second on a full sweep, so nothing is allocated
-// mid-run.
+// now bursts into flecks of its own colour and the hole's collar pulses.
+// Both are pooled and reused — this fires many times a second on a full
+// sweep, so nothing is allocated mid-run.
 // ---------------------------------------------------------------------
 const FLECK_GEO = new THREE.SphereGeometry(0.09, 6, 5);
 const FLECK_POOL = [];
@@ -5468,46 +5467,22 @@ function stepFlecks(dt) {
 
 // The collar swells for a moment on each swallow; repeated eats keep it up.
 let rimPulse = 0;
-// And a chain gives the camera a small kick, decaying on its own. It fires
-// when the multiplier *climbs*, not on every eat above a threshold: with a
-// grown hole on a dense board you swallow several fruit a frame, so topping
-// the kick up per fruit pinned it at the ceiling and the view buzzed for the
-// whole level instead of thumping once per step. shakeT drives a smooth
-// decaying wobble; a fresh random offset every frame is a vibration, not a
-// kick.
-let shake = 0, shakeT = 0, shakeMult = 1;
 
-// The view is 10.8 units wide however big the screen is, so on a 1080-wide
-// phone one unit is 100 pixels and the kick's amplitude is readable straight
-// off these numbers. At 0.07 the board slid fourteen pixels back and forth on
-// every chain and the effect stopped being a punctuation mark: you were doing
-// well, so the screen would not hold still. Half that is a nudge you feel and
-// do not have to look past.
+// A chain used to kick the camera as well. It is gone, and this is the note
+// on why rather than a smaller number.
 //
-// The threshold went up with it. x3 is four fruit into a chain and on a dense
-// board you are there most of the time; x4 is a chain you had to hold
-// together, which is what the kick is meant to mark.
-const KICK_MIN_MULT = 4;
-const KICK_STEP = 0.012, KICK_MAX = 0.034;
-// The envelope decays at a fixed rate, so halving the amplitude also halves
-// how long the kick lasts — and at 0.4/s the shortened envelope hit zero
-// while sin(20t) was still near its peak, which snaps the camera back from
-// full offset in one frame. That is the same pop the cosine caused, arrived
-// at from the other end. Deriving the rate from the amplitude keeps the kick
-// a sixth of a second however big it is, so its size can be tuned without
-// silently changing its shape.
-const KICK_SECONDS = 0.17;
-const KICK_DECAY = KICK_MAX / KICK_SECONDS;
-
-// Both the game and the probe go through here. They used to carry separate
-// copies of the same arithmetic, so the test would have gone on reporting the
-// old kick after these numbers changed and the change would have looked like
-// it did nothing.
-function kickCamera(mult) {
-  shake = Math.min(KICK_MAX, shake + KICK_STEP * (mult - 2));
-  shakeT = 0;
-  return shake;
-}
+// The view is 10.8 units wide however big the screen is, so on a 1080-wide
+// phone a unit is a hundred pixels: the first version moved the board
+// sixteen pixels on every chain, and even after two rounds of correction —
+// sines on both axes instead of a cosine that put the camera at full offset
+// on the opening frame, then half the amplitude and a higher threshold — it
+// was still the screen refusing to hold still exactly while the player was
+// doing well. Nothing else in the game moves the camera off the hole, and no
+// other game in this genre does this at all.
+//
+// The swallow still has weight without it: the fruit bursts into flecks of
+// its own colour, the collar pulses, the multiplier reads out, and the pitch
+// of the eat sound climbs with the streak.
 
 function eatFruit(f, now) {
   f.eaten = true;
@@ -5537,8 +5512,6 @@ function eatFruit(f, now) {
 
   burst(f.x, f.mesh.position.y, f.z, f.type);
   rimPulse = 1;
-  if (mult >= KICK_MIN_MULT && mult > shakeMult) kickCamera(mult);
-  shakeMult = streak > 1 ? Math.max(shakeMult, mult) : mult;
 
   // A piece high on a tower is not sucked straight down — it topples off
   // the stack first, then falls in. Without the delay a whole column
@@ -6070,19 +6043,13 @@ window.fruitHoleHold = (on = true) => {
   if (on) fieldGroup.rotation.set(0, 0, 0);
   return fieldGroup.rotation.y;
 };
-// Camera settle: how far the view jumps between one frame and the next while
-// a combo is running. White-noise shake shows up here as a large mean, a
-// decaying wobble as a small one.
+// Camera settle: how far the view jumps between one frame and the next. This
+// outlived the combo kick it was written to measure, because what it is
+// really watching is that nothing *else* ever moves the camera off the hole.
 window.fruitHoleShake = () => ({
-  shake: +shake.toFixed(3), mult: shakeMult, streak,
+  streak,
   camX: +camera.position.x.toFixed(4), camZ: +camera.position.z.toFixed(4),
 });
-// Fire a kick without playing a level. Measuring this by driving a real run
-// took minutes a level and still depended on how well the fake player
-// chained; the thing actually worth measuring is the shape of one kick —
-// above all how far the view moves in the single frame it starts on.
-window.fruitHoleKick = (mult = 5) => kickCamera(mult);
-window.fruitHoleKickSpec = () => ({ min: KICK_MIN_MULT, step: KICK_STEP, max: KICK_MAX });
 window.fruitHoleWater = () => ({ offsetX: waterTex.offset.x, surf: surf.scale.x });
 // Set the hole to a fraction of the growth it can do this level, so the
 // collar and the size arc can be looked at at any size without playing to
@@ -6436,35 +6403,16 @@ function tick(now) {
     camX += (holeX - camX) * follow;
     camZ += (holeZ - camZ) * follow;
     clampCamera();
-    // A chain of eats kicks the camera; it decays on its own so a long
-    // sweep does not leave the view permanently unsettled. Two frequencies
-    // that do not divide into each other, so the kick traces a small loop
-    // rather than sliding along one axis.
-    shake = Math.max(0, shake - dt * KICK_DECAY);
-    shakeT += dt;
-    // Both axes are sines, and that is the fix. The second one was a cosine,
-    // and `shakeT` restarts at zero on every kick — so cos(0) = 1 put the
-    // camera at full offset in the *first* frame. The shake itself peaked at
-    // 0.10 units but the jump between two frames measured 0.21: the eye was
-    // not seeing a wobble, it was seeing the view teleport, and it did it
-    // exactly when the player was doing well.
+    // The camera sits on the hole and nothing else moves it. A combo used to
+    // add a decaying wobble here; see the note above eatFruit for why it is
+    // gone rather than smaller.
     //
-    // The decay has to outlast the rise or there is no kick at all, only a
-    // pop. First correction dropped the amplitude and sped the decay up to
-    // 1.5/s: at these frequencies a quarter period is about 0.08s and the
-    // envelope died in 0.06, so the sine never reached its own peak and the
-    // whole effect measured one frame long. The rate is derived from the
-    // amplitude now (KICK_DECAY) so the kick keeps its sixth of a second —
-    // half a swing, one thump that settles rather than a rattle — whatever
-    // the amplitude is set to.
-    const kx = shake ? Math.sin(shakeT * 20) * shake : 0;
-    const kz = shake ? Math.sin(shakeT * 15) * shake : 0;
     // Tilted well off vertical: at the old 8 degrees anything standing was
     // foreshortened into a disc, so a board of round fruit had no skyline
     // and a post looked like a coin. This is enough to see the sides of
     // things without losing the plan view the steering depends on.
-    camera.position.set(camX + kx, 13, camZ + 6.2 + kz);
-    camera.lookAt(camX + kx, 0, camZ - 0.4 + kz);
+    camera.position.set(camX, 13, camZ + 6.2);
+    camera.lookAt(camX, 0, camZ - 0.4);
   }
   camera.updateMatrixWorld();
   // Carry the shadow box along with the view so the whole field is shadowed

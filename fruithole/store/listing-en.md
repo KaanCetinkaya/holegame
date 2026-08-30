@@ -116,7 +116,7 @@ stalk, a banana curving off the ground — instead of flat slices.
 The hole has a proper rim, and an arc around it fills as you grow toward full
 size.
 
-The camera kick on a big combo is a swing now, not a jolt.
+The camera no longer shakes on a big combo. It stays on the hole.
 ```
 
 Türkçe:
@@ -134,7 +134,7 @@ elma, yerden kıvrılan muz.
 Deliğin düzgün bir kenarı var; etrafındaki yay, tam boyuta doğru büyüdükçe
 doluyor.
 
-Büyük komboda kameranın tepmesi artık sarsıntı değil, salınım.
+Büyük komboda kamera artık sarsılmıyor, deliğin üstünde duruyor.
 ```
 
 ## Category / tags

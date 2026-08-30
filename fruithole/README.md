@@ -58,7 +58,7 @@ Kayıtlar `localStorage`'da: `fruithole_level`, `fruithole_currency`,
 ## Bölüm yapısı
 
 Her bölümün **iki** ayırt edici özelliği var: **dizilişi** (desen) ve
-**konsepti** (tema). Sekiz tema var — 🏖️ Beach (kum + deniz), ⚽ Match Day
+**konsepti** (tema). Dokuz tema var — 🏖️ Beach (kum + deniz), ⚽ Match Day
 (biçilmiş çim + taç çizgisi + stadyum zemini), 🏠 Indoors (parke),
 ❄️ Snow Day (kar + buz), 💰 Payday (altın damarlı mermer banka zemini,
 bitcoin/euro/rupi/peso madeni paraları, banknot desteleri, dev para kesesi
@@ -66,8 +66,10 @@ ve altın külçeleri), 🚀 Orbit (perçinli istasyon güvertesi, uydu, halkal�
 gezegen, astronot kaskı, yakıt varili, dev roket), 🍹 Happy Hour (koyu cilalı
 bar tezgâhı + bardak halkaları, kokteyl, limon dilimi, shaker, şişe, dev buz
 kovası), 🍔 Drive-In (asfalt + park yeri çizgileri, burger, patates, kola,
-pizza dilimi, dev sedan ve kamyonet). Bir de 🎲 Everything var (kum, bütün
-eşyalar karışık) — bölüm listesinde kullanılmıyor, temasız bir desene
+pizza dilimi, dev sedan ve kamyonet), 📺 Gadget Shop (koyu panel zemin,
+televizyon, oyuncak org, kulaklık, saç kurutma makinesi, teyp, vantilatör,
+dizüstü, telefon, oyun kolu; dev buzdolabı ve oyuncak helikopter). Bir de
+🎲 Everything var (kum, bütün eşyalar karışık) — bölüm listesinde kullanılmıyor, temasız bir desene
 düşüldüğünde devreye giren yedek.
 
 Kokteylin camı **saydam çizilmiyor**: dürüst bir bardak — berrak cam, içinde
@@ -367,49 +369,52 @@ zorluk etmez.
   hakkında hiçbir şey söylemezdi; delikten dışarı olunca ilk oturan şey birazdan
   yiyeceğin meyve oluyor. **Sayaç ve kontrol bu sırada duruyor** — oynayamadığın
   bir buçuk saniyelik geri sayım oyuncudan çalınmış demektir.
-- **Kombo tekmesi bir salınım, sıçrama değil.** Çarpan yükseldiğinde kamera
-  küçük bir tekme yiyor. İki tuzağa arka arkaya düşüldü.
+- **Kombo tekmesi kaldırıldı.** Çarpan yükseldiğinde kamera küçük bir tekme
+  yiyordu. Üç turda düzeltilmeye çalışıldı, sonunda silindi — ve buradaki
+  kayıt sayının küçültülmesi değil, silinme gerekçesi.
 
   İlki: tekme *her yemede* tazeleniyordu. Büyük delikle yoğun tarlada bir
-  karede birkaç meyve birden yutuluyor, dolayısıyla sarsıntı tavanda
-  çakılı kalıyordu ve bütün bölüm boyunca görüntü uğulduyordu. Artık
-  yalnızca çarpan **yükseldiğinde** tetikleniyor.
+  karede birkaç meyve birden yutuluyor, dolayısıyla sarsıntı tavanda çakılı
+  kalıyordu ve bütün bölüm boyunca görüntü uğulduyordu. Sonra yalnızca
+  çarpan **yükseldiğinde** tetiklenir oldu.
 
   İkincisi ve asıl "deprem" olanı: eksenlerden biri kosinüstü ve her tekmede
   `shakeT` sıfırlanıyor, yani `cos(0) = 1` kamerayı **ilk karede tam
   genliğe ışınlıyordu**. Sarsıntının kendisi 0.16 birimken iki kare arası
   sıçrama da 0.16 birimdi: göz sallantı değil, ışınlanma görüyordu — üstelik
   tam oyuncunun iyi gittiği anda. İki eksen de sinüs olunca tekme sıfırdan
-  başlayıp birkaç karede şişiyor.
+  başlayıp birkaç karede şişti.
 
   Üçüncüsü: küçültülmüş haliyle bile gereksizdi. Görüş alanı ekran ne kadar
   geniş olursa olsun 10.8 birim, yani 1080 piksellik bir telefonda 1 birim =
-  100 piksel: 0.07'lik tepe, tahtanın her komboda **on dört piksel** gidip
-  gelmesi demek. Kombo eşiği de düşüktü — x3, zincirin dördüncü meyvesi,
-  yoğun tarlada neredeyse sürekli oradasın.
+  100 piksel. Genlik yarıya, eşik x3'ten x4'e indi ve tepe 3.4 piksele düştü;
+  yine de kameranın deliği bırakıp oynadığı tek an oydu, hem de tam oyuncu iyi
+  giderken. Türün başka hiçbir oyununda yok.
 
-  | | ilk hali | salınım düzeltmesi | bugün |
-  |---|---|---|---|
-  | tepe genlik | 0.16 | 0.07 (7 px) | 0.034 (3.4 px) |
-  | ilk karedeki sıçrama (60 FPS) | 0.16 | 0.022 | 0.010 |
-  | süre | 0.14 sn | 0.15 sn | 0.15 sn |
-  | eşik | x3 | x3 | x4 |
-  | frekans | 5.4 / 4.3 Hz | 3.2 / 2.4 Hz | 3.2 / 2.4 Hz |
+  | | ilk hali | salınım düzeltmesi | küçültülmüş | bugün |
+  |---|---|---|---|---|
+  | tepe genlik | 0.16 | 0.07 (7 px) | 0.034 (3.4 px) | — |
+  | ilk karedeki sıçrama (60 FPS) | 0.16 | 0.022 | 0.010 | — |
+  | süre | 0.14 sn | 0.15 sn | 0.15 sn | — |
+  | eşik | x3 | x3 | x4 | — |
 
-  Arada bir de fazla kısıldı: genlik düşürülüp çürüme 1.5/sn yapılınca
-  zarf, sinüs kendi tepesine varmadan ölüyordu ve geriye tek karelik bir
-  pop kalıyordu. **Çürüme yükselişten uzun yaşamalı.**
+  Yolda öğrenilen iki şey, bir daha kamera oynatılırsa geçerli:
 
-  Bu yüzden çürüme hızı artık genlikten türetiliyor (`KICK_DECAY =
-  KICK_MAX / 0.17`). Sabit 0.4/sn ile genliği yarıya indirmek süreyi de
-  yarıya indiriyordu ve zarf, `sin(20t)` daha tepesindeyken sıfırlanıyordu —
-  yani kamera tam ofsetten tek karede geri sıçrıyordu. Aynı pop, öbür
-  uçtan. Türetilmiş hızla tekme genliği ne olursa olsun altıda bir saniye
-  sürüyor; boyutu ayarlamak şeklini sessizce bozmuyor.
+  **Çürüme yükselişten uzun yaşamalı.** Genlik düşürülüp çürüme 1.5/sn
+  yapılınca zarf, sinüs kendi tepesine varmadan ölüyordu; geriye tek karelik
+  bir pop kaldı. Sabit çürüme hızıyla genliği yarıya indirmek süreyi de
+  yarıya indiriyor ve `sin(20t)` daha tepesindeyken zarf sıfırlanıyor — yani
+  kamera tam ofsetten tek karede geri sıçrıyor. Aynı pop, öbür uçtan. Hız
+  genlikten türetilirse (`KICK_DECAY = KICK_MAX / 0.17`) boyut şekli
+  bozmuyor.
 
-  Oyun ve ölçüm aynı fonksiyondan (`kickCamera`) geçiyor. Eskiden ikisi de
-  kendi kopyasını taşıyordu; sayılar değişince test eski tekmeyi ölçmeye
-  devam eder, değişiklik hiçbir şey yapmamış gibi görünürdü.
+  **Oyun ve ölçüm aynı fonksiyondan geçmeli.** İkisi de kendi kopyasını
+  taşıyordu; sayılar değişince test eski tekmeyi ölçmeye devam eder,
+  değişiklik hiçbir şey yapmamış gibi görünürdü.
+
+  Yutmanın ağırlığı tekmesiz de duruyor: meyve kendi renginde parçacıklara
+  patlıyor, yakanın kenarı şişiyor, çarpan ekrana yazılıyor ve yeme sesinin
+  perdesi zincirle yükseliyor.
 
 - **Müzik de dosyasız.** Dört akorluk (F–C–G–Am) bir döngü aynı sentezle
   çalınıyor: bas + arpej. Notalar zamanlayıcıyla değil **ses saatine** yarım
@@ -509,14 +514,12 @@ npm run build:www        # -> www-fruithole/
 ```bash
 node scratchpad/holegrow.mjs     # delik ne kadar hızlı büyüyor
 node scratchpad/holebalance.mjs  # süpürme süresi ve dev meyve eşiği
-node scratchpad/holeshake.mjs    # kombo tekmesinin profili
 node scratchpad/holecircles.mjs  # Bubbles daireleri yuvarlak ve ayrık mı
 ```
 
-`window.fruitHoleShake()` sarsıntının anlık halini, `fruitHoleKick(çarpan)`
-ise bölüm oynamadan tek bir tekmeyi tetikler — tekmeyi gerçek bir turla
-ölçmek bölüm başına dakikalar sürüyor ve sahte oyuncunun kombo kurabilmesine
-bağlı kalıyordu.
+`window.fruitHoleShake()` kameranın anlık konumunu veriyor. Ölçtüğü kombo
+tekmesi kaldırıldı ama kendisi kaldı: artık baktığı şey, kamerayı delikten
+başka **hiçbir şeyin** oynatmadığı.
 
 ## İkon, splash ve mağaza görselleri
 

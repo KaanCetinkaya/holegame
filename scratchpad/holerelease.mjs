@@ -77,6 +77,15 @@ check(listing.includes(`${WORDS[propIds.length]} objects`),
 check(/Three throw out the grid/.test(listing) === (polar.length === 3),
   `mağaza metni ${polar.length} kutupsal desen diyor`);
 
+// --- kamera ---
+// Kombo tekmesi kaldırıldı. Buna dair yapılabilecek dürüst kontrol bu: tekme
+// bir daha sessizce geri gelmesin. Kameranın oynanışta sarsılmadığını gerçek
+// bir turla ölçmek, sahte oyuncunun kombo kurabilmesine bağlıydı ve bir kere
+// "sarsıntı yok" diye yanlış rapor verdi — o yüzden ölçüm değil, varlık
+// kontrolü.
+check(await pg.evaluate(() => typeof window.fruitHoleKick === 'undefined'),
+  'kombo tekmesi yok (fruitHoleKick tanımsız)');
+
 // --- reklam anahtarı ---
 const src = readFileSync(`${ROOT}/fruithole/index.html`, 'utf8');
 const testing = /const ADS_TESTING = (true|false)/.exec(src)[1];
