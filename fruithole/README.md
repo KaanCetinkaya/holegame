@@ -250,9 +250,19 @@ yani bir bölüm en fazla kırk küçük geometri harcıyor. İlk denemede tam
 ardışık indeksler yayın değil **tüpün** etrafında ilerliyor. İlk N indeksi
 çizmek tüpün bir dilimini veriyor, ekranda da hiçbir şey görünmüyordu.
 
-## Meyveler voxel
+## Voxel bölüm (🧊 Blocks, bölüm 9)
 
-Meyvelerin hepsi düz yüzey yerine **kare sütunlardan** kuruluyor.
+**Tek bir bölümde** meyveler düz yüzey yerine **kare sütunlardan** kuruluyor.
+İki takım da açılışta kuruluyor ve yan yana duruyor; bir desen `voxel: true`
+ile istiyor, `buildField()` da tek meyve dizilmeden önce bayrağı çeviriyor —
+böylece ızgara meyvesi, devler ve menü dioramasının ödünç aldıkları aynı
+fikirde oluyor.
+
+Tek bölüm olması işin kendisi. Baştan sona voxel bir oyun bir üslup; sekiz
+bölüm sonra gelen tek bir voxel tahta ise bir olay. Bölümün adının zaten
+Blocks olması ve oyunun en köşeli yerleşimi olması da (tek meyveli kasalar,
+basamaklı kenar) meyvenin küpe dönmesini "başka bir oyun" değil, "bölümün
+fikri" yapıyor.
 
 **Küp değil, sütun.** Bir meyveyi küp ızgarasıyla doldurmak üçgenlerin çoğunu
 kimsenin görmediği iç hacme harcıyor. Yükseklik alanı — hücre başına bir kutu,
@@ -282,15 +292,18 @@ yani domino taşı. Küçültme dediğin şey zaten ortalama almak; ortalayınca
 eksenlerini, iki üçgeni dışarıdan bakınca saat yönünün tersine sardıracak
 sırayla veriyor. Biri ters olursa o yüz dışarıdan görünmez, içeriden dolu olur.
 
-Maliyet — aynı bölümler, aynı kamera:
+Maliyet — aynı bölümler, aynı kamera (voxel sütunu, o bölüm voxel olsaydı):
 
 | | düz yüzeyli | voxel |
 |---|---|---|
 | çilek (üçgen) | 1380 | 820 |
 | dilim (üçgen) | 120-136 | 476 |
 | dev (üçgen) | 400-660 | 836-1868 |
-| en ağır bölüm | 208 bin üçgen | 308 bin |
-| en ağır bölüm | **1066 çizim çağrısı** | **660** |
+| bütün oyun voxel olsaydı, en ağır bölüm | 208 bin üçgen | 308 bin |
+| bütün oyun voxel olsaydı, en ağır bölüm | **1066 çizim çağrısı** | **660** |
+
+Bugünkü halinde en ağır bölüm voxel olanın kendisi: 210 bin üçgen, 507 çizim
+çağrısı — yani eskiden en ağır bölüm ne kadarsa o kadar.
 
 Üçgen %48 arttı ama **çizim çağrısı %38 azaldı**, ki telefonda asıl pahalı
 olan o: eski dilimler üç malzemeli bir diziyle çiziliyordu (yan, üst, alt),
@@ -300,8 +313,10 @@ bütün meyveler tek malzeme paylaşıyor.
 Izgara çözünürlüğü: normal meyvede 11, devlerde 17. On bir, bir karpuzun hâlâ
 kabuk halkası + beyaz halka + çekirdek gösterebildiği en kaba değer.
 
-Yutunca çıkan parçacıklar da küp — dönerek uçuyorlar, çünkü eksenlerini
-koruyan bir küp sprite gibi duruyor.
+Yutunca çıkan parçacıklar o bölümde küp — dönerek uçuyorlar, çünkü
+eksenlerini koruyan bir küp sprite gibi duruyor. Diğer bölümlerde boncuk
+olarak kalıyorlar. Mesh'ler bölümler arası havuzlandığı için geometri
+havuza gömülmüyor, her doğuşta seçiliyor.
 
 ## Dev meyveler bütün, dilim değil
 

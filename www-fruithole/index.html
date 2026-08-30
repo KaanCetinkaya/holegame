@@ -2046,7 +2046,9 @@ function bananaCapTexture(t) {
 // ---------------------------------------------------------------------
 // Voxel fruit
 // ---------------------------------------------------------------------
-// Every fruit is built out of square columns instead of a smooth surface.
+// One level's fruit are built out of square columns instead of smooth
+// surfaces. Both sets exist at once and a pattern asks for this one with
+// `voxel: true`; see setVoxelField below.
 //
 // **Columns, not cubes.** Filling a fruit with a cube grid spends most of
 // its triangles on interior nobody ever sees. A heightfield — one box per
@@ -2248,7 +2250,7 @@ const sphereColour = (sampler, uRepeat = 1) => (x, z, yTop, i, j, cell) => {
 const BERRY_SAMPLER = texSampler(strawberryTexture(TYPE_BY_ID.berry));
 const RIND_SAMPLER = texSampler(watermelonRindTexture(TYPE_BY_ID.melon));
 
-const GEO = {
+const VOX_GEO = {
   berry: voxelColumns({ n: VOX_N, span: berrySpan, colour: sphereColour(BERRY_SAMPLER) }),
   lychee: voxelColumns({ n: VOX_N, span: DISC, colour: capColour('lychee') }),
   melon: voxelColumns({ n: VOX_N, span: DISC, colour: capColour('melon') }),
@@ -2276,7 +2278,7 @@ const SLICE_H = { banana: 0.5, melon: 0.62, lychee: 0.56 };
 // has about a dozen, so the repeat drops to 1.4.
 const APPLE_RED = parseInt(TYPE_BY_ID.lychee.speck.slice(1), 16);
 const BANANA_YELLOW = parseInt(TYPE_BY_ID.banana.base.slice(1), 16);
-const WHOLE_GEO = {
+const VOX_WHOLE = {
   melon: voxelColumns({
     n: VOX_GIANT_N, span: BALL, colour: sphereColour(RIND_SAMPLER, 1.4),
   }),
@@ -2299,43 +2301,136 @@ const WHOLE_GEO = {
   }),
 };
 
+// --- the smooth fruit, which is what every level but one uses -------
+
+function strawberryGeo() {
+  const geo = new THREE.SphereGeometry(1, 30, 24);
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const below = Math.max(0, -v.y);            // 0 at the equator, 1 at the tip
+    const squeeze = 1 - 0.62 * below * below;
+    pos.setXYZ(i, v.x * squeeze, v.y * 1.06, v.z * squeeze);
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
+}
+
+const GEO = {
+  berry:  strawberryGeo(),
+  lychee: new THREE.CylinderGeometry(1, 1, 1, 30),
+  melon:  new THREE.CylinderGeometry(1, 1, 1, 34),
+  banana: new THREE.CylinderGeometry(1, 1, 1, 30),
+};
+
+const MAT = {};
+TYPES.forEach(t => {
+  if (t.id === 'berry') {
+    MAT.berry = new THREE.MeshStandardMaterial({ map: strawberryTexture(t), roughness: 0.28, metalness: 0.04 });
+  } else if (t.id === 'lychee') {
+    const cap = new THREE.MeshStandardMaterial({ map: appleCapTexture(t), roughness: 0.3 });
+    const skin = new THREE.MeshStandardMaterial({ color: t.speck, roughness: 0.42 });
+    MAT.lychee = [skin, cap, cap];
+  } else if (t.id === 'melon') {
+    // CylinderGeometry groups: side, top, bottom
+    const cap = new THREE.MeshStandardMaterial({ map: watermelonCapTexture(t), roughness: 0.36 });
+    const rind = new THREE.MeshStandardMaterial({ map: watermelonRindTexture(t), roughness: 0.62 });
+    MAT.melon = [rind, cap, cap];
+  } else {
+    const cap = new THREE.MeshStandardMaterial({ map: bananaCapTexture(t), roughness: 0.32 });
+    const side = new THREE.MeshStandardMaterial({ color: t.dark, roughness: 0.55 });
+    MAT.banana = [side, cap, cap];
+  }
+});
+
+function wholeGeometries() {
+  const melon = new THREE.SphereGeometry(1, 22, 16);
+  const apple = new THREE.SphereGeometry(1, 20, 15);
+  apple.scale(1, 0.92, 1);
+  // A banana is not a ball. Half a torus, laid on its side, is a crescent
+  // from overhead and still a crescent from the play camera's angle.
+  const banana = new THREE.TorusGeometry(0.72, 0.3, 10, 20, Math.PI * 1.05);
+  banana.rotateX(Math.PI / 2);
+  return { melon, lychee: apple, banana };
+}
+const WHOLE_GEO = wholeGeometries();
+
+// The rind is drawn for the side of a cylinder and repeats four times round
+// it. Wrapped on a sphere, where u runs right round the fruit, that came to
+// thirty-odd stripes and the melon read as a green sea urchin. A watermelon
+// has about a dozen.
+const WHOLE_RIND = watermelonRindTexture(TYPE_BY_ID.melon);
+WHOLE_RIND.repeat.set(1.4, 1);
+
+const WHOLE_MAT = {
+  melon: new THREE.MeshStandardMaterial({ map: WHOLE_RIND, roughness: 0.55 }),
+  lychee: new THREE.MeshStandardMaterial({ color: TYPE_BY_ID.lychee.speck, roughness: 0.34 }),
+  banana: new THREE.MeshStandardMaterial({ color: TYPE_BY_ID.banana.base, roughness: 0.4 }),
+};
+
 const STALK_MAT = new THREE.MeshStandardMaterial({ color: '#7a4a22', roughness: 0.7 });
 const LEAF_MAT = new THREE.MeshStandardMaterial({ color: '#4aa83c', roughness: 0.6 });
 // Sitting height of each whole form, as a fraction of its radius.
 const WHOLE_Y = { melon: 1, lychee: 0.92, banana: 0.34 };
 
+// --- which of the two a level uses ----------------------------------
+//
+// One level is voxel, the rest are smooth. Both sets are built at boot and
+// live side by side; a level picks with `voxel: true` on its pattern, and
+// buildField() latches it here so every fruit placed on that board — grid
+// fruit, giants and the ones the menu diorama borrows — agrees.
+//
+// Keeping it to one level is the point of it. A whole game of voxels is a
+// style; one board of them, arriving after eight that are not, is an event.
+let voxelField = false;
+const setVoxelField = on => { voxelField = on; };
+
 // A whole apple needs a stalk. Without one it is a red ball, and the board
 // already has a red ball on it — the strawberry — so the two giants a level
-// most wants you to tell apart looked the same from overhead. Both parts are
-// boxes: a turned cylinder next to a voxel apple looks like a mistake.
+// most wants you to tell apart looked the same from overhead. On the voxel
+// board both parts are boxes: a turned cylinder next to a voxel apple looks
+// like a mistake.
 function makeWholeApple() {
   const g = new THREE.Group();
   const add = m => { m.castShadow = true; g.add(m); return m; };
-  add(new THREE.Mesh(WHOLE_GEO.lychee, VOX_MAT));
-  const stalk = add(new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.42, 0.11), STALK_MAT));
+  const vox = voxelField;
+  add(new THREE.Mesh(vox ? VOX_WHOLE.lychee : WHOLE_GEO.lychee,
+                     vox ? VOX_MAT : WHOLE_MAT.lychee));
+  const stalk = add(new THREE.Mesh(
+    vox ? new THREE.BoxGeometry(0.11, 0.42, 0.11)
+        : new THREE.CylinderGeometry(0.05, 0.075, 0.42, 6), STALK_MAT));
   stalk.position.set(0, 0.98, 0);
   stalk.rotation.z = 0.22;
-  const leaf = add(new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.09, 0.24), LEAF_MAT));
+  const leaf = add(new THREE.Mesh(
+    vox ? new THREE.BoxGeometry(0.46, 0.09, 0.24) : new THREE.SphereGeometry(0.26, 8, 6),
+    LEAF_MAT));
+  if (!vox) leaf.scale.set(1, 0.22, 0.55);
   leaf.position.set(0.3, 1.02, 0.04);
   leaf.rotation.y = 0.5;
   return g;
 }
 
 function fruitVisual(type, radius, whole = false) {
+  const vox = voxelField;
   if (whole && WHOLE_GEO[type]) {
     const v = {
-      geo: WHOLE_GEO[type], mat: VOX_MAT,
+      geo: vox ? VOX_WHOLE[type] : WHOLE_GEO[type],
+      mat: vox ? VOX_MAT : WHOLE_MAT[type],
       sx: radius, sy: radius, baseY: radius * WHOLE_Y[type], upright: true,
     };
     if (type === 'lychee') v.make = makeWholeApple;
     return v;
   }
+  const geo = vox ? VOX_GEO[type] : GEO[type];
+  const mat = vox ? VOX_MAT : MAT[type];
   const h = SLICE_H[type];
   if (h) {
     const sy = radius * h;
-    return { geo: GEO[type], mat: VOX_MAT, sx: radius, sy, baseY: sy / 2 };
+    return { geo, mat, sx: radius, sy, baseY: sy / 2 };
   }
-  return { geo: GEO[type], mat: VOX_MAT, sx: radius, sy: radius, baseY: radius };
+  return { geo, mat, sx: radius, sy: radius, baseY: radius };
 }
 
 // ---------------------------------------------------------------------
@@ -4511,7 +4606,11 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.45, 9) > 0.76,
   },
   {
-    name: 'Blocks', icon: '🧊', theme: 'tech',
+    // The one voxel board. It goes here because the level is already called
+    // Blocks and is already the squarest layout in the game — crates of one
+    // fruit with a stepped edge — so the fruit turning to blocks reads as
+    // the level's idea rather than a different game.
+    name: 'Blocks', icon: '🧊', theme: 'tech', voxel: true,
     // rectangular crates of one fruit, mass ending in a stepped edge
     empty: (r, c) => {
       const qr = stepped(r, 3), qc = stepped(c, 3);
@@ -4762,6 +4861,8 @@ function buildField() {
   fieldHalfZ = (rows * CELL) / 2;
   fitGround();
   currentPattern = PATTERNS[(level - 1) % PATTERNS.length];
+  // Latched before a single fruit is built, because fruitVisual() reads it.
+  setVoxelField(!!currentPattern.voxel);
   applyTheme(THEMES[currentPattern.theme] || THEMES.mixed);
   const pool = currentTheme.props || SMALL_PROPS;
   const themePool = pool.filter(id => SMALL_PROPS.includes(id));
@@ -5601,10 +5702,13 @@ function checkEat(now) {
 // Both are pooled and reused — this fires many times a second on a full
 // sweep, so nothing is allocated mid-run.
 // ---------------------------------------------------------------------
-// Cubes, not beads: the fruit is made of blocks, so what comes off it when
-// the hole takes a bite has to be blocks too. They are also given a random
-// tumble on the way out — a cube that keeps its axes reads as a sprite.
-const FLECK_GEO = new THREE.BoxGeometry(0.15, 0.15, 0.15);
+// Beads normally; cubes on the voxel board, because what comes off a fruit
+// made of blocks has to be blocks. The cubes get a random tumble on the way
+// out — one that keeps its axes reads as a sprite, not a chip of fruit.
+// Meshes are pooled across levels, so the geometry is set per spawn rather
+// than baked into the pool.
+const FLECK_GEO = new THREE.SphereGeometry(0.09, 6, 5);
+const FLECK_CUBE = new THREE.BoxGeometry(0.15, 0.15, 0.15);
 const FLECK_POOL = [];
 const flecks = [];          // live ones
 
@@ -5623,18 +5727,20 @@ function burst(x, y, z, type) {
   const mat = fleckMaterial(type);
   for (let i = 0; i < 6; i++) {
     const m = FLECK_POOL.pop() || new THREE.Mesh(FLECK_GEO, mat);
+    m.geometry = voxelField ? FLECK_CUBE : FLECK_GEO;
     m.material = mat;
     m.position.set(x, y + 0.1, z);
     m.scale.setScalar(1);
     m.visible = true;
     scene.add(m);
-    m.rotation.set(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28);
+    m.rotation.set(0, 0, 0);
+    if (voxelField) m.rotation.set(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28);
     const a = Math.random() * Math.PI * 2;
     const sp = 1.6 + Math.random() * 1.9;
     flecks.push({
       m, life: 0, ttl: 0.34 + Math.random() * 0.16,
       vx: Math.cos(a) * sp, vy: 2.6 + Math.random() * 1.8, vz: Math.sin(a) * sp,
-      spin: (Math.random() - 0.5) * 16,
+      spin: voxelField ? (Math.random() - 0.5) * 16 : 0,
     });
   }
 }
@@ -6397,8 +6503,11 @@ window.fruitHoleCost = () => {
   return {
     triangles: renderer.info.render.triangles,
     calls: renderer.info.render.calls,
+    voxel: voxelField,
     perFruit: Object.fromEntries(Object.entries(GEO).map(([k, g]) => [k, tri(g)])),
+    perFruitVoxel: Object.fromEntries(Object.entries(VOX_GEO).map(([k, g]) => [k, tri(g)])),
     perGiant: Object.fromEntries(Object.entries(WHOLE_GEO).map(([k, g]) => [k, tri(g)])),
+    perGiantVoxel: Object.fromEntries(Object.entries(VOX_WHOLE).map(([k, g]) => [k, tri(g)])),
   };
 };
 // How tall each colonnade actually stands, in world units. A stack count is

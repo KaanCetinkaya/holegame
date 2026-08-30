@@ -103,7 +103,10 @@ but the closed test is Turkish-speaking.
 
 English:
 ```
-A new place to play: a gadget shop floor, with televisions, toy keyboards,
+One level is built out of voxels: on the gadget shop floor every fruit turns
+to blocks, and what comes off it when you swallow is blocks too.
+
+A new place to play: that gadget shop floor, with televisions, toy keyboards,
 headphones, hair dryers and a boombox lying among the fruit — and a fridge and
 a toy helicopter to grow into.
 
@@ -121,8 +124,11 @@ The camera no longer shakes on a big combo. It stays on the hole.
 
 Türkçe:
 ```
-Yeni bir mekân: teknoloji mağazasının zemini. Meyvelerin arasında televizyonlar,
-oyuncak org, kulaklık, saç kurutma makinesi, teyp — ve büyüyüp yutacağın bir
+Bir bölüm voxel: teknoloji mağazasının zemininde bütün meyveler küplerden
+kuruluyor, yutunca çıkanlar da küp.
+
+Yeni bir mekân: o mağaza zemini. Meyvelerin arasında televizyonlar, oyuncak
+org, kulaklık, saç kurutma makinesi, teyp — ve büyüyüp yutacağın bir
 buzdolabıyla oyuncak helikopter.
 
 Dört yeni bölüm şekli: basamaklı piramit, dört kule, ok başları ve içini
@@ -167,12 +173,16 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 - `icon-512.png` — store icon, exactly 512×512 (required)
 - `feature-1024x500.png` — feature graphic (required)
 - `1-menu.png` — main menu
-- `2-play.png` — a Match Day level: towers on a mown pitch
-- `3-towers.png` — the same board with the hole grown and a swathe cleared
+- `2-play.png` — level 1: the stepped pyramid on the beach
+- `3-grown.png` — the voxel level, hole grown, a swathe cleared
 - `4-snow.png` — a Snow Day level: snowmen, penguins, candy canes
-- `5-indoors.png` — an Indoors level: floorboards, toy cars, mugs
+- `5-rings.png` — Orbits: rings opening out from the hole
 - `6-skins.png` — the ten hole skins
 - `7-levels.png` — the level map with star ratings
+
+All seven are produced by `node fruithole/make-shots.mjs` (after
+`node build-www.mjs`), from real play rather than by hand — the set was
+hand-captured once and went stale the moment the fruit changed.
 
 Phone screenshots are 1080×1920, captured from real play. Upload them in that
 order. Only the first two show in search results, and the set as a whole has
