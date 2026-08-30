@@ -63,8 +63,11 @@ for (const [name, n] of Object.entries(shots)) {
   await hide();
   await pg.waitForTimeout(150);
   await pg.evaluate(([l, a]) => window.fruitHoleTopDown(l, a), [n, 960 / 540]);
+  // ZOOM=2 ile aynı kareden yarı genişlikte bir kırpma: voxel ızgarası
+  // 540 piksellik karede zar zor seçiliyor.
+  const z = Number(process.env.ZOOM || 1);
   await pg.screenshot({ path: `/tmp/tech/${name}.png`,
-    clip: { x: 135, y: 240, width: 270, height: 480 } });
+    clip: { x: 270 - 135 / z, y: 480 - 240 / z, width: 270 / z, height: 480 / z } });
   console.log(`/tmp/tech/${name}.png  (bölüm ${n})`);
 }
 

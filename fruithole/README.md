@@ -250,6 +250,59 @@ yani bir bölüm en fazla kırk küçük geometri harcıyor. İlk denemede tam
 ardışık indeksler yayın değil **tüpün** etrafında ilerliyor. İlk N indeksi
 çizmek tüpün bir dilimini veriyor, ekranda da hiçbir şey görünmüyordu.
 
+## Meyveler voxel
+
+Meyvelerin hepsi düz yüzey yerine **kare sütunlardan** kuruluyor.
+
+**Küp değil, sütun.** Bir meyveyi küp ızgarasıyla doldurmak üçgenlerin çoğunu
+kimsenin görmediği iç hacme harcıyor. Yükseklik alanı — hücre başına bir kutu,
+şeklin altından üstüne kadar — yukarıdan bakan bir kamerada birebir aynı
+resmi veriyor, ve komşu sütunlar arasındaki basamaklar zaten voxel olarak
+okunan şey.
+
+**Kapalı yüzler atılıyor.** Bir sütunun yan yüzü, ancak o yöndeki komşu yoksa
+ya da daha alçaksa çiziliyor. Düz bir dilimde bütün iç sütunlar aynı
+yükseklikte, yani dört yanı birden düşüyor; geriye üst, alt ve kenar kalıyor.
+Bunu yapmayan bir sürüm dilim başına 570 dörtgen çizerdi, bu ~200 çiziyor.
+
+**Renk, düz meyvelerin zaten kullandığı dokulardan geliyor.** Karpuzun kesik
+yüzü bir daire olarak çizilmişti — kabuk halkası, beyaz halka, kırmızı iç,
+dokuz çekirdek — ve dilimin ızgarası o dairenin üstüne birebir oturuyor.
+Yani voxel'ler sanatı ikinci bir yerde tekrar etmiyor, devralıyor;
+çekirdekler hep oldukları yerde. `CanvasTexture` tuvalini `.image`'da
+tuttuğu için bunun için hiçbir şeyi yeniden yazmak gerekmedi.
+
+**Doku hücre boyunca ortalanıyor, ortasından okunmuyor.** İlk hali noktadan
+örneklüyordu: karpuz çekirdeği birkaç piksel genişliğinde, ya hücreyi ıskalıyor
+ya da tamamını siyaha boyuyordu — meyvenin on birde biri kadar bir çekirdek,
+yani domino taşı. Küçültme dediğin şey zaten ortalama almak; ortalayınca
+çekirdek, değdiği hücrelere koyu bir ton olarak düşüyor.
+
+**Sarma yönü göz kararı olmuyor.** Her yüz kendi normalini ve düzlem
+eksenlerini, iki üçgeni dışarıdan bakınca saat yönünün tersine sardıracak
+sırayla veriyor. Biri ters olursa o yüz dışarıdan görünmez, içeriden dolu olur.
+
+Maliyet — aynı bölümler, aynı kamera:
+
+| | düz yüzeyli | voxel |
+|---|---|---|
+| çilek (üçgen) | 1380 | 820 |
+| dilim (üçgen) | 120-136 | 476 |
+| dev (üçgen) | 400-660 | 836-1868 |
+| en ağır bölüm | 208 bin üçgen | 308 bin |
+| en ağır bölüm | **1066 çizim çağrısı** | **660** |
+
+Üçgen %48 arttı ama **çizim çağrısı %38 azaldı**, ki telefonda asıl pahalı
+olan o: eski dilimler üç malzemeli bir diziyle çiziliyordu (yan, üst, alt),
+yani meyve başına üç çağrı. Renk artık mesh'in içinde, dolayısıyla tahtadaki
+bütün meyveler tek malzeme paylaşıyor.
+
+Izgara çözünürlüğü: normal meyvede 11, devlerde 17. On bir, bir karpuzun hâlâ
+kabuk halkası + beyaz halka + çekirdek gösterebildiği en kaba değer.
+
+Yutunca çıkan parçacıklar da küp — dönerek uçuyorlar, çünkü eksenlerini
+koruyan bir küp sprite gibi duruyor.
+
 ## Dev meyveler bütün, dilim değil
 
 Dört meyvenin üçü kesilmiş dilim (silindir): yatıyorlar, siluetleri yok ve
