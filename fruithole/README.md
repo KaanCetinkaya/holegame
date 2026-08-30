@@ -416,6 +416,17 @@ zorluk etmez.
   patlıyor, yakanın kenarı şişiyor, çarpan ekrana yazılıyor ve yeme sesinin
   perdesi zincirle yükseliyor.
 
+- **`put()` dönüşü kurar, eklemez.** Eşyalar `put(grup, mesh, x, y, z, rx,
+  ry, rz)` ile diziliyor ve fonksiyon içeride `mesh.rotation.set(...)`
+  çağırıyor. Yani çağrıdan **önce** mesh'e verilen bir dönüş sessizce
+  siliniyor. Parmak arası terliğin Y kayışı ile formanın kolları tam olarak
+  böyle yazılmıştı: kod açıyı veriyor, ekranda hiç dönmüyorlardı. Terlik
+  yukarıdan pembe bir yumurtanın üstünde iki paralel çubuktu ve sorun
+  renkte, kalınlıkta, oranda arandı — hiçbiri değildi, açı hiç
+  uygulanmıyordu. Açılar artık argüman olarak geçiyor; dönmesi gereken
+  parçalar (vantilatör kanadı, helikopter pervanesi) zaten bir `Group`
+  içinde, o yüzden onlar etkilenmiyordu.
+
 - **Müzik de dosyasız.** Dört akorluk (F–C–G–Am) bir döngü aynı sentezle
   çalınıyor: bas + arpej. Notalar zamanlayıcıyla değil **ses saatine** yarım
   saniye önceden kuyruklanıyor — `setInterval` kayıyor ve arka plan sekmesinde

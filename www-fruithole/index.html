@@ -2208,6 +2208,11 @@ const PROP_MAT = (color, rough = 0.38) =>
 
 function propTemplates() {
   const T = {};
+  // NOTE: this *sets* the rotation, it does not add to it. A rotation put on
+  // the mesh before the call is silently thrown away — which is how the
+  // flip-flop's strap arms and the shirt's sleeves spent a long time
+  // perfectly parallel while the code above them said otherwise. Pass angles
+  // as arguments, or wrap the part in a Group.
   const put = (g, mesh, x, y, z, rx = 0, ry = 0, rz = 0) => {
     mesh.position.set(x, y, z);
     mesh.rotation.set(rx, ry, rz);
@@ -2387,22 +2392,55 @@ function propTemplates() {
     T.shades = { g, h: 0.2, currency: 'berry' };
   }
 
-  // Flip-flop — sole plus the Y strap, which is the whole recognition.
+  // Flip-flop. Everything here is in service of the Y, because the Y is the
+  // only thing that separates this from a pink pebble at cell size.
+  //
+  // The first version was a scaled cylinder with two white bars laid on it.
+  // The bars ran nearly parallel, ended short of the edge and met a toe post
+  // too small to see — so the arms never converged and the whole prop read as
+  // an oval with two ticks on it. Three things fix it:
+  //
+  //   the arms actually meet, at a toe post on the centre line;
+  //   they start at the widest part of the sole, so they cross the outline;
+  //   the strap is yellow, not white — white on pink is a tone apart, and at
+  //   this size a tone apart is nothing.
+  //
+  // The sole is two pads and a waist rather than one ellipse: a foot is wider
+  // at the toes than the heel, and that taper is what says which end the Y
+  // points at.
   {
     const g = new THREE.Group();
-    const sole = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.16, 18), PROP_MAT('#ff5f8d'));
-    sole.scale.z = 1.55;
+    const rubber = PROP_MAT('#ff5f8d');
+    const bed = PROP_MAT('#ff87ab', 0.5);
+    // Two pads and a waist gave a foot-shaped taper and a stepped outline
+    // where the box met the discs — at cell size the steps read and the taper
+    // did not, so this is one clean oval, a shade wider than it was.
+    const sole = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.16, 22), rubber);
+    sole.scale.z = 1.4;
     put(g, sole, 0, 0.08, 0);
-    // The Y strap has to lie on the sole, not arch over it: standing up it is
-    // foreshortened to nothing from overhead and the flip-flop is a pink oval.
-    const strap = PROP_MAT('#ffffff', 0.4);
-    for (const s of [-1, 1]) {
-      const b = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.62), strap);
-      b.rotation.y = s * 0.62;
-      put(g, b, s * 0.17, 0.18, -0.06);
-    }
-    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), strap), 0, 0.18, -0.38);
-    T.flipflop = { g, h: 0.28, currency: 'banana' };
+    // Footbed: the same shape a shade lighter, so the sole has a lip round it
+    // instead of being a flat colour.
+    const inner = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.04, 22), bed);
+    inner.scale.z = 1.4;
+    put(g, inner, 0, 0.16, 0);
+    // The strap lies on the sole rather than arching over it: standing up it
+    // is foreshortened to nothing from this camera.
+    //
+    // Each arm runs from (±0.38, +0.10) to the toe post at (0, -0.45). A box
+    // is built along its own z, and rotating by y maps that axis to
+    // (sin y, 0, cos y) — so the angle is atan2 of the arm's run, not a
+    // number picked by eye. Picked by eye is how they came out parallel.
+    //
+    // The strap is also thick: a thin one is a scratch on a pink oval. This
+    // is a sixth of the sole's width, which is about what a real one is.
+    const strap = PROP_MAT('#ffd23f', 0.35);
+    const dx = 0.38, dz = 0.55;
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.09, Math.hypot(dx, dz)), strap),
+          s * dx / 2, 0.185, 0.10 - dz / 2, 0, s * Math.atan2(dx, dz), 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.13, 14), strap),
+        0, 0.195, -0.45);
+    T.flipflop = { g, h: 0.26, currency: 'banana' };
   }
 
   // Bucket and spade.
@@ -2574,11 +2612,9 @@ function propTemplates() {
     const g = new THREE.Group();
     const kit = PROP_MAT('#1a63d8', 0.5);
     put(g, new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.08, 1.1), kit), 0, 0.04, 0.1);
-    for (const s of [-1, 1]) {
-      const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.08, 0.4), kit);
-      sleeve.rotation.y = s * 0.35;
-      put(g, sleeve, s * 0.6, 0.04, -0.24);
-    }
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.08, 0.4), kit),
+          s * 0.6, 0.04, -0.24, 0, s * 0.35, 0);
     put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.09, 14), PROP_MAT('#f4f6fb')),
         0, 0.05, -0.42);
     put(g, new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.03, 0.44), PROP_MAT('#f4f6fb')), 0, 0.09, 0.2);
@@ -2803,11 +2839,9 @@ function propTemplates() {
   {
     const g = new THREE.Group();
     const paper = PROP_MAT('#8fc08a', 0.8);
-    for (let i = 0; i < 4; i++) {
-      const note = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.045, 0.58), paper);
-      note.rotation.y = (i - 1.5) * 0.05;
-      put(g, note, 0, 0.03 + i * 0.045, 0);
-    }
+    for (let i = 0; i < 4; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.045, 0.58), paper),
+          0, 0.03 + i * 0.045, 0, 0, (i - 1.5) * 0.05, 0);
     put(g, new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.22, 0.62), PROP_MAT('#e05a4a', 0.6)),
         0, 0.11, 0);
     put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 18), PROP_MAT('#3f6b3c', 0.7)),

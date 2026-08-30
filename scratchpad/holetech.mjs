@@ -38,8 +38,7 @@ const hide = () => pg.evaluate(() => {
     { const e = document.getElementById(id); if (e) e.style.display = 'none'; }
 });
 
-const TECH = ['tv', 'piano', 'headphones', 'hairdryer', 'radio', 'fan',
-              'laptop', 'phone', 'gamepad', 'fridge', 'heli'];
+const TECH = (process.env.PROPS || 'tv,piano,headphones,hairdryer,radio,fan,laptop,phone,gamepad,fridge,heli').split(',');
 
 await hide();
 console.log(await pg.evaluate(ids => window.fruitHolePropSheet(ids), TECH));
@@ -49,29 +48,22 @@ await pg.screenshot({ path: '/tmp/tech/sheet.png' });
 console.log('/tmp/tech/sheet.png');
 
 // Ve tarlada, gerçek bir bölümde.
-const wanted = ['Orbits', 'Blocks', 'Whirl'];
+const wanted = (process.env.LEVELS || 'Orbits,Blocks,Whirl').split(',');
 const shots = {};
 for (let n = 1; n <= 25 && Object.keys(shots).length < wanted.length; n++) {
   const p = await pg.evaluate(l => window.fruitHoleProbe(l), n);
   if (wanted.includes(p.pattern) && !shots[p.pattern]) shots[p.pattern] = n;
 }
-const pg2 = await br.newPage({ viewport: { width: 540, height: 960 }, deviceScaleFactor: 2 });
-pg2.on('pageerror', e => errs.push(String(e)));
-await pg2.goto('http://localhost:8179/', { waitUntil: 'load' });
-await pg2.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
-await pg2.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
-await pg2.waitForTimeout(300);
+// Aynı sayfa yeniden kullanılıyor: swiftshader altında ikinci bir WebGL
+// bağlamı açan sayfa yükleme zaman aşımına düşüyor.
+await pg.setViewportSize({ width: 540, height: 960 });
 for (const [name, n] of Object.entries(shots)) {
-  await pg2.evaluate(() => window.fruitHoleHold(true));
-  await pg2.evaluate(([l, a]) => window.fruitHoleTopDown(l, a), [n, 960 / 540]);
-  await pg2.evaluate(() => {
-    for (const s of document.querySelectorAll('.screen')) s.classList.remove('show');
-    for (const id of ['hud', 'topbar', 'topBar', 'hint', 'combo', 'boosterBar'])
-      { const e = document.getElementById(id); if (e) e.style.display = 'none'; }
-  });
-  await pg2.waitForTimeout(150);
-  await pg2.evaluate(([l, a]) => window.fruitHoleTopDown(l, a), [n, 960 / 540]);
-  await pg2.screenshot({ path: `/tmp/tech/${name}.png`,
+  await pg.evaluate(() => window.fruitHoleHold(true));
+  await pg.evaluate(([l, a]) => window.fruitHoleTopDown(l, a), [n, 960 / 540]);
+  await hide();
+  await pg.waitForTimeout(150);
+  await pg.evaluate(([l, a]) => window.fruitHoleTopDown(l, a), [n, 960 / 540]);
+  await pg.screenshot({ path: `/tmp/tech/${name}.png`,
     clip: { x: 135, y: 240, width: 270, height: 480 } });
   console.log(`/tmp/tech/${name}.png  (bölüm ${n})`);
 }
