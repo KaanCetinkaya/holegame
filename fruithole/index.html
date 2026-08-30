@@ -3856,6 +3856,32 @@ const CIRCLES = [
   { u: 0.70, x: 0.80, r: 2.5 },
   { u: 0.88, x: 0.34, r: 3.1 },
 ];
+// Small hollow rings, the same idea as the circles but with the middle left
+// out — you drive into the hole in the doughnut and eat outwards instead of
+// sweeping across. Placed like the circles: fractions of the board so the
+// layout survives the field growing, radii in cells so a ring is the same
+// size at every level.
+//
+// The band is 1.6 cells thick. Thinner and it breaks into beads at the
+// stacking the pattern uses; thicker and the hole in the middle closes up
+// and it is a disc again.
+const RINGS = [
+  { u: 0.12, x: 0.28, r: 3.2 },
+  { u: 0.31, x: 0.74, r: 2.8 },
+  { u: 0.50, x: 0.26, r: 3.4 },
+  { u: 0.70, x: 0.76, r: 2.8 },
+  { u: 0.88, x: 0.36, r: 3.2 },
+];
+const RING_BAND = 1.6;
+function smallRingAt(r, c) {
+  for (let i = 0; i < RINGS.length; i++) {
+    const k = RINGS[i];
+    const d = Math.hypot(c - k.x * (COLS - 1), r - k.u * (rows - 1));
+    if (d <= k.r && d >= k.r - RING_BAND) return { i, t: (k.r - d) / RING_BAND };
+  }
+  return null;
+}
+
 // Which circle a cell falls in, and how deep into it. -1 for open ground.
 // Returns the *first* match: the circles are placed not to overlap much, and
 // where they do the earlier one wins so the join reads as one in front of
@@ -4168,6 +4194,22 @@ const PATTERNS = [
   },
 
   {
+    name: 'Rings', icon: '⭕', theme: 'pitch',
+    // Five small doughnuts. Each one is a single fruit, like the circles and
+    // the pyramid's terraces — a ring of mixed fruit reads as a scatter that
+    // happens to be curved.
+    empty: (r, c) => !smallRingAt(r, c),
+    type: (r, c) => { const k = smallRingAt(r, c); return ID[k ? k.i % ID.length : 0]; },
+    // Tallest along the crest of the band, so the ring is a wall with a
+    // hollow inside rather than a flat washer.
+    stack: (r, c) => { const k = smallRingAt(r, c); return ridge(k ? 1 - Math.abs(k.t - 0.5) * 2 : 0, 2); },
+    // No props: the band is a cell and a half wide, so one object in it
+    // breaks the loop and the ring reads as a C. Same reason the pillars
+    // have none.
+    props: 0,
+    big: () => false,
+  },
+  {
     name: 'Bubbles', icon: '🫧', theme: 'home',
     // Six round islands on open ground. Each one is a single fruit, which is
     // what makes them read as separate things rather than one lumpy mass —
@@ -4241,9 +4283,9 @@ const PATTERNS = [
 // turns up two levels running.
 const LEVEL_ORDER = [
   'Pyramid', 'Chevrons', 'Orbits', 'Pillars', 'Bubbles',
-  'Piles', 'Walls', 'Blocks', 'Stairs', 'Heart',
-  'Whirl', 'Star', 'Island', 'Ring', 'Diamond',
-  'Bloom', 'Spiral', 'Cross',
+  'Piles', 'Rings', 'Walls', 'Blocks', 'Stairs',
+  'Heart', 'Whirl', 'Star', 'Island', 'Ring',
+  'Diamond', 'Bloom', 'Spiral', 'Cross',
 ];
 for (const p of PATTERNS) {
   if (!LEVEL_ORDER.includes(p.name)) throw new Error(`LEVEL_ORDER is missing ${p.name}`);

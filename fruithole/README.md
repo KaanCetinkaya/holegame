@@ -91,7 +91,8 @@ birden yazar: `⚽ 🔀 Cross`.
 Tarla 13 sütun geniş, 22 satırdan başlayıp bölüm bölüm 34'e uzar; ekrandan
 taştığı için kamera deliği takip eder. Her bölüm **bir şekildir** — piramit,
 kalp, yıldız, ada, halka, elmas, sarmal, çapraz, bloklar, merdiven, yığınlar,
-duvarlar, daireler, sütunlar, huniler — ve şeklin dışı boş kalır. Bir hücre birden çok meyve
+duvarlar, daireler, sütunlar, huniler, halkalar — ve şeklin dışı boş
+kalır. Bir hücre birden çok meyve
 taşıyabilir (istif), delik geçerken kule toptan dökülür.
 
 ### Basamaklı piramit (🔺 Pyramid)
@@ -179,6 +180,20 @@ kesintisiz şeride dönüşüyordu.
 **Bu bölümde hiç eşya yok**, düzen kaygısından değil: eşya konan hücre
 desenin istediğine bakmaksızın tek katlı kuruluyor, yani bir varil koca bir
 on meyvelik kuleyi siliyordu. Bir hat 60 parça olması gerekirken 33 ölçüldü.
+
+### Küçük halkalar (⭕ Rings)
+
+Beş küçük simit. Dairelerle aynı fikir ama ortası boş: içine giriyor ve
+dışarı doğru yiyorsun, tahtayı süpürmüyorsun. Yerleşim dairelerinkiyle aynı
+mantıkta — konumlar tarlanın kesiri, yarıçaplar hücre cinsinden, yani tarla
+büyüdükçe düzen korunuyor ve halka her bölümde aynı boyda.
+
+Bant **bir buçuk hücre** kalın. Daha ince olursa desenin kullandığı istifte
+boncuklara ayrılıyor; daha kalın olursa ortadaki delik kapanıyor ve halka
+diske dönüyor.
+
+Bu bölümde de eşya yok: bir buçuk hücrelik bantta tek bir nesne çemberi
+kırıyor ve halka C harfi gibi okunuyor. Kulelerdekiyle aynı sebep.
 
 ### Yuvarlak olan bir daire (🫧 Bubbles)
 
