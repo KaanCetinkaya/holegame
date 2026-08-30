@@ -382,16 +382,34 @@ zorluk etmez.
   tam oyuncunun iyi gittiği anda. İki eksen de sinüs olunca tekme sıfırdan
   başlayıp birkaç karede şişiyor.
 
-  | | eski | yeni |
-  |---|---|---|
-  | tepe genlik | 0.16 | 0.07 |
-  | ilk karedeki sıçrama (60 FPS) | 0.16 | 0.022 |
-  | süre | 0.14 sn | 0.15 sn |
-  | frekans | 5.4 / 4.3 Hz | 3.2 / 2.4 Hz |
+  Üçüncüsü: küçültülmüş haliyle bile gereksizdi. Görüş alanı ekran ne kadar
+  geniş olursa olsun 10.8 birim, yani 1080 piksellik bir telefonda 1 birim =
+  100 piksel: 0.07'lik tepe, tahtanın her komboda **on dört piksel** gidip
+  gelmesi demek. Kombo eşiği de düşüktü — x3, zincirin dördüncü meyvesi,
+  yoğun tarlada neredeyse sürekli oradasın.
+
+  | | ilk hali | salınım düzeltmesi | bugün |
+  |---|---|---|---|
+  | tepe genlik | 0.16 | 0.07 (7 px) | 0.034 (3.4 px) |
+  | ilk karedeki sıçrama (60 FPS) | 0.16 | 0.022 | 0.010 |
+  | süre | 0.14 sn | 0.15 sn | 0.15 sn |
+  | eşik | x3 | x3 | x4 |
+  | frekans | 5.4 / 4.3 Hz | 3.2 / 2.4 Hz | 3.2 / 2.4 Hz |
 
   Arada bir de fazla kısıldı: genlik düşürülüp çürüme 1.5/sn yapılınca
   zarf, sinüs kendi tepesine varmadan ölüyordu ve geriye tek karelik bir
   pop kalıyordu. **Çürüme yükselişten uzun yaşamalı.**
+
+  Bu yüzden çürüme hızı artık genlikten türetiliyor (`KICK_DECAY =
+  KICK_MAX / 0.17`). Sabit 0.4/sn ile genliği yarıya indirmek süreyi de
+  yarıya indiriyordu ve zarf, `sin(20t)` daha tepesindeyken sıfırlanıyordu —
+  yani kamera tam ofsetten tek karede geri sıçrıyordu. Aynı pop, öbür
+  uçtan. Türetilmiş hızla tekme genliği ne olursa olsun altıda bir saniye
+  sürüyor; boyutu ayarlamak şeklini sessizce bozmuyor.
+
+  Oyun ve ölçüm aynı fonksiyondan (`kickCamera`) geçiyor. Eskiden ikisi de
+  kendi kopyasını taşıyordu; sayılar değişince test eski tekmeyi ölçmeye
+  devam eder, değişiklik hiçbir şey yapmamış gibi görünürdü.
 
 - **Müzik de dosyasız.** Dört akorluk (F–C–G–Am) bir döngü aynı sentezle
   çalınıyor: bas + arpej. Notalar zamanlayıcıyla değil **ses saatine** yarım

@@ -47,8 +47,14 @@ await pg.waitForTimeout(2600);
 // 3 FPS'de dönen bir tarayıcıda oyun zamanı gerçek zamandan altı kat yavaş
 // akıyor ve 0.17 saniyelik bir tekme 0.9 saniye sürüyormuş gibi görünüyor.
 // Bu yüzden süre, oyunun kendi saydığı gibi sayılıyor: her kare min(dt, 0.05).
-console.log('kombo | tepe  | ölçülen fps | ilk kare @60fps | oyun-içi süre');
-console.log('------+-------+-------------+-----------------+---------------');
+//
+// Genlik dünya biriminde tutuluyor ama his piksel cinsinden: görüş alanı
+// ekran ne kadar geniş olursa olsun 10.8 birim, yani 1080 piksellik bir
+// telefonda 1 birim = 100 piksel. Tabloya o yüzden piksel de yazılıyor.
+const spec = await pg.evaluate(() => window.fruitHoleKickSpec());
+console.log(`tekme eşiği: x${spec.min} ve üstü — altındaki kombolar kamerayı hiç itmiyor\n`);
+console.log('kombo | tepe  |  px | ölçülen fps | ilk kare @60fps | oyun-içi süre');
+console.log('------+-------+-----+-------------+-----------------+---------------');
 
 for (const mult of [3, 4, 5]) {
   const r = await pg.evaluate(async m => {
@@ -84,10 +90,12 @@ for (const mult of [3, 4, 5]) {
     if (p[i].shake <= 0) break;
     gameSecs += Math.min(0.05, (p[i].t - p[i - 1].t) / 1000);
   }
+  const note = mult < spec.min ? '  (oyunda tetiklenmez)' : '';
   console.log(
     ` ${String(mult).padStart(5)} | ${r.peak.toFixed(3)} |` +
+    ` ${(r.peak * 100).toFixed(1).padStart(3)} |` +
     ` ${fps.toFixed(1).padStart(11)} | ${first60.toFixed(4).padStart(15)} |` +
-    ` ${gameSecs.toFixed(3).padStart(10)}sn`);
+    ` ${gameSecs.toFixed(3).padStart(10)}sn${note}`);
 }
 
 console.log('\nhatalar: ' + (errs.length ? errs.join(' | ') : 'yok'));
