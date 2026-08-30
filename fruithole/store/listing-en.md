@@ -101,47 +101,36 @@ Play asks for this on every upload, in the release itself rather than the store
 listing. It is per-language: the English box is required, Turkish is optional
 but the closed test is Turkish-speaking.
 
-English:
+English (442 chars):
 ```
-One level is built out of voxels: on the gadget shop floor every fruit turns
-to blocks, and what comes off it when you swallow is blocks too.
+One level is now built out of voxels: on the gadget shop floor every fruit is made of blocks, and so is what comes off it.
 
-A new place to play: that gadget shop floor, with televisions, toy keyboards,
-headphones, hair dryers and a boombox lying among the fruit — and a fridge and
-a toy helicopter to grow into.
+That shop floor is new too — TVs, toy keyboards, headphones and a boombox among the fruit, with a fridge and a toy helicopter to grow into.
 
-Four new level shapes: a stepped pyramid, four standing towers, chevrons, and
-rings you sweep the inside of.
+Four new level shapes: a stepped pyramid, four towers, chevrons, hollow rings.
 
-Giants are now whole fruit standing up — a striped melon, an apple with its
-stalk, a banana curving off the ground — instead of flat slices.
+Giants are whole fruit standing up, not flat slices.
 
-The hole has a proper rim, and an arc around it fills as you grow toward full
-size.
-
-The camera no longer shakes on a big combo. It stays on the hole.
+The camera no longer shakes on a big combo.
 ```
 
-Türkçe:
+Türkçe (409 karakter):
 ```
-Bir bölüm voxel: teknoloji mağazasının zemininde bütün meyveler küplerden
-kuruluyor, yutunca çıkanlar da küp.
+Bir bölüm artık voxel: teknoloji mağazasının zemininde bütün meyveler küplerden kuruluyor, yutunca çıkanlar da küp.
 
-Yeni bir mekân: o mağaza zemini. Meyvelerin arasında televizyonlar, oyuncak
-org, kulaklık, saç kurutma makinesi, teyp — ve büyüyüp yutacağın bir
-buzdolabıyla oyuncak helikopter.
+O mağaza zemini de yeni — televizyon, oyuncak org, kulaklık, teyp; büyüyünce yutacağın buzdolabı ve oyuncak helikopter.
 
-Dört yeni bölüm şekli: basamaklı piramit, dört kule, ok başları ve içini
-süpürdüğün halkalar.
+Dört yeni bölüm şekli: basamaklı piramit, dört kule, ok başları, halkalar.
 
-Devler artık dilim değil, ayakta duran bütün meyveler — çizgili karpuz, sapıyla
-elma, yerden kıvrılan muz.
+Devler artık dilim değil, ayakta duran bütün meyveler.
 
-Deliğin düzgün bir kenarı var; etrafındaki yay, tam boyuta doğru büyüdükçe
-doluyor.
-
-Büyük komboda kamera artık sarsılmıyor, deliğin üstünde duruyor.
+Büyük komboda kamera artık sarsılmıyor.
 ```
+
+Play caps this box at **500 characters per language** and simply refuses a
+longer one. The first version of these notes listed everything in the
+release and came to about 700, which is a rejection at the point you are
+already at the upload screen — so both are counted here.
 
 ## Category / tags
 - Category: **Games → Casual**
