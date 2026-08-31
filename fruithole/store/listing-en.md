@@ -95,36 +95,24 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
-## What's new — 1.4 / versionCode 10 (≤ 500 chars per language)
+## What's new — 1.4.1 / versionCode 11 (≤ 500 chars per language)
 
 Play asks for this on every upload, in the release itself rather than the store
 listing. It is per-language: the English box is required, Turkish is optional
 but the closed test is Turkish-speaking.
 
-English (442 chars):
+English (347 chars):
 ```
-One level is now built out of voxels: on the gadget shop floor every fruit is made of blocks, and so is what comes off it.
+The menu's bottom bar was hidden underneath the banner ad, which put Levels, Upgrades, Goals and Awards out of reach for anyone playing with ads. The bar and the Play button now sit above it.
 
-That shop floor is new too — TVs, toy keyboards, headphones and a boombox among the fruit, with a fridge and a toy helicopter to grow into.
-
-Four new level shapes: a stepped pyramid, four towers, chevrons, hollow rings.
-
-Giants are whole fruit standing up, not flat slices.
-
-The camera no longer shakes on a big combo.
+Plus everything from 1.4: one voxel level on the gadget shop floor, four new level shapes, whole standing giants, and no more camera shake on a big combo.
 ```
 
-Türkçe (409 karakter):
+Türkçe (327 karakter):
 ```
-Bir bölüm artık voxel: teknoloji mağazasının zemininde bütün meyveler küplerden kuruluyor, yutunca çıkanlar da küp.
+Menünün alt şeridi banner reklamın altında kalıyordu; reklamlı oynayan biri Levels, Upgrades, Goals ve Awards ekranlarına hiç ulaşamıyordu. Şerit de Play düğmesi de artık reklamın üstünde.
 
-O mağaza zemini de yeni — televizyon, oyuncak org, kulaklık, teyp; büyüyünce yutacağın buzdolabı ve oyuncak helikopter.
-
-Dört yeni bölüm şekli: basamaklı piramit, dört kule, ok başları, halkalar.
-
-Devler artık dilim değil, ayakta duran bütün meyveler.
-
-Büyük komboda kamera artık sarsılmıyor.
+Ayrıca 1.4'teki her şey: teknoloji mağazasında voxel bölüm, dört yeni bölüm şekli, ayakta duran bütün devler, komboda sarsılmayan kamera.
 ```
 
 Play caps this box at **500 characters per language** and simply refuses a

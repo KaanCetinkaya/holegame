@@ -495,6 +495,39 @@ zorluk etmez.
   parçalar (vantilatör kanadı, helikopter pervanesi) zaten bir `Group`
   içinde, o yüzden onlar etkilenmiyordu.
 
+- **Banner reklam menüyü yutuyordu.** Reklam native bir görünüm ve web
+  görünümünün üstünde duruyor; sayfanın ondan haberi yok, ekranın tamamı
+  kendisininmiş gibi yerleşiyor. Menüde en altta duran şey navigasyon
+  şeridiydi — Levels, Upgrades, Goals, Awards — yani **reklam gören bir
+  oyuncunun o dört ekrana ulaşma yolu yoktu.** Üstelik `#menu` içinde
+  `overflow: hidden` vardı, dolayısıyla kaydırıp da bulunamıyordu. Telefonda
+  çekilen bir kareyle ortaya çıktı; tarayıcıda reklam olmadığı için hiçbir
+  testte görünmüyordu.
+
+  Üç parça düzeltme:
+
+  `--adPad` — bannerın yüksekliği. Adaptive banner sabit boyda değil, ekrana
+  göre değişiyor, o yüzden sayı tahmin edilmiyor, eklentinin
+  `bannerAdSizeChanged` olayından geliyor. Ama yalnız ona da güvenilmiyor:
+  banner gösterilir gösterilmez 60px ayrılıyor, olay gelince gerçek değerle
+  düzeltiliyor. Eklenti olayın adını değiştirirse menü sessizce yine
+  ulaşılmaz hale gelirdi.
+
+  Şerit **sabitlendi** (`position: absolute; bottom: var(--adPad)`). Akışın
+  son elemanı olduğu sürece, üstündeki her şey biraz uzadığında aşağı
+  itiliyordu.
+
+  **Play düğmesi de sabitlendi.** O da akışın sonundaydı; kısa ekranda
+  menünün var olma sebebi olan düğme reklamın altında kalıyordu.
+
+  Ayrılan yer artık elle yazılmış bir sayı değil, şeridin ve tepsinin
+  ölçülen yükseklikleri (`--navPad`, `--botPad`) — elle yazılan sayı,
+  şeridin kendi dolgusu ve güvenli alan kadar yanlıştı.
+
+  `scratchpad/holead.mjs` bunu üç ekran boyunda kontrol ediyor: reklamı gri
+  bir şeritle taklit edip her düğmenin alt kenarının reklamın üstünde
+  kaldığını ölçüyor.
+
 - **Müzik de dosyasız.** Dört akorluk (F–C–G–Am) bir döngü aynı sentezle
   çalınıyor: bas + arpej. Notalar zamanlayıcıyla değil **ses saatine** yarım
   saniye önceden kuyruklanıyor — `setInterval` kayıyor ve arka plan sekmesinde
