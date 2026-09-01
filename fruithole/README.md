@@ -524,9 +524,24 @@ zorluk etmez.
   ölçülen yükseklikleri (`--navPad`, `--botPad`) — elle yazılan sayı,
   şeridin kendi dolgusu ve güvenli alan kadar yanlıştı.
 
+  Ve düzeltmenin kendisi bir hata doğurdu: şeridin yüksekliği **açılışta bir
+  kez** ölçülüyordu, oysa şeridin ikonları o ölçümden sonra yerleşiyor ve
+  şeridi büyütüyor. Ölçüm 82 piksel, gerçeği 108. Play de 82 piksel yukarıya
+  sabitlendiği için şeridin **arkasında** kaldı — şerit ondan sonra
+  çizildiği için düğme ekrandan tamamen kayboldu. Yine telefondan gelen bir
+  kareyle görüldü. Artık `ResizeObserver` ile şerit ya da tepsi her boyut
+  değiştirdiğinde yeniden ölçülüyor; sıfır asla yazılmıyor, çünkü ikisi de
+  bölüm oynanırken `display:none` olan `#menu` içinde.
+
+  Bölüm yazısı (`#menuSub`) da aynı sebeple Play'in arkasında kaldı: Play
+  akıştan çıkınca altındaki akış içeriği onun bulunduğu yere indi. O da
+  sabitlendi, aynı bloğun parçası.
+
   `scratchpad/holead.mjs` bunu üç ekran boyunda kontrol ediyor: reklamı gri
   bir şeritle taklit edip her düğmenin alt kenarının reklamın üstünde
-  kaldığını ölçüyor.
+  kaldığını ölçüyor. Üstelik artık **üst üste binmeye** de bakıyor — Play
+  şeridin, bölüm yazısı da Play'in üstünde mi. İlk hâli buna bakmadığı için
+  ikinci hatayı yakalayamamıştı.
 
 - **Müzik de dosyasız.** Dört akorluk (F–C–G–Am) bir döngü aynı sentezle
   çalınıyor: bas + arpej. Notalar zamanlayıcıyla değil **ses saatine** yarım

@@ -66,6 +66,19 @@ for (const [w, h, name] of [[412, 915, 'normal'], [360, 780, 'küçük'], [412, 
       `alt kenarı ${box.bottom}px, reklam ${adTop}px'de başlıyor`);
   }
 
+  // Üst üste binme: Play şeridin arkasında kalmasın, bölüm yazısı da Play'in.
+  // Bu tam olarak bir kere oldu — şeridin yüksekliği ikonları yerleşmeden
+  // ölçülmüştü, Play 26 piksel aşağıda kaldı ve şerit onun üstüne çizildi.
+  const lay = await pg.evaluate(() => {
+    const r = i => { const e = document.getElementById(i); if (!e) return null;
+      const b = e.getBoundingClientRect(); return { top: Math.round(b.top), bottom: Math.round(b.bottom) }; };
+    return { nav: r('menuNav'), tray: r('playTray'), sub: r('menuSub') };
+  });
+  check(lay.tray.bottom <= lay.nav.top, 'Play şeridin üstünde duruyor',
+    `Play ${lay.tray.bottom}px, şerit ${lay.nav.top}px'de başlıyor`);
+  check(lay.sub.bottom <= lay.tray.top, 'bölüm yazısı Play\'in üstünde duruyor',
+    `yazı ${lay.sub.bottom}px, Play ${lay.tray.top}px'de başlıyor`);
+
   // Reklam yokken de bozulmamalı.
   await pg.evaluate(() => window.fruitHoleAdPad(0));
   await pg.waitForTimeout(150);

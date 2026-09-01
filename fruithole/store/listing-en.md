@@ -95,22 +95,22 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
-## What's new — 1.4.1 / versionCode 11 (≤ 500 chars per language)
+## What's new — 1.4.2 / versionCode 12 (≤ 500 chars per language)
 
 Play asks for this on every upload, in the release itself rather than the store
 listing. It is per-language: the English box is required, Turkish is optional
 but the closed test is Turkish-speaking.
 
-English (347 chars):
+English (364 chars):
 ```
-The menu's bottom bar was hidden underneath the banner ad, which put Levels, Upgrades, Goals and Awards out of reach for anyone playing with ads. The bar and the Play button now sit above it.
+The menu's bottom bar was hidden underneath the banner ad, which put Levels, Upgrades, Goals and Awards out of reach for anyone playing with ads. The bar, the Play button and the level label now sit above it.
 
 Plus everything from 1.4: one voxel level on the gadget shop floor, four new level shapes, whole standing giants, and no more camera shake on a big combo.
 ```
 
-Türkçe (327 karakter):
+Türkçe (334 karakter):
 ```
-Menünün alt şeridi banner reklamın altında kalıyordu; reklamlı oynayan biri Levels, Upgrades, Goals ve Awards ekranlarına hiç ulaşamıyordu. Şerit de Play düğmesi de artık reklamın üstünde.
+Menünün alt şeridi banner reklamın altında kalıyordu; reklamlı oynayan biri Levels, Upgrades, Goals ve Awards ekranlarına ulaşamıyordu. Şerit, Play düğmesi ve bölüm yazısı artık reklamın üstünde.
 
 Ayrıca 1.4'teki her şey: teknoloji mağazasında voxel bölüm, dört yeni bölüm şekli, ayakta duran bütün devler, komboda sarsılmayan kamera.
 ```
