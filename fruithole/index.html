@@ -700,13 +700,18 @@ const UPGRADES = [
   { id: 'speed',  icon: '💨', name: 'Speed',          pay: 'berry',  base: 25,
     desc: lv => `Hole moves ${lv * 8}% faster` },
   { id: 'size',   icon: '⭕', name: 'Starting size',  pay: 'banana', base: 20,
-    desc: lv => `Hole starts ${(lv * 0.06).toFixed(2)} wider` },
+    max: 3,
+    desc: lv => `Hole starts ${(Math.min(lv, 3) * 0.03).toFixed(2)} wider` },
   { id: 'time',   icon: '⏱',  name: 'Extra time',     pay: 'lychee', base: 25,
     desc: lv => `+${lv * 5} seconds every level` },
   { id: 'magnet', icon: '🧲', name: 'Magnet',         pay: 'melon',  base: 30,
     desc: lv => `Pulls fruit in from ${(lv * 0.28).toFixed(2)} further out` },
 ];
 const UPG_MAX = 5;
+// Most upgrades run to UPG_MAX. Starting size stops earlier, because what it
+// buys is the size gate itself: five levels of it opened the hole wide enough
+// to swallow the big fruit before the level had begun.
+const upgMax = u => u.max || UPG_MAX;
 
 const upgrades = JSON.parse(localStorage.getItem('fruithole_upgrades') || '{}');
 UPGRADES.forEach(u => { if (!(u.id in upgrades)) upgrades[u.id] = 0; });
@@ -1288,7 +1293,7 @@ function renderUpgrades() {
   upgListEl.innerHTML = '';
   UPGRADES.forEach(u => {
     const lv = upg(u.id);
-    const maxed = lv >= UPG_MAX;
+    const maxed = lv >= upgMax(u);
     const cost = upgCost(u);
     const pay = TYPE_BY_ID[u.pay];
     const afford = currency[u.pay] >= cost;
@@ -1300,7 +1305,7 @@ function renderUpgrades() {
       `<span class="mid">` +
         `<span class="nm">${u.name}</span>` +
         `<div class="ds">${lv ? u.desc(lv) : 'Not upgraded yet'}</div>` +
-        `<div class="pips">${Array.from({ length: UPG_MAX }, (_, i) =>
+        `<div class="pips">${Array.from({ length: upgMax(u) }, (_, i) =>
           `<span class="pip${i < lv ? ' on' : ''}"></span>`).join('')}</div>` +
       `</span>`;
 
@@ -1810,7 +1815,7 @@ function buyBooster(b) {
 
 function buyUpgrade(u) {
   const cost = upgCost(u);
-  if (upg(u.id) >= UPG_MAX || currency[u.pay] < cost) return;
+  if (upg(u.id) >= upgMax(u) || currency[u.pay] < cost) return;
   currency[u.pay] -= cost;
   upgrades[u.id]++;
   saveCurrency();
@@ -3767,7 +3772,14 @@ function propVisual(id, radius) {
   };
 }
 
-const NORMAL_R = 0.50, BIG_R = 0.72;   // cell is 1.05, so fruit almost touches
+// The cell is 1.05. Ordinary fruit used to be 0.50 — filling it almost edge
+// to edge — which forced the hole to open at 0.62 to swallow them, and 0.62
+// is already within 0.16 of what a big fruit needs. That is the whole reason
+// the middle tier never gated anything: the opening was nearly big enough
+// for it before the level began. Dropping the ordinary fruit to 0.46 lets
+// the opening drop to 0.55 and roughly doubles the gap the player has to
+// grow across.
+const NORMAL_R = 0.46, BIG_R = 0.72;
 
 // A third tier, far wider than a cell. The hole opens at 0.62 and a "big"
 // fruit at 0.72 needs it barely a tenth larger, so the size gate never
@@ -5132,7 +5144,7 @@ function placeGiants() {
 // ---------------------------------------------------------------------
 // Hole
 // ---------------------------------------------------------------------
-const BASE_HOLE_R = 0.62;
+const BASE_HOLE_R = 0.55;
 const HOLE_MAX = BASE_HOLE_R + 2.2;
 
 // How much the hole gains per fruit — measured against the FIELD, not fixed.
@@ -5151,7 +5163,20 @@ const HOLE_MAX = BASE_HOLE_R + 2.2;
 //
 // The floor of 40 is for a field small enough that the division would hand
 // out a cap-filling gulp per fruit.
-const GROW_SWEEP = 0.90;
+// Clearing this share of a field fills the hole from its opening to the cap.
+// It was 0.90 — the whole board took you to the ceiling — which put a giant
+// within reach after about a third of the level and left the back half of
+// every board with nothing left to want. At 1.4 the board's last fruit
+// leaves you short of the cap, so a giant costs about half of it.
+const GROW_SWEEP = 1.4;
+// The field stops growing at 34 rows, which is level 13; the free head start
+// stops there too.
+const LEVEL_HEADSTART_CAP = 4;
+// Four levels of the starting-size upgrade, 0.16 in all. It used to be 0.06 a
+// level with no ceiling at all: 20 bananas for the first, doubling after, so
+// any player past the opening levels could simply buy their way through the
+// size gate. An upgrade should ease a gate, not delete it.
+const SIZE_UPGRADE_CAP = 3, SIZE_UPGRADE_STEP = 0.03;
 const growthUnit = () =>
   (HOLE_MAX - BASE_HOLE_R) / Math.max(40, fruits.length * GROW_SWEEP);
 let holeRadius = BASE_HOLE_R;
@@ -5312,7 +5337,19 @@ function resetHole() {
   // 0.05 a level put the hole at 1.32 on level 15 against the 1.46 a giant
   // needs — you were born almost ready, and the sweep that was supposed to
   // earn it had nothing left to do.
-  holeRadius = BASE_HOLE_R + (sizeStage - 1) * 0.02 + upg('size') * 0.06;
+  // The head start a level gives you, and the one you buy, are both capped.
+  //
+  // The per-level bump used to run forever while the field stopped growing at
+  // 34 rows (level 13). By level 10 the hole already opened wide enough to
+  // swallow the big fruit on the first frame, and by level 45 it opened wide
+  // enough for the giants — the size gate, which is the whole of the game's
+  // difficulty, had stopped existing. It now stops where the field stops.
+  //
+  // The upgrade is capped for the same reason: at 0.06 a level and no
+  // ceiling, a player with a full purse simply buys past the gate.
+  holeRadius = BASE_HOLE_R
+    + Math.min(sizeStage - 1, LEVEL_HEADSTART_CAP) * 0.02
+    + Math.min(upg('size'), SIZE_UPGRADE_CAP) * SIZE_UPGRADE_STEP;
   startRadius = holeRadius;
   holeX = SPAWN_X;
   holeZ = spawnZ();
@@ -6574,7 +6611,8 @@ window.fruitHoleGiants = () => {
       ? +Math.min(...g.map(f => Math.hypot(f.x - SPAWN_X, f.z - spawnZ()))).toFixed(2)
       : null,
     // From a fresh hole, not from whatever the last probe left behind.
-    holeR: +(BASE_HOLE_R + (sizeStage - 1) * 0.02 + upg('size') * 0.06).toFixed(2),
+    holeR: +(BASE_HOLE_R + Math.min(sizeStage - 1, LEVEL_HEADSTART_CAP) * 0.02
+             + Math.min(upg('size'), SIZE_UPGRADE_CAP) * SIZE_UPGRADE_STEP).toFixed(2),
     needR: g.length ? +(Math.max(...g.map(f => f.r)) / 0.92).toFixed(2) : null,
   };
 };
@@ -6627,6 +6665,10 @@ window.fruitHoleGrow = () => {
     giantsLeft: giants.length,
     canGiant: giants.length ? holeRadius >= Math.max(...giants.map(f => f.r)) / 0.92 : null,
     timeLeft: Math.round(timeLeft),
+    // What the size gate is actually gating on this level: where the hole
+    // starts, and how wide the three tiers of fruit are.
+    start: +holeRadius.toFixed(3),
+    bigR: BIG_R, giantR: giants.length ? Math.max(...giants.map(f => f.r)) : GIANT_R,
   };
 };
 

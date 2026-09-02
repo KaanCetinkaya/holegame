@@ -376,6 +376,59 @@ artık namlunun üstüne biniyor.
 Tema üç desende çıkıyor: Orbits (3), Blocks (9), Whirl (12). Üçü de daha önce
 çim ya da mermer zemindeydi; koyu zemin meyveyi de belirgin hale getirdi.
 
+## Boyut kapısı (neden bölümler kolaydı)
+
+Oyunun bütün zorluğu tek bir kuraldan geliyor: **delik, meyveden büyük
+olmadan onu yutamıyor** (`f.r <= holeRadius * 0.92`). Üç kademe var —
+sıradan meyve, iri meyve, dev. Bu kapı kapanmışsa bölüm kendini oynuyor.
+
+Kapı kapanmıştı. Ölçtüğümüzde (`scratchpad/holegate.mjs`):
+
+| bölüm | delik nerede başlıyordu | iri meyve için gereken | dev için |
+|---|---|---|---|
+| 1 | 0.62 | 27 meyve | tarlanın %31'i |
+| 10 | 0.80 | **0** | %24 |
+| 36 | 1.32 | **0** | **%6** |
+| 45 | 1.50 | **0** | **%0** |
+
+45. bölümde delik her şeyi yutacak boyda **başlıyordu.**
+
+**Sebep bir satırdı:** `holeRadius = BASE_HOLE_R + (sizeStage - 1) * 0.02 + ...`
+Bölüm başına 0.02'lik bedava başlangıç, sonsuza kadar. Oysa tarla 34 satırda
+duruyor (13. bölüm). Alan büyümeyi bırakıyor, avans bırakmıyordu.
+
+Dört değişiklik:
+
+**Avans tarlayla birlikte duruyor.** `LEVEL_HEADSTART_CAP = 4`, yani en fazla
++0.08.
+
+**Yükseltme kapıyı silmiyor.** Başlangıç boyutu yükseltmesi genel tavan olan
+5 seviyeye kadar gidiyordu, 0.06'şar: tek başına +0.30, yani iri meyveyi
+bölüm başlamadan açacak kadar. Artık 3 seviye × 0.03 = +0.09. Yükseltme
+kapıyı **hafifletmeli**, kaldırmamalı. Bunun için `UPGRADES`'e seviye başına
+`max` alanı eklendi.
+
+**Büyüme yavaşladı.** `GROW_SWEEP` 0.90 → **1.4**: tarlanın tamamını
+süpürmek artık deliği tavana çıkarmıyor, eksik bırakıyor.
+
+**Kademeler açıldı.** Asıl mesele buydu: sıradan meyve 0.50 yarıçapındaydı,
+1.05'lik hücreyi neredeyse dolduruyordu, dolayısıyla deliğin onları yutmak
+için 0.62'de açılması gerekiyordu — ve 0.62, iri meyvenin istediği 0.78'e
+zaten 0.16 uzaklıkta. Kapı, bölüm başlamadan yarı yarıya açıktı. Sıradan
+meyve **0.46**'ya, açılış **0.55**'e indi; aradaki mesafe iki katına çıktı.
+
+Sonuç, yükseltmesi tavanda bir oyuncuda bile:
+
+| bölüm | başlangıç | iri için | dev için |
+|---|---|---|---|
+| 1 | 0.64 | 27 meyve | %30 |
+| 15 | 0.72 | 21 meyve | %24 |
+| 36 | 0.72 | 7 meyve | %25 |
+| 45 | 0.72 | 8 meyve | %24 |
+
+Devler her bölümde tarlanın dörtte biri ile üçte biri arasında açılıyor —
+eskiden geç bölümlerde bedavaydı.
+
 ## Delik ne kadar hızlı büyüyor
 
 Meyve başına artış **sabit değil, tarlaya oranlı**: tarlanın %90'ını süpürmek
