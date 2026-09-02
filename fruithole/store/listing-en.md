@@ -101,18 +101,22 @@ Play asks for this on every upload, in the release itself rather than the store
 listing. It is per-language: the English box is required, Turkish is optional
 but the closed test is Turkish-speaking.
 
-English (310 chars):
+English (377 chars):
 ```
-The hole grows more slowly, and it no longer starts a level already big enough to swallow everything. Clearing a third of the field is what opens a giant now, on every level — before, by level 36 they were free.
+The hole grows more slowly and no longer starts a level already big enough to swallow everything. Opening a giant costs a third of the field now, on every level — before, by level 36 they were free.
 
-The menu's bottom bar and the Play button were hidden under the banner ad. Both sit above it now.
+Fixed a board that went blank while the interface kept running, usually after an ad. It pauses and comes back now.
+
+The menu bar and Play button were hidden under the banner ad.
 ```
 
-Türkçe (274 karakter):
+Türkçe (334 karakter):
 ```
 Delik daha yavaş büyüyor ve artık bölüme her şeyi yutacak boyda başlamıyor. Bir devi açmak tarlanın üçte birini süpürmek demek, her bölümde — eskiden 36. bölümde devler bedavaydı.
 
-Menünün alt şeridi ve Play düğmesi banner reklamın altında kalıyordu. İkisi de artık üstünde.
+Tarlanın bomboş kalıp arayüzün çalışmaya devam etmesi düzeldi; genelde reklamdan sonra oluyordu.
+
+Menü şeridi ve Play düğmesi reklamın altında kalıyordu.
 ```
 
 Play caps this box at **500 characters per language** and simply refuses a

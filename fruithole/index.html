@@ -1847,6 +1847,34 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.prepend(renderer.domElement);
 
+// The board goes white and the interface stays.
+//
+// An Android WebView drops its WebGL context when the system wants the
+// memory back — most often after the app has been in the background, which
+// on a phone means every time an ad has been on screen. Nothing throws:
+// the canvas simply stops drawing while the HUD, the buttons and the clock
+// carry on as if nothing had happened, so the player is left staring at a
+// blank field with the countdown running down.
+//
+// The default is worse than doing nothing, too: unless the lost event is
+// cancelled the browser will not restore the context at all.
+let glLost = false;
+renderer.domElement.addEventListener('webglcontextlost', (e) => {
+  e.preventDefault();                 // without this it is never coming back
+  glLost = true;
+  // Stop the clock. Losing a level to a blank screen is the one outcome
+  // worse than the blank screen.
+  if (state === 'playing') pauseGame();
+}, false);
+renderer.domElement.addEventListener('webglcontextrestored', () => {
+  glLost = false;
+  // Every texture and geometry in this game is generated in code and still
+  // held in memory, so three re-uploads them on the next draw. What it does
+  // not do is reset its own cached idea of the GL state.
+  if (renderer.resetState) renderer.resetState();
+  resize();
+}, false);
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#22c9cd');
 // The old fog started at 20 units, which under this camera is inside the
@@ -6871,7 +6899,10 @@ function tick(now) {
   sun.position.copy(sun.target.position).add(SUN_OFFSET);
   if (state === 'playing') updateSizeTag();
 
-  renderer.render(scene, camera);
+  // Drawing into a lost context does nothing but burn a frame's worth of
+  // work; the loop keeps turning so that the moment it comes back the next
+  // frame paints.
+  if (!glLost) renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
 applyIcons();

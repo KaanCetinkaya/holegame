@@ -596,6 +596,30 @@ zorluk etmez.
   şeridin, bölüm yazısı da Play'in üstünde mi. İlk hâli buna bakmadığı için
   ikinci hatayı yakalayamamıştı.
 
+- **Tarla bomboş kalıyordu, arayüz çalışmaya devam ediyordu.** Android
+  WebView, sistem belleği geri istediğinde WebGL bağlamını düşürüyor —
+  telefonda bu çoğu zaman uygulama arka plana atıldığında, yani her reklam
+  ekranda kaldığında oluyor. Hiçbir şey hata fırlatmıyor: tuval çizmeyi
+  bırakıyor, HUD, düğmeler ve geri sayım hiçbir şey olmamış gibi devam
+  ediyor. Oyuncu bomboş bir tarlaya bakarken süresi işliyor ve bölümü
+  kaybediyor.
+
+  Varsayılan davranış hiçbir şey yapmamaktan da kötü: `webglcontextlost`
+  olayı **iptal edilmezse** tarayıcı bağlamı hiç geri getirmiyor.
+
+  Üç satır: olay iptal ediliyor, oyun duraklatılıyor (boş ekrana bakarken
+  bölüm kaybetmek, boş ekrandan da kötü tek sonuç), ve bağlam geri gelince
+  `renderer.resetState()` ile three'nin kendi GL durumu sıfırlanıyor. Bütün
+  dokular ve geometriler kodla üretildiği ve bellekte durduğu için ilk
+  karede kendiliğinden yeniden yükleniyorlar.
+
+  `scratchpad/holecontext.mjs` bunu `WEBGL_lose_context` uzantısıyla bilerek
+  düşürüp ölçüyor: kare boşalıyor mu, saat duruyor mu, geri gelince tarla
+  yeniden çiziliyor mu. Ölçüm sayfanın ekran görüntüsünden alınıyor —
+  WebGL tuvalini 2B tuvale `drawImage` ile kopyalamak işe yaramıyor, çünkü
+  `preserveDrawingBuffer` olmadan çizim tamponu kare sonunda siliniyor ve
+  her ölçüm "tek renk" çıkıyor.
+
 - **Müzik de dosyasız.** Dört akorluk (F–C–G–Am) bir döngü aynı sentezle
   çalınıyor: bas + arpej. Notalar zamanlayıcıyla değil **ses saatine** yarım
   saniye önceden kuyruklanıyor — `setInterval` kayıyor ve arka plan sekmesinde
