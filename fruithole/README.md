@@ -704,6 +704,58 @@ döner, yani oyun reklam ağı olmadan da birebir aynı oynanır.
 | Her 3 bölümde bir, sonraki bölüme geçerken | interstitial | kalkar |
 | Oyun sırasında altta | banner | kalkar |
 
+### Reklam ekranı kaplarken saat işliyordu
+
+Telefondan gelen bir kare: **42. bölüm, tarla bomboş beyaz, saat 2:02**, ve
+üstünde boyanmayan bir geçiş reklamının kalıntısı — kırık bir resim simgesi,
+sağda sessize alma şeridi, bir geri sayım. Oyunun kendisinden gelemezdi:
+`index.html` içinde **tek bir `<img>` etiketi yok** (her şey prosedürel
+geometri ve tuval dokusu), ekranda gördüğü "Size 1" yazısı da dosyanın
+hiçbir yerinde geçmiyor. Yani beyaz alanın üstündeki her şey reklam
+görünümüydü, altındaki boş tarla ise düşen WebGL bağlamıydı.
+
+Asıl mesele şuydu: **arkada bölüm çalışmaya devam ediyordu.** `nextLevel()`
+geçiş reklamını gösterip hemen `startLevel()` çağırıyor, yani tarla kuruluyor
+ve geri sayım reklamın altında işlemeye başlıyor. Oyuncu reklamı kapattığında
+zaten kaybetmiş oluyor.
+
+`visibilitychange` zaten dinleniyordu ama yalnızca müziği susturuyordu. Artık
+**oyunu da duraklatıyor**:
+
+```js
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { pauseGame(); music.stop(); }
+  else refreshMusic();
+});
+```
+
+Duraklamayı reklam SDK'sının kendi olaylarına değil buna bağlamak bilinçli:
+hangi isimle gelirse gelsin **her tam ekran reklam web görünümünü arka plana
+atıyor**, gelen arama da atıyor, oyuncunun başka uygulamaya geçmesi de.
+Üçünün de doğru cevabı aynı. Geri gelindiğinde oyun kendiliğinden devam
+etmiyor, duraklama paneli duruyor — yarım bırakılmış bir sürüklemeye
+körlemesine dönmek yerine oyuncu kendi başlatıyor.
+
+Ölçümü `scratchpad/holehide.mjs` yapıyor. Oradaki gizlenme taklit: headless
+Chromium'da ikinci bir sayfayı öne getirmek sekmeyi gizli saymıyor
+(`document.hidden` false kalıyor, test hiçbir şey ölçmemiş oluyor), o yüzden
+özellik geçersiz kılınıp olay elle gönderiliyor. Sınanan şey olayın kendisi
+değil, oyunun ona verdiği tepki.
+
+### Ödüllü reklam asla askıda kalmamalı
+
+`showRewarded()` yalnızca `onRewardedVideoAdDismissed` olayını bekliyordu.
+Gösterilip de kendini kapatmayan bir reklam — boyanmayan bir kreatif tam
+olarak bunu yapıyor — sözü sonsuza kadar askıda bırakıyordu. Çağıran taraf
+`revive()` ve ilk iş olarak kendi düğmesini kapatıyor; yani oyuncu, artık
+hiçbir şey yapmayan bir "📺 +15 saniye" düğmesiyle kayıp ekranında kalıyor,
+tek çıkış uygulamayı öldürmek oluyordu.
+
+Artık her çıkış kapalı: ödül, kapanma, **iki başarısızlık olayı**
+(`onRewardedVideoAdFailedToLoad`, `onRewardedVideoAdFailedToShow`) ve
+eklentiden hiçbir şey gelmemesi ihtimaline karşı 90 saniyelik bir bekçi.
+Ne olursa olsun söz **bir kez** çözülüyor.
+
 ## Geliştirme
 
 `index.html`'i doğrudan tarayıcıda aç (Three.js'i CDN'den çeker, internet

@@ -918,17 +918,37 @@ async function showInterstitial() {
   _interReady = false;
   prepareInterstitial();
 }
+// This used to wait on the dismissed event and nothing else, which meant a
+// rewarded ad that showed but never closed itself — a creative that fails to
+// paint does exactly that — left the promise pending for good. The caller is
+// revive(), which disables its own button first, so the player was parked on
+// the lost screen with a Revive button that no longer did anything and no way
+// back except killing the app. Every exit is covered now: the reward, the
+// dismissal, both failure events, and a watchdog for the case where the
+// plugin reports nothing at all. Whatever happens, this resolves once.
+const REWARD_WATCHDOG_MS = 90000;
 async function showRewarded() {
   if (!ADS_ON) return true;
   return new Promise(async (resolve) => {
-    let got = false, subR = null, subD = null;
-    const cleanup = () => { if (subR && subR.remove) subR.remove(); if (subD && subD.remove) subD.remove(); };
+    let got = false, done = false, timer = null;
+    const subs = [];
+    const finish = (v) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      for (const s of subs) { try { if (s && s.remove) s.remove(); } catch (e) { } }
+      resolve(v);
+    };
+    const on = async (ev, fn) => { try { subs.push(await _AdMob.addListener(ev, fn)); } catch (e) { } };
     try {
-      subR = await _AdMob.addListener('onRewardedVideoAdReward', () => { got = true; });
-      subD = await _AdMob.addListener('onRewardedVideoAdDismissed', () => { cleanup(); resolve(got); });
+      timer = setTimeout(() => finish(got), REWARD_WATCHDOG_MS);
+      await on('onRewardedVideoAdReward', () => { got = true; });
+      await on('onRewardedVideoAdDismissed', () => finish(got));
+      await on('onRewardedVideoAdFailedToLoad', () => finish(false));
+      await on('onRewardedVideoAdFailedToShow', () => finish(false));
       await _AdMob.prepareRewardVideoAd({ adId: AD_UNITS.rewarded });
       await _AdMob.showRewardVideoAd();
-    } catch (e) { cleanup(); resolve(false); }
+    } catch (e) { finish(false); }
   });
 }
 let _bannerShown = false;
@@ -1159,8 +1179,24 @@ document.addEventListener('pointerdown', (e) => {
 
 // A hidden tab throttles timers but not the audio clock, so the scheduler
 // would come back having queued a backlog and play it all at once.
+//
+// Hiding also has to stop the run, not just the music. Anything that takes
+// the screen away — a fullscreen ad, an incoming call, the player switching
+// apps — used to leave the countdown running behind it, so you came back to
+// a level you had already lost. Android compounds it by dropping the WebGL
+// context while the app is backgrounded: what you come back to is a blank
+// field with the clock still spending your time on it. Seen on a phone at
+// level 42, an interstitial that never painted, the board white behind it
+// and 2:02 ticking away.
+//
+// This is the signal to hang the pause on rather than the ad SDK's own
+// events: every fullscreen ad backgrounds the web view whatever those
+// events happen to be called, and a phone call or a task switch backgrounds
+// it too. Pausing puts the panel up, so coming back is a deliberate tap
+// instead of a scramble for a hole you left mid-drag.
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) music.stop(); else refreshMusic();
+  if (document.hidden) { pauseGame(); music.stop(); }
+  else refreshMusic();
 });
 
 // ---------------------------------------------------------------------

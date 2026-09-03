@@ -95,6 +95,22 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.5.1 / versionCode 14 (≤ 500 chars per language)
+
+English (291 chars):
+```
+The countdown no longer keeps running behind a fullscreen ad, a phone call, or while you are in another app. The level pauses, and waits for you to start it again.
+
+Fixed the "+15 seconds" button dying for good when an ad failed to close itself — it used to leave you stuck with no way back.
+```
+
+Türkçe (288 karakter):
+```
+Tam ekran reklamın, gelen bir aramanın ya da başka bir uygulamadaysan geri sayım artık arkada işlemiyor. Bölüm duraklıyor ve sen devam edene kadar bekliyor.
+
+Reklam kendini kapatamadığında "+15 saniye" düğmesinin tamamen ölmesi düzeldi; eskiden geri dönüşü olmayan bir ekranda kalıyordun.
+```
+
 ## What's new — 1.5 / versionCode 13 (≤ 500 chars per language)
 
 Play asks for this on every upload, in the release itself rather than the store
