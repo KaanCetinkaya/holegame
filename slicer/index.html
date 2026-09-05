@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#1b1230" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Slice Rush</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #1b1230; color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* ---- shared chrome ------------------------------------------------- */
+  .pill {
+    background: linear-gradient(180deg, #8f6ce8, #6f49d6);
+    border: 3px solid #fff; border-radius: 999px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.28);
+    padding: 7px 16px; font-weight: 800; font-size: 17px;
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  }
+  .btn {
+    display: block; width: 100%; text-align: center; cursor: pointer;
+    background: linear-gradient(180deg, #ffc44d, #f59321);
+    color: #40260a; font-weight: 900; font-size: 21px; letter-spacing: .3px;
+    padding: 15px; border: 0; border-radius: 16px;
+    box-shadow: 0 5px 0 #c67613;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #c67613; }
+  .btn.alt {
+    background: linear-gradient(180deg, #9d81f0, #7551e0); color: #fff;
+    box-shadow: 0 5px 0 #5334ad;
+  }
+  .btn.alt:active { box-shadow: 0 2px 0 #5334ad; }
+
+  /* ---- in-play HUD --------------------------------------------------- */
+  #hud {
+    position: absolute; left: 0; right: 0;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    padding: 0 14px; display: none;
+    align-items: flex-start; justify-content: space-between; pointer-events: none;
+  }
+  #hud.show { display: flex; }
+  #levelTag { background: #fffaf1; color: #4a2a7a; border-color: #fff; }
+  #scoreTag, #coinTag { min-width: 82px; justify-content: center; }
+  #coinTag { background: linear-gradient(180deg, #ffc44d, #eb9412); color: #40260a; }
+  #pauseBtn { pointer-events: auto; padding: 7px 13px; cursor: pointer; }
+
+  #barWrap {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    top: calc(env(safe-area-inset-top, 0px) + 58px);
+    width: 58%; height: 13px; border-radius: 999px;
+    background: rgba(20,10,40,.5); border: 2px solid rgba(255,255,255,.65);
+    display: none; overflow: hidden;
+  }
+  #barWrap.show { display: block; }
+  #bar { height: 100%; width: 0%; border-radius: 999px;
+         background: linear-gradient(90deg, #ffd23f, #ff8a3d); transition: width .12s linear; }
+
+  #combo {
+    position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%) scale(.6);
+    font-size: 44px; font-weight: 900; color: #ffd23f; opacity: 0;
+    text-shadow: 0 3px 0 #b46b00, 0 0 22px rgba(255,210,63,.7);
+    pointer-events: none;
+  }
+  #combo.pop { animation: pop .55s ease-out; }
+  @keyframes pop {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
+    22%  { opacity: 1; transform: translate(-50%,-50%) scale(1.18); }
+    70%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%,-60%) scale(.95); }
+  }
+
+  #hint {
+    position: absolute; left: 0; right: 0; bottom: 16%;
+    text-align: center; font-size: 16px; font-weight: 700;
+    text-shadow: 0 2px 6px rgba(0,0,0,.6); pointer-events: none;
+    opacity: 0; transition: opacity .3s;
+  }
+  #hint.show { opacity: .92; }
+
+  /* ---- full screens -------------------------------------------------- */
+  .screen {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 26px 24px calc(env(safe-area-inset-bottom, 0px) + 26px);
+    background: rgba(20,12,38,.82); backdrop-filter: blur(3px);
+  }
+  .screen.show { display: flex; }
+  .screen h1 { margin: 0 0 6px; font-size: 42px; letter-spacing: -1px; }
+  .screen h2 { margin: 0 0 14px; font-size: 27px; }
+  .screen p  { margin: 0 0 20px; opacity: .8; font-size: 15px; line-height: 1.5; text-align: center; }
+  .card {
+    width: 100%; max-width: 340px;
+    background: rgba(255,255,255,.09); border: 2px solid rgba(255,255,255,.16);
+    border-radius: 20px; padding: 18px; margin-bottom: 16px;
+  }
+  .row { display: flex; justify-content: space-between; align-items: center;
+         font-size: 16px; font-weight: 700; padding: 6px 0; }
+  .row span:last-child { color: #ffd23f; }
+  .stars { font-size: 38px; letter-spacing: 6px; margin: 4px 0 14px; }
+  .stars .off { opacity: .22; }
+  .stack { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 11px; }
+
+  #blades { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px;
+            width: 100%; max-width: 340px; margin-bottom: 16px; }
+  .blade {
+    background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.16);
+    border-radius: 15px; padding: 9px 5px 7px; text-align: center; cursor: pointer;
+  }
+  .blade.on { border-color: #ffd23f; background: rgba(255,210,63,.16); }
+  .blade.locked { opacity: .55; }
+  /* The swatch is the blade's own wedge, not a colour square: a shop that
+     shows a rectangle tells you nothing about what you are buying. */
+  .blade .sw { height: 26px; margin: 2px auto 7px; width: 86%;
+               clip-path: polygon(0 22%, 78% 46%, 78% 54%, 0 78%); }
+  .blade .nm { font-size: 12px; font-weight: 800; }
+  .blade .pr { font-size: 11px; font-weight: 800; color: #ffd23f; margin-top: 2px; }
+
+  /* ---- level map ------------------------------------------------------
+     Scrolls inside itself rather than growing the screen: at level 60 the
+     grid is taller than the phone and the KAPAT button has to stay put. */
+  #mapGrid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px;
+    width: 100%; max-width: 340px; margin-bottom: 16px;
+    max-height: 46vh; overflow-y: auto; padding: 2px;
+  }
+  .lv {
+    aspect-ratio: 1; border-radius: 15px; cursor: pointer;
+    background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.16);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .lv .n { font-size: 19px; font-weight: 800; line-height: 1; }
+  .lv .s { font-size: 10px; letter-spacing: 1px; color: #ffd23f; margin-top: 3px; height: 12px; }
+  .lv .s .off { opacity: .22; }
+  .lv.next { border-color: #ffd23f; background: rgba(255,210,63,.16); }
+  .lv.shut { opacity: .4; cursor: default; }
+  .lv.shut .n { font-size: 15px; }
+
+  /* ---- daily reward --------------------------------------------------- */
+  #dayRow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+            width: 100%; max-width: 340px; margin-bottom: 18px; }
+  .day { border-radius: 10px; padding: 7px 2px; text-align: center;
+         background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.14); }
+  .day.done { background: rgba(255,210,63,.16); border-color: #ffd23f; }
+  .day .d { font-size: 10px; font-weight: 800; opacity: .7; }
+  .day .c { font-size: 11px; font-weight: 800; color: #ffd23f; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="pill" id="levelTag">BÖLÜM 1</div>
+    <div class="pill" id="scoreTag">🔪 0</div>
+    <div class="pill" id="coinTag">🪙 0</div>
+    <div class="pill" id="pauseBtn">⏸</div>
+  </div>
+  <div id="barWrap"><div id="bar"></div></div>
+  <div id="combo"></div>
+  <div id="hint">Parmağını yukarı aşağı kaydır</div>
+
+  <div class="screen show" id="menu">
+    <h1>🔪 Slice Rush</h1>
+    <p>Bıçak kendi gidiyor. Sen sadece yüksekliğini ayarla —<br>her şeyi kes, demire çarpma.</p>
+    <div class="card">
+      <div class="row"><span>Bölüm</span><span id="mLevel">1</span></div>
+      <div class="row"><span>Toplam yıldız</span><span id="mStars">0</span></div>
+      <div class="row"><span>En iyi kombo</span><span id="mCombo">0</span></div>
+      <div class="row"><span>Kasa</span><span id="mCoins">🪙 0</span></div>
+    </div>
+    <div class="stack">
+      <button class="btn" id="playBtn">OYNA</button>
+      <button class="btn alt" id="mapBtn">BÖLÜMLER</button>
+      <button class="btn alt" id="shopBtn">BIÇAKLAR</button>
+    </div>
+  </div>
+
+  <div class="screen" id="map">
+    <h2>Bölümler</h2>
+    <p>Geçtiğin bölümü tekrar oynayıp yıldızını yükseltebilirsin.</p>
+    <div id="mapGrid"></div>
+    <div class="stack">
+      <button class="btn alt" id="mapClose">KAPAT</button>
+    </div>
+  </div>
+
+  <div class="screen" id="daily">
+    <h2>Günlük ödül 🎁</h2>
+    <p id="dStreak">1. gün</p>
+    <div id="dayRow"></div>
+    <div class="stack">
+      <button class="btn" id="dOk">🪙 <span id="dCoins">0</span> AL</button>
+    </div>
+  </div>
+
+  <div class="screen" id="shop">
+    <h2>Bıçaklar</h2>
+    <p>Uzun bıçak daha erken değiyor — dar boşluklarda işe yarıyor.</p>
+    <div id="blades"></div>
+    <div class="stack">
+      <button class="btn alt" id="shopClose">KAPAT</button>
+    </div>
+  </div>
+
+  <div class="screen" id="pause">
+    <h2>Duraklatıldı</h2>
+    <div class="stack">
+      <button class="btn" id="resumeBtn">DEVAM</button>
+      <button class="btn alt" id="quitBtn">ANA MENÜ</button>
+    </div>
+  </div>
+
+  <div class="screen" id="over">
+    <h2 id="overTitle">Demire çarptın!</h2>
+    <p id="overSub">Bölümü baştan al.</p>
+    <div class="stack">
+      <button class="btn" id="reviveBtn">📺 REKLAM İZLE, DEVAM ET</button>
+      <button class="btn alt" id="retryBtn">TEKRAR DENE</button>
+      <button class="btn alt" id="overQuitBtn">ANA MENÜ</button>
+    </div>
+  </div>
+
+  <div class="screen" id="clear">
+    <h2>Bölüm bitti! 🎉</h2>
+    <div class="stars" id="clearStars"></div>
+    <div class="card">
+      <div class="row"><span>Kesilen</span><span id="cCut">0 / 0</span></div>
+      <div class="row"><span>En uzun kombo</span><span id="cCombo">0</span></div>
+      <div class="row"><span>Toplanan</span><span id="cCoins">🪙 0</span></div>
+    </div>
+    <div class="stack">
+      <button class="btn" id="dblBtn">📺 REKLAM İZLE, ×2 AL</button>
+      <button class="btn" id="nextBtn">SONRAKİ BÖLÜM</button>
+      <button class="btn alt" id="clearQuitBtn">ANA MENÜ</button>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://esm.sh/three@0.161.0" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// =====================================================================
+// Slice Rush
+//
+// A blade flies forward at a constant speed; the finger only ever sets its
+// height. Everything it touches is cut in two, and the two halves fly apart
+// with the cut face showing.
+//
+// The course runs AWAY from the camera rather than across it. A side-on view
+// was the first thing tried and it does not survive a portrait phone: the
+// field of view is vertical, so at 46 degrees and eleven units back the
+// screen is only about two units wide in world space — the blade sat off the
+// left edge with nowhere to put what was coming. Pointing the course into
+// the screen spends the tall axis on distance, which is the axis that
+// actually needs it: you can see six obstacles ahead.
+//
+// The cut is real rather than a swap for a pre-broken model: the object is
+// cloned twice and each clone is trimmed by a clipping plane at the blade's
+// height, so a melon cut near the top gives a cap and a bowl, not the same
+// two halves every time. See sliceObject().
+// =====================================================================
+
+const app = document.getElementById('app');
+const $ = id => document.getElementById(id);
+
+// ---------------------------------------------------------------------
+// Save
+// ---------------------------------------------------------------------
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+// ---------------------------------------------------------------------
+// Ads
+//
+// Rewarded video only, and both placements are asked for rather than
+// imposed: continue after a crash, and double the level's coins. A level
+// game like this has an obvious slot for an interstitial between levels,
+// and that is exactly the ad players uninstall over.
+//
+// Everything is a no-op off-device and showRewarded() resolves true there,
+// so the browser build walks the same flow.
+// ---------------------------------------------------------------------
+const _Cap = window.Capacitor;
+const _AdMob = _Cap && _Cap.Plugins ? _Cap.Plugins.AdMob : null;
+const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _AdMob);
+// Google's public test unit. Slice Rush has no AdMob app yet; swap this and
+// set ADS_TESTING to false before release.
+const AD_UNITS = { rewarded: 'ca-app-pub-3940256099942544/5224354917' };
+const ADS_TESTING = true;
+
+async function adsInit() {
+  if (!ADS_ON) return;
+  try { await _AdMob.initialize({ initializeForTesting: ADS_TESTING }); } catch (e) {}
+}
+function showRewarded() {
+  if (!ADS_ON) return Promise.resolve(true);
+  return new Promise(async resolve => {
+    let got = false, subR = null, subD = null;
+    const cleanup = () => { subR?.remove?.(); subD?.remove?.(); };
+    try {
+      subR = await _AdMob.addListener('onRewardedVideoAdReward', () => { got = true; });
+      subD = await _AdMob.addListener('onRewardedVideoAdDismissed', () => { cleanup(); resolve(got); });
+      await _AdMob.prepareRewardVideoAd({ adId: AD_UNITS.rewarded });
+      await _AdMob.showRewardVideoAd();
+    } catch (e) { cleanup(); resolve(false); }
+  });
+}
+adsInit();
+
+// Two different numbers, and conflating them was the bug the level map
+// exposed: `maxLevel` is how far the player has got — the save — and `level`
+// is whichever level is on screen right now. With one variable, replaying
+// level 3 to chase a third star rewound a player who was on level 30.
+// `slicerush_level` keeps its old meaning (the first level not yet cleared),
+// so existing saves carry over untouched.
+let maxLevel   = store.get('slicerush_level', 1);
+let level      = maxLevel;
+let starsByLvl = store.get('slicerush_stars', {});
+let bestCombo  = store.get('slicerush_combo', 0);
+let coins      = store.get('slicerush_coins', 0);
+let ownedBlades = store.get('slicerush_blades', [0]);
+let activeBlade = store.get('slicerush_blade', 0);
+
+// What the coins buy. `reach` is how far in front of its centre the blade
+// cuts: a longer blade meets a stack sooner, which is worth something in the
+// tight gaps late on. One stat, because a shop of pure colours is not worth
+// saving for and two stats would need every level retuned per blade.
+const BLADES = [
+  { name: 'Çelik',   steel: '#eef3f8', edge: '#8fe4ff', grip: '#8b3f2a', price: 0,    reach: 0 },
+  { name: 'Bakır',   steel: '#e0a06a', edge: '#ffd9a0', grip: '#5c3a22', price: 300,  reach: 0.04 },
+  { name: 'Zümrüt',  steel: '#8ce0b0', edge: '#c8ffe4', grip: '#24503c', price: 900,  reach: 0.08 },
+  { name: 'Safir',   steel: '#8ab4ff', edge: '#d6e8ff', grip: '#23335c', price: 2200, reach: 0.12 },
+  { name: 'Altın',   steel: '#ffd257', edge: '#fff2b8', grip: '#6b4a10', price: 5000, reach: 0.17 },
+  { name: 'Obsidyen',steel: '#4a4f5c', edge: '#ff7ad1', grip: '#1c1f26', price: 11000, reach: 0.22 },
+];
+const totalStars = () => Object.values(starsByLvl).reduce((a, b) => a + b, 0);
+
+// ---------------------------------------------------------------------
+// Renderer, camera, lights
+// ---------------------------------------------------------------------
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// Halves are trimmed with per-material planes, which only work with local
+// clipping switched on.
+renderer.localClippingEnabled = true;
+app.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+// The fog is what stops the far end of the course being a wall of objects:
+// things fade in rather than popping, and it hides where the floor stops.
+scene.fog = new THREE.Fog('#3a2568', 26, 64);
+
+const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.1, 160);
+
+const hemi = new THREE.HemisphereLight('#d8ccff', '#3a2a5c', 0.9);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight('#fff4e0', 1.0);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far = 52;
+sun.shadow.camera.left = -12; sun.shadow.camera.right = 12;
+sun.shadow.camera.top = 26;   sun.shadow.camera.bottom = -18;
+sun.shadow.bias = -0.0008;
+scene.add(sun, sun.target);
+const rim = new THREE.DirectionalLight('#8fd0ff', 0.4);
+rim.position.set(-7, 5, 4);
+scene.add(rim);
+
+function fit() {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+}
+addEventListener('resize', fit);
+
+// ---------------------------------------------------------------------
+// Canvas textures
+// ---------------------------------------------------------------------
+function newCanvas(w, h = w) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  return [c, c.getContext('2d')];
+}
+function finish(c) {
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
+// The floor, with lane lines running away from you. The lines are the whole
+// point: a flat colour gave the run no sense of speed, because nothing on it
+// moved past.
+function floorTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#3b2a63';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 900; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? '#2c1f4c' : '#4d3880';
+    const x = Math.random() * S, y = Math.random() * S, r = 2 + Math.random() * 7;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // rungs across the lane, so the ground scrolls visibly under the blade
+  ctx.fillStyle = 'rgba(150,120,220,.30)';
+  ctx.fillRect(0, 0, S, 9);
+  ctx.fillStyle = 'rgba(150,120,220,.16)';
+  ctx.fillRect(0, S / 2, S, 5);
+  // edges of the corridor
+  ctx.fillStyle = 'rgba(190,160,255,.45)';
+  ctx.fillRect(0, 0, 7, S);
+  ctx.fillRect(S - 7, 0, 7, S);
+  const t = finish(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(1, 40);
+  return t;
+}
+
+// The backdrop is one tall gradient with two bands of hills, drawn once. A
+// skybox would have cost six faces to say the same thing, and only one of
+// them is ever on screen.
+function skyTexture() {
+  const W = 512, H = 512, [c, ctx] = newCanvas(W, H);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#150e28');
+  g.addColorStop(0.40, '#3d2670');
+  g.addColorStop(0.68, '#8a4394');
+  g.addColorStop(0.86, '#e0708a');
+  g.addColorStop(1, '#ffb36b');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 150; i++) {
+    ctx.globalAlpha = 0.2 + Math.random() * 0.7;
+    ctx.fillStyle = '#fff';
+    const x = Math.random() * W, y = Math.random() * H * 0.45, r = Math.random() * 1.5 + 0.4;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = '#ffe9a8';
+  ctx.beginPath(); ctx.arc(W * 0.72, H * 0.30, 26, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
+  for (const [base, col] of [[0.86, '#4a2f72'], [0.93, '#2f1e4e']]) {
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    for (let x = 0; x <= W; x += 8) {
+      const y = H * base - Math.sin(x * 0.021 + base * 30) * 30 - Math.sin(x * 0.06) * 11;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    ctx.fill();
+  }
+  return finish(c);
+}
+
+// 20 wide so the corridor has visible sides; 600 long so it never runs out.
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(20, 600),
+  new THREE.MeshStandardMaterial({ map: floorTexture(), roughness: 0.95 }));
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Sized and placed so the bottom edge lands on the floor: the hills live in
+// the bottom of the texture, and with the plane centred higher they sat
+// underground and the horizon was a flat colour band.
+const SKY_H = 62;
+const sky = new THREE.Mesh(
+  new THREE.PlaneGeometry(150, SKY_H),
+  new THREE.MeshBasicMaterial({ map: skyTexture(), depthWrite: false, fog: false }));
+sky.position.y = SKY_H / 2;
+scene.add(sky);
+
+// ---------------------------------------------------------------------
+// The blade
+// ---------------------------------------------------------------------
+// A knife rather than a spinning disc: it points where it is going, so the
+// player can see what height they are at. A tumbling blade looked livelier
+// and was much harder to aim with.
+//
+// It is built pointing along +X and then yawed into -Z by a wrapper, because
+// pitch and yaw in one Euler cannot both be had: 'XYZ' turns the object
+// before it tips it, so a single rotation that aimed the knife down the
+// course could no longer nose it up and down.
+function buildBlade(spec) {
+  const g = new THREE.Group();
+  const steel = new THREE.MeshStandardMaterial({
+    color: spec.steel, roughness: 0.14, metalness: 0.55 });
+
+  // Kalınlık 0.06'ydı. Kamera bıçağın arkasında duruyor, yani ona neredeyse
+  // tam profilden bakıyor: o kalınlıkta ekranda birkaç piksellik bir çizgi
+  // kalıyordu ve oyuncunun yönettiği tek şey görünmüyordu.
+  const b = new THREE.BufferGeometry();
+  const T = 0.13;
+  const v = [
+    -0.5,  0.30, -T,  -0.5, -0.30, -T,   0.92, 0.0, -T,
+    -0.5,  0.30,  T,  -0.5, -0.30,  T,   0.92, 0.0,  T,
+  ];
+  const idx = [
+    0, 1, 2,  5, 4, 3,
+    0, 2, 5,  0, 5, 3,
+    1, 4, 5,  1, 5, 2,
+    0, 3, 4,  0, 4, 1,
+  ];
+  b.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+  b.setIndex(idx);
+  b.computeVertexNormals();
+  const blade = new THREE.Mesh(b, steel);
+  blade.castShadow = true;
+  g.add(blade);
+
+  // A glowing edge along the cutting side. From behind, a bare steel wedge
+  // was a grey sliver against a purple sky and you could not tell what
+  // height it was at — which is the only thing the player is steering.
+  const edge = new THREE.Mesh(
+    new THREE.BoxGeometry(1.42, 0.08, 0.3),
+    new THREE.MeshStandardMaterial({
+      color: '#ffffff', emissive: spec.edge, emissiveIntensity: 1.1, roughness: 0.1 }));
+  edge.position.set(0.16, -0.23, 0);
+  edge.rotation.z = 0.17;
+  g.add(edge);
+
+  const grip = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.17, 0.2, 0.7, 12),
+    new THREE.MeshStandardMaterial({ color: spec.grip, roughness: 0.7 }));
+  grip.rotation.z = Math.PI / 2;
+  grip.position.set(-0.86, 0, 0);
+  grip.castShadow = true;
+  g.add(grip);
+  const collar = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.22, 0.22, 0.13, 12),
+    new THREE.MeshStandardMaterial({ color: '#d8b64a', roughness: 0.3, metalness: 0.6 }));
+  collar.rotation.z = Math.PI / 2;
+  collar.position.set(-0.52, 0, 0);
+  g.add(collar);
+  return g;
+}
+const blade = new THREE.Group();
+let bladeModel = null;
+function fitBlade() {
+  if (bladeModel) blade.remove(bladeModel);
+  bladeModel = buildBlade(BLADES[activeBlade]);
+  bladeModel.rotation.y = -Math.PI / 2;    // nose down the course
+  bladeModel.scale.setScalar(1.22);
+  blade.add(bladeModel);
+}
+fitBlade();
+scene.add(blade);
+
+// The trail: past blade positions as a fading ribbon. Without it the blade
+// slid rather than flew, and a fast cut had nothing to show for it.
+// İz 20 parçaydı ve bıçağın hemen arkasından başlıyordu: ekranın yarısını
+// kaplayan parlak bir şerit, altında da bıçak. Kısaltıldı, söndürüldü ve
+// başlangıcı geriye alındı — iz hızı anlatmalı, kahramanı gizlememeli.
+const TRAIL = 12;
+const trailPos = new Float32Array(TRAIL * 6 * 3);
+const trailCol = new Float32Array(TRAIL * 6 * 3);
+const trailGeo = new THREE.BufferGeometry();
+trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPos, 3));
+trailGeo.setAttribute('color', new THREE.BufferAttribute(trailCol, 3));
+const trail = new THREE.Mesh(trailGeo, new THREE.MeshBasicMaterial({
+  vertexColors: true, transparent: true, opacity: 0.3, fog: false,
+  side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending }));
+trail.frustumCulled = false;
+scene.add(trail);
+const history = [];
+
+function pushTrail(y, z) {
+  history.unshift({ y, z });
+  if (history.length > TRAIL + 1) history.pop();
+  let p = 0, c = 0;
+  for (let i = 0; i < TRAIL; i++) {
+    const a = history[i] || { y, z };
+    const b = history[i + 1] || a;
+    const wa = 0.15 * (1 - i / TRAIL), wb = 0.15 * (1 - (i + 1) / TRAIL);
+    const quad = [
+      0, a.y + wa, a.z,  0, a.y - wa, a.z,  0, b.y - wb, b.z,
+      0, a.y + wa, a.z,  0, b.y - wb, b.z,  0, b.y + wb, b.z,
+    ];
+    for (const n of quad) trailPos[p++] = n;
+    const f = 1 - i / TRAIL;
+    for (let k = 0; k < 6; k++) {
+      trailCol[c++] = 0.5 * f; trailCol[c++] = 0.82 * f; trailCol[c++] = 1.0 * f;
+    }
+  }
+  trailGeo.attributes.position.needsUpdate = true;
+  trailGeo.attributes.color.needsUpdate = true;
+}
+
+// ---------------------------------------------------------------------
+// Things to cut
+// ---------------------------------------------------------------------
+// Every sliceable is a single mesh with one material, because the cut clones
+// the object and re-materialises it: a model made of eight parts would mean
+// eight cloned materials per half and a cut face for each.
+//
+// `flesh` is what the inside looks like. It is the whole reason a cut reads
+// as a cut — trimmed geometry on its own leaves a hollow shell.
+const SLICEABLES = [
+  { id: 'melon',  r: 0.72, sphere: true,
+    geo: () => new THREE.SphereGeometry(0.72, 22, 16),
+    skin: '#3f8f3a', flesh: '#ef4c5e', pips: '#2a1a10', stripes: true },
+  { id: 'apple',  r: 0.5, sphere: true,
+    geo: () => new THREE.SphereGeometry(0.5, 20, 14),
+    skin: '#d92f3c', flesh: '#fff3d8', pips: '#5a3b18' },
+  { id: 'orange', r: 0.52, sphere: true,
+    geo: () => new THREE.SphereGeometry(0.52, 20, 14),
+    skin: '#f08a1e', flesh: '#ffb347', pips: '#c2610a', segments: true },
+  { id: 'lime',   r: 0.4, sphere: true,
+    geo: () => new THREE.SphereGeometry(0.4, 18, 12),
+    skin: '#8cc63f', flesh: '#e8f7a8', pips: '#5f8f22', segments: true },
+  { id: 'cake',   r: 0.56, h: 0.86,
+    geo: () => new THREE.CylinderGeometry(0.56, 0.56, 0.86, 20),
+    skin: '#f2b8cf', flesh: '#f7e3b0', pips: '#a8623c' },
+  { id: 'barrel', r: 0.56, h: 1.1,
+    geo: () => new THREE.CylinderGeometry(0.54, 0.54, 1.1, 16),
+    skin: '#a4703c', flesh: '#e0b276', pips: '#6b4326' },
+  { id: 'can',    r: 0.38, h: 0.94,
+    geo: () => new THREE.CylinderGeometry(0.38, 0.38, 0.94, 18),
+    skin: '#cfd6dd', flesh: '#9aa4b0', pips: '#6d7681', metal: true },
+  { id: 'crate',  r: 0.55, h: 1.0, box: true,
+    geo: () => new THREE.BoxGeometry(1.0, 1.0, 1.0),
+    skin: '#c08a45', flesh: '#e6bd80', pips: '#7a5228' },
+];
+
+// Skins are drawn rather than flat-coloured so a melon is a melon at a
+// glance — at this speed you have a moment to recognise what is coming.
+function skinTexture(s) {
+  const S = 128, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = s.skin;
+  ctx.fillRect(0, 0, S, S);
+  if (s.stripes) {
+    ctx.fillStyle = 'rgba(20,60,20,.55)';
+    for (let i = 0; i < 8; i++) {
+      const x = (i / 8) * S;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.bezierCurveTo(x + 7, S * 0.33, x - 7, S * 0.66, x, S);
+      ctx.lineTo(x + 6, S);
+      ctx.bezierCurveTo(x - 1, S * 0.66, x + 13, S * 0.33, x + 6, 0);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  for (let i = 0; i < 260; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.09;
+    ctx.fillStyle = Math.random() < 0.5 ? '#000' : '#fff';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 0.7 + Math.random() * 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const t = finish(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+// The cut face. Radially symmetric, because a half can land at any angle and
+// a face with a top and a bottom would turn up sideways half the time.
+function fleshTexture(s) {
+  const S = 128, [c, ctx] = newCanvas(S);
+  const cx = S / 2, cy = S / 2, R = S / 2;
+  ctx.fillStyle = s.pips;
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = s.flesh;
+  ctx.beginPath(); ctx.arc(cx, cy, R * 0.88, 0, Math.PI * 2); ctx.fill();
+  const g = ctx.createRadialGradient(cx, cy, R * 0.1, cx, cy, R * 0.88);
+  g.addColorStop(0, 'rgba(255,255,255,.25)');
+  g.addColorStop(1, 'rgba(0,0,0,.09)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(cx, cy, R * 0.88, 0, Math.PI * 2); ctx.fill();
+  if (s.segments) {
+    ctx.strokeStyle = s.pips; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.7;
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 9) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * R * 0.1, cy + Math.sin(a) * R * 0.1);
+      ctx.lineTo(cx + Math.cos(a) * R * 0.85, cy + Math.sin(a) * R * 0.85);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  } else if (!s.metal) {
+    ctx.fillStyle = s.pips;
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI * 2 + 0.4, rad = R * (0.3 + (i % 2) * 0.22);
+      ctx.save();
+      ctx.translate(cx + Math.cos(a) * rad, cy + Math.sin(a) * rad);
+      ctx.rotate(a);
+      ctx.beginPath(); ctx.ellipse(0, 0, R * 0.05, R * 0.085, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
+  return finish(c);
+}
+
+const SKIN_MAT = {}, FLESH_MAT = {}, GEO = {}, SPEC = {};
+for (const s of SLICEABLES) {
+  SKIN_MAT[s.id] = new THREE.MeshStandardMaterial({
+    map: skinTexture(s), roughness: s.metal ? 0.2 : 0.55, metalness: s.metal ? 0.7 : 0 });
+  FLESH_MAT[s.id] = new THREE.MeshStandardMaterial({
+    map: fleshTexture(s), roughness: 0.42, side: THREE.DoubleSide });
+  GEO[s.id] = s.geo();
+  SPEC[s.id] = s;
+}
+
+// Obstacles. Red and hard-edged among a course of round soft things, so
+// "do not touch this" needs no telling.
+const barMat = new THREE.MeshStandardMaterial({
+  color: '#e0392b', roughness: 0.35, metalness: 0.45 });
+const boltMat = new THREE.MeshStandardMaterial({
+  color: '#7a1a12', roughness: 0.5, metalness: 0.5 });
+const BAR_GEO = new THREE.BoxGeometry(5.2, 1, 0.42);
+const BOLT_GEO = new THREE.CylinderGeometry(0.17, 0.17, 0.5, 8);
+// Uyarı şeridi: sarı-siyah çizgili, demirin boşluğa bakan kenarında.
+function hazardTexture() {
+  const W = 128, H = 32, [c, ctx] = newCanvas(W, H);
+  ctx.fillStyle = '#f2c230';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#1c1a24';
+  for (let i = -1; i < 8; i++) {
+    ctx.save();
+    ctx.translate(i * 20, 0);
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(11, 0); ctx.lineTo(-11, H); ctx.lineTo(-22, H);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  const t = finish(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(4, 1);
+  return t;
+}
+const LIP_GEO = new THREE.BoxGeometry(5.3, 0.34, 0.5);
+const lipMat = new THREE.MeshStandardMaterial({ map: hazardTexture(), roughness: 0.5 });
+
+// ---------------------------------------------------------------------
+// The cut
+// ---------------------------------------------------------------------
+// Halves of cut objects, flying. Each carries the plane that trims it, and
+// the plane has to be re-derived from the piece's transform every frame:
+// clipping planes live in world space, so one left where the cut happened
+// goes on trimming the piece as it tumbles away, eating it.
+const shards = [];
+
+function makeHalf(item, worldY, up) {
+  const s = item.spec;
+  const skin = SKIN_MAT[s.id].clone();
+  const flesh = FLESH_MAT[s.id].clone();
+  const localY = worldY - item.mesh.position.y;
+
+  // In the piece's own space the cut is a horizontal plane at localY. Facing
+  // it up keeps what is above; facing it down keeps what is below.
+  const basePlane = new THREE.Plane(new THREE.Vector3(0, up ? 1 : -1, 0), up ? -localY : localY);
+  const plane = basePlane.clone();
+  skin.clippingPlanes = [plane];
+  skin.side = THREE.DoubleSide;
+  // The face is not clipped. It sits exactly on the plane that trims the
+  // shell, and asking the GPU whether a surface is on the near side of the
+  // plane it lies in is a coin toss it loses about half the time — the first
+  // build cut every melon and showed no red at all.
+
+  const g = new THREE.Group();
+  g.position.copy(item.mesh.position);
+  g.rotation.y = item.mesh.rotation.y;
+  const body = new THREE.Mesh(GEO[s.id], skin);
+  body.castShadow = true;
+  g.add(body);
+
+  // The cut face, sized to the object's cross-section at that height. A
+  // sphere cut near its pole leaves a small disc, not a full-width one, and
+  // getting that wrong is the difference between a cut and a sticker.
+  let rad = s.r;
+  if (s.sphere) {
+    const t = Math.min(1, Math.abs(localY) / s.r);
+    rad = s.r * Math.sqrt(Math.max(0.03, 1 - t * t));
+  }
+  const face = new THREE.Mesh(
+    s.box ? new THREE.PlaneGeometry(s.r * 2, s.r * 2) : new THREE.CircleGeometry(rad * 0.995, 22),
+    flesh);
+  face.rotation.x = -Math.PI / 2;
+  face.position.y = localY + (up ? 0.005 : -0.005);
+  g.add(face);
+
+  scene.add(g);
+  // Yarımlar YANLARA savruluyor, yukarı aşağı değil.
+  //
+  // Kesim noktası bıçağın gerisinde kalıyor ve kamera bıçağın sekiz birim
+  // gerisinde duruyor: hafifçe savrulan bir yarım, bıçak ilerledikçe doğruca
+  // objektifin önünden geçiyor. Her kesimden sonra ekranın yarısı bir karpuz
+  // kabuğuyla kapanıyordu ve gelecek engel görünmüyordu. Yanal hız üçe
+  // katlandı, ömür kısaldı, sönme erken başlıyor — koridoru hemen boşaltsın.
+  const side = up ? 1 : -1;
+  shards.push({
+    g, basePlane, plane, mats: [skin, flesh],
+    vx: side * (3.4 + Math.random() * 2.2),
+    vy: up ? 3.2 + Math.random() * 1.4 : 0.6 + Math.random(),
+    vz: (Math.random() - 0.5) * 1.2,
+    spin: new THREE.Vector3(
+      side * (3 + Math.random() * 5),
+      (Math.random() - 0.5) * 5,
+      side * (4 + Math.random() * 5)),
+    life: 1.15,
+  });
+}
+
+function sliceObject(item, worldY) {
+  item.cut = true;
+  item.mesh.visible = false;
+  if (item.shadow) item.shadow.visible = false;
+  makeHalf(item, worldY, true);
+  makeHalf(item, worldY, false);
+}
+
+function stepShards(dt) {
+  for (let i = shards.length - 1; i >= 0; i--) {
+    const s = shards[i];
+    s.vy -= 11 * dt;
+    s.g.position.x += s.vx * dt;
+    s.g.position.y += s.vy * dt;
+    s.g.position.z += s.vz * dt;
+    s.g.rotation.x += s.spin.x * dt;
+    s.g.rotation.y += s.spin.y * dt;
+    s.g.rotation.z += s.spin.z * dt;
+    s.life -= dt;
+    // carry the trim along with the piece
+    s.g.updateMatrixWorld();
+    s.plane.copy(s.basePlane).applyMatrix4(s.g.matrixWorld);
+    if (s.life < 0.75) {
+      const o = Math.max(0, s.life / 0.75);
+      for (const m of s.mats) { m.transparent = true; m.opacity = o; }
+    }
+    if (s.life <= 0 || s.g.position.y < -8) {
+      scene.remove(s.g);
+      for (const m of s.mats) m.dispose();
+      shards.splice(i, 1);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------
+// Sparks — a cut wants a moment at the point of contact
+// ---------------------------------------------------------------------
+const sparkGeo = new THREE.PlaneGeometry(0.14, 0.14);
+const sparks = [];
+function spark(y, z, colour) {
+  for (let i = 0; i < 10; i++) {
+    const m = new THREE.Mesh(sparkGeo, new THREE.MeshBasicMaterial({
+      color: colour, transparent: true, depthWrite: false, fog: false }));
+    m.position.set((Math.random() - 0.5) * 0.4, y, z);
+    scene.add(m);
+    const a = Math.random() * Math.PI * 2;
+    sparks.push({ m, vx: Math.cos(a) * 4.2, vy: Math.sin(a) * 4.2 + 1.6, life: 0.34 });
+  }
+}
+function stepSparks(dt) {
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const s = sparks[i];
+    s.m.position.x += s.vx * dt;
+    s.m.position.y += s.vy * dt;
+    s.vy -= 9 * dt;
+    s.life -= dt;
+    s.m.material.opacity = Math.max(0, s.life / 0.34);
+    s.m.scale.setScalar(0.4 + s.life * 2.2);
+    if (s.life <= 0) { scene.remove(s.m); s.m.material.dispose(); sparks.splice(i, 1); }
+  }
+}
+
+// ---------------------------------------------------------------------
+// Sound
+// ---------------------------------------------------------------------
+let actx = null;
+const audio = () => (actx ||= new (window.AudioContext || window.webkitAudioContext)());
+let muted = store.get('slicerush_muted', false);
+function tone(freq, dur, type = 'triangle', gain = 0.16, slideTo = null) {
+  if (muted) return;
+  try {
+    const a = audio();
+    if (a.state === 'suspended') a.resume();
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, a.currentTime);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, a.currentTime + dur);
+    g.gain.setValueAtTime(gain, a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(); o.stop(a.currentTime + dur);
+  } catch {}
+}
+const sfx = {
+  // pitch climbs with the combo, so a long run sounds like one
+  slice: n => tone(520 + Math.min(n, 12) * 44, 0.11, 'triangle', 0.14, 880 + Math.min(n, 12) * 60),
+  crash: () => { tone(140, 0.34, 'sawtooth', 0.24, 55); tone(90, 0.4, 'square', 0.16, 40); },
+  clear: () => [0, 120, 240, 400].forEach((d, i) =>
+    setTimeout(() => tone([523, 659, 784, 1047][i], 0.22, 'triangle', 0.18), d)),
+};
+
+// ---------------------------------------------------------------------
+// Course
+// ---------------------------------------------------------------------
+// Distance runs along -Z. `d` is how far down the course a thing sits, so
+// world z is -d and the numbers in the level code stay positive.
+const SPACING   = 3.4;
+const LANE_LOW  = 0.8;
+const LANE_HIGH = 4.8;
+const START_D   = -7;
+
+let items = [];
+let courseEnd = 0;
+
+const shadowGeo = new THREE.CircleGeometry(0.5, 16);
+const shadowMat = new THREE.MeshBasicMaterial({
+  color: '#1a0f2e', transparent: true, opacity: 0.32, depthWrite: false });
+
+// A slot's height is walked rather than drawn fresh each time: two things at
+// opposite ends of the lane with no room to travel between them is not a
+// challenge, it is a coin toss. Consecutive heights stay within reach of the
+// climb rate, so every course is playable.
+// Parkur, rastgele yürüyüş değil, elle kurulmuş parçalardan diziliyor.
+//
+// Yuva yuva rastgele yükseklik seçmek her bölümü birbirinin aynısı yapıyordu:
+// hep aynı dağınık yığın, hatırlanacak hiçbir an yok. Bir kesme oyununda iyi
+// hissettiren şey niyet — aynı hizada uzun bir sıra (tek geçişte büyük
+// kombo), tırmanan bir merdiven, iki demir arasında uzun düz bir tünel.
+//
+// Her parça nereden başladığını ve nerede bittiğini biliyor, böylece bir
+// sonraki parça oradan devam edebiliyor ve engel aralığı kuralı bozulmuyor.
+const PIECES = [
+  // Aynı hizada sıra: kombonun yeri.
+  { id: 'run', minLevel: 1, weight: 3, build(c) {
+      const n = 5 + ((Math.random() * 4) | 0);
+      for (let k = 0; k < n; k++) c.fruit(c.y);
+      return c.y;
+    } },
+  // Merdiven: tek yönde düzenli tırmanış ya da iniş.
+  { id: 'stair', minLevel: 1, weight: 3, build(c) {
+      const n = 5 + ((Math.random() * 4) | 0);
+      const up = c.y < (LANE_LOW + LANE_HIGH) / 2 ? 1 : -1;
+      const step = (LANE_HIGH - LANE_LOW) / (n + 2);
+      for (let k = 0; k < n; k++) c.fruit(c.clamp(c.y + up * step * (k + 1)));
+      return c.clamp(c.y + up * step * n);
+    } },
+  // Zikzak: yukarı aşağı, ama her adım bıçağın yetişebileceği kadar.
+  { id: 'zig', minLevel: 3, weight: 2, build(c) {
+      const n = 4 + ((Math.random() * 3) | 0);
+      const span = Math.min(2.2, c.reach(SPACING) * 0.9);
+      let up = Math.random() < 0.5 ? 1 : -1, at = c.y;
+      for (let k = 0; k < n; k++) {
+        at = c.clamp(at + up * span);
+        c.fruit(at);
+        up *= -1;
+      }
+      return at;
+    } },
+  // Kapı: bir demir, hemen ardından boşluk hizasında birkaç meyve. Doğru
+  // yerde olmanın ödülü hemen geliyor.
+  { id: 'gate', minLevel: 2, weight: 3, build(c) {
+      const fromTop = Math.random() < 0.5;
+      const gapY = fromTop ? LANE_LOW + 0.55 : LANE_HIGH - 0.55;
+      if (!c.bar(fromTop, gapY)) { c.fruit(c.y); return c.y; }
+      for (let k = 0; k < 3 + ((Math.random() * 3) | 0); k++) c.fruit(gapY);
+      return gapY;
+    } },
+  // Tünel: iki demir aynı taraftan, arada uzun düz bir koşu.
+  { id: 'tunnel', minLevel: 5, weight: 2, build(c) {
+      const fromTop = Math.random() < 0.5;
+      const gapY = fromTop ? LANE_LOW + 0.55 : LANE_HIGH - 0.55;
+      if (!c.bar(fromTop, gapY)) { c.fruit(c.y); return c.y; }
+      for (let k = 0; k < 4 + ((Math.random() * 3) | 0); k++) c.fruit(gapY);
+      c.bar(fromTop, gapY);
+      for (let k = 0; k < 2; k++) c.fruit(gapY);
+      return gapY;
+    } },
+  // Nefes: kısa bir boşluk. Her yuvası dolu bir parkur okunmuyor.
+  { id: 'rest', minLevel: 1, weight: 1, build(c) {
+      c.skip(1 + ((Math.random() * 2) | 0));
+      return c.y;
+    } },
+];
+
+function buildCourse(n) {
+  for (const it of items) { scene.remove(it.mesh); if (it.shadow) scene.remove(it.shadow); }
+  items = [];
+
+  const slots = Math.min(24 + n * 2, 48);
+  // How fast this level runs, worked out here because startLevel sets the
+  // real `speed` only after the course is built.
+  const runSpeed = Math.min(8 + (n - 1) * 0.45, 15);
+  // The blade crosses the four-unit lane in about eight tenths of a second,
+  // so call it five units a second and leave a little margin.
+  const CLIMB = 5;
+
+  let slot = 0;
+  let lastBar = null;               // { d, gapY } — where the last bar forced it
+
+  // Parçaların kullandığı kalem. Yuva sayacını, son engeli ve ulaşılabilirlik
+  // kuralını tek yerde tutuyor.
+  const c = {
+    y: (LANE_LOW + LANE_HIGH) / 2,
+    clamp: v => Math.max(LANE_LOW, Math.min(LANE_HIGH, v)),
+    // Bıçak bu kadar parkurda ne kadar yükselebilir?
+    reach: span => (span / runSpeed) * CLIMB,
+    skip(k) { slot += k; },
+    fruit(at) {
+      if (slot >= slots) return;
+      const d = slot++ * SPACING;
+      const spec = SLICEABLES[(Math.random() * SLICEABLES.length) | 0];
+      const mesh = new THREE.Mesh(GEO[spec.id], SKIN_MAT[spec.id]);
+      mesh.position.set(0, at, -d);
+      mesh.rotation.y = Math.random() * Math.PI * 2;
+      mesh.castShadow = true;
+      scene.add(mesh);
+
+      // A blob on the floor under each object. Without it nothing had a place
+      // in the corridor — everything simply hung in the air at no distance in
+      // particular, and judging which was next was guesswork.
+      const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.set(0, 0.02, -d);
+      shadow.scale.setScalar(spec.r * 2.4 * (1 - Math.min(0.5, at * 0.08)));
+      scene.add(shadow);
+
+      items.push({ kind: 'fruit', spec, mesh, shadow, d, y: at, r: spec.r, vz: 0, cut: false });
+    },
+    // Engel. Yerleştirilemezse false döner ve parça meyveye düşer.
+    bar(fromTop, gapY) {
+      if (slot >= slots) return false;
+      const d = slot * SPACING;
+      // Can the blade get from the last bar's gap to this one in the course
+      // between them? Nothing stopped two opposing bars landing in adjacent
+      // slots: at level 1 that is four tenths of a second to cross a lane
+      // that takes a full second, which is not difficulty, it is a wall with
+      // no way through.
+      if (lastBar && (d - lastBar.d) / runSpeed < Math.abs(gapY - lastBar.gapY) / CLIMB)
+        return false;
+      const edge = fromTop ? gapY + 0.55 : gapY - 0.55;
+      const h = fromTop ? (LANE_HIGH + 2.2) - edge : edge - (LANE_LOW - 2.2);
+      if (h <= 0.6) return false;
+
+      slot++;
+      const mesh = new THREE.Group();
+      const bar = new THREE.Mesh(BAR_GEO, barMat);
+      bar.scale.y = h;
+      bar.castShadow = true;
+      mesh.add(bar);
+      // Boşluğa bakan kenara uyarı şeridi. Demir düz bir kırmızı levha
+      // olarak duruyordu ve oyuncunun okuması gereken şey levha değil,
+      // bıraktığı boşluk — şerit o kenarı işaretliyor.
+      const lip = new THREE.Mesh(LIP_GEO, lipMat);
+      lip.position.y = fromTop ? -h / 2 : h / 2;
+      lip.position.z = 0.02;
+      mesh.add(lip);
+      for (const sx of [-2.2, 2.2]) {
+        const bolt = new THREE.Mesh(BOLT_GEO, boltMat);
+        bolt.position.set(sx, fromTop ? h / 2 - 0.3 : -h / 2 + 0.3, 0);
+        mesh.add(bolt);
+      }
+      const cy = fromTop ? (LANE_HIGH + 2.2) - h / 2 : (LANE_LOW - 2.2) + h / 2;
+      mesh.position.set(0, cy, -d);
+      scene.add(mesh);
+      items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop });
+      lastBar = { d, gapY };
+      return true;
+    },
+  };
+
+  // Açılış hep kesilecek bir şey: tur kesmekle başlamalı, yoksa oyunun
+  // öğrettiği ilk şey kaybetmek oluyor.
+  for (let k = 0; k < 4; k++) c.fruit(c.y);
+
+  const pool = PIECES.filter(p => n >= p.minLevel);
+  const total = pool.reduce((a, p) => a + p.weight, 0);
+  let guard = 0;
+  while (slot < slots && guard++ < 200) {
+    let roll = Math.random() * total, pick = pool[0];
+    for (const p of pool) { roll -= p.weight; if (roll <= 0) { pick = p; break; } }
+    c.y = c.clamp(pick.build(c));
+  }
+
+  courseEnd = (slots - 1) * SPACING + 6;
+  return items.filter(i => i.kind === 'fruit').length;
+}
+
+// ---------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------
+let state   = 'menu';
+let dist    = START_D;
+let bladeY  = 2.4;
+let targetY = 2.4;
+let speed   = 8;
+let cutCount = 0, totalCuts = 0, streak = 0, runBest = 0;
+let runCoins = 0, revived = false, hitItem = null, paidOut = false;
+let last = performance.now();
+
+const screens = { menu: $('menu'), map: $('map'), shop: $('shop'), pause: $('pause'),
+                  over: $('over'), clear: $('clear') };
+function showScreen(name) {
+  for (const k in screens) screens[k].classList.toggle('show', k === name);
+  $('hud').classList.toggle('show', name === null);
+  $('barWrap').classList.toggle('show', name === null);
+}
+
+function refreshMenu() {
+  $('mLevel').textContent = maxLevel;
+  $('mStars').textContent = totalStars();
+  $('mCombo').textContent = bestCombo;
+  $('mCoins').textContent = '🪙 ' + coins;
+}
+
+// ---------------------------------------------------------------------
+// Blade shop
+// ---------------------------------------------------------------------
+function renderShop() {
+  const wrap = $('blades');
+  wrap.innerHTML = '';
+  BLADES.forEach((b, i) => {
+    const owned = ownedBlades.includes(i);
+    const el = document.createElement('div');
+    el.className = 'blade' + (i === activeBlade ? ' on' : '') + (owned ? '' : ' locked');
+    el.innerHTML = `
+      <div class="sw" style="background:linear-gradient(90deg, ${b.grip} 0 14%, ${b.steel} 14% 82%, ${b.edge})"></div>
+      <div class="nm">${b.name}</div>
+      <div class="pr">${owned ? (i === activeBlade ? 'TAKILI' : 'SEÇ') : '🪙 ' + b.price}</div>`;
+    el.onclick = () => {
+      if (owned) {
+        activeBlade = i;
+      } else if (coins >= b.price) {
+        coins -= b.price;
+        ownedBlades.push(i);
+        activeBlade = i;
+        store.set('slicerush_coins', coins);
+        store.set('slicerush_blades', ownedBlades);
+        sfx.clear();
+      } else return;
+      store.set('slicerush_blade', activeBlade);
+      fitBlade();
+      renderShop();
+      refreshMenu();
+    };
+    wrap.appendChild(el);
+  });
+}
+
+// ---------------------------------------------------------------------
+// Level map
+// ---------------------------------------------------------------------
+// "Sonraki bölüm" was the only way forward, so the stars were scored and
+// then never seen again — nothing asked the player to go back for the third
+// one. The map is where progress lives: every cleared level with what it
+// gave, and three locked ones past the frontier so there is visibly more.
+const MAP_AHEAD = 3;
+
+function renderMap() {
+  const wrap = $('mapGrid');
+  wrap.innerHTML = '';
+  let frontier = null;
+  for (let n = 1; n <= maxLevel + MAP_AHEAD; n++) {
+    const open = n <= maxLevel;
+    const stars = starsByLvl[n] || 0;
+    const el = document.createElement('div');
+    el.className = 'lv' + (n === maxLevel ? ' next' : '') + (open ? '' : ' shut');
+    el.innerHTML = open
+      ? `<div class="n">${n}</div><div class="s">${
+          [0, 1, 2].map(i => `<span class="${i < stars ? '' : 'off'}">★</span>`).join('')}</div>`
+      : `<div class="n">🔒</div><div class="s"></div>`;
+    if (open) el.onclick = () => { audio(); level = n; startLevel(); };
+    if (n === maxLevel) frontier = el;
+    wrap.appendChild(el);
+  }
+  // A player on level 40 should not open the map onto level 1.
+  if (frontier) wrap.scrollTop = Math.max(0, frontier.offsetTop - wrap.clientHeight / 2);
+}
+
+// ---------------------------------------------------------------------
+// Daily reward
+// ---------------------------------------------------------------------
+// Days count in the player's own timezone; a reward that rolls over at 3am
+// local is one nobody can plan around. The streak is only written when the
+// coins are actually taken — closing the app on the overlay used to burn the
+// day and pay nothing.
+const DAILY = [30, 45, 65, 95, 140, 200, 300];
+const dayNumber = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+let dayLast    = store.get('slicerush_dayLast', 0);
+let dayStreak  = store.get('slicerush_dayStreak', 0);
+let dayPending = 0;
+
+function checkDaily() {
+  const d = dayNumber();
+  if (dayLast === d) return;
+  dayPending = (d - dayLast === 1) ? Math.min(7, dayStreak + 1) : 1;
+  $('dStreak').textContent = dayPending + '. gün' + (dayPending >= 7 ? ' — en yüksek' : '');
+  $('dCoins').textContent = DAILY[dayPending - 1];
+  $('dayRow').innerHTML = DAILY.map((c, i) =>
+    `<div class="day${i < dayPending ? ' done' : ''}"><div class="d">${i + 1}</div><div class="c">${c}</div></div>`
+  ).join('');
+  $('daily').classList.add('show');
+}
+
+$('dOk').onclick = () => {
+  if (!dayPending) return;
+  coins += DAILY[dayPending - 1];
+  dayStreak = dayPending;
+  dayLast = dayNumber();
+  dayPending = 0;
+  store.set('slicerush_coins', coins);
+  store.set('slicerush_dayStreak', dayStreak);
+  store.set('slicerush_dayLast', dayLast);
+  $('daily').classList.remove('show');
+  refreshMenu();
+  sfx.clear();
+};
+
+function startLevel() {
+  totalCuts = buildCourse(level);
+  cutCount = 0; streak = 0; runBest = 0;
+  runCoins = 0; revived = false; hitItem = null; paidOut = false;
+  dist = START_D;
+  bladeY = targetY = (LANE_LOW + LANE_HIGH) / 2;
+  speed = Math.min(8 + (level - 1) * 0.45, 15);
+  history.length = 0;
+  for (const s of shards) { scene.remove(s.g); for (const m of s.mats) m.dispose(); }
+  shards.length = 0;
+  $('levelTag').textContent = 'BÖLÜM ' + level;
+  $('scoreTag').textContent = '🔪 0';
+  $('coinTag').textContent = '🪙 0';
+  $('bar').style.width = '0%';
+  state = 'playing';
+  showScreen(null);
+  $('hint').classList.add('show');
+  setTimeout(() => $('hint').classList.remove('show'), 2600);
+}
+
+// Coins are banked here rather than as they are cut, so a crash costs the
+// run's takings unless the player continues. paidOut guards the double: the
+// clear screen's two buttons both bank, and without it a fast pair of taps
+// paid twice.
+function bankCoins(mult) {
+  if (paidOut) return 0;
+  paidOut = true;
+  const got = runCoins * mult;
+  coins += got;
+  store.set('slicerush_coins', coins);
+  refreshMenu();
+  return got;
+}
+
+function endRun(ok) {
+  if (ok) {
+    const pct = totalCuts ? cutCount / totalCuts : 0;
+    const stars = pct >= 0.9 ? 3 : pct >= 0.7 ? 2 : pct >= 0.4 ? 1 : 0;
+    starsByLvl[level] = Math.max(starsByLvl[level] || 0, stars);
+    store.set('slicerush_stars', starsByLvl);
+    if (runBest > bestCombo) { bestCombo = runBest; store.set('slicerush_combo', bestCombo); }
+    // Only the frontier moves here. `level` advances when the player asks
+    // for the next one, so clearing an old level again does not skip them
+    // forward through levels they were replaying past.
+    if (level + 1 > maxLevel) { maxLevel = level + 1; store.set('slicerush_level', maxLevel); }
+    $('clearStars').innerHTML = [0, 1, 2].map(i =>
+      `<span class="${i < stars ? '' : 'off'}">★</span>`).join('');
+    $('cCut').textContent = `${cutCount} / ${totalCuts}`;
+    $('cCombo').textContent = runBest;
+    $('cCoins').textContent = '🪙 ' + runCoins;
+    $('dblBtn').disabled = false;
+    $('dblBtn').textContent = '📺 REKLAM İZLE, ×2 AL';
+    state = 'clear';
+    showScreen('clear');
+    sfx.clear();
+  } else {
+    $('overSub').textContent = `${cutCount} / ${totalCuts} kesildi · 🪙 ${runCoins}`;
+    // One continue per run. Two would turn any level into a matter of
+    // patience rather than steering.
+    $('reviveBtn').style.display = revived ? 'none' : '';
+    $('reviveBtn').disabled = false;
+    $('reviveBtn').textContent = '📺 REKLAM İZLE, DEVAM ET';
+    state = 'over';
+    showScreen('over');
+    sfx.crash();
+  }
+  refreshMenu();
+}
+
+// ---------------------------------------------------------------------
+// Input — one finger, one axis
+// ---------------------------------------------------------------------
+// Relative rather than absolute: mapping the blade to where the finger is on
+// the screen means the thumb covers the blade for the whole run.
+let dragging = false, lastPointerY = 0;
+
+app.addEventListener('pointerdown', e => {
+  if (state !== 'playing') return;
+  dragging = true;
+  lastPointerY = e.clientY;
+  app.setPointerCapture?.(e.pointerId);
+});
+app.addEventListener('pointermove', e => {
+  if (!dragging || state !== 'playing') return;
+  // A drag across the full height of the screen covers the whole lane, on
+  // any screen: tie it to pixels and the game is twice as twitchy on a
+  // tablet as on a phone.
+  targetY -= ((e.clientY - lastPointerY) / innerHeight) * (LANE_HIGH - LANE_LOW) * 1.7;
+  targetY = Math.max(LANE_LOW, Math.min(LANE_HIGH, targetY));
+  lastPointerY = e.clientY;
+});
+const stopDrag = () => { dragging = false; };
+app.addEventListener('pointerup', stopDrag);
+app.addEventListener('pointercancel', stopDrag);
+
+// A keyboard is not the target, but it makes the game testable without one.
+addEventListener('keydown', e => {
+  if (state !== 'playing') return;
+  if (e.key === 'ArrowUp')   targetY = Math.min(LANE_HIGH, targetY + 0.55);
+  if (e.key === 'ArrowDown') targetY = Math.max(LANE_LOW, targetY - 0.55);
+});
+
+// ---------------------------------------------------------------------
+// Buttons
+// ---------------------------------------------------------------------
+// OYNA goes straight to the level the player has not cleared yet — one tap
+// from cold start to playing. The map is the second button, for going back.
+$('playBtn').onclick      = () => { audio(); level = maxLevel; startLevel(); };
+// Shown before it is filled: a hidden element measures zero, so working out
+// where to scroll while the screen was still display:none put every player
+// at level 1 no matter how far they had got.
+$('mapBtn').onclick       = () => { showScreen('map'); renderMap(); };
+$('mapClose').onclick     = () => showScreen('menu');
+$('shopBtn').onclick      = () => { renderShop(); showScreen('shop'); };
+$('shopClose').onclick    = () => showScreen('menu');
+
+// Continue after a crash. The bar that was hit is taken off the course and
+// the blade is nudged past where it stood — dropping the player back in
+// front of the same obstacle at the same height is not a continue, it is the
+// same crash again.
+$('reviveBtn').onclick = async () => {
+  const b = $('reviveBtn');
+  if (b.disabled || revived) return;
+  b.disabled = true;
+  b.textContent = 'REKLAM AÇILIYOR…';
+  const ok = await showRewarded();
+  if (!ok) { b.disabled = false; b.textContent = '📺 REKLAM İZLE, DEVAM ET'; return; }
+  revived = true;
+  if (hitItem) {
+    scene.remove(hitItem.mesh);
+    const i = items.indexOf(hitItem);
+    if (i >= 0) items.splice(i, 1);
+    hitItem = null;
+  }
+  dist += 2.5;
+  streak = 0;
+  history.length = 0;
+  last = performance.now();
+  state = 'playing';
+  showScreen(null);
+};
+
+$('dblBtn').onclick = async () => {
+  const b = $('dblBtn');
+  if (b.disabled) return;
+  b.disabled = true;
+  b.textContent = 'REKLAM AÇILIYOR…';
+  const ok = await showRewarded();
+  const got = bankCoins(ok ? 2 : 1);
+  $('cCoins').textContent = '🪙 ' + got;
+  b.textContent = ok ? '×2 ALINDI ✓' : 'REKLAM AÇILMADI';
+};
+$('pauseBtn').onclick     = () => { if (state === 'playing') { state = 'paused'; showScreen('pause'); } };
+$('resumeBtn').onclick    = () => { state = 'playing'; showScreen(null); last = performance.now(); };
+$('quitBtn').onclick      = () => { state = 'menu'; refreshMenu(); showScreen('menu'); };
+// Every way out of a finished run banks the coins first. Leaving that to
+// the clear screen's own button meant quitting to the menu threw the level's
+// takings away without saying so.
+const leaveRun = () => { bankCoins(1); };
+$('retryBtn').onclick     = () => { leaveRun(); startLevel(); };
+$('overQuitBtn').onclick  = () => { leaveRun(); state = 'menu'; refreshMenu(); showScreen('menu'); };
+$('nextBtn').onclick      = () => { leaveRun(); level = Math.min(level + 1, maxLevel); startLevel(); };
+$('clearQuitBtn').onclick = () => { leaveRun(); state = 'menu'; refreshMenu(); showScreen('menu'); };
+
+// ---------------------------------------------------------------------
+// Collision
+// ---------------------------------------------------------------------
+// The blade is a segment, not a point: at fifteen units a second it covers
+// half a slot between two frames, and a point test walked straight through
+// things. Everything the blade drew level with this frame gets checked, at
+// the height it was when it passed.
+const REACH = 0.55;
+
+function collide(d0, y0, d1, y1) {
+  for (const it of items) {
+    if (it.kind === 'fruit' && it.cut) continue;
+    if (it.d < d0 - 1 || it.d > d1 + REACH + 0.2) continue;
+
+    const span = d1 - d0;
+    const t = span > 1e-4 ? (it.d - d0) / span : 0;
+    const yAt = y0 + (y1 - y0) * Math.max(0, Math.min(1, t));
+
+    if (it.kind === 'bar') {
+      if (Math.abs(yAt - it.y) < it.half + 0.2) return { hit: it, y: yAt };
+      continue;
+    }
+    if (Math.abs(yAt - it.y) < it.r + 0.14 + BLADES[activeBlade].reach) {
+      sliceObject(it, yAt);
+      streak++;
+      runBest = Math.max(runBest, streak);
+      cutCount++;
+      // A cut is worth more inside a run than on its own: the combo is the
+      // only thing in the game that rewards steering well rather than
+      // steering safely.
+      runCoins += 1 + Math.floor(streak / 4);
+      spark(yAt, -it.d, it.spec.flesh);
+      sfx.slice(streak);
+      if (streak >= 3 && streak % 3 === 0) {
+        const el = $('combo');
+        el.textContent = 'x' + streak;
+        el.classList.remove('pop');
+        void el.offsetWidth;
+        el.classList.add('pop');
+      }
+      $('scoreTag').textContent = '🔪 ' + cutCount;
+      $('coinTag').textContent = '🪙 ' + runCoins;
+    }
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------
+// Frame
+// ---------------------------------------------------------------------
+function tick(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+
+  if (state === 'playing') {
+    const d0 = dist, y0 = bladeY;
+    dist += speed * dt;
+    // Follow rather than snap: the lag is what makes the blade feel like an
+    // object with weight instead of a cursor.
+    const k = 1 - Math.pow(0.0008, dt);
+    bladeY += (targetY - bladeY) * k;
+
+    const hit = collide(d0, y0, dist, bladeY);
+    if (hit) {
+      spark(hit.y, -hit.hit.d, '#ffd23f');
+      hitItem = hit.hit;
+      endRun(false);
+    } else if (dist > courseEnd) {
+      endRun(true);
+    }
+    $('bar').style.width =
+      Math.min(100, (dist - START_D) / (courseEnd - START_D) * 100) + '%';
+  }
+
+  if (state === 'menu') {
+    // the menu drifts down the same course, so the game is showing rather
+    // than telling before a button is pressed
+    dist += dt * 1.6;
+    if (dist > courseEnd) dist = START_D;
+    bladeY = 2.6 + Math.sin(now / 900) * 1.0;
+    targetY = bladeY;
+  }
+
+  blade.position.set(0, bladeY, -dist);
+  // Pitch into the climb. A blade held flat while rising looked like it was
+  // being dragged sideways through the air. Yaw already lives on the wrapper
+  // inside, so this axis is free.
+  blade.rotation.x = Math.max(-0.45, Math.min(0.45, (targetY - bladeY) * -0.6));
+  pushTrail(bladeY, -dist + 1.15);
+
+  stepShards(dt);
+  stepSparks(dt);
+
+  // Behind and a little to the side, so the blade is never under the thumb
+  // and the course is seen along its length.
+  // 8.6'dan 6.9'a çekmek bıçağı büyüttü ama yakındaki nesneleri ekranı
+  // kapatacak kadar şişirdi ve ileriyi göremez oldun — parkuru ekranın içine
+  // çevirmenin tek sebebi buydu. Mesafe geri verildi, bıçak kendi boyuyla
+  // büyütüldü.
+  // Bıçak x=0'da duruyor; kamerayı 1.1'e koymak onu ekranın sol kenarına
+  // itiyordu. Yandan bakış derinlik veriyor, ama bu kadarı oyuncunun
+  // yönettiği şeyi köşeye sürgün ediyor.
+  const eye = bladeY * 0.34 + 2.8;
+  camera.position.set(0.45, eye, -dist + 8.2);
+  camera.lookAt(0.08, eye - 0.74, -dist - 11);
+  // Nearly overhead. Low and to the side stretched every shadow into a long
+  // smear that read as another object lying on the floor.
+  sun.position.set(-3.5, 19, -dist + 3);
+  sun.target.position.set(0, 1.5, -dist - 5);
+  floor.position.z = -dist;
+  floor.material.map.offset.y = dist * 0.05;
+  sky.position.z = -dist - 58;
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+
+// ---------------------------------------------------------------------
+// Probes — for the automated checks, not the game
+// ---------------------------------------------------------------------
+window.sliceProbe = () => ({
+  state, level, maxLevel, dist: +dist.toFixed(2), bladeY: +bladeY.toFixed(2),
+  cut: cutCount, total: totalCuts, streak, shards: shards.length,
+  items: items.length, courseEnd: +courseEnd.toFixed(1),
+});
+window.sliceSetTarget = y => { targetY = Math.max(LANE_LOW, Math.min(LANE_HIGH, y)); };
+window.sliceAutoPlay = () => {
+  // Steer for whatever is next, so a run can be played without a finger.
+  //
+  // Bars come first, and from further off. The first version simply took the
+  // nearest item of any kind: with a fruit sitting closer than a bar it
+  // steered onto the fruit and only noticed the bar with no room left to
+  // climb, so runs died at random and every measurement taken with it was
+  // noise. The blade needs about a second to cross the lane, which at these
+  // speeds is roughly ten units of course.
+  const LOOK = Math.max(10, speed * 1.1);
+  let bar = null, fruit = null;
+  for (const it of items) {
+    if (it.d < dist + 0.6) continue;
+    if (it.kind === 'bar') {
+      if (it.d < dist + LOOK && (!bar || it.d < bar.d)) bar = it;
+    } else if (!it.cut && (!fruit || it.d < fruit.d)) fruit = it;
+  }
+  if (bar) {
+    window.sliceSetTarget(bar.fromTop ? LANE_LOW + 0.25 : LANE_HIGH - 0.25);
+    return 'dodge';
+  }
+  if (fruit) { window.sliceSetTarget(fruit.y); return 'cut'; }
+  return null;
+};
+window.sliceStart = n => { if (n) level = n; startLevel(); };
+// Engellerin yeri ve bıraktıkları boşluk — dizinin geçilebilir olduğunu
+// dışarıdan doğrulamak için.
+window.sliceBars = () => items.filter(i => i.kind === 'bar').map(i => ({
+  d: +i.d.toFixed(2), y: +i.y.toFixed(2), half: +i.half.toFixed(2),
+  fromTop: i.fromTop,
+  gapY: i.fromTop ? LANE_LOW + 0.4 : LANE_HIGH - 0.4,
+})).sort((a, b) => a.d - b.d);
+window.sliceMeta = () => ({
+  coins, runCoins, banked: paidOut, revived,
+  blade: activeBlade, owned: [...ownedBlades],
+  reach: BLADES[activeBlade].reach,
+});
+window.sliceGive = n => { coins += n; store.set('slicerush_coins', coins); refreshMenu(); };
+window.sliceRevive = () => $('reviveBtn').click();
+window.sliceDouble = () => $('dblBtn').click();
+window.sliceMap = () => ({
+  maxLevel, shown: $('mapGrid').children.length,
+  open: [...$('mapGrid').children].filter(e => !e.classList.contains('shut')).length,
+  stars: { ...starsByLvl },
+});
+window.sliceDaily = () => ({ last: dayLast, streak: dayStreak, pending: dayPending,
+                             pay: dayPending ? DAILY[dayPending - 1] : 0,
+                             open: $('daily').classList.contains('show') });
+// Pretend the last claim was `back` days ago, then re-run the check.
+window.sliceSetDay = (back, streak) => {
+  dayLast = dayNumber() - back;
+  dayStreak = streak;
+  store.set('slicerush_dayLast', dayLast);
+  store.set('slicerush_dayStreak', dayStreak);
+  $('daily').classList.remove('show');
+  checkDaily();
+};
+window.sliceReset = () => {
+  for (const k of ['level', 'stars', 'combo', 'coins', 'blades', 'blade', 'dayLast', 'dayStreak'])
+    localStorage.removeItem('slicerush_' + k);
+  location.reload();
+};
+
+buildCourse(level);
+refreshMenu();
+checkDaily();
+fit();
+requestAnimationFrame(tick);
+
+</script>
+</body>
+</html>

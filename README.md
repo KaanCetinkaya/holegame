@@ -1,15 +1,46 @@
 # Hole
 
-Tek dosyalık Three.js + Rapier "hole" oyunu. Tarayıcıda oynanır; Capacitor ile Android (Play Store) uygulamasına paketlenir.
+Bu depo **iki ayrı oyun** barındırıyor. İkisi de tek dosyalık Three.js oyunu; tarayıcıda oynanır, Capacitor ile ayrı Android uygulamalarına paketlenir.
+
+| Oyun | Kaynak | Build klasörü | appId |
+|---|---|---|---|
+| **Hole** | `index.html` | `www/` | `com.kaancetinkaya.hole` |
+| **Fruit Hole** | `fruithole/index.html` | `www-fruithole/` | `com.kaancetinkaya.fruithole` |
+
+**Hole** — Rapier fizikli, şehri yutan klasik delik oyunu.
+**Fruit Hole** — meyve tarlasında süreye karşı, parmakla sürüklenen ve yuttukça büyüyen delik. Ayrıntı: [`fruithole/README.md`](fruithole/README.md).
 
 ## Yapı
 
-- **`index.html`** — Oyunun tamamı (tek dosya). Kütüphaneleri CDN'den (esm.sh) çeker. Geliştirme/test için: çift tıkla, tarayıcıda açılır (internet gerekir).
-- **`www/`** — Uygulama build'i. Aynı oyun ama Three.js + Rapier **yerel dosyalara gömülü** (internetsiz çalışır). Capacitor bu klasörü paketler.
+- **`index.html`** — Hole'un tamamı (tek dosya). Kütüphaneleri CDN'den (esm.sh) çeker. Geliştirme/test için: çift tıkla, tarayıcıda açılır (internet gerekir).
+- **`fruithole/index.html`** — Fruit Hole'un tamamı (tek dosya), yine CDN'li.
+- **`www/`** — Hole'un uygulama build'i. Three.js + Rapier **yerel dosyalara gömülü** (internetsiz çalışır).
   - `www/index.html`, `www/three.module.js`, `www/rapier.es.js`
-- **`capacitor.config.json`**, **`package.json`**, **`build-www.sh`** — paketleme yapılandırması.
+- **`www-fruithole/`** — Fruit Hole'un uygulama build'i (`three.module.js` build sırasında `www/`'den kopyalanır, bu yüzden git'e girmez).
+- **`capacitor.config.js`**, **`package.json`**, **`build-www.mjs`** — paketleme yapılandırması.
 
-> Oyunu değiştirdikten sonra `index.html`'i düzenle, sonra `npm run build:www` ile `www/index.html`'i yenile.
+> Oyunu değiştirdikten sonra ilgili kaynak dosyayı düzenle, sonra `npm run build:www` ile **iki** build klasörünü birden yenile.
+
+## Hangi uygulama paketleniyor?
+
+Capacitor kök dizindeki tek bir config dosyası okur ve `sync`/`copy` için bir
+`--config` bayrağı **yoktur**. Bu yüzden hedefi `APP` ortam değişkeni seçer
+(`capacitor.config.js`), her uygulamanın native projesi de kendi klasöründe durur:
+
+Hazır komutlar var; hepsi Windows/macOS/Linux'ta aynı şekilde çalışır
+(`cross-env` sayesinde, `APP=...` yazmana gerek yok):
+
+```bash
+npm run add:fruithole      # native projeyi oluştur  -> android-fruithole/
+npm run sync:fruithole     # www'yu üret + native'e kopyala
+npm run open:fruithole     # Android Studio'da aç
+npm run assets:fruithole   # ikon + splash üret
+```
+
+Hole için aynıları: `add:hole`, `sync:hole`, `open:hole`.
+
+Elle çalıştırmak istersen değişken şöyle (bash):
+`APP=fruithole npx cap sync android`
 
 ## Tarayıcıda çalıştırma
 
@@ -19,21 +50,27 @@ Tek dosyalık Three.js + Rapier "hole" oyunu. Tarayıcıda oynanır; Capacitor i
 
 Gereksinimler: **Node.js**, **Android Studio** (Android SDK), **Google Play Developer hesabı** ($25 tek seferlik).
 
+> **Capacitor 8** kullanılıyor; varsayılan hedef API düzeyi **36**. Google
+> Play yeni yüklemelerde en az **35** istiyor, Capacitor 6 ise 34'te
+> kalıyordu — bu yüzden 6'dan yükseltildi. Native proje (`android/`,
+> `android-fruithole/`) Capacitor 6 ile üretilmişse **silip yeniden
+> oluştur**, yoksa eski SDK ayarları kalır.
+
 ```bash
 # 1) Bağımlılıkları kur
 npm install
 
-# 2) www/ HTML'ini kök index.html'den yenile (opsiyonel; ilk seferde www hazır)
+# 2) www/ HTML'ini kök index.html'den yenile
 npm run build:www
 
-# 3) Capacitor'ı başlat (sadece ilk sefer — capacitor.config.json zaten var)
-npx cap add android
+# 3) Capacitor'ı başlat (sadece ilk sefer)
+npm run add:hole
 
 # 4) Web içeriğini native projeye kopyala
-npx cap sync
+npm run sync:hole
 
 # 5) Android Studio'da aç
-npx cap open android
+npm run open:hole
 ```
 
 Android Studio'da:
@@ -42,12 +79,17 @@ Android Studio'da:
 
 ## Play Console
 
-1. Uygulama oluştur; paket adı = `capacitor.config.json` içindeki `appId`.
+1. Uygulama oluştur; paket adı = `capacitor.config.js` içindeki `appId`.
    - **Önemli:** `appId`'yi (şu an `com.kaancetinkaya.hole`) ilk yüklemeden önce kendi adınla değiştir; yayınlandıktan sonra değişmez.
 2. `.aab` yükle: İç test → Kapalı test → Üretim.
 3. Gerekenler: gizlilik politikası URL'si (reklam eklenirse zorunlu), içerik derecelendirme anketi, veri güvenliği formu, mağaza görselleri (ikon 512×512, feature grafiği 1024×500, ≥2 ekran görüntüsü), açıklama.
 
 ## Reklam (AdMob)
+
+> Aşağısı **Hole** içindir. Fruit Hole'un kendi reklam kancaları
+> `fruithole/index.html` içindedir ve **kendi AdMob birimlerini** ister
+> (Hole'unkiler başka bir uygulamaya ait olduğu için orada kullanılamaz);
+> ayrıntı: [`fruithole/README.md`](fruithole/README.md).
 
 Reklam kodu oyunda **hazır ve bağlı** (`index.html` içindeki `AD_UNITS`, `showRewarded`, `showInterstitial`):
 - "2× Coin" butonu → **rewarded** reklam (izlenince ödül verilir)
