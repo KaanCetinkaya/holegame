@@ -4603,15 +4603,27 @@ function pyramidTier(r, c) {
 // pass between two without touching either. The lines are placed
 // symmetrically about the middle of the board so the nave reads as a nave.
 const PILLAR_COLS = [1, 4, 8, 11];
-// Per line, because a stack count is not a height — see stack(). Tuned so
-// the inner towers stand about 5 units and the outer ones about 3.8.
+// Per line, because a stack count is not a height — see stack(). These land
+// the inner lines near 9.5 units and the outer ones near 6.5.
 //
-// Six units was too tall to stand four cells apart: at the play camera's
-// angle a tower projects about h·sin(27°) up the screen plus its own width,
-// which at six units came to 3.7 against a 3.7 gap — the inner colonnades
-// closed up into unbroken ribbons. Five clears it.
-const PILLAR_H = [4, 9, 11, 7];
-const PILLAR_ROW_STEP = 4;
+// The towers used to stand about half that, and next to the games this one
+// is competing with they read as sticks rather than as towers. Doubling the
+// height on its own is not enough though: at the play camera's angle a tower
+// projects about h·sin(27°) up the screen, roughly 17px per world unit, so
+// making it taller eats the ground between it and the tower behind it in the
+// same line. At the old four-row spacing a nine-unit tower's crown climbs
+// past the foot of the one behind and the colonnade closes into an unbroken
+// ribbon — you can no longer see that there is a way through.
+//
+// So the spacing went up with the height: six rows instead of four. Measured
+// after the change (fruitHolePillarGaps, 412x915): 49px of visible ground at
+// the tightest inner pair, 100px at the outer ones. Fewer towers, each much
+// bigger, which is also nearer the shape being copied.
+//
+// The level does not get harder for it. Level 42 carries 277 fruit in 127
+// seconds — 2.18 a second, against 2.52 for Chevrons next door.
+const PILLAR_H = [7, 18, 21, 12];
+const PILLAR_ROW_STEP = 6;
 const PILLAR_ROW_0 = 2;
 // The outer lines are offset by half a step. Everything on the same rows
 // made four ranks marching in lockstep, and a nine-high pillar every three
@@ -4702,7 +4714,8 @@ const PATTERNS = [
     // stand 3.34 — a strawberry is a sphere and a slice is a disc. Writing
     // "inner 10, outer 6" gave the tallest tower on the board to an outer
     // line, which is the opposite of the rule it was meant to express.
-    // These land the inner lines near 6 units and the outer ones near 3.8.
+    // These land the inner lines near 9.5 units and the outer ones near 6.5;
+    // the spacing that keeps them from merging is on PILLAR_ROW_STEP.
     empty: (r, c) => pillarAt(r, c) < 0,
     stack: (r, c) => PILLAR_H[pillarAt(r, c)],
     // A whole line of pillars is one fruit. Walking the colour along the
@@ -6715,6 +6728,45 @@ window.fruitHolePillars = () => PILLAR_COLS.map((col, i) => {
   }
   return { line: i, col, top: +top.toFixed(2), pieces: n };
 });
+
+// Bir sütun dizisindeki kuleler ekranda birbirine giriyor mu?
+//
+// Kuleyi uzatmanın sınırı bu. Kamera eğik olduğu için arkadaki kulenin
+// tabanı ekranda öndekinin tabanından yukarıda duruyor; öndeki yeterince
+// uzarsa tepesi arkadakinin tabanını geçiyor ve iki kule tek bir şerit
+// olarak okunuyor. Aralarından geçilebildiği görünmez olunca sütun dizisi
+// sütun dizisi olmaktan çıkıyor.
+//
+// Her satır için kuleler arkadan öne sıralanıp ardışık çiftler arasında kaç
+// piksel zemin kaldığı veriliyor: öndeki kulenin tepesi ile arkadakinin
+// tabanı arasındaki dikey açıklık. Artı değer boşluk, eksi üst üste binme.
+window.fruitHolePillarGaps = () => {
+  const v = new THREE.Vector3();
+  const sy = (x, y, z) => {
+    v.set(x, y, z).project(camera);
+    return (1 - v.y) * 0.5 * innerHeight;
+  };
+  return PILLAR_COLS.map((col, i) => {
+    const towers = new Map();
+    for (const f of fruits) {
+      if (f.eaten) continue;
+      if (Math.round(f.x / CELL + (COLS - 1) / 2) !== col) continue;
+      const key = f.z.toFixed(2);
+      const t = towers.get(key) || { z: f.z, x: f.x, top: 0 };
+      t.top = Math.max(t.top, f.mesh.position.y);
+      towers.set(key, t);
+    }
+    // Arkadan öne: küçük z ekranda yukarıda.
+    const list = [...towers.values()].sort((a, b) => a.z - b.z);
+    const gaps = [];
+    for (let k = 0; k + 1 < list.length; k++) {
+      const back = list[k], front = list[k + 1];
+      // Öndeki kulenin tepesi, arkadakinin tabanından ne kadar aşağıda?
+      gaps.push(+(sy(front.x, front.top, front.z) - sy(back.x, 0, back.z)).toFixed(1));
+    }
+    return { line: i, col, towers: list.length, minGap: gaps.length ? Math.min(...gaps) : null, gaps };
+  });
+};
 
 // The hole as it actually is right now, not as it started. Balance questions
 // about growth cannot be answered with the opening radius.

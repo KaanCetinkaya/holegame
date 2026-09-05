@@ -171,13 +171,29 @@ bir yapı, bir meyve.
 **İstif sayısı yükseklik değil.** Ölçüldü: altı çilek 5.63 birim, on karpuz
 dilimi 3.34 birim — çilek küre, dilim disk. "İç 10, dış 6" diye yazınca
 tahtadaki en uzun kule *dıştaki* hatta düştü, yani kuralın tam tersi oldu.
-Yükseklikler artık hat başına ayrı yazılıyor ve iç hatlar ~5, dış hatlar
-~3.8 birimde duruyor.
+Yükseklikler artık hat başına ayrı yazılıyor.
 
-Altı birim, dört hücre aralıkta durabilmek için fazlaydı: oyun kamerasının
-açısında bir kule ekrana yaklaşık `h·sin(27°)` kadar artı kendi genişliği
-kadar düşüyor, altı birimde bu 3.7 ediyor ve aralık da 3.7 — iç kolonadlar
-kesintisiz şeride dönüşüyordu.
+**Kuleler bir kez uzatıldı.** Eskiden iç hatlar ~5, dış hatlar ~3.8 birimde
+duruyordu; rakip oyunların yanında kule değil çubuk gibi okunuyorlardı.
+Şimdi iç hatlar **~9.5**, dış hatlar **~6.5** birim.
+
+Ama yalnızca yüksekliği artırmak yetmiyor. Oyun kamerasının açısında bir
+kule ekrana yaklaşık `h·sin(27°)`, yani dünya birimi başına ~17px
+yükseliyor. Kule uzadıkça tepesi, aynı hatta arkasında duran kulenin
+tabanını geçiyor ve ikisi tek bir şerit olarak okunuyor — aradan
+geçilebildiği görünmez oluyor. Eski dört satırlık aralıkta dokuz birimlik
+bir kule bunu yapıyor.
+
+O yüzden aralık da yükseklikle birlikte açıldı: **dört satır yerine altı**.
+Değişiklikten sonra ölçüldü (`fruitHolePillarGaps`, 412×915): en sıkışık iç
+çiftte **49px**, dış hatlarda **100px** zemin görünüyor. Daha az ama çok
+daha iri kule — kopyalanmak istenen şekle de bu daha yakın.
+
+Bölüm bundan zorlaşmıyor: 42. bölüm 127 saniyede 277 meyve taşıyor, saniyede
+2.18. Yanındaki Chevrons 2.52'de duruyor.
+
+Ölçen dosya `scratchpad/holepillar.mjs`. Sayı tek başına yetmiyor, kareye de
+bakmak gerekiyor — `/tmp/pillar/play.png` yazıyor.
 
 **Bu bölümde hiç eşya yok**, düzen kaygısından değil: eşya konan hücre
 desenin istediğine bakmaksızın tek katlı kuruluyor, yani bir varil koca bir
