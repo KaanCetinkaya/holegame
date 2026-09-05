@@ -18,6 +18,7 @@
     "aab:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android && cross-env APP=fruithole node patch-manifest.mjs && cross-env APP=fruithole node build-aab.mjs",
     "aab:hole": "node build-www.mjs && npx cap sync android && node patch-manifest.mjs && node build-aab.mjs",
     "apk:fruithole": "node build-www.mjs && cross-env APP=fruithole npx cap sync android && cross-env APP=fruithole node patch-manifest.mjs && cross-env APP=fruithole node build-aab.mjs apk",
+    "release:fruithole": "cross-env LIVE_ADS=1 node build-www.mjs && cross-env APP=fruithole npx cap sync android && cross-env APP=fruithole node patch-manifest.mjs && cross-env APP=fruithole node build-aab.mjs",
     "apk:hole": "node build-www.mjs && npx cap sync android && node patch-manifest.mjs && node build-aab.mjs apk",
     "add:slicer": "cross-env APP=slicer npx cap add android && cross-env APP=slicer node patch-manifest.mjs",
     "sync:slicer": "node build-www.mjs && cross-env APP=slicer npx cap sync android && cross-env APP=slicer node patch-manifest.mjs",

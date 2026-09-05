@@ -43,6 +43,24 @@ let fruit = readFileSync(r('fruithole', 'index.html'), 'utf8');
 fruit = swap(fruit,
   '"three": "https://esm.sh/three@0.161.0"',
   '"three": "./three.module.js"', 'fruithole/index.html');
+
+// Reklamlar: test mi, gerçek mi.
+//
+// Kendi canlı reklamına tıklamak AdMob hesabını kapattırıyor, bu yüzden
+// kaynak dosyada ADS_TESTING her zaman true kalıyor — tarayıcıda açtığında
+// da, sıradan bir derlemede de test reklamı geliyor. Gerçek reklamlar
+// yalnızca LIVE_ADS=1 ile açılıyor, yani `npm run release:fruithole` ile.
+//
+// Bu eskiden elle çevrilen bir sabitti ve iki yönde de tuzaktı: açık
+// unutulursa üretim sürümü hiç gelir getirmiyor, kapalı unutulursa kendi
+// reklamına tıklayıp hesabı yakıyorsun. İkisini de "hatırlamak" tutuyordu.
+// Artık hangi komutu çalıştırdığın belirliyor ve derleme çıktısı hangisini
+// ürettiğini her seferinde yazıyor — unutulacak bir şey kalmıyor.
+const LIVE_ADS = process.env.LIVE_ADS === '1';
+if (LIVE_ADS) {
+  fruit = swap(fruit, 'const ADS_TESTING = true;', 'const ADS_TESTING = false;',
+    'fruithole/index.html (LIVE_ADS)');
+}
 writeFileSync(r('www-fruithole', 'index.html'), fruit);
 
 // The menu backdrop is a real image (gradients cannot fake a painted scene),
@@ -55,7 +73,9 @@ if (existsSync(r('www', 'three.module.js'))) {
 } else {
   console.warn('UYARI: www/three.module.js yok, www-fruithole/ kütüphanesiz kaldı.');
 }
-console.log('www-fruithole/index.html güncellendi (Fruit Hole).');
+console.log(LIVE_ADS
+  ? 'www-fruithole/index.html güncellendi (Fruit Hole) — REKLAMLAR GERÇEK. Bu derlemeyi kendi telefonunda oynama, kendi reklamına tıklamak hesabı kapattırır.'
+  : 'www-fruithole/index.html güncellendi (Fruit Hole) — reklamlar test.');
 
 // ---- Slice Rush -> www-slicer/ ----
 mkdirSync(r('www-slicer'), { recursive: true });

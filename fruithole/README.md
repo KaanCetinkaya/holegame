@@ -688,12 +688,35 @@ dokunmuyor. Yani ekstra bir şey yapmana gerek yok.
 
 Bu satır olmadan uygulama **açılır açılmaz çöker**.
 
-### Yayına çıkmadan önce: `ADS_TESTING`
+### Test reklamı mı, gerçek reklam mı: hatırlamak zorunda değilsin
 
-`index.html` içinde `const ADS_TESTING = true;` var. Kendi reklamına
-tıklamak AdMob hesabını kapattırır, bu yüzden kendi cihazında denerken
-**true** kalmalı (test reklamı gösterir). Play'e yüklediğin sürümde
-**false** yap, yoksa gerçek reklam gelmez ve gelir olmaz.
+`index.html` içinde `const ADS_TESTING = true;` duruyor ve **kaynak dosyada
+hep true kalıyor.** Elle çevirmiyorsun; hangi komutu çalıştırdığın
+belirliyor:
+
+| Komut | Reklamlar | Nerede kullanılır |
+|---|---|---|
+| `npm run aab:fruithole` | **test** | kapalı test, kendi telefonunda deneme |
+| `npm run release:fruithole` | **gerçek** | yalnızca üretime yüklenecek derleme |
+
+`build-www.mjs` `LIVE_ADS=1` görürse `www-fruithole/`'a yazarken sabiti
+`false`'a çeviriyor — `fruithole/index.html`'e dokunmuyor, yani depo hep
+güvenli halde duruyor. Her derleme hangisini ürettiğini de yazıyor:
+
+```
+www-fruithole/index.html güncellendi (Fruit Hole) — reklamlar test.
+www-fruithole/index.html güncellendi (Fruit Hole) — REKLAMLAR GERÇEK. ...
+```
+
+Bunun elle çevrilen bir sabit olması iki yönde birden tuzaktı ve ikisi de
+pahalıydı: **açık unutulursa** üretim sürümü test reklamı gösterir, iki
+hafta beklersin ve sıfır kazanırsın; **kapalı unutulursa** kendi
+telefonunda kendi canlı reklamına tıklarsın, bu da AdMob hesabını
+kapattırır. Tek savunma "unutma" idi. Artık yanlış olan şey yanlış komut
+çalıştırmak, o da çıktıda yazıyor.
+
+`release:fruithole` ile ürettiğin `.aab`'yi **kendi telefonuna kurma.**
+Play'e yükle, gerisini testçiler oynasın.
 
 Tarayıcıda reklam çağrıları no-op'tur; ödüllü reklam doğrudan `true`
 döner, yani oyun reklam ağı olmadan da birebir aynı oynanır.
