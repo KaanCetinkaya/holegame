@@ -740,8 +740,48 @@ döner, yani oyun reklam ağı olmadan da birebir aynı oynanır.
 | Yer | Reklam | "Reklamsız" alınırsa |
 |---|---|---|
 | Süre bitti ekranı, "📺 +15 saniye" | rewarded (bölüm başına 1) | kalır (isteğe bağlı, oyuncu lehine) |
+| Sandık açıldıktan sonra, "📺 Double it" | rewarded | kalır |
+| Günlük ödül ekranı, "📺 Claim double" | rewarded (günde 1) | kalır |
+| Booster dükkanı, "📺 free" | rewarded (booster başına günde 1) | kalır |
 | Her 3 bölümde bir, sonraki bölüme geçerken | interstitial | kalkar |
 | Oyun sırasında altta | banner | kalkar |
+
+### Ödüllü reklam yerleri
+
+Uzun süre tek bir ödüllü yer vardı: kaybettin, "+15 saniye". Türün standardı
+en az üç yer ve bunlar oyunun mekaniğine dokunmadığı için gelir tarafında en
+ucuz kazanç.
+
+**Hepsi `watchAdFor()` üzerinden geçiyor.** Üçünü ayrı ayrı yazmak aynı iki
+hatayı üç kez yapmak demekti: düğmeye iki kez basılıp tek reklamla iki ödül
+alınması, ve reklam gelmeyince düğmenin kapalı kalıp bir daha açılmaması.
+Tek yol var, düğmeyi kapatıyor, beklerken `…` yazıyor, ödülü yalnızca reklam
+gerçekten izlenince veriyor, izlenmezse düğmeyi geri açıyor.
+
+**Sandık.** Katlama, ödül *verildikten sonra* çıkıyor, onun yerine değil.
+Meyve zaten sayaca düştü; bu yalnızca üstüne ekliyor, dolayısıyla reddetmek
+hiçbir şeye mal olmuyor ve teklif bir geçiş ücreti gibi okunmuyor. Yeni bir
+kaplama açıldıysa yazı bir an ona geçiyor, katlama onun üstüne konuşmuyor.
+
+**Booster dükkanı — günde bir, booster başına.** Sınırsız bir "reklam izle,
+booster al" düğmesi teklif değil, bedava ikinci para birimi olurdu; hem meyve
+ekonomisini hem de başlangıç paketini satın alma sebebini boşaltırdı. Günde
+bir olunca yarın oyunu açmak için bir sebep oluyor. Sınır `daily.freeBoosters`
+içinde duruyor, yani gün sınırını `ensureDaily()` görevlerle ve giriş ödülüyle
+birlikte tek yerden siliyor.
+
+**Renk.** Hepsi yeşil, amber değil. Amber ana eylemin rengi (Next, Buy,
+Claim); ödüllü düğme amber olsaydı oyuncu Devam sanıp basardı, ya da tersi —
+saklayabileceği meyveyi harcardı.
+
+**"Reklamsız" satın alınsa bile duruyorlar.** Oyuncunun kendi isteğiyle
+izlediği, karşılığında bir şey aldığı reklam, kaldırılmasını istediği reklam
+değil.
+
+Ölçen dosya `scratchpad/holerewarded.mjs` — 15 kontrol. Tarayıcıda
+`showRewarded()` doğrudan `true` döndüğü için sınanan şey reklamın kendisi
+değil: ödülün bir kez verilmesi, ikinci basışın engellenmesi ve günlük
+sınırın yeniden açılışta da durması.
 
 ### Reklam ekranı kaplarken saat işliyordu
 

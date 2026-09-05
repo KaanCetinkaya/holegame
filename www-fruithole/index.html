@@ -154,6 +154,13 @@
   .upg .buy:active { transform: translateY(2px); box-shadow: 0 2px 0 #c67e12; }
   .upg .buy:disabled { background: linear-gradient(180deg,#b7aee0,#948ac4); border-color: rgba(255,255,255,.4);
     color: rgba(255,255,255,.72); box-shadow: 0 3px 0 rgba(40,24,110,.35); }
+  /* Green so it never reads as the Buy button — one costs fruit, the other
+     costs a minute, and confusing them is the player spending fruit they
+     could have kept. Narrower too, so Buy stays the wider of the two. */
+  .upg .buy.adBuy { background: linear-gradient(180deg,#7ede63,#41b731); color: #123c0c;
+    padding: 8px 10px; box-shadow: inset 0 2px 0 rgba(255,255,255,.45), 0 4px 0 #2b8021; }
+  .upg .buy.adBuy:active { box-shadow: 0 2px 0 #2b8021; }
+  .upg .buy.adBuy:disabled { filter: saturate(.45) brightness(.92); }
   .upg .buy .cost { display: block; font-size: 11px; font-weight: 700; opacity: .85; }
   #upgrades .sect, #goals .sect { font-size: 15px; font-weight: 800; opacity: .9; margin-top: 2px; }
   #reward { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 2px 0 4px; }
@@ -342,6 +349,14 @@
     border-color: rgba(255,255,255,.55); padding: 11px 30px; font-size: 16px;
     box-shadow: inset 0 3px 0 rgba(255,255,255,.3), 0 5px 0 #43349c; }
   .screen .btn.ghost:active { box-shadow: inset 0 3px 0 rgba(255,255,255,.3), 0 2px 0 #43349c; }
+  /* The optional "watch an ad for it" buttons. Green, so they never read as
+     the main action on a screen: the prize is already yours and this is the
+     extra. Amber on amber and the player taps it thinking it is Continue. */
+  .screen .btn.adBtn { background: linear-gradient(180deg,#7ede63,#41b731); color: #123c0c;
+    padding: 11px 26px; font-size: 16px;
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.45), 0 5px 0 #2b8021; }
+  .screen .btn.adBtn:active { box-shadow: inset 0 3px 0 rgba(255,255,255,.45), 0 2px 0 #2b8021; }
+  .screen .btn.adBtn:disabled { filter: saturate(.45) brightness(.92); cursor: default; }
   .screen .btn[hidden] { display: none; }
 
   /* ---- main menu ----
@@ -603,6 +618,7 @@
     <h1><span class="hIco" data-icon="star"></span>Daily Reward</h1>
     <p id="dailySub"></p>
     <div class="stats" id="dailyLoot"></div>
+    <button class="btn adBtn" id="daily2x" hidden>📺 Claim double</button>
     <button class="btn" id="dailyBtn">Claim</button>
   </div>
 
@@ -624,6 +640,7 @@
     <div id="reward" hidden>
       <button id="chest" aria-label="Open reward"><span class="cIco" data-icon="chest"></span></button>
       <p id="rewardLine">Tap the chest</p>
+      <button class="btn adBtn" id="chest2x" hidden>📺 Double it</button>
     </div>
     <button class="btn" id="reviveBtn">📺 +15 seconds</button>
     <div class="menuRow">
@@ -823,6 +840,7 @@ function ensureDaily() {
     .slice(0, 3)
     .map(m => ({ id: m.id, goal: m.roll(), claimed: false }));
   daily.rewardClaimed = false;
+  daily.freeBoosters = {};
   const t = TYPES[Math.floor(Math.random() * TYPES.length)];
   daily.loot = { type: t.id, amount: 25 + Math.min(daily.streak, 7) * 10 };
   saveDaily();
@@ -951,6 +969,30 @@ async function showRewarded() {
     } catch (e) { finish(false); }
   });
 }
+// Her ödüllü reklam teklifi buradan geçiyor.
+//
+// Üç yerde aynı şey isteniyor — sandığı katla, günlük ödülü katla, bedava
+// booster al — ve üçünü ayrı ayrı yazmak aynı iki hatayı üç kez yapmak
+// demek: düğmeye iki kez basılıp tek reklamla iki ödül alınması, ve reklam
+// gelmeyince düğmenin kapalı kalıp bir daha açılmaması. Burada düğme
+// kapatılıyor, beklerken ne olduğunu yazıyor, ödül yalnızca reklam
+// gerçekten izlenince veriliyor ve izlenmezse düğme geri açılıyor.
+//
+// Reklamsız satın alınmış olsa bile bunlar duruyor: oyuncunun kendi
+// isteğiyle izlediği, karşılığında bir şey aldığı bir reklam, kaldırılmasını
+// istediği reklam değil.
+async function watchAdFor(btn, grant) {
+  if (!btn || btn.disabled) return false;
+  const was = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = '…';
+  const ok = await showRewarded();
+  btn.innerHTML = was;
+  if (!ok) { btn.disabled = false; return false; }
+  grant();
+  return true;
+}
+
 let _bannerShown = false;
 let _bannerSub = null;
 // The banner is a native view laid over the web view, so the page has no idea
@@ -1445,6 +1487,25 @@ function renderBoostShop() {
         `<div class="own">${locked ? `Unlocks at level ${b.unlock}` : `Owned: ${boosters[b.id] || 0}`}</div>` +
       `</span>`;
 
+    // One free one a day per booster, for an ad. Capped because an
+    // uncapped tap-for-a-booster button is not an offer, it is a second
+    // currency that costs nothing — it would empty both the fruit economy
+    // and the reason to buy the starter pack. Once a day it is a reason to
+    // open the game tomorrow instead.
+    if (!locked && !dailyFreeTaken(b.id)) {
+      const free = document.createElement('button');
+      free.className = 'buy adBuy';
+      free.innerHTML = `📺<span class="cost">free</span>`;
+      free.onclick = () => watchAdFor(free, () => {
+        boosters[b.id] = (boosters[b.id] || 0) + 1;
+        saveBoosters();
+        takeDailyFree(b.id);
+        sfx.booster();
+        renderUpgrades();
+      });
+      row.appendChild(free);
+    }
+
     const btn = document.createElement('button');
     btn.className = 'buy';
     if (locked) {
@@ -1818,10 +1879,28 @@ function showDaily() {
   document.getElementById('dailyLoot').innerHTML =
     `<span class="pill">${daily.loot.amount} ${t.label}</span>`;
   document.getElementById('dailyBtn').textContent = got ? 'Close' : 'Claim';
+  // Only while there is something to claim. Offering to double a reward
+  // that has already been taken is an ad with nothing behind it.
+  const two = document.getElementById('daily2x');
+  two.hidden = got;
+  two.disabled = false;
   menuEl.classList.remove('show');
   document.getElementById('daily').classList.add('show');
   return !got;
 }
+
+document.getElementById('daily2x').addEventListener('click', (e) => {
+  if (daily.rewardClaimed) return;
+  watchAdFor(e.currentTarget, () => {
+    daily.rewardClaimed = true;
+    saveDaily();
+    bumpCurrency(daily.loot.type, daily.loot.amount * 2);
+    sfx.win();
+    document.getElementById('daily2x').hidden = true;
+    document.getElementById('daily').classList.remove('show');
+    showMenu();
+  });
+});
 function maybeShowDaily() {
   ensureDaily();
   return daily.rewardClaimed ? false : showDaily();
@@ -1837,6 +1916,20 @@ document.getElementById('dailyBtn').addEventListener('click', () => {
   document.getElementById('daily').classList.remove('show');
   showMenu();
 });
+
+// The daily free-booster allowance. Lives in the daily blob, so it is wiped
+// by ensureDaily() at the day boundary along with the missions and the login
+// reward — one place decides when "today" ends, rather than three.
+function dailyFreeTaken(id) {
+  ensureDaily();
+  return !!(daily.freeBoosters && daily.freeBoosters[id]);
+}
+function takeDailyFree(id) {
+  ensureDaily();
+  if (!daily.freeBoosters) daily.freeBoosters = {};
+  daily.freeBoosters[id] = true;
+  saveDaily();
+}
 
 function buyBooster(b) {
   if (!boosterUnlocked(b) || currency[b.pay] < b.cost) return;
@@ -5706,6 +5799,7 @@ function updateTimeUI() {
 // ---------------------------------------------------------------------
 const rewardEl = document.getElementById('reward');
 const chestEl = document.getElementById('chest');
+const chest2xEl = document.getElementById('chest2x');
 const rewardLineEl = document.getElementById('rewardLine');
 let pendingReward = null;
 
@@ -5723,6 +5817,7 @@ function offerReward(earnedStars, clearedLevel, unlockedAt) {
   rewardEl.hidden = false;
   chestEl.disabled = false;
   chestEl.classList.remove('open');
+  chest2xEl.hidden = true;
   rewardLineEl.textContent = 'Tap the chest';
   applyIcons();
 }
@@ -5739,6 +5834,25 @@ function takeReward() {
   burstPips(chestEl, type.uiBase || type.base);
 
   rewardLineEl.textContent = `+${amount} ${type.label}`;
+
+  // The chest opening is the moment in the whole run the player is most
+  // pleased with what just happened, which is exactly when an optional ad
+  // is worth offering. It is offered *after* the prize lands, never
+  // instead of it — the fruit is already in the counter and this only adds
+  // to it, so declining costs nothing and the offer cannot read as a toll.
+  //
+  // A skin unlock takes the line over for a beat, so the doubling waits for
+  // that to be read rather than talking over it.
+  chest2xEl.hidden = false;
+  chest2xEl.disabled = false;
+  chest2xEl.onclick = () => watchAdFor(chest2xEl, () => {
+    bumpCurrency(type.id, amount);
+    sfx.win();
+    burstPips(chest2xEl, type.uiBase || type.base);
+    rewardLineEl.textContent = `+${amount * 2} ${type.label}`;
+    chest2xEl.hidden = true;
+  });
+
   if (skin) {
     ownedSkins.add(skin.id);
     saveSkins();
@@ -5784,6 +5898,7 @@ function showOverlay(title, sub, btnText, action, offerRevive) {
   actionBtnEl.classList.toggle('ghost', !!offerRevive);
   reviveBtnEl.hidden = !offerRevive;
   rewardEl.hidden = true;
+  chest2xEl.hidden = true;
   pendingReward = null;
   boosterBarEl.classList.remove('show');
   sizeTagEl.classList.remove('show');
@@ -6624,6 +6739,14 @@ window.fruitHoleSkinOwned = id => skinOwned(skinById(id));
 window.fruitHoleWear = id => wearSkin(skinById(id));
 window.fruitHoleBuySkin = id => buySkin(skinById(id));
 window.fruitHoleWallet = () => ({ ...currency });
+window.fruitHoleBoosters = () => ({ ...boosters });
+// The daily blob: today's login loot, whether it has been taken, and which
+// boosters have already had their one free copy for an ad today.
+window.fruitHoleDaily = () => ({
+  date: daily.date, streak: daily.streak, loot: { ...daily.loot },
+  rewardClaimed: !!daily.rewardClaimed,
+  freeBoosters: { ...(daily.freeBoosters || {}) },
+});
 // Finish a level without playing it, so the win path can be exercised.
 window.fruitHoleClear = () => {
   const now = performance.now();
