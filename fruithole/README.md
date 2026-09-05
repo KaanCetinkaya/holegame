@@ -685,6 +685,43 @@ kontur kayboluyordu; başlık tam da en yüksek sesle konuşması gereken yerde
 kısılıyordu. Şimdi krem dolgu, koyu turuncu kontur ve altında sert bir gölge
 var, yani sahnenin üstüne boyanmış değil önünde duruyor.
 
+### Booster rafı su hattını kesiyordu
+
+Raf **ekran yüksekliğinin bir oranıyla** (%23.5) konuluyor, su hattı ise 3B
+sahne tarafından — ve ikisi birlikte ölçeklenmiyor. Ölçüldü:
+
+| Ekran | Kum nerede başlıyor | Raf nerede |
+|---|---|---|
+| 412×915 | 300 | 215–323 |
+| 412×732 | 209 | 172–280 |
+| 360×800 | 263 | 188–296 |
+
+Her boyutta kesiyordu: kaideler denizde, etiketler kumda, düşmüş gibi.
+
+**Rafı su hattına bağlamayı denedim, daha kötü.** Uzun telefonda meyve
+halkasının ve bölüm rozetinin üstüne biniyor; kısa telefonda ise çizginin
+üstünde koyacak yer yok — deniz bandı 63px, raf 108px. Yani "hangi tarafa
+koyayım" sorusunun doğru cevabı yok.
+
+**Kart çözdü, hem de hiçbir şeyi kıpırdatmadan.** Yarısı suda yarısı kumda
+olmak sadece nesnenin kendi zemini olmadığı için yanlış görünüyordu. Zemin
+verilince — yumuşak, yarı saydam, yuvarlak bir kart — çizginin nereye
+düştüğünden bağımsız olarak açıkça sahnenin üstünde duran bir arayüz parçası
+oluyor.
+
+### Alt bardaki her sekmenin adı var
+
+Beş sekmeden yalnızca ortadakinin yazısı vardı (`.lb { display: none }`,
+`.mid .lb { display: block }`). Bu, diğer dördünü gidilebilecek dört yer
+değil, ortadakinin yanındaki süs gibi gösteriyordu — ve bir kalkanın ya da
+kupanın neyi açtığı simgeden anlaşılmıyor. Hepsi adlandırıldı; seçili
+olmayanlar biraz daha sönük, böylece bulunduğun sekme yine öne çıkıyor.
+
+Yazılar barı uzattığı için `--navPad` de değişti, ama onu zaten
+`fitMenuNav()` ve `ResizeObserver` ölçüyor — Play düğmesinin barın arkasında
+kalmasına yol açan hatadan sonra konmuştu. `scratchpad/holead.mjs` beş
+düğmenin de reklamın ve barın üstünde durduğunu doğruluyor.
+
 **Ölü dosya:** `fruithole/assets/menu-bg.png`. Boyanmış menü arka planıydı
 (`a2741de`), `1052e99`'da yerini canlı dioramaya bıraktı ve o günden beri
 hiçbir şey onu yüklemiyor — ama `build-www.mjs` kopyalamaya devam ediyordu,

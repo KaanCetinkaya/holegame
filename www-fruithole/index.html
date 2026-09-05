@@ -217,7 +217,14 @@
   #menuNav .nav .ic { font-size: 34px; line-height: 1;
     filter: drop-shadow(0 5px 4px rgba(40,24,110,.4)); transition: transform .08s; }
   #menuNav .nav:active .ic { transform: translateY(3px) scale(.94); }
-  #menuNav .nav .lb { display: none; }
+  /* Every tab is named, not just the one you are on. Only the middle one
+     carried a label before, which made the other four read as decoration
+     next to it rather than as the four places you can go — and there is no
+     guessing what a shield or a trophy opens from the icon alone. The
+     unselected ones are dimmer so the current tab still wins. */
+  #menuNav .nav .lb { display: block; font-size: 10px; font-weight: 800;
+    color: rgba(255,255,255,.82); letter-spacing: .01em; white-space: nowrap;
+    text-shadow: 0 2px 0 rgba(40,24,110,.5); }
 
   /* the tab you are on: a rounded slab lifted out of the bar */
   #menuNav .nav.mid { margin-top: -18px; padding-top: 20px; border-radius: 22px 22px 0 0;
@@ -231,7 +238,7 @@
     width: 44px; height: 14px; border-radius: 50%;
     background: radial-gradient(ellipse at 50% 30%, #241a5c 0 52%, #4a3a99 78%, #9d8fea 100%);
     box-shadow: inset 0 2px 5px rgba(0,0,0,.7); }
-  #menuNav .nav.mid .lb { display: block; font-size: 11px; font-weight: 800; color: #fff;
+  #menuNav .nav.mid .lb { font-size: 11px; color: #fff;
     text-shadow: 0 2px 0 rgba(60,40,140,.55); }
 
   #menuNav .nav.alert::after { content: ''; position: absolute; right: 24%; top: 12px;
@@ -511,8 +518,26 @@
 
   #menuShelf { position: absolute; z-index: 0; inset: 23.5% 12px auto 12px;
     display: flex; justify-content: space-between; pointer-events: none; }
-  /* item standing on a plinth, label on a chip beneath it */
-  #menuShelf .slot2 { width: 78px; text-align: center; }
+  /* Item standing on a plinth, label on a chip beneath it, and the whole
+     thing on a card of its own.
+     The card is why: the shelf sits at a share of the screen height while
+     the waterline is put there by the 3D scene, and those two do not scale
+     together — measured, the sand starts at y=300 on a 412x915 screen
+     against a shelf running 215-323, at 209 on 412x732 against 172-280, and
+     at 263 on 360x800 against 188-296. It crossed the line at every size,
+     plinths in the sea and labels on the beach, looking like it had slipped.
+     Anchoring it to the waterline instead was tried and is worse: on a tall
+     phone it lands on the fruit ring and the level badge, and on a short one
+     the sea band is only 63px against the shelf's 108, so there is nowhere
+     above the line to put it either.
+     A card settles it without moving anything. Half on water and half on
+     sand only read as wrong because the item had no ground of its own; give
+     it one and it is plainly a piece of interface floating over the scene,
+     wherever the line happens to fall. */
+  #menuShelf .slot2 { width: 78px; text-align: center;
+    padding: 6px 4px 8px; border-radius: 18px;
+    background: rgba(38, 24, 92, .34);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.16), 0 4px 10px rgba(20,10,50,.22); }
   #menuShelf .slot2 .ic { display: grid; place-items: center; width: 62px; height: 62px;
     margin: 0 auto 2px; border-radius: 20px; font-size: 30px; line-height: 1; }
   /* the pedestal is part of the render, so no plate is drawn behind it */
