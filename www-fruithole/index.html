@@ -518,6 +518,14 @@
 
   #menuShelf { position: absolute; z-index: 0; inset: 23.5% 12px auto 12px;
     display: flex; justify-content: space-between; pointer-events: none; }
+  /* Which build is actually on the phone. Small and out of the way — it is
+     not for the player, it is so "did the update land?" is answerable by
+     looking instead of guessing. Sits in the corner beside the Play tray,
+     which is centred, so the corner is free. */
+  #verTag { position: absolute; left: 10px; pointer-events: none;
+    bottom: calc(var(--adPad) + var(--navPad) + 10px);
+    font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    color: rgba(255,255,255,.5); text-shadow: 0 1px 2px rgba(0,0,0,.45); }
   /* Item standing on a plinth, label on a chip beneath it, and the whole
      thing on a card of its own.
      The card is why: the shelf sits at a share of the screen height while
@@ -611,6 +619,7 @@
     </div>
     <p id="menuSub">Level 1</p>
     <div id="playTray"><button class="btn" id="playBtn">Play</button></div>
+    <span id="verTag"></span>
     <div id="menuNav">
       <button class="nav" id="levelsBtn"><span class="ic">🗺️</span><span class="lb">Levels</span></button>
       <button class="nav" id="upgBtn"><span class="ic">⬆️</span><span class="lb">Upgrades</span></button>
@@ -5404,7 +5413,40 @@ const growthUnit = () =>
   (HOLE_MAX - BASE_HOLE_R) / Math.max(40, fruits.length * GROW_SWEEP);
 let holeRadius = BASE_HOLE_R;
 let holeX = SPAWN_X, holeZ = 0;
+// Which build this is, shown in the corner of the menu.
+//
+// The string is written here as 'dev' and build-www.mjs replaces it with the
+// real one out of app-version.json on the way into the packaged build. It is
+// not typed in twice on purpose: a version label that has drifted from the
+// versionCode Play actually received is worse than no label, because it is
+// the thing you would check to settle the question and it would answer
+// wrongly. Opening index.html straight in a browser says 'dev', which is
+// exactly what that is.
+const APP_VERSION = '1.6 (15)';
+{
+  const el = document.getElementById('verTag');
+  if (el) el.textContent = APP_VERSION === 'dev' ? 'dev' : 'v' + APP_VERSION;
+}
+
 let holeGroup;
+let magnetRing;
+const MAGNET_BOOST_MS = 8000;
+const MAGNET_BOOST_REACH = 1.6;
+// Unlit and never shadowed: it is a read-out, not an object lying on the
+// beach, and a shaded ring reads as a painted line on the sand instead of
+// something switched on.
+//
+// Two rings, not one, for the same reason the hole has a dark edge round its
+// collar: a single pale cyan line at 40% on light sand is invisible, and the
+// first version of this was exactly that — measurably present, visibly
+// nothing. The dark ring underneath gives the bright one a boundary on sand,
+// on snow and on a marble floor alike.
+const MAGNET_RING_MAT = new THREE.MeshBasicMaterial({
+  color: '#5fe6ff', transparent: true, opacity: 0, depthWrite: false,
+});
+const MAGNET_EDGE_MAT = new THREE.MeshBasicMaterial({
+  color: '#0d2740', transparent: true, opacity: 0, depthWrite: false,
+});
 // Where the hole started this level, so the size arc can measure growth
 // from there rather than from nothing.
 let startRadius = BASE_HOLE_R;
@@ -5532,6 +5574,29 @@ function buildHole() {
 
   holeGroup.add(edge, band, sizeArc, inner);
   scene.add(holeGroup);
+
+  // Super magnet's reach, drawn on the ground while it is running.
+  //
+  // The booster had no picture at all: it set a timer, printed one line and
+  // then eight seconds passed with nothing on screen saying it was on, how
+  // far it reached, or when it stopped. Fruit simply drifted, which is also
+  // what the ordinary magnet upgrade does, so the thing you paid for was
+  // indistinguishable from the thing you already had. A booster you cannot
+  // see is a booster nobody buys twice.
+  //
+  // It cannot live in holeGroup: that group is scaled by holeRadius, and the
+  // reach is holeRadius *plus* a fixed 1.6, so it would be stretched by the
+  // wrong factor and would lie about where the pull ends. Its own object,
+  // scaled to the reach itself, is the only version that is true.
+  magnetRing = new THREE.Group();
+  const magEdge = new THREE.Mesh(new THREE.RingGeometry(0.855, 1.02, 64), MAGNET_EDGE_MAT);
+  const magBright = new THREE.Mesh(new THREE.RingGeometry(0.878, 0.998, 64), MAGNET_RING_MAT);
+  magEdge.rotation.x = magBright.rotation.x = -Math.PI / 2;
+  magEdge.position.y = 0.05;
+  magBright.position.y = 0.052;
+  magnetRing.add(magEdge, magBright);
+  magnetRing.visible = false;
+  scene.add(magnetRing);
 }
 
 // The arc is quantised to forty steps and only rebuilt when it crosses one,
@@ -5785,7 +5850,7 @@ function useBooster(b) {
   } else if (b.id === 'grow') {
     holeRadius = Math.min(HOLE_MAX, holeRadius + 0.4);
   } else if (b.id === 'magnet') {
-    magnetBoostUntil = performance.now() + 8000;
+    magnetBoostUntil = performance.now() + MAGNET_BOOST_MS;
   }
 
   sfx.booster();
@@ -6793,6 +6858,25 @@ window.fruitHoleWear = id => wearSkin(skinById(id));
 window.fruitHoleBuySkin = id => buySkin(skinById(id));
 window.fruitHoleWallet = () => ({ ...currency });
 window.fruitHoleBoosters = () => ({ ...boosters });
+window.fruitHoleUseBooster = (id) => useBooster(BOOSTERS.find(b => b.id === id));
+// The super magnet's ring, and the pull it is meant to be drawing. The two
+// numbers have to agree: a ring at any other radius is decoration that lies
+// about where the fruit starts moving.
+window.fruitHoleMagnet = () => {
+  const now = performance.now();
+  const live = now < magnetBoostUntil;
+  return {
+    visible: !!(magnetRing && magnetRing.visible),
+    ringR: magnetRing ? +magnetRing.scale.x.toFixed(3) : null,
+    opacity: +MAGNET_RING_MAT.opacity.toFixed(3),
+    x: magnetRing ? +magnetRing.position.x.toFixed(3) : null,
+    z: magnetRing ? +magnetRing.position.z.toFixed(3) : null,
+    holeX: +holeX.toFixed(3), holeZ: +holeZ.toFixed(3),
+    msLeft: Math.max(0, Math.round(magnetBoostUntil - now)),
+    baseReach: +(holeRadius + upg('magnet') * 0.28).toFixed(3),
+    reach: +(holeRadius + upg('magnet') * 0.28 + (live ? MAGNET_BOOST_REACH : 0)).toFixed(3),
+  };
+};
 // The daily blob: today's login loot, whether it has been taken, and which
 // boosters have already had their one free copy for an ad today.
 window.fruitHoleDaily = () => ({
@@ -7128,6 +7212,28 @@ function tick(now) {
   // the arc has to be empty at the first fruit and full at the cap, and a
   // player who bought the starting-size upgrade begins part of the way up.
   setSizeArc((holeRadius - startRadius) / Math.max(0.001, HOLE_MAX - startRadius));
+
+  // The super magnet's reach ring: sits on the pull radius exactly, breathes
+  // while it runs, and thins out over the last second and a half so running
+  // out is something you watch happen rather than something you notice
+  // afterwards by the fruit no longer coming.
+  if (magnetRing) {
+    const left = magnetBoostUntil - now;
+    magnetRing.visible = left > 0 && state === 'playing';
+    if (magnetRing.visible) {
+      const reach = holeRadius + upg('magnet') * 0.28 + MAGNET_BOOST_REACH;
+      // Scaled to the reach and nothing else. It breathed by two per cent at
+      // first, which looked alive and was a lie: the ring's whole job is to
+      // say where the pull ends, and a radius that wobbles says it wrongly
+      // twice a second. The pulse lives in the opacity instead, where it
+      // costs no accuracy.
+      magnetRing.position.set(holeX, 0, holeZ);
+      magnetRing.scale.set(reach, reach, 1);
+      const fade = Math.min(1, left / 1500);
+      MAGNET_RING_MAT.opacity = (0.88 + Math.sin(now / 150) * 0.12) * fade;
+      MAGNET_EDGE_MAT.opacity = 0.62 * fade;
+    }
+  }
 
   if (state === 'menu') {
     // The menu looks at a real diorama rather than a painted picture: same

@@ -97,22 +97,26 @@ Ready to clear the field?
 
 ## What's new — 1.6 / versionCode 15 (≤ 500 chars per language)
 
-English (363 chars):
+English (394 chars):
 ```
 Three new ways to earn without spending fruit: double your chest after every level, claim your daily reward twice over, and take one free booster of each kind every day — each for an optional video.
 
-The menu no longer takes on the colours of whatever level you stopped on — it stands on the beach now, with a new logo.
+Super magnet now shows you its reach while it runs, and fades as it ends.
+
+The menu stands on the beach whatever level you are on, and has a new logo.
 
 The towers on Pillars stand twice as tall.
 ```
 
-Türkçe (328 karakter):
+Türkçe (363 karakter):
 ```
 Meyve harcamadan kazanmanın üç yeni yolu: her bölüm sonunda sandığı ikiye katla, günlük ödülü iki kat al, her booster'dan günde bir bedava al — hepsi isteğe bağlı bir video karşılığında.
 
-Menü artık son oynadığın bölümün rengini almıyor; sahilde duruyor ve yeni bir logosu var.
+Süper mıknatıs artık menzilini gösteriyor ve biterken sönüyor.
 
-Pillars bölümündeki kuleler iki katı yükseklikte.
+Menü hangi bölümde olursan ol sahilde duruyor, yeni bir logosu var.
+
+Pillars'taki kuleler iki katı yükseklikte.
 ```
 
 ## What's new — 1.5.1 / versionCode 14 (≤ 500 chars per language)

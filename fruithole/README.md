@@ -649,6 +649,53 @@ Oyunun arayüzü ve mağaza metinleri **İngilizce**; Play Console'da varsayıla
 dil de İngilizce seçilmeli. Arayüz metinleri `index.html` içinde doğrudan
 gömülü, ayrı bir dil dosyası yok.
 
+## Süper mıknatısın görüntüsü
+
+Booster'ın hiç görseli yoktu. Bir zamanlayıcı kuruyor, bir satır yazı basıyor,
+sonra sekiz saniye boyunca ekranda **açık olduğunu, nereye kadar eriştiğini
+ya da bittiğini** söyleyen hiçbir şey olmuyordu. Meyveler kayıyordu — ama
+sıradan mıknatıs *yükseltmesi* de tam olarak bunu yapıyor. Yani para verdiğin
+şey, zaten sahip olduğun şeyden ayırt edilemiyordu. **Göremediğin booster'ı
+kimse ikinci kez almıyor.**
+
+Artık zeminde çekim menzilini gösteren bir halka var.
+
+**`holeGroup`'un içine konamıyor.** O grup `holeRadius` ile ölçekleniyor, oysa
+menzil `holeRadius` **artı sabit 1.6** — grubun içinde olsaydı yanlış çarpanla
+gerilir ve çekimin nerede bittiği konusunda yalan söylerdi. Kendi nesnesi,
+doğrudan menzile ölçekleniyor.
+
+**İki halka, bir değil.** İlk sürüm tek soluk camgöbeği çizgiydi ve açık kumda
+görünmüyordu — ölçülebilir şekilde oradaydı, gözle yoktu. Altına koyu bir
+halka kondu; deliğin kendi kenarında da aynı sebeple var ("açık kum üzerinde
+açık bir yaka sınırsız kalıyor"). Kumda, karda ve mermer zeminde çalışıyor.
+
+**Nefes almayı kaldırdım.** Halka önce boyutça %2 titriyordu; canlı
+görünüyordu ve yalandı: halkanın tek işi çekimin nerede bittiğini söylemek ve
+saniyede iki kez oynayan bir yarıçap bunu yanlış söylüyor. Test bunu yakaladı
+(halka 2.185, menzil 2.23). Nabız artık opaklıkta, orada hiçbir doğruluk
+maliyeti yok.
+
+Son 1.5 saniyede sönerek bitiyor, yani süre dolması izlediğin bir şey —
+sonradan "meyveler artık gelmiyor" diye fark ettiğin bir şey değil.
+
+## Menüde sürüm yazısı
+
+Menünün sol alt köşesinde `v1.6 (15)` yazıyor. Oyuncu için değil: "güncelleme
+indi mi" sorusu artık tahminle değil bakarak yanıtlanıyor.
+
+**Numara elle yazılmıyor.** Kaynakta `const APP_VERSION = 'dev'` duruyor ve
+`build-www.mjs` paketlenen kopyada onu `app-version.json`'daki gerçek
+numarayla değiştiriyor. İki yere elle yazılsaydı er geç ayrışırdı — ve
+ayrışmış bir sürüm yazısı hiç olmamasından kötüdür, çünkü tam da o soruyu
+çözmek için bakacağın şey odur ve yanlış yanıtlar. `index.html`'i doğrudan
+tarayıcıda açınca `dev` yazıyor, ki o da doğru.
+
+Ölçen dosya `scratchpad/holemagnet.mjs`: yazının `app-version.json` ile aynı
+olduğunu, alt barın üstünde ve Play düğmesinin dışında durduğunu, halkanın
+yarıçapının gerçek menzile eşit olduğunu ve sürenin sonunda söndüğünü
+doğruluyor.
+
 ## Menü, kaldığın yerin artığını miras alıyordu
 
 Menünün arkasında canlı bir 3B diorama var — gerçek delik, gerçek meyveler,

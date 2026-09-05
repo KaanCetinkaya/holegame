@@ -56,6 +56,16 @@ fruit = swap(fruit,
 // reklamına tıklayıp hesabı yakıyorsun. İkisini de "hatırlamak" tutuyordu.
 // Artık hangi komutu çalıştırdığın belirliyor ve derleme çıktısı hangisini
 // ürettiğini her seferinde yazıyor — unutulacak bir şey kalmıyor.
+// Sürüm yazısı: menünün köşesinde hangi derlemenin telefonda olduğunu
+// gösteriyor. Kaynakta 'dev' yazıyor, gerçek numara buradan, tek doğru
+// kaynaktan — app-version.json'dan — giriyor. İki yere elle yazılsaydı
+// er geç ayrışırdı ve "güncelleme indi mi" sorusunu yanlış yanıtlardı;
+// tam da o soruyu çözmek için konulmuş bir yazı için en kötü hata bu.
+const V = JSON.parse(readFileSync(r('app-version.json'), 'utf8')).fruithole;
+fruit = swap(fruit, "const APP_VERSION = 'dev';",
+  `const APP_VERSION = '${V.versionName} (${V.versionCode})';`,
+  'fruithole/index.html (APP_VERSION)');
+
 const LIVE_ADS = process.env.LIVE_ADS === '1';
 if (LIVE_ADS) {
   fruit = swap(fruit, 'const ADS_TESTING = true;', 'const ADS_TESTING = false;',
