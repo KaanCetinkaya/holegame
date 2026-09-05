@@ -396,9 +396,16 @@
     letter-spacing: 1px; text-transform: uppercase; color: #bfe6f7; -webkit-text-stroke-width: 2px; }
   #menu .logo .lvl b { display: block; font-size: clamp(42px,14vw,64px); font-weight: 800; }
 
-  #menu h1 { margin-top: 8.5vh; font-size: clamp(32px,10.5vw,50px); letter-spacing: -1px; color: #fff;
-    -webkit-text-stroke: 3px #0d7b8c; paint-order: stroke fill;
-    text-shadow: 0 5px 0 #0d7b8c, 0 9px 14px rgba(0,0,0,.22); }
+  /* The logo was white with a teal outline, chosen back when the menu stood
+     on whatever dark ground the last level left behind. On the sea it is
+     teal on teal and the outline disappears — the title went soft exactly
+     where it should be loudest. Warm now, and hot against the water: cream
+     fill, a deep orange outline, and a hard shadow under it so it sits
+     forward of the scene instead of being painted onto it. */
+  #menu h1 { margin-top: 7.5vh; font-size: clamp(34px,11.5vw,54px); letter-spacing: -1.5px;
+    color: #fff6d8;
+    -webkit-text-stroke: 7px #a1330a; paint-order: stroke fill;
+    text-shadow: 0 6px 0 #7a2506, 0 11px 16px rgba(0,0,0,.3); }
   #menuSub { position: absolute; left: 0; right: 0; margin: 0;
     bottom: calc(var(--adPad) + var(--navPad) + var(--trayPad) + 24px); letter-spacing: 2px; font-size: 16px; font-weight: 800;
     color: #fff; -webkit-text-stroke: 3px #d08a12; paint-order: stroke fill;
@@ -1305,7 +1312,28 @@ function refreshMenuLevel() {
 // A small island with the hole in the middle and a ring of fruit around it,
 // built from the same meshes the game uses. Drawn live behind the menu so
 // the front screen is 3D like the rest of the game instead of a flat picture.
+// The menu always stands on the beach, whatever level you are on.
+//
+// It used to inherit whatever theme the last level left behind, which is
+// how the first screen of the game ended up near-black with the play grid
+// showing through it: from level 9 or so the themes go dark — a shop floor,
+// a station deck, space — and the menu quietly went dark with them. Nobody
+// chose that. It is the screen every player sees first, the one in every
+// store screenshot, and it was being decided by wherever you happened to
+// stop playing.
+//
+// Sand is the brightest thing the game owns and it is the level everyone
+// starts on, so the menu looks like the game rather than like whatever the
+// last field was.
+const MENU_THEME = 'beach';
+
 function buildMenuDiorama() {
+  applyTheme(THEMES[MENU_THEME]);
+  // Same reason as the theme: the voxel flag is left set by whatever level
+  // was built last, so stopping on level 9 turned the menu's fruit into
+  // pixels. One level in nineteen is voxel — the menu showing them is the
+  // game introducing itself as something it mostly is not.
+  setVoxelField(false);
   fieldGroup.clear();
   fieldGroup.rotation.y = 0;
   fruits = [];

@@ -649,6 +649,48 @@ Oyunun arayüzü ve mağaza metinleri **İngilizce**; Play Console'da varsayıla
 dil de İngilizce seçilmeli. Arayüz metinleri `index.html` içinde doğrudan
 gömülü, ayrı bir dil dosyası yok.
 
+## Menü, kaldığın yerin artığını miras alıyordu
+
+Menünün arkasında canlı bir 3B diorama var — gerçek delik, gerçek meyveler,
+yavaşça dönen bir tarla. Ama `buildMenuDiorama()` yalnızca meyveleri yeniden
+diziyordu; **zemin, tema ve voksel bayrağı son oynanan bölümden kalıyordu.**
+
+Sonuç şu: 9. bölümden sonra temalar koyulaşıyor (mağaza zemini, istasyon
+güvertesi, uzay) ve menü de sessizce onlarla birlikte kararıyordu. Oyunun ilk
+ekranı, her mağaza görselinde görünen ekran, oyuncunun oynamayı nerede
+bıraktığına göre belirleniyordu. Kimse öyle olsun demedi. Kapkara bir zeminin
+üstünde oyun ızgarası görünüyordu ve ekran yarım kalmış gibi duruyordu.
+
+Aynı hatanın ikinci yüzü: **voksel bayrağı da miras kalıyordu.** 9. bölümde
+(Blocks) durduysan menüdeki meyveler piksel oluyordu. On dokuz bölümden biri
+voksel; menüde onları göstermek oyunun kendini büyük ölçüde olmadığı bir şey
+olarak tanıtması demek. Mağaza karesi tam olarak böyle çekilmişti.
+
+İkisi de artık menüde sabit:
+
+```js
+const MENU_THEME = 'beach';
+function buildMenuDiorama() {
+  applyTheme(THEMES[MENU_THEME]);
+  setVoxelField(false);
+  ...
+```
+
+Kum oyunun sahip olduğu en parlak şey ve herkesin başladığı bölüm, yani menü
+artık son tarlaya değil oyunun kendisine benziyor.
+
+**Logo da bu yüzden değişti.** Beyaz harf, camgöbeği kontur — koyu zemin
+varsayımıyla seçilmişti. Denizin üstünde camgöbeği camgöbeğine biniyor ve
+kontur kayboluyordu; başlık tam da en yüksek sesle konuşması gereken yerde
+kısılıyordu. Şimdi krem dolgu, koyu turuncu kontur ve altında sert bir gölge
+var, yani sahnenin üstüne boyanmış değil önünde duruyor.
+
+**Ölü dosya:** `fruithole/assets/menu-bg.png`. Boyanmış menü arka planıydı
+(`a2741de`), `1052e99`'da yerini canlı dioramaya bıraktı ve o günden beri
+hiçbir şey onu yüklemiyor — ama `build-www.mjs` kopyalamaya devam ediyordu,
+yani her paket 96KB'ı boşuna taşıyordu. Artık kopyalanmıyor. Kaynak dosya
+depoda duruyor, boyanmış görünüm bir gün istenirse diye.
+
 ## Uygulama içi satın alma (IAP)
 
 Mağaza ekranı ve dört ürün hazır; ürün kimlikleri Play Console'da aynı

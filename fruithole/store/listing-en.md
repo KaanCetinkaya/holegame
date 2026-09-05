@@ -97,22 +97,22 @@ Ready to clear the field?
 
 ## What's new — 1.6 / versionCode 15 (≤ 500 chars per language)
 
-English (362 chars):
+English (363 chars):
 ```
 Three new ways to earn without spending fruit: double your chest after every level, claim your daily reward twice over, and take one free booster of each kind every day — each for an optional video.
 
+The menu no longer takes on the colours of whatever level you stopped on — it stands on the beach now, with a new logo.
+
 The towers on Pillars stand twice as tall.
-
-The countdown no longer runs behind a fullscreen ad, a call, or while you are in another app. The level waits for you.
 ```
 
-Türkçe (325 karakter):
+Türkçe (328 karakter):
 ```
-Meyve harcamadan kazanmanın üç yeni yolu: her bölüm sonunda sandığı ikiye katla, günlük ödülü iki kat al, ve her booster'dan günde bir tane bedava al — hepsi isteğe bağlı bir video karşılığında.
+Meyve harcamadan kazanmanın üç yeni yolu: her bölüm sonunda sandığı ikiye katla, günlük ödülü iki kat al, her booster'dan günde bir bedava al — hepsi isteğe bağlı bir video karşılığında.
+
+Menü artık son oynadığın bölümün rengini almıyor; sahilde duruyor ve yeni bir logosu var.
 
 Pillars bölümündeki kuleler iki katı yükseklikte.
-
-Tam ekran reklam, arama ya da başka uygulamadayken geri sayım artık işlemiyor.
 ```
 
 ## What's new — 1.5.1 / versionCode 14 (≤ 500 chars per language)

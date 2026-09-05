@@ -63,10 +63,14 @@ if (LIVE_ADS) {
 }
 writeFileSync(r('www-fruithole', 'index.html'), fruit);
 
-// The menu backdrop is a real image (gradients cannot fake a painted scene),
-// so it has to travel with the packaged build.
-mkdirSync(r('www-fruithole', 'assets'), { recursive: true });
-copyFileSync(r('fruithole', 'assets', 'menu-bg.png'), r('www-fruithole', 'assets', 'menu-bg.png'));
+// menu-bg.png deliberately does NOT travel with the build any more.
+//
+// It was the painted menu backdrop, added in a2741de and replaced in
+// 1052e99 by the live 3D diorama the menu shows now. The image stopped
+// being referenced by anything at that point, but this line kept copying
+// it, so every bundle since has carried 96KB that nothing loads. The
+// source file stays in fruithole/assets/ in case the painted look is ever
+// wanted again; it just is not shipped.
 
 if (existsSync(r('www', 'three.module.js'))) {
   copyFileSync(r('www', 'three.module.js'), r('www-fruithole', 'three.module.js'));
