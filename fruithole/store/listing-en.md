@@ -54,6 +54,12 @@ Each upgrade track is paid for with a different fruit.
 Three ways out of a tight spot: +15 seconds, a burst that grows the hole at
 once, and 8 seconds of super magnetism. They unlock as you climb the levels.
 
+📅 DAILY CHALLENGE
+One field a day, and it is the same field for every player — it is built from
+the date itself, so nobody gets an easier board. Upgrades are switched off for
+it, so the score says how well you played today, not how long you have been
+playing. Come back tomorrow and keep the streak alive.
+
 📋 DAILY MISSIONS
 Three fresh missions every day, a login reward that grows with your streak, and
 achievements to chase.
@@ -97,26 +103,22 @@ Ready to clear the field?
 
 ## What's new — 1.6 / versionCode 15 (≤ 500 chars per language)
 
-English (394 chars):
+English (379 chars):
 ```
-Three new ways to earn without spending fruit: double your chest after every level, claim your daily reward twice over, and take one free booster of each kind every day — each for an optional video.
+DAILY CHALLENGE — one field a day, the same one for every player, built from the date. No upgrades count, so the score is how you played today rather than how long you have been playing. Keep a streak going.
 
-Super magnet now shows you its reach while it runs, and fades as it ends.
+Three new ways to earn without spending fruit: double your chest, claim your daily reward twice over, and take a free booster each day.
 
-The menu stands on the beach whatever level you are on, and has a new logo.
-
-The towers on Pillars stand twice as tall.
+Super magnet now shows its reach.
 ```
 
-Türkçe (363 karakter):
+Türkçe (337 karakter):
 ```
-Meyve harcamadan kazanmanın üç yeni yolu: her bölüm sonunda sandığı ikiye katla, günlük ödülü iki kat al, her booster'dan günde bir bedava al — hepsi isteğe bağlı bir video karşılığında.
+GÜNLÜK MEYDAN OKUMA — günde bir tarla, herkeste aynısı, tarihten kuruluyor. Yükseltmeler sayılmıyor: skor o gün nasıl oynadığını gösteriyor, ne kadar oynadığını değil. Seriyi sürdür.
 
-Süper mıknatıs artık menzilini gösteriyor ve biterken sönüyor.
+Meyve harcamadan kazanmanın üç yeni yolu: sandığı katla, günlük ödülü iki kat al, her gün bir bedava booster.
 
-Menü hangi bölümde olursan ol sahilde duruyor, yeni bir logosu var.
-
-Pillars'taki kuleler iki katı yükseklikte.
+Süper mıknatıs artık menzilini gösteriyor.
 ```
 
 ## What's new — 1.5.1 / versionCode 14 (≤ 500 chars per language)

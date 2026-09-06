@@ -649,6 +649,101 @@ Oyunun arayüzü ve mağaza metinleri **İngilizce**; Play Console'da varsayıla
 dil de İngilizce seçilmeli. Arayüz metinleri `index.html` içinde doğrudan
 gömülü, ayrı bir dil dosyası yok.
 
+## Günlük meydan okuma
+
+Oyunun cevabı olmayan tek şey buydu: **yarın açmak için bir sebep yok.**
+Bölümler bitmiyor ama bitmemesi de bir şey vermiyor — desenler mod ile
+dönüyor, tarla 34 satırda duruyor, yani 200. bölüm 40. bölümle aynı. Oyunun
+kendi içinde ikinci bir gün açmak için bir neden yoktu.
+
+Artık günde bir tarla var ve **herkeste aynı tarla.**
+
+**Çevrimdışı, bilerek.** Hesap yok, sunucu yok, giriş yok: tohum tarihin
+kendisi, dolayısıyla iki telefon hiç konuşmadan aynı sonuca varıyor. Liderlik
+tablosu sonradan üstüne konabilir ve tarla o gün geldiğinde zaten adil olur.
+
+### Tek iddia: aynı gün, aynı tarla, aynı delik
+
+İkisinden biri doğru değilse iki koşuyu karşılaştırmak anlamsız, yani mod
+anlamsız.
+
+**Aynı tarla** için tarlayı kuran rastgelelik tohumlandı (`rnd()`, mulberry32).
+Ayrıntısı yukarıda değil aşağıda: bkz. *Tohumlu tarla*.
+
+**Aynı delik** için günlük koşuda yükseltmeler kapalı. Tek satır:
+
+```js
+function upg(id) { return dailyRun ? 0 : (upgrades[id] || 0); }
+```
+
+Delik boyutu, hız, saat ve mıknatıs — dördü de `upg()`'den okuyor, o yüzden
+bir satır hepsini kapsıyor. Açık bıraksaydım skor **oyunu ne kadar oynadığını**
+ölçerdi, o gün nasıl oynadığını değil; ve liderlik tablosu geldiği an tablo
+kimin daha önce başladığının listesi olurdu.
+
+`sizeStage` de 1'e sabitleniyor, yani bölüm başına gelen açılış payı da yok.
+
+### İlerlemeye dokunmuyor
+
+Ne bölüm ilerliyor, ne yıldız yazılıyor, ne sandık düşüyor. Günlük koşu o
+günün skoru ve seri için oynanıyor. Meyve de ödeseydi "herkese aynı tarla"
+bir tarlaya dönerdi ve avantajı doğrudan en çok tekrar oynayana geri verirdi
+— tasarımın kaçındığı şeyin ta kendisi.
+
+### Seri gün sayıyor, koşu değil
+
+Tekrar oynamak serbest, en iyi skor tutuluyor. Ama seri yalnızca günün **ilk
+bitmiş koşusunda** ilerliyor; yoksa aynı gün ikinci koşu ikinci gün sayılırdı.
+
+### Günün üç sayısı da tohumdan, `rnd()`'den değil
+
+Desen, satır sayısı ve tohum ayrı ayrı `seedFromKey(gün)`'den çekiliyor.
+`rnd()` ile seçilselerdi, seçim tarlanın kurulacağı üreteci ilerletirdi —
+tahta, kendisinden önce kaç seçim yapıldığına bağlı olurdu. Bugün sorun
+değil; ama o seçimlerden biri değiştiği gün **geçmişteki her günün tarlası
+sessizce başka bir tarlaya dönerdi.**
+
+### Ölçüm
+
+`scratchpad/holedaily.mjs`, 15 kontrol. En önemlisi ilki: iki bambaşka oyuncu
+profili açılıyor — biri 3. bölümde, hiç yükseltmesi yok; öbürü 44. bölümde,
+hepsi dolu — ve ikisi de günlük koşuyu başlatıyor.
+
+| | A | B |
+|---|---|---|
+| profil | bölüm 3, yükseltmesiz | bölüm 44, hepsi dolu |
+| tarla parmak izi | `ff9f36ec` | `ff9f36ec` |
+| meyve | 116 | 116 |
+| deliğin açılışı | 0.55 | 0.55 |
+
+Normal bölümde ise aynı iki oyuncunun deliği 0.59 ve 0.72 — yani yükseltmeler
+gerçekten satın alınmış, günlükte yalnızca yok sayılıyor.
+
+Testte bir tuzak vardı ve kendi kendini yakaladı: delik ilk sürümde koşu
+başladıktan 1.2 saniye sonra ölçülüyordu ve o sırada çoktan meyve yiyip
+büyümüş oluyordu (0.5635'e karşı 0.55). İddia açılış genişliği hakkında, o
+yüzden ölçüm `startRadius`'tan alınıyor.
+
+## Tohumlu tarla
+
+Tarlayı ne kurduysa `Math.random()` yerine `rnd()`'den çekiyor. Tohumsuzken
+`rnd()` zaten `Math.random`, hiçbir şey değişmiyor; tohumlanınca aynı tohum
+aynı tarlayı — her parçanın hangi yöne baktığına kadar — yeniden kuruyor.
+
+**Yalnızca düzeni belirleyen on çağrı taşındı:** devlerin yeri, bir hücrenin
+eşya alıp almadığı, istifin boyu, parçanın dönüşü, hangi eşyanın seçildiği.
+Kalan elli küsuru bilerek `Math.random`'da kaldı — zemin dokuları, konfeti,
+ses titremesi. Onları tohumlamak hiçbir şey kazandırmazdı, ve konumu kaç
+konfeti çizildiğine bağlı bir üreteç zaten yeniden üretilebilir değil.
+
+Gün anahtarı FNV-1a ile tohuma çevriliyor. Oyuncuya zaten gösterilen yerel
+takvim tarihinden kuruluyor, yani tartışılacak bir saat farkı yok.
+
+`fruitHoleFieldHash()` tahtanın parmak izini veriyor: her parçanın yeri,
+yüksekliği, türü, boyu ve dönüşü. Ölçüldü — 3, 9, 14 ve 42. bölümlerde aynı
+tohum tarlayı birebir tekrar kuruyor (180, 417, 273 ve 262 parça), farklı
+tohum farklı tarla veriyor, tohumsuz kuruluş hâlâ koşudan koşuya değişiyor.
+
 ## Süper mıknatısın görüntüsü
 
 Booster'ın hiç görseli yoktu. Bir zamanlayıcı kuruyor, bir satır yazı basıyor,

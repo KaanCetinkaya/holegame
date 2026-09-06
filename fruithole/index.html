@@ -516,6 +516,16 @@
   #menuBanner .bt { color: #fff; font-size: 13px; font-weight: 800;
     text-shadow: 0 2px 0 rgba(0,0,0,.35); }
 
+  /* Today's challenge, at the top of Goals because that is where the other
+     things that reset at midnight already live. */
+  #challCard { background: linear-gradient(180deg,#8878e2,#6a58c9);
+    border: 3px solid rgba(255,255,255,.5); border-radius: 20px;
+    padding: 12px 14px 14px; margin: 2px 0 6px; text-align: center;
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.28), 0 5px 0 #43349c; }
+  #challLine { color: #fff; font-weight: 800; font-size: 15px; }
+  #challSub { color: rgba(255,255,255,.85); font-weight: 700; font-size: 12px; margin-top: 3px; }
+  #challCard .btn { margin-top: 9px; padding: 10px 22px; font-size: 16px; }
+
   #menuShelf { position: absolute; z-index: 0; inset: 23.5% 12px auto 12px;
     display: flex; justify-content: space-between; pointer-events: none; }
   /* Which build is actually on the phone. Small and out of the way — it is
@@ -641,6 +651,12 @@
 
   <div id="goals" class="screen">
     <h1><span class="hIco" data-icon="clipboard"></span>Goals</h1>
+    <p class="sect">📅 Today's challenge</p>
+    <div id="challCard">
+      <div id="challLine"></div>
+      <div id="challSub"></div>
+      <button class="btn" id="challBtn">Play today's field</button>
+    </div>
     <p class="sect">Daily missions</p>
     <div id="missionList"></div>
     <p class="sect"><span class="sIco" data-icon="trophy"></span>Achievements</p>
@@ -771,10 +787,61 @@ const UPG_MAX = 5;
 // to swallow the big fruit before the level had begun.
 const upgMax = u => u.max || UPG_MAX;
 
+// ---------------------------------------------------------------------
+// Daily challenge
+//
+// One field a day, the same one for everybody, built from the date. It is
+// the answer to the thing this game had no answer to: nothing brought you
+// back tomorrow. Levels never run out — the patterns cycle and the field
+// stops growing at 34 rows — so level 200 is level 40 again and there is no
+// reason in the game itself to open it a second day.
+//
+// Deliberately kept offline. No account, no server, nothing to sign in to:
+// the seed is the date, so two phones agree without ever talking. A
+// leaderboard can be laid on top later and the field will already be fair.
+// ---------------------------------------------------------------------
+let dailyRun = false;
+let forcedPattern = null;
+const chall = JSON.parse(localStorage.getItem('fruithole_chall') || '{}');
+function saveChall() { localStorage.setItem('fruithole_chall', JSON.stringify(chall)); }
+function challKey() { return dayKey(new Date()); }
+function ensureChall() {
+  const key = challKey();
+  if (chall.day === key) return;
+  chall.day = key;
+  chall.best = 0;
+  chall.plays = 0;
+  saveChall();
+}
+// The streak counts days played, not days opened, and it is only moved on
+// the first finished run of a day — otherwise a second attempt would count
+// as a second day.
+function recordChall(score) {
+  ensureChall();
+  if (!chall.plays) {
+    const yesterday = dayKey(new Date(Date.now() - 86400000));
+    chall.streak = chall.lastPlayed === yesterday ? (chall.streak || 0) + 1 : 1;
+    chall.lastPlayed = chall.day;
+  }
+  chall.plays++;
+  const best = score > (chall.best || 0);
+  if (best) chall.best = score;
+  saveChall();
+  return best;
+}
+
 const upgrades = JSON.parse(localStorage.getItem('fruithole_upgrades') || '{}');
 UPGRADES.forEach(u => { if (!(u.id in upgrades)) upgrades[u.id] = 0; });
 function saveUpgrades() { localStorage.setItem('fruithole_upgrades', JSON.stringify(upgrades)); }
-function upg(id) { return upgrades[id] || 0; }
+// Upgrades are switched off for the whole of a daily run.
+//
+// This is the decision the daily challenge turns on. Everyone is handed the
+// same field, so a score is only worth comparing if everyone also brings the
+// same hole. With upgrades counted the score measures how long you have been
+// playing, not how well you played it today — and the moment a leaderboard
+// exists it would be a table of who started first. One line here covers all
+// of it, because hole size, speed, clock and magnet all read through upg().
+function upg(id) { return dailyRun ? 0 : (upgrades[id] || 0); }
 function upgCost(u) { return u.base * Math.pow(2, upg(u.id)); }
 
 // ---------------------------------------------------------------------
@@ -912,7 +979,6 @@ function anyClaimable() {
 const app = document.getElementById('app');
 const topbarEl = document.getElementById('topbar');
 const walletEl = document.getElementById('wallet');
-const levelNEl = document.getElementById('levelN');
 const pauseEl = document.getElementById('pause');
 const timeTagEl = document.getElementById('timeTag');
 const timeNEl = document.getElementById('timeN');
@@ -1413,8 +1479,19 @@ function bumpCurrency(id, amount) {
 }
 function refreshLevelTag() {
   const p = currentPattern;
+  // A daily run has no level number — showing the one the player happened to
+  // have reached would be a number that means nothing here. The badge says
+  // what day's run this is instead.
+  if (dailyRun) {
+    document.getElementById('levelBadge').innerHTML =
+      `DAILY <span id="levelN">${(chall.plays || 0) + 1}</span>`;
+    const th = p && THEMES[p.theme];
+    patternTagEl.textContent =
+      `📅 ${th ? th.icon + ' ' : ''}${p ? p.icon + ' ' + p.name : ''}`;
+    return;
+  }
+  document.getElementById('levelBadge').innerHTML = `LEVEL <span id="levelN">${level}</span>`;
   const best = stars[level] ? '  ' + '★'.repeat(stars[level]) : '';
-  levelNEl.textContent = level;
   // Both halves of what makes this level itself: where you are, and what
   // shape the field is in.
   const th = p && THEMES[p.theme];
@@ -1613,8 +1690,32 @@ function goalRow(icon, name, desc, at, goal, claimed, onClaim) {
   return row;
 }
 
+function renderChall() {
+  ensureChall();
+  const plan = dailyPlan();
+  const p = PATTERNS[plan.pattern % PATTERNS.length];
+  const th = THEMES[p.theme];
+  // Naming the field before you play it is the invitation: it says today is
+  // a different board from yesterday without giving away how it is laid out.
+  document.getElementById('challLine').textContent =
+    `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}`;
+  const bits = [];
+  bits.push(chall.plays ? `Best today: ${chall.best} fruit` : 'Not played yet');
+  if (chall.streak) bits.push(`Day ${chall.streak} streak`);
+  bits.push('No upgrades — same hole for everyone');
+  document.getElementById('challSub').textContent = bits.join(' · ');
+  document.getElementById('challBtn').textContent =
+    chall.plays ? 'Play again' : "Play today's field";
+}
+document.getElementById('challBtn').addEventListener('click', () => {
+  document.getElementById('goals').classList.remove('show');
+  ensureAudio();
+  startDailyRun();
+});
+
 function renderGoals() {
   ensureDaily();
+  renderChall();
   const mList = document.getElementById('missionList');
   mList.innerHTML = '';
   (daily.missions || []).forEach(m => {
@@ -5190,7 +5291,12 @@ function buildField() {
   fieldHalfX = (COLS * CELL) / 2;
   fieldHalfZ = (rows * CELL) / 2;
   fitGround();
-  currentPattern = PATTERNS[(level - 1) % PATTERNS.length];
+  // Normally the level number chooses the layout. A daily run names one
+  // instead, because its shape comes from the date rather than from how far
+  // the player has got.
+  currentPattern = forcedPattern != null
+    ? PATTERNS[forcedPattern % PATTERNS.length]
+    : PATTERNS[(level - 1) % PATTERNS.length];
   // Latched before a single fruit is built, because fruitVisual() reads it.
   setVoxelField(!!currentPattern.voxel);
   applyTheme(THEMES[currentPattern.theme] || THEMES.mixed);
@@ -5899,10 +6005,53 @@ function useBooster(b) {
   renderBoosters();
 }
 
+// The day's board. Pattern, size and layout are all taken off the date, so
+// two phones build the same field without ever talking to each other.
+//
+// The three numbers are pulled from different parts of the seed rather than
+// from rnd(), because choosing the pattern with rnd() would advance the
+// generator the field is then built from — the board would depend on how
+// many choices had been made before it, which is fine until one of them
+// changes and every past day's field silently becomes a different field.
+function dailyPlan() {
+  const s = seedFromKey(challKey());
+  return {
+    seed: s,
+    pattern: s % PATTERNS.length,
+    // 22 to 34 rows, the same span ordinary levels grow across.
+    rows: 22 + ((s >>> 8) % 7) * 2,
+    key: challKey(),
+  };
+}
+
+function startDailyRun() {
+  ensureChall();
+  const plan = dailyPlan();
+  dailyRun = true;
+  forcedPattern = plan.pattern;
+  seedField(plan.seed);
+  // sizeStage drives the per-level head start on the hole. Fixed at 1 so
+  // everyone opens the same width — the point of the whole exercise.
+  sizeStage = 1;
+  rows = plan.rows;
+  buildField();
+  unseedField();
+  startRun();
+}
+
 function startLevel() {
+  dailyRun = false;
+  forcedPattern = null;
   sizeStage = level;
   rows = Math.min(22 + Math.floor((level - 1) / 2) * 2, 34);
   buildField();
+  startRun();
+}
+
+// Everything a run needs once its field is standing. Shared, so a daily run
+// and an ordinary level cannot drift apart in the hundred small ways a
+// second copy of this would eventually drift.
+function startRun() {
   resetHole();
   camX = holeX; camZ = holeZ;
   fitCamera();
@@ -6102,8 +6251,34 @@ function fillStats(earnedStars) {
     `<span class="pill">⏱ ${secs}s</span>`;
 }
 
+// A daily run ends the same way whether the clock ran out or the field was
+// swept: the score is the fruit taken. Sweeping it clean is simply the top
+// score available that day.
+//
+// It never touches progress. No star is written, no level is advanced, no
+// chest is dropped — the daily is played for the day's score and for the
+// streak, and letting it pay out in fruit as well would turn "the same field
+// for everyone" into a farm and hand the advantage straight back to whoever
+// grinds it most, which is the thing the whole design is avoiding.
+function endDailyRun(swept) {
+  const score = eatenCount;
+  const best = recordChall(score);
+  state = swept ? 'won' : 'lost';
+  if (swept) sfx.win(); else sfx.lose();
+  fillStats(0);
+  const line = best && chall.plays > 1 ? 'New best today!'
+             : swept ? 'Swept the whole field!'
+             : `Best today: ${chall.best}`;
+  showOverlay(
+    swept ? 'Daily Cleared! 📅' : `${score} fruit 📅`,
+    `${line} · Day ${chall.streak} streak`,
+    'Try again', startDailyRun, false);
+  renderChall();
+}
+
 function onCleared() {
   if (state !== 'playing') return;
+  if (dailyRun) { endDailyRun(true); return; }
   const cleared = level;
   const earned = liveStars();
   state = 'won';
@@ -6136,6 +6311,7 @@ function onCleared() {
 
 function onTimeUp() {
   if (state !== 'playing') return;
+  if (dailyRun) { endDailyRun(false); return; }
   state = 'lost';
   sfx.lose();
   fillStats();
@@ -6912,6 +7088,25 @@ window.fruitHoleFieldHash = () => {
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
   return { n: fruits.length, hash: (h >>> 0).toString(16) };
 };
+window.fruitHoleStartDaily = () => startDailyRun();
+window.fruitHoleStartLevel = () => startLevel();
+window.fruitHoleTimeUp = () => onTimeUp();
+// Whether the run is a daily one, what it is standing on, and — the number
+// the whole design rests on — what upg() is reporting while it runs.
+window.fruitHoleDailyState = () => ({
+  dailyRun,
+  pattern: currentPattern && currentPattern.name,
+  holeR: +holeRadius.toFixed(4),
+  // What the hole opened at, before a single fruit went in. This is the
+  // number "the same hole for everyone" is a claim about; holeR has already
+  // moved by the time anyone can read it.
+  startR: +startRadius.toFixed(4),
+  rows,
+  upgSize: upg('size'), upgSpeed: upg('speed'),
+  upgTime: upg('time'), upgMagnet: upg('magnet'),
+  score: eatenCount,
+  chall: { ...chall },
+});
 window.fruitHoleSeedField = (n) => { seedField(n); };
 window.fruitHoleUnseedField = () => { unseedField(); };
 window.fruitHoleWallet = () => ({ ...currency });
