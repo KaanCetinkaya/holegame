@@ -3976,7 +3976,48 @@ const PROPS = propTemplates();
 // at that size. They are marked so they only ever turn up as giants.
 const SMALL_PROPS = Object.keys(PROPS).filter(k => PROPS[k].only !== 'giant');
 const GIANT_PROPS = Object.keys(PROPS).filter(k => PROPS[k].only !== 'small');
-const pick = list => list[Math.floor(Math.random() * list.length)];
+// ---------------------------------------------------------------------
+// The field's own random number generator.
+//
+// Everything that decides what the board looks like draws from rnd()
+// instead of Math.random(). Normally rnd() *is* Math.random and nothing
+// changes. Seeded, it produces the same field every time — which is what a
+// daily challenge needs: every player has to be given the same board, or
+// comparing two runs means nothing.
+//
+// Only the ~10 calls that decide layout were moved over: where the giants
+// go, whether a cell holds a prop, how tall a stack is, which way a piece
+// faces. The other fifty-odd stay on Math.random deliberately — ground
+// textures, confetti, sound jitter. Seeding those would buy nothing and a
+// generator advanced by the number of confetti pieces drawn is no longer
+// reproducible anyway.
+//
+// mulberry32: small, fast, and good enough that a field does not visibly
+// repeat itself. It is not cryptography and does not need to be.
+let _seed = 0, _seeded = false;
+function seedField(n) { _seed = n >>> 0; _seeded = true; }
+function unseedField() { _seeded = false; }
+function rnd() {
+  if (!_seeded) return Math.random();
+  _seed = (_seed + 0x6D2B79F5) >>> 0;
+  let t = _seed;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+// A day is a seed: the same date gives the same number on every phone, with
+// no clock skew to argue about because it is built from the local calendar
+// date the player is already being shown.
+function seedFromKey(key) {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+const pick = list => list[Math.floor(rnd() * list.length)];
 const pickProp = () => pick(SMALL_PROPS);
 const pickGiantProp = () => pick(GIANT_PROPS);
 
@@ -4585,7 +4626,7 @@ function polarCells() {
 const ID = TYPES.map(t => t.id);
 function midCol() { return (COLS - 1) / 2; }
 function midRow() { return (rows - 1) / 2; }
-function scatter(chance) { return Math.random() < chance; }
+function scatter(chance) { return rnd() < chance; }
 
 // Value noise: smooth, repeatable blobs. Regions grown from this have
 // ragged edges, which is what makes a field look planted rather than
@@ -5173,7 +5214,7 @@ function buildField() {
       // one in six the beach balls were punching holes straight through the
       // steps that are the whole point of the shape.
       const propRate = currentPattern.props ?? 0.17;
-      const prop = !big && themePool.length && Math.random() < propRate ? pick(themePool) : null;
+      const prop = !big && themePool.length && rnd() < propRate ? pick(themePool) : null;
       // Giants are built whole; everything else stays a slice.
       const vis = prop ? propVisual(prop, radius * 1.45)
                        : fruitVisual(currentPattern.type(a, b), radius, big);
@@ -5189,12 +5230,12 @@ function buildField() {
       // Props stand alone. Stacked they interlock into an unreadable pile,
       // and their whole reason for being on the board is being recognisable.
       let height = prop || !currentPattern.stack ? 1 : Math.max(1, currentPattern.stack(a, b));
-      if (!prop && Math.random() < 0.07) height = Math.max(height, 3 + Math.floor(Math.random() * 3));
+      if (!prop && rnd() < 0.07) height = Math.max(height, 3 + Math.floor(rnd() * 3));
       for (let k = 0; k < height; k++) {
         // A little jitter in size and lean. Without it every cell holds an
         // identical object and the field reads as a printed grid rather than
         // fruit that was dropped there.
-        const jit = 0.96 + Math.random() * 0.08;
+        const jit = 0.96 + rnd() * 0.08;
         const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
         const y = vis.baseY * jit + k * vis.sy * 2.05;
         mesh.scale.set(vis.sx * jit, vis.sy * jit, vis.sx * jit);
@@ -5203,7 +5244,7 @@ function buildField() {
         // Spin only about the upright axis. Leaning them was meant to look
         // casual, but a tilted disc seen from above sits off its own centre
         // and the rows come out wavy — the whole grid reads as crooked.
-        mesh.rotation.y = vis.upright ? 0 : Math.random() * Math.PI * 2;
+        mesh.rotation.y = vis.upright ? 0 : rnd() * Math.PI * 2;
         // Casts onto the ground, but never receives. In a tower each piece
         // sits square in the shadow of the one above it, leaving a lit sliver
         // down one side — every ball then looks shoved off its own centre and
@@ -5306,12 +5347,12 @@ function placeGiants() {
   const reach = 0.92 * (BASE_HOLE_R + fruits.length * 0.35 * growthUnit());
   const giantR = Math.max(0.95, Math.min(GIANT_R, reach));
 
-  const want = 3 + Math.floor(Math.random() * 3) + Math.min(3, Math.floor(rows / 12));
+  const want = 3 + Math.floor(rnd() * 3) + Math.min(3, Math.floor(rows / 12));
   const placed = [];
   const CLEAR = giantR + NORMAL_R * 1.5;
 
   for (let tries = 0; tries < want * 30 && placed.length < want; tries++) {
-    const seed = spots[Math.floor(Math.random() * spots.length)];
+    const seed = spots[Math.floor(rnd() * spots.length)];
     if (seed.eaten) continue;                       // already cleared by a giant
     // Two giants touching read as one lump, so keep them well apart.
     if (placed.some(g => Math.hypot(g.x - seed.x, g.z - seed.z) < giantR * 4.5)) continue;
@@ -5322,12 +5363,12 @@ function placeGiants() {
     // A single giant is an obstacle; three of the same fruit leaning on each
     // other is a landmark you steer by, and it gives the far end of a long
     // board something worth crossing to.
-    const huddle = Math.random() < 0.4;
+    const huddle = rnd() < 0.4;
     // A third of them are an object rather than an outsized fruit. At this
     // scale the silhouette is the strongest thing on the board, which is
     // exactly what a landmark you steer towards should be.
     const giantPool = (currentTheme.props || GIANT_PROPS).filter(id => GIANT_PROPS.includes(id));
-    const prop = giantPool.length && Math.random() < 0.42 ? pick(giantPool) : null;
+    const prop = giantPool.length && rnd() < 0.42 ? pick(giantPool) : null;
     const offsets = huddle
       ? [[0, -giantR * 1.02], [-giantR * 0.9, giantR * 0.55], [giantR * 0.9, giantR * 0.55]]
       : [[0, 0]];
@@ -5357,7 +5398,7 @@ function placeGiants() {
       mesh.scale.set(vis.sx, vis.sy, vis.sx);
       mesh.position.set(gx, vis.baseY, gz);
       mesh.userData.ox = gx; mesh.userData.oz = gz;
-      mesh.rotation.y = vis.upright ? 0 : Math.random() * Math.PI * 2;
+      mesh.rotation.y = vis.upright ? 0 : rnd() * Math.PI * 2;
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       fieldGroup.add(mesh);
@@ -6856,6 +6897,23 @@ window.fruitHoleSkin = () => ({
 window.fruitHoleSkinOwned = id => skinOwned(skinById(id));
 window.fruitHoleWear = id => wearSkin(skinById(id));
 window.fruitHoleBuySkin = id => buySkin(skinById(id));
+// A fingerprint of the board as actually built: every piece's place, size,
+// kind and facing. Two runs of the same seed have to produce the same string
+// or "everyone gets the same field" is not true, and a daily challenge that
+// is not true is worse than none.
+window.fruitHoleFieldHash = () => {
+  const parts = fruits.map(f =>
+    [f.x.toFixed(3), f.z.toFixed(3), f.mesh.position.y.toFixed(3),
+     f.type, f.prop || '-', f.big ? 1 : 0, f.giant ? 1 : 0,
+     f.r.toFixed(3), f.mesh.rotation.y.toFixed(3),
+     f.mesh.scale.x.toFixed(4)].join(','));
+  let h = 2166136261;
+  const s = parts.join('|');
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return { n: fruits.length, hash: (h >>> 0).toString(16) };
+};
+window.fruitHoleSeedField = (n) => { seedField(n); };
+window.fruitHoleUnseedField = () => { unseedField(); };
 window.fruitHoleWallet = () => ({ ...currency });
 window.fruitHoleBoosters = () => ({ ...boosters });
 window.fruitHoleUseBooster = (id) => useBooster(BOOSTERS.find(b => b.id === id));
