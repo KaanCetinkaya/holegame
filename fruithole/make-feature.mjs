@@ -24,7 +24,15 @@ const ROOT = join(HERE, '..');
 const WWW = join(ROOT, 'www-fruithole');
 const OUT = join(HERE, 'store', 'feature-1024x500.png');
 const PORT = 8123;
-const LEVEL = process.argv[2] || '6';        // Heart: dense, all four fruits
+// Level 20: the beach, dense, all four fruits and a couple of props in shot.
+//
+// It has been three other levels. The one that shipped was the voxel level on
+// the dark shop floor, which is the single most prominent image on the store
+// page telling anyone who sees it that this is a pixel game played in the
+// dark — and one level in nineteen is voxel. Level 6 is the drive-in, also
+// dark and thinner. Sand is the brightest ground the game owns and the fruit
+// read as fruit on it.
+const LEVEL = process.argv[2] || '20';
 
 const srv = createServer((req, res) => {
   const p = req.url === '/' ? '/index.html' : req.url.split('?')[0];

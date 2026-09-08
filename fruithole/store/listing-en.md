@@ -216,9 +216,15 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 ## Assets (ready in this folder)
 - `icon-512.png` — store icon, exactly 512×512 (required)
 - `feature-1024x500.png` — feature graphic (required)
-- `1-menu.png` — main menu
+- `1-menu.png` — main menu, on the beach
 - `2-play.png` — level 1: the stepped pyramid on the beach
 - `3-grown.png` — the voxel level, hole grown, a swathe cleared
+
+The feature graphic is shot from level 20 by `node fruithole/make-feature.mjs`.
+It used to be the voxel level on the dark shop floor — the most prominent
+image on the store page announcing a pixel game played in the dark, when one
+level in nineteen is voxel. Sand is the brightest ground the game owns.
+
 - `4-snow.png` — a Snow Day level: snowmen, penguins, candy canes
 - `5-rings.png` — Orbits: rings opening out from the hole
 - `6-skins.png` — the ten hole skins
