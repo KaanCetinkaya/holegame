@@ -744,6 +744,37 @@ yüksekliği, türü, boyu ve dönüşü. Ölçüldü — 3, 9, 14 ve 42. bölü
 tohum tarlayı birebir tekrar kuruyor (180, 417, 273 ve 262 parça), farklı
 tohum farklı tarla veriyor, tohumsuz kuruluş hâlâ koşudan koşuya değişiyor.
 
+## Liderlik tablosu
+
+Oyun tarafı yazıldı, **kapalı duruyor.** Kurulum adımları
+`fruithole/store/leaderboard-setup.md` içinde.
+
+Günlük meydan okuma zaten bir liderlik tablosunun zor yarısını çözmüştü:
+herkese aynı tarla, herkese aynı delik. Kalan kolay yarısı günün skorunu
+herkesin görebileceği bir yere göndermek.
+
+**Oyun eklentinin var olup olmadığını umursamıyor.** Eklenti yoksa —
+tarayıcıda, ya da eklenti eklenmeden önce yapılmış her derlemede —
+`gamesReady()` false dönüyor, 🏆 düğmesi hiç görünmüyor, skor gönderimi
+sessizce hiçbir şey yapmıyor. Bu bilinçli: yayınlanmış eklenti **Capacitor 5
+için**, proje **8'de**, ve derlenip derlenmeyeceğini ancak gerçek bir Android
+derlemesi söyler. Oyunun o cevap gelene kadar da eksiksiz çalışması gerekiyor.
+
+Bu konteynerde doğrulanamayan şeyler, açıkça: **Android SDK yok ve native
+proje burada değil**, o yüzden eklentinin derlendiğini görmedim. Doğrulanan
+şey, tarayıcıda eklenti yokken oyunun hiç etkilenmediği
+(`scratchpad/holedaily.mjs`, 6. bölüm).
+
+`LEADERBOARD_ID` boş kaldığı sürece tablo kapalı — o satır anahtar.
+
+Skor **her koşuda** gönderiliyor, yalnızca kişisel rekorda değil: Play zaten
+oyuncu başına en yükseği tutuyor, ve yalnızca rekorları göndermek bir günün
+ilk skorunu (dünkünden düşükse) kaybettirirdi.
+
+Play Games tabloları GÜNLÜK, HAFTALIK ve TÜM ZAMANLAR pencerelerini kendisi
+tuttuğu için tek tablo yetiyor — gece yarısı değişen bir tarla için istenen
+şey zaten "bugünün sıralaması".
+
 ## Süper mıknatısın görüntüsü
 
 Booster'ın hiç görseli yoktu. Bir zamanlayıcı kuruyor, bir satır yazı basıyor,

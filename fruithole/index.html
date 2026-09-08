@@ -656,6 +656,7 @@
       <div id="challLine"></div>
       <div id="challSub"></div>
       <button class="btn" id="challBtn">Play today's field</button>
+      <button class="btn ghost" id="challLeaderBtn" hidden>🏆 Leaderboard</button>
     </div>
     <p class="sect">Daily missions</p>
     <div id="missionList"></div>
@@ -1099,6 +1100,64 @@ async function watchAdFor(btn, grant) {
   grant();
   return true;
 }
+
+// ---------------------------------------------------------------------
+// Leaderboard (Google Play Games)
+//
+// The daily challenge already hands every player the same field and the same
+// hole, which is the hard half of a leaderboard. This is the easy half: send
+// the day's score somewhere everyone can see it.
+//
+// Play Games leaderboards keep DAILY, WEEKLY and ALL_TIME windows of the
+// same table on their own, so one leaderboard gives "today's ranking" for
+// free — which is exactly what a field that changes at midnight wants.
+//
+// Written so the game does not care whether the plugin is installed. If it
+// is missing — a browser, or a build made before the plugin was added —
+// every call here is a no-op and `gamesReady()` is false, so the button that
+// opens the board never appears. That is deliberate: the plugin is published
+// for Capacitor 5 and this project is on 8, so whether it compiles at all is
+// something only a real Android build settles, and the game must ship either
+// way until it does.
+//
+// Set up on the Play Console side; see fruithole/README.md. The id below is
+// the one Play Console generates for the board and has to be pasted in.
+// ---------------------------------------------------------------------
+const _Games = _Cap && _Cap.Plugins ? _Cap.Plugins.GameConnect : null;
+const GAMES_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Games);
+const LEADERBOARD_ID = '';        // Play Console → Play Games Services → Leaderboards
+let _gamesIn = false;
+
+function gamesReady() { return GAMES_ON && _gamesIn && !!LEADERBOARD_ID; }
+
+async function gamesInit() {
+  if (!GAMES_ON) return;
+  try {
+    await _Games.signIn();
+    _gamesIn = true;
+  } catch (e) {
+    // Declining the sign-in is a normal answer, not a fault: the rest of the
+    // game does not need it and nothing here may block a run.
+    _gamesIn = false;
+  }
+  refreshChallLeaderBtn();
+}
+
+async function submitDailyScore(score) {
+  if (!gamesReady() || !(score > 0)) return;
+  try {
+    await _Games.submitScore({ leaderboardID: LEADERBOARD_ID, score });
+  } catch (e) { }
+}
+
+async function openLeaderboard() {
+  if (!gamesReady()) return;
+  try {
+    await _Games.showLeaderboard({ leaderboardID: LEADERBOARD_ID });
+  } catch (e) { }
+}
+
+gamesInit();
 
 let _bannerShown = false;
 let _bannerSub = null;
@@ -1692,6 +1751,7 @@ function goalRow(icon, name, desc, at, goal, claimed, onClaim) {
 
 function renderChall() {
   ensureChall();
+  refreshChallLeaderBtn();
   const plan = dailyPlan();
   const p = PATTERNS[plan.pattern % PATTERNS.length];
   const th = THEMES[p.theme];
@@ -1707,6 +1767,14 @@ function renderChall() {
   document.getElementById('challBtn').textContent =
     chall.plays ? 'Play again' : "Play today's field";
 }
+// Hidden until there is actually a board to open. A button that does
+// nothing is worse than no button — it reads as broken rather than absent.
+function refreshChallLeaderBtn() {
+  const b = document.getElementById('challLeaderBtn');
+  if (b) b.hidden = !gamesReady();
+}
+document.getElementById('challLeaderBtn').addEventListener('click', openLeaderboard);
+
 document.getElementById('challBtn').addEventListener('click', () => {
   document.getElementById('goals').classList.remove('show');
   ensureAudio();
@@ -6263,6 +6331,10 @@ function fillStats(earnedStars) {
 function endDailyRun(swept) {
   const score = eatenCount;
   const best = recordChall(score);
+  // Every run is submitted, not only a personal best: Play keeps the highest
+  // per player itself, and sending only bests would lose the first score of
+  // a day that happened to be worse than yesterday's.
+  submitDailyScore(score);
   state = swept ? 'won' : 'lost';
   if (swept) sfx.win(); else sfx.lose();
   fillStats(0);
@@ -7088,6 +7160,13 @@ window.fruitHoleFieldHash = () => {
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
   return { n: fruits.length, hash: (h >>> 0).toString(16) };
 };
+// Whether there is a leaderboard to talk to at all. In a browser, and in any
+// build made without the plugin, every part of this is false and the game has
+// to be unaffected by that.
+window.fruitHoleGamesState = () => ({
+  plugin: !!_Games, native: GAMES_ON, signedIn: _gamesIn,
+  boardId: LEADERBOARD_ID || null, ready: gamesReady(),
+});
 window.fruitHoleStartDaily = () => startDailyRun();
 window.fruitHoleStartLevel = () => startLevel();
 window.fruitHoleTimeUp = () => onTimeUp();

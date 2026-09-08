@@ -146,6 +146,24 @@ const c3 = await B.pg.evaluate(() => JSON.parse(localStorage.getItem('fruithole_
 check(c3.best === bestBefore, 'sıfır puanlı koşu rekoru bozmadı',
   `${bestBefore} -> ${c3.best}`);
 
+// ---- 6: liderlik tablosu eklentisi yokken oyun bozulmamalı ----
+// Tarayıcıda Play Games eklentisi yok. Ne düğme görünmeli, ne de günlük
+// koşunun bitişi bundan etkilenmeli — skor gönderimi sessizce hiçbir şey
+// yapmalı. Eklenti Capacitor 5 için yayınlanmış, proje 8'de; derlenip
+// derlenmeyeceğini ancak gerçek bir Android derlemesi söyler, o yüzden oyun
+// eklenti hiç kurulmadan da eksiksiz çalışmak zorunda.
+console.log('\n6. eklenti yokken');
+// Son koşunun bitiş ekranı açık; menüye dön.
+await B.pg.evaluate(() => document.getElementById('toMenuBtn').click());
+await B.pg.waitForSelector('#goalsBtn', { state: 'visible', timeout: 15000 });
+await B.pg.click('#goalsBtn');
+await B.pg.waitForTimeout(600);
+check(!(await B.pg.isVisible('#challLeaderBtn')),
+  'liderlik düğmesi gizli (açılacak tablo yok)');
+check(await B.pg.isVisible('#challBtn'), 'günlük kart hâlâ çalışıyor');
+check(await B.pg.evaluate(() => window.fruitHoleGamesState().ready === false),
+  'gamesReady() false');
+
 console.log('\nhatalar: ' + (errs.length ? errs.join(' | ') : 'yok'));
 console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');
 await br.close();
