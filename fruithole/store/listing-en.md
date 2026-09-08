@@ -101,7 +101,7 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
-## What's new — 1.6 / versionCode 15 (≤ 500 chars per language)
+## What's new — 1.6 / versionCode 16 (≤ 500 chars per language)
 
 English (379 chars):
 ```
