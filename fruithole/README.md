@@ -775,6 +775,69 @@ Play Games tabloları GÜNLÜK, HAFTALIK ve TÜM ZAMANLAR pencerelerini kendisi
 tuttuğu için tek tablo yetiyor — gece yarısı değişen bir tarla için istenen
 şey zaten "bugünün sıralaması".
 
+## Patron bölümleri
+
+Bölümler bitmiyordu ve asıl sorun buydu. Desenler on dokuzda, temalar dokuzda
+bir dönüyor, tarla 34 satırda duruyor — yani **200. bölüm 40. bölümün ta
+kendisi.** Yüzüncü tarlayı temizlemek kırkıncıyı temizlemek gibi geliyordu,
+çünkü öyleydi. İleride hiçbir şey yoktu.
+
+Artık her **10. bölümde** tahtanın karşı ucunda tek bir kolos duruyor: deliğin
+açıldığı noktanın aynadaki karşılığı, yani ilk kareden itibaren ekranda ve ona
+ulaşmak için her şeyi geçmen gerekiyor. Her devden geniş, o yüzden erken
+alınamıyor — tek yolu tarlayı süpürmek. Oyunun bütün zorluk eğrisi, görebildiğin
+tek bir nesneye doğrultulmuş oluyor.
+
+**Yeni bir kazanma koşulu gerekmiyor.** Tahtadaki en büyük şey olduğu için
+zorunlu olarak sonuncu; "tarlayı temizle" zaten "onu yut" demek.
+
+### Ölçüm: %88
+
+Kolos açılana kadar tahtanın **%88'i** yenmiş olmak zorunda (devler için bu
+oran %30). Her bölümde aynı çıkıyor, çünkü büyüme oranı meyve sayısına göre
+ölçekleniyor. %12'lik pay, kolosun tam anlamıyla son parça olmasını değil,
+son iş olmasını sağlıyor.
+
+### Zorlaştırmıyor — ama bunu ölçmek üç deneme aldı
+
+**Bir bot oynattım, işe yaramadı.** Bot normal bölümlerde de kaybediyordu
+(19. bölümde 501 meyvenin 89'u). Beceriksizliğini patronun zorluğu sanmak
+olurdu; kanıt üretmeyen bir testi tutmanın anlamı yok.
+
+**Aynı deseni paylaşan bölümleri karşılaştırdım** (desenler 19'da bir dönüyor,
+yani 20↔39). O da yanıltıcı çıktı: aynı desende bile meyve sayısı ve saat
+bölümden bölüme değişiyor, ölçtüğüm fark kolostan gelmiyordu.
+
+**Değişkeni gerçekten izole etmek gerekti:** aynı bölüm, aynı tohum, bir
+kolosla bir de kolossuz. Tohumlu tarla zaten vardı (günlük meydan okuma için
+yazılmıştı), `forceBoss` de test için eklendi. Tarlanın geri kalanı birebir
+aynı, aradaki tek fark kolos.
+
+Bu da bir kez yanlış sayıyı okudu: `fruits` dizisi kolosun ayağının altında
+temizlenen parçaları da tutuyor (`eaten` işaretli ama dizide duruyorlar), o
+yüzden dizinin uzunluğuna bakmak her bölümde "+1" diye cevap verdi. Sayılması
+gereken **canlı** parça.
+
+| bölüm | kolossuz | kolosla | fark |
+|---|---|---|---|
+| 10 | 399 | 376 | −23 |
+| 20 | 273 | 274 | +1 |
+| 30 | 402 | 386 | −16 |
+| 40 | 318 | 318 | 0 |
+
+Saat hiçbirinde değişmiyor. Kolos ayağının altındaki hücreleri temizleyip
+yerlerine geçtiği için genelde işi **azaltıyor**; Pyramid ve Chevrons gibi
+karşı ucu zaten boş olan desenlerde çıplak zemine düştüğü için tek parça
+ekliyor — 273'te 1. Testin sınırı bu yüzden oran: tahtanın %1'inden fazlasını
+eklememeli.
+
+### Bölüm haritası
+
+Harita kesintisiz bir sayı duvarıydı — bölümlerin kendisiyle aynı sorun:
+nerede olduğunu ve ne kadar geldiğini işaretleyen hiçbir şey yok. Artık onarlı
+bloklara ayrılmış, her bloğun başında o blokta toplanan yıldız yazıyor, patron
+bölümleri mor ve taçlı.
+
 ## Süper mıknatısın görüntüsü
 
 Booster'ın hiç görseli yoktu. Bir zamanlayıcı kuruyor, bir satır yazı basıyor,

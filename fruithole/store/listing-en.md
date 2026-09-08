@@ -54,6 +54,11 @@ Each upgrade track is paid for with a different fruit.
 Three ways out of a tight spot: +15 seconds, a burst that grows the hole at
 once, and 8 seconds of super magnetism. They unlock as you climb the levels.
 
+👑 BOSS LEVELS
+Every tenth level ends in one colossal fruit, standing at the far end of the
+board. It is wider than any giant, so there is no taking it early — the only
+way to it is to sweep the field, and it is in shot from the first frame.
+
 📅 DAILY CHALLENGE
 One field a day, and it is the same field for every player — it is built from
 the date itself, so nobody gets an easier board. Upgrades are switched off for
@@ -99,6 +104,22 @@ counters — more of it the faster you finished.
 Press anywhere and drag. That's the whole control scheme. No connection needed.
 
 Ready to clear the field?
+```
+
+## What's new — 1.7 / versionCode 17 (≤ 500 chars per language)
+
+English (320 chars):
+```
+BOSS LEVELS — every tenth level now ends in one colossal fruit standing at the far end of the board. It is too wide to take early: the only way to it is to sweep the field, and it is in shot from the first frame.
+
+The level map is broken into chapters of ten, with the stars you took in each, and boss levels are marked.
+```
+
+Türkçe (293 karakter):
+```
+PATRON BÖLÜMLERİ — artık her 10. bölümün sonunda tahtanın karşı ucunda tek bir kolos duruyor. Erken alınamayacak kadar geniş: tek yolu tarlayı süpürmek, ve ilk kareden itibaren ekranda.
+
+Bölüm haritası onarlı bölümlere ayrıldı, her birinde topladığın yıldız yazıyor, patron bölümleri işaretli.
 ```
 
 ## What's new — 1.6 / versionCode 16 (≤ 500 chars per language)
