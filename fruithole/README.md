@@ -775,6 +775,48 @@ Play Games tabloları GÜNLÜK, HAFTALIK ve TÜM ZAMANLAR pencerelerini kendisi
 tuttuğu için tek tablo yetiyor — gece yarısı değişen bir tarla için istenen
 şey zaten "bugünün sıralaması".
 
+## Yeni oyuncunun ilk ekranı
+
+Üretime çıkmadan önce oyunun ilk altmış saniyesine bakıldı, çünkü kalan her
+şey ona bağlı — insanlar orada bırakıyor. İki şey çıktı, ikisi de kötüydü.
+
+**Oyunu görmeden önce bir reklam teklifi.** Sıfırdan kurulmuş bir telefonda
+ilk açılan ekran günlük ödül ekranıydı: *"Daily Reward — Day 1 streak — 35
+Banana"*, ve en üstte yeşil bir **📺 Claim double**. Her parçası o an için
+yanlış. Bir günlük seri hiçbir şeyin serisi. Otuz beş muz, henüz görülmemiş
+bir dükkânın parası. Ve oyunun oyuncudan ilk isteği, ona herhangi bir şey
+istemek için sebep vermeden, bir reklam izlemesi.
+
+Artık oyuncu bir bölüm bitirene kadar çıkmıyor (`playedBefore()`). Ödül
+kaybolmuyor; ertesi açılışta, bir anlamı olduğu yerde duruyor — o zaman
+harcayacağı bir dükkânı ve sürdürmeye değer bir serisi var.
+
+Ölçüt `stats.levels`, `stats` nesnesinin varlığı değil: dört sayaç oyun
+yüklenir yüklenmez sıfırlarla dolduruluyor, yani "stats var mı" hiç
+çalıştırılmamış bir telefonda da doğru dönüyor. İlk denemem tam olarak bu
+yüzden hiçbir şeyi değiştirmedi.
+
+Bir de düğme sırası ters duruyordu: yeşil "Claim double" sarı "Claim"in
+üstündeydi. Bedava olan, başparmağa en yakın olan olmalı; isteğe bağlı bir
+reklam asla ilk okunan düğme değil.
+
+## Menü sahnesi her yolda kuruluyor
+
+Yukarıdakini düzeltirken ortaya çıktı ve **eskiden beri vardı**: `showMenu()`
+yalnızca günlük ödül ekranı kapatılınca çağrılıyordu. O ekranın çıkmadığı her
+açılışta — aynı günün ikinci açılışında da — menü hiç kurulmuyordu. Ekrana
+gelen şey, açılışta `buildField()`'in kurduğu **1. bölümün tam tarlasıydı**:
+logonun arkasında ondört meyvelik halka yerine dolu bir oyun alanı, ve `state`
+hiç `'menu'` olmuyordu.
+
+`showMenu()` artık açılışta doğrudan çağrılıyor, günlük ekranı da üstünü
+örtüyor. Menüye giden her yol aynı yerden geçiyor.
+
+`scratchpad/holeaudit.mjs` ikisini de tutuyor: ilk açılışta günlük ekranın
+çıkmadığını, menünün kurulduğunu (`state === 'menu'`), bir bölüm bitirdikten
+sonraki açılışta ödülün çıktığını ve bedava düğmenin reklamlıdan önce
+geldiğini.
+
 ## İsim: Peelo
 
 Oyun **Peelo: Fruit Hole** oldu. Paket kimliği (`com.kaancetinkaya.fruithole`)

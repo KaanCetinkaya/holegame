@@ -63,22 +63,26 @@ await pg.goto('http://localhost:8215/', { waitUntil: 'load' });
 await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
 await pg.waitForTimeout(1500);
 
+// Yeni oyuncunun gördüğü ilk ekran.
+//
+// Eskiden burada günlük ödül ekranı vardı — oyun oynanmadan önce. "Day 1
+// streak" hiçbir şeyin serisi, 35 muz henüz görülmemiş bir dükkânın parası,
+// ve en üstteki yeşil düğme oyunun ilk isteğini bir reklam izlemek yapıyordu.
+// Artık oyuncu bir şey bitirene kadar beklıyor; ödül kaybolmuyor, ertesi
+// açılışta bir anlamı olduğu yerde duruyor.
 console.log('\n1. sıfırdan kurulum');
-check(await pg.isVisible('#daily'), 'ilk açılışta günlük ödül ekranı geliyor');
-// Keseye giriş ödülü verilmeden önce bakılıyor. İlk sürümde ödül alındıktan
-// sonra bakıp "boş olmalı" diyordum; 35 karpuz çıktı ve test kendi hatasını
-// oyunun hatası sandı — birinci günün giriş ödülü tam olarak 25 + 1x10.
+check(!(await pg.isVisible('#daily')), 'ilk açılışta günlük ödül ekranı YOK');
+check(await pg.isVisible('#playBtn'), 'doğrudan menü geliyor, Play görünüyor');
+// Menü sahnesi de kurulmuş olmalı. showMenu() bir zamanlar yalnızca günlük
+// ekranı kapatılınca çağrılıyordu, yani o ekranın çıkmadığı her açılışta
+// menünün arkasında 1. bölümün tarlası duruyordu.
+check(await pg.evaluate(() => window.fruitHoleWhere().state === 'menu'),
+  'menü sahnesi kuruldu');
+const ver = (await pg.textContent('#verTag') || '').trim();
+check(/^v?\d/.test(ver) || ver === 'dev', 'sürüm yazısı var', ver);
 const purse0 = await pg.evaluate(() => window.fruitHoleWallet());
 check(Object.values(purse0).every(v => v === 0), 'yeni oyuncunun kesesi boş',
   JSON.stringify(purse0));
-await pg.evaluate(() => document.getElementById('dailyBtn').click());
-await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
-check(await pg.isVisible('#playBtn'), 'menü açılıyor, Play görünüyor');
-const ver = (await pg.textContent('#verTag') || '').trim();
-check(/^v?\d/.test(ver) || ver === 'dev', 'sürüm yazısı var', ver);
-const purse1 = await pg.evaluate(() => window.fruitHoleWallet());
-check(Object.values(purse1).some(v => v > 0), 'giriş ödülü keseye düştü',
-  JSON.stringify(purse1));
 
 // Bütün ekranlar açılıp kapanıyor mu? Bir tanesi açılmazsa oyuncu orada
 // sıkışır ve geri dönüş yolu yoktur.
@@ -144,7 +148,12 @@ console.log('\n5. bir bölümün tam turu');
 await pg.evaluate(() => { localStorage.setItem('fruithole_level', '1'); });
 await pg.reload({ waitUntil: 'load' });
 await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
-await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
+// Yalnızca ekran gerçekten açıksa tıkla. `if (d) d.click()` gizli düğmeye de
+// basıyor ve işleyici ekranın görünürlüğüne bakmadan ödülü alıyordu; test
+// böylece günlük ödülü sessizce tüketip sonraki bölümde "çıkmıyor" diyordu.
+if (await pg.isVisible('#daily')) {
+  await pg.click('#dailyBtn');
+}
 await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
 await pg.click('#playBtn');
 await pg.waitForTimeout(2500);
@@ -163,6 +172,22 @@ check(lvlAfter === '2', 'bölüm ilerledi', `bölüm ${lvlAfter}`);
 await pg.evaluate(() => document.getElementById('actionBtn').click());
 await pg.waitForTimeout(2500);
 check(await pg.evaluate(() => window.fruitHoleWhere().state === 'playing'), 'sonraki bölüm başladı');
+
+// Bir bölüm bitirildikten sonra: ödül artık bir anlam taşıyor ve çıkmalı.
+console.log('\n6. ikinci açılış');
+await pg.evaluate(() => { const b = document.getElementById('toMenuBtn'); if (b) b.click(); });
+await pg.waitForTimeout(600);
+await pg.reload({ waitUntil: 'load' });
+await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
+await pg.waitForTimeout(1600);
+check(await pg.isVisible('#daily'), 'oynadıktan sonraki açılışta günlük ödül çıkıyor');
+const order = await pg.evaluate(() => {
+  const d = document.getElementById('daily');
+  const ids = [...d.querySelectorAll('button')].map(b => b.id);
+  return ids;
+});
+check(order.indexOf('dailyBtn') < order.indexOf('daily2x'),
+  'bedava olan düğme önce geliyor, reklam olan sonra', order.join(' > '));
 
 console.log('\nhatalar: ' + (errs.length ? '\n  ' + errs.join('\n  ') : 'yok'));
 console.log(fails.length || errs.length

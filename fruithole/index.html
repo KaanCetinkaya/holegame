@@ -709,8 +709,10 @@
     <h1><span class="hIco" data-icon="star"></span>Daily Reward</h1>
     <p id="dailySub"></p>
     <div class="stats" id="dailyLoot"></div>
-    <button class="btn adBtn" id="daily2x" hidden>📺 Claim double</button>
+    <!-- Claim first. The free thing is the easy thing, and an optional
+         advert should never be the button nearest the thumb. -->
     <button class="btn" id="dailyBtn">Claim</button>
+    <button class="btn adBtn" id="daily2x" hidden>📺 Claim double</button>
   </div>
 
   <div id="upgrades" class="screen">
@@ -2215,8 +2217,28 @@ document.getElementById('daily2x').addEventListener('click', (e) => {
     showMenu();
   });
 });
+// Nothing stands between a new player and the game.
+//
+// On a fresh install this used to be the first screen anyone saw, before a
+// single second of play: "Daily Reward — Day 1 streak — 35 Banana", with a
+// green "📺 Claim double" sitting above the plain Claim. Every part of that
+// is wrong at that moment. A streak of one is a streak of nothing. Thirty
+// five Banana is a currency they have not been shown, for a shop they have
+// not seen. And the very first thing the game asks of them is to watch an
+// advert — before it has given them any reason to want anything.
+//
+// It waits until they have finished something now. The reward is not lost;
+// it is there on the next launch, by which time it means something, because
+// by then they have a shop to spend it in and a streak worth keeping.
+// stats.levels, not the presence of the stats object: the four counters are
+// filled in with zeroes the moment the game loads, so "has a stats object"
+// is true on a phone that has never run it.
+function playedBefore() {
+  return level > 1 || (stats.levels || 0) > 0;
+}
 function maybeShowDaily() {
   ensureDaily();
+  if (!playedBefore()) return false;
   return daily.rewardClaimed ? false : showDaily();
 }
 
@@ -7632,6 +7654,18 @@ camX = holeX; camZ = holeZ;
 resize();
 document.getElementById('loading').style.display = 'none';
 refreshGoalsBadge();
+// The menu is built here, not left to whoever happens to dismiss a dialog.
+//
+// showMenu() used to be reached only by closing the daily reward screen, so
+// on any launch where that screen did not appear — the second launch of the
+// same day, and now every first launch ever — nothing ever built the menu's
+// diorama or set the state to 'menu'. The menu's buttons came up over
+// whatever buildField() had just laid out for level 1: a full playing field
+// behind the logo instead of the ring of fruit the menu is supposed to show.
+//
+// Building it here and letting the daily screen cover it afterwards means
+// the menu is correct on every path into it.
+showMenu();
 maybeShowDaily();
 
 const BASE_MOVE_SPEED = 3.4;

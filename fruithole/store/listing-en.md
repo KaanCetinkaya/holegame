@@ -129,6 +129,18 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.7.2 / versionCode 19 (≤ 500 chars per language)
+
+English (171 chars):
+```
+New players go straight into the game now. The daily reward waits until you have finished a level, so it arrives when it means something instead of before you have played.
+```
+
+Türkçe (145 karakter):
+```
+Yeni oyuncular artık doğrudan oyuna giriyor. Günlük ödül, bir bölüm bitirene kadar bekliyor — oynamadan önce değil, bir anlamı olduğunda geliyor.
+```
+
 ## What's new — 1.7.1 / versionCode 18 (≤ 500 chars per language)
 
 English (133 chars):
