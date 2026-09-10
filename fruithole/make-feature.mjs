@@ -84,6 +84,9 @@ await page.evaluate(() => {
     <div style="position:absolute; inset:0 auto 0 0; width:58%;
       background:linear-gradient(90deg, rgba(40,22,8,.62) 0%, rgba(40,22,8,.42) 45%, rgba(40,22,8,0) 100%);"></div>
     <div style="position:absolute; left:52px; top:50%; transform:translateY(-50%);">
+      <div style="font-size:44px; font-weight:900; line-height:1; letter-spacing:.12em;
+        margin-bottom:12px; color:#ffd08a; -webkit-text-stroke:7px #5a3410;
+        paint-order:stroke fill; text-shadow:0 4px 0 #5a3410;">PEELO</div>
       <div style="font-size:96px; font-weight:900; line-height:.94; letter-spacing:-1px;
         color:#fff; -webkit-text-stroke:9px #5a3410; paint-order:stroke fill;
         text-shadow:0 7px 0 #5a3410, 0 14px 22px rgba(0,0,0,.45);">FRUIT</div>

@@ -775,6 +775,35 @@ Play Games tabloları GÜNLÜK, HAFTALIK ve TÜM ZAMANLAR pencerelerini kendisi
 tuttuğu için tek tablo yetiyor — gece yarısı değişen bir tarla için istenen
 şey zaten "bugünün sıralaması".
 
+## İsim: Peelo
+
+Oyun **Peelo: Fruit Hole** oldu. Paket kimliği (`com.kaancetinkaya.fruithole`)
+değişmedi — kullanıcıya görünmüyor ve zaten değiştirilemiyor.
+
+**"Fruit Hole" sahiplenilebilir bir isim değildi.** Play'de neredeyse birebir
+aynı adı taşıyan dört uygulama var: *Fruit Hole*, *Fruit hole: Black hole*,
+*Fruit in Holes*, *Fruits In Hole*. Üstelik o ismi arayanları karşılayan bir
+hayran sitesi (fruitholelevel.com) hepsinden önde çıkıyor.
+
+"<bir şey> Hole" kalıbının tamamı da dolu: Munch Hole, Yummy Hole, Feed The
+Hole, Hole Swallow All, Eat All: Hole Game, Fill This Hole, Hole Puzzle,
+O! Hole! — ve üstlerinde Hole.io, All in Hole, Hole Stars. Yeni bir
+uygulamanın "hole" kelimesinde sıralanması bir plan değil.
+
+Aranan ve akılda kalan yarı öne geçti ve bize ait: *Peelo* ne Play'de ne de
+marka aramasında karşılık verdi. Açıklayıcı yarı arkada duruyor, anahtar
+kelimelerini oradan da kazanıyor — sadece kırk kişilik kuyruğun sonunda
+değil.
+
+Başlıkta 13 karakter boş kaldı ve **bilerek boş bırakıldı**: Play başlığa
+anahtar kelime tıkıştırmayı spam sayıyor, o iş kısa açıklamada yapılıyor.
+
+Menüde marka, başlığın üstüne küçük ve daha hafif yazılıyor — başlıkla
+yarışan ikinci bir başlık değil, üstüne atılmış bir imza. Konturun harfleri
+em kutusunun dışına taşırması yüzünden `line-height: 1`'de "Peelo"nun kuyruğu
+alttaki F'nin içine giriyordu; kendi satır aralığı ve kendi daha hafif gölgesi
+var.
+
 ## Patron bölümleri
 
 Bölümler bitmiyordu ve asıl sorun buydu. Desenler on dokuzda, temalar dokuzda

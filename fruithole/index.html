@@ -422,10 +422,30 @@
      where it should be loudest. Warm now, and hot against the water: cream
      fill, a deep orange outline, and a hard shadow under it so it sits
      forward of the scene instead of being painted onto it. */
-  #menu h1 { margin-top: 7.5vh; font-size: clamp(34px,11.5vw,54px); letter-spacing: -1.5px;
-    color: #fff6d8;
+  #menu h1 { margin-top: 8.5vh; font-size: clamp(34px,11.5vw,54px); letter-spacing: -1.5px;
+    color: #fff6d8; line-height: 1;
     -webkit-text-stroke: 7px #a1330a; paint-order: stroke fill;
     text-shadow: 0 6px 0 #7a2506, 0 11px 16px rgba(0,0,0,.3); }
+  /* The brand rides above the descriptor.
+     "Fruit Hole" is not a name that can be owned: Play carries four apps
+     called almost exactly that, plus a fan site that outranks us for it,
+     and the whole "<something> Hole" shelf is full — Munch Hole, Yummy
+     Hole, Feed The Hole, Hole Swallow All, and a dozen more. Competing on
+     those words means being the fortieth of them. So the name people
+     search for and remember goes on top, and the words that say what the
+     game is stay underneath where they still do their work.
+     Smaller and lighter than the line below it: this is a signature over a
+     title, not a second title fighting the first. */
+  /* line-height, not just a margin: a 5px stroke grows the glyphs well past
+     their em box, so at line-height 1 the tail of "Peelo" sat inside the F
+     below it. */
+  #menu h1 .brand { display: block; font-size: .42em; letter-spacing: .14em;
+    line-height: 1.25; margin-bottom: .22em; color: #ffe9a8;
+    -webkit-text-stroke-width: 5px;
+    /* Its own, lighter shadow. Inheriting the title's 6px drop put a hard
+       brown bar under every letter at this size, which both read as heavy
+       and bled into the line below. */
+    text-shadow: 0 3px 0 #7a2506; }
   #menuSub { position: absolute; left: 0; right: 0; margin: 0;
     bottom: calc(var(--adPad) + var(--navPad) + var(--trayPad) + 24px); letter-spacing: 2px; font-size: 16px; font-weight: 800;
     color: #fff; -webkit-text-stroke: 3px #d08a12; paint-order: stroke fill;
@@ -634,7 +654,7 @@
       <button id="shopBtn" class="topKey">🛒</button>
       <button id="menuSound" class="topKey">🔊</button>
     </div>
-    <h1>Fruit Hole</h1>
+    <h1><span class="brand">Peelo</span>Fruit Hole</h1>
     <div id="menuBanner"></div>
     <div id="menuShelf"></div>
     <div class="logo">

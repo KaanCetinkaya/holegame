@@ -1,11 +1,34 @@
-# Play Store Listing — Fruit Hole (EN)
+# Play Store Listing — Peelo: Fruit Hole (EN)
 
 > Paste these into Play Console. Character limits noted.
 
 ## App name (≤ 30 chars)
 ```
-Fruit Hole: Swallow It All
+Peelo: Fruit Hole
 ```
+
+17 characters, and the 13 to spare stay unused on purpose — Play treats
+keywords stuffed into a title as spam, and the keyword work belongs in the
+short description below, which already does it.
+
+**Why the name changed.** "Fruit Hole" cannot be owned. Play carries
+[Fruit Hole](https://play.google.com/store/apps/details?id=onetap.game.fruit.fall),
+[Fruit hole: Black hole](https://play.google.com/store/apps/details?id=com.attach.hole.fruit.hole),
+[Fruit in Holes](https://play.google.com/store/apps/details?id=com.piti.fruit.inhole)
+and [Fruits In Hole](https://play.google.com/store/apps/details?id=com.fuitsinhole),
+and a fan site at fruitholelevel.com outranks all of them. The whole
+"<something> Hole" shelf is just as full — Munch Hole, Yummy Hole, Feed The
+Hole, Hole Swallow All, Eat All: Hole Game, Fill This Hole, Hole Puzzle, and
+the big ones above them: Hole.io, All in Hole, Hole Stars. A new app ranking
+on "hole" is not a plan.
+
+So the searchable, memorable half goes first and is ours — "Peelo" returned
+nothing on Play and nothing in trademark search — and the descriptive half
+stays behind it, where it still earns its keywords without putting us
+fortieth in a queue.
+
+The package id stays `com.kaancetinkaya.fruithole`. It is invisible to
+players and cannot be changed anyway.
 
 ## Short description (≤ 80 chars)
 ```
@@ -104,6 +127,18 @@ counters — more of it the faster you finished.
 Press anywhere and drag. That's the whole control scheme. No connection needed.
 
 Ready to clear the field?
+```
+
+## What's new — 1.7.1 / versionCode 18 (≤ 500 chars per language)
+
+English (133 chars):
+```
+The game is now Peelo: Fruit Hole. Same game, a name of its own — there were four other apps called almost exactly what this one was.
+```
+
+Türkçe (135 karakter):
+```
+Oyunun adı artık Peelo: Fruit Hole. Aynı oyun, kendine ait bir isim — eskisinin neredeyse birebir aynısı olan dört uygulama daha vardı.
 ```
 
 ## What's new — 1.7 / versionCode 17 (≤ 500 chars per language)
