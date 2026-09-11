@@ -129,6 +129,18 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.8 / versionCode 20 (≤ 500 chars per language)
+
+English (234 chars):
+```
+Rebalanced progression. Upgrades and hole skins used to be fully paid off by level 3 — now the upgrade tree runs to around level 24 and the last skin well past level 35. Chests, goals and daily rewards all pay out a lot more to match.
+```
+
+Türkçe (226 karakter):
+```
+Ilerleme yeniden dengelendi. Yükseltmeler ve delik görünümleri 3. bölümde bitiyordu — artık yükseltme ağacı 24. bölüme, son görünüm 35'in epey ötesine kadar sürüyor. Sandıklar, görevler ve günlük ödüller de aynı oranda büyüdü.
+```
+
 ## What's new — 1.7.2 / versionCode 19 (≤ 500 chars per language)
 
 English (171 chars):

@@ -161,7 +161,10 @@
     padding: 8px 10px; box-shadow: inset 0 2px 0 rgba(255,255,255,.45), 0 4px 0 #2b8021; }
   .upg .buy.adBuy:active { box-shadow: 0 2px 0 #2b8021; }
   .upg .buy.adBuy:disabled { filter: saturate(.45) brightness(.92); }
-  .upg .buy .cost { display: block; font-size: 11px; font-weight: 700; opacity: .85; }
+  .upg .buy .cost { display: flex; align-items: center; justify-content: center; gap: 4px;
+    font-size: 11px; font-weight: 700; opacity: .9; font-variant-numeric: tabular-nums; }
+  .upg .buy .cost .pdot { width: 11px; height: 11px; border-radius: 50%; flex: none;
+    box-shadow: inset 0 -2px 3px rgba(0,0,0,.35), inset 0 1px 2px rgba(255,255,255,.5); }
   #upgrades .sect, #goals .sect { font-size: 15px; font-weight: 800; opacity: .9; margin-top: 2px; }
   #reward { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 2px 0 4px; }
   #chest { background: none; border: 0; padding: 0; cursor: pointer; line-height: 0;
@@ -797,6 +800,22 @@ function dotFill(t) {
 }
 const TYPE_BY_ID = Object.fromEntries(TYPES.map(t => [t.id, t]));
 
+// The price on a shop button: the number, and the same coloured dot the
+// wallet uses for that fruit.
+//
+// It used to spell the fruit out — "280 Watermelon", "900 Banana". At the old
+// prices the longest of those just fitted; at the new ones they do not, and
+// the Magnet button pushed its card fifteen pixels off the side of a 360px
+// screen. The dot is the shorter half of the same information and the row of
+// counters at the top of the screen has already taught it, so nothing is lost
+// by dropping the word — and the button now stays the same width whether the
+// price is 250 or 11,000.
+function priceHTML(cost, pay) {
+  const t = TYPE_BY_ID[pay];
+  return `<span class="cost"><span class="pdot" style="background:${dotFill(t)}"></span>`
+    + `${cost.toLocaleString('en-US')}</span>`;
+}
+
 // Rendered interface icons, filled in at boot by applyIcons(). Declared here
 // because the menu and the booster bar are drawn before that runs, and they
 // fall back to the emoji in the markup while it is empty.
@@ -831,17 +850,42 @@ function saveStars() { localStorage.setItem('fruithole_stars', JSON.stringify(st
 //
 // Each track is paid for with a different fruit, so every counter on the
 // HUD is worth collecting rather than just the common ones. Costs double
-// each step: 25, 50, 100, 200, 400.
+// each step: 250, 500, 1000, 2000, 4000.
+//
+// These were 25, 20, 25 and 30, and the whole tree came to 2620 fruit. That
+// number was never checked against what a level pays, and the gap turned out
+// to be the largest thing wrong with the game. A simulated sweep — the hole
+// walking to the nearest fruit at its real speed, growing by what it really
+// grows by, chaining by eatFruit()'s own rule — earns between 880 and 2130
+// fruit a level, about 400 of each of the four kinds. So the entire upgrade
+// tree was paid off on level 3, and everything in the game including the
+// skins on level 5, out of forty-five levels and an endless run after them.
+//
+// Everything the player was working towards was therefore over before the
+// game had properly started: the shop went dead, the four counters on the
+// HUD stopped meaning anything, and the two fruit packs in the store were
+// unsellable by construction — the small one handed over 61% of a tree the
+// player had already finished, and the large one 183% of it.
+//
+// Ten times the price puts the tree at around level 22 and the last skin
+// past level 40, measured the same way (scratchpad/holeecon.mjs). The income
+// itself is untouched: the numbers flying off a swallowed fruit are the part
+// that feels good, and shrinking them would have fixed the ratio by making
+// the game worse to play.
 // ---------------------------------------------------------------------
 const UPGRADES = [
-  { id: 'speed',  icon: '💨', name: 'Speed',          pay: 'berry',  base: 25,
+  { id: 'speed',  icon: '💨', name: 'Speed',          pay: 'berry',  base: 250,
     desc: lv => `Hole moves ${lv * 8}% faster` },
-  { id: 'size',   icon: '⭕', name: 'Starting size',  pay: 'banana', base: 20,
+  // Size stops at three steps, so its track is a third the length of the
+  // others. Its base is higher to keep the banana counter worth watching for
+  // as long as the rest; the slack that is left over is what the Gold skin,
+  // the most expensive thing in the game, is priced against.
+  { id: 'size',   icon: '⭕', name: 'Starting size',  pay: 'banana', base: 320,
     max: 3,
     desc: lv => `Hole starts ${(Math.min(lv, 3) * 0.03).toFixed(2)} wider` },
-  { id: 'time',   icon: '⏱',  name: 'Extra time',     pay: 'lychee', base: 25,
+  { id: 'time',   icon: '⏱',  name: 'Extra time',     pay: 'lychee', base: 250,
     desc: lv => `+${lv * 5} seconds every level` },
-  { id: 'magnet', icon: '🧲', name: 'Magnet',         pay: 'melon',  base: 30,
+  { id: 'magnet', icon: '🧲', name: 'Magnet',         pay: 'melon',  base: 280,
     desc: lv => `Pulls fruit in from ${(lv * 0.28).toFixed(2)} further out` },
 ];
 const UPG_MAX = 5;
@@ -914,13 +958,19 @@ function upgCost(u) { return u.base * Math.pow(2, upg(u.id)); }
 // levels are cleared, so the bar fills out over time instead of dumping
 // three unexplained buttons on a new player. Each starts with a couple
 // free so the first use costs nothing to learn.
+//
+// Priced at roughly a third of what one level pays in that fruit. They are
+// the only sink that comes back — upgrades and skins are each bought once —
+// so they have to stay reachable, but at the old 40-50 they were free in
+// everything but name and there was no reason not to fire all three every
+// level.
 // ---------------------------------------------------------------------
 const BOOSTERS = [
-  { id: 'time',   icon: '⏰', name: 'Time',     unlock: 4,  pay: 'lychee', cost: 40, free: 2,
+  { id: 'time',   icon: '⏰', name: 'Time',     unlock: 4,  pay: 'lychee', cost: 120, free: 2,
     desc: '+15 seconds' },
-  { id: 'grow',   icon: '💥', name: 'Grow',     unlock: 7,  pay: 'banana', cost: 50, free: 1,
+  { id: 'grow',   icon: '💥', name: 'Grow',     unlock: 7,  pay: 'banana', cost: 150, free: 1,
     desc: 'Hole grows at once' },
-  { id: 'magnet', icon: '🌟', name: 'Super magnet', unlock: 10, pay: 'melon', cost: 45, free: 1,
+  { id: 'magnet', icon: '🌟', name: 'Super magnet', unlock: 10, pay: 'melon', cost: 135, free: 1,
     desc: '8 seconds of strong pull' },
 ];
 
@@ -935,6 +985,14 @@ const BOOSTERS = [
 //
 // Half are earned by reaching a level and half are bought with fruit, so
 // both the playing and the collecting lead somewhere.
+//
+// The bought half is deliberately the longest thing in the game. Every
+// upgrade track ends — five steps and it is finished — so once the tree is
+// paid off around level 22 there has to be something still worth the fruit,
+// or the counters go back to being decoration for the rest of an endless
+// run. Each of these costs more than the last step of the tree it shares a
+// currency with, so they are what a player saves for afterwards rather than
+// something picked up on the way.
 // ---------------------------------------------------------------------
 const SKINS = [
   { id: 'classic', name: 'Classic',  rim: '#f59321', lip: '#ffc978', level: 1 },
@@ -942,14 +1000,14 @@ const SKINS = [
   { id: 'grape',   name: 'Grape',    rim: '#8b5cf6', lip: '#c9b4ff', level: 6 },
   { id: 'coral',   name: 'Coral',    rim: '#ff5f7a', lip: '#ffc0cb', level: 9 },
   { id: 'ink',     name: 'Ink',      rim: '#2b3040', lip: '#7c88a0', level: 12 },
-  { id: 'lime',    name: 'Lime',     rim: '#8fd94a', lip: '#d8f5a8', pay: 'melon',  cost: 300 },
-  { id: 'candy',   name: 'Candy',    rim: '#ff8fc4', lip: '#ffe0ef', pay: 'berry',  cost: 400 },
-  { id: 'ocean',   name: 'Ocean',    rim: '#1e88e5', lip: '#8fd6ff', pay: 'lychee', cost: 500 },
+  { id: 'lime',    name: 'Lime',     rim: '#8fd94a', lip: '#d8f5a8', pay: 'melon',  cost: 6000 },
+  { id: 'candy',   name: 'Candy',    rim: '#ff8fc4', lip: '#ffe0ef', pay: 'berry',  cost: 6500 },
+  { id: 'ocean',   name: 'Ocean',    rim: '#1e88e5', lip: '#8fd6ff', pay: 'lychee', cost: 7000 },
   // The two that are not flat colour. Metal reads completely differently
   // under the same light, which is what makes the last ones feel like a prize
   // rather than another swatch.
   { id: 'gold',    name: 'Gold',     rim: '#f5c542', lip: '#fff0b8', metal: 0.85, rough: 0.16,
-    pay: 'banana', cost: 900 },
+    pay: 'banana', cost: 11000 },
   { id: 'chrome',  name: 'Chrome',   rim: '#cfd8e3', lip: '#ffffff', metal: 0.95, rough: 0.1,
     level: 15 },
 ];
@@ -994,7 +1052,11 @@ const MISSION_POOL = [
   { id: 'combo', icon: '🔥', track: 'bestCombo', text: n => `Hit an x${n} combo`,   roll: () => 3 + Math.floor(Math.random() * 3) },
 ];
 const MISSION_BY_ID = Object.fromEntries(MISSION_POOL.map(m => [m.id, m]));
-const MISSION_REWARD = 45;
+// Missions, achievements and the daily reward all scale with the shop.
+// A goal that pays less than a level of ordinary play is not a goal, it is a
+// chore with a badge on it — and every one of these was set against prices
+// that are now ten times what they were.
+const MISSION_REWARD = 250;
 
 const daily = JSON.parse(localStorage.getItem('fruithole_daily') || '{}');
 function saveDaily() { localStorage.setItem('fruithole_daily', JSON.stringify(daily)); }
@@ -1013,17 +1075,17 @@ function ensureDaily() {
   daily.rewardClaimed = false;
   daily.freeBoosters = {};
   const t = TYPES[Math.floor(Math.random() * TYPES.length)];
-  daily.loot = { type: t.id, amount: 25 + Math.min(daily.streak, 7) * 10 };
+  daily.loot = { type: t.id, amount: 150 + Math.min(daily.streak, 7) * 60 };
   saveDaily();
 }
 ensureDaily();
 
 const ACHIEVEMENTS = [
-  { id: 'eat100',  icon: '🍇',  name: 'Hundred bites', desc: 'Eat 100 fruit in total',  goal: 100,  at: () => stats.fruits,    pay: 'berry',  reward: 60 },
-  { id: 'eat1000', icon: '🍽️', name: 'Never full',    desc: 'Eat 1000 fruit in total', goal: 1000, at: () => stats.fruits,    pay: 'berry',  reward: 220 },
-  { id: 'lvl10',   icon: '🏁',  name: 'Tenth level',   desc: 'Reach level 10',      goal: 10,   at: () => level,           pay: 'banana', reward: 140 },
-  { id: 'star15',  icon: '⭐',  name: 'Star hunter',   desc: 'Earn 15 stars',      goal: 15,   at: () => stats.stars,     pay: 'lychee', reward: 140 },
-  { id: 'combo5',  icon: '🔥',  name: 'Chain eater',   desc: 'Hit an x5 combo',         goal: 5,    at: () => stats.bestCombo, pay: 'melon',  reward: 110 },
+  { id: 'eat100',  icon: '🍇',  name: 'Hundred bites', desc: 'Eat 100 fruit in total',  goal: 100,  at: () => stats.fruits,    pay: 'berry',  reward: 400 },
+  { id: 'eat1000', icon: '🍽️', name: 'Never full',    desc: 'Eat 1000 fruit in total', goal: 1000, at: () => stats.fruits,    pay: 'berry',  reward: 1600 },
+  { id: 'lvl10',   icon: '🏁',  name: 'Tenth level',   desc: 'Reach level 10',      goal: 10,   at: () => level,           pay: 'banana', reward: 900 },
+  { id: 'star15',  icon: '⭐',  name: 'Star hunter',   desc: 'Earn 15 stars',      goal: 15,   at: () => stats.stars,     pay: 'lychee', reward: 900 },
+  { id: 'combo5',  icon: '🔥',  name: 'Chain eater',   desc: 'Hit an x5 combo',         goal: 5,    at: () => stats.bestCombo, pay: 'melon',  reward: 700 },
 ];
 const achClaimed = JSON.parse(localStorage.getItem('fruithole_ach') || '{}');
 function saveAch() { localStorage.setItem('fruithole_ach', JSON.stringify(achClaimed)); }
@@ -1655,7 +1717,7 @@ function renderUpgrades() {
       btn.textContent = 'MAX';
       btn.disabled = true;
     } else {
-      btn.innerHTML = `Upgrade<span class="cost">${cost} ${pay.label}</span>`;
+      btn.innerHTML = `Upgrade${priceHTML(cost, pay.id)}`;
       btn.disabled = !afford;
       btn.onclick = () => buyUpgrade(u);
     }
@@ -1703,7 +1765,7 @@ function renderSkinShop() {
       btn.textContent = '🔒';
       btn.disabled = true;
     } else {
-      btn.innerHTML = `Buy<span class="cost">${sk.cost} ${pay.label}</span>`;
+      btn.innerHTML = `Buy${priceHTML(sk.cost, pay.id)}`;
       btn.disabled = currency[sk.pay] < sk.cost;
       btn.onclick = () => buySkin(sk);
     }
@@ -1774,7 +1836,7 @@ function renderBoostShop() {
       btn.textContent = '🔒';
       btn.disabled = true;
     } else {
-      btn.innerHTML = `Buy<span class="cost">${b.cost} ${pay.label}</span>`;
+      btn.innerHTML = `Buy${priceHTML(b.cost, pay.id)}`;
       btn.disabled = !afford;
       btn.onclick = () => buyBooster(b);
     }
@@ -2085,6 +2147,12 @@ document.getElementById('awardsBtn').addEventListener('click', () => {
 // `id` must match the product id created in Play Console. `key` marks a
 // one-time product whose ownership is remembered; consumables leave it
 // unset so they can be bought again.
+//
+// `fruit` is how much of every kind the product hands over. It is a field
+// rather than a number inside grant() so that the description, the grant and
+// the balance test all read the same figure — these are the numbers most
+// likely to be changed in a hurry and least likely to be changed in three
+// places at once.
 // ---------------------------------------------------------------------
 const PRODUCTS = [
   {
@@ -2093,11 +2161,11 @@ const PRODUCTS = [
     grant() { hideBanner(); },
   },
   {
-    id: 'fruithole_starter', key: 'starter', icon: '🎒',
-    name: 'Starter pack', desc: '500 of every fruit, 3 of every booster, and no ads',
+    id: 'fruithole_starter', key: 'starter', icon: '🎒', fruit: 2500,
+    name: 'Starter pack', desc: '2500 of every fruit, 3 of every booster, and no ads',
     price: '$2.99',
     grant() {
-      TYPES.forEach(t => bumpCurrency(t.id, 500));
+      TYPES.forEach(t => bumpCurrency(t.id, PRODUCT_BY_ID.fruithole_starter.fruit));
       BOOSTERS.forEach(b => { boosters[b.id] = (boosters[b.id] || 0) + 3; });
       saveBoosters();
       iap.remove_ads = true;
@@ -2106,16 +2174,22 @@ const PRODUCTS = [
     },
   },
   {
-    id: 'fruithole_pack_small', icon: '🧺',
-    name: 'Fruit basket', desc: '400 of every fruit', price: '$0.99',
-    grant() { TYPES.forEach(t => bumpCurrency(t.id, 400)); },
+    id: 'fruithole_pack_small', icon: '🧺', fruit: 1800,
+    name: 'Fruit basket', desc: '1800 of every fruit', price: '$0.99',
+    grant() { TYPES.forEach(t => bumpCurrency(t.id, PRODUCT_BY_ID.fruithole_pack_small.fruit)); },
   },
   {
-    id: 'fruithole_pack_large', icon: '🚚',
-    name: 'Fruit truck', desc: '1200 of every fruit', price: '$2.49',
-    grant() { TYPES.forEach(t => bumpCurrency(t.id, 1200)); },
+    id: 'fruithole_pack_large', icon: '🚚', fruit: 6000,
+    name: 'Fruit truck', desc: '6000 of every fruit', price: '$2.49',
+    grant() { TYPES.forEach(t => bumpCurrency(t.id, PRODUCT_BY_ID.fruithole_pack_large.fruit)); },
   },
 ];
+const PRODUCT_BY_ID = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+// The shop lines quote the amount rather than repeating it, so a product's
+// description cannot drift away from what it actually pays out.
+PRODUCTS.forEach(p => {
+  if (p.fruit) p.desc = p.desc.replace(/^[\d,]+/, p.fruit.toLocaleString('en-US'));
+});
 
 function renderShop() {
   const list = document.getElementById('shopList');
@@ -6333,7 +6407,12 @@ let pendingReward = null;
 // not be handed over again every time that level is replayed afterwards.
 function offerReward(earnedStars, clearedLevel, unlockedAt) {
   const type = TYPES[Math.floor(Math.random() * TYPES.length)];
-  const amount = 40 + earnedStars * 30 + clearedLevel * 4;
+  // Was 40 + stars*30 + level*4, which topped out around 210 — pocket change
+  // next to the ~400 of each fruit a level already pays, so the chest was a
+  // formality and the ad that doubles it was an offer to double nothing.
+  // Now worth about a level's earnings in one fruit, which is what makes the
+  // doubling a real choice.
+  const amount = 100 + earnedStars * 50 + clearedLevel * 8;
   const skin = unlockedAt
     ? SKINS.find(sk => sk.level === unlockedAt && !ownedSkins.has(sk.id))
     : null;
@@ -7299,8 +7378,17 @@ window.fruitHoleBuySkin = id => buySkin(skinById(id));
 // or "everyone gets the same field" is not true, and a daily challenge that
 // is not true is worse than none.
 window.fruitHoleFieldHash = () => {
+  // baseY, not mesh.position.y.
+  //
+  // The live y is where a piece happens to be *during the drop*, and the drop
+  // is driven by wall-clock time — so hashing it was hashing how many frames
+  // the browser had got through, not what the field is. Two phones handed the
+  // identical daily field disagreed about three runs in five, which is the
+  // one thing the daily challenge exists to guarantee and the one thing a
+  // leaderboard laid on top of it would depend on. baseY is where the piece
+  // comes to rest and is fixed the moment the field is built.
   const parts = fruits.map(f =>
-    [f.x.toFixed(3), f.z.toFixed(3), f.mesh.position.y.toFixed(3),
+    [f.x.toFixed(3), f.z.toFixed(3), f.baseY.toFixed(3),
      f.type, f.prop || '-', f.big ? 1 : 0, f.giant ? 1 : 0,
      f.r.toFixed(3), f.mesh.rotation.y.toFixed(3),
      f.mesh.scale.x.toFixed(4)].join(','));
@@ -7416,6 +7504,86 @@ window.fruitHoleClear = () => {
   const now = performance.now();
   for (const f of fruits) if (!f.eaten) eatFruit(f, now);
   onCleared();
+};
+// What one level actually pays.
+//
+// fruitHoleClear() eats the whole board on a single timestamp, so the combo
+// sits pinned at x5 and the total it reports is a ceiling nobody reaches. The
+// floor — one per fruit, twelve per giant, no chain at all — is just as
+// unreal, because the chain is the thing a sweep naturally produces.
+//
+// So the sweep is simulated instead. The hole walks to the nearest uneaten
+// fruit at BASE_MOVE_SPEED, swallows everything already inside its mouth on
+// arrival at that same instant, and grows by exactly what eatFruit() grows
+// by. The clock advances by distance over speed, and the streak is then read
+// with eatFruit()'s own rule. Nothing here is a guess about the multiplier:
+// it falls out of how far apart the fruit is and how fast the hole moves.
+//
+// Nearest-neighbour is a better player than a real one, so this is still the
+// optimistic end of honest — which is the right side to balance from.
+window.fruitHoleIncome = () => {
+  resetHole();
+  let r = holeRadius;
+  const left = fruits.filter(f => !f.eaten).map(f => ({ x: f.x, z: f.z, type: f.type, giant: f.giant }));
+  const total = left.length;
+  const unit = growthUnit();
+  const pay = {}; TYPES.forEach(t => pay[t.id] = 0);
+  let x = SPAWN_X, z = spawnZ(), t = 0;
+  let streak = 0, lastAt = -9999, mults = [];
+  const swallow = f => {
+    streak = (t - lastAt < 0.9) ? streak + 1 : 1;
+    lastAt = t;
+    const m = Math.min(5, 1 + Math.floor(streak / 4));
+    mults.push(m);
+    pay[f.type] += f.giant ? m * 12 : m;
+    if (r < HOLE_MAX) r = Math.min(r + unit * (f.giant ? 9 : 1), HOLE_MAX);
+  };
+  while (left.length) {
+    // nearest first
+    let bi = 0, bd = Infinity;
+    for (let i = 0; i < left.length; i++) {
+      const d = Math.hypot(left[i].x - x, left[i].z - z);
+      if (d < bd) { bd = d; bi = i; }
+    }
+    const tgt = left[bi];
+    t += Math.max(0, bd - r) / BASE_MOVE_SPEED;
+    x = tgt.x; z = tgt.z;
+    // everything already in the mouth goes down on the same instant, which is
+    // what holds a chain together across a dense patch
+    for (let i = left.length - 1; i >= 0; i--) {
+      if (Math.hypot(left[i].x - x, left[i].z - z) <= r) { swallow(left[i]); left.splice(i, 1); }
+    }
+  }
+  const sum = Object.values(pay).reduce((a, b) => a + b, 0);
+  const giants = fruits.filter(f => f.giant).length;
+  return {
+    level, pattern: currentPattern.name, fruit: total, giants,
+    pay, sum,
+    avgMult: +(mults.reduce((a, b) => a + b, 0) / Math.max(1, mults.length)).toFixed(2),
+    sweepSeconds: +t.toFixed(1), levelSeconds: levelTime(),
+    floor: total - giants + giants * 12,
+    ceiling: (total - giants) * 5 + giants * 60,
+  };
+};
+// What everything in the shop costs, from a clean save.
+window.fruitHolePrices = () => {
+  const tree = {};
+  for (const u of UPGRADES) {
+    let c = 0;
+    for (let i = 0; i < upgMax(u); i++) c += u.base * Math.pow(2, i);
+    tree[u.pay] = (tree[u.pay] || 0) + c;
+  }
+  const skins = {};
+  for (const s of SKINS) if (s.cost) skins[s.pay] = (skins[s.pay] || 0) + s.cost;
+  return {
+    tree, skins,
+    treeSum: Object.values(tree).reduce((a, b) => a + b, 0),
+    skinSum: Object.values(skins).reduce((a, b) => a + b, 0),
+    first: UPGRADES.map(u => ({ id: u.id, pay: u.pay, base: u.base })),
+    boosters: BOOSTERS.map(b => ({ id: b.id, pay: b.pay, cost: b.cost })),
+    // What the two consumable store products hand over, per fruit kind.
+    packs: Object.fromEntries(PRODUCTS.filter(p => p.fruit).map(p => [p.id, p.fruit])),
+  };
 };
 // How much of the board is still in the air, and whether the clock has been
 // allowed to start.

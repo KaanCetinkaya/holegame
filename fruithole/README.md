@@ -40,7 +40,7 @@ kökteki [`README.md`](../README.md) → "Hangi uygulama paketleniyor?".
 - **Günlük görevler** her gün yenilenir, **günlük ödül** üst üste girişle
   büyür, beş **başarım** kalıcıdır.
 - **Bölüm sonu sandığı**: bitiş ekranında bir sandık çıkar, dokununca patlar
-  ve `40 + yıldız×30 + bölüm×4` kadar rastgele bir meyve verir. O bölümde bir
+  ve `100 + yıldız×50 + bölüm×8` kadar rastgele bir meyve verir. O bölümde bir
   görünüm açıldıysa haberi de buradan verir — tekrar oynanan bölümde yeniden
   vermez.
 
@@ -956,6 +956,80 @@ olduğunu, alt barın üstünde ve Play düğmesinin dışında durduğunu, halk
 yarıçapının gerçek menzile eşit olduğunu ve sürenin sonunda söndüğünü
 doğruluyor.
 
+## Ekonomi: dükkân 3. bölümde bitiyordu
+
+Oyunun hiç ölçülmemiş tek parçası buydu. Yükseltmeler 20-30 meyveden başlayıp
+her adımda ikiye katlanıyordu, yani **bütün yükseltme ağacı 2620 meyve**;
+kaplamalar 300-900. Bunların bir bölümün ne kadar ödediğine karşı hiç
+bakılmamıştı.
+
+### Ölçüm
+
+`fruitHoleClear()` bütün tarlayı tek bir zaman damgasında yiyor, dolayısıyla
+zincir çarpanı ×5'te takılı kalıyor ve verdiği rakam kimsenin ulaşamayacağı
+bir tavan. Tabanı (meyve başına 1, dev başına 12) almak da gerçekçi değil,
+çünkü zincir zaten süpürmenin doğal sonucu.
+
+Bu yüzden süpürme **benzetiliyor** (`window.fruitHoleIncome()`): delik en
+yakın meyveye kendi gerçek hızıyla gidiyor, vardığında ağzına girmiş olan her
+şeyi aynı anda yutuyor, `eatFruit()`'in büyüme ve zincir kurallarıyla birebir
+büyüyor. Çarpan tahmin edilmiyor — meyvelerin ne kadar sıkışık durduğundan ve
+deliğin ne kadar hızlı gittiğinden çıkıyor.
+
+Çıkan sonuç, kendi varsayımımı da düzeltti: ortalama çarpan **×4.0-4.7**.
+Yani zincir gerçekten tavana yakın duruyor, "×5 abartı" uyarısı gereksizmiş.
+
+| | eski | yeni |
+|---|---|---|
+| bölüm başına kazanç | ~1500 (her türden ~400) | değişmedi |
+| yükseltme ağacı | 2620 | 26 420 |
+| kaplamalar | 2100 | 30 500 |
+| ağaç kaç bölümde biter | **3** | **24** |
+| her şey kaç bölümde alınır | **5** | **37** |
+
+Eskisi şu demekti: oyuncu daha üçüncü bölümdeyken üstünde çalışacağı her şeyi
+bitiriyordu. HUD'daki dört sayaç geri kalan kırk küsur bölüm boyunca süstü,
+dükkân ölüydü, ve mağazadaki iki meyve paketi **yapıları gereği satılamazdı** —
+küçüğü, oyuncunun çoktan bitirdiği bir ağacın %61'ini, büyüğü %183'ünü
+karşılıyordu.
+
+### Ne değişti
+
+Fiyatlar on kat arttı; **kazanç hiç elleşilmedi**. Yutulan meyveden fırlayan
+sayı oyunun iyi hissettiren kısmı; oranı onu küçülterek düzeltmek, oyunu daha
+kötü oynanır hale getirerek düzeltmek olurdu.
+
+- Yükseltme tabanları: hız 250, boyut 320, süre 250, mıknatıs 280.
+  Boyut üç adımda bitiyor (dalı ötekilerin üçte biri kadar), o yüzden tabanı
+  yüksek — muz sayacı da öbürleri kadar uzun süre işe yarasın diye. Artan
+  boşluk Gold kaplamanın fiyatlandığı yer.
+- Kaplamalar 6000-11 000. Her biri, parasını paylaştığı dalın son adımından
+  pahalı: ağaç 24. bölümde bittikten sonra hâlâ biriktirilecek bir şey olsun
+  diye. Yükseltmelerin hepsi bitiyor, oyun bitmiyor.
+- Boosterlar 120-150, yani o meyveden bir bölümlük kazancın ~%30-40'ı. Tek
+  tekrar eden gider bunlar; 40-50'de adı vardı kendi yoktu.
+- Sandık, görevler, başarımlar ve günlük ödül de aynı oranda büyüdü. Sandık
+  artık bir bölümlük kazanç değerinde — onu ikiye katlayan ödüllü reklam
+  ancak o zaman bir teklif.
+- Meyve paketleri en pahalı dalın %21'i (küçük) ve %69'u (büyük): alınmaya
+  değecek kadar çok, oyunu satın alıp bitirtmeyecek kadar az.
+
+`scratchpad/holeecon.mjs` bunların hepsini ölçüyor ve eşiklerle bekliyor.
+Tarla tohumlanıyor: tohumsuz bırakıldığında aynı bölüm her çalıştırmada farklı
+bir dağılım veriyordu (20. bölüm bir seferde 240 çilek, bir seferde 58), yani
+eşik koyan bir testin geçip geçmemesi zara bağlıydı.
+
+Eşikler keyfî değil: tarla 34 satırda (13. bölüm) büyümeyi bırakıyor ve
+desenler ondokuzda bir başa dönüyor, yani oyunun yeni bir şey gösterdiği kısım
+25 civarında bitiyor; kapalı testte kimse 45'i geçmedi. Ağacın o ilk kısım
+boyunca sürmesi, her şeyin ise ancak bilinen en uzak noktaya yaklaşırken
+tamamlanması isteniyor.
+
+**Kapalı testteki kayıtlara dokunulmadı.** Fiyatlar arttı ama kimsenin kesesi
+küçülmedi; eski ekonomide zaten her şeyi almış olan oyuncu her şeye sahip
+kalıyor, yarıda kalan da elindekiyle ilk birkaç adımı almaya devam ediyor.
+Göç kodu yazmak, yalnızca yanlış gidebilecek yeni bir yol açardı.
+
 ## Menü, kaldığın yerin artığını miras alıyordu
 
 Menünün arkasında canlı bir 3B diorama var — gerçek delik, gerçek meyveler,
@@ -1043,9 +1117,13 @@ adlarla oluşturulmalı:
 | Ürün kimliği | Tür | İçerik |
 |---|---|---|
 | `fruithole_remove_ads` | tek seferlik | banner + geçiş reklamları kalkar (ödüllü kalır) |
-| `fruithole_starter` | tek seferlik | her meyveden 500, her booster'dan 3, üstüne reklamsız |
-| `fruithole_pack_small` | tüketilebilir | her meyveden 400 |
-| `fruithole_pack_large` | tüketilebilir | her meyveden 1200 |
+| `fruithole_starter` | tek seferlik | her meyveden 2500, her booster'dan 3, üstüne reklamsız |
+| `fruithole_pack_small` | tüketilebilir | her meyveden 1800 |
+| `fruithole_pack_large` | tüketilebilir | her meyveden 6000 |
+
+Miktarlar ürünün `fruit` alanında duruyor; açıklama satırı ve `grant()` ikisi
+de oradan okuyor, böylece üç yerde birden değiştirilmesi gereken bir sayı
+kalmıyor. Neden bu büyüklükte olduğu aşağıdaki "Ekonomi" bölümünde.
 
 **Yapılması gereken tek şey ödeme SDK'sını bağlamak.** Desteklenen yol
 [`@revenuecat/purchases-capacitor`](https://github.com/RevenueCat/purchases-capacitor);
