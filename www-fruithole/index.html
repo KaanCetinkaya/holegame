@@ -1319,15 +1319,31 @@ adsInit();
 // In-app purchases
 //
 // Same shape as the ad layer: live only inside the native shell, no-op in
-// a browser. The one piece that must be wired up for real money is
-// purchase() below -- the supported route is RevenueCat's Capacitor
-// plugin (@revenuecat/purchases-capacitor); the Cordova one is retired
-// and Google stops accepting updates built on it after 2026-08-31.
+// a browser.
 //
-// Prices here are placeholders for the browser build only. On device the
-// store returns the real localised price and that is what must be shown.
+// The plugin is @capgo/native-purchases, which talks to Google Play Billing
+// directly. The route this file used to name — RevenueCat's Capacitor plugin
+// — was checked and dropped: it still declares `@capacitor/core: ^5.0.0` and
+// this project is on Capacitor 8, the same mismatch that is holding up the
+// leaderboard. It also puts a third party between us and the payment for a
+// game that needs nothing RevenueCat provides. This one declares
+// `>=8.0.0` and is built against Capacitor 8 throughout, and it is on Play
+// Billing Library 8, which Google now requires.
+//
+// Two rules of Play Billing that cost real money if missed, and are the only
+// reason this layer is more than one call:
+//
+//   * A one-time purchase must be ACKNOWLEDGED within three days or Google
+//     automatically refunds it. The player keeps what they bought, we lose
+//     the money, and nothing in the app ever says so.
+//   * A consumable must be CONSUMED, or Play still considers it owned and
+//     the player cannot buy it a second time. The fruit packs are meant to
+//     be bought again.
+//
+// Both are done the moment a purchase returns, before anything is granted,
+// so a crash in between cannot leave a purchase in limbo.
 // ---------------------------------------------------------------------
-const _Purchases = _Cap && _Cap.Plugins ? _Cap.Plugins.Purchases : null;
+const _Purchases = _Cap && _Cap.Plugins ? _Cap.Plugins.NativePurchases : null;
 const IS_NATIVE = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform());
 const IAP_ON = !!(IS_NATIVE && _Purchases);
 
@@ -1341,32 +1357,122 @@ const iap = JSON.parse(localStorage.getItem('fruithole_iap') || '{}');
 function saveIap() { localStorage.setItem('fruithole_iap', JSON.stringify(iap)); }
 function adsRemoved() { return !!iap.remove_ads; }
 
-async function purchase(productId) {
+// A product with a `key` is owned forever (remove ads, starter pack); one
+// without is a consumable that can be bought again (the fruit packs). The
+// two are settled with Play in opposite ways, so this is the single place
+// that decides which is which.
+function isConsumable(p) { return !p.key; }
+
+async function purchase(product) {
   if (!IAP_ON) return true;   // browser: grant so the flow can be walked through
+  let tx;
   try {
-    const res = await _Purchases.purchaseStoreProduct({ productIdentifier: productId });
-    return !(res && res.userCancelled);
+    tx = await _Purchases.purchaseProduct({
+      productIdentifier: product.id,
+      productType: 'inapp',
+    });
   } catch (e) {
+    // A cancelled purchase throws here just as a failed one does, and the two
+    // are not worth telling apart: neither grants anything, and a player who
+    // backed out does not need to be told they backed out.
     return false;
   }
+  // Settle with Play before anything is handed over. Consuming and
+  // acknowledging are both one call and both are the difference between a
+  // purchase that sticks and one that is silently reversed three days later.
+  const token = tx && (tx.purchaseToken || (tx.transaction && tx.transaction.purchaseToken));
+  if (token) {
+    try {
+      if (isConsumable(product)) await _Purchases.consumePurchase({ purchaseToken: token });
+      else await _Purchases.acknowledgePurchase({ purchaseToken: token });
+    } catch (e) {
+      // The money is already taken at this point, so the player gets what
+      // they paid for either way. An un-consumed consumable blocks the *next*
+      // purchase of it and an un-acknowledged one-time is refunded by Google;
+      // both get a second chance at launch, where syncPurchases() runs.
+    }
+  }
+  return true;
 }
 
-async function restorePurchases() {
+// Everything Play says this account owns, applied to the save.
+//
+// Runs on the Restore button and once at launch. The launch pass is what
+// makes a reinstall, a second device, or a purchase that was interrupted
+// halfway come out right without the player knowing there was anything to
+// fix — and it is also the second chance at consuming a pack whose consume
+// call did not land the first time.
+async function syncPurchases() {
   if (!IAP_ON) return false;
   try {
-    const info = await _Purchases.restorePurchases();
-    const owned = info && info.customerInfo && info.customerInfo.allPurchasedProductIdentifiers;
-    if (Array.isArray(owned)) {
-      for (const p of PRODUCTS) {
-        if (p.key && owned.includes(p.id)) iap[p.key] = true;
+    await _Purchases.restorePurchases();
+    const res = await _Purchases.getPurchases({ productType: 'inapp' });
+    const owned = (res && res.purchases) || [];
+    for (const tx of owned) {
+      const p = PRODUCT_BY_ID[tx.productIdentifier || tx.productId];
+      if (!p) continue;
+      if (isConsumable(p)) {
+        // Still owned means it was never consumed, so it was paid for and
+        // never handed over. Grant it, then consume it so it can be bought
+        // again.
+        if (tx.purchaseToken) {
+          try {
+            await _Purchases.consumePurchase({ purchaseToken: tx.purchaseToken });
+            applyProduct(p, true);
+          } catch (e) { /* leave it owned; the next launch tries again */ }
+        }
+      } else {
+        // Restored, not bought: the entitlement comes back, the contents do
+        // not.
+        applyProduct(p, false);
+        if (tx.purchaseToken) {
+          try { await _Purchases.acknowledgePurchase({ purchaseToken: tx.purchaseToken }); } catch (e) { }
+        }
       }
-      saveIap();
     }
+    saveIap();
+    if (adsRemoved()) hideBanner();
     return true;
   } catch (e) {
     return false;
   }
 }
+// Kept under the old name because the Restore button calls it.
+const restorePurchases = syncPurchases;
+
+// The real, localised price from the store.
+//
+// The placeholders in PRODUCTS are dollars, and the shop is going to open in
+// countries that do not use them. Play returns the price already formatted
+// for the account's country and currency, and showing anything else is both
+// wrong and grounds for review to reject the build.
+async function loadPrices() {
+  if (!IAP_ON) return;
+  try {
+    const res = await _Purchases.getProducts({
+      productIdentifiers: PRODUCTS.map(p => p.id),
+      productType: 'inapp',
+    });
+    for (const sp of (res && res.products) || []) {
+      const p = PRODUCT_BY_ID[sp.identifier || sp.productIdentifier || sp.productId];
+      if (p && sp.priceString) p.price = sp.priceString;
+    }
+  } catch (e) { /* placeholders stay; the shop still opens */ }
+}
+
+// One pass at launch: real prices, and whatever Play already knows is owned.
+async function iapInit() {
+  if (!IAP_ON) return;
+  await loadPrices();
+  await syncPurchases();
+  if (document.getElementById('shop').classList.contains('show')) renderShop();
+}
+// NOTE: iapInit() is *called* further down, right after PRODUCTS exists.
+// Calling it here would read PRODUCTS before its `const` is initialised and
+// throw on the first frame of every device build — the browser would never
+// show it, because IAP_ON is false there and the function returns before it
+// touches PRODUCTS. This project has been bitten by that exact ordering twice
+// before (isBossLevel, BOSS_EVERY).
 
 // ---------------------------------------------------------------------
 // Sound (WebAudio synth, no files) + haptics
@@ -2154,23 +2260,31 @@ document.getElementById('awardsBtn').addEventListener('click', () => {
 // likely to be changed in a hurry and least likely to be changed in three
 // places at once.
 // ---------------------------------------------------------------------
+// `entitle` is the permanent half of a product and `grant` the one-off
+// payout. The split exists because restoring a purchase must re-apply one
+// and must not re-apply the other.
+//
+// It was one function, and the starter pack turned off ads from inside it.
+// Restoring set iap.starter and nothing else — so a player who paid for the
+// pack, reinstalled and pressed Restore got their ads back, having paid to
+// be rid of them. Calling grant() on restore instead would have been the
+// other bug: 2500 of every fruit and three of every booster, once per
+// reinstall, forever.
 const PRODUCTS = [
   {
     id: 'fruithole_remove_ads', key: 'remove_ads', icon: '🚫',
     name: 'Remove ads', desc: 'No more banner or between-level ads', price: '$1.99',
-    grant() { hideBanner(); },
+    entitle() { iap.remove_ads = true; hideBanner(); },
   },
   {
     id: 'fruithole_starter', key: 'starter', icon: '🎒', fruit: 2500,
     name: 'Starter pack', desc: '2500 of every fruit, 3 of every booster, and no ads',
     price: '$2.99',
+    entitle() { iap.remove_ads = true; hideBanner(); },
     grant() {
       TYPES.forEach(t => bumpCurrency(t.id, PRODUCT_BY_ID.fruithole_starter.fruit));
       BOOSTERS.forEach(b => { boosters[b.id] = (boosters[b.id] || 0) + 3; });
       saveBoosters();
-      iap.remove_ads = true;
-      saveIap();
-      hideBanner();
     },
   },
   {
@@ -2185,11 +2299,23 @@ const PRODUCTS = [
   },
 ];
 const PRODUCT_BY_ID = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+// Hand a product over. `payout` is false when the purchase is only being
+// restored, so what the player owns comes back without the one-off contents
+// being handed out a second time.
+function applyProduct(p, payout) {
+  if (p.key) iap[p.key] = true;
+  if (p.entitle) p.entitle();
+  if (payout && p.grant) p.grant();
+  saveIap();
+}
 // The shop lines quote the amount rather than repeating it, so a product's
 // description cannot drift away from what it actually pays out.
 PRODUCTS.forEach(p => {
   if (p.fruit) p.desc = p.desc.replace(/^[\d,]+/, p.fruit.toLocaleString('en-US'));
 });
+// Now that PRODUCTS exists, ask Play for real prices and for anything this
+// account already owns.
+iapInit();
 
 function renderShop() {
   const list = document.getElementById('shopList');
@@ -2220,11 +2346,10 @@ function renderShop() {
 async function buyProduct(p, btn) {
   if (p.key && iap[p.key]) return;
   btn.disabled = true;
-  const ok = await purchase(p.id);
+  const ok = await purchase(p);
   btn.disabled = false;
   if (!ok) return;
-  if (p.key) { iap[p.key] = true; saveIap(); }
-  p.grant();
+  applyProduct(p, true);
   sfx.win();
   buildCounters();
   renderShop();
