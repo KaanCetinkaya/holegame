@@ -278,6 +278,21 @@ if (res.status !== 0) {
 console.log('\n' + '='.repeat(60));
 console.log(existsSync(out) ? `HAZIR:\n${out}` : `Build bitti ama dosya bulunamadı: ${out}`);
 console.log('='.repeat(60));
+
+// Dosyanın durduğu klasörü aç.
+//
+// Yolu ekrana yazmak yetmiyordu: Play Console'a yüklemek için dosyayı
+// sürüklemek gerekiyor, o da her seferinde bu uzun yolu elle Gezgin'e
+// yazmak ya da kopyalamak demekti. Derlemenin son adımı zaten bu, o yüzden
+// burada yapılıyor. Açılmazsa bir şey bozulmuyor — yol yukarıda duruyor.
+if (existsSync(out)) {
+  const dir = dirname(out);
+  try {
+    if (isWin) spawnSync('explorer', [dir], { shell: true });
+    else if (process.platform === 'darwin') spawnSync('open', [dir]);
+    else spawnSync('xdg-open', [dir]);
+  } catch (e) { /* klasör açılamadıysa yol zaten yazıldı */ }
+}
 if (wantApk && existsSync(out)) {
   console.log('\nBu dosyayı telefona kopyala ve dokun. "Bilinmeyen kaynak" uyarısı');
   console.log('çıkarsa izin ver. Play\'e yüklenecek olan bu değil, .aab.');
