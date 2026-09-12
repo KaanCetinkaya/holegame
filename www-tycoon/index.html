@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#22242b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Motor Works</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #22242b; color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* ---- top bar ------------------------------------------------------- */
+  #top {
+    position: absolute; left: 0; right: 0;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    padding: 0 12px; display: flex; gap: 8px; align-items: center;
+    justify-content: space-between; pointer-events: none;
+  }
+  .pill {
+    background: linear-gradient(180deg, #5b6473, #363d49);
+    border: 3px solid #fff; border-radius: 999px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.3);
+    padding: 7px 15px; font-weight: 800; font-size: 17px;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  #cashPill { background: linear-gradient(180deg, #ffc44d, #eb9412); color: #40260a; font-size: 19px; }
+  #rate { font-size: 13px; opacity: .85; font-weight: 700; margin-top: 3px; text-align: center; }
+  #cashWrap { display: flex; flex-direction: column; align-items: center; }
+  #branchPill { font-size: 15px; }
+  #leftWrap { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+  /* Ne ürettiğin ve sıradakine ne kaldığı. Ürün kademesi geliri otuz kata
+     kadar katlıyor; oyuncunun bunun var olduğunu bilmediği bir sistem
+     olamaz. */
+  #prodTag { font-size: 12px; font-weight: 800; opacity: .9; padding-left: 4px;
+             text-shadow: 0 1px 3px rgba(0,0,0,.6); white-space: nowrap; }
+  #prodTag b { color: #ffc44d; }
+  #menuBtn { pointer-events: auto; cursor: pointer; padding: 7px 12px; }
+
+  /* ---- station panel -------------------------------------------------- */
+  #panel {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 10px 10px calc(env(safe-area-inset-bottom, 0px) + 10px);
+    background: linear-gradient(180deg, rgba(18,20,26,0), rgba(18,20,26,.94) 16%);
+    display: flex; flex-direction: column; gap: 8px;
+    max-height: 56%; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .st {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,.09); border: 2px solid rgba(255,255,255,.15);
+    border-radius: 16px; padding: 9px 11px;
+  }
+  .st.locked { opacity: .55; }
+  .st .ico {
+    width: 46px; height: 46px; flex: 0 0 46px; border-radius: 13px;
+    background: rgba(0,0,0,.3); display: flex; align-items: center;
+    justify-content: center; font-size: 25px; position: relative;
+  }
+  .st .ico b {
+    position: absolute; right: -4px; bottom: -4px;
+    background: #ffc44d; color: #3a2a08; font-size: 11px; font-weight: 900;
+    border-radius: 8px; padding: 1px 5px; border: 2px solid #1a1d24;
+  }
+  .st .mid { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .st .nm { font-weight: 800; font-size: 15px; white-space: nowrap; }
+  /* The bottleneck marker lives on the line below rather than beside the
+     name: on a 412px screen the name, a badge and two buttons do not fit,
+     and the badge ended up under the buy button — then, once the name was
+     allowed to shrink instead, "Sevkiyat" came out as "S..". The row's own
+     border carries the signal too, so it reads before the text does. */
+  .st.neck { border-color: #d8a13a; background: rgba(216,161,58,.12); }
+  .st .meta em { font-style: normal; font-weight: 900; color: #ffc44d; }
+  /* Same weight as DARBOĞAZ but in the bar's own red, so the words and the
+     colour that prompted them read as one thing. */
+  .st .meta u { text-decoration: none; font-weight: 900; color: #e8603c; }
+  .st .sub { font-size: 12px; opacity: .78; margin-top: 2px; white-space: nowrap;
+             overflow: hidden; text-overflow: ellipsis; }
+  .st .meta { font-size: 11px; opacity: .6; margin-top: 1px; white-space: nowrap; }
+  .st .meta b { color: #ffc44d; font-weight: 900; }
+  .st .buf { height: 5px; border-radius: 999px; background: rgba(0,0,0,.35); margin-top: 5px; overflow: hidden; }
+  .st .buf i { display: block; height: 100%; width: 0%; background: #7fd66a; border-radius: 999px; }
+  .st .buf i.full { background: #e8603c; }
+  .buy {
+    flex: 0 0 auto; min-width: 96px; text-align: center; cursor: pointer;
+    background: linear-gradient(180deg, #ffc44d, #f59321);
+    color: #40260a; font-weight: 900; font-size: 14px; line-height: 1.15;
+    padding: 9px 10px; border: 0; border-radius: 12px;
+    box-shadow: 0 4px 0 #c67613;
+  }
+  .buy:active { transform: translateY(2px); box-shadow: 0 2px 0 #c67613; }
+  .buy[disabled] { filter: grayscale(.75) brightness(.75); box-shadow: 0 4px 0 #6b5a45; }
+  .buy small { display: block; font-size: 11px; font-weight: 800; opacity: .8; }
+  .buy.mgr { background: linear-gradient(180deg, #9d81f0, #7551e0); color: #fff; box-shadow: 0 4px 0 #5334ad; }
+  .buy.mgr:active { box-shadow: 0 2px 0 #5334ad; }
+
+  #bulk {
+    display: flex; gap: 7px; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; padding: 2px 0 2px;
+  }
+  #bulk button {
+    background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.18);
+    color: #fff; font-weight: 900; font-size: 13px;
+    border-radius: 10px; padding: 5px 13px; cursor: pointer;
+  }
+  #bulk button.on { background: #ffc44d; color: #3a2708; border-color: #fff; }
+
+  /* ---- overlays ------------------------------------------------------- */
+  .screen {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 26px 22px calc(env(safe-area-inset-bottom, 0px) + 26px);
+    background: rgba(12,14,19,.88); backdrop-filter: blur(3px); z-index: 5;
+  }
+  .screen.show { display: flex; }
+  .screen h2 { margin: 0 0 10px; font-size: 27px; text-align: center; }
+  .screen p { margin: 0 0 18px; opacity: .82; font-size: 15px; line-height: 1.55; text-align: center; }
+  .card {
+    width: 100%; max-width: 350px;
+    background: rgba(255,255,255,.09); border: 2px solid rgba(255,255,255,.16);
+    border-radius: 20px; padding: 16px; margin-bottom: 15px;
+  }
+  .row { display: flex; justify-content: space-between; align-items: center;
+         font-size: 15px; font-weight: 700; padding: 5px 0; }
+  .row span:last-child { color: #ffd23f; }
+  .stack { width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 10px; }
+  .btn {
+    display: block; width: 100%; text-align: center; cursor: pointer;
+    background: linear-gradient(180deg, #ffc44d, #f59321);
+    color: #40260a; font-weight: 900; font-size: 19px;
+    padding: 14px; border: 0; border-radius: 15px; box-shadow: 0 5px 0 #c67613;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #c67613; }
+  .btn.alt { background: linear-gradient(180deg, #9d81f0, #7551e0); color: #fff; box-shadow: 0 5px 0 #5334ad; }
+  .btn.alt:active { box-shadow: 0 2px 0 #5334ad; }
+  .btn[disabled] { filter: grayscale(.7) brightness(.75); box-shadow: 0 5px 0 #6b5a45; }
+
+  #boostBtn {
+    position: absolute; right: 12px;
+    top: calc(env(safe-area-inset-top, 0px) + 74px);
+    width: 74px; padding: 8px 4px 7px; z-index: 3; cursor: pointer;
+    background: linear-gradient(180deg, #7fd66a, #3f9a45);
+    border: 3px solid #fff; border-radius: 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.32);
+    text-align: center; font-weight: 900; font-size: 12px; line-height: 1.2;
+  }
+  #boostBtn .big { display: block; font-size: 21px; }
+  #boostBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.32); }
+  #boostBtn.on { background: linear-gradient(180deg, #ffc44d, #eb9412); color: #3a2708; }
+  #boostBtn.cool { background: linear-gradient(180deg, #6a7280, #474e59); }
+
+  .goal { display: flex; align-items: center; gap: 10px; padding: 8px 0;
+          border-bottom: 1px solid rgba(255,255,255,.09); }
+  .goal:last-child { border-bottom: 0; }
+  .goal .gi { font-size: 22px; width: 30px; text-align: center; flex: 0 0 30px; }
+  .goal .gm { flex: 1 1 auto; min-width: 0; }
+  .goal .gt { font-size: 14px; font-weight: 800; }
+  .goal .gp { height: 5px; border-radius: 999px; background: rgba(0,0,0,.35);
+              margin-top: 5px; overflow: hidden; }
+  .goal .gp i { display: block; height: 100%; background: #7fd66a; border-radius: 999px; }
+  .goal .gb { flex: 0 0 auto; min-width: 74px; font-size: 12px; font-weight: 900;
+              padding: 7px 8px; border: 0; border-radius: 10px; cursor: pointer;
+              background: linear-gradient(180deg, #ffc44d, #f59321); color: #40260a;
+              box-shadow: 0 3px 0 #c67613; }
+  .goal .gb[disabled] { filter: grayscale(.8) brightness(.7); box-shadow: 0 3px 0 #6b5a45; }
+  .goal.done { opacity: .45; }
+
+  /* Research rows reuse the goal row's shape — same list, different verb. */
+  .res { display: flex; align-items: center; gap: 10px; padding: 9px 0;
+         border-bottom: 1px solid rgba(255,255,255,.09); }
+  .res:last-child { border-bottom: 0; }
+  .res .ri { font-size: 21px; width: 30px; text-align: center; flex: 0 0 30px; }
+  .res .rm { flex: 1 1 auto; min-width: 0; }
+  .res .rt { font-size: 14px; font-weight: 800; }
+  .res .rd { font-size: 11px; opacity: .72; margin-top: 2px; }
+  .res .rb { flex: 0 0 auto; min-width: 74px; font-size: 12px; font-weight: 900;
+             padding: 7px 8px; border: 0; border-radius: 10px; cursor: pointer;
+             background: linear-gradient(180deg, #8fd3ff, #4aa6e8); color: #0b2a40;
+             box-shadow: 0 3px 0 #2f7fb8; line-height: 1.25; }
+  .res .rb small { display: block; font-size: 9px; opacity: .8; font-weight: 800; }
+  .res .rb[disabled] { filter: grayscale(.8) brightness(.7); box-shadow: 0 3px 0 #566773; }
+  .res.max .rb { display: none; }
+  .res.max .rt::after { content: ' · TAM'; font-size: 10px; color: #7fd66a; }
+
+  /* A dot on the menu button when something is waiting to be collected.
+     Without it the goals screen is a room nobody opens twice. */
+  #goalDot {
+    position: absolute; right: 14px; width: 14px; height: 14px; border-radius: 50%;
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    background: #e8603c; border: 2px solid #fff; z-index: 4; display: none;
+  }
+  #goalDot.show { display: block; }
+
+  #float {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4;
+  }
+  .fl {
+    position: absolute; font-weight: 900; font-size: 19px; color: #ffe08a;
+    text-shadow: 0 2px 0 #6b4a00; animation: rise 1.1s ease-out forwards;
+  }
+  @keyframes rise {
+    0%   { opacity: 0; transform: translateY(0) scale(.7); }
+    18%  { opacity: 1; transform: translateY(-10px) scale(1.1); }
+    100% { opacity: 0; transform: translateY(-64px) scale(1); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top">
+    <div id="leftWrap">
+      <div class="pill" id="branchPill">🏭 1</div>
+      <div id="prodTag">🚗 Şehir</div>
+    </div>
+    <div id="cashWrap">
+      <div class="pill" id="cashPill">💰 0</div>
+      <div id="rate">0 / sn</div>
+    </div>
+    <div class="pill" id="menuBtn">☰</div>
+  </div>
+
+  <div id="boostBtn"><span class="big">⚡</span><span id="boostTxt">×3</span></div>
+  <div id="goalDot" title="alınacak ödül var"></div>
+
+  <div id="float"></div>
+
+  <div id="panel">
+    <div id="bulk">
+      <span style="opacity:.7">Alım:</span>
+      <button data-n="1" class="on">×1</button>
+      <button data-n="10">×10</button>
+      <button data-n="max">MAKS</button>
+    </div>
+    <div id="stations"></div>
+  </div>
+
+  <div class="screen" id="welcome">
+    <h2>Tekrar hoş geldin! 👋</h2>
+    <p id="wSub">Sen yokken fabrika çalışmaya devam etti.</p>
+    <div class="card">
+      <div class="row"><span>Geçen süre</span><span id="wTime">—</span></div>
+      <div class="row"><span>Kazanç</span><span id="wCash">—</span></div>
+    </div>
+    <div class="stack">
+      <button class="btn" id="wDouble">📺 REKLAM İZLE, ×2 AL</button>
+      <button class="btn alt" id="wOk">TOPLA</button>
+    </div>
+  </div>
+
+  <div class="screen" id="daily">
+    <h2>Günlük ödül 🎁</h2>
+    <p id="dSub">Üst üste geldiğin her gün ödülü büyütüyor.</p>
+    <div class="card">
+      <div class="row"><span>Gün</span><span id="dStreak">1</span></div>
+      <div class="row"><span>Ödül</span><span id="dCash">—</span></div>
+    </div>
+    <div class="stack">
+      <button class="btn" id="dOk">AL</button>
+    </div>
+  </div>
+
+  <div class="screen" id="goals">
+    <h2>Görevler</h2>
+    <div class="card" id="goalList" style="max-height:52vh;overflow-y:auto"></div>
+    <div class="stack">
+      <button class="btn alt" id="goalsClose">KAPAT</button>
+    </div>
+  </div>
+
+  <div class="screen" id="research">
+    <h2>Araştırma 🔬</h2>
+    <p>Şube puanları kalıcı. Nereye harcadığın sana kalmış —<br>
+       harcanmamış puan hiçbir şey yapmıyor.</p>
+    <div class="card"><div class="row"><span>Harcanabilir puan</span><span id="rFree">0</span></div></div>
+    <div class="card" id="resList" style="max-height:46vh;overflow-y:auto"></div>
+    <div class="stack">
+      <button class="btn alt" id="resClose">KAPAT</button>
+    </div>
+  </div>
+
+  <div class="screen" id="menu">
+    <h2>Fabrika</h2>
+    <div class="card">
+      <div class="row"><span>Şube</span><span id="kBranch">1</span></div>
+      <div class="row"><span>Şube bonusu</span><span id="kBonus">+0%</span></div>
+      <div class="row"><span>Toplam kazanç</span><span id="kTotal">0</span></div>
+      <div class="row"><span>Saniyelik gelir</span><span id="kRate">0</span></div>
+      <div class="row"><span>Darboğaz</span><span id="kNeck">—</span></div>
+      <div class="row"><span>Ürün</span><span id="kProd">—</span></div>
+      <div class="row"><span>Araç başına</span><span id="kPrice">—</span></div>
+    </div>
+    <div class="stack">
+      <button class="btn alt" id="goalsBtn">GÖREVLER</button>
+      <button class="btn alt" id="resBtn">ARAŞTIRMA</button>
+      <button class="btn" id="prestigeBtn">YENİ ŞUBE AÇ</button>
+      <button class="btn alt" id="muteBtn">SES: AÇIK</button>
+      <button class="btn alt" id="closeMenu">KAPAT</button>
+    </div>
+  </div>
+
+  <div class="screen" id="prestige">
+    <h2>Yeni şube 🏭</h2>
+    <p>Bu fabrikayı devrediyorsun: bütün istasyonlar sıfırlanır, para
+       sıfırlanır. Karşılığında <b>şube puanı</b> kazanırsın — puanlar
+       kalıcıdır ve <b>Araştırma</b> ekranında harcanır.</p>
+    <div class="card">
+      <div class="row"><span>Şu an</span><span id="pNow">0 puan boşta</span></div>
+      <div class="row"><span>Bu devirden</span><span id="pNext">+0 puan</span></div>
+    </div>
+    <div class="stack">
+      <button class="btn" id="pGo">DEVRET VE BAŞLA</button>
+      <button class="btn alt" id="pNo">VAZGEÇ</button>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// =====================================================================
+// Motor Works — an idle factory
+//
+// Four stations in a chain, each feeding the next through a buffer:
+//
+//   Foundry --ingots--> Stamping --panels--> Assembly --cars--> Dispatch
+//
+// The buffers are the whole design. A station can only work as fast as the
+// one before it supplies, so the chain runs at the rate of its slowest link
+// and everything upstream of a slow station backs up. That backed-up buffer
+// is the game telling the player what to upgrade — no tutorial needed, and
+// no arbitrary "recommended" arrow. Upgrading anything else visibly does
+// nothing, which is the lesson.
+//
+// Money is a plain float64. Idle games run to absurd numbers, but with a
+// prestige reset in place the exponent stays well inside what a double
+// holds, and every alternative costs an arithmetic library for no gain.
+// =====================================================================
+
+const app = document.getElementById('app');
+const $ = id => document.getElementById(id);
+
+// ---------------------------------------------------------------------
+// Numbers
+// ---------------------------------------------------------------------
+// Short scale to trillion, then aa/ab/ac. Spelling out "quadrillion" in a
+// pill 90 pixels wide is not an option, and players read the letters fine.
+const SUFFIX = ['', 'K', 'M', 'B', 'T', 'aa', 'ab', 'ac', 'ad', 'ae', 'af', 'ag', 'ah'];
+function fmt(n) {
+  if (!isFinite(n)) return '∞';
+  if (n < 0) return '-' + fmt(-n);
+  if (n < 1000) return n < 10 ? (Math.round(n * 10) / 10).toString() : Math.floor(n).toString();
+  const tier = Math.min(Math.floor(Math.log10(n) / 3), SUFFIX.length - 1);
+  const s = SUFFIX[tier];
+  const v = n / Math.pow(1000, tier);
+  return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v).toString()) + s;
+}
+function fmtTime(sec) {
+  sec = Math.floor(sec);
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  if (h) return `${h} sa ${m} dk`;
+  if (m) return `${m} dk ${s} sn`;
+  return `${s} sn`;
+}
+
+// ---------------------------------------------------------------------
+// Save
+// ---------------------------------------------------------------------
+const KEY = 'motorworks_save';
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+// `wiped` exists for jeReset. Clearing the key and reloading was not enough:
+// the reload fires pagehide, pagehide saves, and the state that was just
+// deleted is written straight back. Every test that thought it started from
+// a clean save was inheriting the one before it.
+let wiped = false;
+const saveNow = () => {
+  if (wiped) return;
+  try { localStorage.setItem(KEY, JSON.stringify(G)); } catch {}
+};
+
+// ---------------------------------------------------------------------
+// Ads
+//
+// Rewarded video only. An idle game's screen is a factory the player is
+// watching and a panel they are tapping, and there is nowhere to put a
+// banner that does not sit on one of the two. Rewarded is also where the
+// money is in this genre: the player asks for it.
+//
+// Everything degrades to a no-op off-device, and showRewarded() resolves
+// true there so the browser build can still walk the flow.
+// ---------------------------------------------------------------------
+const _Cap = window.Capacitor;
+const _AdMob = _Cap && _Cap.Plugins ? _Cap.Plugins.AdMob : null;
+const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _AdMob);
+
+// Google's public test units. Motor Works has no AdMob app of its own yet;
+// swap these for the real ids and set ADS_TESTING to false before release.
+const AD_UNITS = { rewarded: 'ca-app-pub-3940256099942544/5224354917' };
+const ADS_TESTING = true;
+
+async function adsInit() {
+  if (!ADS_ON) return;
+  try { await _AdMob.initialize({ initializeForTesting: ADS_TESTING }); } catch (e) {}
+}
+function showRewarded() {
+  if (!ADS_ON) return Promise.resolve(true);
+  return new Promise(async resolve => {
+    let got = false, subR = null, subD = null;
+    const cleanup = () => { subR?.remove?.(); subD?.remove?.(); };
+    try {
+      subR = await _AdMob.addListener('onRewardedVideoAdReward', () => { got = true; });
+      subD = await _AdMob.addListener('onRewardedVideoAdDismissed', () => { cleanup(); resolve(got); });
+      await _AdMob.prepareRewardVideoAd({ adId: AD_UNITS.rewarded });
+      await _AdMob.showRewardVideoAd();
+    } catch (e) { cleanup(); resolve(false); }
+  });
+}
+adsInit();
+
+// ---------------------------------------------------------------------
+// Economy
+// ---------------------------------------------------------------------
+// The numbers that make or break the game.
+//
+// The first build gave every station the same cost curve and a baseRate that
+// fell down the chain, and it was unplayable: dispatch was the bottleneck
+// from level one and cost two hundred times the foundry, so for the first
+// quarter of an hour nothing the player bought moved the income at all.
+//
+// The second attempt spread the starting costs instead — 15 up to 4200 —
+// and gave the later stations a bigger baseRate to compensate. Playing it by
+// always buying the bottleneck ended at levels 14/5/4/2: a station's level
+// at a given bankroll goes as log(cash / baseCost), so one costing 280 times
+// another sits about forty levels below it, and no rate multiplier bridges a
+// gap that size. Half the money went into a foundry already twice as fast as
+// anything downstream could use.
+//
+// So the four now START at nearly the same price and differ in how fast the
+// price CLIMBS. That keeps every station affordable from the first minute,
+// and the levels drift apart slowly instead of starting apart: the cheap-to-
+// climb stations lead early, the shallow ones overtake late, and the
+// bottleneck walks up and down the chain the whole way. baseRate is 1 for
+// all four — with the costs this close there is nothing left to compensate
+// for, and a flat rate is one less thing that has to be right.
+//
+// The growth rates themselves started at 1.2 down to 1.128 and had to come
+// down to 1.09-1.075. Cost climbs as g^level while income climbs with level:
+// an exponential against a straight line, and the exponential always wins in
+// the end. At 1.2 it won at level 70, about half an hour in, and the three
+// hours after that bought seventeen more levels. Flatter curves move the
+// wall out far enough for a run to be worth playing. Prestige is what gets
+// past it.
+const STATIONS = [
+  { id: 'foundry',  name: 'Döküm',    icon: '🔥', unit: 'külçe',
+    baseRate: 1, baseCost: 15, costGrow: 1.090, mgrCost: 4.0e4, cap: 1000 },
+  { id: 'stamping', name: 'Pres',     icon: '🔩', unit: 'panel',
+    baseRate: 1, baseCost: 22, costGrow: 1.085, mgrCost: 1.1e5, cap: 1000 },
+  { id: 'assembly', name: 'Montaj',   icon: '🤖', unit: 'araba',
+    baseRate: 1, baseCost: 32, costGrow: 1.080, mgrCost: 3.0e5, cap: 1000 },
+  { id: 'dispatch', name: 'Sevkiyat', icon: '🚛', unit: 'sevkiyat',
+    baseRate: 1, baseCost: 45, costGrow: 1.075, mgrCost: 8.0e5, cap: 1000, price: 10 },
+];
+const LAST = STATIONS.length - 1;
+
+// A manager doubles a station and is priced like a milestone rather than an
+// upgrade: it is the thing you save for when every next level feels the same.
+const MGR_MULT = 2;
+
+// Ürün hattı.
+//
+// Fabrikanın en büyük eksiği görünmemekti: beşinci dakikada da üçüncü saatte
+// de aynı şehir arabası çıkıyordu, sadece tezgâh sayısı artıyordu. Idle
+// oyunda ilerlemenin gözle görülmesi gerekiyor.
+//
+// Kademe, ZİNCİRİN EN ZAYIF halkasına bakıyor — en güçlüsüne değil. Tek bir
+// istasyonu yükselterek yeni ürün açmak, oyunun bütün öğrettiği "dengeli
+// büyüt" fikrinin tam tersi olurdu.
+const PRODUCTS = [
+  { name: 'Şehir',    at: 0,   mult: 1,   body: '#3f7de0', roof: '#356ec9', big: 1.00 },
+  { name: 'SUV',      at: 45,  mult: 3.2, body: '#3f9a6a', roof: '#33805a', big: 1.14 },
+  { name: 'Kamyonet', at: 110, mult: 10,  body: '#e8a33a', roof: '#c9861e', big: 1.26 },
+  { name: 'Spor',     at: 220, mult: 34,  body: '#d9483a', roof: '#b93a2e', big: 1.08 },
+  { name: 'Lüks',     at: 400, mult: 115, body: '#8a52d0', roof: '#7343b3', big: 1.18 },
+];
+const productTier = () => {
+  const weakest = Math.min(...G.lvl);
+  let t = 0;
+  for (let i = 0; i < PRODUCTS.length; i++) if (weakest >= PRODUCTS[i].at) t = i;
+  return t;
+};
+const product = () => PRODUCTS[productTier()];
+const nextProduct = () => PRODUCTS[productTier() + 1] || null;
+const unitPrice = () => STATIONS[LAST].price * product().mult * (1 + resLvl('price') * 0.05);
+
+// Milestones. Levelling a station adds one unit of rate whatever level it is
+// at, so past the first hour every purchase felt identical and the game was
+// over. These double the whole station as it passes each mark, which turns a
+// flat climb into a series of targets — the genre's answer, and the reason
+// an idle game can hold someone for a week rather than an evening.
+//
+// Nine of them, doubling each time: a station at 1000 is 512 times itself
+// before its level is even counted.
+const MILESTONES = [10, 25, 50, 100, 200, 350, 500, 750, 1000];
+const milestonesHit = i => {
+  let n = 0;
+  for (const m of MILESTONES) if (G.lvl[i] >= m) n++;
+  return n;
+};
+const nextMilestone = i => MILESTONES.find(m => G.lvl[i] < m) || null;
+
+// A short burst of speed, on a cooldown. It exists to be sold: this is where
+// a rewarded video goes, and the shape is already right — the player asks
+// for it, it runs out, they can ask again.
+const BOOST_MULT = 3;
+const BOOST_SECS = 180;
+const boostSecs = () => BOOST_SECS + resLvl('boost') * 15;
+const BOOST_COOL = 900;
+const BUFFER_MAX = 40;       // how much a station may stockpile ahead
+const OFFLINE_BASE = 4 * 3600;
+const offlineCap = () => OFFLINE_BASE + resLvl('offline') * 3600;
+
+const G = Object.assign({
+  cash: 0,
+  totalEarned: 0,
+  branches: 0,
+  lifetime: 0,            // earned across every branch, what points come off
+  lvl: [1, 1, 1, 1],
+  mgr: [false, false, false, false],
+  buf: [0, 0, 0],            // one buffer between each pair
+  muted: false,
+  seen: Date.now(),
+  boostUntil: 0,
+  boostReady: 0,
+  dayLast: 0,             // gün numarası, ardışıklığı bundan buluyoruz
+  dayStreak: 0,
+  boosts: 0,
+  claimed: [],            // alınan görev ödülleri
+  res: {},                // araştırma seviyeleri, puanla alınıyor
+}, load());
+if (!Array.isArray(G.claimed)) G.claimed = [];
+if (!G.res || typeof G.res !== 'object') G.res = {};
+// A save from an older build can be short an array entry; a missing level
+// silently becomes NaN and the whole economy goes to nothing.
+while (G.lvl.length < STATIONS.length) G.lvl.push(0);
+while (G.mgr.length < STATIONS.length) G.mgr.push(false);
+while (G.buf.length < STATIONS.length - 1) G.buf.push(0);
+
+// Prestige points, and the whole late game.
+//
+// A flat +25% per branch was worthless: past the wall a run has to come back
+// several times stronger, not a quarter stronger, or there is no reason to
+// hand in a working factory. Points come off the square root of everything
+// ever earned, so a longer run is worth more but with diminishing returns —
+// which keeps the second branch reachable without making the tenth trivial.
+// Calibrated against a played run rather than guessed: a first run stalls
+// around twenty minutes having earned a few million, and that has to be
+// worth coming back for. At 1e9 the same run banked five points — a two per
+// cent raise for handing in the whole factory, which nobody would take.
+const pointsFor = t => {
+  const p = Math.floor(20 * Math.sqrt(Math.max(0, t) / 1e6));
+  return Number.isFinite(p) ? p : 0;
+};
+const MIN_POINTS = 30;                   // do not offer a reset worth less
+const bankedPoints = () => pointsFor(G.lifetime);
+const pendingPoints = () => pointsFor(G.lifetime + G.totalEarned) - bankedPoints();
+
+// ---------------------------------------------------------------------
+// Research — what the points are actually for
+// ---------------------------------------------------------------------
+// The multiplier used to be `1 + points * 0.02` and nothing else: points
+// arrived, the number went up, and the player never made a decision about
+// them. Prestige is the whole late game and it had no choice in it.
+//
+// So the points are spent now. The costs are deliberately **flat** per
+// level rather than geometric: with a geometric ladder the multiplier grows
+// like the log of the points, and the late game — where a branch banks
+// thousands — flattens into nothing. Flat costs keep the trade honest at
+// every scale.
+//
+// `line` is priced at exactly 1 point for +2%, so a player who puts
+// everything into it lands on the old curve to the digit. Nothing about the
+// balance measured over three attempts moves; the other six upgrades are
+// what those points now compete against. The utility ones are capped, which
+// is what makes them a real decision early and a solved one late: past a
+// few branches they are all maxed and `line` is the only sink left.
+const RES = [
+  { id: 'line',    name: 'Hat hızı',       icon: '⚙️',  cost: 1, cap: Infinity,
+    text: l => `+${(l * 2)}% bütün istasyonlar`,        step: '+2% hız' },
+  { id: 'price',   name: 'Ürün kalitesi',  icon: '💎', cost: 3, cap: 60,
+    text: l => `+${(l * 5)}% araç fiyatı`,               step: '+5% fiyat' },
+  { id: 'cheap',   name: 'Toplu alım',     icon: '🏷️', cost: 5, cap: 30,
+    text: l => `-${+(l * 1.5).toFixed(1)}% yükseltme`,   step: '-1.5% maliyet' },
+  { id: 'mgr',     name: 'İnsan kaynak.',  icon: '👔', cost: 4, cap: 15,
+    text: l => `-${(l * 4)}% müdür ücreti`,              step: '-4% müdür' },
+  { id: 'start',   name: 'Hazır hat',      icon: '🏗️', cost: 6, cap: 10,
+    text: l => `yeni şube ${1 + l}. seviyeden`,          step: '+1 başlangıç' },
+  { id: 'offline', name: 'Gece vardiyası', icon: '🌙', cost: 8, cap: 12,
+    text: l => `${4 + l} saat çevrimdışı`,               step: '+1 saat' },
+  { id: 'boost',   name: 'Turbo',          icon: '🚀', cost: 6, cap: 20,
+    text: l => `${180 + l * 15} sn hızlandırma`,         step: '+15 sn' },
+];
+const resLvl = id => G.res[id] | 0;
+const spentPoints = () => RES.reduce((a, r) => a + r.cost * resLvl(r.id), 0);
+const freePoints  = () => Math.max(0, bankedPoints() - spentPoints());
+
+// Linear in points, and that is now enough.
+//
+// This was 1.02^points for a while. The compound form was put in because a
+// straight line converged: six branches gained 59%, 10%, 21%, 10%, 4% and
+// then there was no reason to hand the factory in again. But that
+// convergence was an artefact of the buffer ceiling — reach could not grow,
+// so only income did, and income alone feeds a square root back through a
+// line and lands on a fixed point.
+//
+// With the ceiling gone reach grows on its own: branch 2 now reaches level
+// 245 where branch 1 reached 150. A linear multiplier is plenty on top of
+// that, and the compound one was catastrophic — 2.9e107 by branch three,
+// Infinity by branch four, and NaN in the save from then on.
+const branchMult = () => 1 + resLvl('line') * 0.02;
+const boostLeft = () => Math.max(0, (G.boostUntil - Date.now()) / 1000);
+const boostMult = () => (boostLeft() > 0 ? BOOST_MULT : 1);
+const rateOf = i =>
+  G.lvl[i] * STATIONS[i].baseRate
+  * Math.pow(2, milestonesHit(i))
+  * (G.mgr[i] ? MGR_MULT : 1)
+  * branchMult() * boostMult();
+// Research discounts multiply the whole ladder, so the geometric sum and its
+// inverse below stay exact rather than needing a per-level correction.
+const cheapMult = () => 1 - resLvl('cheap') * 0.015;
+const mgrCostOf = i => STATIONS[i].mgrCost * (1 - resLvl('mgr') * 0.04);
+const costOf = (i, n) => {
+  // sum of a geometric run, so "buy 10" is one number rather than ten
+  const s = STATIONS[i], g = s.costGrow;
+  const first = s.baseCost * Math.pow(g, G.lvl[i]) * cheapMult();
+  return first * (Math.pow(g, n) - 1) / (g - 1);
+};
+const affordable = i => {
+  const s = STATIONS[i], g = s.costGrow;
+  const first = s.baseCost * Math.pow(g, G.lvl[i]) * cheapMult();
+  if (G.cash < first) return 0;
+  // invert the geometric sum for the largest n the cash covers
+  const n = Math.floor(Math.log(1 + (G.cash * (g - 1)) / first) / Math.log(g));
+  return Math.max(0, Math.min(n, STATIONS[i].cap - G.lvl[i]));
+};
+
+// The chain's throughput, and which link is holding it back. Reported rather
+// than inferred so the panel and the menu cannot disagree about it.
+function chain() {
+  let flow = Infinity, neck = 0;
+  for (let i = 0; i < STATIONS.length; i++) {
+    const r = rateOf(i);
+    if (r < flow) { flow = r; neck = i; }
+  }
+  return { flow, neck, income: flow * unitPrice() };
+}
+
+// How much station i may stockpile before the one after it.
+//
+// Storage is measured in SECONDS of what the next station can consume, not
+// in units. A fixed ceiling — it was 480 — throttles the entire economy the
+// moment rates pass it: a station can only move one buffer's worth per step,
+// so beyond that point the chain runs at the cap rather than at its own
+// speed. Measured with a prestige multiplier of 1e86 the readout said 1e79
+// a second while the bank took 218K a minute, levels stalled at 144, and
+// every prestige point past the first few bought nothing at all.
+//
+// Six seconds is enough to show a backlog building when a station falls
+// behind, which is all the buffer is for.
+const roomOf = i => Math.max(BUFFER_MAX, rateOf(i + 1) * 6);
+
+// One step of the factory. Stations pull from the buffer behind them, so a
+// starved station simply does less — no special case for it.
+//
+// A long span is walked in steps rather than passed through in one go. The
+// buffers are what make this a pipeline instead of a formula: in a single
+// big step each station can only move one buffer's worth however long the
+// step was, so a twenty-second catch-up paid out about a second's work.
+function runFactory(dt) {
+  const steps = dt > 1.05 ? Math.min(400, Math.ceil(dt)) : 1;
+  const h = dt / steps;
+  let earned = 0;
+  for (let n = 0; n < steps; n++) {
+    for (let i = LAST; i >= 0; i--) {
+      let made = rateOf(i) * h;
+      if (i > 0) made = Math.min(made, G.buf[i - 1]);        // limited by supply
+      if (i < LAST) made = Math.min(made, Math.max(0, roomOf(i) - G.buf[i]));
+      if (made <= 0) continue;
+      if (i > 0) G.buf[i - 1] -= made;
+      if (i < LAST) G.buf[i] += made;
+      // No branch multiplier here: rateOf() already carries it, and applying
+      // it again squared the bonus — the readout and the bank disagreed from
+      // the first prestige onwards.
+      else earned += made * unitPrice();
+    }
+  }
+  // Bir kez sonsuza ya da NaN'a düşen kayıt bir daha düzelmiyor: bütün
+  // ekonomi o değerden besleniyor ve oyuncunun elinde kurtarılamaz bir
+  // dosya kalıyor. Tek satırlık bekçi, üstel bir ekonomide ucuz sigorta.
+  if (!Number.isFinite(earned)) return 0;
+  G.cash += earned;
+  G.totalEarned += earned;
+  return earned;
+}
+
+// Away time is not simulated at all. Over anything longer than a few seconds
+// a pipeline settles: it runs at the rate of its slowest link, the buffers
+// ahead of that link sit full and the ones behind it sit empty. That is a
+// closed form, and stepping four hours a second at a time gave the same
+// answer for fourteen thousand times the work.
+function offlineCatchUp() {
+  const gone = Math.min(offlineCap(), Math.max(0, (Date.now() - G.seen) / 1000));
+  if (gone < 60) return null;
+  const ch = chain();
+  const got = ch.flow * unitPrice() * gone;
+  for (let i = 0; i < G.buf.length; i++) G.buf[i] = i < ch.neck ? roomOf(i) : 0;
+  G.cash += got;
+  G.totalEarned += got;
+  return got > 0 ? { gone, got } : null;
+}
+
+// ---------------------------------------------------------------------
+// Scene
+// ---------------------------------------------------------------------
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+app.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#2b2f38');
+scene.fog = new THREE.Fog('#2b2f38', 46, 92);
+
+// Orthographic: the factory is a diorama the player looks at, not a place
+// they move through, and perspective made the far station a third the size
+// of the near one for no gain.
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -50, 120);
+// Wide enough to hold all four bays at once. The first framing was half
+// this and sat inside the assembly line: handsome, and useless — the chain
+// is the whole idea, and you could see one link of it.
+let VIEW_H = 36;
+// The station panel owns the bottom of the screen, so the frustum is pushed
+// down in camera space to lift the factory clear of it. Centring the view
+// and letting the panel cover the last bay was the alternative.
+let VIEW_SHIFT = -0.17;
+function fit() {
+  const a = innerWidth / innerHeight;
+  const off = VIEW_H * VIEW_SHIFT;
+  camera.top = VIEW_H / 2 + off; camera.bottom = -VIEW_H / 2 + off;
+  camera.left = -VIEW_H * a / 2; camera.right = VIEW_H * a / 2;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+}
+addEventListener('resize', fit);
+
+scene.add(new THREE.HemisphereLight('#cfe0ff', '#39404c', 0.85));
+const sun = new THREE.DirectionalLight('#fff4dc', 1.05);
+sun.position.set(9, 20, 12);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.near = 1; sun.shadow.camera.far = 60;
+sun.shadow.camera.left = -20; sun.shadow.camera.right = 20;
+sun.shadow.camera.top = 22; sun.shadow.camera.bottom = -22;
+sun.shadow.bias = -0.0007;
+sun.target.position.set(0, 0, -11);
+scene.add(sun, sun.target);
+
+function newCanvas(w, h = w) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  return [c, c.getContext('2d')];
+}
+function finish(c) {
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+
+function yardTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#6b6f78';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 1400; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.09;
+    ctx.fillStyle = Math.random() < 0.5 ? '#585c64' : '#82868f';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // A shop floor is marked out. The painted bay lines are what stop the
+  // concrete reading as fog, and they give the four stations a place to be
+  // rather than four models standing on grey.
+  ctx.strokeStyle = 'rgba(240,200,60,.5)';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(3, 3, S - 6, S - 6);
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = '#20232a';
+  for (let i = 0; i < 6; i++) ctx.fillRect(0, 20 + i * 40, S, 3);
+  ctx.globalAlpha = 1;
+  const t = finish(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(6, 12);
+  return t;
+}
+
+const yard = new THREE.Mesh(
+  new THREE.PlaneGeometry(30, 60),
+  new THREE.MeshStandardMaterial({ map: yardTexture(), roughness: 0.95 }));
+yard.rotation.x = -Math.PI / 2;
+yard.position.set(0, 0, -11);
+yard.receiveShadow = true;
+scene.add(yard);
+
+const MAT = (col, rough = 0.6, metal = 0) =>
+  new THREE.MeshStandardMaterial({ color: col, roughness: rough, metalness: metal });
+const GLOW = (col, i = 1.1) =>
+  new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: i, roughness: 0.4 });
+function put(parent, mesh, x, y, z, rx = 0, ry = 0, rz = 0) {
+  mesh.position.set(x, y, z);
+  mesh.rotation.set(rx, ry, rz);
+  mesh.castShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+
+// --- the four bays ----------------------------------------------------
+// Each is a Group at its own z. `grow` holds the parts that only appear as
+// the station levels up, so a busy factory looks busy without a second model.
+// `moving` holds whatever should animate while the station is running, which
+// is the difference between a factory and a model of one.
+const BAY_Z = [-1.5, -8.5, -15.5, -22.5];
+const bays = [];
+
+const DECK = (g, col) =>
+  put(g, new THREE.Mesh(new THREE.BoxGeometry(9, 0.3, 5.4), MAT(col, 0.88)), 0, 0.15, 0);
+
+// Foundry: furnaces with the fire showing. The glow is the point — it is the
+// only warm thing in a grey yard, so the eye starts at the top of the chain.
+function foundryBay() {
+  const g = new THREE.Group(), grow = [], moving = [];
+  DECK(g, '#5a5f68');
+  const shell = MAT('#8a5a3a', 0.75), steel = MAT('#9aa3ad', 0.4, 0.55);
+  const tierMats = [steel];
+  for (let i = 0; i < 6; i++) {
+    const u = new THREE.Group();
+    u.position.set(-3.3 + (i % 3) * 3.3, 0.3, i < 3 ? -1.2 : 1.4);
+    put(u, new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.92, 1.6, 12), shell), 0, 0.8, 0);
+    put(u, new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 1.5, 10), steel), 0.05, 2.2, 0);
+    // the mouth
+    const fire = put(u, new THREE.Mesh(new THREE.CircleGeometry(0.42, 14), GLOW('#ff6a1e', 1.4)),
+                     0, 0.85, 0.93);
+    moving.push({ m: fire, kind: 'fire' });
+    // ingots cooling on the rack
+    for (let k = 0; k < 3; k++)
+      put(u, new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.16, 0.26), MAT('#c9822f', 0.45, 0.5)),
+          -0.55 + k * 0.5, 0.12, 1.5);
+    g.add(u);
+    if (i >= 1) { u.visible = false; grow.push(u); }
+  }
+  return { g, grow, moving, tierMats };
+}
+
+// Stamping: a press is a hammer that comes down. Nothing else on the floor
+// moves on a beat, so this is what tells you the line is running.
+function stampBay() {
+  const g = new THREE.Group(), grow = [], moving = [];
+  DECK(g, '#5c6570');
+  const frame = MAT('#7d868f', 0.45, 0.45), body = MAT('#3f7de0', 0.4, 0.2);
+  const tierMats = [frame];
+  for (let i = 0; i < 6; i++) {
+    const u = new THREE.Group();
+    u.position.set(-3.3 + (i % 3) * 3.3, 0.3, i < 3 ? -1.2 : 1.4);
+    for (const sx of [-0.8, 0.8])
+      put(u, new THREE.Mesh(new THREE.BoxGeometry(0.24, 2.1, 0.24), frame), sx, 1.05, 0);
+    put(u, new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.3, 1.3), frame), 0, 2.15, 0);
+    put(u, new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.26, 1.4), MAT('#5a626c', 0.6, 0.4)), 0, 0.16, 0);
+    const ram = put(u, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.55, 1.05), body), 0, 1.5, 0);
+    moving.push({ m: ram, kind: 'ram', phase: i * 0.7 });
+    // stacked panels beside the press
+    for (let k = 0; k < 4; k++)
+      put(u, new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.06, 0.7), MAT('#aeb6c0', 0.35, 0.6)),
+          0, 0.34 + k * 0.08, 1.55);
+    g.add(u);
+    if (i >= 1) { u.visible = false; grow.push(u); }
+  }
+  return { g, grow, moving, tierMats };
+}
+
+// Assembly: robot arms over a line with car bodies on it. The arms sweep, so
+// the busiest-looking bay is the one in the middle of the chain, which is
+// where the player's eye should be.
+function assemblyBay() {
+  const g = new THREE.Group(), grow = [], moving = [];
+  DECK(g, '#5c6570');
+  put(g, new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.22, 1.5), MAT('#3d444e', 0.7, 0.3)), 0, 0.4, -0.2);
+  const arm = MAT('#f2a23a', 0.4, 0.25), joint = MAT('#3d444e', 0.5, 0.5);
+  const tierMats = [arm];
+  // Gövdeler üretilen ürünün rengini alıyor; malzemeler saklanıyor ki
+  // kademe atlayınca yerinde değiştirilebilsin.
+  const bodyMats = [];
+  for (let i = 0; i < 6; i++) {
+    const u = new THREE.Group();
+    u.position.set(-3.5 + (i % 3) * 3.5, 0.3, i < 3 ? -0.2 : 1.6);
+
+    // a car body on the line, in the colour this cell is running
+    const car = new THREE.Group();
+    car.position.set(0, 0.55, 0);
+    const paint = MAT(product().body, 0.35);
+    bodyMats.push(paint);
+    put(car, new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.3, 1.9), paint), 0, 0.2, 0);
+    put(car, new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.32, 0.9), paint), 0, 0.5, -0.1);
+    for (const sx of [-0.5, 0.5]) for (const sz of [-0.62, 0.62])
+      put(car, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.14, 10), MAT('#26262c', 0.8)),
+          sx, 0.2, sz, 0, 0, Math.PI / 2);
+    u.add(car);
+    moving.push({ m: car, kind: 'slide', phase: i * 0.9, base: 0 });
+
+    // the arm reaching over it
+    const a = new THREE.Group();
+    a.position.set(0.95, 0.42, 0.75);
+    put(a, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.32, 0.34, 10), joint), 0, 0.17, 0);
+    const upper = new THREE.Group();
+    upper.position.y = 0.34;
+    a.add(upper);
+    put(upper, new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.0, 0.2), arm), 0, 0.5, 0);
+    const fore = new THREE.Group();
+    fore.position.y = 1.0;
+    upper.add(fore);
+    put(fore, new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 1.0), arm), 0, 0, -0.5);
+    put(fore, new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), joint), 0, 0, -1.0);
+    u.add(a);
+    moving.push({ m: upper, kind: 'arm', phase: i * 1.3, fore });
+
+    g.add(u);
+    if (i >= 1) { u.visible = false; grow.push(u); }
+  }
+  return { g, grow, moving, bodyMats, tierMats, cars: moving.filter(p => p.kind === 'slide') };
+}
+
+// Dispatch: car transporters, loaded. The ramp and the cars on the deck are
+// what make it a transporter rather than a lorry.
+function dispatchBay() {
+  const g = new THREE.Group(), grow = [], moving = [], loadMats = [];
+  const rail = MAT('#8a929c', 0.5, 0.4), post = MAT('#6d757f', 0.5, 0.4);
+  const tierMats = [rail, post];
+  DECK(g, '#4c5560');
+  put(g, new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.06, 1.2), MAT('#e8d060', 0.8)), 0, 0.32, 2.0);
+  for (let i = 0; i < 4; i++) {
+    const t = new THREE.Group();
+    t.position.set(-3.2 + i * 2.15, 0.3, -0.5);
+    const paint = MAT(['#2f7de0', '#d9483a', '#e8a33a', '#3f9a6a'][i], 0.35);
+    // cab
+    put(t, new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.8, 1.0), paint), 0, 0.78, 1.5);
+    put(t, new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.34, 0.09), MAT('#9fd8f5', 0.15)), 0, 0.92, 2.0);
+    // trailer decks
+    put(t, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.12, 3.0), rail), 0, 0.55, -0.6);
+    put(t, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.12, 2.6), rail), 0, 1.45, -0.7);
+    for (const sz of [-2.0, 0.8])
+      put(t, new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), post), 0.5, 1.0, sz);
+    // Yük: taşınan şey neyse o. Fabrika lüks araba üretirken tırda hâlâ
+    // şehir arabası duruyorsa zincirin sonu yalan söylüyor demektir.
+    for (let k = 0; k < 4; k++) {
+      const m = MAT(k % 2 ? product().body : product().roof, 0.35);
+      const c = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.32, 1.15), m);
+      put(t, c, 0, k < 2 ? 0.77 : 1.67, (k % 2 ? -1.5 : -0.1));
+      loadMats.push(m);
+    }
+    const tyre = new THREE.CylinderGeometry(0.26, 0.26, 0.2, 12), rub = MAT('#26262c', 0.8);
+    for (const sx of [-0.58, 0.58]) for (const sz of [-1.8, -0.4, 1.5])
+      put(t, new THREE.Mesh(tyre, rub), sx, 0.26, sz, 0, 0, Math.PI / 2);
+    g.add(t);
+    moving.push({ m: t, kind: 'bob', phase: i * 1.1, base: 0.3 });
+    if (i >= 1) { t.visible = false; grow.push(t); }
+  }
+  return { g, grow, moving, loadMats, tierMats };
+}
+
+// --- the factory has to look like it is getting somewhere ---------------
+//
+// Every bay hides five of its six units and reveals them at level/6, so the
+// floor fills up over the first thirty levels and then never changes again.
+// A player runs to level 250 and hands the factory in six times seeing
+// exactly the same picture — measured side by side, branch 1 at level 150
+// and branch 6 at level 230 were pixel-identical.
+//
+// So the equipment itself is re-fitted at each pair of milestones. Only the
+// accent parts change — the chimneys, the press frames, the arms, the
+// trailer rails — because recolouring a furnace stops it reading as a
+// furnace. Silhouette stays, finish improves: rusted iron, plain steel,
+// works blue, chrome, gold.
+//
+// The ramp is brightness, not hue. A middle tier of works blue was tried and
+// it painted every chimney, press frame and robot arm the same strong colour
+// at once — the whole factory went one shade and read worse than the grey it
+// replaced. And metalness has to stay low whatever it looks like in an
+// editor: there is no environment map in this scene, so a metal surface has
+// nothing to reflect and renders near black.
+const TIERS = [
+  { col: '#8a929c', rough: 0.62, metal: 0.10, name: 'demir' },
+  { col: '#a6b0bb', rough: 0.50, metal: 0.16, name: 'çelik' },
+  { col: '#c4cdd8', rough: 0.38, metal: 0.22, name: 'parlak çelik' },
+  { col: '#e4ebf3', rough: 0.26, metal: 0.28, name: 'krom' },
+  { col: '#f0c85a', rough: 0.30, metal: 0.30, name: 'altın' },
+];
+// Nine milestones, five fittings: a re-fit every second milestone, and the
+// last one is where a long-running branch ends up rather than a place
+// nobody sees.
+const tierOf = i => Math.min(TIERS.length - 1, Math.floor(milestonesHit(i) / 2));
+
+const shownTiers = [-1, -1, -1, -1];
+let shownBranches = -1;
+
+// Finished stock parked along the far side of the yard, one row per branch
+// handed in. They are built once and hidden; a prestige simply shows the
+// next one, so the reward lands the moment the button is pressed.
+// Kept small on purpose. Three cars a row two columns wide was busier than
+// the factory by the sixth branch and the eye went to the car park instead
+// of the line it is supposed to be reading; and the near column sat on top
+// of the assembly deck. Two cars, further out, one column.
+const PARK_MAX = 10;
+const parked = [];
+{
+  const yardG = new THREE.Group();
+  const shell = MAT('#7f8792', 0.55, 0.3);
+  const tyre = new THREE.CylinderGeometry(0.2, 0.2, 0.16, 10), rub = MAT('#26262c', 0.85);
+  const glassM = MAT('#9fd8f5', 0.2);
+  const COLS = ['#3f7de0', '#d9483a', '#e8a33a', '#3f9a6a', '#8a6ad9', '#d95fa0'];
+  for (let k = 0; k < PARK_MAX; k++) {
+    const row = new THREE.Group();
+    // one column down the far left, walking away from the camera
+    row.position.set(-8.2, 0, -14 - k * 3.0);
+    for (let c = 0; c < 2; c++) {
+      const car = new THREE.Group();
+      car.position.set(0, 0, -c * 1.5 - 0.2);
+      car.rotation.y = Math.PI / 2;
+      const paint = MAT(COLS[(k * 2 + c) % COLS.length], 0.35);
+      put(car, new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.28, 1.8), paint), 0, 0.34, 0);
+      put(car, new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.3, 0.85), paint), 0, 0.62, -0.1);
+      put(car, new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.2, 0.06), glassM), 0, 0.64, 0.33);
+      for (const sx of [-0.47, 0.47]) for (const sz of [-0.6, 0.6])
+        put(car, new THREE.Mesh(tyre, rub), sx, 0.2, sz, 0, 0, Math.PI / 2);
+      row.add(car);
+    }
+    // a low kerb so the row reads as a bay rather than cars left on concrete
+    put(row, new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.18), shell), 0, 0.06, 1.0);
+    row.visible = false;
+    yardG.add(row);
+    parked.push(row);
+  }
+  scene.add(yardG);
+}
+
+const BUILDERS = [foundryBay, stampBay, assemblyBay, dispatchBay];
+for (let i = 0; i < 4; i++) {
+  const b = BUILDERS[i]();
+  b.g.position.z = BAY_Z[i];
+  scene.add(b.g);
+  bays.push(b);
+}
+
+// --- conveyors --------------------------------------------------------
+// The belt's texture scrolls at the rate the chain is actually running, so
+// the factory speeding up is something you see before you read it.
+function beltTexture() {
+  const S = 64, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#33383f'; ctx.fillRect(0, 0, S, S);
+  ctx.fillStyle = '#4a515a';
+  for (let i = 0; i < 4; i++) ctx.fillRect(0, i * 16, S, 7);
+  const t = finish(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(1, 6);
+  return t;
+}
+const belts = [];
+for (let i = 0; i < 3; i++) {
+  const z0 = BAY_Z[i] - 2.7, z1 = BAY_Z[i + 1] + 2.7;
+  const len = z0 - z1;
+  const g = new THREE.Group();
+  g.position.set(0, 0, (z0 + z1) / 2);
+  const map = beltTexture();
+  map.repeat.set(1, Math.round(len * 1.5));
+  const belt = put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.22, len),
+    new THREE.MeshStandardMaterial({ map, roughness: 0.75 })), 0, 0.62, 0);
+  belt.receiveShadow = true;
+  for (const sx of [-0.8, 0.8])
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.7, len), MAT('#5c6570', 0.6, 0.3)), sx, 0.35, 0);
+  scene.add(g);
+  belts.push({ map, len, z0, z1, crates: [] });
+}
+
+// Crates riding the belts. Pooled: a factory running at speed spawns dozens a
+// second, and building a mesh for each was the one thing that made the phone
+// warm.
+// What rides each belt: glowing ingots off the furnaces, steel panels off
+// the presses, finished cars off assembly. Three belts, three cargoes — the
+// same box in three colours would have made the chain look like one step
+// repeated.
+const CRATE_MAT = [GLOW('#e8791e', 0.55), MAT('#aeb6c0', 0.3, 0.7), MAT('#d9483a', 0.35)];
+// Üçüncü bant montajdan çıkan bitmiş arabaları taşıyor, yani onun rengi de
+// ürünle değişmeli.
+const CRATE_SHAPE = [
+  new THREE.BoxGeometry(0.46, 0.22, 0.46),
+  new THREE.BoxGeometry(0.66, 0.08, 0.5),
+  new THREE.BoxGeometry(0.5, 0.3, 0.8),
+];
+const cratePool = [];
+function takeCrate(kind) {
+  const m = cratePool.pop() || new THREE.Mesh(CRATE_SHAPE[0], CRATE_MAT[0]);
+  m.geometry = CRATE_SHAPE[kind];
+  m.material = CRATE_MAT[kind];
+  m.castShadow = true;
+  m.visible = true;
+  scene.add(m);
+  return m;
+}
+function dropCrate(m) { scene.remove(m); m.visible = false; cratePool.push(m); }
+
+fit();
+
+// ---------------------------------------------------------------------
+// Panel
+// ---------------------------------------------------------------------
+let bulk = 1;
+const rows = [];
+const stationsEl = $('stations');
+
+for (let i = 0; i < STATIONS.length; i++) {
+  const s = STATIONS[i];
+  const el = document.createElement('div');
+  el.className = 'st';
+  el.innerHTML = `
+    <div class="ico">${s.icon}<b>0</b></div>
+    <div class="mid">
+      <div class="nm">${s.name}</div>
+      <div class="sub">—</div>
+      <div class="meta"></div>
+      <div class="buf"><i></i></div>
+    </div>
+    <button class="buy"></button>
+    <button class="buy mgr" style="display:none"></button>`;
+  stationsEl.appendChild(el);
+  rows.push({
+    el,
+    lvl: el.querySelector('.ico b'),
+    sub: el.querySelector('.sub'),
+    meta: el.querySelector('.meta'),
+    buf: el.querySelector('.buf i'),
+    bufWrap: el.querySelector('.buf'),
+    buy: el.querySelector('.buy'),
+    mgr: el.querySelector('.buy.mgr'),
+  });
+  rows[i].buy.onclick = () => buyLevels(i);
+  rows[i].mgr.onclick = () => buyManager(i);
+}
+
+for (const b of $('bulk').querySelectorAll('button')) {
+  b.onclick = () => {
+    bulk = b.dataset.n === 'max' ? 'max' : +b.dataset.n;
+    for (const o of $('bulk').querySelectorAll('button')) o.classList.toggle('on', o === b);
+    refreshPanel();
+  };
+}
+
+function buyCount(i) {
+  if (bulk === 'max') return affordable(i);
+  return Math.min(bulk, STATIONS[i].cap - G.lvl[i]);
+}
+
+function buyLevels(i) {
+  const n = buyCount(i);
+  if (n <= 0) return;
+  const c = costOf(i, n);
+  if (G.cash < c) return;
+  G.cash -= c;
+  G.lvl[i] += n;
+  ping(520 + i * 90);
+  refreshPanel();
+  saveNow();
+}
+
+function buyManager(i) {
+  const price = mgrCostOf(i);
+  if (G.mgr[i] || G.cash < price) return;
+  G.cash -= price;
+  G.mgr[i] = true;
+  ping(880, 0.2);
+  refreshPanel();
+  saveNow();
+}
+
+function refreshPanel() {
+  const ch = chain();
+  for (let i = 0; i < STATIONS.length; i++) {
+    const s = STATIONS[i], r = rows[i];
+    const n = buyCount(i);
+    const cost = n > 0 ? costOf(i, n) : Infinity;
+    r.lvl.textContent = G.lvl[i];
+    r.el.classList.toggle('neck', i === ch.neck);
+    const hits = milestonesHit(i), nxt = nextMilestone(i);
+    r.sub.textContent = `${fmt(rateOf(i))} ${s.unit}/sn`;
+    // A full bar turning red was meant to be self-explanatory and it was not:
+    // the first person to play it on a phone asked what red meant while three
+    // stations sat blocked and the answer — buy the one marked DARBOĞAZ — was
+    // on the same screen. The bar says what is wrong; it never said what to
+    // do about it, so it now names the station everything is waiting for.
+    const blocked = i < LAST && G.buf[i] >= roomOf(i) * 0.92;
+    const bits = [];
+    if (i === ch.neck) bits.push('<em>DARBOĞAZ</em>');
+    else if (blocked) bits.push(`<u>DOLU — ${STATIONS[ch.neck].name}'ı yükselt</u>`);
+    if (hits) bits.push(`<b>×${fmt(Math.pow(2, hits))}</b>`);
+    if (G.mgr[i]) bits.push('müdür');
+    // The milestone hint is dropped while blocked. It does not fit next to
+    // the instruction and it is the one line that is not worth acting on:
+    // levelling a station whose output has nowhere to go buys nothing.
+    if (nxt && !blocked) bits.push(`${nxt}'de <b>×2</b>`);
+    r.meta.innerHTML = bits.join(' · ');
+    if (i < LAST) {
+      const p = Math.min(100, (G.buf[i] / roomOf(i)) * 100);
+      r.buf.style.width = p + '%';
+      r.buf.classList.toggle('full', blocked);
+      r.bufWrap.style.visibility = '';
+    } else {
+      r.bufWrap.style.visibility = 'hidden';
+    }
+    if (G.lvl[i] >= s.cap) {
+      r.buy.innerHTML = 'MAKS';
+      r.buy.disabled = true;
+    } else {
+      r.buy.innerHTML = `${fmt(cost)}<small>×${n || 1} seviye</small>`;
+      r.buy.disabled = !(n > 0 && G.cash >= cost);
+    }
+    // The manager only appears once the station is worth automating; before
+    // that it is a price tag the player cannot read yet.
+    const showMgr = !G.mgr[i] && G.lvl[i] >= 8;
+    r.mgr.style.display = showMgr ? '' : 'none';
+    if (showMgr) {
+      r.mgr.innerHTML = `${fmt(mgrCostOf(i))}<small>MÜDÜR ×2</small>`;
+      r.mgr.disabled = G.cash < mgrCostOf(i);
+    }
+  }
+  $('cashPill').textContent = '💰 ' + fmt(G.cash);
+  $('rate').textContent = fmt(ch.income) + ' / sn';
+  $('branchPill').textContent = '🏭 ' + (G.branches + 1);
+  const nx = nextProduct();
+  $('prodTag').innerHTML = `🚗 ${product().name}` +
+    (nx ? ` · <b>${nx.name}</b>: hepsi ${nx.at}. sv` : ' · en üst');
+}
+
+// ---------------------------------------------------------------------
+// Overlays
+// ---------------------------------------------------------------------
+// Worth doing once the run would bank at least one point; below that the
+// player would be handing in a factory for nothing.
+const canPrestige = () => pendingPoints() >= MIN_POINTS;
+const PRESTIGE_AT = () => {
+  const want = bankedPoints() + MIN_POINTS;
+  return Math.max(0, Math.pow(want / 20, 2) * 1e6 - G.lifetime - G.totalEarned);
+};
+
+$('menuBtn').onclick = () => {
+  const ch = chain();
+  $('kBranch').textContent = G.branches + 1;
+  $('kBonus').textContent = `×${fmt(branchMult())}  (${fmt(freePoints())} puan boşta)`;
+  $('resBtn').textContent = freePoints() > 0
+    ? `ARAŞTIRMA  ● ${fmt(freePoints())} PUAN`
+    : 'ARAŞTIRMA';
+  $('kTotal').textContent = fmt(G.totalEarned);
+  $('kRate').textContent = fmt(ch.income) + ' / sn';
+  $('kNeck').textContent = STATIONS[ch.neck].name;
+  $('kProd').textContent = `${product().name} (×${fmt(product().mult)})`;
+  $('kPrice').textContent = fmt(unitPrice());
+  const ok = canPrestige();
+  const b = $('prestigeBtn');
+  b.disabled = !ok;
+  b.textContent = ok
+    ? `YENİ ŞUBE AÇ  (+${fmt(pendingPoints())} puan)`
+    : `YENİ ŞUBE: ${fmt(PRESTIGE_AT())} daha kazan`;
+  $('muteBtn').textContent = 'SES: ' + (G.muted ? 'KAPALI' : 'AÇIK');
+  $('menu').classList.add('show');
+};
+$('closeMenu').onclick = () => $('menu').classList.remove('show');
+$('muteBtn').onclick = () => {
+  G.muted = !G.muted; saveNow();
+  $('muteBtn').textContent = 'SES: ' + (G.muted ? 'KAPALI' : 'AÇIK');
+};
+$('prestigeBtn').onclick = () => {
+  if (!canPrestige()) return;
+  $('pNow').textContent = `${fmt(freePoints())} puan boşta`;
+  $('pNext').textContent = `+${fmt(pendingPoints())} puan`;
+  $('prestige').classList.add('show');
+};
+$('pNo').onclick = () => $('prestige').classList.remove('show');
+$('pGo').onclick = () => {
+  if (!canPrestige()) return;
+  G.branches++;
+  G.lifetime += G.totalEarned;
+  G.totalEarned = 0;
+  G.cash = 0;
+  // "Hazır hat" skips the opening minutes rather than paying cash for them:
+  // a starting purse is worth a different amount every branch, a starting
+  // level is worth the same thing at every scale.
+  G.lvl = STATIONS.map(() => 1 + resLvl('start'));
+  // Managers are kept. They used to reset with everything else, and by the
+  // sixth branch a manager cost a thousandth of a second of income — four
+  // buttons the player had to press for free before the run could start.
+  // Nor were they ever a decision: ×2 on a station beats any number of
+  // levels, so the price was only ever a gate, and a gate is worth passing
+  // once. The saving-up moment on the first branch is the point of them and
+  // that is left alone. Rate is ×2 on every station equally, so the chain's
+  // flow is ×2, not ×16.
+  G.buf = [0, 0, 0];
+  for (const b of belts) { for (const c of b.crates) dropCrate(c.m); b.crates.length = 0; }
+  saveNow();
+  $('prestige').classList.remove('show');
+  $('menu').classList.remove('show');
+  refreshPanel();
+  ping(660, 0.3);
+};
+
+// ---------------------------------------------------------------------
+// Goals
+//
+// Rewards are paid in seconds of the player's own income rather than a
+// fixed sum. A flat 50,000 is a fortune in the first ten minutes and a
+// rounding error by the second branch; "an hour of what you make" is worth
+// the same at both ends, so the list stays worth opening all game.
+// ---------------------------------------------------------------------
+const GOALS = [
+  { id: 'earn1',  icon: '💰', text: 'Toplam 1M kazan',        pay: 900,
+    at: () => G.lifetime + G.totalEarned, need: 1e6 },
+  { id: 'earn2',  icon: '💰', text: 'Toplam 500M kazan',      pay: 1800,
+    at: () => G.lifetime + G.totalEarned, need: 5e8 },
+  { id: 'earn3',  icon: '💎', text: 'Toplam 100B kazan',      pay: 3600,
+    at: () => G.lifetime + G.totalEarned, need: 1e11 },
+  { id: 'lvl50',  icon: '🔧', text: 'Bir istasyonu 50. seviyeye çıkar', pay: 900,
+    at: () => Math.max(...G.lvl), need: 50 },
+  { id: 'lvl100', icon: '🔧', text: 'Bir istasyonu 100. seviyeye çıkar', pay: 1800,
+    at: () => Math.max(...G.lvl), need: 100 },
+  { id: 'lvl200', icon: '🏗️', text: 'Bir istasyonu 200. seviyeye çıkar', pay: 3600,
+    at: () => Math.max(...G.lvl), need: 200 },
+  { id: 'all100', icon: '⚖️', text: 'Dört istasyonu da 100. seviyeye çıkar', pay: 2700,
+    at: () => Math.min(...G.lvl), need: 100 },
+  { id: 'mgr1',   icon: '👔', text: 'İlk müdürü işe al',      pay: 600,
+    at: () => G.mgr.filter(Boolean).length, need: 1 },
+  { id: 'mgr4',   icon: '👔', text: 'Dört müdürü de işe al',  pay: 2700,
+    at: () => G.mgr.filter(Boolean).length, need: 4 },
+  { id: 'br1',    icon: '🏭', text: 'İlk şubeyi aç',          pay: 1800,
+    at: () => G.branches, need: 1 },
+  { id: 'br5',    icon: '🏭', text: '5 şube aç',              pay: 5400,
+    at: () => G.branches, need: 5 },
+  { id: 'boost10',icon: '⚡', text: '10 kez hız kutusu kullan', pay: 1200,
+    at: () => G.boosts, need: 10 },
+];
+const goalDone  = g => g.at() >= g.need;
+const goalTaken = g => G.claimed.includes(g.id);
+const goalReady = () => GOALS.some(g => goalDone(g) && !goalTaken(g));
+// Paid at the chain's rate without the boost, or watching an ad while a
+// goal is ready would triple every reward on the list at once.
+const goalPay = g => g.pay * chain().income / boostMult();
+
+function renderGoals() {
+  const list = $('goalList');
+  list.innerHTML = '';
+  for (const g of GOALS) {
+    const done = goalDone(g), taken = goalTaken(g);
+    const pct = Math.min(100, (g.at() / g.need) * 100);
+    const el = document.createElement('div');
+    el.className = 'goal' + (taken ? ' done' : '');
+    el.innerHTML = `
+      <div class="gi">${g.icon}</div>
+      <div class="gm">
+        <div class="gt">${g.text}</div>
+        <div class="gp"><i style="width:${pct}%"></i></div>
+      </div>
+      <button class="gb"${done && !taken ? '' : ' disabled'}>${
+        taken ? 'ALINDI' : done ? 'AL<br>' + fmt(goalPay(g)) : Math.floor(pct) + '%'}</button>`;
+    el.querySelector('.gb').onclick = () => {
+      if (!goalDone(g) || goalTaken(g)) return;
+      const pay = goalPay(g);
+      G.cash += pay;
+      G.totalEarned += pay;
+      G.claimed.push(g.id);
+      saveNow();
+      ping(880, 0.22);
+      floatCash('+' + fmt(pay));
+      renderGoals();
+      refreshGoalDot();
+    };
+    list.appendChild(el);
+  }
+}
+function refreshGoalDot() { $('goalDot').classList.toggle('show', goalReady()); }
+
+// The menu is dismissed rather than stacked under: both are .screen overlays
+// at the same depth, and the menu is later in the document, so it painted on
+// top of the goals list and swallowed every tap meant for it.
+$('goalsBtn').onclick = () => {
+  renderGoals();
+  $('menu').classList.remove('show');
+  $('goals').classList.add('show');
+};
+$('goalsClose').onclick = () => {
+  $('goals').classList.remove('show');
+  $('menuBtn').onclick();
+};
+
+// ---------------------------------------------------------------------
+// Research screen
+// ---------------------------------------------------------------------
+function renderResearch() {
+  $('rFree').textContent = fmt(freePoints());
+  const wrap = $('resList');
+  wrap.innerHTML = '';
+  for (const r of RES) {
+    const lvl = resLvl(r.id);
+    const maxed = lvl >= r.cap;
+    const can = !maxed && freePoints() >= r.cost;
+    const el = document.createElement('div');
+    el.className = 'res' + (maxed ? ' max' : '');
+    el.innerHTML = `
+      <div class="ri">${r.icon}</div>
+      <div class="rm">
+        <div class="rt">${r.name} · ${lvl}${r.cap === Infinity ? '' : '/' + r.cap}</div>
+        <div class="rd">${r.text(lvl)}</div>
+      </div>
+      <button class="rb"${can ? '' : ' disabled'}>${r.cost} puan<small>${r.step}</small></button>`;
+    const b = el.querySelector('.rb');
+    if (b) b.onclick = () => {
+      if (resLvl(r.id) >= r.cap || freePoints() < r.cost) return;
+      G.res[r.id] = resLvl(r.id) + 1;
+      saveNow();
+      ping(760, 0.16);
+      renderResearch();
+      refreshPanel();
+    };
+    wrap.appendChild(el);
+  }
+}
+
+$('resBtn').onclick = () => {
+  renderResearch();
+  $('menu').classList.remove('show');
+  $('research').classList.add('show');
+};
+$('resClose').onclick = () => {
+  $('research').classList.remove('show');
+  $('menuBtn').onclick();
+};
+
+// ---------------------------------------------------------------------
+// Daily reward
+// ---------------------------------------------------------------------
+// Days are counted in the player's own timezone rather than UTC: a reward
+// that resets at 3am local is a reward nobody understands. Miss a day and
+// the streak restarts; the same day twice pays once.
+const dayNumber = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+const dailyPay = () => chain().income / boostMult() * 1800 * Math.min(7, G.dayStreak);
+
+function checkDaily() {
+  const d = dayNumber();
+  if (G.dayLast === d) return;
+  G.dayStreak = (d - G.dayLast === 1) ? G.dayStreak + 1 : 1;
+  G.dayLast = d;
+  saveNow();
+  $('dStreak').textContent = G.dayStreak + '. gün' + (G.dayStreak >= 7 ? ' (en yüksek)' : '');
+  $('dCash').textContent = fmt(dailyPay());
+  $('daily').classList.add('show');
+}
+$('dOk').onclick = () => {
+  const pay = dailyPay();
+  G.cash += pay;
+  G.totalEarned += pay;
+  saveNow();
+  ping(820, 0.22);
+  floatCash('+' + fmt(pay));
+  $('daily').classList.remove('show');
+};
+
+// ---------------------------------------------------------------------
+// Offline, doubled
+// ---------------------------------------------------------------------
+let pendingOffline = 0;
+$('wOk').onclick = () => { pendingOffline = 0; $('welcome').classList.remove('show'); };
+$('wDouble').onclick = async () => {
+  const btn = $('wDouble');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'REKLAM AÇILIYOR…';
+  const ok = await showRewarded();
+  if (ok && pendingOffline > 0) {
+    G.cash += pendingOffline;
+    G.totalEarned += pendingOffline;
+    floatCash('+' + fmt(pendingOffline));
+    ping(900, 0.24);
+    saveNow();
+  }
+  pendingOffline = 0;
+  btn.disabled = false;
+  btn.textContent = '📺 REKLAM İZLE, ×2 AL';
+  $('welcome').classList.remove('show');
+};
+
+// The boost, behind a rewarded video. The cooldown it used to sit behind is
+// gone: the ad is the cost now, which is the whole point of building it this
+// shape. Off-device showRewarded() resolves true, so the browser keeps the
+// short cooldown as its own brake.
+$('boostBtn').onclick = async () => {
+  if (boostLeft() > 0) return;
+  if (!ADS_ON && Date.now() < G.boostReady) return;
+  const t = $('boostTxt');
+  t.textContent = '…';
+  const ok = await showRewarded();
+  if (!ok) { refreshBoost(); return; }
+  const secs = boostSecs();
+  G.boostUntil = Date.now() + secs * 1000;
+  G.boostReady = Date.now() + (secs + BOOST_COOL) * 1000;
+  G.boosts++;
+  saveNow();
+  ping(740, 0.2);
+  refreshBoost();
+  refreshGoalDot();
+};
+
+function refreshBoost() {
+  const el = $('boostBtn'), t = $('boostTxt');
+  const left = boostLeft();
+  const cool = Math.max(0, (G.boostReady - Date.now()) / 1000);
+  el.classList.toggle('on', left > 0);
+  el.classList.toggle('cool', left <= 0 && cool > 0);
+  if (left > 0) t.textContent = Math.ceil(left) + 'sn';
+  else if (!ADS_ON && cool > 0) t.textContent = fmtTime(cool);
+  else t.textContent = '×' + BOOST_MULT;
+}
+
+// floating "+money" over the dispatch bay, so income has a place it comes from
+const floatEl = $('float');
+function floatCash(text) {
+  const d = document.createElement('div');
+  d.className = 'fl';
+  d.textContent = text;
+  d.style.left = (innerWidth * (0.30 + Math.random() * 0.34)) + 'px';
+  d.style.top = (innerHeight * (0.30 + Math.random() * 0.1)) + 'px';
+  floatEl.appendChild(d);
+  setTimeout(() => d.remove(), 1150);
+}
+
+// ---------------------------------------------------------------------
+// Sound
+// ---------------------------------------------------------------------
+let actx = null;
+function ping(freq, gain = 0.12) {
+  if (G.muted) return;
+  try {
+    actx ||= new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(freq, actx.currentTime);
+    g.gain.setValueAtTime(gain, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.18);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + 0.18);
+  } catch {}
+}
+
+// ---------------------------------------------------------------------
+// Frame
+// ---------------------------------------------------------------------
+let last = performance.now();
+let sinceSave = 0, sinceUI = 0, sinceFloat = 0, floatAcc = 0;
+let shownTier = -1;
+let spawnAcc = [0, 0, 0];
+
+function tick(now) {
+  const dt = Math.min(0.25, (now - last) / 1000);
+  last = now;
+
+  const earned = runFactory(dt);
+  floatAcc += earned;
+
+  const ch = chain();
+
+  // belts scroll and carry crates at the rate actually flowing through them
+  for (let i = 0; i < belts.length; i++) {
+    const b = belts[i];
+    const flow = Math.min(rateOf(i), rateOf(i + 1));
+    const speed = Math.min(3.2, 0.5 + flow * 0.18);
+    b.map.offset.y -= speed * dt * 0.35;
+
+    spawnAcc[i] += flow * dt;
+    // one crate per unit, capped so a huge factory does not carpet the belt
+    while (spawnAcc[i] >= 1 && b.crates.length < 14) {
+      spawnAcc[i] -= 1;
+      b.crates.push({ m: takeCrate(i), t: 0 });
+    }
+    if (spawnAcc[i] > 6) spawnAcc[i] = 6;
+    for (let k = b.crates.length - 1; k >= 0; k--) {
+      const c = b.crates[k];
+      c.t += (speed / b.len) * dt;
+      if (c.t >= 1) { dropCrate(c.m); b.crates.splice(k, 1); continue; }
+      c.m.position.set(0, 0.95, b.z0 - b.len * c.t);
+      c.m.rotation.y = c.t * 2;
+    }
+  }
+
+  // Ürün kademesi atladığında fabrikanın rengi değişiyor: montajdaki
+  // gövdeler, tırlardaki yük ve üçüncü bandın kasaları. Malzemeler paylaşımlı
+  // olduğu için renk atamak yeterli, mesh'lere dokunmaya gerek yok.
+  const tier = productTier();
+  if (tier !== shownTier) {
+    shownTier = tier;
+    const pr = PRODUCTS[tier];
+    for (const m of bays[2].bodyMats) m.color.set(pr.body);
+    for (const m of bays[3].loadMats) m.color.set(pr.roof);
+    CRATE_MAT[2].color.set(pr.body);
+    for (const c of bays[2].cars) c.m.scale.setScalar(pr.big);
+    ping(560 + tier * 80, 0.2);
+    if (tier > 0) floatCash('🚗 ' + pr.name.toUpperCase() + ' AÇILDI');
+  }
+
+  // bays reveal their extra units as the station levels up
+  for (let i = 0; i < bays.length; i++) {
+    const need = Math.min(bays[i].grow.length, Math.floor(G.lvl[i] / 6));
+    for (let k = 0; k < bays[i].grow.length; k++) bays[i].grow[k].visible = k < need;
+  }
+
+  // ...and once the floor is full, the equipment is what keeps changing.
+  // Only reapplied when a station actually crosses into a new fitting, so
+  // this is four integer comparisons a frame rather than a material walk.
+  for (let i = 0; i < bays.length; i++) {
+    const tr = tierOf(i);
+    if (tr === shownTiers[i]) continue;
+    const first = shownTiers[i] < 0;
+    shownTiers[i] = tr;
+    const T = TIERS[tr];
+    for (const m of bays[i].tierMats) {
+      m.color.set(T.col);
+      m.roughness = T.rough;
+      m.metalness = T.metal;
+    }
+    if (!first && tr > 0) {
+      ping(700 + tr * 60, 0.18);
+      floatCash(`${STATIONS[i].icon} ${STATIONS[i].name.toUpperCase()}: ${T.name.toUpperCase()} DONANIM`);
+    }
+  }
+
+  // The yard fills as branches are handed in. Prestige is the one thing in
+  // the game with nothing to show for it — the counter went up and the floor
+  // looked the same, so the reward for giving away a working factory was a
+  // number in the corner.
+  if (G.branches !== shownBranches) {
+    shownBranches = G.branches;
+    for (let k = 0; k < parked.length; k++) parked[k].visible = k < Math.min(parked.length, G.branches);
+  }
+
+  // Machines move at the rate their own station is running, not at a fixed
+  // beat. A press hammering flat out while its buffer sits empty is the
+  // factory lying about itself — and the buffers are the one thing the
+  // player is meant to read.
+  const t = now / 1000;
+  for (let i = 0; i < bays.length; i++) {
+    const fed = i === 0 || G.buf[i - 1] > 0.05;
+    const beat = fed ? Math.min(4.5, 0.6 + rateOf(i) * 0.22) : 0;
+    for (const p of bays[i].moving) {
+      const ph = t * beat + (p.phase || 0);
+      switch (p.kind) {
+        case 'fire':
+          // the furnace mouth breathes; banked when nothing is being made
+          p.m.material.emissiveIntensity = beat ? 1.0 + Math.sin(ph * 3) * 0.45 : 0.25;
+          break;
+        case 'ram': {
+          // a hammer falls fast and lifts slowly: a sine looked like a float
+          const c = (Math.sin(ph) + 1) / 2;
+          p.m.position.y = 0.55 + Math.pow(c, 3) * 1.0;
+          break;
+        }
+        case 'arm':
+          p.m.rotation.z = Math.sin(ph) * 0.5;
+          p.m.rotation.y = Math.sin(ph * 0.5) * 0.6;
+          if (p.fore) p.fore.rotation.x = -0.5 + Math.sin(ph + 1) * 0.45;
+          break;
+        case 'slide':
+          // bodies creep along the line and snap back to the start
+          p.m.position.z = ((ph * 0.25) % 2) - 1;
+          break;
+        case 'bob':
+          p.m.position.y = p.base + (beat ? Math.abs(Math.sin(ph)) * 0.05 : 0);
+          break;
+      }
+    }
+  }
+
+  camera.position.set(15, 21, 17);
+  camera.lookAt(0, 0, -12);
+
+  sinceUI += dt;
+  if (sinceUI > 0.12) { sinceUI = 0; refreshPanel(); refreshBoost(); refreshGoalDot(); }
+  sinceFloat += dt;
+  if (sinceFloat > 0.55 && floatAcc > 0) {
+    sinceFloat = 0;
+    floatCash('+' + fmt(floatAcc));
+    floatAcc = 0;
+  }
+  sinceSave += dt;
+  if (sinceSave > 5) { sinceSave = 0; G.seen = Date.now(); saveNow(); }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+
+// A phone that backgrounds the tab stops calling rAF; without this the away
+// time is only counted when the app is fully closed.
+addEventListener('visibilitychange', () => {
+  if (document.hidden) { G.seen = Date.now(); saveNow(); }
+  else { last = performance.now(); const r = offlineCatchUp(); if (r) showWelcome(r); G.seen = Date.now(); }
+});
+addEventListener('pagehide', () => { G.seen = Date.now(); saveNow(); });
+
+function showWelcome(r) {
+  pendingOffline = r.got;         // the same again, if they watch
+  $('wTime').textContent = fmtTime(r.gone);
+  $('wCash').textContent = fmt(r.got);
+  $('wSub').textContent = r.gone >= offlineCap()
+    ? 'Fabrika en fazla 4 saat stok tutabiliyor — dolmuş.'
+    : 'Sen yokken fabrika çalışmaya devam etti.';
+  $('welcome').classList.add('show');
+}
+
+// ---------------------------------------------------------------------
+// Probes
+// ---------------------------------------------------------------------
+window.jeProbe = () => {
+  const ch = chain();
+  return {
+    cash: G.cash, total: G.totalEarned, branches: G.branches,
+    points: bankedPoints(), pending: pendingPoints(),
+    product: product().name, tier: productTier(), price: unitPrice(),
+    boost: +boostLeft().toFixed(0), miles: [0, 1, 2, 3].map(milestonesHit),
+    lvl: [...G.lvl], mgr: [...G.mgr], buf: G.buf.map(b => +b.toFixed(2)),
+    flow: +ch.flow.toFixed(3), neck: STATIONS[ch.neck].name,
+    income: +ch.income.toFixed(2),
+    crates: belts.reduce((a, b) => a + b.crates.length, 0),
+  };
+};
+window.jeGive = n => { G.cash += n; refreshPanel(); };
+window.jeRun = sec => runFactory(sec);
+// Goes through showWelcome like the real return does, so the probe exercises
+// the same path the player takes — including the pending amount the rewarded
+// video pays out a second time.
+window.jeOffline = sec => {
+  G.seen = Date.now() - sec * 1000;
+  const r = offlineCatchUp();
+  if (r) showWelcome(r);
+  return r;
+};
+window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
+window.jeBuyManager = i => { buyManager(i); return G.mgr[i]; };
+window.jeReset = () => { wiped = true; localStorage.removeItem(KEY); location.reload(); };
+window.jeFmt = fmt;
+window.jeSeenTier = () => shownTier;
+window.jeLook = () => ({
+  tiers: [0, 1, 2, 3].map(tierOf),
+  shown: [...shownTiers],
+  units: bays.map((b, i) => 1 + b.grow.filter(u => u.visible).length),
+  parked: parked.filter(r => r.visible).length,
+  branches: G.branches,
+});
+window.jeSetLifetime = t => { G.lifetime = t; refreshPanel(); };
+// jeGive only tops up the purse; prestige is gated on what the branch has
+// *earned*, so a test that wants to hand a factory in needs this one.
+window.jeSetEarned = t => { G.totalEarned = t; refreshPanel(); };
+// Kameranın çerçevesi. Mağaza görselleri dikey telefon için ayarlanmış
+// çerçeveyi kullanamıyor: yatay bir grafikte fabrika minicik kalıyor.
+window.jeCam = (h, shift) => {
+  if (h) VIEW_H = h;
+  if (shift !== undefined) VIEW_SHIFT = shift;
+  fit();
+};
+window.jeBoost = () => $('boostBtn').click();
+window.jeGoals = () => GOALS.map(g => ({
+  id: g.id, at: +g.at().toFixed(0), need: g.need,
+  done: goalDone(g), taken: goalTaken(g), pay: +goalPay(g).toFixed(0) }));
+window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().toFixed(0) });
+window.jePrestige = () => { $('prestigeBtn').click(); $('pGo').click(); };
+window.jeRes = () => ({
+  free: freePoints(), spent: spentPoints(), banked: bankedPoints(),
+  lvl: Object.fromEntries(RES.map(r => [r.id, resLvl(r.id)])),
+  mult: branchMult(), price: unitPrice(), cheap: cheapMult(),
+  offline: offlineCap(), boost: boostSecs(), mgr0: mgrCostOf(0),
+});
+window.jeResBuy = (id, n = 1) => {
+  const r = RES.find(x => x.id === id);
+  for (let k = 0; k < n; k++) {
+    if (!r || resLvl(id) >= r.cap || freePoints() < r.cost) break;
+    G.res[id] = resLvl(id) + 1;
+  }
+  saveNow(); refreshPanel();
+  return resLvl(id);
+};
+
+// A boost does not run while the app is shut: the away calculation reads the
+// chain's rate at the moment of return, and a boost still ticking would pay
+// triple for hours nobody watched.
+if (G.boostUntil > Date.now()) G.boostUntil = 0;
+
+const back = offlineCatchUp();
+if (back) showWelcome(back);
+G.seen = Date.now();
+checkDaily();
+refreshPanel();
+refreshGoalDot();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
