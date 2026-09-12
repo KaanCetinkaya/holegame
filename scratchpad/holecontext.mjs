@@ -60,7 +60,19 @@ const colours = (name) => {
   const r = spawnSync('python3', ['-c',
     `from PIL import Image\nprint(len(Image.open('/tmp/ctx-${name}.png').convert('RGB').getcolors(999999) or []))`],
     { encoding: 'utf8' });
-  return Number((r.stdout || '0').trim());
+  // Ölçüm yapılamadıysa bunu "tarla boş" diye raporlamak, olmayan bir hatayı
+  // varmış gibi göstermek demek. Bir kez oldu: konteyner yeniden kurulunca
+  // Pillow kayboldu, python hata verdi, stdout boş kaldı, Number('') 0 çıktı
+  // ve test "tarla çizilmiyor" dedi — tarla gayet çiziliyordu. Ölçüm aracının
+  // kendisi çalışmıyorsa test düşmüyor, duruyor ve sebebini söylüyor.
+  const n = Number((r.stdout || '').trim());
+  if (r.status !== 0 || !(r.stdout || '').trim() || !Number.isFinite(n)) {
+    console.error('\nÖLÇÜM YAPILAMADI — bu bir oyun hatası değil.');
+    console.error('python3/Pillow çalışmıyor: ' + ((r.stderr || '').trim() || `çıkış ${r.status}`));
+    console.error('Kurulum:  pip install pillow');
+    process.exit(2);
+  }
+  return n;
 };
 
 await shot('before');

@@ -1362,13 +1362,28 @@ gerekir). Paketlenecek, kütüphanesi yerel sürümü üretmek için depo kökü
 npm run build:www        # -> www-fruithole/
 ```
 
-Ölçümler:
+Ölçümler (`node build-www.mjs` sonrası, `scratchpad/hole*.mjs` — 21 dosya):
 
 ```bash
 node scratchpad/holegrow.mjs     # delik ne kadar hızlı büyüyor
 node scratchpad/holebalance.mjs  # süpürme süresi ve dev meyve eşiği
 node scratchpad/holecircles.mjs  # Bubbles daireleri yuvarlak ve ayrık mı
+node scratchpad/holeecon.mjs     # dükkân kaçıncı bölümde bitiyor
+node scratchpad/holeiap.mjs      # satın alma acknowledge/consume ediliyor mu
 ```
+
+Hepsi Playwright + başsız Chromium ile çalışıyor. `holecontext.mjs` ayrıca
+**Pillow** istiyor (ekran görüntüsündeki renk sayısını sayıyor):
+
+```bash
+pip install pillow
+```
+
+Bu bir kez kafa karıştırdı: konteyner yeniden kurulunca Pillow kayboldu,
+ölçüm sessizce 0 döndü ve test "tarla çizilmiyor" dedi — tarla gayet
+çiziliyordu. Artık ölçüm aracı çalışmıyorsa test düşmüyor, durup sebebini
+söylüyor. Bir testin verebileceği en pahalı cevap, olmayan bir hatayı varmış
+gibi göstermesi.
 
 `window.fruitHoleShake()` kameranın anlık konumunu veriyor. Ölçtüğü kombo
 tekmesi kaldırıldı ama kendisi kaldı: artık baktığı şey, kamerayı delikten
