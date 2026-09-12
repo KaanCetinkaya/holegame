@@ -1125,29 +1125,83 @@ Miktarlar ürünün `fruit` alanında duruyor; açıklama satırı ve `grant()` 
 de oradan okuyor, böylece üç yerde birden değiştirilmesi gereken bir sayı
 kalmıyor. Neden bu büyüklükte olduğu aşağıdaki "Ekonomi" bölümünde.
 
-**Yapılması gereken tek şey ödeme SDK'sını bağlamak.** Desteklenen yol
-[`@revenuecat/purchases-capacitor`](https://github.com/RevenueCat/purchases-capacitor);
-Cordova sürümü emekliye ayrıldı ve Google, ona dayalı güncellemeleri
-2026-08-31'den sonra kabul etmiyor.
+### Eklenti
+
+`@capgo/native-purchases`, doğrudan Google Play Billing ile konuşuyor.
+
+Burada aylarca **yanlış bir yol yazılıydı**: `@revenuecat/purchases-capacitor`.
+Kontrol edilince hâlâ `@capacitor/core: ^5.0.0` bildirdiği görüldü, bu proje
+ise Capacitor 8 — liderlik tablosunu bekleten uyuşmazlığın tıpatıp aynısı.
+Üstelik oyunun ihtiyaç duymadığı bir şey için ödemenin arasına üçüncü bir
+taraf sokuyor. Seçilen eklenti `>=8.0.0` bildiriyor, baştan sona Capacitor 8
+ile derleniyor ve Google'ın artık zorunlu tuttuğu Play Billing Library 8
+üzerinde.
 
 ```bash
-npm install @revenuecat/purchases-capacitor
+npm install            # package.json'da zaten yazılı
 npm run sync:fruithole
 ```
 
-Sonra `index.html` içindeki `purchase()` ve `restorePurchases()`
-fonksiyonlarını eklentinin kendi API'siyle eşle — oradaki çağrı şekli
-doğrulanmadı, eklenti kurulunca kendi dokümanına göre bağlanmalı.
-Kod tarafında değişmesi gereken **yalnızca bu iki fonksiyon**; ürünlerin
-verdiği ödüller ve sahiplik kaydı bağımsız çalışıyor.
+### Bu katmanın neden tek çağrıdan ibaret olmadığı
 
-Gösterilen fiyatlar tarayıcı sürümü için yer tutucudur; cihazda mağazanın
-döndürdüğü **yerel fiyat** gösterilmelidir. Tarayıcıda satın alma yapılmaz,
-ürünler akışı denemek için doğrudan verilir.
+Play'in, kaçırılırsa **gerçekten para kaybettiren** iki kuralı var:
+
+- **Tek seferlik ürün üç gün içinde `acknowledge` edilmezse** Google parayı
+  kendiliğinden iade ediyor. Oyuncu aldığını kullanmaya devam ediyor, para
+  geri gidiyor, uygulamada bunu söyleyen hiçbir şey yok.
+- **Tüketilebilir ürün `consume` edilmezse** Play onu hâlâ "sahip olunuyor"
+  sayıyor ve oyuncu ikinci kez satın alamıyor. Meyve paketleri tekrar tekrar
+  alınsın diye var.
+
+İkisi de satın alma döner dönmez, oyuncuya bir şey verilmeden önce
+hallediliyor. `syncPurchases()` ayrıca her açılışta çalışıyor: yarıda kalmış
+bir satın alma, yeniden kurulum ya da ikinci bir cihaz kendiliğinden
+düzeliyor.
+
+### `entitle` ve `grant`
+
+Ürünün kalıcı yarısı `entitle()`, tek seferlik içeriği `grant()`. Geri
+yükleme yalnızca birincisini tekrar uyguluyor.
+
+Bu ayrım bir hatadan çıktı: başlangıç paketi reklamları `grant()`'in içinden
+kaldırıyordu, geri yükleme ise yalnızca `iap.starter`'ı yazıyordu. Yani
+paketi alıp uygulamayı silip kuran oyuncu, reklamlardan kurtulmak için para
+ödemiş olmasına rağmen **reklamları geri alıyordu**. Geri yüklemede
+`grant()` çağırmak da tersi hata olurdu: her kurulumda her meyveden 2500,
+sonsuza kadar.
+
+### Fiyatlar
+
+Cihazda fiyat Play'den geliyor (`priceString`), `PRODUCTS` içindeki dolar
+değerleri yalnızca tarayıcı için yer tutucu. Mağaza dolar kullanmayan
+ülkelerde de açılacak ve sabit fiyat göstermek inceleme reddi sebebi.
+
+Tarayıcıda satın alma yapılmaz, ürünler akışı denemek için doğrudan verilir.
+
+### Manifest
+
+`patch-manifest.mjs` fruithole için `com.android.vending.BILLING` iznini de
+yazıyor. Play Billing kitaplığının kendi manifest'i bunu bildiriyor olmalı ve
+birleştirici eklemeli, ama eklentinin kendi `AndroidManifest.xml`'i bomboş ve
+iznin gelip gelmediği ancak derlenmiş paketi açıp bakarak görülüyor. İki kez
+bildirilmesi zararsız, hiç bildirilmemesi sessizce çalışmayan bir mağaza.
+
+### Test ve sınırı
+
+`scratchpad/holeiap.mjs` eklentinin yerine çağrıları kaydeden bir sahtesini
+koyuyor: tek seferlikte acknowledge var consume yok, tüketilebilirde tersi,
+aynı paket ikinci kez alınabiliyor, yarıda kalmış satın alma açılışta
+kurtarılıyor, geri yükleme kalıcı hakkı geri veriyor ama içeriği yeniden
+vermiyor, iptal hiçbir şey vermiyor.
+
+**Bu testin söylemediği şey:** native tarafın gerçekten derlendiği ve gerçek
+para aldığı. Bu kutuda Android SDK yok. Onu telefonda görmek gerekiyor —
+Play Console'da kapalı test kanalına yükleyip lisanslı test hesabıyla.
 
 Sahiplik `localStorage`'da (`fruithole_iap`) tutulur; kullanıcı uygulamayı
 silip kurarsa "Satın alımları geri yükle" düğmesi gerekir, o da yalnızca
-uygulamada çalışır.
+uygulamada çalışır. Açılıştaki `syncPurchases()` çoğu durumda o düğmeye
+basılmadan da halletiyor.
 
 ## Reklamlar
 

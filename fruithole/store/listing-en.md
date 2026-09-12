@@ -131,14 +131,14 @@ Ready to clear the field?
 
 ## What's new — 1.8 / versionCode 20 (≤ 500 chars per language)
 
-English (234 chars):
+English (288 chars):
 ```
-Rebalanced progression. Upgrades and hole skins used to be fully paid off by level 3 — now the upgrade tree runs to around level 24 and the last skin well past level 35. Chests, goals and daily rewards all pay out a lot more to match.
+The shop works now — fruit packs and Remove Ads can actually be bought. Progression rebalanced too: upgrades and skins used to be fully paid off by level 3, now the upgrade tree runs to around level 24 and the last skin well past 35. Chests, goals and daily rewards pay out more to match.
 ```
 
-Türkçe (226 karakter):
+Türkçe (241 karakter):
 ```
-Ilerleme yeniden dengelendi. Yükseltmeler ve delik görünümleri 3. bölümde bitiyordu — artık yükseltme ağacı 24. bölüme, son görünüm 35'in epey ötesine kadar sürüyor. Sandıklar, görevler ve günlük ödüller de aynı oranda büyüdü.
+Mağaza artık çalışıyor — meyve paketleri ve Reklamları Kaldır gerçekten satın alınabiliyor. Ilerleme de yeniden dengelendi: yükseltmeler ve görünümler 3. bölümde bitiyordu, artık ağaç 24. bölüme, son görünüm 35'in epey ötesine kadar sürüyor.
 ```
 
 ## What's new — 1.7.2 / versionCode 19 (≤ 500 chars per language)
