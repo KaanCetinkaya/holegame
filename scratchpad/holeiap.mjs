@@ -53,6 +53,8 @@ const fakePlugin = (opts = {}) => `
       NativePurchases: {
         async getProducts({ productIdentifiers }) {
           log('getProducts', { n: productIdentifiers.length });
+          ${opts.noProducts ? 'return { products: [] };' : ''}
+          ${opts.productsThrow ? 'throw new Error("Play cevap vermedi");' : ''}
           return { products: productIdentifiers.map((id, i) => ({
             identifier: id, priceString: '₺' + (i + 1) * 10 + ',00' })) };
         },
@@ -197,6 +199,41 @@ check(a5 === b5, 'iptal edilince meyve verilmedi', `${b5} -> ${a5}`);
 check(await pg.evaluate(() => !document.querySelector('#shopList .buy').disabled),
   'iptalden sonra düğme yeniden basılabilir');
 await pg.close();
+
+// ---- 5b: Play fiyat vermezse ----
+console.log('\n5b. Play fiyat döndürmüyor');
+// Ürünler Play Console'da henüz etkin değilse, cihaz çevrimdışıysa ya da
+// Play o an cevap vermiyorsa getProducts boş dönüyor. O zaman PRODUCTS
+// içindeki dolar yer tutucularını göstermek, her ülkede yanlış ve
+// Türkiye'de para birimi bile yanlış bir fiyat uydurmak demek — üstelik
+// sabit fiyat göstermek inceleme reddi sebebi. Satılamayan ürün
+// satılamıyor görünmeli.
+for (const [ad, opt] of [['boş liste', { noProducts: true }], ['hata', { productsThrow: true }]]) {
+  pg = await open(opt);
+  await pg.evaluate(() => { const b = document.getElementById('dailyBtn'); if (b) b.click(); });
+  await pg.click('#shopBtn');
+  await pg.waitForTimeout(500);
+  const st = await pg.evaluate(() => ({
+    labels: [...document.querySelectorAll('#shopList .buy')].map(b => b.textContent.trim()),
+    disabled: [...document.querySelectorAll('#shopList .buy')].every(b => b.disabled),
+    note: document.getElementById('shopNote').textContent,
+  }));
+  check(!st.labels.some(t => t.includes('$')), `${ad}: uydurma dolar fiyatı gösterilmiyor`,
+    st.labels.join(' | '));
+  check(st.disabled, `${ad}: satın alma düğmeleri kapalı`);
+  check(/could not be priced/.test(st.note), `${ad}: sebebi yazıyor`, st.note.slice(0, 60));
+  // Kapalı düğmeye basmak hiçbir şey vermemeli.
+  const w0 = await pg.evaluate(() => window.fruitHoleWallet().berry);
+  await pg.evaluate(() => {
+    const rows = [...document.querySelectorAll('#shopList .upg')];
+    const r = rows.find(x => /Fruit basket/.test(x.textContent));
+    r.querySelector('.buy').click();
+  });
+  await pg.waitForTimeout(400);
+  check(await pg.evaluate(() => window.fruitHoleWallet().berry) === w0,
+    `${ad}: kapalı düğme meyve vermiyor`);
+  await pg.close();
+}
 
 // ---- 6: eklenti yokken ----
 console.log('\n6. eklenti yokken (tarayıcı)');

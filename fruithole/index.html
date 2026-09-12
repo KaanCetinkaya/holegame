@@ -1455,9 +1455,13 @@ async function loadPrices() {
     });
     for (const sp of (res && res.products) || []) {
       const p = PRODUCT_BY_ID[sp.identifier || sp.productIdentifier || sp.productId];
-      if (p && sp.priceString) p.price = sp.priceString;
+      // livePrice, not price. The placeholder is kept separate so the shop can
+      // tell "Play said 19,99 TL" apart from "Play said nothing" — overwriting
+      // the placeholder made those two states identical, and the second one
+      // then showed a made-up dollar figure as though it were real.
+      if (p && sp.priceString) p.livePrice = sp.priceString;
     }
-  } catch (e) { /* placeholders stay; the shop still opens */ }
+  } catch (e) { /* nothing gets a livePrice; the shop says so */ }
 }
 
 // One pass at launch: real prices, and whatever Play already knows is owned.
@@ -2330,17 +2334,31 @@ function renderShop() {
         `<span class="nm">${p.name}</span>` +
         `<div class="ds">${p.desc}</div>` +
       `</span>`;
+    // On device, a product is only offered at the price Play gave for it.
+    //
+    // The dollar figures in PRODUCTS are placeholders for the browser. If
+    // getProducts() comes back empty — the product is not active in Play
+    // Console yet, the device is offline, Play is having a moment — then
+    // showing "$1.99" states a price that is wrong in every country and, in
+    // Turkey, is not even the right currency. Review rejects hardcoded
+    // prices, and a player who taps one either gets charged something else
+    // or gets an error. Better to say it is unavailable, which is true.
+    const sellable = !IAP_ON || !!p.livePrice;
     const btn = document.createElement('button');
     btn.className = 'buy' + (owned ? ' owned' : '');
     if (owned) { btn.textContent = '✓ Owned'; btn.disabled = true; }
-    else { btn.textContent = p.price; btn.onclick = () => buyProduct(p, btn); }
+    else if (!sellable) { btn.textContent = '—'; btn.disabled = true; }
+    else { btn.textContent = p.livePrice || p.price; btn.onclick = () => buyProduct(p, btn); }
     row.appendChild(btn);
     list.appendChild(row);
   });
 
-  document.getElementById('shopNote').textContent = IAP_ON
-    ? 'Prices come from the store; purchases are billed to your Google Play account.'
-    : 'Browser build: nothing is charged and items are granted outright so you can try the flow. Real purchases work only in the app.';
+  const missing = IAP_ON && PRODUCTS.some(p => !p.livePrice && !(p.key && iap[p.key]));
+  document.getElementById('shopNote').textContent = !IAP_ON
+    ? 'Browser build: nothing is charged and items are granted outright so you can try the flow. Real purchases work only in the app.'
+    : missing
+      ? 'Some items could not be priced by Google Play just now. Check your connection and reopen the shop.'
+      : 'Prices come from the store; purchases are billed to your Google Play account.';
 }
 
 async function buyProduct(p, btn) {

@@ -767,6 +767,36 @@ proje burada değil**, o yüzden eklentinin derlendiğini görmedim. Doğrulanan
 
 `LEADERBOARD_ID` boş kaldığı sürece tablo kapalı — o satır anahtar.
 
+### Eklenti durumu (12 Eylül 2026'da bakıldı)
+
+Koddaki `GameConnect`, `@openforge/capacitor-game-connect` eklentisinin adı.
+npm'de durum: **son sürüm 5.0.2, son yayın 2023-12-04, `@capacitor/core: ^5.0.0`.**
+Üç yıla yakın güncellenmemiş ve Capacitor 5 hedefliyor. Bu yol kapalı.
+
+Capacitor 8 için iki alternatif var, ikisi de MIT:
+
+| paket | sürüm | yayın |
+|---|---|---|
+| `@modbender/capacitor-play-games` | 0.4.0 | 2026-09-08 |
+| `@idleflowgames/capacitor-play-games` | 0.3.0 | 2026-09-08 |
+
+**İkisi de alınmadı, bilerek.** Sürüm numaraları 0.x ve ikisi de bakıldığı
+tarihten dört gün önce yayınlanmış. Oyunun native tarafına kanıtlanmamış bir
+bağımlılık sokmak, o an doğrulanması gereken asıl şeyi — satın almanın
+gerçekten para alıp almadığını — derleme bozulursa engeller. Liderlik tablosu
+zaten olmayan bir şey; satın alma ise yeni bağlandı ve telefonda görülmeyi
+bekliyor.
+
+Sıra şu: önce IAP telefonda doğrulansın, sonra bu ikisinden biri denensin.
+Denendiğinde ilk bakılacak şey `npx cap sync android` çıktısındaki "Found N
+Capacitor plugins" satırı — eklenti orada görünmüyorsa Capacitor onu kabul
+etmemiştir.
+
+Buradan çıkan ders zaten bir kez ödendi: IAP için aylarca README'de yazan
+RevenueCat yolu da aynı şekilde Capacitor 5'te kalmıştı. **Bir eklentiyi
+yazmadan önce npm'deki `peerDependencies` satırına bakmak, sonra bir derleme
+turunu geri almaktan ucuz.**
+
 Skor **her koşuda** gönderiliyor, yalnızca kişisel rekorda değil: Play zaten
 oyuncu başına en yükseği tutuyor, ve yalnızca rekorları göndermek bir günün
 ilk skorunu (dünkünden düşükse) kaybettirirdi.
