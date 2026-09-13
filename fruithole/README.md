@@ -1216,6 +1216,30 @@ birleştirici eklemeli, ama eklentinin kendi `AndroidManifest.xml`'i bomboş ve
 iznin gelip gelmediği ancak derlenmiş paketi açıp bakarak görülüyor. İki kez
 bildirilmesi zararsız, hiç bildirilmemesi sessizce çalışmayan bir mağaza.
 
+### Önce satıcı hesabı (13 Eylül 2026'da anlaşıldı)
+
+Kod hazır, ürünler **yok** — ve olamaz da. Play Console → Para kazanın →
+Tek seferlik ürünler sayfası şunu diyor:
+
+> Bu sayfaya erişebilmek için Google Payments satıcı hesabı oluşturmanız
+> gerekiyor
+
+Yani dört ürün kimliği hiç oluşturulmadı, çünkü satıcı hesabı olmadan Play'de
+uygulama içi ürün diye bir şey açılmıyor. Bu, IAP'nin telefonda
+denenemeyeceği anlamına geliyor: mağaza açılır, dört ürün de fiyatsız görünür.
+
+Sıra: **ödeme profili → satıcı hesabı → ürünleri oluştur → etkinleştir →
+ancak o zaman test.** Google'ın doğrulaması birkaç gün sürebiliyor ve
+bireysel hesapta ad/adresin kimlikle birebir uyuşması isteniyor.
+
+**Reklamları etkilemiyor.** AdMob ayrı bir sistem ve kendi hesabıyla zaten
+çalışıyor, yani oyun üretime bu olmadan da çıkabilir; yalnızca satın almalar
+onay gelene kadar ölü kalır.
+
+Bu, fiyat düzeltmesinin neden doğru iş olduğunu da gösteriyor: ürün yokken
+eski kod dolar yer tutucularını gerçek fiyat gibi gösteriyordu ve ilk
+telefon denemesinde bu bir kod hatası sanılacaktı.
+
 ### Test ve sınırı
 
 `scratchpad/holeiap.mjs` eklentinin yerine çağrıları kaydeden bir sahtesini
