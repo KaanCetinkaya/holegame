@@ -129,6 +129,18 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.8.1 / versionCode 21 (≤ 500 chars per language)
+
+English (198 chars):
+```
+Fixed the menu on narrow phones: the shop and sound buttons were pushed off the edge of the screen once your fruit counts grew past four digits, and large amounts now read as 17.4k instead of 17359.
+```
+
+Türkçe (176 karakter):
+```
+Dar telefonlarda menü düzeltildi: meyve sayın dört basamağı geçince mağaza ve ses düğmeleri ekranın dışına taşıyordu. Büyük miktarlar artık 17359 yerine 17.4k olarak yazılıyor.
+```
+
 ## What's new — 1.8 / versionCode 20 (≤ 500 chars per language)
 
 English (288 chars):

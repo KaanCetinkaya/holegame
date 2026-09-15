@@ -482,17 +482,25 @@
 
   /* top strip: fruit counts on the left, sound on the right */
   #menuTop { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top,0px) + 10px);
-    left: 10px; right: 10px; display: flex; align-items: center; gap: 6px; }
+    left: 8px; right: 8px; display: flex; align-items: center; gap: 4px; }
+  /* The wallet yields; the keys never do.
+     It used to be four pills at their natural width with the keys pushed
+     along after them, so on a 360px phone the sound key hung off the edge
+     even at zero balance, and at five figures the shop key went with it —
+     the one button the whole billing layer exists to reach. */
   /* Every control shares one shape: cream face, white rim, dark bottom edge.
      Flat chips beside a bevelled Play button look like a different app. */
-  #menuWallet { display: flex; gap: 6px; }
-  #menuWallet .mw { display: flex; align-items: center; gap: 5px; padding: 5px 12px 5px 5px;
+  #menuWallet { display: flex; gap: 4px; flex: 1 1 auto; min-width: 0;
+    overflow-x: auto; scrollbar-width: none; }
+  #menuWallet::-webkit-scrollbar { display: none; }
+  #menuWallet .mw { flex: none; }
+  #menuWallet .mw { display: flex; align-items: center; gap: 3px; padding: 3px 7px 3px 3px;
     border-radius: 999px; background: linear-gradient(180deg,#fffdf5,#ffefcf);
     border: 3px solid #fff; box-shadow: 0 4px 0 rgba(90,50,0,.3); }
-  #menuWallet .mw i { width: 19px; height: 19px; border-radius: 50%; border: 2px solid #fff;
+  #menuWallet .mw i { width: 15px; height: 15px; border-radius: 50%; border: 2px solid #fff;
     box-shadow: inset 0 -3px 4px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5),
       0 2px 0 rgba(90,50,0,.25); }
-  #menuWallet .mw b { color: #6b3d00; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  #menuWallet .mw b { color: #6b3d00; font-size: 11.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
   /* The shop no longer takes a slot in the nav bar — it only exists when a
      billing plugin is wired, and a tab that vanishes on the phone left the
      bar lopsided. It sits up here beside the sound key instead. */
@@ -502,8 +510,16 @@
     background: linear-gradient(180deg,#7a68d8,#5444ab);
     box-shadow: inset 0 2px 0 rgba(255,255,255,.3), 0 4px 0 #3d2f86; }
   .topKey:active { transform: translateY(2px); box-shadow: 0 2px 0 #3d2f86; }
-  #shopBtn { margin-left: auto; }
-  #menuSound { margin-left: 6px; }
+  #shopBtn { flex: none; }
+  #menuSound { margin-left: 4px; }
+  /* Dar telefonlarda dört sayaç ve iki tuş 44px'lik tuşlarla yan yana
+     sığmıyor; tuşlar birkaç piksel küçülünce dördü de görünüyor. Parmakla
+     basılabilir en küçük ölçünün (yaklaşık 38px) altına inilmiyor. */
+  @media (max-width: 385px) {
+    .topKey { width: 38px; height: 38px; border-radius: 12px; font-size: 16px; }
+    #menuWallet .mw b { font-size: 11px; }
+    #menuWallet .mw { padding: 3px 6px 3px 3px; }
+  }
 
   /* bottom bar, so the secondary screens stop competing with Play */
   /* One solid bar across the bottom instead of three floating cards.
@@ -795,6 +811,25 @@ const TYPES = [
   { id: 'melon',  label: 'Watermelon', base: '#f22c43', dark: '#2f9a3c', light: '#ff6f6a', speck: '#177029',
     uiLight: '#8ce063', uiBase: '#3fae38', uiDark: '#1d6a28' },
 ];
+// Sayaçtaki sayı, dört basamağı geçince kısaltılır.
+//
+// Telefon fotoğrafında dört sayaç 17359, 18269, 21583 ve 22560 yazıyordu ve
+// üst satırı öyle şişirmişlerdi ki mağaza ve ses düğmeleri ekranın dışına
+// taşmıştı. Beş haneli bakiye artık istisna değil: en pahalı kaplama 11.000
+// ve bütün ağaç 26.000, yani oyuncunun o aralıkta dolaşması beklenen şey.
+// Eski fiyatlarda kimse o kadar biriktirmediği için bu satır hiç o genişlikte
+// denenmemişti.
+//
+// 17359 yerine 17.4k: hem sığıyor hem bir bakışta okunuyor. Dört basamağa
+// kadar tam sayı kalıyor, çünkü orada tek tek meyve sayısı hâlâ anlamlı.
+function fmtCount(n) {
+  if (n < 10000) return String(n);
+  if (n < 1000000) {
+    const k = n / 1000;
+    return (k < 100 ? k.toFixed(1) : Math.round(k)) + 'k';
+  }
+  return (n / 1000000).toFixed(1) + 'M';
+}
 function dotFill(t) {
   return `radial-gradient(circle at 34% 30%, ${t.uiLight || t.light}, ${t.uiBase || t.base} 58%, ${t.uiDark || t.dark})`;
 }
@@ -1651,7 +1686,7 @@ function buildCounters() {
     el.className = 'card';
     el.innerHTML =
       `<span class="dot" style="background:${dotFill(t)}"></span>` +
-      `<span class="n" id="cur_${t.id}">${currency[t.id]}</span>`;
+      `<span class="n" id="cur_${t.id}">${fmtCount(currency[t.id])}</span>`;
     walletEl.appendChild(el);
   });
 }
@@ -1666,7 +1701,7 @@ function buildMenuWallet() {
     row.className = 'mw';
     row.innerHTML =
       `<i style="background:${dotFill(t)}"></i>` +
-      `<b>${currency[t.id]}</b>`;
+      `<b>${fmtCount(currency[t.id])}</b>`;
     el.appendChild(row);
   });
 }
@@ -1768,7 +1803,7 @@ function bumpCurrency(id, amount) {
   currency[id] += amount;
   saveCurrency();
   const n = document.getElementById('cur_' + id);
-  if (n) { n.textContent = currency[id]; n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); }
+  if (n) { n.textContent = fmtCount(currency[id]); n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); }
 }
 function refreshLevelTag() {
   const p = currentPattern;

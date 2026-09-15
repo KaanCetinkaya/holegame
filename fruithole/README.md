@@ -986,6 +986,37 @@ olduğunu, alt barın üstünde ve Play düğmesinin dışında durduğunu, halk
 yarıçapının gerçek menzile eşit olduğunu ve sürenin sonunda söndüğünü
 doğruluyor.
 
+## Menünün üst satırı beş haneli bakiyede taşıyordu
+
+Kaan'ın telefonundan gelen fotoğrafta dört sayaç 17359, 18269, 21583 ve
+22560 yazıyordu; satırı öyle şişirmişlerdi ki **mağaza ve ses düğmeleri
+ekranın dışına taşmıştı** ve "Peelo" yazısı sayaçların altında kalmıştı.
+
+Ölçünce (`scratchpad/holetop.mjs`) daha kötüsü çıktı: **360px'lik bir
+telefonda sıfır bakiyeli yeni oyuncuda bile ses düğmesi ekran dışındaydı.**
+Yani hata ekonomiden önce de vardı, ekonomi onu yalnızca görünür yaptı — en
+pahalı kaplama 11.000 ve bütün ağaç 26.000 olduğu için beş haneli bakiye
+artık istisna değil, oyuncunun içinde dolaşması beklenen aralık.
+
+Bu, mağaza düğmesi için ayrıca kötü: satın alma katmanının tamamı o düğmeye
+basılabilsin diye var.
+
+Üç değişiklik:
+
+- **Cüzdan esner, tuşlar esnemez.** `#menuWallet` artık `flex: 1 1 auto;
+  min-width: 0` ile daralıyor; tuşlar `flex: none`. Eskiden dört pill kendi
+  doğal genişliğinde duruyor ve tuşları önüne katıp kenardan atıyordu.
+- **Dört basamağı geçen sayı kısaltılıyor** (`fmtCount`): 17359 yerine
+  17.4k, 123456 yerine 123k. Dört basamağa kadar tam sayı kalıyor, orada tek
+  tek meyve sayısı hâlâ anlamlı.
+- **385px altında tuşlar 38px'e iniyor.** Parmakla basılabilir en küçük
+  ölçünün altına inilmiyor; dar telefonda dört sayacın dördünü birden
+  göstermenin başka yolu yoktu.
+
+Test dördünü de kontrol ediyor: iki tuş da ekranın içinde, başlık örtülmüyor
+ve **dört sayacın dördü de görünüyor** — kaydırılabilir olması yetmiyor,
+çünkü kaydırılabildiğini söyleyen hiçbir şey yok.
+
 ## Ekonomi: dükkân 3. bölümde bitiyordu
 
 Oyunun hiç ölçülmemiş tek parçası buydu. Yükseltmeler 20-30 meyveden başlayıp
