@@ -773,24 +773,49 @@ Koddaki `GameConnect`, `@openforge/capacitor-game-connect` eklentisinin adı.
 npm'de durum: **son sürüm 5.0.2, son yayın 2023-12-04, `@capacitor/core: ^5.0.0`.**
 Üç yıla yakın güncellenmemiş ve Capacitor 5 hedefliyor. Bu yol kapalı.
 
-Capacitor 8 için iki alternatif var, ikisi de MIT:
+Capacitor 8 için iki alternatif var, ikisi de MIT. İkisinin de yayınlanmış
+kodu indirilip okundu (15 Eylül):
 
-| paket | sürüm | yayın |
-|---|---|---|
-| `@modbender/capacitor-play-games` | 0.4.0 | 2026-09-08 |
-| `@idleflowgames/capacitor-play-games` | 0.3.0 | 2026-09-08 |
+| paket | sürüm | liderlik modülü | ilişki |
+|---|---|---|---|
+| `@idleflowgames/capacitor-play-games` | 0.3.0 | 27 satır: gönder + göster | orijinal |
+| `@modbender/capacitor-play-games` | 0.4.0 | 189 satır: üstüne skor listesi, sıralama, metadata | çatallanmışı — Kotlin paket adı hâlâ `com.idleflowgames.playgames` |
 
-**İkisi de alınmadı, bilerek.** Sürüm numaraları 0.x ve ikisi de bakıldığı
-tarihten dört gün önce yayınlanmış. Oyunun native tarafına kanıtlanmamış bir
-bağımlılık sokmak, o an doğrulanması gereken asıl şeyi — satın almanın
-gerçekten para alıp almadığını — derleme bozulursa engeller. Liderlik tablosu
-zaten olmayan bir şey; satın alma ise yeni bağlandı ve telefonda görülmeyi
-bekliyor.
+İkisi de `com.google.android.gms:play-services-games-v2:22.0.0` kullanıyor,
+yani güncel SDK.
+
+**Kod beklenenden iyi.** `submitScoreImmediate` doğru çağrı ve yorumlar
+SDK'nın ince noktalarını bilen birinin yorumları: liderlik intent'inin bir,
+iki ve üç argümanlı sürümleri arasındaki fark (kısa olanı zaman aralığını
+PGS arayüzüne bırakıyor, uzun olanı zorluyor), skor tamponunun ve onu tutan
+holder'ın **iki ayrı** serbest bırakılabilir kaynak olduğu, ve yukarıda
+`@NonNull` bildirilmiş bir dönüşün yine de null kontrolünden geçirilmesi.
+Stub değil.
+
+**Yine de alınmadı.** Sebep kod değil:
+
+- İkisi de **0.x ve bir haftalık**, tek geliştirici, sicil yok. Kodun iyi
+  olması bakımın süreceğini göstermiyor.
+- SDK **minSdk'yi 24'e çıkarıyor** (build.gradle'daki kendi yorumları
+  söylüyor). Projenin şu anki değeri `android-fruithole/variables.gradle`'da
+  ve bu depoda o klasör yok; eklemeden önce bakılmalı. Android 6 cihazlar
+  düşer.
+- Ve asıl sebep: satın alma **henüz telefonda denenmedi**. Native tarafa yeni
+  bir bağımlılık sokup derlemeyi bozmak, o an doğrulanması gereken şeyi de
+  engeller.
 
 Sıra şu: önce IAP telefonda doğrulansın, sonra bu ikisinden biri denensin.
+İhtiyacımız gönder + göster olduğu için 27 satırlık olan yetiyor; ama
+modbender'ınki hem daha eksiksiz hem görünür biçimde daha dikkatli yazılmış.
+
 Denendiğinde ilk bakılacak şey `npx cap sync android` çıktısındaki "Found N
 Capacitor plugins" satırı — eklenti orada görünmüyorsa Capacitor onu kabul
-etmemiştir.
+etmemiştir. (@capgo/native-purchases orada göründüğü için IAP'nin Capacitor
+8'le uyuştuğunu böyle bilmiştik.)
+
+Play Console tarafı eklentiden bağımsız ve daha uzun sürüyor: liderlik
+tablosunun kendisi, Play Games Services kurulumu ve OAuth istemcisi. O kısma
+istenildiği zaman başlanabilir, adımlar `store/leaderboard-setup.md` içinde.
 
 Buradan çıkan ders zaten bir kez ödendi: IAP için aylarca README'de yazan
 RevenueCat yolu da aynı şekilde Capacitor 5'te kalmıştı. **Bir eklentiyi

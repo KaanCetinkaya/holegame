@@ -97,6 +97,43 @@ for (const w of [360, 412]) {
   }
 }
 
+// Oyun içindeki sayaçlar da aynı dörtlü. Menüdeki taşmayı düzeltmek onları
+// düzeltmiyor: HUD kartları sabit 36px ve sayı kartın içinde, yani buradaki
+// risk ekrandan taşmak değil, sayının kendi kartına sığmaması.
+console.log('\n--- oyun içi HUD ---');
+for (const w of [360, 412]) {
+  const pg = await br.newPage({ viewport: { width: w, height: 800 } });
+  pg.on('pageerror', e => { console.log('  SAYFA HATASI: ' + e); fails.push(String(e)); });
+  await pg.addInitScript(() => {
+    localStorage.setItem('fruithole_level', '44');
+    localStorage.setItem('fruithole_currency',
+      JSON.stringify({ berry: 123456, lychee: 234567, banana: 345678, melon: 456789 }));
+  });
+  await pg.goto('http://localhost:8220/', { waitUntil: 'load' });
+  await pg.waitForFunction(() => window.fruitHoleWallet, { timeout: 25000 });
+  await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
+  await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
+  await pg.click('#playBtn');
+  await pg.waitForTimeout(2200);
+
+  const h = await pg.evaluate(() => {
+    const cards = [...document.querySelectorAll('#wallet .card')];
+    const over = cards.filter(c => {
+      const n = c.querySelector('.n');
+      return n.scrollWidth > c.clientWidth + 0.5;
+    }).map(c => c.querySelector('.n').textContent);
+    const box = document.getElementById('wallet').getBoundingClientRect();
+    return { n: cards.length, over, right: Math.round(box.right), win: innerWidth,
+             texts: cards.map(c => c.querySelector('.n').textContent) };
+  });
+  console.log(`\n${w}px · altı hane`);
+  check(h.n === 4, 'dört sayaç da çizildi', `${h.n}`);
+  check(h.over.length === 0, 'sayı kartından taşmıyor', h.over.join(', ') || h.texts.join(' '));
+  check(h.right <= h.win + 0.5, 'cüzdan ekranın içinde', `${h.right} / ${h.win}`);
+  await pg.screenshot({ path: `/tmp/top/hud-${w}.png`, clip: { x: 0, y: 60, width: Math.min(w, 300), height: 90 } });
+  await pg.close();
+}
+
 console.log(fails.length ? `\n${fails.length} kontrol düştü` : '\nhepsi geçti');
 console.log('görüntüler: /tmp/top/');
 await br.close();
