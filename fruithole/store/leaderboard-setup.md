@@ -9,18 +9,13 @@ Aşağıdakiler tabloyu **açmak** için.
 
 ## Önce dürüst uyarı
 
-Bu adımların hiçbirini burada doğrulayamadım, iki sebeple:
+**Bu konteynerde Android SDK yok** ve native proje (`android-fruithole`)
+yalnızca senin makinende, yani eklentinin derlenip derlenmediğini buradan
+göremiyorum.
 
-1. **Bu konteynerde Android SDK yok** ve native proje (`android-fruithole`)
-   yalnızca senin makinende. Yani eklentinin derlenip derlenmediğini ben
-   göremiyorum.
-2. **Eklenti Capacitor 5 için yayınlanmış, biz Capacitor 8'deyiz.**
-   `@openforge/capacitor-game-connect@5.0.2`, bir yıldan uzun süre önce
-   yayınlanmış, `peerDependencies: { "@capacitor/core": "^5.0.0" }`.
-
-Capacitor eklentileri kaynak olarak gelip uygulamanın Gradle'ıyla derlendiği
-için **çalışma ihtimali var**, ama bunu ancak senin makinendeki gerçek bir
-derleme söyler. Derlenmezse aşağıda B planı var.
+Ama aşağıdaki **1. ve 2. adımlar eklentiden tamamen bağımsız** — Play
+Console'da tabloyu kurmak, hangi eklentiyi kullanacağımızdan önce gelir ve
+onun sonucunu beklemeden yapılabilir. Uzun süren kısım da zaten orası.
 
 ## 1. Play Console: oyun servisleri
 
@@ -30,8 +25,7 @@ yönetim** → **Yapılandırma**
 1. **"Hayır, oyunum Google API'lerini kullanmıyor"** → yeni bir oyun servisleri
    projesi oluştur. Adı: `Fruit Hole`.
 2. Oluştuktan sonra **Kimlik bilgileri ekle** → tür: **Android uygulaması**
-   - Uygulamanı seç (`com.kaan.fruithole` — `capacitor.config.js`'deki
-     `appId` ne ise o)
+   - Uygulamanı seç: **`com.kaancetinkaya.fruithole`**
    - **İmzalama sertifikası parmak izi (SHA-1)** isteyecek. Bu, Play'in senin
      `.aab`'ni yeniden imzaladığı anahtarın parmak izi:
      **Play Console → Test edin ve yayınlayın → Uygulama bütünlüğü →
@@ -70,18 +64,25 @@ görünmez. Yani bu satır bir anahtardır.
 
 ## 4. Eklentiyi kur
 
-Depo kökünde:
+⚠️ **Koddaki `GameConnect` adı ölü bir eklentiye ait.**
+`@openforge/capacitor-game-connect@5.0.2` en son **2023 Aralık'ta**
+yayınlanmış ve `@capacitor/core: ^5.0.0` bildiriyor; biz Capacitor 8'deyiz.
+Bu yol kapalı — aynı tuzağa IAP'de de düşülmüştü (README'deki "Eklenti"
+bölümü).
 
-```powershell
-npm install @openforge/capacitor-game-connect --legacy-peer-deps
-npm run aab:fruithole
-```
+Capacitor 8 için iki aday var ve ikisinin de kodu okundu (README, "Eklenti
+durumu"). Kısaca: `@modbender/capacitor-play-games` daha eksiksiz,
+`@idleflowgames/capacitor-play-games` daha küçük; ikisi de güncel SDK'da ve
+kodları ciddi. **Ama ikisi de 0.x ve çok yeni**, ayrıca SDK minSdk'yi 24'e
+çıkarıyor.
 
-`--legacy-peer-deps` şart: eklenti Capacitor 5 istiyor, bizde 8 var, npm bu
-uyuşmazlıkta durur.
+Karar: **satın alma telefonda doğrulandıktan sonra** eklenecek. O zaman
+kurulum komutu ve `index.html`'deki çağrıların yeni API'ye uyarlanması
+buraya yazılacak — şu anki `GameConnect` çağrıları o eklentiye göre
+değişecek.
 
-**Derleme başarılı olursa** iş bitti. Başarısız olursa çıktıyı bana at —
-hangi B planına gideceğimizi hata söyler.
+`npx cap sync android` çıktısındaki **"Found N Capacitor plugins"** satırı
+eklentinin kabul edilip edilmediğini söyleyen tek yer.
 
 ## 5. Manifest
 
@@ -119,8 +120,9 @@ kimlik boş, eklenti yüklenmemiş, ya da giriş reddedilmiş.
    lazım olan üç şey var — giriş, skor gönder, tabloyu aç. Capacitor eklentisi
    yazmak yüz satırlık bir Java dosyası. Capacitor 8'e göre yazılacağı için
    uyumsuzluk olmaz. Ben yazarım, derlemeyi sen yaparsın.
-2. **Eklentinin eski sürümünü dene** — `@openforge/capacitor-game-services@1.1.2`.
-   Daha eski, muhtemelen daha kötü.
+2. **Öbür adayı dene.** İki Capacitor 8 eklentisinden biri derlenmezse
+   diğeri denenir; biri ötekinin çatallanmışı olduğu için API'leri birbirine
+   yakın.
 3. **Tabloyu ertele.** Günlük meydan okuma zaten tek başına çalışıyor; tarla
    ve delik herkeste aynı olduğu için tablo sonradan eklendiğinde geçmişe
    dönük bir adaletsizlik doğmaz.
