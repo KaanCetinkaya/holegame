@@ -36,13 +36,21 @@ Drag the hole, swallow the fruit, grow bigger. Relaxing one-finger arcade.
 ```
 
 ## Full description (≤ 4000 chars)
+
+3981 characters — and it got there the hard way. This block reached **4544**
+before anyone measured it, which is 544 over a limit Play does not bend:
+the field simply refuses to save. Nine sections were trimmed, none dropped.
+`scratchpad/holelisting.mjs` now counts every block in this file against the
+limit in its own heading, so the next one is caught here and not in the
+Console.
+
 ```
 You are the hole in the middle of a fruit field — and the clock is running! 🕳️🍇
 
-Drag anywhere on the screen to steer the hole across the field, and swallow
-every fruit it touches. The more you eat, the bigger you get: blackberries and
-lychees first, then whole banana slices and melons. Clear the field before time
-runs out, grab the stars, move on.
+Drag anywhere to steer the hole across the field and swallow every fruit it
+touches. The more you eat, the bigger you get: blackberries and lychees first,
+then whole banana slices and melons. Clear the field before time runs out,
+grab the stars, move on.
 
 ⭐ EARN STARS
 Finishing isn't enough — how fast you finish is what counts. The more time left
@@ -50,19 +58,17 @@ on the clock, the more stars you take. Your best rating on every level is kept,
 so you can always come back and beat it.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
-Nineteen hand-built layouts: a stepped pyramid you take down terrace by
-terrace, four towers standing over the field, chevrons pointing the way home,
-solid circles, hollow rings, a heart, a star, an island, a diamond, a cross, a
-staircase, winding walls. Three throw out the grid and lay the field in rings
-around you — orbits opening outward from where you stand, a five-petalled
-bloom, three spiral arms winding outward.
+Nineteen hand-built layouts: a stepped pyramid taken down terrace by terrace,
+four towers standing over the field, chevrons, solid circles, hollow rings, a
+heart, a star, an island, a diamond, a cross, a staircase, winding walls.
+Three throw out the grid and lay the field in rings around you — orbits
+opening outward from where you stand, a five-petalled bloom, three spiral arms.
 
 And each one is somewhere. A beach with the sea running up the sand. A mown
-football pitch with a touchline. Floorboards indoors. Fresh snow with ice
-beyond the bank. A marble bank floor veined with gold. A riveted station deck
-with nothing but the dark past its edge. A lacquered bar top ringed by glasses.
-A car park with the bay lines painted on. A dark shop floor with the panel
-seams running through it. The ground changes, and so does what is lying on it.
+football pitch. Floorboards indoors. Fresh snow. A marble bank floor veined
+with gold. A station deck with nothing but the dark past its edge. A lacquered
+bar top. A car park. A dark shop floor. The ground changes, and so does what
+is lying on it.
 
 🔥 CHAIN COMBOS
 Eat fruit back to back and the multiplier climbs. Sweeping a whole patch in one
@@ -75,18 +81,18 @@ Each upgrade track is paid for with a different fruit.
 
 🎁 BOOSTERS
 Three ways out of a tight spot: +15 seconds, a burst that grows the hole at
-once, and 8 seconds of super magnetism. They unlock as you climb the levels.
+once, and 8 seconds of super magnetism. They unlock as you climb.
 
 👑 BOSS LEVELS
-Every tenth level ends in one colossal fruit, standing at the far end of the
-board. It is wider than any giant, so there is no taking it early — the only
-way to it is to sweep the field, and it is in shot from the first frame.
+Every tenth level ends in one colossal fruit at the far end of the board. It
+is wider than any giant, so there is no taking it early — the only way to it
+is to sweep the field, and it is in shot from the first frame.
 
 📅 DAILY CHALLENGE
-One field a day, and it is the same field for every player — it is built from
-the date itself, so nobody gets an easier board. Upgrades are switched off for
-it, so the score says how well you played today, not how long you have been
-playing. Come back tomorrow and keep the streak alive.
+One field a day, the same field for every player — built from the date itself,
+so nobody gets an easier board. Upgrades are switched off, so the score says
+how well you played today, not how long you have been playing. Come back
+tomorrow and keep the streak alive.
 
 📋 DAILY MISSIONS
 Three fresh missions every day, a login reward that grows with your streak, and
@@ -94,30 +100,26 @@ achievements to chase.
 
 🗼 STACKS AND GIANTS
 Fruit is piled into towers you take down in one pass. Scattered across every
-field are giants — more than twice the width of your opening, sitting on
-cleared ground, sometimes three of a kind huddled together. A giant is never a
-slice: it is the whole fruit standing up, a striped melon, an apple with its
-stalk and leaf, a banana curving off the ground. You cannot touch them at the
-start. Sweep enough of the field, grow into one, and it pays for the whole
-trip.
+field are giants — more than twice the width of your opening, sometimes three
+of a kind huddled together. A giant is never a slice: it is the whole fruit
+standing up, a striped melon, an apple with its stalk and leaf, a banana
+curving off the ground. You cannot touch them at the start. Sweep enough of
+the field, grow into one, and it pays for the whole trip.
 
 🏖️ NOT ONLY FRUIT
 Sixty-three objects are scattered through the crop, and which ones you meet
-depends on where you are. Lollies, donuts, sunglasses, flip-flops, a starfish,
-a bucket and spade on the beach. A football, boots, a shirt, a goal and the
-cup itself on the pitch. Toy cars and coffee mugs indoors. A snowman, a
-penguin, a candy cane, an igloo and a toboggan in the snow. Bitcoin, euros,
-rupees and pesos on the bank floor, with a money bag and gold bars to grow
-into. A satellite, a ringed planet and a whole rocket in orbit. Cocktails,
-lime wedges, a shaker and an ice bucket at the bar. Burgers, fries, a soda, a
-slice of pizza and parked cars at the drive-in. And on the shop floor:
-televisions, toy keyboards, headphones, hair dryers, a boombox, a desk fan, a
-laptop, a phone, a game pad — with a fridge and a toy helicopter to grow into.
+depends on where you are. Sunglasses, flip-flops and a bucket and spade on the
+beach. A football, boots and the cup itself on the pitch. Toy cars and coffee
+mugs indoors. A snowman, a penguin and an igloo in the snow. Bitcoin, euros and
+gold bars on the bank floor. A satellite, a ringed planet and a whole rocket in
+orbit. Cocktails at the bar. Burgers and parked cars at the drive-in.
+Televisions, headphones, a game pad — and a fridge to grow into — on the shop
+floor.
 
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, ink, lime, candy, ocean — and gold and chrome, which
-catch the light in a way flat colour cannot. Half open as you climb the
-levels, half are bought with fruit.
+catch the light in a way flat colour cannot. Half open as you climb, half are
+bought with fruit.
 
 🎁 A CHEST EVERY LEVEL
 Clear a field and a chest drops. Tap it, it bursts, and fruit lands in your
