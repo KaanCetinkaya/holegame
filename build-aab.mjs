@@ -131,6 +131,38 @@ if (gradle === beforeVersion && !gradle.includes(`versionCode ${version.versionC
 }
 console.log(`Sürüm: ${version.versionName} (code ${version.versionCode})`);
 
+// Oyun app-version.json'dan sonra değiştiyse, bu versionCode muhtemelen
+// harcanmıştır.
+//
+// Play bir versionCode'u ilk yüklemede tüketiyor ve ikincisini kabul
+// etmiyor. Numarayı elle artırmayı hatırlamak gerekiyordu ve bir kez
+// unutuldu: liderlik tablosu değişiklikleri zaten yüklenmiş olan 21'in
+// üstüne yazıldı, paket 21 olarak derlendi ve Play yükleme kutusunda
+// reddetti — yani hata, derlemeden dakikalar sonra, tarayıcıda ortaya çıktı.
+//
+// Buradaki kontrol git'e bakıyor: app-version.json'a dokunan son commit'ten
+// sonra oyunun kendi dosyası değişmiş mi? Değiştiyse sürüm o değişiklikle
+// birlikte artırılmamış demektir. Kesin değil (aynı commit'te ikisi de
+// değişmiş olabilir, o zaman uyarı çıkmaz ve doğrusu da budur), ama
+// unutulan durumu tam olarak yakalıyor.
+try {
+  const git = (args) => spawnSync('git', args, { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
+  const verCommit = git(['log', '-1', '--format=%H', '--', 'app-version.json']);
+  if (verCommit) {
+    // Hole kökte, ötekiler kendi klasörlerinde.
+    const src = appName === 'hole' ? 'index.html' : `${appName}/index.html`;
+    const after = git(['log', '--oneline', `${verCommit}..HEAD`, '--', src]);
+    if (after) {
+      console.warn('\n' + '!'.repeat(60));
+      console.warn(`UYARI: ${src} sürüm artırıldıktan SONRA değişmiş.`);
+      console.warn(`Bu paket code ${version.versionCode} ile derlenecek ve o numara`);
+      console.warn('Play\'e daha önce yüklendiyse yükleme kutusunda reddedilir.');
+      console.warn('app-version.json içindeki versionCode\'u artırmayı unuttuysan şimdi artır.');
+      console.warn('!'.repeat(60) + '\n');
+    }
+  }
+} catch (e) { /* git yoksa ya da depo değilse sessizce geç */ }
+
 if (gradle.includes('signingConfigs')) {
   console.log('İmza yapılandırması zaten var.');
   writeFileSync(gradleFile, gradle);   // sürüm değişmiş olabilir
