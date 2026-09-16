@@ -34,6 +34,47 @@ if (!projectDir) {
   process.exit(1);
 }
 
+// --- bağımlılıklar gerçekten kurulu mu? ---
+//
+// `npx cap sync` eklentileri node_modules'tan okuyor, package.json'dan değil.
+// Yani depoya yeni bir eklenti girdiğinde `npm install` çalıştırılmazsa sync
+// onu hiç görmüyor ve derleme **sorunsuz** tamamlanıyor — eklenti içeride
+// olmadan.
+//
+// 16 Eylül 2026: liderlik tablosu haftalardır cihazda açılmıyordu. Kod
+// doğruydu, Play Console kurulumu doğruydu, test kullanıcıları doğruydu.
+// @modbender/capacitor-play-games package.json'daydı ama node_modules'ta
+// değildi; sync satırı `Found 2 Capacitor plugins` diyordu, 3 demesi
+// gerekirken. O satır çıktının ortasında akıp gidiyor ve kimse saymıyor.
+{
+  const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
+  const deps = Object.keys(pkg.dependencies || {});
+  const eksik = deps.filter(d => !existsSync(join(ROOT, 'node_modules', d, 'package.json')));
+  if (eksik.length) {
+    console.error(
+      `\nnode_modules'ta olmayan bağımlılık: ${eksik.join(', ')}\n\n` +
+      `Bunlar package.json'da var ama kurulu değil. Capacitor eklentileri\n` +
+      `node_modules'tan okunuyor, yani böyle bir eklenti derlemeye hiç\n` +
+      `girmez ve derleme yine de başarılı olur — hatayı ancak cihazda,\n` +
+      `özellik çalışmadığında görürsün.\n\n` +
+      `  npm install\n`
+    );
+    process.exit(1);
+  }
+
+  // Kurulu olanların içinden Capacitor eklentisi olanları say ve yaz.
+  // `cap sync`'in "Found N Capacitor plugins" satırıyla karşılaştırılacak
+  // sayı bu; ikisi tutmuyorsa sync eski bir çıktıdan geliyor demektir.
+  const plugins = deps.filter(d => {
+    if (d === '@capacitor/core' || d === '@capacitor/android' || d === '@capacitor/cli') return false;
+    try {
+      const p = JSON.parse(readFileSync(join(ROOT, 'node_modules', d, 'package.json'), 'utf8'));
+      return !!p.capacitor;
+    } catch { return false; }
+  });
+  console.log(`Capacitor eklentisi (${plugins.length}): ${plugins.join(', ') || '-'}`);
+}
+
 const projectPath = join(ROOT, projectDir);
 if (!existsSync(projectPath)) {
   console.error(`${projectDir} yok. Önce: npm run add:${appName}`);
@@ -102,6 +143,52 @@ if (!existsSync(propsFile)) {
     `  keyPassword=SIFREN\n`
   );
   process.exit(1);
+}
+
+// --- imza bilgisi tutuyor mu? ---
+//
+// Gradle imzalamayı en sona bırakıyor, yani yanlış bir şifre ancak birkaç
+// dakikalık bir derlemenin sonunda öğreniliyor — ve hata metni
+// ("Failed to read key ... keystore password was incorrect") hangi alanın
+// yanlış olduğunu söylemiyor.
+//
+// 16 Eylül 2026'da bu tam olarak başımıza geldi: keystore.properties'te
+// `storePassword=9999` yazıyordu. Bu değer o keystore'u hiç açmamış olmalı,
+// çünkü keytool 6 karakterden kısa şifreyi **oluştururken** reddediyor — yani
+// o dosyaya bir noktada gerçek şifre yerine başka bir şey yazılmış. Bunu
+// anlamak saatler aldı; uzunluk kontrolü tek satırda söylerdi.
+{
+  const props = {};
+  for (const line of readFileSync(propsFile, 'utf8').split('\n')) {
+    const m = line.match(/^\s*([^#=][^=]*)=(.*)$/);
+    if (m) props[m[1].trim()] = m[2].replace(/\r$/, '');
+  }
+  const missing = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword']
+    .filter(k => !props[k]);
+  if (missing.length) {
+    console.error(`\nkeystore.properties eksik alan: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+  if (!existsSync(props.storeFile)) {
+    console.error(`\nkeystore bulunamadı: ${props.storeFile}\n` +
+      `keystore.properties içindeki storeFile yolunu düzelt.`);
+    process.exit(1);
+  }
+  // keytool'un kendi kuralı: bir keystore 6 karakterden kısa şifreyle
+  // oluşturulamaz. Yani buradaki kısa bir değer "yanlış olabilir" değil,
+  // "kesinlikle yanlış" demek.
+  for (const k of ['storePassword', 'keyPassword']) {
+    if (props[k].length < 6) {
+      console.error(
+        `\nkeystore.properties → ${k} yalnızca ${props[k].length} karakter.\n\n` +
+        `keytool 6 karakterden kısa şifreyle keystore oluşturmuyor, yani bu\n` +
+        `değer ${props.storeFile} dosyasının şifresi olamaz — bir noktada\n` +
+        `yanlış yazılmış. Derlemeyi başlatmıyorum, sonunda imzalamada\n` +
+        `düşerdi.`
+      );
+      process.exit(1);
+    }
+  }
 }
 
 // --- sürüm numarası ---

@@ -117,6 +117,21 @@ Bunları ayırt etmek için sürüm yazısına beş kez dokununca açılan teşh
 ekranı eklendi (23 / 1.8.3). Ayrıntısı README, "Teşhis ekranı: sessizliğin
 bedeli".
 
+**Ve aynı gece sebep bulundu: birincisiymiş.** `npm run aab:fruithole`
+çıktısında `Found 2 Capacitor plugins` yazıyordu — üç olmalıydı.
+`@modbender/capacitor-play-games` `package.json`'daydı ama `node_modules`'ta
+değildi, çünkü depo çekildikten sonra `npm install` çalıştırılmamıştı.
+`cap sync` eklentileri `node_modules`'tan okuduğu için onu hiç görmedi ve
+derleme yine de başarılı oldu.
+
+Yani bu dosyadaki 1–5 arası adımların hepsi doğruydu; eksik olan tek şey bir
+`npm install`'dı. `build-aab.mjs` artık bunu derlemeden önce kontrol ediyor
+(README, "🏆 neden çıkmıyordu").
+
+**Kural:** `git pull` sonrası `npm install`. Yeni bir eklenti eklendiğinde
+`cap sync`'in **"Found N Capacitor plugins"** satırındaki N'i say — o satır
+eklentinin derlemeye girip girmediğini söyleyen tek yer.
+
 Play Games Services **test kullanıcıları** ister. Yayınlanmadan önce yalnızca
 o listedeki hesaplar giriş yapabilir.
 

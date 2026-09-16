@@ -1040,6 +1040,58 @@ olduğunu, alt barın üstünde ve Play düğmesinin dışında durduğunu, halk
 yarıçapının gerçek menzile eşit olduğunu ve sürenin sonunda söndüğünü
 doğruluyor.
 
+## 🏆 neden çıkmıyordu: eklenti derlemede hiç yoktu
+
+Cevap 16 Eylül 2026 akşamı `npm run aab:fruithole` çıktısının ortasındaki tek
+bir satırdan çıktı:
+
+```
+[info] Found 2 Capacitor plugins for android:
+       @capacitor-community/admob@8.1.0
+       @capgo/native-purchases@8.7.0
+```
+
+**İki.** Üç olmalıydı. `@modbender/capacitor-play-games` `package.json`'daydı
+ama `node_modules`'ta değildi — depo çekilmişti, `npm install` çalıştırılmamıştı.
+`npx cap sync` eklentileri `package.json`'dan değil `node_modules`'tan okuyor,
+o yüzden eklentiyi hiç görmedi, **derleme de sorunsuz tamamlandı**. Cihaza
+eklentisiz bir uygulama kuruldu ve `_Cap.Plugins.PlayGames` orada `undefined`
+olduğu için `gamesReady()` false döndü, düğme de hiç görünmedi.
+
+Yani kod doğruydu, kimlik doğruydu, Play Console kurulumu doğruydu, test
+kullanıcıları doğruydu. Eksik olan tek şey bir `npm install`'dı.
+
+O satır çıktının ortasında akıp gidiyor ve kimse saymıyor. Artık
+`build-aab.mjs` derlemeden **önce** `package.json`'daki her bağımlılığın
+`node_modules`'ta olduğunu doğruluyor, eksikse duruyor ve adını söylüyor;
+ayrıca kaç Capacitor eklentisi gördüğünü yazıyor, `cap sync`'in satırıyla
+karşılaştırılabilsin diye.
+
+### Aynı gece: imza şifresi
+
+Derleme bu sefer sonuna kadar geldi ve **imzalamada** düştü:
+
+```
+Failed to read key fruithole from store "...\fruithole-key.jks":
+keystore password was incorrect
+```
+
+`keystore.properties` `storePassword=9999` diyordu. Bu değer o keystore'u
+hiç açmamış olmalı: **keytool 6 karakterden kısa şifreyle keystore
+oluşturmuyor**, yani `9999` hiçbir zaman geçerli bir şifre olamazdı. Dosyaya
+bir noktada gerçek şifre yerine başka bir şey yazılmış.
+
+Bunu anlamak saatler aldı, çünkü Gradle imzalamayı en sona bırakıyor — yanlış
+şifre ancak dakikalarca süren bir derlemenin sonunda öğreniliyor, ve hata
+metni hangi alanın yanlış olduğunu da söylemiyor. `build-aab.mjs` artık
+derlemeye başlamadan `storeFile`in var olduğunu, dört alanın da dolu
+olduğunu ve iki şifrenin de en az 6 karakter olduğunu kontrol ediyor.
+
+**Ölçen dosya `scratchpad/holebuildguard.mjs`.** `build-aab.mjs`'yi geçici
+bir klasöre kopyalayıp (ROOT betiğin yeri olduğu için sahte depo böyle
+kurulabiliyor) altı durumu yeniden üretiyor; Gradle hiç çalışmıyor, çünkü
+kontroller zaten ondan önce dönüyor.
+
 ## Teşhis ekranı: sessizliğin bedeli
 
 Sürüm yazısına **beş kez** dokununca teşhis ekranı açılıyor.
