@@ -1040,6 +1040,52 @@ olduğunu, alt barın üstünde ve Play düğmesinin dışında durduğunu, halk
 yarıçapının gerçek menzile eşit olduğunu ve sürenin sonunda söndüğünü
 doğruluyor.
 
+## Teşhis ekranı: sessizliğin bedeli
+
+Sürüm yazısına **beş kez** dokununca teşhis ekranı açılıyor.
+
+Sebebi şu: oyunun iki katmanı bilerek sessiz. Liderlik tablosu kurulu
+değilse 🏆 düğmesi hiç görünmüyor, mağaza fiyatı gelmezse `—` yazıyor.
+Oyuncu için doğrusu bu — çalışmayan bir düğme, olmayan bir düğmeden
+kötüdür, "bozuk" diye okunur. Ama aynı sessizlik geliştiriciye de
+uygulanınca üç ayrı sebep cihazda **tıpatıp aynı** görünüyor:
+
+* eklenti derlemeye hiç girmemiş,
+* eklenti var ama giriş reddedildi (ya da test kullanıcısı değiliz),
+* imza parmak izi yanlış ve giriş Google tarafında düşüyor.
+
+22 (1.8.2) telefona kuruldu, doğru derleme olduğu sürüm yazısından
+doğrulandı, ve 🏆 yine çıkmadı. O noktada elimizde ihtimalleri ayırt edecek
+hiçbir şey yoktu: her tahmin bir versionCode ve bir inceleme turu demekti.
+Bu ekran onu tek dokunuşa indiriyor.
+
+Okuduğu şeyler: native mi, Capacitor'ın tanıdığı eklentilerin listesi,
+`PlayGames` bulundu mu, girişin sonucu ve **başarısızsa Google'ın kendi hata
+metni**, tablo kimliği, `gamesReady()`; aynısı mağaza için — `NativePurchases`
+bulundu mu, kaç ürünün fiyatı geldi, gelmediyse sebebi, neye sahibiz.
+
+Üç düğmesi var. **Sign in again** girişi elle deniyor: sessiz giriş bu oyuna
+daha önce girmemiş oyuncuda zaten reddediliyor, o yüzden "reddedildi" tek
+başına arıza işareti değil — elle çağrılan giriş oyuncunun bir hareketine
+karşılık geldiği için Google hesap ekranını göstermeye hakkı var, ve
+göstermezse sebebini yazıyor. **Open leaderboard** düğmenin gizli olduğu
+durumda bile çağrının ne dediğini gösteriyor. **Copy** metni panoya alıyor,
+çünkü ekran görüntüsü her zaman okunaklı çıkmıyor.
+
+Hata metinlerini saklamak için `_gamesErr`, `_gamesRaw` ve `_iapErr`
+eklendi. Akışta kullanılmıyorlar, yalnızca bu ekran okuyor — yani sessizlik
+oyuncu için aynen duruyor.
+
+Beş dokunuş kazara olmaz, ve dokunuşlar arası 1.2 saniyeyi geçerse sayaç
+sıfırlanıyor; yoksa gün içine dağılmış beş dokunuş birikip ekranı
+kendiliğinden açardı. `#verTag`'in `pointer-events`'i bu yüzden `auto`
+oldu — eskiden `none`'dı, yani hiç açılmazdı.
+
+**Ölçen dosya `scratchpad/holediag.mjs`.** Asıl kontrol şu: üç durum sahte
+eklentilerle ayrı ayrı kuruluyor ve üçünün çıktısının **birbirinden farklı**
+olduğu doğrulanıyor. Ekran üçüne de aynı şeyi yazsaydı hiçbir işe yaramazdı,
+ve bunu "ekran açılıyor mu" diye bakarak fark edemezdin.
+
 ## Menünün üst satırı beş haneli bakiyede taşıyordu
 
 Kaan'ın telefonundan gelen fotoğrafta dört sayaç 17359, 18269, 21583 ve

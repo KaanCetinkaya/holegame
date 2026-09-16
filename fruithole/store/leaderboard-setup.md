@@ -102,6 +102,21 @@ kaybolmaması için oraya yazılması gerekir.
 
 ## 6. Test
 
+**16 Eylül 2026 — 22 (1.8.2) telefonda denendi, 🏆 çıkmadı.**
+
+Sürüm yazısı `v1.8.2 (22)` diyordu, yani doğru derlemeydi. Geriye üç ihtimal
+kaldı ve üçü cihazda aynı görünüyor:
+
+| Sebep | Nasıl anlaşılır |
+|---|---|
+| Eklenti derlemeye girmemiş | Teşhis: `PlayGames — hayır` |
+| Test kullanıcısı değiliz / giriş reddedildi | Teşhis: `PlayGames — evet`, `giriş — hayır` + sebep |
+| SHA-1 yanlış | Teşhis: giriş hatası Google'ın kendi metniyle |
+
+Bunları ayırt etmek için sürüm yazısına beş kez dokununca açılan teşhis
+ekranı eklendi (23 / 1.8.3). Ayrıntısı README, "Teşhis ekranı: sessizliğin
+bedeli".
+
 Play Games Services **test kullanıcıları** ister. Yayınlanmadan önce yalnızca
 o listedeki hesaplar giriş yapabilir.
 

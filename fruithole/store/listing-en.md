@@ -131,6 +131,23 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.8.3 / versionCode 23 (≤ 500 chars per language)
+
+Not a player-facing release: the only change is a hidden diagnostics screen.
+The notes still have to say something truthful, and "we added a debug panel"
+is neither interesting nor useful to a tester, so they describe the thing the
+panel exists to fix.
+
+English (164 chars):
+```
+Groundwork for the Daily Challenge leaderboard: the game can now report why sign-in did not go through, so the trophy button turning up late can actually be chased.
+```
+
+Türkçe (153 karakter):
+```
+Günlük meydan okuma tablosu için altyapı: oyun artık girişin neden yapılamadığını bildirebiliyor, böylece kupa düğmesinin geç çıkması takip edilebiliyor.
+```
+
 ## What's new — 1.8.2 / versionCode 22 (≤ 500 chars per language)
 
 English (172 chars):

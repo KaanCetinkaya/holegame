@@ -584,10 +584,32 @@
      not for the player, it is so "did the update land?" is answerable by
      looking instead of guessing. Sits in the corner beside the Play tray,
      which is centred, so the corner is free. */
-  #verTag { position: absolute; left: 10px; pointer-events: none;
+  /* Dokunulabilir, çünkü teşhis ekranını açan şey bu: beş kez üst üste.
+     Oyuncunun kazara bulacağı bir şey değil, ama telefonda tek başına
+     duran birinin bir komut satırı olmadan ulaşabileceği tek yer. */
+  #verTag { position: absolute; left: 10px; pointer-events: auto;
     bottom: calc(var(--adPad) + var(--navPad) + 10px);
     font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    padding: 6px 8px; margin: -6px -8px; -webkit-tap-highlight-color: transparent;
     color: rgba(255,255,255,.5); text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+
+  /* Teşhis ekranı. Bilerek çirkin ve bilerek seçilebilir: buradaki metin
+     okunmak değil, kopyalanıp yapıştırılmak için var. */
+  #diag { position: fixed; inset: 0; z-index: 90; display: none;
+    background: rgba(10,12,18,.94); color: #e8ecf4;
+    font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace;
+    padding: 18px 14px; overflow-y: auto; -webkit-user-select: text; user-select: text; }
+  #diag.show { display: block; }
+  #diag h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: .06em; }
+  #diag .grp { margin: 14px 0 4px; color: #8fb7ff; letter-spacing: .08em; }
+  #diag .row { display: flex; gap: 8px; padding: 2px 0; }
+  #diag .row b { flex: none; width: 92px; font-weight: 600; color: #9aa4b8; }
+  #diag .row span { flex: 1 1 auto; word-break: break-all; }
+  #diag .ok { color: #6ee7a8; }
+  #diag .no { color: #ff8b8b; }
+  #diag .acts { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+  #diag button { font: inherit; padding: 9px 14px; border-radius: 8px;
+    border: 1px solid #44506a; background: #1d2433; color: #e8ecf4; }
   /* Item standing on a plinth, label on a chip beneath it, and the whole
      thing on a card of its own.
      The card is why: the shelf sits at a share of the screen height while
@@ -688,6 +710,17 @@
       <button class="nav mid" id="homeBtn"><span class="ic">🏠</span><span class="lb">Home</span></button>
       <button class="nav" id="goalsBtn"><span class="ic">📋</span><span class="lb">Goals</span></button>
       <button class="nav" id="awardsBtn"><span class="ic">🏆</span><span class="lb">Awards</span></button>
+    </div>
+  </div>
+
+  <div id="diag">
+    <h2>🕳️ Diagnostics</h2>
+    <div id="diagBody"></div>
+    <div class="acts">
+      <button id="diagSign">Sign in again</button>
+      <button id="diagBoard">Open leaderboard</button>
+      <button id="diagCopy">Copy</button>
+      <button id="diagClose">Close</button>
     </div>
   </div>
 
@@ -1294,11 +1327,21 @@ const GAMES_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && 
 // bu satır tablonun anahtarı.
 const LEADERBOARD_ID = 'CgkIkbTDscoOEAIQAA';
 let _gamesIn = false;
+// Ne olduğunu saklıyoruz, yalnızca olup olmadığını değil.
+//
+// Bu katman sessiz olmak için yazıldı ve doğru olan da bu: oyuncunun girişi
+// reddetmesi arıza değil. Ama sessizlik geliştiriciye de uygulanınca üç ayrı
+// sebep — eklenti yok, giriş reddedildi, imza yanlış — cihazda birbirinin
+// aynısı görünüyor: düğme yok. Aralarındaki farkı ancak her denemede bir
+// versionCode harcayarak arayabiliyorduk. Bunlar teşhis ekranının okuduğu
+// yer; oyunun akışında hiçbir şeyi değiştirmiyorlar.
+let _gamesErr = '';
+let _gamesRaw = '';
 
 function gamesReady() { return GAMES_ON && _gamesIn && !!LEADERBOARD_ID; }
 
 async function gamesInit() {
-  if (!GAMES_ON) return;
+  if (!GAMES_ON) { _gamesErr = _Games ? 'native değil' : 'PlayGames eklentisi yok'; return; }
   try {
     // Sessiz giriş: daha önce bu oyuna giriş yapmış oyuncuda çalışıyor,
     // yapmamışta reddediliyor. Açılışta tam giriş ekranını zorlamak —
@@ -1306,11 +1349,14 @@ async function gamesInit() {
     // eklentinin kendi belgesi de onu yalnızca oyuncunun bir hareketine
     // karşılık çağırmayı söylüyor.
     const r = await _Games.signIn();
+    _gamesRaw = JSON.stringify(r);
     _gamesIn = r ? r.signedIn !== false : true;
+    _gamesErr = _gamesIn ? '' : 'signIn signedIn:false döndü';
   } catch (e) {
     // Girişi reddetmek normal bir cevap, arıza değil: oyunun geri kalanının
     // buna ihtiyacı yok ve burada hiçbir şey bir koşuyu engelleyemez.
     _gamesIn = false;
+    _gamesErr = String((e && (e.message || e.errorMessage)) || e);
   }
   refreshChallLeaderBtn();
 }
@@ -1500,6 +1546,11 @@ const restorePurchases = syncPurchases;
 // countries that do not use them. Play returns the price already formatted
 // for the account's country and currency, and showing anything else is both
 // wrong and grounds for review to reject the build.
+// Teşhis ekranı okuyor; akışta kullanılmıyor. Fiyat gelmeyince mağaza zaten
+// "—" gösteriyor, ama nedenini söylemiyor — ürün Play'de yok mu, hesap yanlış
+// ülkede mi, yoksa çağrı hata mı verdi, üçü de aynı boş sonucu veriyor.
+let _iapErr = '';
+
 async function loadPrices() {
   if (!IAP_ON) return;
   try {
@@ -1515,7 +1566,11 @@ async function loadPrices() {
       // then showed a made-up dollar figure as though it were real.
       if (p && sp.priceString) p.livePrice = sp.priceString;
     }
-  } catch (e) { /* nothing gets a livePrice; the shop says so */ }
+    _iapErr = '';
+  } catch (e) {
+    /* nothing gets a livePrice; the shop says so */
+    _iapErr = String((e && (e.message || e.errorMessage)) || e);
+  }
 }
 
 // One pass at launch: real prices, and whatever Play already knows is owned.
@@ -6061,6 +6116,131 @@ const APP_VERSION = 'dev';
 {
   const el = document.getElementById('verTag');
   if (el) el.textContent = APP_VERSION === 'dev' ? 'dev' : 'v' + APP_VERSION;
+}
+
+// ---------------------------------------------------------------------
+// Teşhis ekranı — sürüm yazısına beş kez dokun.
+//
+// Neden var: oyunun iki katmanı bilerek sessiz. Liderlik tablosu yoksa 🏆
+// düğmesi hiç görünmüyor, mağaza fiyatı gelmezse "—" yazıyor. Oyuncu için
+// doğrusu bu — çalışmayan bir düğme, olmayan bir düğmeden kötüdür. Ama aynı
+// sessizlik bize de uygulanınca üç ayrı sebep cihazda tıpatıp aynı görünüyor:
+//
+//   * eklenti derlemeye hiç girmemiş
+//   * eklenti var ama giriş reddedildi (ya da test kullanıcısı değiliz)
+//   * imza parmak izi yanlış, giriş Google tarafında düşüyor
+//
+// Aralarındaki farkı sormanın tek yolu her seferinde yeni bir versionCode
+// harcayıp bir inceleme turu beklemekti. Bu ekran onu tek dokunuşa indiriyor.
+//
+// Oyuncuya kapalı değil — gizli. Beş dokunuş kazara olmaz, ve hiçbir şeyi
+// değiştirmiyor: yalnızca okuyor, bir de girişi yeniden deniyor.
+// ---------------------------------------------------------------------
+{
+  const diag = document.getElementById('diag');
+  const body = document.getElementById('diagBody');
+  const ver = document.getElementById('verTag');
+
+  const esc = s => String(s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+  const row = (k, v, state) => `<div class="row"><b>${esc(k)}</b><span${
+    state === undefined ? '' : ` class="${state ? 'ok' : 'no'}"`}>${esc(v)}</span></div>`;
+  const yn = b => b ? 'evet' : 'hayır';
+
+  function diagText() {
+    const plugins = Object.keys((_Cap && _Cap.Plugins) || {});
+    const priced = PRODUCTS.filter(p => p.livePrice).length;
+    const owned = Object.keys(iap).filter(k => iap[k]);
+    let h = '';
+    h += row('sürüm', APP_VERSION);
+    h += row('native', yn(IS_NATIVE), IS_NATIVE);
+    h += row('eklenti', plugins.length ? plugins.join(', ') : '(hiç yok)', plugins.length > 0);
+
+    h += '<div class="grp">LİDERLİK</div>';
+    h += row('PlayGames', yn(!!_Games), !!_Games);
+    h += row('giriş', yn(_gamesIn), _gamesIn);
+    if (_gamesErr) h += row('sebep', _gamesErr, false);
+    if (_gamesRaw) h += row('cevap', _gamesRaw);
+    h += row('tablo id', LEADERBOARD_ID || '(boş)', !!LEADERBOARD_ID);
+    h += row('🏆 düğme', yn(gamesReady()), gamesReady());
+
+    h += '<div class="grp">MAĞAZA</div>';
+    h += row('Purchases', yn(!!_Purchases), !!_Purchases);
+    h += row('fiyat', `${priced} / ${PRODUCTS.length}`, priced === PRODUCTS.length);
+    if (_iapErr) h += row('sebep', _iapErr, false);
+    h += row('sahip', owned.length ? owned.join(', ') : '(yok)');
+
+    h += '<div class="grp">REKLAM</div>';
+    h += row('AdMob', yn(!!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob)),
+      !!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob));
+    h += row('reklamsız', yn(adsRemoved()));
+    return h;
+  }
+
+  function showDiag() {
+    body.innerHTML = diagText();
+    diag.classList.add('show');
+  }
+
+  // Beş dokunuş, ve aralarındaki boşluk 1.2 saniyeyi geçerse sayaç sıfırlanır
+  // — yoksa gün içinde dağınık beş dokunuş birikip kendiliğinden açardı.
+  let taps = 0, last = 0;
+  if (ver) ver.addEventListener('click', () => {
+    const now = Date.now();
+    taps = (now - last < 1200) ? taps + 1 : 1;
+    last = now;
+    if (taps >= 5) { taps = 0; showDiag(); }
+  });
+
+  document.getElementById('diagClose').addEventListener('click',
+    () => diag.classList.remove('show'));
+
+  // Girişi elle denemek, sessiz girişin cevaplamadığı soruyu cevaplıyor:
+  // sessiz giriş bu oyuna daha önce girmemiş oyuncuda zaten reddediliyor, o
+  // yüzden "reddedildi" tek başına bir arıza işareti değil. Buradan çağrılan
+  // giriş oyuncunun bir hareketine karşılık geliyor, yani Google hesap
+  // ekranını göstermeye hakkı var — ve göstermezse sebebi yazıyor.
+  document.getElementById('diagSign').addEventListener('click', async () => {
+    if (!_Games) { _gamesErr = 'PlayGames eklentisi yok — elle giriş denenemez'; body.innerHTML = diagText(); return; }
+    _gamesErr = 'deneniyor…'; _gamesRaw = ''; body.innerHTML = diagText();
+    try {
+      const r = await _Games.signIn();
+      _gamesRaw = JSON.stringify(r);
+      _gamesIn = r ? r.signedIn !== false : true;
+      _gamesErr = _gamesIn ? '' : 'signIn signedIn:false döndü';
+    } catch (e) {
+      _gamesIn = false;
+      _gamesErr = String((e && (e.message || e.errorMessage)) || e);
+    }
+    refreshChallLeaderBtn();
+    body.innerHTML = diagText();
+  });
+
+  // Tabloyu doğrudan açmak, 🏆 düğmesinin gizli olduğu durumda bile çağrının
+  // ne dediğini gösteriyor — düğmenin görünmesini beklemeden.
+  document.getElementById('diagBoard').addEventListener('click', async () => {
+    if (!_Games) { _gamesErr = 'PlayGames eklentisi yok'; body.innerHTML = diagText(); return; }
+    try {
+      await _Games.showLeaderboard({ leaderboardId: LEADERBOARD_ID });
+      _gamesErr = 'showLeaderboard hata vermedi';
+    } catch (e) {
+      _gamesErr = 'showLeaderboard: ' + String((e && (e.message || e.errorMessage)) || e);
+    }
+    body.innerHTML = diagText();
+  });
+
+  // Ekran görüntüsü okunaklı olmayabiliyor; metin hâli yapıştırılabilir.
+  document.getElementById('diagCopy').addEventListener('click', async () => {
+    const txt = body.innerText;
+    try { await navigator.clipboard.writeText(txt); }
+    catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e2) { }
+      ta.remove();
+    }
+  });
+
+  window.fruitHoleDiag = { show: showDiag, text: () => body.innerHTML || diagText() };
 }
 
 let holeGroup;
