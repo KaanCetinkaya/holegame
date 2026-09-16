@@ -804,9 +804,38 @@ Stub değil.
   bir bağımlılık sokup derlemeyi bozmak, o an doğrulanması gereken şeyi de
   engeller.
 
-Sıra şu: önce IAP telefonda doğrulansın, sonra bu ikisinden biri denensin.
-İhtiyacımız gönder + göster olduğu için 27 satırlık olan yetiyor; ama
-modbender'ınki hem daha eksiksiz hem görünür biçimde daha dikkatli yazılmış.
+**16 Eylül'de `@modbender/capacitor-play-games` alındı.** Satın alma
+telefonda doğrulandıktan sonra, yani beklenen koşul gerçekleşince. İki
+adaydan bu seçildi: hem daha eksiksiz hem görünür biçimde daha dikkatli
+yazılmış, ve gönder + göster zaten ikisinde de var.
+
+Kodu eklentinin gerçek API'sine uyarlarken **iki sessiz hata** ortaya çıktı.
+İkisi de aynı biçimde sessiz: `gamesReady()` false olunca bütün katman
+kapanıyor ve her çağrı bir catch bloğunun içinde, yani yanlış olan şey ne
+olursa olsun sonuç aynı — tablo çalışmıyor, hiçbir yerde hata yok.
+
+- **Eklenti adı.** Kod `_Cap.Plugins.GameConnect` okuyordu; bu, artık
+  kullanılmayan @openforge eklentisinin adı. Yenisi kendini `PlayGames` diye
+  kaydediyor (`@CapacitorPlugin(name = "PlayGames")`). Yanlış ad `_Games`'i
+  null bırakır, `GAMES_ON` false olur ve eklenti kurulu olsa bile tablo hiç
+  açılmaz.
+- **Parametre adı.** Çağrılar `leaderboardID` gönderiyordu (büyük D), eski
+  eklentinin istediği buydu. Bu eklenti `leaderboardId` bekliyor. Yanlışı
+  gönderilince kimlik tanımsız kalıyor, istek reddediliyor, catch onu
+  yutuyor.
+
+`scratchpad/holeboard.mjs` eklentinin yerine çağrıları kaydeden bir sahtesini
+koyup ikisini de yakalıyor: `PlayGames` adıyla bulunuyor mu, koşu bitince
+`submitScore` **`leaderboardId`** anahtarıyla ve doğru kimlikle gidiyor mu,
+🏆 düğmesine basınca `showLeaderboard` aynı şekilde çağrılıyor mu. Ayrıca
+açılışta zorlayıcı giriş ekranının çıkmadığını (silent giriş) ve oyuncu
+girişi reddettiğinde oyunun çalışmaya devam edip düğmenin gizli kaldığını
+kontrol ediyor.
+
+**Yine de derlendiği görülmedi.** Bu kutuda Android SDK yok. `npx cap sync
+android` çıktısındaki "Found N Capacitor plugins" satırı eklentinin kabul
+edilip edilmediğini söyleyen tek yer; satın alma eklentisinin Capacitor 8'le
+uyuştuğunu da böyle bilmiştik.
 
 Denendiğinde ilk bakılacak şey `npx cap sync android` çıktısındaki "Found N
 Capacitor plugins" satırı — eklenti orada görünmüyorsa Capacitor onu kabul

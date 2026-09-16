@@ -1282,7 +1282,12 @@ async function watchAdFor(btn, grant) {
 // Set up on the Play Console side; see fruithole/README.md. The id below is
 // the one Play Console generates for the board and has to be pasted in.
 // ---------------------------------------------------------------------
-const _Games = _Cap && _Cap.Plugins ? _Cap.Plugins.GameConnect : null;
+// Eklenti kendini "PlayGames" adıyla kaydediyor (@CapacitorPlugin(name =
+// "PlayGames")). Burada aylarca "GameConnect" yazıyordu — artık kullanılmayan
+// @openforge eklentisinin adı. Yanlış ad, eklenti kurulu olsa bile _Games'i
+// null bırakır ve tablo hiç açılmaz; hata da vermez, çünkü GAMES_ON false
+// olunca bütün katman sessizce devre dışı kalıyor.
+const _Games = _Cap && _Cap.Plugins ? _Cap.Plugins.PlayGames : null;
 const GAMES_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Games);
 // Play Console → Play Oyun Hizmetleri → Skor tabloları → "Daily Challenge".
 // Boş kaldığı sürece gamesReady() false döner ve 🏆 düğmesi hiç görünmez, yani
@@ -1295,27 +1300,38 @@ function gamesReady() { return GAMES_ON && _gamesIn && !!LEADERBOARD_ID; }
 async function gamesInit() {
   if (!GAMES_ON) return;
   try {
-    await _Games.signIn();
-    _gamesIn = true;
+    // Sessiz giriş: daha önce bu oyuna giriş yapmış oyuncuda çalışıyor,
+    // yapmamışta reddediliyor. Açılışta tam giriş ekranını zorlamak —
+    // silent: false — oyunun ilk isteğini bir hesap sorusu yapardı, ve
+    // eklentinin kendi belgesi de onu yalnızca oyuncunun bir hareketine
+    // karşılık çağırmayı söylüyor.
+    const r = await _Games.signIn();
+    _gamesIn = r ? r.signedIn !== false : true;
   } catch (e) {
-    // Declining the sign-in is a normal answer, not a fault: the rest of the
-    // game does not need it and nothing here may block a run.
+    // Girişi reddetmek normal bir cevap, arıza değil: oyunun geri kalanının
+    // buna ihtiyacı yok ve burada hiçbir şey bir koşuyu engelleyemez.
     _gamesIn = false;
   }
   refreshChallLeaderBtn();
 }
 
+// leaderboardId, leaderboardID değil.
+//
+// Eski @openforge eklentisi büyük D'li yazıyordu ve buradaki çağrılar ona
+// göreydi. Bu eklenti küçük d bekliyor; yanlışı gönderildiğinde kimlik
+// tanımsız kalıyor, istek reddediliyor ve catch bloğu onu yutuyor — yani
+// tablo hiç çalışmıyor ama hiçbir yerde hata görünmüyor.
 async function submitDailyScore(score) {
   if (!gamesReady() || !(score > 0)) return;
   try {
-    await _Games.submitScore({ leaderboardID: LEADERBOARD_ID, score });
+    await _Games.submitScore({ leaderboardId: LEADERBOARD_ID, score });
   } catch (e) { }
 }
 
 async function openLeaderboard() {
   if (!gamesReady()) return;
   try {
-    await _Games.showLeaderboard({ leaderboardID: LEADERBOARD_ID });
+    await _Games.showLeaderboard({ leaderboardId: LEADERBOARD_ID });
   } catch (e) { }
 }
 
