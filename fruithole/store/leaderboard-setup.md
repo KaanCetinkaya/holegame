@@ -17,7 +17,7 @@ Ama aşağıdaki **1. ve 2. adımlar eklentiden tamamen bağımsız** — Play
 Console'da tabloyu kurmak, hangi eklentiyi kullanacağımızdan önce gelir ve
 onun sonucunu beklemeden yapılabilir. Uzun süren kısım da zaten orası.
 
-## 1. Play Console: oyun servisleri
+## 1. Play Console: oyun servisleri ✅
 
 Play Console → sol menü **Büyüyün** → **Play Games Services** → **Kurulum ve
 yönetim** → **Yapılandırma**
@@ -35,7 +35,7 @@ yönetim** → **Yapılandırma**
      imza odur; yanlışını verirsen giriş sessizce başarısız olur ve hata da
      görmezsin.
 
-## 2. Liderlik tablosunu oluştur
+## 2. Liderlik tablosunu oluştur ✅
 
 Play Games Services → **Liderlik tabloları** → **Liderlik tablosu oluştur**
 
@@ -49,18 +49,19 @@ Play Games Services → **Liderlik tabloları** → **Liderlik tablosu oluştur*
 Kaydettikten sonra tablonun **kimliğini** kopyala — `CgkI...` diye başlayan
 uzun bir dizi.
 
-## 3. Kimliği koda yaz
-
-`fruithole/index.html` içinde:
+## 3. Kimliği koda yaz ✅ (16 Eylül 2026'da yapıldı)
 
 ```js
-const LEADERBOARD_ID = '';        // Play Console → Play Games Services → Leaderboards
+const LEADERBOARD_ID = 'CgkIkbTDscoOEAIQAA';
 ```
-
-Tırnakların arasına o `CgkI...` kimliğini yapıştır.
 
 **Boş kaldığı sürece tablo kapalıdır** — `gamesReady()` false döner, düğme
 görünmez. Yani bu satır bir anahtardır.
+
+Ama tek başına yetmiyor: `gamesReady()` üç şey istiyor — eklenti yüklü
+(`GAMES_ON`), giriş yapılmış (`_gamesIn`) **ve** kimlik dolu. Eklenti henüz
+kurulmadığı için kimliğin girilmesi cihazda hiçbir şeyi değiştirmedi, düğme
+hâlâ gizli. `scratchpad/holedaily.mjs` bunu doğruluyor (6. bölüm).
 
 ## 4. Eklentiyi kur
 

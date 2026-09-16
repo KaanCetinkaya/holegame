@@ -1284,7 +1284,10 @@ async function watchAdFor(btn, grant) {
 // ---------------------------------------------------------------------
 const _Games = _Cap && _Cap.Plugins ? _Cap.Plugins.GameConnect : null;
 const GAMES_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Games);
-const LEADERBOARD_ID = '';        // Play Console → Play Games Services → Leaderboards
+// Play Console → Play Oyun Hizmetleri → Skor tabloları → "Daily Challenge".
+// Boş kaldığı sürece gamesReady() false döner ve 🏆 düğmesi hiç görünmez, yani
+// bu satır tablonun anahtarı.
+const LEADERBOARD_ID = 'CgkIkbTDscoOEAIQAA';
 let _gamesIn = false;
 
 function gamesReady() { return GAMES_ON && _gamesIn && !!LEADERBOARD_ID; }
