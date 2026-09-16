@@ -129,6 +129,18 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.8.2 / versionCode 22 (≤ 500 chars per language)
+
+English (172 chars):
+```
+Daily Challenge leaderboard groundwork. The board is set up and the game now talks to Google Play Games; the trophy button appears once sign-in is available on your device.
+```
+
+Türkçe (178 karakter):
+```
+Günlük meydan okuma için liderlik tablosu altyapısı. Tablo kuruldu ve oyun artık Google Play Oyun Hizmetleri ile konuşuyor; kupa düğmesi cihazında giriş yapılabildiğinde çıkıyor.
+```
+
 ## What's new — 1.8.1 / versionCode 21 (≤ 500 chars per language)
 
 English (198 chars):
