@@ -1308,6 +1308,41 @@ vermiyor, iptal hiçbir şey vermiyor.
 para aldığı. Bu kutuda Android SDK yok. Onu telefonda görmek gerekiyor —
 Play Console'da kapalı test kanalına yükleyip lisanslı test hesabıyla.
 
+### Telefonda görülen (16 Eylül 2026, sürüm 21)
+
+Mağaza ekranı gerçek bir cihazda açıldı ve dört ürünü Play'in verdiği
+fiyatlarla gösterdi:
+
+```
+Remove ads     ₺114,99
+Starter pack   ₺174,99
+Fruit basket   ₺57,99
+Fruit truck    ₺144,99
+```
+
+Bu üç şeyi birden doğruluyor ve üçü de buradan doğrulanamıyordu:
+
+1. **Eklenti Capacitor 8'de gerçekten derleniyor.** Uyuşmazlık riski en
+   büyük bilinmeyendi; RevenueCat ve liderlik eklentisi tam bu yüzden
+   elendi.
+2. **`getProducts` çalışıyor ve fiyatlar mağazadan geliyor** — ekranda dolar
+   yer tutucuları değil, hesabın ülkesine göre biçimlenmiş ₺ değerleri var.
+3. **Ürün miktarları doğru bağlanmış**: 2.500 / 1.800 / 6.000, yani
+   `PRODUCTS` içindeki `fruit` alanı açıklama satırına doğru yansıyor.
+
+**Hâlâ görülmeyen:** satın almanın kendisi. Play penceresi açılıyor ama
+gerçek kartı gösteriyor, yani lisans testi o hesapta etkin değil — lisans
+testi listesine eklenen adres ile telefondaki Play hesabının aynı olması ve
+ayarın yayılması gerekiyor. Yani `purchaseProduct` → `consumePurchase`
+zinciri ve bir paketin **ikinci kez** alınabilmesi hâlâ yalnızca sahte
+eklentiyle doğrulanmış durumda.
+
+Kapalı test kanalındaki gruba eklenmiş olmak bunu sağlamıyor: **kapalı test
+kimin indirebileceğini, lisans testi kimin ödemeden satın alabileceğini
+belirliyor** — ikisi Play Console'da ayrı ayarlar ve ikincisi bu sayfada
+"E-posta listeleri" altındaki adreslere bakıyor, oraya yazılmış bir grup
+adresini açmıyor.
+
 Sahiplik `localStorage`'da (`fruithole_iap`) tutulur; kullanıcı uygulamayı
 silip kurarsa "Satın alımları geri yükle" düğmesi gerekir, o da yalnızca
 uygulamada çalışır. Açılıştaki `syncPurchases()` çoğu durumda o düğmeye
