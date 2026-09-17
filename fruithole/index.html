@@ -1340,6 +1340,35 @@ let _gamesRaw = '';
 
 function gamesReady() { return GAMES_ON && _gamesIn && !!LEADERBOARD_ID; }
 
+// Girişi oyuncunun bir hareketine karşılık istemek.
+//
+// Eklentinin `signIn()`'i varsayılan olarak **sessiz**: `silent` alanı
+// belirtilmezse true kabul ediliyor ve sessiz giriş, bu oyuna daha önce
+// girmemiş bir hesapta her zaman `signedIn:false` dönüyor. Bu bir hata değil,
+// tasarım — ama tek başına bırakılırsa yumurta-tavuk oluyor: oyuncu giriş
+// yapmamış olduğu için giremiyor, ve giriş yapması hiç istenmediği için de
+// hiçbir zaman giriş yapmış olmuyor. 17 Eylül 2026'da 🏆 düğmesinin hiçbir
+// cihazda çıkmamasının sebebi buydu; teşhis ekranı `signIn signedIn:false
+// döndü` yazınca görüldü.
+//
+// `silent: false` tam giriş akışını açıyor ve eklentinin belgesi onu yalnızca
+// oyuncunun bir hareketine karşılık çağırmayı söylüyor — açılışta çağırmak
+// oyunun ilk isteğini bir hesap sorusu yapardı.
+async function signInInteractive() {
+  if (!_Games) { _gamesErr = 'PlayGames eklentisi yok'; return false; }
+  try {
+    const r = await _Games.signIn({ silent: false });
+    _gamesRaw = JSON.stringify(r);
+    _gamesIn = r ? r.signedIn !== false : true;
+    _gamesErr = _gamesIn ? '' : 'oyuncu girişi tamamlamadı';
+  } catch (e) {
+    _gamesIn = false;
+    _gamesErr = String((e && (e.message || e.errorMessage)) || e);
+  }
+  refreshChallLeaderBtn();
+  return _gamesIn;
+}
+
 async function gamesInit() {
   if (!GAMES_ON) { _gamesErr = _Games ? 'native değil' : 'PlayGames eklentisi yok'; return; }
   try {
@@ -2114,11 +2143,39 @@ function renderChall() {
 }
 // Hidden until there is actually a board to open. A button that does
 // nothing is worse than no button — it reads as broken rather than absent.
+//
+// Ama "açılacak bir tablo yok"un iki ayrı hâli var ve bunları bir süre aynı
+// kefeye koyduk: tablo hiç kurulu değil (eklenti yok, kimlik boş) ve tablo
+// kurulu ama oyuncu henüz giriş yapmamış. İkincisinde düğmeyi gizlemek
+// oyuncuyu kilitliyordu — giriş yapması istenmiyordu, o yüzden hiç giriş
+// yapmıyordu, o yüzden düğme hiç çıkmıyordu. Artık o hâlde düğme çıkıyor ve
+// girişi teklif ediyor; basıldığında tabloyu açmıyor, girişi başlatıyor.
 function refreshChallLeaderBtn() {
   const b = document.getElementById('challLeaderBtn');
-  if (b) b.hidden = !gamesReady();
+  if (!b) return;
+  if (gamesReady()) {
+    b.hidden = false;
+    b.textContent = '🏆 Leaderboard';
+  } else if (GAMES_ON && LEADERBOARD_ID) {
+    b.hidden = false;
+    b.textContent = '🏆 Sign in for the leaderboard';
+  } else {
+    b.hidden = true;
+  }
 }
-document.getElementById('challLeaderBtn').addEventListener('click', openLeaderboard);
+document.getElementById('challLeaderBtn').addEventListener('click', async () => {
+  if (gamesReady()) { openLeaderboard(); return; }
+  const b = document.getElementById('challLeaderBtn');
+  const geri = b.textContent;
+  b.disabled = true;
+  b.textContent = 'Signing in…';
+  const ok = await signInInteractive();
+  b.disabled = false;
+  // Giriş olduysa refreshChallLeaderBtn yazıyı zaten değiştirdi; olmadıysa
+  // eski yazıya dön, yoksa düğme "Signing in…" olarak asılı kalır.
+  if (!ok) b.textContent = geri;
+  else openLeaderboard();
+});
 
 document.getElementById('challBtn').addEventListener('click', () => {
   document.getElementById('goals').classList.remove('show');
@@ -6200,18 +6257,13 @@ const APP_VERSION = 'dev';
   // giriş oyuncunun bir hareketine karşılık geliyor, yani Google hesap
   // ekranını göstermeye hakkı var — ve göstermezse sebebi yazıyor.
   document.getElementById('diagSign').addEventListener('click', async () => {
-    if (!_Games) { _gamesErr = 'PlayGames eklentisi yok — elle giriş denenemez'; body.innerHTML = diagText(); return; }
     _gamesErr = 'deneniyor…'; _gamesRaw = ''; body.innerHTML = diagText();
-    try {
-      const r = await _Games.signIn();
-      _gamesRaw = JSON.stringify(r);
-      _gamesIn = r ? r.signedIn !== false : true;
-      _gamesErr = _gamesIn ? '' : 'signIn signedIn:false döndü';
-    } catch (e) {
-      _gamesIn = false;
-      _gamesErr = String((e && (e.message || e.errorMessage)) || e);
-    }
-    refreshChallLeaderBtn();
+    // signInInteractive, yani silent: false. İlk hâli parametresiz
+    // `signIn()` çağırıyordu — eklentinin varsayılanı sessiz giriş olduğu
+    // için düğme açılıştakinin aynısını yapıyor ve hep aynı signedIn:false
+    // cevabını alıyordu. Yani teşhis düğmesi teşhis ettiği şeyi yeniden
+    // üretmekten başka bir şey yapmıyordu.
+    await signInInteractive();
     body.innerHTML = diagText();
   });
 

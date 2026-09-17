@@ -77,9 +77,28 @@ for (const [ad, init] of Object.entries(CASES)) {
   console.log(`\n--- ${ad} ---`);
   const pg = await open(init);
 
-  // Beş dokunuş gerçekten açıyor mu? Ekranın tek giriş yolu bu, ve
-  // pointer-events kapalı kaldığı için hiç açılmaması sessiz bir kayıp olurdu.
-  for (let i = 0; i < 5; i++) await pg.click('#verTag', { delay: 20 });
+  // Yazı gerçekten dokunulabilir mi? Asıl risk `pointer-events: none` —
+  // öyleyse parmak yazıya hiç değmiyor ve ekranın tek giriş yolu kapanıyor.
+  // Bunu tıklayarak değil, o noktada en üstte ne olduğunu sorarak ölçüyoruz.
+  check(await pg.evaluate(() => {
+    const e = document.getElementById('verTag');
+    const b = e.getBoundingClientRect();
+    if (!b.width || !b.height) return false;
+    return document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2) === e;
+  }), 'sürüm yazısı dokunmayı alıyor');
+
+  // Beş dokunuş.
+  //
+  // Bunlar sayfanın içinden gönderiliyor, Playwright'ın click'iyle değil.
+  // Sebebi: sayaç ardışık dokunuşlar arasında 1.2 saniyeden fazla boşluk
+  // olursa sıfırlanıyor, ve konteyner yüklüyken (ölçüldü: load 6.7, arka
+  // planda klip üretimi) Playwright'ın tek bir tıklaması o süreyi aşabiliyor.
+  // O zaman test, ölçmek istediği şeyi değil makinenin o anki yükünü ölçüyor.
+  // Pencerenin kendisi ayrı bir bölümde, kendi zamanıyla ölçülüyor.
+  await pg.evaluate(() => {
+    const e = document.getElementById('verTag');
+    for (let i = 0; i < 5; i++) e.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
   await pg.waitForTimeout(250);
   const shown = await pg.evaluate(() => document.getElementById('diag').classList.contains('show'));
   check(shown, 'beş dokunuş ekranı açtı');
@@ -125,7 +144,10 @@ for (let i = 0; i < vals.length; i++)
 console.log('\n--- tarayıcı (native yok) ---');
 {
   const pg = await open(null);
-  for (let i = 0; i < 5; i++) await pg.click('#verTag', { delay: 20 });
+  await pg.evaluate(() => {
+    const e = document.getElementById('verTag');
+    for (let i = 0; i < 5; i++) e.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
   await pg.waitForTimeout(250);
   const txt = await pg.evaluate(() => document.getElementById('diagBody').innerText);
   check(/native\s*hayır/.test(txt), 'native değil diyor');
@@ -143,8 +165,17 @@ console.log('\n--- tarayıcı (native yok) ---');
 console.log('\n--- dağınık dokunuş ---');
 {
   const pg = await open(null);
-  for (let i = 0; i < 4; i++) { await pg.click('#verTag'); await pg.waitForTimeout(1500); }
-  await pg.click('#verTag');
+  // Burada boşluk kasıtlı, o yüzden sayfanın kendi saatiyle ölçülüyor:
+  // dördü aralıklı, beşincisi hemen. Sayaç sıfırlanmazsa ekran açılırdı.
+  await pg.evaluate(async () => {
+    const e = document.getElementById('verTag');
+    const bekle = ms => new Promise(r => setTimeout(r, ms));
+    for (let i = 0; i < 4; i++) {
+      e.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await bekle(1500);
+    }
+    e.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
   await pg.waitForTimeout(250);
   check(await pg.evaluate(() => !document.getElementById('diag').classList.contains('show')),
     'arası açık beş dokunuş açmıyor');

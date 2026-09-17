@@ -53,6 +53,12 @@ const fake = (opts = {}) => `
         async signIn(o) {
           log('signIn', o);
           ${opts.signInFails ? 'throw new Error("oyuncu reddetti");' : ''}
+          // Gerçek eklentinin davranışı: silent varsayılan true ve sessiz
+          // giriş bu oyuna hiç girmemiş hesapta signedIn:false dönüyor.
+          // Yalnızca silent:false tam akışı açıyor.
+          ${opts.silentWorks === false
+            ? 'if (!o || o.silent !== false) return { signedIn: false };'
+            : ''}
           return { signedIn: ${opts.signedIn === false ? 'false' : 'true'} };
         },
         async isSignedIn() { return { signedIn: true }; },
@@ -147,10 +153,64 @@ await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) 
 await pg.waitForSelector('#goalsBtn', { state: 'visible', timeout: 20000 });
 await pg.click('#goalsBtn');
 await pg.waitForTimeout(600);
+// Bu kontrol önce "düğme gizli kaldı" diyordu ve bir süre geçti — ama
+// beklentinin kendisi yanlıştı: reddetmek kalıcı bir cevap değil, ve düğmeyi
+// gizlemek oyuncuya fikrini değiştirme yolu bırakmıyordu. Eklenti yüklüyken
+// düğme artık girişi teklif etmeye devam ediyor. Gizlenmesi gereken tek
+// durum tablonun hiç kurulu olmaması (eklenti yok ya da kimlik boş).
 check(await pg.evaluate(() => {
   const b = document.getElementById('challLeaderBtn');
-  return !b || b.hidden || getComputedStyle(b).display === 'none';
-}), '🏆 düğmesi gizli kaldı');
+  if (!b || b.hidden || getComputedStyle(b).display === 'none') return false;
+  return /sign in/i.test(b.textContent);
+}), 'düğme tabloyu açmıyor, girişi teklif ediyor',
+  await pg.evaluate(() => document.getElementById('challLeaderBtn').textContent));
+// Ve tablo kapalı: gamesReady() false olduğu için basmak tabloyu açmıyor.
+await pg.evaluate(() => { window.__pg.calls.length = 0; });
+await pg.click('#challLeaderBtn');
+await pg.waitForTimeout(700);
+calls = await pg.evaluate(() => window.__pg.calls);
+check(!calls.some(c => c.name === 'showLeaderboard'),
+  'giriş olmadan tablo açılmaya çalışılmıyor', calls.map(c => c.name).join(' > ') || '-');
+await pg.close();
+
+// ---- 5: sessiz giriş reddedilirse oyuncuya giriş teklif ediliyor mu ----
+//
+// 17 Eylül 2026'da 🏆 hiçbir cihazda çıkmıyordu ve sebebi buydu: eklentinin
+// signIn()'i varsayılan olarak sessiz, sessiz giriş de bu oyuna hiç girmemiş
+// hesapta signedIn:false dönüyor. Oyun başka hiçbir yerde silent:false
+// çağırmadığı için oyuncu giriş yapamıyor, giriş yapmadığı için düğme
+// çıkmıyor, düğme çıkmadığı için giriş yapamıyor.
+//
+// Düzeltme: düğme o hâlde gizlenmiyor, girişi teklif ediyor.
+console.log('\n5. sessiz giriş reddedilirse');
+pg = await open({ silentWorks: false });
+st = await pg.evaluate(() => window.fruitHoleGamesState());
+check(st.signedIn === false, 'açılışta giriş yapılmamış');
+check(st.ready === false, 'gamesReady() false');
+await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
+await pg.waitForSelector('#goalsBtn', { state: 'visible', timeout: 20000 });
+await pg.click('#goalsBtn');
+await pg.waitForTimeout(600);
+let b = await pg.evaluate(() => {
+  const e = document.getElementById('challLeaderBtn');
+  return e ? { hidden: e.hidden || getComputedStyle(e).display === 'none', text: e.textContent } : null;
+});
+check(!!b && !b.hidden, 'düğme gizlenmedi, giriş teklif ediliyor', JSON.stringify(b));
+check(!!b && /sign in/i.test(b.text), 'yazısı girişi anlatıyor', b && b.text);
+
+await pg.click('#challLeaderBtn');
+await pg.waitForTimeout(800);
+calls = await pg.evaluate(() => window.__pg.calls);
+const el = calls.filter(c => c.name === 'signIn');
+// Asıl kontrol: ikinci çağrı silent:false olmalı. Parametresiz gitseydi
+// eklenti yine sessiz girişi denerdi ve düğme hiçbir şey yapmazdı.
+check(el.length >= 2, 'düğme yeni bir giriş denemesi başlattı', el.length + ' çağrı');
+check(el.some(c => c.silent === false), 'etkileşimli giriş istendi (silent:false)',
+  JSON.stringify(el));
+st = await pg.evaluate(() => window.fruitHoleGamesState());
+check(st.signedIn === true, 'giriş sonrası oturum açık');
+b = await pg.evaluate(() => document.getElementById('challLeaderBtn').textContent);
+check(/leaderboard/i.test(b) && !/sign in/i.test(b), 'düğme tabloya döndü', b);
 await pg.close();
 
 console.log(fails.length ? `\n${fails.length} kontrol düştü` : '\nhepsi geçti');

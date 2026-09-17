@@ -131,6 +131,20 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.8.4 / versionCode 24 (≤ 500 chars per language)
+
+The first release where the leaderboard can actually be reached.
+
+English (203 chars):
+```
+The Daily Challenge leaderboard is open. Sign in to Google Play Games from the Goals screen and the trophy button appears — your best score for today goes up against everyone else playing the same field.
+```
+
+Türkçe (180 karakter):
+```
+Günlük meydan okuma liderlik tablosu açıldı. Goals ekranından Google Play Games'e giriş yap, kupa düğmesi çıksın — bugünkü en iyi skorun aynı tarlayı oynayan herkesle aynı listede.
+```
+
 ## What's new — 1.8.3 / versionCode 23 (≤ 500 chars per language)
 
 Not a player-facing release: the only change is a hidden diagnostics screen.

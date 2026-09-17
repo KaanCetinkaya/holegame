@@ -1092,6 +1092,70 @@ bir klasöre kopyalayıp (ROOT betiğin yeri olduğu için sahte depo böyle
 kurulabiliyor) altı durumu yeniden üretiyor; Gradle hiç çalışmıyor, çünkü
 kontroller zaten ondan önce dönüyor.
 
+## Sessiz giriş: yumurta-tavuk
+
+Eklenti derlemeye girdikten sonra 🏆 yine çıkmadı, ama bu sefer teşhis ekranı
+sebebini yazdı:
+
+```
+PlayGames    evet
+giriş        hayır
+sebep        signIn signedIn:false döndü
+cevap        {"signedIn":false}
+```
+
+Eklenti orada, hata yok, Google düpedüz "bu oyuncu giriş yapmamış" diyor.
+
+Sebep eklentinin API'sinde:
+
+```ts
+signIn(opts?: { silent?: boolean }): Promise<SignInResult>
+// silent varsayılan true. silent: false tam akışı açıyor ve yalnızca
+// oyuncunun bir hareketine karşılık çağrılmalı.
+```
+
+`gamesInit()` `signIn()`'i parametresiz çağırıyordu, yani hep **sessiz**
+giriş. Sessiz giriş bu oyuna daha önce girmiş hesapta çalışıyor, girmemişte
+reddediliyor — ve oyun başka hiçbir yerde `silent: false` çağırmıyordu. Döngü
+kapalıydı:
+
+> oyuncu giriş yapmamış → sessiz giriş reddediliyor → 🏆 gizleniyor →
+> giriş teklif edilmiyor → oyuncu hiç giriş yapmıyor
+
+Yani tablo **hiçbir oyuncuda** açılamıyordu, sadece bizde değil. Play Console
+kurulumu, kimlik, test kullanıcıları, eklenti — hepsi doğruyken.
+
+**Düzeltme.** `🏆` düğmesinin artık üç hâli var, ikisi değil:
+
+| Durum | Düğme |
+|---|---|
+| Giriş yapılmış | `🏆 Leaderboard` — tabloyu açıyor |
+| Eklenti + kimlik var, giriş yok | `🏆 Sign in for the leaderboard` — girişi başlatıyor |
+| Eklenti yok ya da kimlik boş | gizli |
+
+İkinci satır eksik olandı. Düğmeye basmak oyuncunun hareketi sayıldığı için
+`signIn({ silent: false })` çağrılabiliyor ve Google hesap ekranı çıkıyor;
+giriş olunca düğme kendiliğinden tabloya dönüyor ve tabloyu açıyor.
+
+Açılışta hâlâ yalnızca sessiz giriş deneniyor — oyunun ilk isteğinin bir
+hesap sorusu olmasını istemiyoruz, ve eklentinin belgesi de `silent: false`'u
+yalnızca oyuncu hareketine bağlıyor.
+
+Teşhis ekranındaki **Sign in again** düğmesi de aynı hatayı taşıyordu:
+parametresiz `signIn()` çağırıyordu, yani teşhis ettiği şeyi yeniden
+üretmekten başka bir şey yapmıyordu. O da `silent: false`'a geçti.
+
+**Ölçen dosya `scratchpad/holeboard.mjs`, 4. ve 5. bölümler.** Sahte eklenti
+artık gerçek davranışı taklit ediyor: `silent` verilmezse `signedIn:false`,
+yalnızca `silent: false` kabul. 5. bölüm döngünün kırıldığını doğruluyor —
+düğme çıkıyor, basınca **ikinci** bir `signIn` gidiyor ve o çağrıda
+`silent: false` var.
+
+4. bölümün beklentisi de değişti. Eskiden "giriş reddedilirse düğme gizli
+kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetmek
+kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
+bırakmıyordu.
+
 ## Teşhis ekranı: sessizliğin bedeli
 
 Sürüm yazısına **beş kez** dokununca teşhis ekranı açılıyor.
