@@ -131,6 +131,20 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.8.5 / versionCode 25 (≤ 500 chars per language)
+
+Diagnostics only; nothing a player can see changes.
+
+English (139 chars):
+```
+Groundwork for the Daily Challenge leaderboard: the game can now read back exactly why Google Play Games turned a sign-in down.
+```
+
+Türkçe (143 karakter):
+```
+Günlük meydan okuma tablosu için altyapı: oyun artık Google Play Games'in girişi neden reddettiğini tam olarak okuyabiliyor.
+```
+
 ## What's new — 1.8.4 / versionCode 24 (≤ 500 chars per language)
 
 The first release where the leaderboard can actually be reached.

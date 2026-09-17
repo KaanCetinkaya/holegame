@@ -1337,6 +1337,24 @@ let _gamesIn = false;
 // yer; oyunun akışında hiçbir şeyi değiştirmiyorlar.
 let _gamesErr = '';
 let _gamesRaw = '';
+// Eklentinin yutmadığı tek hata.
+//
+// SignInModule.kt'de `signIn()` başarısız olunca `addOnFailureListener` hiçbir
+// şey aktarmadan `{signedIn:false}` çözüyor — yani Google'ın gerçek cevabı
+// kodda kayboluyor. Aynı dosyadaki `getPlayer()` ise `.bind()` kullanıyor ve
+// hatayı olduğu gibi reddediyor.
+//
+// Bu fark işimize yarıyor: giriş yapılamamışken `getPlayer()` çağırınca
+// Play Games'in durum kodunu okuyabiliyoruz, ve o kod soruyu bitiriyor.
+//
+//   DEVELOPER_ERROR (10)  → yapılandırma: OAuth istemcisindeki SHA-1, Play'in
+//                           uygulamayı imzaladığı sertifikanınki değil
+//   SIGN_IN_REQUIRED (4)  → yapılandırma doğru, oyuncu girmemiş
+//   NETWORK_ERROR (7)     → bağlantı
+//
+// Bir buçuk gün "neden açılmıyor" diye Play Console'da dolaştıktan sonra
+// eklendi. Cevabı cihazdan almak, konsolda aramaktan hızlı çıktı.
+let _gamesProbe = '';
 
 function gamesReady() { return GAMES_ON && _gamesIn && !!LEADERBOARD_ID; }
 
@@ -1365,6 +1383,15 @@ async function signInInteractive() {
     _gamesIn = false;
     _gamesErr = String((e && (e.message || e.errorMessage)) || e);
   }
+  // Giriş olmadıysa sebebini sor. getPlayer() hatayı yutmuyor.
+  if (!_gamesIn) {
+    try {
+      const p = await _Games.getPlayer();
+      _gamesProbe = 'getPlayer geçti: ' + JSON.stringify(p);
+    } catch (e) {
+      _gamesProbe = String((e && (e.message || e.errorMessage)) || e);
+    }
+  } else _gamesProbe = '';
   refreshChallLeaderBtn();
   return _gamesIn;
 }
@@ -6217,6 +6244,7 @@ const APP_VERSION = 'dev';
     h += row('giriş', yn(_gamesIn), _gamesIn);
     if (_gamesErr) h += row('sebep', _gamesErr, false);
     if (_gamesRaw) h += row('cevap', _gamesRaw);
+    if (_gamesProbe) h += row('tanı', _gamesProbe, /geçti/.test(_gamesProbe));
     h += row('tablo id', LEADERBOARD_ID || '(boş)', !!LEADERBOARD_ID);
     h += row('🏆 düğme', yn(gamesReady()), gamesReady());
 
