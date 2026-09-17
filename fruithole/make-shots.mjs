@@ -54,19 +54,37 @@ async function sweep(pg, w, h, legs) {
   await pg.mouse.up();
 }
 
+// Sıra önemli: Play arama sonucunda ilk iki-üç görseli gösteriyor, ve
+// indirme kararını çoğunlukla onlar veriyor. Bir süre ilk sırada menü
+// duruyordu — başlık, bir "10. bölümde açılır" uyarısı ve bir Play düğmesi.
+// Yani en değerli slot oyunun ne olduğunu hiç göstermiyordu. Oynanış öne
+// alındı, menü aşağı indi.
 const SHOTS = [
-  { name: '1-menu', level: 9, menu: true },
-  { name: '2-play', level: 1, cap: 'Steer the hole, swallow the field',
+  { name: '1-play', level: 1, cap: 'Steer the hole, swallow the field',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1200], [80, -100, 500]]) },
-  { name: '3-grown', level: 9, cap: 'Eat enough and the giants are yours',
+  { name: '2-grown', level: 9, cap: 'Eat enough and the giants are yours',
     play: async (pg, w, h) => {
       await pg.evaluate(() => window.fruitHoleSetSize(0.75));
       await sweep(pg, w, h, [[0, -120, 900], [110, -60, 900], [0, 120, 700]]);
     } },
-  { name: '4-snow', level: 8, cap: 'Every level is a shape — and a place',
+  { name: '3-snow', level: 8, cap: 'Every level is a shape — and a place',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1300], [-90, -90, 500]]) },
-  { name: '5-rings', level: 3, cap: 'Rings that open out from where you stand',
+  { name: '4-rings', level: 3, cap: 'Rings that open out from where you stand',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1100]]) },
+  // Menü, boş bir cüzdanla değil. localStorage temizlendiği için sayaçlar
+  // sıfır çıkıyordu ve mağaza görselinde sıfır, oyunun bitmemiş olduğunu
+  // ima ediyor — oysa orada görülmesi gereken şey birkaç bölüm oynamış bir
+  // oyuncunun gördüğü ekran.
+  // Alt yazı yok: menüde ekranın altı Play düğmesi ve gezinme çubuğu, ve
+  // yazı şeridi tam onların üstüne biniyordu. Menünün zaten kendi yazısı var.
+  //
+  // Yıldızlar da tohumlanıyor. Sadece bölüm 12 verilince menüdeki şerit
+  // "0 stars collected — everything unlocked" diyordu: 12. bölümdeki bir
+  // oyuncunun sıfır yıldızı olamaz, ve kendi içinde çelişen bir cümle
+  // mağaza görselinde oyunun bozuk olduğunu düşündürür.
+  { name: '5-menu', level: 12, menu: true,
+    purse: { berry: 4820, lychee: 3960, banana: 5140, melon: 2730 },
+    stars: Object.fromEntries(Array.from({ length: 11 }, (_, i) => [i + 1, i < 6 ? 3 : 2])) },
   { name: '6-skins', level: 12, screen: 'upgBtn' },
   { name: '7-levels', level: 12, screen: 'levelsBtn' },
 ];
@@ -78,16 +96,25 @@ async function shoot(dir, width, height, scale) {
       viewport: { width: w, height: h }, deviceScaleFactor: scale });
     const errs = [];
     pg.on('pageerror', e => errs.push(String(e)));
-    await pg.addInitScript(l => {
+    await pg.addInitScript(a => {
       localStorage.clear();
-      localStorage.setItem('fruithole_level', l);
-    }, String(s.level));
+      localStorage.setItem('fruithole_level', a.level);
+      if (a.purse) localStorage.setItem('fruithole_currency', JSON.stringify(a.purse));
+      if (a.stars) localStorage.setItem('fruithole_stars', JSON.stringify(a.stars));
+    }, { level: String(s.level), purse: s.purse || null, stars: s.stars || null });
     await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
     await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 25000 });
     // Günlük ödül penceresi ilk açılışta her şeyin önüne geliyor.
     await pg.waitForSelector('#dailyBtn', { state: 'visible', timeout: 8000 }).catch(() => {});
     await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
     await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
+    // Sürüm yazısı geliştirici için var ("güncelleme indi mi"). Mağaza
+    // görselinde işi yok: gürültü, ve çekildiği andaki numarayı sonsuza
+    // kadar taşıyor — 1-menu.png aylarca "v1.8 (20)" diye durdu.
+    await pg.evaluate(() => {
+      const v = document.getElementById('verTag');
+      if (v) v.style.display = 'none';
+    });
     await pg.waitForTimeout(400);
 
     if (s.screen) {

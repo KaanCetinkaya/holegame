@@ -332,17 +332,17 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 ## Assets (ready in this folder)
 - `icon-512.png` — store icon, exactly 512×512 (required)
 - `feature-1024x500.png` — feature graphic (required)
-- `1-menu.png` — main menu, on the beach
-- `2-play.png` — level 1: the stepped pyramid on the beach
-- `3-grown.png` — the voxel level, hole grown, a swathe cleared
+- `1-play.png` — level 1: the stepped pyramid on the beach
+- `2-grown.png` — the voxel level, hole grown, a swathe cleared
 
 The feature graphic is shot from level 20 by `node fruithole/make-feature.mjs`.
 It used to be the voxel level on the dark shop floor — the most prominent
 image on the store page announcing a pixel game played in the dark, when one
 level in nineteen is voxel. Sand is the brightest ground the game owns.
 
-- `4-snow.png` — a Snow Day level: snowmen, penguins, candy canes
-- `5-rings.png` — Orbits: rings opening out from the hole
+- `3-snow.png` — a Snow Day level: snowmen, penguins, candy canes
+- `4-rings.png` — Orbits: rings opening out from the hole
+- `5-menu.png` — main menu, on the beach
 - `6-skins.png` — the ten hole skins
 - `7-levels.png` — the level map with star ratings
 
@@ -354,6 +354,20 @@ Phone screenshots are 1080×1920, captured from real play. Upload them in that
 order. Only the first two show in search results, and the set as a whole has
 to say four things: this is a hole game, the fruit is stacked, a level is a
 place, and there is something to collect.
+
+**The menu used to be first and no longer is.** Play shows the first two or
+three images in search results and most of the install decision happens
+there, so the most valuable slot was spending itself on a title, a "unlocks
+at level 10" notice and a Play button — nothing that says what the game is.
+Gameplay leads now; the menu sits fifth, where it does the job it is actually
+good at, which is showing that there is progress to make.
+
+Two things were wrong with the menu shot itself. Its wallet read 0 / 210 / 0 /
+0, because the capture clears localStorage, and zeros on a store page read as
+an unfinished game; it now carries the purse and stars of a player a dozen
+levels in. And the version tag in the corner — a developer aid for answering
+"did the update land" — was baked into the image, so `1-menu.png` said
+`v1.8 (20)` for months. It is hidden in every shot now.
 
 `tablet/` holds the same seven at 1440×2560 — that is exactly the 9:16 Play
 asks for in the tablet slots, and the same files go in both the 7-inch and the
