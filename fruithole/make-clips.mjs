@@ -126,8 +126,12 @@ const br = await chromium.launch({
 
 const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
 
+const dusen = [];
 for (const clip of CLIPS) {
   if (ONLY && clip.id !== ONLY) continue;
+  // Bir klibin düşmesi partiyi bitirmemeli: dördü çıkmışken beşincisi
+  // yüzünden hepsini baştan üretmek yirmi dakika demek.
+  try {
   const t0 = Date.now();
   console.log(`\n${clip.id} — ${clip.note}`);
 
@@ -155,8 +159,11 @@ for (const clip of CLIPS) {
   await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
   await pump(30);
 
-  const daily = await pg.$('#dailyBtn');
-  if (daily) { await daily.click(); await pump(10); }
+  // Günlük meydan okuma ekranı her açılışta çıkmıyor: yeni bir profilde
+  // (bölüm 1) doğrudan menü geliyor ve #dailyBtn DOM'da olduğu hâlde 0x0
+  // kalıyor. `$()` onu yine buluyor, tıklamak ise otuz saniye bekleyip
+  // düşüyor — varlığa değil görünürlüğe bakmak gerekiyor.
+  if (await pg.isVisible('#dailyBtn')) { await pg.click('#dailyBtn'); await pump(10); }
   await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 30000 });
   await pg.click('#playBtn');
 
@@ -213,8 +220,13 @@ for (const clip of CLIPS) {
 
   rmSync(frameDir, { recursive: true, force: true });
   console.log(`  -> ${mp4}  (${Math.round((Date.now() - t0) / 1000)} sn sürdü)`);
+  } catch (e) {
+    console.log(`  DÜŞTÜ: ${String(e).split('\n')[0]}`);
+    dusen.push(clip.id);
+  }
 }
 
 await br.close();
 srv.close();
-console.log(`\nklipler: ${OUT}`);
+console.log(dusen.length ? `\nüretilemeyen: ${dusen.join(', ')}` : '\nbeşi de çıktı');
+console.log(`klipler: ${OUT}`);
