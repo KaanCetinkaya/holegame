@@ -31,7 +31,14 @@ dördü için de başka bir ada geç. Tek isim üç platformda, aksi halde
 yönlendirme yapamazsın.
 
 **Görünen ad:** `Peelo: Fruit Hole`
-**Profil fotoğrafı:** `fruithole/store/icon-512.png`
+**Profil fotoğrafı:** `fruithole/store/icon-512.png` — ama **JPG'ye çevirip**
+yükle. TikTok PNG'yi kabul etmiyor: kırpma ekranında "Uygula" düğmesi hiç
+aktif olmuyor ve hata da vermiyor, sadece hiçbir şey olmuyor.
+
+```
+cd C:\Users\HP\holegame
+ffmpeg -i fruithole/store/icon-512.png -q:v 2 peelo-profil.jpg
+```
 
 **Bio (80 karakter sınırı):**
 ```
