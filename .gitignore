@@ -26,3 +26,10 @@ www-fruithole/index.html
 www-slicer/index.html
 www-tycoon/index.html
 keystore.properties
+
+# Tanıtım klipleri: make-clips.mjs üretiyor, her çalıştırmada baştan.
+# Mağaza ekran görüntüleri (store/*.png) depoda duruyor çünkü Play Console'a
+# yüklenen tam olarak onlar ve değişirlerse diff'i görmek gerekiyor. Video
+# öyle değil: her üretimde dosyanın tamamı değişiyor ve bir megabaytın
+# üstünde, yani depoda tutmak geçmişi her seferinde şişirirdi.
+fruithole/store/clips/
