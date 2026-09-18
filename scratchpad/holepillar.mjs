@@ -41,8 +41,27 @@ const check = (ok, what, saw) => {
   if (!ok) fails.push(what);
 };
 
-// Pillars deseni: PATTERNS[(level-1) % 19] -> 42. bölüm.
-await pg.addInitScript(() => localStorage.setItem('fruithole_level', '42'));
+// Bölüm numarası oyundan hesaplanıyor, dosyaya yazılmıyor.
+//
+// Burada "42" yazıyordu ve yanında `PATTERNS[(level-1) % 19]` diye bir yorum
+// vardı. On dokuz düzen yirmi dörde çıkınca 42. bölüm Pillars olmaktan çıktı
+// — test çalışmaya devam etti, ölçtü, ve **başka bir deseni** sütun sanıp
+// hata verdi. Numara yerine desenin adı soruluyor: kaçıncı sırada olursa
+// olsun doğru tahta bulunuyor.
+//
+// Üçüncü tur isteniyor, ilk değil: tahta bölümle birlikte uzuyor ve
+// sütunların şerit haline gelip gelmediği ancak uzun tahtada görülüyor.
+const ONCE = await br.newPage();
+await ONCE.goto('http://localhost:8199/', { waitUntil: 'load' });
+await ONCE.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
+  { timeout: 25000 });
+const ORDER = await ONCE.evaluate(() => window.fruitHoleThemeTable().order);
+await ONCE.close();
+const IDX = ORDER.indexOf('Pillars');
+if (IDX < 0) throw new Error(`Pillars deseni yok — oyundakiler: ${ORDER.join(', ')}`);
+const BOLUM = IDX + 1 + ORDER.length * 2;
+
+await pg.addInitScript(n => localStorage.setItem('fruithole_level', String(n)), BOLUM);
 await pg.goto('http://localhost:8199/', { waitUntil: 'load' });
 await pg.waitForFunction(() => window.fruitHolePillars, { timeout: 25000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
@@ -50,8 +69,9 @@ await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
 await pg.click('#playBtn');
 await pg.waitForTimeout(3000);
 
-const desen = await pg.evaluate(() => window.fruitHoleProbe(42).pattern);
-console.log(`\ndesen: ${desen}\n`);
+const desen = await pg.evaluate(n => window.fruitHoleProbe(n).pattern, BOLUM);
+console.log(`\ndesen: ${desen}  (bölüm ${BOLUM})\n`);
+if (desen !== 'Pillars') { fails.push(`yanlış desen açıldı: ${desen}`); }
 
 const lines = await pg.evaluate(() => window.fruitHolePillars());
 console.log('sütun | dünya birimi | parça');
