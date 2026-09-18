@@ -5177,6 +5177,33 @@ const THEMES = {
     props: null,                       // null: draw from the whole pool
   },
 };
+// Aynı şekil, ikinci turda başka bir yerde.
+//
+// Tema desenin içine yazılı: Pyramid kumsalda, Blocks teknoloji mağazasında.
+// Bu ilk tur için doğru — hangi şeklin nereye ait olduğu elle seçilmiş ve
+// oyunun ilk izlenimi o. Ama 19 desen döngüyle geldiği için **20. bölümde
+// oyuncu her yeri görmüş** oluyor, 44'te her yeri iki kez. Casual bir oyunda
+// tutma oranını en çok yiyen şey bu tekrar.
+//
+// Birinci turdan sonra tema dönüyor: 19 desen × 10 tema = 190 birleşim, ve
+// tek bir yeni varlık üretmeden. Kayma tier başına 3 — 3 ile 10 aralarında
+// asal olduğu için on tur boyunca hiçbir desen aynı temayı iki kez görmüyor.
+//
+// Nesneler de kendiliğinden geliyor: prop havuzu temadan okunuyor, yani
+// Heart deseni kara taşındığında içine kardan adam ve penguen düşüyor.
+// Değişen sadece zeminin rengi değil, yer.
+//
+// Günlük meydan okuma bunun dışında: orada tarla tarihten üretiliyor ve
+// herkeste aynı olması gerekiyor, o yüzden yazıldığı temada kalıyor.
+const THEME_IDS = Object.keys(THEMES);
+
+function themeForLevel() {
+  const t = tier();
+  if (t === 0) return THEMES[currentPattern.theme] || THEMES.mixed;
+  const i = PATTERNS.indexOf(currentPattern);
+  return THEMES[THEME_IDS[((i < 0 ? 0 : i) + t * 3) % THEME_IDS.length]] || THEMES.mixed;
+}
+
 let currentTheme = THEMES.beach;
 
 function applyTheme(theme) {
@@ -5888,7 +5915,7 @@ function buildField() {
     : PATTERNS[(level - 1) % PATTERNS.length];
   // Latched before a single fruit is built, because fruitVisual() reads it.
   setVoxelField(!!currentPattern.voxel);
-  applyTheme(THEMES[currentPattern.theme] || THEMES.mixed);
+  applyTheme(themeForLevel());
   const pool = currentTheme.props || SMALL_PROPS;
   const themePool = pool.filter(id => SMALL_PROPS.includes(id));
   for (const cell of currentPattern.polar ? polarCells() : gridCells()) {

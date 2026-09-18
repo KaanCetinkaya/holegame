@@ -1156,6 +1156,33 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Aynı şekil, ikinci turda başka bir yerde
+
+19 desen döngüyle geliyor, ve tema desenin içine yazılı — Pyramid kumsalda,
+Blocks teknoloji mağazasında. Bu ilk tur için doğru: hangi şeklin nereye ait
+olduğu elle seçilmiş. Ama sonucu şu: **20. bölümde oyuncu her yeri görmüş**
+oluyor, 44'te her yeri iki kez.
+
+Birinci turdan sonra tema artık dönüyor. Ölçüldü:
+
+```
+Pyramid    bölüm  1 Beach  →  bölüm 20 Snow Day  →  bölüm 39 Happy Hour
+Bubbles    bölüm  5 Indoors → bölüm 24 Drive-In  →  bölüm 43 Beach
+```
+
+Kayma tur başına 3, ve 3 ile 10 aralarında asal olduğu için on tur boyunca
+hiçbir desen aynı temayı iki kez görmüyor. 19 × 10 = 190 birleşim, tek bir
+yeni varlık üretmeden.
+
+Asıl kazanç zemin rengi değil: **nesneler temanın havuzundan okunuyor**, yani
+Pyramid kara taşındığında içine kardan adam, iglo ve şeker kamışı düşüyor;
+Bubbles arabalı sinemaya taşındığında burger, patates ve pizza. Yer gerçekten
+değişiyor.
+
+İlk tur bilerek dokunulmadan bırakıldı — oyunun ilk izlenimi o kürasyon.
+Günlük meydan okuma da dışarıda: orada tarla tarihten üretiliyor ve herkeste
+aynı olmak zorunda.
+
 ## Yeni oyuncu birinci bölümü kaybediyordu
 
 Ölçüm, tahmin değil. `scratchpad/holefirst.mjs` temiz bir profille ilk
