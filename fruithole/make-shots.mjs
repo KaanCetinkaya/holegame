@@ -59,17 +59,25 @@ async function sweep(pg, w, h, legs) {
 // duruyordu — başlık, bir "10. bölümde açılır" uyarısı ve bir Play düğmesi.
 // Yani en değerli slot oyunun ne olduğunu hiç göstermiyordu. Oynanış öne
 // alındı, menü aşağı indi.
+// Oynanış görselleri bölümü **düzenin adıyla** istiyor, numarasıyla değil.
+//
+// Numaralar bir kez kaydı: beş yeni düzen eklenince 8. bölüm Snow Day
+// olmaktan çıktı, 9. bölüm de voxel tahtası olmaktan. Dosya yine çalışıyor,
+// yine sekiz resim üretiyordu — sadece "3-snow.png" artık karı göstermiyordu
+// ve bunu ancak resme bakan biri fark edebilirdi. Adla arandığında düzen
+// nereye taşınırsa taşınsın doğru tahta bulunuyor, bulunamazsa gürültüyle
+// duruyor.
 const SHOTS = [
-  { name: '1-play', level: 1, cap: 'Steer the hole, swallow the field',
+  { name: '1-play', pattern: 'Pyramid', cap: 'Steer the hole, swallow the field',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1200], [80, -100, 500]]) },
-  { name: '2-grown', level: 9, cap: 'Eat enough and the giants are yours',
+  { name: '2-grown', pattern: 'Blocks', cap: 'Eat enough and the giants are yours',
     play: async (pg, w, h) => {
       await pg.evaluate(() => window.fruitHoleSetSize(0.75));
       await sweep(pg, w, h, [[0, -120, 900], [110, -60, 900], [0, 120, 700]]);
     } },
-  { name: '3-snow', level: 8, cap: 'Every level is a shape — and a place',
+  { name: '3-snow', pattern: 'Walls', cap: 'Every level is a shape — and a place',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1300], [-90, -90, 500]]) },
-  { name: '4-rings', level: 3, cap: 'Rings that open out from where you stand',
+  { name: '4-rings', pattern: 'Orbits', cap: 'Rings that open out from where you stand',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1100]]) },
   // Menü, boş bir cüzdanla değil. localStorage temizlendiği için sayaçlar
   // sıfır çıkıyordu ve mağaza görselinde sıfır, oyunun bitmemiş olduğunu
@@ -110,9 +118,29 @@ const SHOTS = [
     } },
 ];
 
+// Düzen adı -> bölüm numarası. Oyunun kendi sırasından okunuyor.
+async function levelIndex() {
+  const pg = await browser.newPage({ viewport: { width: 412, height: 915 } });
+  await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
+  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
+    { timeout: 25000 });
+  const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);
+  await pg.close();
+  const map = {};
+  order.forEach((name, i) => { if (!(name in map)) map[name] = i + 1; });
+  for (const s of SHOTS) {
+    if (s.pattern && !map[s.pattern]) {
+      throw new Error(`düzen bulunamadı: ${s.pattern} — oyundakiler: ${order.join(', ')}`);
+    }
+  }
+  return map;
+}
+const LEVEL_OF = await levelIndex();
+
 async function shoot(dir, width, height, scale) {
   const w = width / scale, h = height / scale;
   for (const s of SHOTS) {
+    if (s.pattern) s.level = LEVEL_OF[s.pattern];
     const pg = await browser.newPage({
       viewport: { width: w, height: h }, deviceScaleFactor: scale });
     const errs = [];
@@ -123,7 +151,7 @@ async function shoot(dir, width, height, scale) {
       if (a.purse) localStorage.setItem('fruithole_currency', JSON.stringify(a.purse));
       if (a.stars) localStorage.setItem('fruithole_stars', JSON.stringify(a.stars));
       if (a.found) localStorage.setItem('fruithole_found', JSON.stringify(a.found));
-    }, { level: String(s.level), purse: s.purse || null, stars: s.stars || null,
+    }, { level: String(s.level || 1), purse: s.purse || null, stars: s.stars || null,
          found: s.found || null });
     await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
     await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 25000 });

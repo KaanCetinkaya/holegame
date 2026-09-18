@@ -6401,6 +6401,127 @@ function pyramidTier(r, c) {
   return Math.min(PYRAMID_H.length - 1, Math.floor(ring / PYRAMID_STEP));
 }
 
+// ---------------------------------------------------------------------
+// Beş yeni düzen
+//
+// On dokuz düzen vardı ve 19. bölümden sonra baştan başlıyorlardı. Bunlar
+// o turu yirmi dörde çıkarıyor. Hepsinin uyduğu iki kural var, ve ikisi de
+// mevcut düzenlerin hatalarından öğrenildi:
+//
+//   - **Ölçüler hücre cinsinden, yerler tahtanın kesri cinsinden.** Tahta
+//     13 sütun ve bölüme göre 22-34 satır; nx/ny ile çizilen bir daire uzun
+//     tahtada yumurtaya dönüyor. Daireler bunu bir kez öğrendi.
+//   - **Yükseklik profili olmayan düzen halıdır.** `t` formun dışında 0,
+//     kalbinde 1; `ridge(t, n)` onu kat sayısına çeviriyor.
+// ---------------------------------------------------------------------
+
+// Dalga. Tahtanın enine giden bantlar, ama düz değil: satır, sütunun sinüsü
+// kadar kayıyor, yani bant boyunca süpürürken yön sürekli değişiyor.
+//
+// Chevrons'tan farkı bu. O da enine gider ama köşelidir ve seni bir ağza
+// doğru huniler; bu sürekli, ve takip edilecek bir çizgi.
+const WAVE_BANDS = 4;
+const WAVE_AMP = 2.6;                 // hücre
+const WAVE_BAND = 1.9;                // bandın kalınlığı, hücre
+function waveAt(r, c) {
+  const period = (rows - 1) / WAVE_BANDS;
+  const y = r - Math.sin((c / (COLS - 1)) * Math.PI * 2) * WAVE_AMP;
+  const k = y / period;
+  const nearest = Math.round(k);
+  const near = Math.abs(k - nearest) * period;
+  if (near > WAVE_BAND / 2) return null;
+  if (nearest < 0 || nearest > WAVE_BANDS) return null;
+  return { i: ((nearest % WAVE_BANDS) + WAVE_BANDS) % WAVE_BANDS,
+           t: 1 - near / (WAVE_BAND / 2) };
+}
+
+// Dama. Üçe üç bloklar, biri dolu biri boş.
+//
+// Sütun sayısı 13, yani üçe bölünmüyor ve hizalamayı olduğu gibi bırakınca
+// sağ kenarda bir hücrelik bir dilim kalıyordu. Bir sütun içeri alındı:
+// 1-3, 4-6, 7-9, 10-12, ve sıfırıncı sütun boş. Dört tam blok.
+const CHECK = 3;
+function checkerAt(r, c) {
+  if (c < 1) return null;
+  const bc = Math.floor((c - 1) / CHECK), br = Math.floor(r / CHECK);
+  if ((br + bc) % 2 !== 0) return null;
+  // Blok içindeki merkeze uzaklık: ortası yüksek, kenarı alçak, yani blok
+  // bir kare değil bir tepe. Düz bloklar ekranda tek bir dokuya dönüyordu.
+  const cx = 1 + bc * CHECK + (CHECK - 1) / 2, cy = br * CHECK + (CHECK - 1) / 2;
+  const d = Math.max(Math.abs(c - cx), Math.abs(r - cy));
+  return { br, bc, t: 1 - d / ((CHECK - 1) / 2 + 0.5) };
+}
+
+// Ağaç. Meyve oyununda meyvenin geldiği şekil, ve tahtadaki tek bakışımsız
+// form: gövde aşağıda, taç yukarıda.
+//
+// Taç, daire yerleşimiyle aynı fikirle kuruluyor — yerler tahtanın kesri,
+// yarıçaplar hücre. Gövde kameraya en yakın uçta, yani oyuncu ağacın
+// dibinden başlayıp yukarı tırmanıyor.
+const TREE_TRUNK = 1.3;               // yarı genişlik, hücre
+const TREE_FOOT = 0.60;               // gövdenin başladığı yer
+const TREE_CROWN = [
+  { u: 0.16, x: 0.50, r: 3.6 },
+  { u: 0.30, x: 0.20, r: 2.7 },
+  { u: 0.30, x: 0.80, r: 2.7 },
+  { u: 0.47, x: 0.30, r: 2.6 },
+  { u: 0.47, x: 0.70, r: 2.6 },
+];
+function treeAt(r, c) {
+  for (let i = 0; i < TREE_CROWN.length; i++) {
+    const k = TREE_CROWN[i];
+    const d = Math.hypot(c - k.x * (COLS - 1), r - k.u * (rows - 1));
+    if (d <= k.r) return { part: 1 + i, t: 1 - d / k.r };
+  }
+  const u = r / (rows - 1);
+  if (u >= TREE_FOOT && Math.abs(c - midCol()) <= TREE_TRUNK) {
+    return { part: 0, t: 1 - Math.abs(c - midCol()) / (TREE_TRUNK + 0.5) };
+  }
+  // Dallar: gövdenin tepesinden alttaki iki taça giden iki eğik çizgi.
+  // Onlarsız taç havada duruyor ve ağaç değil, bir demet daire oluyor.
+  if (u > 0.44 && u < TREE_FOOT + 0.04) {
+    const t = (u - 0.44) / (TREE_FOOT + 0.04 - 0.44);
+    for (const s of [-1, 1]) {
+      const x = midCol() + s * (1 - t) * (0.2 * (COLS - 1));
+      if (Math.abs(c - x) <= 1.0) return { part: 0, t: 0.5 };
+    }
+  }
+  return null;
+}
+
+// Kum saati. Genişlik derinliğin fonksiyonu: iki uçta tahtanın tamamı,
+// ortada bir boğaz.
+//
+// Oynanışı ayıran şey boğaz: iki hazne arasında tek geçit var, ve hangi
+// hazneyi önce süpüreceğine karar vermek zorundasın — geri dönmek pahalı.
+const GLASS_WAIST = 1.4;              // boğazın yarı genişliği, hücre
+function glassHalf(r) {
+  const u = r / (rows - 1);
+  const k = Math.abs(u - 0.5) * 2;    // boğazda 0, uçlarda 1
+  return GLASS_WAIST + k * k * (COLS / 2 - GLASS_WAIST);
+}
+
+// Merdiven. İki kenar direği ve arasındaki basamaklar.
+//
+// Direkler boyunca koşmak da, basamakları enine kesmek de mümkün; iki yol
+// aynı meyveyi farklı sırayla veriyor ve zinciri koparmadan hangisinin
+// gidileceği oyuncunun kararı.
+const LADDER_RAIL = 3.2;              // merkeze uzaklık, hücre
+const LADDER_W = 1.5;                 // direk kalınlığı
+const LADDER_STEP = 4;                // basamaklar arası satır
+const LADDER_RUNG = 1.3;
+function ladderAt(r, c) {
+  const dx = Math.abs(c - midCol());
+  const rail = Math.abs(dx - LADDER_RAIL);
+  if (rail <= LADDER_W / 2) return { part: 0, t: 1 - rail / (LADDER_W / 2) };
+  if (dx < LADDER_RAIL) {
+    const k = r % LADDER_STEP;
+    const near = Math.min(k, LADDER_STEP - k);
+    if (near <= LADDER_RUNG / 2) return { part: 1, t: 1 - near / (LADDER_RUNG / 2) };
+  }
+  return null;
+}
+
 // Towers standing on open ground — a colonnade rather than a carpet.
 //
 // Kept to four column lines with three cells of floor between them: a pillar
@@ -6537,6 +6658,22 @@ const PATTERNS = [
     big: () => false,
   },
   {
+    // Dalga. Enine giden bantlar, ama düz değil: her bant sütunun sinüsü
+    // kadar kayıyor, yani bant boyunca süpürürken yön sürekli değişiyor.
+    // Chevrons da enine gider ama köşelidir ve seni bir ağza huniler; bu
+    // sürekli, ve takip edilecek bir çizgi.
+    name: 'Wave', icon: '🌊', theme: 'beach',
+    props: 0.05,
+    empty: (r, c) => waveAt(r, c) === null,
+    // Bant başına tek meyve: dalgalar ancak tek renkliyken çizgi olarak
+    // okunuyor, karışık meyve onları yine bir serpintiye çeviriyor.
+    type: (r, c) => { const w = waveAt(r, c); return ID[(w ? w.i : 0) % ID.length]; },
+    stack: (r, c) => { const w = waveAt(r, c); return ridge(w ? w.t : 0, 2); },
+    // Bir bantta bir dev, tepe noktasında.
+    big: (r, c) => { const w = waveAt(r, c);
+      return !!w && w.t > 0.75 && w.i % 2 === 0 && c === Math.round(midCol()); },
+  },
+  {
     name: 'Walls', icon: '🧱', theme: 'snow',
     // winding walls with open corridors to work along
     empty: (r, c) => Math.abs(blob(r, c, 0.19, 77) - 0.5) > 0.11,
@@ -6561,7 +6698,7 @@ const PATTERNS = [
     big: (r, c) => blockType(r, c, 4, 3, 55) === 'melon' && r % 3 === 1 && c % 4 === 2,
   },
   {
-    name: 'Stairs', icon: '🪜', theme: 'cocktail',
+    name: 'Stairs', icon: '📶', theme: 'cocktail',
     // the mass descends across the board in broad steps
     empty: (r, c) => {
       const stepH = 3;
@@ -6571,6 +6708,28 @@ const PATTERNS = [
     type: (r, c) => blockType(r, c, 3, 3, 83),
     stack: (r) => 1 + (Math.floor(r / 3) % 4),
     big: (r, c) => blob(r, c, 0.4, 47) > 0.76,
+  },
+  {
+    // Merdiven. İki dikme ve aralarındaki basamaklar. Dikmeler boyunca
+    // koşmak da, basamakları enine kesmek de mümkün ve ikisi aynı meyveyi
+    // farklı sırayla veriyor.
+    //
+    // İlk adı "Shelves"ti, çünkü 🪜 ikonu Stairs'te duruyordu. Ama ekranda
+    // gördüğün şey bir merdiven, ve bir düzenin adı gördüğün şeyden başka
+    // olamaz. Merdiven ikonu buraya geçti; Stairs, basamak sırasını daha iyi
+    // anlatan 📶'ya taşındı. İki düzen aynı ikonu taşıyamaz — bölüm
+    // haritasında ikisi tek bir şeye benziyor.
+    name: 'Ladder', icon: '🪜', theme: 'home',
+    props: 0.05,
+    empty: (r, c) => ladderAt(r, c) === null,
+    // Dikmeler bir meyve, raflar başka: iskeletin iki parçası ayrılsın.
+    type: (r, c) => { const k = ladderAt(r, c); return k && k.part === 0 ? ID[2] : ID[0]; },
+    // Dikmeler yüksek, raflar alçak. Eşit yükseklikte ikisi tek bir ızgara
+    // oluyor ve hangisinin taşıyıcı olduğu kayboluyor.
+    stack: (r, c) => { const k = ladderAt(r, c);
+      return k ? (k.part === 0 ? ridge(k.t, 3) : ridge(k.t, 1)) : 1; },
+    big: (r, c) => { const k = ladderAt(r, c);
+      return !!k && k.part === 1 && k.t > 0.9 && r % (LADDER_STEP * 3) === 0; },
   },
   {
     name: 'Heart', icon: '💛', theme: 'space',
@@ -6600,6 +6759,21 @@ const PATTERNS = [
     stack: (r, c) => ridge(1 - fromCentre(r, c) / 0.5, 4),
     type: (r, c) => typeFromNoise(r, c, 0.34, 4),
     big: (r, c) => blob(r, c, 0.45, 88) > 0.74,
+  },
+  {
+    // Ağaç. Meyve oyununda meyvenin geldiği şekil, ve tahtadaki tek bakışımsız
+    // form. Gövde kameraya en yakın uçta: oyuncu dipten başlayıp tacın içine
+    // tırmanıyor.
+    name: 'Orchard', icon: '🌳', theme: 'farm',
+    props: 0.06,
+    empty: (r, c) => treeAt(r, c) === null,
+    // Gövde tek renk, her taç kendi rengi — yukarıdan bakınca taçlar
+    // birbirinden ayrılsın, yoksa tek bir yeşil kütle.
+    type: (r, c) => { const k = treeAt(r, c); return k ? ID[k.part % ID.length] : ID[0]; },
+    stack: (r, c) => { const k = treeAt(r, c);
+      if (!k) return 1; return k.part === 0 ? ridge(k.t, 3) : ridge(k.t, 2); },
+    // Tepedeki taçta bir dev: ağacın ucundaki meyve.
+    big: (r, c) => { const k = treeAt(r, c); return !!k && k.part === 1 && k.t > 0.85; },
   },
   {
     name: 'Island', icon: '🏝️', theme: 'beach',
@@ -6651,6 +6825,25 @@ const PATTERNS = [
     },
     type: (r, c) => typeFromNoise(r, c, 0.22, 31),
     big: (r, c) => blob(r, c, 0.4, 19) > 0.75,
+  },
+  {
+    // Kum saati. Genişlik derinliğin fonksiyonu: iki uçta tahtanın tamamı,
+    // ortada bir boğaz. Oynanışı ayıran şey o boğaz — iki hazne arasında tek
+    // geçit var ve hangisini önce süpüreceğine karar vermek gerekiyor,
+    // çünkü geri dönmek zinciri kırıyor.
+    name: 'Hourglass', icon: '⌛', theme: 'money',
+    props: 0.05,
+    empty: (r, c) => {
+      const { wob } = shapeCoords(r, c);
+      return Math.abs(c - midCol()) > glassHalf(r) + wob * COLS * 0.5;
+    },
+    type: (r, c) => typeFromNoise(r, c, 0.34, 73),
+    // Boğaza doğru yükseliyor: tahtanın en dar yeri en yüksek yeri de olsun,
+    // yoksa darlık yalnızca bir eksiklik gibi duruyor.
+    stack: (r) => ridge(1 - Math.abs(r / (rows - 1) - 0.5) * 2, 3),
+    // İki hazneye birer dev.
+    big: (r, c) => c === Math.round(midCol()) &&
+      (r === Math.round((rows - 1) * 0.12) || r === Math.round((rows - 1) * 0.88)),
   },
   {
     name: 'Spiral', icon: '🌀', theme: 'money',
@@ -6706,6 +6899,21 @@ const PATTERNS = [
     big: () => false,
   },
   {
+    // Dama. Üçe üç bloklar, biri dolu biri boş — tahtadaki en parçalı düzen.
+    // Her blok ayrı bir ada, yani zinciri sürdürmek rotayı önceden kurmayı
+    // gerektiriyor: yanlış sıra, iki blok arası boşlukta zinciri kırıyor.
+    name: 'Checkers', icon: '🏁', theme: 'drivein',
+    props: 0.06,
+    empty: (r, c) => checkerAt(r, c) === null,
+    // Blok başına tek meyve. Karışık renk, kareleri tekrar tek bir dokuya
+    // çeviriyor — kasa düzeninde bir kez öğrenilmişti.
+    type: (r, c) => { const k = checkerAt(r, c);
+      return k ? typeFromNoise(k.br * CHECK, 1 + k.bc * CHECK, 0.45, 61) : ID[0]; },
+    stack: (r, c) => { const k = checkerAt(r, c); return ridge(k ? k.t : 0, 2); },
+    big: (r, c) => { const k = checkerAt(r, c);
+      return !!k && k.t > 0.9 && (k.br + k.bc) % 4 === 0; },
+  },
+  {
     name: 'Bubbles', icon: '🫧', theme: 'home',
     // Six round islands on open ground. Each one is a single fruit, which is
     // what makes them read as separate things rather than one lumpy mass —
@@ -6728,7 +6936,7 @@ const PATTERNS = [
   // route is a circle and the shape of the level is legible from the first
   // frame instead of only once the camera has travelled.
   {
-    name: 'Orbits', icon: '🎯', polar: true, theme: 'tech',
+    name: 'Orbits', icon: '💫', polar: true, theme: 'tech',
     // Solid bands with a clear gap every fourth ring, so it reads as a
     // target: rings of one fruit each, with room to turn between them.
     // Two rings on, two off. A ring is a whole circumference of fruit, so
@@ -6744,7 +6952,7 @@ const PATTERNS = [
     // düzeni buradan geliyor. Tek düzenle kalsaydı yeni tema ilk turda
     // yalnızca 19. bölümde görünürdü — öteki temaların hepsi ikişer yerde
     // çıkıyor. Sarmal, sürülmüş toprakta ekin dairesi oluyor.
-    name: 'Whirl', icon: '🌀', polar: true, theme: 'farm',
+    name: 'Whirl', icon: '🍥', polar: true, theme: 'farm',
     // Three arms winding outward. A slot is on an arm when its angle is
     // close to where the arm has turned to by that radius, which is what
     // makes the arm a curve rather than a straight spoke.
@@ -6781,11 +6989,17 @@ const PATTERNS = [
 // the most distinctive thing in the game sat where most players never reach.
 // This puts one at level 3, and spaces the settings so the same place never
 // turns up two levels running.
+// Beş yeni düzen araya serpiştirildi, sona eklenmedi. Sona eklenseydi ilk
+// on dokuz bölüm kelimesi kelimesine aynı kalırdı ve yeni şekillerin hepsi
+// 20. bölümden sonraya düşerdi — yani oyuncuların çoğu hiç görmezdi.
+// Aynı yerin arka arkaya iki bölümde çıkmaması kuralı korundu;
+// `holetheme.mjs` artık onu da ölçüyor.
 const LEVEL_ORDER = [
-  'Pyramid', 'Chevrons', 'Orbits', 'Pillars', 'Bubbles',
-  'Piles', 'Rings', 'Walls', 'Blocks', 'Stairs',
-  'Heart', 'Whirl', 'Star', 'Island', 'Ring',
-  'Diamond', 'Bloom', 'Spiral', 'Cross',
+  'Pyramid', 'Chevrons', 'Orbits', 'Pillars', 'Wave',
+  'Bubbles', 'Piles', 'Rings', 'Checkers', 'Walls',
+  'Blocks', 'Stairs', 'Ladder', 'Heart', 'Whirl',
+  'Star', 'Orchard', 'Island', 'Ring', 'Diamond',
+  'Hourglass', 'Bloom', 'Spiral', 'Cross',
 ];
 for (const p of PATTERNS) {
   if (!LEVEL_ORDER.includes(p.name)) throw new Error(`LEVEL_ORDER is missing ${p.name}`);
@@ -8895,6 +9109,18 @@ window.fruitHoleThemeTable = () => ({
   giantOnly: Object.keys(PROPS).filter(k => PROPS[k].only === 'giant'),
   grounds: Object.keys(GROUND_MAKERS),
   patternCount: PATTERNS.length,
+  // Düzenlerin sırası. Bölüm numarası bu dizinin indeksi artı bir
+  // (`PATTERNS[(level - 1) % PATTERNS.length]`), yani "Walls kaçıncı bölüm"
+  // sorusunun cevabı burada. Numarayı dosyaya yazmak yerine buradan
+  // sormak, araya bir düzen eklendiğinde sessizce yanlış tahtaya bakmayı
+  // önlüyor.
+  order: PATTERNS.map(p => p.name),
+  // Kutupsal düzenler: ızgarayı bırakıp tarlayı oyuncunun çevresine halka
+  // halka serenler. Mağaza metni "üçü ızgarayı bırakıyor" diyor ve bu sayı
+  // orada elle yazılı — sayının nereden geldiği burası.
+  polar: PATTERNS.filter(p => p.polar).map(p => p.name),
+  icons: PATTERNS.map(p => p.icon),
+  patternThemes: PATTERNS.map(p => p.theme),
 });
 // Hücre boyunda yerleştirilmiş nesneler. Dev olarak işaretlenen bir nesnenin
 // küçük çıkması, ekranda okunmaz bir yumru demek — ve bu, tarlaya bakarak

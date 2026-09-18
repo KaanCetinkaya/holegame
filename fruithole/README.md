@@ -1156,6 +1156,61 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Beş yeni düzen: 19'dan 24'e
+
+On dokuz düzen vardı ve 19. bölümden sonra baştan başlıyorlardı. Beş yenisi
+turu yirmi dörde çıkarıyor.
+
+| düzen | bölüm | tema | oynanıştaki farkı |
+|---|---|---|---|
+| **Wave** 🌊 | 5 | Beach | Enine bantlar, ama düz değil: satır sütunun sinüsü kadar kayıyor, yani bant boyunca süpürürken yön sürekli değişiyor. Chevrons da enine gider ama köşelidir ve seni bir ağza huniler; bu takip edilecek bir çizgi. |
+| **Checkers** 🏁 | 9 | Drive-In | Üçe üç bloklar, biri dolu biri boş — tahtadaki en parçalı düzen. Her blok ayrı bir ada, zinciri sürdürmek rotayı önceden kurmayı gerektiriyor. |
+| **Ladder** 🪜 | 13 | Indoors | İki dikme, aralarında basamaklar. Dikme boyunca koşmak ve basamakları enine kesmek aynı meyveyi farklı sırayla veriyor. |
+| **Orchard** 🌳 | 17 | Harvest | Meyve oyununda meyvenin geldiği şekil, ve tahtadaki tek bakışımsız form. Gövde kameraya en yakın uçta: dipten başlayıp tacın içine tırmanıyorsun. |
+| **Hourglass** ⌛ | 21 | Payday | İki hazne, arada tek boğaz. Hangisini önce süpüreceğine karar vermek zorundasın — geri dönmek zinciri kırıyor. |
+
+**Araya serpiştirildiler, sona eklenmediler.** Sona eklenseydi ilk on dokuz
+bölüm kelimesi kelimesine aynı kalır ve beş yeni şeklin hepsi 20. bölümden
+sonraya düşerdi; yani oyuncuların çoğu hiç görmezdi. Sıra `LEVEL_ORDER`'da
+duruyor ve "aynı yer arka arkaya iki bölümde çıkmasın" kuralı korundu.
+
+İkisi ölçümle yerine oturdu:
+
+- **Payday tek düzen tutuyordu**, öteki dokuz tema ikişer. Hourglass oraya
+  gitti. Şimdi dağılım 2-3 arası, aradaki fark bir.
+- **Sayı tutan kural değişti.** `holetheme.mjs` "hiçbir tema ikiden fazla
+  düzen tutmasın" diyordu; o kural 19 düzen ile 10 temanın tesadüfüydü. 24
+  düzende on temanın hepsi ikide kalamaz. Sabit eşik yerine fark ölçülüyor:
+  hiçbir yer ötekilerden bir düzen fazla görünmesin.
+
+### Üç şey yakalandı
+
+**Oyunun kendi koruması.** `LEVEL_ORDER` her düzeni adıyla istiyor ve eksik
+olanı açılışta hata vererek söylüyor — beş düzeni ekleyip sıraya yazmayı
+unutunca sayfa hiç açılmadı. Sessizce yanlış sırada oynatmaktan iyi.
+
+**İki çift bölüm aynı ikonu taşıyormuş**, ve bu yeni bir hata değildi:
+`Ring` ile `Orbits` ikisi de 🎯, `Spiral` ile `Whirl` ikisi de 🌀. Bölüm
+haritasında ikisi tek bir şeye benziyordu. Kutupsal olanlar kendi ikonlarını
+aldı (💫, 🍥). Yeni düzen `Ladder` da başta `Shelves` adıyla yazılmıştı çünkü
+🪜 `Stairs`'te duruyordu — ama ekranda gördüğün şey bir merdiven, ve bir
+düzenin adı gördüğün şeyden başka olamaz. İkon buraya geçti, `Stairs` 📶'ya
+taşındı.
+
+**`make-shots.mjs` bölümleri numarayla istiyordu.** Beş düzen eklenince 8.
+bölüm Snow Day olmaktan, 9. bölüm voxel tahtası olmaktan çıktı. Dosya yine
+çalışıyor, yine sekiz resim üretiyordu — sadece `3-snow.png` artık karı
+göstermiyordu. Artık düzenin **adını** istiyor ve bölüm numarasını oyunun
+kendi sırasından okuyor; bulamazsa gürültüyle duruyor.
+
+`holerelease.mjs` de aynı hastalıktaydı: mağaza metnindeki sayıları elle
+tutulan bir tabloyla kontrol ediyordu (`{52:'Fifty-two', 63:'Sixty-three'…}`)
+ve 73'e gelince tablonun dışına çıkıp `undefined objects` aramaya başladı —
+yani ölçmesi gereken şeyi ölçemez hale geldi. Kutupsal desenleri de "oyundan
+okuyoruz" diye yazılmış bir yorumun altında elle yazılmış bir listeden
+alıyordu. İkisi de artık oyundan geliyor, ve ölçüm iki yönlü: doğru sayı
+yazıyor **ve** eski sayılardan hiçbiri metinde kalmamış.
+
 ## Onuncu tema: Harvest 🚜
 
 Oyunun adı **Fruit Hole** ve meyvenin geldiği yer dokuz temanın hiçbiri

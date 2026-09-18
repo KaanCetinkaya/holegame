@@ -52,7 +52,8 @@ console.log(`\n${seen.size} desen, 40 bölümde ${lo}-${hi} meyve\n`);
 for (const [name, v] of seen) console.log(`  ${String(name).padEnd(10)} bölüm ${String(v.first).padStart(2)}  ${v.fruit} meyve`);
 
 console.log('');
-check(seen.size === 19, `19 desen var (${seen.size})`);
+const DESEN = (await pg.evaluate(() => window.fruitHoleThemeTable())).order.length;
+check(seen.size === DESEN, `${DESEN} desen var (${seen.size})`);
 check(lo >= 80, `en seyrek bölüm 80+ meyve (${lo})`);
 check(hi <= 600, `en dolu bölüm 600'ü aşmıyor (${hi})`);
 
@@ -63,17 +64,49 @@ const propIds = (await pg.evaluate(() => window.fruitHolePropSheet())).split(', 
 console.log(`\n  ${propIds.length} eşya`);
 
 // --- mağaza metnindeki sayılar ---
-const polar = await pg.evaluate(() =>
-  window.fruitHoleProbe && (() => {
-    // desen listesine erişimimiz yok; kutupsal olanları isimden say
-    return ['Orbits', 'Whirl', 'Bloom'];
-  })());
+//
+// Bu blok iki kez elle bakım isteyen bir şeydi ve ikisi de eskidi. Kutupsal
+// desenler "oyundan okunuyor" diye yazılmıştı ama gerçekte kodun içine
+// elle yazılmış bir listeydi. Sayı-kelime karşılıkları da elle tutulan bir
+// tabloydu ve 73'e gelince tablonun dışına çıkıp `undefined objects`
+// aramaya başladı — yani test, ölçmesi gereken şeyi ölçemez hale geldi ve
+// bunu bir hata gibi bildirdi.
+//
+// İkisi de artık oyundan geliyor, ve sayı kelimeye bir fonksiyonla
+// çevriliyor. Ölçüm de iki yönlü: doğru sayı **yazıyor**, ve yanlış
+// sayıların hiçbiri yazmıyor. Tek yönlü olsaydı eski cümle metinde unutulmuş
+// halde durabilirdi.
+const TABLO = await pg.evaluate(() => window.fruitHoleThemeTable());
+const polar = TABLO.polar;
 const listing = readFileSync(`${ROOT}/fruithole/store/listing-en.md`, 'utf8');
-check(!/Fifteen hand-built/.test(listing), 'mağaza metni "Fifteen" demiyor');
-check(listing.includes('Nineteen'), 'mağaza metni "Nineteen" diyor');
-const WORDS = { 52: 'Fifty-two', 63: 'Sixty-three', 64: 'Sixty-four', 65: 'Sixty-five' };
-check(listing.includes(`${WORDS[propIds.length]} objects`),
-  `mağaza metni "${WORDS[propIds.length] || propIds.length} objects" diyor`);
+
+const BIRLER = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight',
+  'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+  'Seventeen', 'Eighteen', 'Nineteen'];
+const ONLAR = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy',
+  'Eighty', 'Ninety'];
+function kelime(n) {
+  if (n < 20) return BIRLER[n];
+  const o = ONLAR[Math.floor(n / 10)], b = n % 10;
+  return b ? `${o}-${BIRLER[b].toLowerCase()}` : o;
+}
+// Metinde geçen sayı doğru mu, ve komşu sayılardan hiçbiri kalmamış mı?
+function sayiKontrol(n, ne, aralik = 12) {
+  const dogru = kelime(n);
+  check(new RegExp(dogru, 'i').test(listing), `mağaza metni "${dogru}" (${ne}) diyor`);
+  const yanlis = [];
+  for (let k = Math.max(1, n - aralik); k <= n + aralik; k++) {
+    if (k === n) continue;
+    const w = kelime(k);
+    // "Three" gibi kısa bir kelime metnin başka yerinde geçebiliyor; yalnızca
+    // aynı cümlede, sayılan şeyin adının yanında geçeni arıyoruz.
+    if (new RegExp(`${w}[ -](hand-built|objects|things)`, 'i').test(listing)) yanlis.push(w);
+  }
+  check(yanlis.length === 0,
+    `eski ${ne} sayısı metinde kalmamış${yanlis.length ? ' — ' + yanlis.join(' ') : ''}`);
+}
+sayiKontrol(TABLO.order.length, 'desen');
+sayiKontrol(propIds.length, 'eşya');
 check(/Three throw out the grid/.test(listing) === (polar.length === 3),
   `mağaza metni ${polar.length} kutupsal desen diyor`);
 

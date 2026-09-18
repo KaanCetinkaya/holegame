@@ -86,18 +86,48 @@ console.log('\n2. dağılım');
 {
   const gercek = T.themes.filter(t => t.id !== 'mixed');
   console.log('    ' + gercek.map(t => `${t.name}(${t.patterns.length})`).join(' '));
-  // Bir tema tek düzende kalırsa ilk tur boyunca bir kez görünüyor; bu
-  // kabul edilebilir ama üç düzen bir temayı öne çıkarıyor ve öteki
-  // temaların yerini alıyor.
-  const sisen = gercek.filter(t => t.patterns.length > 2);
-  check(sisen.length === 0, 'hiçbir tema ikiden fazla düzen tutmuyor',
-    sisen.map(t => `${t.name}:${t.patterns.length}`).join(' ') || '-');
+  // Denge, sabit bir tavanla değil aradaki farkla ölçülüyor.
+  //
+  // İlk yazışımda kural "hiçbir tema ikiden fazla düzen tutmasın"dı ve o,
+  // 19 düzen ile 10 temanın tesadüfüydü. 24 düzende on temanın hepsi ikide
+  // kalamaz — dördü zorunlu olarak üçe çıkıyor. Sayıya bağlı bir eşik,
+  // içerik büyüdüğünde anlamını kaybediyor; asıl kural şu: hiçbir yer
+  // ötekilerden bir düzen fazla görünmesin.
+  const say = gercek.map(t => t.patterns.length);
+  const enCok = Math.max(...say), enAz = Math.min(...say);
+  check(enCok - enAz <= 1, 'temalar arasındaki düzen farkı en fazla bir',
+    `${enAz}-${enCok}`);
   check(gercek.every(t => t.props && t.props.length >= 4),
     'her temanın en az dört nesnesi var',
     gercek.map(t => `${t.name}:${(t.props || []).length}`).join(' '));
 }
 
-console.log('\n3. her tema gerçekten çiziliyor');
+console.log('\n3. bölüm sırası');
+{
+  // Aynı yerin arka arkaya iki bölümde çıkmaması, düzen sırasının yazılı
+  // kuralı — `LEVEL_ORDER`'ın üstündeki yorum bunu söylüyor ama hiçbir şey
+  // ölçmüyordu. Araya beş düzen eklenince sırayı elle kontrol etmek gerekti.
+  const th = T.patternThemes;
+  const ardarda = [];
+  for (let i = 0; i < th.length; i++) {
+    const j = (i + 1) % th.length;
+    if (th[i] === th[j]) ardarda.push(`${T.order[i]}>${T.order[j]}`);
+  }
+  check(ardarda.length === 0, 'aynı yer arka arkaya iki bölümde çıkmıyor',
+    ardarda.join(' ') || '-');
+
+  // İki düzen aynı ikonu taşıyamaz: bölüm haritasında ikisi tek bir şeye
+  // benziyor. Ladder eklenirken 🪜 zaten Stairs'teydi.
+  const sayim = {};
+  T.icons.forEach(i => { sayim[i] = (sayim[i] || 0) + 1; });
+  const ayni = Object.entries(sayim).filter(([, n]) => n > 1);
+  check(ayni.length === 0, 'her düzenin kendi ikonu var',
+    ayni.map(([k, n]) => `${k}:${n}`).join(' ') || '-');
+
+  check(T.order.length === new Set(T.order).size, 'düzen adları benzersiz');
+}
+
+console.log('\n4. her tema gerçekten çiziliyor');
 {
   // Sırayla bütün bölümler açılıyor ve her temanın en az bir kez, kendi
   // zeminiyle ve yalnızca kendi nesneleriyle çizildiği görülüyor.
@@ -128,7 +158,7 @@ console.log('\n3. her tema gerçekten çiziliyor');
   }
 }
 
-console.log('\n4. dev-only nesneler hücre boyunda çıkmıyor');
+console.log('\n5. dev-only nesneler hücre boyunda çıkmıyor');
 {
   // Dev olarak işaretlenen nesneler küçültülünce okunmaz hale geliyor —
   // korkuluk bir çubuğa, el arabası bir kutuya iniyor. Bütün ilk tur
@@ -148,7 +178,7 @@ console.log('\n4. dev-only nesneler hücre boyunda çıkmıyor');
     hatali.slice(0, 6).join(' ') || '-');
 }
 
-console.log('\n5. resimler');
+console.log('\n6. resimler');
 {
   // Karar gözle veriliyor: bir zeminin ötekinden ayrılıp ayrılmadığı
   // ölçülemiyor. Her temadan bir kare.

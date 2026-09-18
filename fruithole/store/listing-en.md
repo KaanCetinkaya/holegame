@@ -37,7 +37,7 @@ Drag the hole, swallow the fruit, grow bigger. Relaxing one-finger arcade.
 
 ## Full description (≤ 4000 chars)
 
-3978 characters — and it got there the hard way. This block reached **4544**
+3991 characters — and it got there the hard way. This block reached **4544**
 before anyone measured it, which is 544 over a limit Play does not bend:
 the field simply refuses to save. Nine sections were trimmed, none dropped.
 `scratchpad/holelisting.mjs` now counts every block in this file against the
@@ -58,9 +58,10 @@ on the clock, the more stars you take. Your best rating on every level is kept,
 so you can always come back and beat it.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
-Nineteen hand-built layouts: a stepped pyramid taken down terrace by terrace,
+Twenty-four hand-built layouts: a stepped pyramid taken down terrace by terrace,
 four towers standing over the field, chevrons, solid circles, hollow rings, a
-heart, a star, an island, a diamond, a staircase, winding walls.
+heart, a star, an island, a diamond, a staircase, winding walls, a rolling
+wave, a chequerboard, a fruit tree and a pinched hourglass.
 Three throw out the grid and lay the field in rings around you — orbits
 opening outward from where you stand, a five-petalled bloom, three spiral arms.
 
@@ -102,9 +103,8 @@ achievements to chase.
 Fruit is piled into towers you take down in one pass. Scattered across every
 field are giants — more than twice the width of your opening, sometimes three
 of a kind huddled together. A giant is never a slice: it is the whole fruit
-standing up, a striped melon, an apple with its stalk and leaf, a banana
-curving off the ground. You cannot touch them at the start. Sweep enough of
-the field, grow into one, and it pays for the whole trip.
+standing up, stalk and leaf and all. You cannot touch them at the start.
+Sweep enough of the field, grow into one, and it pays for the whole trip.
 
 🧺 SEVENTY-THREE THINGS TO FIND
 Scattered through the crop is whatever belongs where you are. A bucket and
@@ -132,22 +132,22 @@ Ready to clear the field?
 
 ## What's new — 1.10 / versionCode 30 (≤ 500 chars per language)
 
-English (449 chars):
+English (473 chars):
 ```
-A Collection screen: the field holds 73 objects — a bucket and spade on the sand, a penguin in the snow, a scarecrow out on the farm — and every one you swallow is now kept. The ones you have not found sit there as silhouettes.
+Five new layouts — a rolling wave, a chequerboard, a ladder, a fruit tree and an hourglass — so it is twenty-four levels before a shape comes round again.
 
-A new place to play: Harvest, a ploughed field with hay bales, chickens and a tractor in the crop.
+A new place to play too: Harvest, a ploughed field with hay bales, chickens and a tractor in the crop.
 
-Plus a free chest on the menu every four hours, eleven more achievements, and one reminder a day if you have not played.
+And a Collection screen for the 73 objects hidden in the field. Every one you swallow is kept; the ones you have not found sit there as silhouettes. Plus a free chest every four hours and eleven more achievements.
 ```
 
-Türkçe (407 karakter):
+Türkçe (426 karakter):
 ```
-Koleksiyon ekranı geldi: tarlada 73 nesne var — kumda kova ve kürek, karda penguen, çiftlikte korkuluk — ve artık yuttuğun her biri kaydediliyor. Bulmadıkların siluet olarak duruyor.
+Beş yeni düzen — dalga, dama, merdiven, meyve ağacı ve kum saati — yani bir şekil tekrar gelene kadar yirmi dört bölüm var.
 
-Yeni bir yer: Harvest — sürülmüş bir tarla, ekinin arasında saman balyaları, tavuklar ve bir traktör.
+Yeni bir yer de geldi: Harvest — sürülmüş bir tarla, ekinin arasında saman balyaları, tavuklar ve bir traktör.
 
-Ayrıca menüde dört saatte bir dolan bedava sandık, on bir yeni başarım, ve oynamadığın günler için günde bir hatırlatma.
+Bir de koleksiyon ekranı: tarlada saklı 73 nesne var, yuttuğun her biri kaydediliyor, bulmadıkların siluet olarak duruyor. Ayrıca dört saatte bir dolan bedava sandık ve on bir yeni başarım.
 ```
 
 ## What's new — 1.9.2 / versionCode 29 (≤ 500 chars per language)
