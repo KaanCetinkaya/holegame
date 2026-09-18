@@ -5198,6 +5198,15 @@ const THEMES = {
 const THEME_IDS = Object.keys(THEMES);
 
 function themeForLevel() {
+  // Günlük koşu her zaman deseninin kendi temasında.
+  //
+  // "Dokunmuyorum" diye yazmıştım ve yanlıştı: günlük tarla da bu yoldan
+  // geçiyor, ve `tier()` oyuncunun bölümünü okuyor. Yani 12. bölümdeki
+  // oyuncuyla 44. bölümdeki oyuncu aynı gün için farklı tema — dolayısıyla
+  // farklı nesneler, dolayısıyla farklı tarla — görüyordu. Oyunun günlük
+  // meydan okuma için verdiği tek söz buydu: aynı gün, aynı tarla, herkese.
+  // `scratchpad/holedaily.mjs` yakaladı.
+  if (dailyRun) return THEMES[currentPattern.theme] || THEMES.mixed;
   const t = tier();
   if (t === 0) return THEMES[currentPattern.theme] || THEMES.mixed;
   const i = PATTERNS.indexOf(currentPattern);

@@ -1180,8 +1180,14 @@ Bubbles arabalı sinemaya taşındığında burger, patates ve pizza. Yer gerçe
 değişiyor.
 
 İlk tur bilerek dokunulmadan bırakıldı — oyunun ilk izlenimi o kürasyon.
-Günlük meydan okuma da dışarıda: orada tarla tarihten üretiliyor ve herkeste
-aynı olmak zorunda.
+
+**Günlük meydan okuma da dışarıda, ama bu ikinci denemede oldu.** İlk sürüm
+"günlüğe dokunmuyorum" varsayıyordu; günlük tarla da aynı yoldan geçiyor ve
+`tier()` oyuncunun bölümünü okuyor, yani 12. bölümdeki oyuncuyla 44.
+bölümdeki oyuncu aynı gün için farklı tema, farklı nesne, farklı tarla
+görüyordu. Oyunun günlük için verdiği tek söz buydu.
+`scratchpad/holedaily.mjs` iki koşunun tarla özetini karşılaştırıyor ve
+yakaladı — `dailyRun` artık en başta eleniyor.
 
 ## Yeni oyuncu birinci bölümü kaybediyordu
 
