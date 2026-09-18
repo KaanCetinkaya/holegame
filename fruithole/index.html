@@ -358,8 +358,18 @@
     margin-top: 5px; overflow: hidden; }
   .mfill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#7ee787,#39c760); }
 
-  #daily { background: rgba(60,35,10,.8); backdrop-filter: blur(4px); }
-  #dailyLoot .pill { font-size: 16px; }
+  #daily, #tchest { background: rgba(60,35,10,.8); backdrop-filter: blur(4px); }
+
+  /* Ödül satırı. `.pill` yalnızca `#overlay` içinde biçimlendirilmişti, o
+     yüzden günlük ödül ekranındaki ganimet düz yazı olarak duruyordu —
+     yazı tipi boyu dışında hiçbir şey almıyordu. Sandık aynı satırı
+     kullandığı için ikisi birden düzeliyor. */
+  #dailyLoot, #tchestLoot { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  #dailyLoot .pill, #tchestLoot .pill { border-radius: 999px; padding: 7px 16px;
+    font-size: 16px; font-weight: 800; color: #fff;
+    background: linear-gradient(180deg,#8878e2,#6a58c9);
+    border: 3px solid rgba(255,255,255,.5);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.35), 0 4px 0 rgba(40,24,110,.45); }
 
   #shop { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
     padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
@@ -548,6 +558,44 @@
       inset 0 -5px 8px rgba(20,60,10,.35), 0 5px 0 #2a8419; }
   #playTray:active { padding-bottom: 11px; padding-top: 13px; }
   #playTray:active #playBtn { box-shadow: inset 0 3px 0 rgba(255,255,255,.5), 0 2px 0 #2a8419; }
+
+  /* Menüdeki zamanlı sandık. Kumun üstünde, Play tepsisinin sol üstünde —
+     orada zaten boşluk var ve Play'e giden parmağın yoluna girmiyor.
+     Bu satırların `#menu > *`'dan SONRA gelmesi gerekiyor: o satır da
+     `#menu`'nün çocuklarına `position: relative` veriyor ve aynı
+     özgüllükte, yani önce yazılırsa absolute hiç uygulanmıyor. İlk
+     denememde tam olarak bu oldu, sandık deliğin üstüne oturdu. */
+  #tchestBtn { position: absolute; z-index: 2; left: 14px;
+    bottom: calc(var(--adPad) + var(--navPad) + 112px);
+    background: none; border: 0; padding: 0; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); }
+  /* display:flex, [hidden]'ın display:none'unu eziyor — ekrandaki öteki
+     gizlenen düğmelerin de kendi satırı var (`.screen .btn[hidden]`). */
+  #tchestBtn[hidden] { display: none; }
+  #tchestBtn .cIco { display: block; width: 66px; height: 66px;
+    background-size: contain; background-repeat: no-repeat; background-position: center;
+    font-size: 44px; line-height: 66px; }
+  #tchestBtn .tl { display: inline-block; padding: 2px 9px; border-radius: 999px;
+    background: linear-gradient(180deg,#7a68d8,#4a3a99); border: 2px solid #fff;
+    color: #fff; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;
+    box-shadow: 0 3px 0 rgba(40,20,0,.35); }
+  /* Hazırken sallanıyor, sayarken duruyor: hangi durumda olduğu yazıyı
+     okumadan görülsün. */
+  #tchestBtn.ready .cIco { animation: chestNudge 1.5s ease-in-out infinite; }
+  #tchestBtn.ready .tl { background: linear-gradient(180deg,#6ade46,#37a521);
+    -webkit-text-stroke: 2px #123c0c; paint-order: stroke fill; }
+  #tchestBtn:not(.ready) .cIco { filter: grayscale(.7) brightness(.85); }
+  @media (prefers-reduced-motion: reduce) { #tchestBtn.ready .cIco { animation: none; } }
+  /* Alçak ekranda Play tepsisi hem yukarı çıkıyor hem ekranın soluna kadar
+     geliyor (360px'te x=66'dan başlıyor), ve sandığın sağ üst köşesi
+     tepsinin köşesine biniyordu — 360×640'ta ölçülen çakışma iki piksel,
+     ama tepsiye basmaya çalışan parmak sandığı açıyordu. Sandık tepsinin
+     tamamen üstüne çıkıyor. */
+  @media (max-height: 680px) {
+    #tchestBtn { bottom: calc(var(--adPad) + var(--navPad) + 120px); }
+    #tchestBtn .cIco { width: 54px; height: 54px; font-size: 36px; line-height: 54px; }
+  }
 
   /* top strip: fruit counts on the left, sound on the right */
   #menuTop { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top,0px) + 10px);
@@ -783,6 +831,12 @@
     </div>
     <p id="menuSub">Level 1</p>
     <div id="playTray"><button class="btn" id="playBtn">Play</button></div>
+    <!-- Kumun üstünde duruyor, Play'in soluna değil üstüne: Play'in yanındaki
+         her şey Play'e basmaya çalışan parmağın yoluna giriyor. -->
+    <button id="tchestBtn" hidden>
+      <span class="cIco" data-icon="chest"></span>
+      <span class="tl">Free</span>
+    </button>
     <span id="verTag"></span>
     <div id="menuNav">
       <button class="nav" id="levelsBtn"><span class="ic">🗺️</span><span class="lb">Levels</span></button>
@@ -846,6 +900,17 @@
          advert should never be the button nearest the thumb. -->
     <button class="btn" id="dailyBtn">Claim</button>
     <button class="btn adBtn" id="daily2x" hidden>📺 Claim double</button>
+  </div>
+
+  <div id="tchest" class="screen">
+    <h1><span class="hIco" data-icon="chest"></span>Free Chest</h1>
+    <p id="tchestSub"></p>
+    <div class="stats" id="tchestLoot"></div>
+    <!-- Günlük ödülle aynı sıra: bedava olan düğme parmağa yakın, reklam
+         onun üstünde. -->
+    <button class="btn" id="tchestTake">Open</button>
+    <button class="btn adBtn" id="tchest2x" hidden>📺 Open double</button>
+    <button class="btn ghost" id="tchestClose">Close</button>
   </div>
 
   <div id="upgrades" class="screen">
@@ -2117,6 +2182,7 @@ function showMenu() {
   buildMenuDiorama();
   buildMenuWallet();
   refreshMenuLevel();
+  refreshTchestBtn();
   menuEl.classList.add('show');
 }
 function bumpCurrency(id, amount) {
@@ -2865,6 +2931,124 @@ function takeDailyFree(id) {
   if (!daily.freeBoosters) daily.freeBoosters = {};
   daily.freeBoosters[id] = true;
   saveDaily();
+}
+
+// ---------------------------------------------------------------------
+// Zamanlı sandık
+//
+// Oyunun geri dönüş sebepleri günlük ölçekteydi: günlük ödül, günlük
+// görevler, günlük tarla. Hepsi gece yarısında yenileniyor, yani oyuncu
+// bugün oynadıysa oyunun ona diyecek bir şeyi **ertesi güne kadar** yok.
+// Raftaki rakiplerin hepsinde gün içinde dolan bir kap var.
+//
+// Dört saat, günde iki-üç sandık eder. Ödül bilerek küçük: bir bölüm o
+// meyveden ~400 ödüyor, sandık 116-260 veriyor. Yani oyuna dönme sebebi,
+// oynamama sebebi değil — beklemenin oynamaktan kârlı olduğu an sandık
+// oyunu yemeye başlar.
+//
+// **Ödül rastgele değil, sırayla.** Dört meyve sırayla geliyor, her üçüncü
+// sandık bir booster. Rastgele olsaydı iki şey olurdu: belirli bir
+// yükseltme için biriktiren oyuncu istediğini hiç alamayabilirdi, ve
+// Play'in "ganimet kutusu" kuralları devreye girerdi — oranları açıklamak
+// gerekiyor. Sıra ikisini de çözüyor.
+// ---------------------------------------------------------------------
+const CHEST_GAP = 4 * 3600 * 1000;
+const CHEST_BASE = 110, CHEST_STEP = 6, CHEST_CAP = 25;
+const tchest = JSON.parse(localStorage.getItem('fruithole_tchest') || '{}');
+function saveTchest() { localStorage.setItem('fruithole_tchest', JSON.stringify(tchest)); }
+
+// Kaç milisaniye kaldı. 0 ise sandık hazır.
+//
+// Saat oyunu: sunucumuz yok, telefonun saati ileri alınırsa sandık erken
+// açılır ve bunu offline bir oyunda engellemenin yolu yok. Engellenebilen
+// şey ters yönü — saat **geri** alındığında kalan süre bir turluk
+// aralıktan büyük görünür ve sandık aylarca kilitli kalabilir. O durumda
+// sayaç bir tur başa sarılıyor: kötü niyetli oyuncu bir şey kazanmıyor,
+// saati yanlış kurmuş oyuncu en fazla bir tur bekliyor.
+function tchestLeft() {
+  if (tchest.at === undefined) return 0;
+  const left = tchest.at - Date.now();
+  if (left <= 0) return 0;
+  if (left > CHEST_GAP) { tchest.at = Date.now() + CHEST_GAP; saveTchest(); return CHEST_GAP; }
+  return left;
+}
+
+// Sıradaki sandıkta ne var. Açılmadan da bilinebiliyor — ekranda ne
+// kazanılacağı yazıyor, çünkü kapalı bir kutuya basmak kumar hissi veriyor,
+// beklenen bir ödülü almak vermiyor.
+function tchestLoot() {
+  const n = tchest.n || 0;
+  if (n % 3 === 2) {
+    const open = BOOSTERS.filter(boosterUnlocked);
+    // Hiçbiri açılmamışsa (4. bölümden önce) meyveye düşüyor.
+    if (open.length) return { kind: 'booster', id: open[Math.floor(n / 3) % open.length].id };
+  }
+  const t = TYPES[n % TYPES.length];
+  return { kind: 'fruit', type: t.id,
+    amount: CHEST_BASE + Math.min(level, CHEST_CAP) * CHEST_STEP };
+}
+
+function tchestLootText(mult = 1) {
+  const l = tchestLoot();
+  return l.kind === 'booster'
+    ? `${mult} ${BOOSTERS.find(b => b.id === l.id).name} booster`
+    : `${l.amount * mult} ${TYPE_BY_ID[l.type].label}`;
+}
+
+function takeTchest(mult) {
+  const l = tchestLoot();
+  if (l.kind === 'booster') {
+    boosters[l.id] = (boosters[l.id] || 0) + mult;
+    saveBoosters();
+  } else {
+    bumpCurrency(l.type, l.amount * mult);
+  }
+  tchest.n = (tchest.n || 0) + 1;
+  tchest.at = Date.now() + CHEST_GAP;
+  saveTchest();
+  sfx.win();
+}
+
+function fmtLeft(ms) {
+  const s = Math.ceil(ms / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), q = s % 60;
+  return h ? `${h}:${String(m).padStart(2, '0')}:${String(q).padStart(2, '0')}`
+    : `${m}:${String(q).padStart(2, '0')}`;
+}
+
+// Sandık ilk bölüm bitmeden görünmüyor. Günlük ödülde öğrendiğimiz şeyin
+// aynısı: oyunu hiç oynamamış birine bedava para teklif etmek, oyunun
+// kendisini tanıtmadan önce ödül ekonomisini tanıtmak oluyor.
+function refreshTchestBtn() {
+  const b = document.getElementById('tchestBtn');
+  if (!b) return;
+  if (!playedBefore()) { b.hidden = true; return; }
+  b.hidden = false;
+  const left = tchestLeft();
+  b.classList.toggle('ready', left === 0);
+  b.querySelector('.tl').textContent = left === 0 ? 'Free' : fmtLeft(left);
+}
+
+function showTchest() {
+  const left = tchestLeft();
+  const hazir = left === 0;
+  document.getElementById('tchestSub').textContent = hazir
+    ? 'Ready — one every 4 hours'
+    : `Next chest in ${fmtLeft(left)}`;
+  document.getElementById('tchestLoot').innerHTML =
+    `<span class="pill">${tchestLootText()}</span>`;
+  const take = document.getElementById('tchestTake');
+  take.hidden = !hazir;
+  const two = document.getElementById('tchest2x');
+  two.hidden = !hazir;
+  two.disabled = false;
+  menuEl.classList.remove('show');
+  document.getElementById('tchest').classList.add('show');
+}
+
+function closeTchest() {
+  document.getElementById('tchest').classList.remove('show');
+  showMenu();
 }
 
 function buyBooster(b) {
@@ -7487,6 +7671,28 @@ function askRate() {
   document.getElementById('rate').classList.add('show');
 }
 
+document.getElementById('tchestBtn').addEventListener('click', showTchest);
+document.getElementById('tchestClose').addEventListener('click', closeTchest);
+document.getElementById('tchestTake').addEventListener('click', () => {
+  if (tchestLeft() > 0) return;
+  takeTchest(1);
+  closeTchest();
+});
+document.getElementById('tchest2x').addEventListener('click', (e) => {
+  if (tchestLeft() > 0) return;
+  watchAdFor(e.currentTarget, () => { takeTchest(2); closeTchest(); });
+});
+// Sayaç yalnızca menü açıkken tikliyor: oynarken saniyede bir DOM yazmanın
+// hiçbir karşılığı yok.
+setInterval(() => {
+  if (menuEl.classList.contains('show')) refreshTchestBtn();
+}, 1000);
+window.fruitHoleChest = () => ({
+  left: tchestLeft(), n: tchest.n || 0, loot: tchestLoot(),
+  text: tchestLootText(), label: document.getElementById('tchestBtn').querySelector('.tl').textContent,
+  shown: !document.getElementById('tchestBtn').hidden,
+});
+
 document.getElementById('collBtn').addEventListener('click', () => {
   renderCollection();
   document.getElementById('goals').classList.remove('show');
@@ -8741,6 +8947,7 @@ resize();
 document.getElementById('loading').style.display = 'none';
 refreshGoalsBadge();
 refreshCollBtn();
+refreshTchestBtn();
 // The menu is built here, not left to whoever happens to dismiss a dialog.
 //
 // showMenu() used to be reached only by closing the daily reward screen, so

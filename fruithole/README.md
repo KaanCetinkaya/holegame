@@ -1156,6 +1156,61 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Zamanlı sandık
+
+Oyunun geri dönüş sebeplerinin hepsi **günlük** ölçekteydi: günlük ödül,
+günlük görevler, günlük tarla, giriş serisi. Hepsi gece yarısında yenileniyor.
+Yani oyuncu bugün oynadıysa oyunun ona diyecek bir şeyi ertesi güne kadar yok.
+Raftaki rakiplerin hepsinde gün içinde dolan bir kap var.
+
+Menüde, kumun üstünde duran bir sandık. **Dört saatte bir doluyor** — günde
+iki üç sandık eder. Hazırken sallanıyor ve üstünde `Free` yazıyor, dolarken
+duruyor ve geri sayıyor (`2:41:09`).
+
+> Oyunda zaten bir sandık var: bölüm sonunda açılan. Bu ondan ayrı, ve bilerek
+> ondan küçük. Bölüm sonundaki sandık bir bölümlük kazanç değerinde; bu değil.
+
+**Ödül bilerek küçük.** Bir bölüm o meyveden ~400 ödüyor, sandık 116-260
+veriyor (oyuncunun bölümüyle büyüyor, 25. bölümde tavan yapıyor). Sınır şu:
+beklemek oynamaktan kârlı olmaya başladığı an sandık oyunu yemeye başlar.
+
+**Ödül rastgele değil, sırayla.** Dört meyve sırayla geliyor, her üçüncü
+sandık bir booster (onlar da kendi aralarında dönüyor). İki sebeple:
+
+- Rastgele olsaydı belirli bir yükseltme için biriktiren oyuncu istediği
+  meyveyi hiç alamayabilirdi. Sıra, er geç geleceğini garanti ediyor.
+- Play'in **ganimet kutusu** kuralları rastgele ödüllü kaplarda oranların
+  açıklanmasını istiyor. Sırayla dağıtan bir sandık o tanımın dışında.
+
+Aynı sebeple **ne çıkacağı açmadan yazıyor**: kapalı kutuya basmak kumar
+hissi veriyor, beklenen bir ödülü almak vermiyor.
+
+**Sandık ilk bölüm bitmeden görünmüyor.** Günlük ödülde öğrenilen şeyin
+aynısı — oyunu hiç oynamamış birine ödül ekonomisini tanıtmak, oyunun
+kendisini tanıtmadan önce oluyor.
+
+**Saat oyunu.** Sunucumuz yok; telefonun saati ileri alınırsa sandık erken
+açılır ve bunu tamamen çevrimdışı bir oyunda engellemenin yolu yok.
+Engellenebilen şey ters yön: saat **geri** alındığında kalan süre bir turluk
+aralıktan büyük görünür ve sandık aylarca kilitli kalabilir. O durumda sayaç
+bir tur başa sarılıyor — kötü niyetli oyuncu bir şey kazanmıyor, saatini
+yanlış kurmuş oyuncu en fazla bir tur bekliyor.
+
+**Ölçen dosya `scratchpad/holechest.mjs`.** Sayaç, ödül ölçeği, sıranın
+gerçekten dönmesi, kalıcılık, ve yerleşim. Yerleşim ölçümü iki gerçek hata
+yakaladı:
+
+- Sandığın CSS'i `#menu > *`'dan **önce** yazılmıştı. O satır da menünün
+  çocuklarına `position: relative` veriyor ve aynı özgüllükte, yani sonra
+  yazılan kazanıyor — sandık `position: absolute` almadı ve deliğin üstüne
+  oturdu. `#menuTop` ve `#playTray` zaten o satırdan sonra duruyor.
+- 360×640'ta sandığın sağ üst köşesi Play tepsisinin köşesine biniyordu.
+  İki piksel, ama tepsiye basan parmak sandığı açıyordu.
+
+Testin kendisi de bir kez yanlış ölçtü: kurulum betiği `localStorage.clear()`
+çağırıyordu ve `addInitScript` sayfa yenilemede de çalıştığı için
+"yeniden açılınca hatırlıyor mu" testi ölçeceği şeyi siliyordu.
+
 ## Koleksiyon
 
 Tarlada 63 nesne var. Kumsalda kova, kürek, şemsiye, şezlong; karda penguen,

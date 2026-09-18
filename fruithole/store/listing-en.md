@@ -133,16 +133,20 @@ Ready to clear the field?
 
 ## What's new — 1.10 / versionCode 30 (≤ 500 chars per language)
 
-English (394 chars):
+English (463 chars):
 ```
 A Collection screen: the field holds 63 objects — bucket and spade on the sand, a penguin in the snow, a gold bar on the bank floor — and now every one you swallow is kept. The ones you have not found yet sit there as silhouettes. Find them under Goals.
+
+A free chest on the menu, ready every four hours. You can see what is in it before you open it.
 
 Peelo can also remind you now: one notification a day, in the evening, and only if you have not already played.
 ```
 
-Türkçe (346 karakter):
+Türkçe (398 karakter):
 ```
 Koleksiyon ekranı geldi: tarlada 63 nesne var — kumda kova ve kürek, karda penguen, bankanın zemininde külçe — ve artık yuttuğun her biri kaydediliyor. Bulmadıkların siluet olarak duruyor. Goals ekranından açılıyor.
+
+Menüde bedava sandık var, dört saatte bir doluyor. İçinde ne olduğu açmadan yazıyor.
 
 Peelo artık hatırlatabiliyor da: günde bir bildirim, akşamüstü, ve yalnızca o gün oynamadıysan.
 ```
