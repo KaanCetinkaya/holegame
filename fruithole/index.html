@@ -25,9 +25,23 @@
   canvas { display: block; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
-  /* First thing anyone sees, and it was bare text on the old sand colour.
-     Same water and sand as the game, the title, and a hole with a ring
-     turning in it so the wait reads as loading rather than as a stall. */
+  /* Herkesin gördüğü ilk kare.
+     Oyunun kendi suyu ve kumu, başlık, ve içinde bir çember dönen delik —
+     bekleme takılma gibi değil yükleme gibi okunsun diye.
+
+     İkinci geçiş: ekran iki düz renk ve ortada tek bir delikti, altındaki
+     kum yarısı bomboş kalıyordu. Üç şey eklendi ve hiçbiri yeni bir dosya
+     istemiyor:
+
+       * Marka. "Fruit Hole" yazıyordu, menüde "Peelo Fruit Hole" — oyunun
+         ilk karesi mağazadaki adı söylemiyordu.
+       * Deliğin çevresinde meyve. Oyunun dört meyvesi, oyundaki renkleriyle,
+         CSS ile çiziliyor.
+       * Hareket. Halka yavaşça dönüyor ve her meyve kendi temposunda
+         alçalıp yükseliyor; duran bir ekran yüklenmiyormuş gibi duruyor.
+
+     Hepsi CSS animasyonu: yükleme sırasında JavaScript daha çalışmıyor, ve
+     bu ekranın görevi tam olarak o boşluğu doldurmak. */
   #loading { position: fixed; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 18px; z-index: 30;
     background: linear-gradient(180deg, #22c9cd 0 46%, #f7cf95 46%); }
@@ -39,10 +53,42 @@
     border: 6px solid rgba(255,255,255,.28); border-top-color: #fff;
     animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Deliğin çevresindeki meyve halkası. Her meyve kendi açısında duruyor
+     (--a), halkanın tamamı yavaşça dönüyor, ve meyveler kendi gecikmeleriyle
+     (--d) alçalıp yükseliyor — hepsi aynı anda zıplarsa nefes almıyor,
+     titriyor gibi duruyor. */
+  /* Halkanın yarıçapı yazıya değmeyecek kadar: ilk denemede meyveler
+     başlığın ve "Loading" satırının üstüne biniyordu. Delik 116px, meyveler
+     merkezden 86px'te ve 26px, yani dış kenar 99px — .lgo'ya açtığımız 46px
+     dikey boşluk ikisini de temiz bırakıyor. */
+  #loading .lgo { margin: 46px 0; }
+  #loading .ring { position: absolute; inset: -56px; animation: orbit 18s linear infinite; }
+  #loading .ring i { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px;
+    margin: -13px 0 0 -13px; border-radius: 50%;
+    transform: rotate(var(--a)) translateY(-86px) rotate(calc(-1 * var(--a)));
+    box-shadow: inset 0 -5px 8px rgba(0,0,0,.22), inset 0 4px 6px rgba(255,255,255,.35),
+      0 3px 5px rgba(0,0,0,.18); }
+  #loading .ring i::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
+    animation: bob 2.4s ease-in-out infinite; animation-delay: var(--d);
+    background: inherit; }
+  @keyframes orbit { to { transform: rotate(360deg); } }
+  @keyframes bob { 50% { transform: translateY(-7px) scale(1.06); } }
+
   #loading .ttl { color: #fff; font-size: 30px; font-weight: 800; letter-spacing: -.5px;
     -webkit-text-stroke: 3px #0d7b8c; paint-order: stroke fill;
-    text-shadow: 0 4px 0 #0d7b8c; }
+    text-shadow: 0 4px 0 #0d7b8c; text-align: center; }
+  /* Menüdeki başlığın aynı düzeni: marka üstte, küçük ve aralıklı. */
+  #loading .ttl .brand { display: block; font-size: .42em; letter-spacing: .14em;
+    line-height: 1.25; margin-bottom: .18em; color: #ffe9a8;
+    -webkit-text-stroke-width: 3px; text-shadow: 0 2px 0 #0d7b8c; }
   #loading .sub { color: #8a5a1e; font-size: 14px; font-weight: 700; }
+
+  /* Hareketi kapatmış oyuncuda halka dönmüyor, meyveler duruyor. Ekran yine
+     dolu, sadece kıpırdamıyor. */
+  @media (prefers-reduced-motion: reduce) {
+    #loading .ring, #loading .ring i::before, #loading .lgo::after { animation: none; }
+  }
 
   /* ---- top bar: level badge left, clock centre, pause right ---- */
   #topbar { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0;
@@ -652,8 +698,19 @@
 </head>
 <body>
 <div id="loading">
-  <div class="ttl">Fruit Hole</div>
-  <div class="lgo"></div>
+  <div class="ttl"><span class="brand">Peelo</span>Fruit Hole</div>
+  <div class="lgo">
+    <div class="ring">
+    <i style="--a:0deg;--d:0.0s;background:#f5232f"></i>
+    <i style="--a:45deg;--d:0.3s;background:#fff1cf"></i>
+    <i style="--a:90deg;--d:0.6s;background:#ffdc3d"></i>
+    <i style="--a:135deg;--d:0.9s;background:#3fae38"></i>
+    <i style="--a:180deg;--d:1.2s;background:#f5232f"></i>
+    <i style="--a:225deg;--d:1.5s;background:#fff1cf"></i>
+    <i style="--a:270deg;--d:1.8s;background:#ffdc3d"></i>
+    <i style="--a:315deg;--d:2.1s;background:#3fae38"></i>
+    </div>
+  </div>
   <div class="sub">Loading…</div>
 </div>
 <div id="app">

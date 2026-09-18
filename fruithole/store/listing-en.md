@@ -133,14 +133,14 @@ Ready to clear the field?
 
 ## What's new — 1.9 / versionCode 27 (≤ 500 chars per language)
 
-English (178 chars):
+English (291 chars):
 ```
-The first few levels now give you room to learn the controls. A new player was losing level 1 outright — the clock there is looser for four levels and back to normal from the fifth.
+The first few levels now give you room to learn the controls — a new player was losing level 1 outright. Past level 19 the same shapes turn up somewhere new: the pyramid on fresh snow, the bubbles at the drive-in, with that place's own objects scattered through them. New loading screen too.
 ```
 
-Türkçe (170 karakter):
+Türkçe (254 karakter):
 ```
-İlk bölümler artık kontrolü öğrenmen için daha rahat. Yeni oyuncu birinci bölümü kaybediyordu; ilk dört bölümde süre daha bol, beşinciden itibaren eskisi gibi.
+İlk bölümler artık kontrolü öğrenmen için daha rahat — yeni oyuncu birinci bölümü kaybediyordu. 19'dan sonra aynı şekiller başka yerlerde çıkıyor: piramit karda, kabarcıklar arabalı sinemada, ve içlerinde oranın kendi nesneleri. Yükleme ekranı da yenilendi.
 ```
 
 ## What's new — 1.8.6 / versionCode 26 (≤ 500 chars per language)
