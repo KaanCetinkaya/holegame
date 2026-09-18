@@ -131,6 +131,18 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.10 / versionCode 30 (≤ 500 chars per language)
+
+English (239 chars):
+```
+Peelo can remind you now. One notification a day, in the evening, and only if you have not already played — the daily field changes at midnight and the streak is easy to lose without noticing. It asks for permission after your third level.
+```
+
+Türkçe (196 karakter):
+```
+Peelo artık hatırlatabiliyor. Günde bir bildirim, akşamüstü, ve yalnızca o gün oynamadıysan — günlük tarla gece yarısı değişiyor ve seri fark etmeden kırılıyor. İzni üçüncü bölümden sonra istiyor.
+```
+
 ## What's new — 1.9.2 / versionCode 29 (≤ 500 chars per language)
 
 English (291 chars):

@@ -1575,6 +1575,99 @@ const IAP_ON = !!(IS_NATIVE && _Purchases);
 // stays visible so the flow can still be walked through.
 const SHOW_SHOP = IAP_ON || !IS_NATIVE;
 
+// ---------------------------------------------------------------------
+// Bildirim
+//
+// Oyunun tek geri çağırma yolu. Oyuncu oyunu kapattığı an haberi kesiliyordu:
+// günlük meydan okuma gece yarısı değişiyor, giriş serisi kırılıyor, günlük
+// görevler sıfırlanıyor — ve hiçbiri oyuncuya ulaşmıyordu. Raftaki rakiplerin
+// hepsinde bu var; bizde hiç yoktu.
+//
+// Sunucu yok, hesap yok: bildirim cihazda zamanlanıyor. Oyunun "tamamen
+// çevrimdışı" tasarımına dokunmuyor.
+//
+// **Günde bir, o kadar.** Casual oyunların çoğu bunu abartıp sessize
+// aldırıyor; bir kez sessize alındıktan sonra geri dönüşü yok.
+// ---------------------------------------------------------------------
+const _Notif = _Cap && _Cap.Plugins ? _Cap.Plugins.LocalNotifications : null;
+const NOTIF_ON = !!(IS_NATIVE && _Notif);
+const NOTIF_ID = 1;
+const NOTIF_HOUR = 19;          // akşamüstü: gün bitmeden oynayacak vakit var
+const NOTIF_AFTER = 3;          // izin, üçüncü bölümden önce sorulmuyor
+
+const notif = JSON.parse(localStorage.getItem('fruithole_notif') || '{}');
+function saveNotif() { localStorage.setItem('fruithole_notif', JSON.stringify(notif)); }
+let _notifErr = '';
+
+// Bugün oynadıysa yarın, oynamadıysa bugün 19:00 — o da geçtiyse yarın.
+function notifWhen() {
+  const now = new Date();
+  const playedToday = daily.date === dayKey(now) && (daily.levels || 0) > 0;
+  const at = new Date(now);
+  at.setHours(NOTIF_HOUR, 0, 0, 0);
+  if (playedToday || at <= now) at.setDate(at.getDate() + 1);
+  return at;
+}
+
+// Serisi olan oyuncuya kaybedeceği şey söyleniyor, olmayana yeni tarla.
+function notifText() {
+  const s = daily.streak || 0;
+  return s >= 2
+    ? { title: `Day ${s} streak`, body: "Today's field is waiting. Keep the streak going." }
+    : { title: "Today's field is up", body: 'A new Daily Challenge — the same board for everyone.' };
+}
+
+async function scheduleNotif() {
+  if (!NOTIF_ON || !notif.granted) return;
+  try {
+    // Önce eskiyi sil: her açılışta yeniden kuruluyor, yoksa bugün oynamış
+    // oyuncuya dünkü zamanlama gidiyor.
+    await _Notif.cancel({ notifications: [{ id: NOTIF_ID }] });
+    const t = notifText();
+    await _Notif.schedule({
+      notifications: [{
+        id: NOTIF_ID, title: t.title, body: t.body,
+        schedule: { at: notifWhen(), allowWhileIdle: true },
+      }],
+    });
+    _notifErr = '';
+  } catch (e) { _notifErr = String((e && (e.message || e.errorMessage)) || e); }
+}
+
+// İzin, oyuncunun oyunu beğendiğini gösterdikten sonra isteniyor.
+//
+// Android 13+ bildirim için çalışma anında izin soruyor ve **ne zaman
+// sorduğun kabul oranını belirliyor**. İlk açılışta soran oyun reddedilir ve
+// bir daha soramaz: Android ikinci reddi kalıcı sayıyor. Üçüncü bölümden
+// sonra soran oyun, oyuncunun oyunu zaten sevdiği bir anda soruyor.
+async function askNotif() {
+  if (!NOTIF_ON || notif.asked) return;
+  if ((stats.levels || 0) < NOTIF_AFTER) return;
+  notif.asked = true;
+  saveNotif();
+  try {
+    const r = await _Notif.requestPermissions();
+    notif.granted = !!(r && r.display === 'granted');
+  } catch (e) {
+    notif.granted = false;
+    _notifErr = String((e && (e.message || e.errorMessage)) || e);
+  }
+  saveNotif();
+  if (notif.granted) scheduleNotif();
+}
+
+async function notifInit() {
+  if (!NOTIF_ON) return;
+  try {
+    const r = await _Notif.checkPermissions();
+    notif.granted = !!(r && r.display === 'granted');
+    saveNotif();
+  } catch (e) { _notifErr = String((e && (e.message || e.errorMessage)) || e); }
+  scheduleNotif();
+}
+notifInit();
+
+
 const iap = JSON.parse(localStorage.getItem('fruithole_iap') || '{}');
 function saveIap() { localStorage.setItem('fruithole_iap', JSON.stringify(iap)); }
 function adsRemoved() { return !!iap.remove_ads; }
@@ -6369,6 +6462,13 @@ const APP_VERSION = 'dev';
     if (_iapErr) h += row('sebep', _iapErr, false);
     h += row('sahip', owned.length ? owned.join(', ') : '(yok)');
 
+    h += '<div class="grp">BİLDİRİM</div>';
+    h += row('eklenti', yn(!!_Notif), !!_Notif);
+    h += row('izin', notif.asked ? (notif.granted ? 'verildi' : 'reddedildi') : 'sorulmadı',
+      !!notif.granted);
+    if (notif.granted) h += row('sıradaki', notifWhen().toLocaleString());
+    if (_notifErr) h += row('sebep', _notifErr, false);
+
     h += '<div class="grp">EKRAN</div>';
     h += row('GL kaybı', _glLostN ? `${_glLostN} kez · son ${_glLostAt}` : 'olmadı', _glLostN === 0);
 
@@ -7210,6 +7310,10 @@ function onCleared() {
   // Sandıktan sonra: ödül anının üstüne binmesin, oyuncu kazandığını
   // görsün, sonra sorulsun.
   if (rateDue(earned)) setTimeout(askRate, 2600);
+  // Bildirim: izin üçüncü bölümden sonra bir kez sorulur, zamanlama her
+  // bölümde tazelenir — bugün oynamış oyuncuya bugün için bildirim gitmesin.
+  askNotif();
+  scheduleNotif();
 }
 
 // ---------------------------------------------------------------------
@@ -8060,6 +8164,9 @@ window.fruitHoleFieldHash = () => {
 // to be unaffected by that.
 window.fruitHoleRate = () => ({ ...rate, due3: rateDue(3), due2: rateDue(2) });
 window.fruitHoleAskRate = () => askRate();
+window.fruitHoleNotif = () => ({ ...notif, on: NOTIF_ON,
+  when: NOTIF_ON ? notifWhen().toISOString() : null, text: notifText(), err: _notifErr });
+window.fruitHoleAskNotif = () => askNotif();
 window.fruitHoleGamesState = () => ({
   plugin: !!_Games, native: GAMES_ON, signedIn: _gamesIn,
   boardId: LEADERBOARD_ID || null, ready: gamesReady(),

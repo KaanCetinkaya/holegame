@@ -1156,6 +1156,47 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Bildirim
+
+Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
+kesiliyordu: günlük meydan okuma gece yarısı değişiyor, giriş serisi
+kırılıyor, günlük görevler sıfırlanıyor — hiçbiri kimseye ulaşmıyordu.
+Raftaki rakiplerin hepsinde var.
+
+`@capacitor/local-notifications@8.3.1`, Capacitor'ın **birinci parti**
+eklentisi (`@capacitor/core >=8.0.0`, biz 8.5'teyiz) — Play Games'te
+yaşadığımız terk edilmiş paket riski yok. Sunucu ve hesap gerekmiyor:
+bildirim cihazda zamanlanıyor, oyunun "tamamen çevrimdışı" tasarımına
+dokunmuyor.
+
+**Günde bir, o kadar.** Casual oyunların çoğu bunu abartıp sessize
+aldırıyor, ve sessize alınan bir uygulamanın geri dönüşü yok.
+
+| Ne zaman | Ne yazıyor |
+|---|---|
+| Serisi var | `Day 6 streak` — bugünkü tarla bekliyor, seriyi sürdür |
+| Serisi yok | `Today's field is up` — yeni günlük meydan okuma |
+
+**İzin üçüncü bölümden sonra isteniyor.** Android 13+ bildirim için çalışma
+anında izin soruyor ve ne zaman sorduğun kabul oranını belirliyor: ilk
+açılışta soran oyun reddediliyor, ve Android ikinci reddi kalıcı sayıyor —
+bir daha soramıyorsun. Üçüncü bölümden sonra soran oyun, oyuncunun oyunu
+zaten sevdiği bir anda soruyor. Reddedilirse bir daha hiç sorulmuyor.
+
+**Bugün oynayana bugün bildirim gitmiyor.** Zamanlama her bölüm sonunda
+yeniden kuruluyor; oyuncu o gün oynadıysa bildirim yarına kayıyor. Bugün
+oynamış birine akşam "tarlan hazır" demek oyuna değil bildirime karşı tepki
+üretir.
+
+Her kurulumdan önce eskisi iptal ediliyor — yoksa her açılış bir bildirim
+daha ekler.
+
+**Ölçen dosya `scratchpad/holenotif.mjs`.** Bildirimin gerçekten düşmesi
+Android'in işi ve buradan görülemez; ölçülen şey eklentiye **ne
+gönderdiğimiz**. Testin 4. bölümü ilk yazışımda kendi kurduğu durumu
+ölçemiyordu: seriyi 2000 yılının tarihiyle tohumlamıştım, `ensureDaily()`
+açılışta onu 1'e düşürüyordu. Dünün tarihiyle tohumlanınca doğru ölçüyor.
+
 ## Puan istemi
 
 Raftaki her rakip 4.69 ile 4.89 arasında ve 17 binden 170 bine oy toplamış:
