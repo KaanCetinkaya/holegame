@@ -90,6 +90,23 @@
     #loading .ring, #loading .ring i::before, #loading .lgo::after { animation: none; }
   }
 
+  /* Koleksiyon ızgarası. Bulunanlar renkli, bulunmayanlar siluet — ne
+     olduğunu göstermeden bir şey olduğunu gösteriyor, aranacak şeyin
+     varlığı aramanın sebebi. */
+  #collList { width: 100%; max-width: 520px; }
+  #collList .collGrid { display: grid; gap: 8px; margin: 0 0 14px;
+    grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); }
+  #collList .coll { aspect-ratio: 1; border-radius: 12px;
+    background: rgba(255,255,255,.10); border: 2px solid rgba(255,255,255,.14);
+    display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #collList .coll img { width: 100%; height: 100%; object-fit: contain;
+    filter: brightness(0) opacity(.28); }
+  #collList .coll.got { background: rgba(255,255,255,.18);
+    border-color: rgba(255,255,255,.38); }
+  #collList .coll.got img { filter: none; }
+  #collList .sect small { opacity: .65; font-weight: 700; }
+  #collCount { font-size: 20px; font-weight: 800; }
+
   /* ---- top bar: level badge left, clock centre, pause right ---- */
   #topbar { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0;
     padding: 10px 12px 0; pointer-events: none; z-index: 5;
@@ -248,6 +265,12 @@
   /* Same backdrop as the other secondary screens — without it the map sat
      transparent over the playfield and nothing on it could be read. */
   #levels { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+  /* Koleksiyonun zemini ötekilerden koyu, çünkü üstündeki şey siluet: bulunmayan
+     nesneler kararmış çiziliyor ve arkadan vuran menü sahnesi onları yutuyordu.
+     .72 ile ilk denemede arkadaki meyve halkası ızgaranın içinden okunuyordu. */
+  #collection { background: rgba(46,26,6,.94); backdrop-filter: blur(8px);
+    justify-content: flex-start;
     padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
   /* A clean slab, not a brick wall. The bars these menus use are one light
      periwinkle surface with a lit top edge — the stone courses I had put on
@@ -804,6 +827,7 @@
     <div id="missionList"></div>
     <p class="sect"><span class="sIco" data-icon="trophy"></span>Achievements</p>
     <div id="achList"></div>
+    <button class="btn ghost" id="collBtn">🧺 Collection</button>
     <button class="btn ghost" id="goalsClose">Close</button>
   </div>
 
@@ -833,6 +857,13 @@
     <p class="sect"><span class="sIco" data-icon="ring"></span>Hole skins</p>
     <div id="skinShop"></div>
     <button class="btn ghost" id="upgClose">Close</button>
+  </div>
+
+  <div id="collection" class="screen">
+    <h1><span class="hIco" data-icon="trophy"></span>Collection</h1>
+    <p id="collCount" class="muted">0 / 0</p>
+    <div id="collList"></div>
+    <button class="btn ghost" id="collClose">Close</button>
   </div>
 
   <div id="rate" class="screen">
@@ -4832,6 +4863,107 @@ const PROPS = propTemplates();
 // at that size. They are marked so they only ever turn up as giants.
 const SMALL_PROPS = Object.keys(PROPS).filter(k => PROPS[k].only !== 'giant');
 const GIANT_PROPS = Object.keys(PROPS).filter(k => PROPS[k].only !== 'small');
+
+// ---------------------------------------------------------------------
+// Koleksiyon
+//
+// Tarlada 63 nesne var — kumsalda kova ve kürek, karda penguen ve iglo,
+// banka zemininde külçe. Mağaza açıklamasının en uzun paragrafı bunları
+// anlatıyor. Ama oyuncu onları yutuyordu ve **hiçbir karşılık almıyordu**:
+// ne sayılıyordu, ne gösteriliyordu.
+//
+// Yani içerik zaten üretilmişti, sadece görünmüyordu. "41/63 buldun" diyen
+// bir ekran onu amaca çeviriyor — ve tema döngüsüyle birlikte her nesne
+// artık farklı yerlerde çıktığı için kalanları aramak gerçek bir sebep.
+// ---------------------------------------------------------------------
+const found = new Set(JSON.parse(localStorage.getItem('fruithole_found') || '[]'));
+function saveFound() {
+  localStorage.setItem('fruithole_found', JSON.stringify([...found]));
+}
+function markFound(id) {
+  if (found.has(id)) return;
+  found.add(id);
+  saveFound();
+  refreshCollBtn();
+}
+
+// Düğmenin üstünde sayı duruyor: koleksiyonun var olduğunu ekranı açmadan
+// söyleyen tek şey bu, ve 5/63 ile 41/63 arasındaki fark tıklama sebebi.
+function refreshCollBtn() {
+  const b = document.getElementById('collBtn');
+  if (b) b.textContent = `🧺 Collection ${ALL_PROPS.filter(id => found.has(id)).length}/${ALL_PROPS.length}`;
+}
+
+const ALL_PROPS = Object.keys(PROPS);
+
+// Nesneleri bulundukları yere göre topluyoruz: bir liste hâlinde 63 şey
+// ezberlenecek bir envanter, temaya bölününce gidilecek yerler oluyor.
+// Bir nesne birden çok temada geçebiliyor; ilk geçtiği yere yazılıyor.
+function propGroups() {
+  const seen = new Set();
+  const out = [];
+  for (const [key, th] of Object.entries(THEMES)) {
+    const list = (th.props || []).filter(id => PROPS[id] && !seen.has(id));
+    list.forEach(id => seen.add(id));
+    if (list.length) out.push({ name: th.name, icon: th.icon || '', ids: list });
+  }
+  const rest = ALL_PROPS.filter(id => !seen.has(id));
+  if (rest.length) out.push({ name: 'Everywhere', icon: '🎲', ids: rest });
+  return out;
+}
+
+// Küçük resimler oyunun kendi geometrisinden çiziliyor: nesnelerin hepsi
+// kodla üretilmiş, dolayısıyla koleksiyon ekranının da çizilecek bir dosyaya
+// ihtiyacı yok. Tek bir ek WebGL bağlamı açılıyor, bütün kareler tek geçişte
+// üretiliyor ve bağlam hemen kapatılıyor — telefonda eşzamanlı bağlam sayısı
+// sınırlı ve oyunun kendi bağlamını riske atmaya değmez.
+const _thumbs = {};
+function buildThumbs() {
+  const eksik = ALL_PROPS.filter(id => !_thumbs[id]);
+  if (!eksik.length) return;
+  let r;
+  try {
+    r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  } catch (e) { return; }
+  r.setSize(96, 96);
+  const cam = new THREE.PerspectiveCamera(34, 1, 0.1, 50);
+  cam.position.set(2.3, 2.1, 2.7);
+  cam.lookAt(0, 0.45, 0);
+  for (const id of eksik) {
+    const sc = new THREE.Scene();
+    sc.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const dl = new THREE.DirectionalLight(0xffffff, 1.15);
+    dl.position.set(2, 4, 3);
+    sc.add(dl);
+    try {
+      sc.add(PROPS[id].g.clone());
+      r.render(sc, cam);
+      _thumbs[id] = r.domElement.toDataURL();
+    } catch (e) { }
+  }
+  r.dispose();
+  if (r.forceContextLoss) r.forceContextLoss();
+}
+
+function renderCollection() {
+  buildThumbs();
+  const box = document.getElementById('collList');
+  const n = ALL_PROPS.filter(id => found.has(id)).length;
+  document.getElementById('collCount').textContent = `${n} / ${ALL_PROPS.length}`;
+  box.innerHTML = propGroups().map(g => {
+    const cells = g.ids.map(id => {
+      const has = found.has(id);
+      const img = _thumbs[id] ? `<img src="${_thumbs[id]}" alt="">` : '';
+      // Bulunmayanlar siyah siluet: ne olduğu değil, bir şey olduğu
+      // görünsün — aranacak bir şeyin varlığı aramanın sebebi.
+      return `<div class="coll${has ? ' got' : ''}">${img}</div>`;
+    }).join('');
+    const bulunan = g.ids.filter(id => found.has(id)).length;
+    return `<p class="sect">${g.icon} ${g.name} <small>${bulunan}/${g.ids.length}</small></p>
+      <div class="collGrid">${cells}</div>`;
+  }).join('');
+}
+
 // ---------------------------------------------------------------------
 // The field's own random number generator.
 //
@@ -7355,6 +7487,24 @@ function askRate() {
   document.getElementById('rate').classList.add('show');
 }
 
+document.getElementById('collBtn').addEventListener('click', () => {
+  renderCollection();
+  document.getElementById('goals').classList.remove('show');
+  document.getElementById('collection').classList.add('show');
+});
+// Kapat düğmesi geldiği yere dönüyor: koleksiyon Goals ekranından açılıyor
+// ve oradan menüye düşmek oyuncuyu iki tık geri atıyordu.
+document.getElementById('collClose').addEventListener('click', () => {
+  document.getElementById('collection').classList.remove('show');
+  document.getElementById('goals').classList.add('show');
+});
+window.fruitHoleCollection = () => ({
+  total: ALL_PROPS.length, found: ALL_PROPS.filter(id => found.has(id)).length,
+  groups: propGroups().map(g => ({ name: g.name, n: g.ids.length })),
+  thumbs: Object.keys(_thumbs).length,
+});
+window.fruitHoleMarkFound = id => markFound(id);
+
 document.getElementById('rateGo').addEventListener('click', () => {
   rate.done = true;
   saveRate();
@@ -7501,6 +7651,7 @@ let rimPulse = 0;
 function eatFruit(f, now) {
   f.eaten = true;
   eatenCount++;
+  if (f.prop) markFound(f.prop);
   // chaining eats pays a multiplier, so sweeping a same-type patch in one
   // pass is worth more than picking fruit off one at a time
   streak = (now - lastEatAt < 900) ? streak + 1 : 1;
@@ -8589,6 +8740,7 @@ camX = holeX; camZ = holeZ;
 resize();
 document.getElementById('loading').style.display = 'none';
 refreshGoalsBadge();
+refreshCollBtn();
 // The menu is built here, not left to whoever happens to dismiss a dialog.
 //
 // showMenu() used to be reached only by closing the daily reward screen, so

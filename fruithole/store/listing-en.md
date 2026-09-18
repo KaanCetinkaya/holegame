@@ -133,14 +133,18 @@ Ready to clear the field?
 
 ## What's new — 1.10 / versionCode 30 (≤ 500 chars per language)
 
-English (239 chars):
+English (394 chars):
 ```
-Peelo can remind you now. One notification a day, in the evening, and only if you have not already played — the daily field changes at midnight and the streak is easy to lose without noticing. It asks for permission after your third level.
+A Collection screen: the field holds 63 objects — bucket and spade on the sand, a penguin in the snow, a gold bar on the bank floor — and now every one you swallow is kept. The ones you have not found yet sit there as silhouettes. Find them under Goals.
+
+Peelo can also remind you now: one notification a day, in the evening, and only if you have not already played.
 ```
 
-Türkçe (196 karakter):
+Türkçe (346 karakter):
 ```
-Peelo artık hatırlatabiliyor. Günde bir bildirim, akşamüstü, ve yalnızca o gün oynamadıysan — günlük tarla gece yarısı değişiyor ve seri fark etmeden kırılıyor. İzni üçüncü bölümden sonra istiyor.
+Koleksiyon ekranı geldi: tarlada 63 nesne var — kumda kova ve kürek, karda penguen, bankanın zemininde külçe — ve artık yuttuğun her biri kaydediliyor. Bulmadıkların siluet olarak duruyor. Goals ekranından açılıyor.
+
+Peelo artık hatırlatabiliyor da: günde bir bildirim, akşamüstü, ve yalnızca o gün oynamadıysan.
 ```
 
 ## What's new — 1.9.2 / versionCode 29 (≤ 500 chars per language)

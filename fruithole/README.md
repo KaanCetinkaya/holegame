@@ -1156,6 +1156,46 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Koleksiyon
+
+Tarlada 63 nesne var. Kumsalda kova, kürek, şemsiye, şezlong; karda penguen,
+igloo, kardan adam; bankanın zemininde külçe ve kasa; teknoloji mağazasında
+on bir ayrı alet. Mağaza açıklamasının en uzun paragrafı bunları anlatıyor,
+ekran görüntülerinin yarısı bunları gösteriyor.
+
+Ve oyuncu hepsini yutuyordu, **hiçbir karşılık almadan**. Ne sayılıyordu, ne
+gösteriliyordu, ne de yutulduğu bir yere yazılıyordu. Yani içerik zaten
+üretilmişti — eksik olan, üretilmiş olanın görünmesiydi.
+
+`Goals` ekranındaki `🧺 Collection 12/63` düğmesi koleksiyonu açıyor.
+Nesneler temaya göre bölünmüş (`Beach 2/12`, `Snow Day 1/7`), bulunanlar
+renkli, **bulunmayanlar kararmış siluet**. Siluet kasıtlı: ne olduğunu
+söylemeden bir şey olduğunu söylüyor, ve aranacak bir şeyin varlığı aramanın
+sebebi. Bir nesne birden çok temada geçiyorsa ilk geçtiği yere yazılıyor.
+
+**Küçük resimler oyunun kendi geometrisinden çiziliyor.** Oyunda tek bir
+görsel dosya yok — her şey kodla üretiliyor — dolayısıyla koleksiyonun da
+çizilecek bir dosyaya ihtiyacı olmamalı. Ekran ilk açıldığında tek bir ek
+`WebGLRenderer` açılıyor, 63 kare 96×96 olarak tek geçişte üretilip
+`toDataURL()` ile saklanıyor, ve bağlam hemen `dispose()` +
+`forceContextLoss()` ile kapatılıyor. Telefonda eşzamanlı WebGL bağlamı
+sayısı sınırlı; oyunun kendi bağlamını riske atmaya değmez.
+
+Bu, tema döngüsüyle birlikte çalışıyor: 19. bölümden sonra aynı şekiller
+başka temalarda çıktığı için kalan nesneleri aramak gerçek bir sebep, tek
+turluk bir kontrol listesi değil.
+
+**Ekranın zemini ötekilerden koyu** (`rgba(46,26,6,.94)`). İlk yazışımda
+`.72` verdim — öteki ikincil ekranlarla aynı — ve ekran görüntüsünde arkadaki
+menü sahnesinin meyve halkası ızgaranın içinden okunuyordu. Öteki ekranlarda
+sorun çıkmamasının sebebi içeriklerinin opak kart olması; burada içerik zaten
+kararmış siluet, arkadan vuran ışık onları yutuyor.
+
+**Ölçen dosya `scratchpad/holecoll.mjs`.** Sayacı, kalıcılığı ve resimlerin
+üretildiğini ölçüyor; 4. bölüm ızgaranın hücreleri arasındaki boşluklardan
+piksel okuyup zeminin gerçekten ekranın kendi zemini olduğunu doğruluyor —
+saydamlığı geri koyup çalıştırınca test düşüyor (`fark 30`, eşik 26).
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
