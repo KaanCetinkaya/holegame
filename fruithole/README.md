@@ -1156,6 +1156,29 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Üst uçta duvar var mı — yok
+
+`tier()` her 19 bölümde süreyi %7 kısıyor, %28'de duruyor. Birinci bölümde
+bulduğumuz şeyin bir eşi diğer uçta olabilir diye ölçüldü:
+
+```
+bölüm 20 (tier 1)  acemi 47.3s kaldı   orta 68.9s
+bölüm 44 (tier 2)  acemi 13.4s         orta 45.0s
+bölüm 58 (tier 3)  acemi KAYBETTİ %64  orta 30.6s
+bölüm 77 (tier 4)  acemi KAYBETTİ %98  orta 35.7s
+bölüm 96 (tier 5)  acemi  9.4s         orta 28.2s
+```
+
+Değişiklik yapılmadı. Acemi tier 3'te kaybetmeye başlıyor, ama buradaki
+"acemi" her üç hamlesinden birini rastgele yapan biri; 58. bölüme gelmiş
+kimse öyle oynamıyor. Orta seviye en sıkı ayarda bile 28-45 saniye artırarak
+bitiriyor — yani kazanılamayan bir bölüm yok.
+
+İki sınır: her hücrede tek koşu var ve simüle oyuncu rastgele, yani sayılar
+gürültülü — 96'nın 77'den kolay çıkması bunu gösteriyor, zorluk tier'dan çok
+desene göre oynuyor. Ve 77'de acemi **%98'de** kaybetmiş; tek örnek, ama his
+olarak en kötü sonuç, bir daha görülürse bakmaya değer.
+
 ## Aynı şekil, ikinci turda başka bir yerde
 
 19 desen döngüyle geliyor, ve tema desenin içine yazılı — Pyramid kumsalda,
