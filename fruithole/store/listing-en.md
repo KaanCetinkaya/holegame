@@ -131,6 +131,20 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.9.1 / versionCode 28 (≤ 500 chars per language)
+
+Same content as 27, which Play had already taken. Notes unchanged.
+
+English (291 chars):
+```
+The first few levels now give you room to learn the controls — a new player was losing level 1 outright. Past level 19 the same shapes turn up somewhere new: the pyramid on fresh snow, the bubbles at the drive-in, with that place's own objects scattered through them. New loading screen too.
+```
+
+Türkçe (257 karakter):
+```
+İlk bölümler artık kontrolü öğrenmen için daha rahat — yeni oyuncu birinci bölümü kaybediyordu. 19'dan sonra aynı şekiller başka yerlerde çıkıyor: piramit karda, kabarcıklar arabalı sinemada, ve içlerinde oranın kendi nesneleri. Yükleme ekranı da yenilendi.
+```
+
 ## What's new — 1.9 / versionCode 27 (≤ 500 chars per language)
 
 English (291 chars):
