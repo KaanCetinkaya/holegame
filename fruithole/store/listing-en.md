@@ -131,6 +131,21 @@ Press anywhere and drag. That's the whole control scheme. No connection needed.
 Ready to clear the field?
 ```
 
+## What's new — 1.8.6 / versionCode 26 (≤ 500 chars per language)
+
+Same build as 25, which Play had already taken — a version code is spent the
+moment it is uploaded, even into a draft that was never submitted.
+
+English (139 chars):
+```
+Groundwork for the Daily Challenge leaderboard: the game can now read back exactly why Google Play Games turned a sign-in down.
+```
+
+Türkçe (143 karakter):
+```
+Günlük meydan okuma tablosu için altyapı: oyun artık Google Play Games'in girişi neden reddettiğini tam olarak okuyabiliyor.
+```
+
 ## What's new — 1.8.5 / versionCode 25 (≤ 500 chars per language)
 
 Diagnostics only; nothing a player can see changes.
