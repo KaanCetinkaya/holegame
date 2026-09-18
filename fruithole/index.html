@@ -6652,7 +6652,32 @@ function levelTime() {
   // three stars, and the rewarded "+15 seconds" ad never appeared.
   const base = Math.round(sweepSeconds() * 2.6);
   const squeeze = 1 - Math.min(0.28, tier() * 0.07);   // later cycles are tighter
-  return Math.round(base * squeeze) + upg('time') * 5;
+  return Math.round(base * squeeze * ease()) + upg('time') * 5;
+}
+
+// İlk bölümler için ek süre, dördüncüden sonra sönüyor.
+//
+// 2.6 katsayısı bilerek sıkı: bölümler kaybedilebilir olsun, her koşu üç
+// yıldız vermesin ve "+15 saniye" ödüllü reklamının bir anlamı olsun diye.
+// O karar yerinde duruyor — ama **birinci** bölüme uygulanınca başka bir şey
+// oluyor.
+//
+// Ölçüldü (`scratchpad/holefirst.mjs` ve ona eşlik eden koşu): en yakın
+// meyveyi kovalayan bir oyuncu, ki yeni oyuncu tam olarak böyle oynuyor,
+//
+//   beceri 0.55  ->  KAYBETTİ, tarlanın %49'u
+//   beceri 0.80  ->  kazandı, 3.6 saniye kalarak
+//   beceri 1.00  ->  kazandı, 15.9 saniye kalarak
+//
+// Yani oyuncu daha parmağını nasıl süreceğini öğrenmeden ilk bölümü
+// kaybediyor. Oyunun geri kalanı ne kadar iyi olursa olsun oraya varamıyor,
+// ve TikTok'tan gelen herkesin göreceği ilk şey bu.
+//
+// Zorluk kaldırılmıyor, geciktiriliyor: beşinci bölümde çarpan 1'e iniyor ve
+// tasarlanan sıkılık aynen geri geliyor.
+function ease() {
+  const EK = [1.45, 1.30, 1.18, 1.08];
+  return level <= EK.length ? EK[level - 1] : 1;
 }
 
 // Stars reflect how much time is still on the clock, so clearing fast is
