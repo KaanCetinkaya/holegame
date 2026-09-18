@@ -2791,9 +2791,22 @@ app.prepend(renderer.domElement);
 // The default is worse than doing nothing, too: unless the lost event is
 // cancelled the browser will not restore the context at all.
 let glLost = false;
+// Kaç kez oldu ve en sonuncusu ne zaman.
+//
+// 18 Eylül 2026: telefonda 46. bölümde tahta beyaz kaldı, arayüz durdu. Ama
+// duraklama ekranı yoktu — oysa aşağıdaki işleyici kayıpta oyunu
+// duraklatıyor. Yani ya bağlam kaybı değildi ya da başka bir şeydi, ve
+// tarayıcıda üretilemedi (aynı bölüm burada 464 meyveyle sorunsuz çizildi).
+//
+// Elimizde tek bir görülme vardı ve hiçbir iz yoktu. Bu sayaç bir dahaki
+// sefere tahmin etmemek için: teşhis ekranı okuyor. Sıfır kalıyorsa beyaz
+// ekranın sebebi bağlam kaybı değil, başka yere bakmak gerekiyor.
+let _glLostN = 0, _glLostAt = '';
 renderer.domElement.addEventListener('webglcontextlost', (e) => {
   e.preventDefault();                 // without this it is never coming back
   glLost = true;
+  _glLostN++;
+  _glLostAt = new Date().toTimeString().slice(0, 8) + ' · bölüm ' + level;
   // Stop the clock. Losing a level to a blank screen is the one outcome
   // worse than the blank screen.
   if (state === 'playing') pauseGame();
@@ -6346,6 +6359,9 @@ const APP_VERSION = 'dev';
     h += row('fiyat', `${priced} / ${PRODUCTS.length}`, priced === PRODUCTS.length);
     if (_iapErr) h += row('sebep', _iapErr, false);
     h += row('sahip', owned.length ? owned.join(', ') : '(yok)');
+
+    h += '<div class="grp">EKRAN</div>';
+    h += row('GL kaybı', _glLostN ? `${_glLostN} kez · son ${_glLostAt}` : 'olmadı', _glLostN === 0);
 
     h += '<div class="grp">REKLAM</div>';
     h += row('AdMob', yn(!!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob)),
