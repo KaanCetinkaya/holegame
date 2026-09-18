@@ -835,6 +835,15 @@
     <button class="btn ghost" id="upgClose">Close</button>
   </div>
 
+  <div id="rate" class="screen">
+    <h1>Enjoying Peelo?</h1>
+    <p id="rateSub">A rating on Google Play helps more than you would think.</p>
+    <div class="menuRow">
+      <button class="btn" id="rateGo">⭐ Rate</button>
+      <button class="btn ghost" id="rateLater">Later</button>
+    </div>
+  </div>
+
   <div id="overlay" class="screen">
     <h1 id="overlayTitle">Level Complete!</h1>
     <p id="overlaySub"></p>
@@ -7198,7 +7207,65 @@ function onCleared() {
   const sub = isBest && prevBest > 0 ? 'New best!' : `Next: level ${level}`;
   showOverlay('Level Complete! 🎉', sub, 'Next', nextLevel, false);
   offerReward(earned, cleared, advanced ? level : 0);
+  // Sandıktan sonra: ödül anının üstüne binmesin, oyuncu kazandığını
+  // görsün, sonra sorulsun.
+  if (rateDue(earned)) setTimeout(askRate, 2600);
 }
+
+// ---------------------------------------------------------------------
+// Puan istemi
+//
+// Neden var: raftaki her rakip 4.69 ile 4.89 arasında ve 17 binden 170 bine
+// oy toplamış (Hole Em All, Hole Stars, All in Hole). Bizde sıfır oy vardı,
+// ve oyuncudan puan isteyen hiçbir yer yoktu. Puan hem sıralamayı hem de
+// mağaza sayfasındaki dönüşümü doğrudan etkiliyor, yani oy istememek
+// indirmeyi de kaybettiriyor.
+//
+// **Duygu filtresi yok, bilerek.** "Beğendin mi?" diye sorup yalnızca evet
+// diyeni mağazaya yollamak yaygın bir kalıp ama Play'in kurallarına aykırı:
+// dürüst puanı caydırmak sayılıyor. Burada soru düz soruluyor, iki düğme de
+// aynı dürüst yere çıkıyor — biri şimdi, biri sonra.
+//
+// Ne zaman: üç yıldızla bir bölüm bitince, yani oyuncunun iyi hissettiği an.
+// En erken beşinci bölümden sonra, en çok üç kez, ve iki istem arası en az
+// üç gün. Puan verildiyse bir daha hiç.
+const rate = JSON.parse(localStorage.getItem('fruithole_rate') || '{}');
+function saveRate() { localStorage.setItem('fruithole_rate', JSON.stringify(rate)); }
+const RATE_MAX = 3, RATE_GAP = 3 * 86400000, RATE_AFTER = 5;
+const STORE_URL = 'https://play.google.com/store/apps/details?id=com.kaancetinkaya.fruithole';
+
+function rateDue(earned) {
+  if (!IS_NATIVE) return false;         // tarayıcıda gidecek bir mağaza yok
+  if (rate.done) return false;
+  if (earned < 3) return false;         // yalnızca iyi anda
+  if ((stats.levels || 0) < RATE_AFTER) return false;
+  if ((rate.asks || 0) >= RATE_MAX) return false;
+  if (rate.last && Date.now() - rate.last < RATE_GAP) return false;
+  return true;
+}
+
+function askRate() {
+  rate.asks = (rate.asks || 0) + 1;
+  rate.last = Date.now();
+  saveRate();
+  document.getElementById('rate').classList.add('show');
+}
+
+document.getElementById('rateGo').addEventListener('click', () => {
+  rate.done = true;
+  saveRate();
+  document.getElementById('rate').classList.remove('show');
+  // market:// Play uygulamasını doğrudan açıyor; yoksa https aynı sayfaya
+  // tarayıcıdan gidiyor. _system, bağlantıyı oyunun WebView'ünde değil
+  // cihazın kendi uygulamasında açıyor — içeride açılırsa oyuncu oyundan
+  // çıkamıyor.
+  try { window.open('market://details?id=com.kaancetinkaya.fruithole', '_system'); }
+  catch (e) { try { window.open(STORE_URL, '_system'); } catch (e2) { } }
+});
+
+document.getElementById('rateLater').addEventListener('click', () => {
+  document.getElementById('rate').classList.remove('show');
+});
 
 function onTimeUp() {
   if (state !== 'playing') return;
@@ -7991,6 +8058,8 @@ window.fruitHoleFieldHash = () => {
 // Whether there is a leaderboard to talk to at all. In a browser, and in any
 // build made without the plugin, every part of this is false and the game has
 // to be unaffected by that.
+window.fruitHoleRate = () => ({ ...rate, due3: rateDue(3), due2: rateDue(2) });
+window.fruitHoleAskRate = () => askRate();
 window.fruitHoleGamesState = () => ({
   plugin: !!_Games, native: GAMES_ON, signedIn: _gamesIn,
   boardId: LEADERBOARD_ID || null, ready: gamesReady(),

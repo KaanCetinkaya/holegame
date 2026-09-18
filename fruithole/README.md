@@ -1156,6 +1156,42 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Puan istemi
+
+Raftaki her rakip 4.69 ile 4.89 arasında ve 17 binden 170 bine oy toplamış:
+
+```
+Hole Em All: Collect Master   4.89 / 47k     ~2.3M indirme/ay
+Hole Em All: Black Hole       4.87 / 150k    ~750k
+Hole Stars (Moon Active)      4.69 / 17k     ~760k
+All in Hole (Homa Games)      4.76 / 170k    ~570k
+Fruit Hole – Juicy Jam        4.53 / 360     ~30k
+```
+
+Bizde sıfır oy vardı ve oyuncudan puan isteyen hiçbir yer yoktu. Puan hem
+sıralamayı hem mağaza sayfasındaki dönüşümü etkiliyor, yani oy istememek
+indirmeyi de kaybettiriyor.
+
+**Duygu filtresi yok, bilerek.** "Beğendin mi?" diye sorup yalnızca evet
+diyeni mağazaya yollamak yaygın bir kalıp, ama Play'in kurallarına aykırı —
+dürüst puanı caydırmak sayılıyor. Soru düz soruluyor, iki düğme de aynı
+dürüst yere çıkıyor; biri şimdi, biri sonra.
+
+Ne zaman: **üç yıldızla** bir bölüm bitince, sandık anının 2.6 saniye
+sonrasında. En erken **beşinci bölümden** sonra, en çok **üç kez**, ve iki
+istem arası en az **üç gün**. Puan verildiyse bir daha hiç. Tarayıcıda hiç —
+gidecek bir mağaza sayfası yok.
+
+Sayacı artıran şey istemin **gösterilmesi**, düğmeye basılması değil:
+pencereyi görüp hiçbir şeye dokunmadan dönen oyuncuya da sorulmuş sayılır,
+yoksa "en çok üç kez" hiçbir zaman dolmaz.
+
+Mağazaya `market://` ile gidiliyor (Play uygulamasını doğrudan açıyor),
+olmazsa `https` ile; ikisi de `_system`, yani oyunun WebView'ünde değil
+cihazın kendi uygulamasında — içeride açılsa oyuncu oyundan çıkamaz.
+
+**Ölçen dosya `scratchpad/holerate.mjs`.**
+
 ## Üst uçta duvar var mı — yok
 
 `tier()` her 19 bölümde süreyi %7 kısıyor, %28'de duruyor. Birinci bölümde
