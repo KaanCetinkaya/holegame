@@ -565,8 +565,10 @@
      `#menu`'nün çocuklarına `position: relative` veriyor ve aynı
      özgüllükte, yani önce yazılırsa absolute hiç uygulanmıyor. İlk
      denememde tam olarak bu oldu, sandık deliğin üstüne oturdu. */
+  /* +140: 112'de sandık deniz-kum çizgisine oturuyordu ve `Free` rozeti o
+     açık mavi şeridin üstünde okunmuyordu. Mağaza görselinde görüldü. */
   #tchestBtn { position: absolute; z-index: 2; left: 14px;
-    bottom: calc(var(--adPad) + var(--navPad) + 112px);
+    bottom: calc(var(--adPad) + var(--navPad) + 140px);
     background: none; border: 0; padding: 0; cursor: pointer;
     display: flex; flex-direction: column; align-items: center; gap: 2px;
     filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); }

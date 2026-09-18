@@ -432,8 +432,15 @@ level in nineteen is voxel. Sand is the brightest ground the game owns.
 - `5-menu.png` — main menu, on the beach
 - `6-skins.png` — the ten hole skins
 - `7-levels.png` — the level map with star ratings
+- `8-collection.png` — the Collection screen, part found, part silhouette
 
-All seven are produced by `node fruithole/make-shots.mjs` (after
+The collection shot is seeded with a spread a level-12 player could actually
+have: the early themes nearly full, the later ones empty, because themes
+arrive in level order and that player has not reached Orbit yet. That is the
+whole point of the image — colour at the top, silhouettes below, so the
+screenshot says "there is more in here" without a caption.
+
+All eight are produced by `node fruithole/make-shots.mjs` (after
 `node build-www.mjs`), from real play rather than by hand — the set was
 hand-captured once and went stale the moment the fruit changed.
 
@@ -456,7 +463,7 @@ levels in. And the version tag in the corner — a developer aid for answering
 "did the update land" — was baked into the image, so `1-menu.png` said
 `v1.8 (20)` for months. It is hidden in every shot now.
 
-`tablet/` holds the same seven at 1440×2560 — that is exactly the 9:16 Play
+`tablet/` holds the same eight at 1440×2560 — that is exactly the 9:16 Play
 asks for in the tablet slots, and the same files go in both the 7-inch and the
 10-inch section. Those slots are required here because the track covers
 tablets, Chrome OS and Play Games on PC.

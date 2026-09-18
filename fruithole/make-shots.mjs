@@ -87,6 +87,27 @@ const SHOTS = [
     stars: Object.fromEntries(Array.from({ length: 11 }, (_, i) => [i + 1, i < 6 ? 3 : 2])) },
   { name: '6-skins', level: 12, screen: 'upgBtn' },
   { name: '7-levels', level: 12, screen: 'levelsBtn' },
+  // Koleksiyon. 12. bölümdeki bir oyuncunun gerçekten sahip olabileceği
+  // dağılımla tohumlanıyor: ilk temalar neredeyse dolu, sonrakiler boş —
+  // çünkü temalar bölüm sırasına göre geliyor ve o oyuncu Orbit'i henüz
+  // görmedi. Görselin anlatmak istediği şey tam olarak bu: üst sıralar
+  // renkli, alt sıralar siluet, yani daha bulunacak çok şey var.
+  { name: '8-collection', level: 12, screen: 'goalsBtn',
+    found: [
+      'starfish', 'shell', 'shades', 'flipflop', 'bucket', 'cone',
+      'parasol', 'swimring', 'ball', 'lolly',
+      'football', 'boot', 'marker', 'shirt', 'goal',
+      'donut', 'mug', 'car', 'duck',
+      'snowman', 'mitten', 'candycane', 'penguin', 'igloo',
+      'bitcoin', 'euro',
+    ],
+    after: async pg => {
+      await pg.click('#collBtn');
+      // Küçük resimler tek geçişte üretiliyor; GPU'suz konteynerde bu
+      // birkaç saniye sürüyor ve erken çekilen görsel boş kutular oluyor.
+      await pg.waitForFunction(() => window.fruitHoleCollection().thumbs > 0, { timeout: 90000 });
+      await pg.waitForTimeout(600);
+    } },
 ];
 
 async function shoot(dir, width, height, scale) {
@@ -101,7 +122,9 @@ async function shoot(dir, width, height, scale) {
       localStorage.setItem('fruithole_level', a.level);
       if (a.purse) localStorage.setItem('fruithole_currency', JSON.stringify(a.purse));
       if (a.stars) localStorage.setItem('fruithole_stars', JSON.stringify(a.stars));
-    }, { level: String(s.level), purse: s.purse || null, stars: s.stars || null });
+      if (a.found) localStorage.setItem('fruithole_found', JSON.stringify(a.found));
+    }, { level: String(s.level), purse: s.purse || null, stars: s.stars || null,
+         found: s.found || null });
     await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
     await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 25000 });
     // Günlük ödül penceresi ilk açılışta her şeyin önüne geliyor.
@@ -128,6 +151,7 @@ async function shoot(dir, width, height, scale) {
         });
         await pg.waitForTimeout(300);
       }
+      if (s.after) await s.after(pg);
     } else if (!s.menu) {
       await pg.click('#playBtn');
       await pg.waitForTimeout(1400);
