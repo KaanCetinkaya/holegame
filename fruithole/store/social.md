@@ -111,6 +111,33 @@ POV: you're the hole
 **3. Dikey ve tam ekran.** Klipler 1080×1920, yani doğru. Kırpma, filtre
 ekleme.
 
+## Ölçüm — 1. video (17 Eylül, space.mp4, 15 sn)
+
+```
+izlenme            266
+toplam oynatma     9dk 41sn
+ortalama izlenme   2.34 sn
+tamamlanma         %4
+yeni takipçi       0
+beğeni             0
+```
+
+**Okunuşu: dağıtım sorunu yok, kanca sorunu var.** TikTok videoyu 266 kişiye
+gösterdi; izleyici ortalama 2.34 saniyede bıraktı. Yani mesele videonun
+görülmemesi değil, görülünce tutmaması.
+
+Buna göre iki şey değişti (`make-clips.mjs`):
+
+* **Süre 15 → 9 saniye.** Tamamlanma TikTok'un en ağır tarttığı sinyal ve bu
+  görüntü için 15 saniye uzun.
+* **Kayıt koşunun 6. saniyesinden başlıyor.** Eski kliplerin ilk saniyesinde
+  delik küçüktü ve tarla açılmamıştı — ilk kare "ne oluyor" sorusunu
+  cevaplamıyordu. Artık kamera döndüğünde delik büyümüş ve süpürülmüş bir yol
+  var.
+
+Bir sonraki ölçümde bakılacak tek sayı: **ortalama izlenme**. 2.34'ten
+yukarı gitmiyorsa sorun süre değil, görüntünün kendisi.
+
 ## Ne kadar sıklıkla
 
 Günde bir, en fazla. Beş klip beş gün eder; bitince

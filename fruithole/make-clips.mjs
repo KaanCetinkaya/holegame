@@ -51,7 +51,25 @@ const arg = (k, d) => {
   const i = process.argv.indexOf('--' + k);
   return i === -1 ? d : process.argv[i + 1];
 };
-const SECONDS = Number(arg('seconds', 15));
+// Süre ve ısınma, ilk videonun ölçümünden geliyor.
+//
+// 17 Eylül'de yüklenen 15 saniyelik klip 266 izlenme aldı ve **ortalama
+// izlenme 2.34 saniyede** kaldı; tamamlanma %4. Yani dağıtım sorunu yok —
+// TikTok videoyu gösterdi, izleyici iki saniyede bıraktı.
+//
+// İki değişiklik:
+//
+//   * Süre 15 → 9. Tamamlanma oranı TikTok'un en ağır tarttığı sinyal ve
+//     bu görüntü için 15 saniye uzun.
+//   * Kayıt, koşunun başından değil **PRE saniye sonrasından** başlıyor.
+//     Eski kliplerin ilk saniyelerinde delik küçüktü ve tarla henüz
+//     açılmamıştı; ilk kare "ne oluyor" sorusunu cevaplamıyordu. Artık
+//     kamera döndüğünde delik büyümüş ve tarlada süpürülmüş bir yol var.
+//
+// Isınma yalan söylemiyor: gösterilen şey oyunun gerçekten altıncı
+// saniyesi, büyütülmüş bir delik değil.
+const SECONDS = Number(arg('seconds', 9));
+const PRE = Number(arg('pre', 6));
 const ONLY = arg('only', null);
 
 // Hangi bölümler?
@@ -171,20 +189,28 @@ for (const clip of CLIPS) {
   // koymuyoruz, izleyici ilk karede oynanış görmeli.
   await pump(Math.round(1.8 * FPS));
 
+  // Isınma: kaydetmeden oyna. Kare yakalamadığımız için bu kısım hızlı
+  // geçiyor — maliyeti yalnızca çizim, ekran görüntüsü değil.
+  const steer = () => pg.evaluate(() => {
+    const w = window.fruitHoleWhere();
+    const n = window.fruitHoleNearest();
+    if (!n) { window.fruitHoleSteer(0, 0); return; }
+    const dx = n.x - w.x, dz = n.z - w.z;
+    const d = Math.hypot(dx, dz) || 1;
+    window.fruitHoleSteer(dx / d, dz / d);
+  });
+  for (let f = 0; f < Math.round(PRE * FPS); f++) {
+    await steer();
+    await pg.evaluate(d => window.__step(d), 1000 / FPS);
+  }
+
   const total = Math.round(SECONDS * FPS);
   let shots = 0;
   for (let f = 0; f < total; f++) {
     // Otomatik oynayan taraf: en yakın meyveye doğru sür. Basit, ama
     // ekranda görünen şey tam olarak iyi bir oyuncunun yaptığı şey —
     // tarlayı süpüren sürekli bir yol.
-    await pg.evaluate(() => {
-      const w = window.fruitHoleWhere();
-      const n = window.fruitHoleNearest();
-      if (!n) { window.fruitHoleSteer(0, 0); return; }
-      const dx = n.x - w.x, dz = n.z - w.z;
-      const d = Math.hypot(dx, dz) || 1;
-      window.fruitHoleSteer(dx / d, dz / d);
-    });
+    await steer();
     await pg.evaluate(d => window.__step(d), 1000 / FPS);
     await pg.screenshot({
       path: join(frameDir, String(f).padStart(5, '0') + '.png'),
