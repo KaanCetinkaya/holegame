@@ -37,7 +37,7 @@ Drag the hole, swallow the fruit, grow bigger. Relaxing one-finger arcade.
 
 ## Full description (≤ 4000 chars)
 
-3981 characters — and it got there the hard way. This block reached **4544**
+3978 characters — and it got there the hard way. This block reached **4544**
 before anyone measured it, which is 544 over a limit Play does not bend:
 the field simply refuses to save. Nine sections were trimmed, none dropped.
 `scratchpad/holelisting.mjs` now counts every block in this file against the
@@ -60,15 +60,15 @@ so you can always come back and beat it.
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
 Nineteen hand-built layouts: a stepped pyramid taken down terrace by terrace,
 four towers standing over the field, chevrons, solid circles, hollow rings, a
-heart, a star, an island, a diamond, a cross, a staircase, winding walls.
+heart, a star, an island, a diamond, a staircase, winding walls.
 Three throw out the grid and lay the field in rings around you — orbits
 opening outward from where you stand, a five-petalled bloom, three spiral arms.
 
 And each one is somewhere. A beach with the sea running up the sand. A mown
 football pitch. Floorboards indoors. Fresh snow. A marble bank floor veined
 with gold. A station deck with nothing but the dark past its edge. A lacquered
-bar top. A car park. A dark shop floor. The ground changes, and so does what
-is lying on it.
+bar top. A car park. A dark shop floor. A field ploughed into furrows. The
+ground changes, and so does what is lying on it.
 
 🔥 CHAIN COMBOS
 Eat fruit back to back and the multiplier climbs. Sweeping a whole patch in one
@@ -106,13 +106,13 @@ standing up, a striped melon, an apple with its stalk and leaf, a banana
 curving off the ground. You cannot touch them at the start. Sweep enough of
 the field, grow into one, and it pays for the whole trip.
 
-🧺 SIXTY-THREE THINGS TO FIND
-Scattered through the crop is whatever belongs where you are. Sunglasses and a
-bucket and spade on the beach. A football and the cup on the pitch. A snowman,
-a penguin and an igloo in the snow. Gold bars on the bank floor. A rocket in
-orbit. Cocktails at the bar, burgers at the drive-in, a fridge on the shop
-floor. Every one you swallow is kept, and the Collection screen holds them all
-— the ones you have in colour, the ones still out there as silhouettes.
+🧺 SEVENTY-THREE THINGS TO FIND
+Scattered through the crop is whatever belongs where you are. A bucket and
+spade on the beach. A football on the pitch. A snowman and a penguin in the
+snow. Gold bars on the bank floor. A rocket in orbit. Cocktails at the bar,
+burgers at the drive-in, a tractor and a scarecrow out on the farm. Every one
+you swallow is kept, and the Collection screen holds them all — the ones you
+have in colour, the ones still out there as silhouettes.
 
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, ink, lime, candy, ocean — and gold and chrome, which
@@ -132,22 +132,22 @@ Ready to clear the field?
 
 ## What's new — 1.10 / versionCode 30 (≤ 500 chars per language)
 
-English (463 chars):
+English (449 chars):
 ```
-A Collection screen: the field holds 63 objects — bucket and spade on the sand, a penguin in the snow, a gold bar on the bank floor — and now every one you swallow is kept. The ones you have not found yet sit there as silhouettes. Find them under Goals.
+A Collection screen: the field holds 73 objects — a bucket and spade on the sand, a penguin in the snow, a scarecrow out on the farm — and every one you swallow is now kept. The ones you have not found sit there as silhouettes.
 
-A free chest on the menu, ready every four hours. You can see what is in it before you open it.
+A new place to play: Harvest, a ploughed field with hay bales, chickens and a tractor in the crop.
 
-Peelo can also remind you now: one notification a day, in the evening, and only if you have not already played.
+Plus a free chest on the menu every four hours, eleven more achievements, and one reminder a day if you have not played.
 ```
 
-Türkçe (398 karakter):
+Türkçe (407 karakter):
 ```
-Koleksiyon ekranı geldi: tarlada 63 nesne var — kumda kova ve kürek, karda penguen, bankanın zemininde külçe — ve artık yuttuğun her biri kaydediliyor. Bulmadıkların siluet olarak duruyor. Goals ekranından açılıyor.
+Koleksiyon ekranı geldi: tarlada 73 nesne var — kumda kova ve kürek, karda penguen, çiftlikte korkuluk — ve artık yuttuğun her biri kaydediliyor. Bulmadıkların siluet olarak duruyor.
 
-Menüde bedava sandık var, dört saatte bir doluyor. İçinde ne olduğu açmadan yazıyor.
+Yeni bir yer: Harvest — sürülmüş bir tarla, ekinin arasında saman balyaları, tavuklar ve bir traktör.
 
-Peelo artık hatırlatabiliyor da: günde bir bildirim, akşamüstü, ve yalnızca o gün oynamadıysan.
+Ayrıca menüde dört saatte bir dolan bedava sandık, on bir yeni başarım, ve oynamadığın günler için günde bir hatırlatma.
 ```
 
 ## What's new — 1.9.2 / versionCode 29 (≤ 500 chars per language)

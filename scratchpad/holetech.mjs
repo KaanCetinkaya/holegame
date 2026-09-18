@@ -48,7 +48,12 @@ await pg.screenshot({ path: '/tmp/tech/sheet.png' });
 console.log('/tmp/tech/sheet.png');
 
 // Ve tarlada, gerçek bir bölümde.
-const wanted = (process.env.LEVELS || 'Orbits,Blocks,Whirl').split(',');
+//
+// Whirl bu listedeydi ve artık değil: Harvest teması eklenince o düzen
+// farm'a geçti. Test hiçbir şey iddia etmediği için listede kalsa da
+// "geçiyor" görünürdü — ama teknoloji eşyalarının resmi diye sürülmüş bir
+// tarlanın resmini çekerdi.
+const wanted = (process.env.LEVELS || 'Orbits,Blocks').split(',');
 const shots = {};
 for (let n = 1; n <= 25 && Object.keys(shots).length < wanted.length; n++) {
   const p = await pg.evaluate(l => window.fruitHoleProbe(l), n);

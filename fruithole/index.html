@@ -1354,7 +1354,10 @@ const ACHIEVEMENTS = [
   // Koleksiyon 63 nesne üretti ve hiçbir başarım ona bakmıyordu.
   { id: 'find20',   icon: '🧺', name: 'Beachcomber',   desc: 'Find 20 objects',  goal: 20, at: () => found.size, pay: 'berry',  reward: 500 },
   { id: 'find40',   icon: '🗃️', name: 'Curator',       desc: 'Find 40 objects',  goal: 40, at: () => found.size, pay: 'melon',  reward: 1000, after: 'find20' },
-  { id: 'find63',   icon: '🏅', name: 'Nothing left',  desc: 'Find all 63 objects', goal: 63, at: () => found.size, pay: 'banana', reward: 2000, after: 'find40' },
+  // Hedef, oyundaki nesne sayısıyla birebir. Açıklamada sayı yazmıyor:
+  // tema eklendiğinde 63 yazan bir cümle sessizce yalan olurdu. Sayının
+  // kaydığını `holeawards.mjs` yakalıyor.
+  { id: 'findall',  icon: '🏅', name: 'Nothing left',  desc: 'Find every object', goal: 73, at: () => found.size, pay: 'banana', reward: 2000, after: 'find40' },
 
   { id: 'streak7',  icon: '📆', name: 'Seven days',    desc: 'Reach a 7 day streak', goal: 7, at: () => daily.streak || 0, pay: 'lychee', reward: 900 },
 ];
@@ -5088,6 +5091,284 @@ function propTemplates() {
     T.heli = { g, h: 1.82, currency: 'banana', only: 'giant' };
   }
 
+  // --- harvest --------------------------------------------------------
+  //
+  // Oyunun adı Fruit Hole ve dokuz temanın hiçbiri meyvenin geldiği yer
+  // değildi: plaj, saha, ev, kar, banka, yörünge, bar, otopark, mağaza.
+  // Tarla vardı ama çiftlik yoktu.
+  //
+  // Buradaki hepsi tepeden okunmak zorunda — oyunun bakış açısı o. Ayakta
+  // duran ince bir şey yukarıdan bir noktadır, o yüzden çoğu yatırıldı.
+
+  // Saman balyası, yan yatmış. Yukarıdan bir daire, ama üstündeki sicimler
+  // onu taştan ayırıyor.
+  {
+    const g = new THREE.Group();
+    const hay = PROP_MAT('#e3bc57', 0.92);
+    const bale = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.86, 18), hay);
+    put(g, bale, 0, 0.46, 0, Math.PI / 2, 0, 0);
+    // Sicimler: balyanın etrafını saran iki koyu şerit.
+    for (const z of [-0.22, 0.22])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.47, 0.035, 6, 20), PROP_MAT('#8d6b23', 0.8)),
+          0, 0.46, z);
+    // Kesik uçlar: sarının daha açığı, yani daire düz bir disk değil.
+    for (const z of [-0.44, 0.44])
+      put(g, new THREE.Mesh(new THREE.CircleGeometry(0.44, 18), PROP_MAT('#f2d581', 0.95)),
+          0, 0.46, z, 0, z < 0 ? Math.PI : 0, 0);
+    T.haybale = { g, h: 0.94, currency: 'banana' };
+  }
+
+  // Tavuk.
+  //
+  // İlk denemede beyazdı ve yukarıdan bakınca kardan adamdan ayırt
+  // edilemiyordu: iki beyaz küre üst üste, önünde beyaz bir koni. Oyunda
+  // zaten bir kardan adam var ve o beyazın sahibi o.
+  //
+  // Kızıl kahve oldu, ve kuyruk arkaya yatık bir yelpaze — tepeden bakınca
+  // bir uç sivri, öteki uç yuvarlak, yani hangi yöne baktığı belli. İbik ve
+  // gaga, gövdenin en açık yerine karşı en koyu kırmızı.
+  {
+    const g = new THREE.Group();
+    const feather = PROP_MAT('#b4552b', 0.65);
+    const dark = PROP_MAT('#8c3d1c', 0.7);
+    const red = PROP_MAT('#d8342c', 0.45);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.44, 16, 12), feather);
+    body.scale.set(0.84, 0.9, 1.1);
+    put(g, body, 0, 0.42, 0.1);
+    // Kuyruk: üç yatık tüy, yelpaze gibi. Tek koni ördek kuyruğu oluyordu.
+    for (const [dx, dz, rot] of [[-0.14, 0.1, -0.35], [0, 0, 0], [0.14, 0.1, 0.35]]) {
+      const t = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.5, 6), dark);
+      t.scale.set(1, 1, 0.45);
+      put(g, t, dx, 0.62, 0.58 + dz, -1.05, 0, rot);
+    }
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.23, 14, 12), feather), 0, 0.74, -0.24);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.095, 0.26, 8), PROP_MAT('#f0a52a')),
+        0, 0.72, -0.54, -Math.PI / 2, 0, 0);
+    // İbik: üç yumru, tek koniden daha çok tavuk. Başın tepesinde, yani
+    // yukarıdan bakınca kırmızı bir nokta dizisi.
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), red),
+          0, 0.94, -0.34 + i * 0.11);
+    // Gerdan, gaganın altında.
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), red), 0, 0.6, -0.46);
+    // Kanat: gövdenin iki yanında koyu birer dilim, kürenin düz durmasını
+    // bozuyor.
+    for (const s of [-1, 1]) {
+      const w = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), dark);
+      w.scale.set(0.3, 0.6, 0.9);
+      put(g, w, s * 0.34, 0.46, 0.14);
+    }
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), PROP_MAT('#20242b')),
+          s * 0.1, 0.8, -0.38);
+    T.chicken = { g, h: 1.0, currency: 'lychee' };
+  }
+
+  // Yumurtalı yuva. Tek yumurta yukarıdan beyaz bir çakıl taşı — sepet ve
+  // üçlü diziliş onu yumurta yapan şey.
+  {
+    const g = new THREE.Group();
+    const straw = PROP_MAT('#b98c3f', 0.95);
+    const nest = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.14, 8, 20), straw);
+    put(g, nest, 0, 0.14, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CircleGeometry(0.34, 18), PROP_MAT('#8f6a2c', 0.95)),
+        0, 0.08, 0, -Math.PI / 2, 0, 0);
+    const shell = PROP_MAT('#fdf6e4', 0.45);
+    const yer = [[-0.16, -0.08], [0.16, -0.06], [0, 0.18]];
+    for (const [x, z] of yer) {
+      const e = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 10), shell);
+      e.scale.set(0.82, 0.82, 1.06);
+      put(g, e, x, 0.2, z, 0.5, 0, 0);
+    }
+    T.eggs = { g, h: 0.36, currency: 'berry' };
+  }
+
+  // Süt güğümü. Yukarıdan bir daire, ama omuzdan boyuna daralması ve iki
+  // kulpu onu kovadan ayırıyor.
+  {
+    const g = new THREE.Group();
+    const steel = new THREE.MeshStandardMaterial({
+      color: '#9fb3bf', roughness: 0.3, metalness: 0.55 });
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.4, 0.7, 16), steel), 0, 0.35, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.36, 0.26, 16), steel), 0, 0.83, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.3, 16), steel), 0, 1.06, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.23, 0.08, 16),
+        PROP_MAT('#5d7180', 0.4)), 0, 1.24, 0);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 6, 12, Math.PI), steel),
+          s * 0.34, 0.86, 0, 0, Math.PI / 2, s > 0 ? 0 : Math.PI);
+    T.churn = { g, h: 1.3, currency: 'lychee' };
+  }
+
+  // Sulama kabı.
+  //
+  // Emzik, bunu yeşil bir kovadan ayıran tek şey, ve ilk denemede tam
+  // olarak yeşil bir kova oldu: emziği -z yönüne, yani kameradan **uzağa**
+  // koymuştum ve gövdenin arkasında kaybolmuştu. Iglonun kapısında öğrenilen
+  // şeyin aynısı — tepeden bakan bir oyun için "ön", kameraya bakan yön.
+  //
+  // Emzik artık kameraya doğru uzanıyor, gövdeden uzun, ve ucundaki başlık
+  // ondan geniş: yukarıdan bakınca daireden çıkan bir çubuk ve çubuğun
+  // ucunda bir disk.
+  {
+    const g = new THREE.Group();
+    const tin = PROP_MAT('#4c9b68', 0.45);
+    const dark = PROP_MAT('#3a7a51', 0.5);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.36, 0.54, 16), tin), 0, 0.27, -0.12);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.035, 6, 20), dark),
+        0, 0.52, -0.12, Math.PI / 2, 0, 0);
+    // Emzik: gövdenin dışına açıkça taşacak kadar uzun.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 0.9, 10), tin),
+        0, 0.34, 0.42, 1.25, 0, 0);
+    // Başlık (süzgeç) emzikten geniş, yani uçta bir disk var.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.09, 0.12, 14), dark),
+        0, 0.14, 0.76, 1.25, 0, 0);
+    // Kulp, sırtın üstünde bir kemer — emziğin karşı ucunda, yani iki uç da
+    // gövdeden dışarı çıkıyor ve simetri kırılıyor.
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.045, 6, 14, Math.PI), tin),
+        0, 0.54, -0.34, 0, Math.PI / 2, 0);
+    T.wateringcan = { g, h: 0.68, currency: 'melon' };
+  }
+
+  // Yaba, yere yatmış. Ayakta bir sopa, yatınca bir alet: diş sırası okunuyor.
+  {
+    const g = new THREE.Group();
+    const wood = PROP_MAT('#a5743c', 0.85);
+    const iron = new THREE.MeshStandardMaterial({
+      color: '#8d98a3', roughness: 0.35, metalness: 0.5 });
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.3, 10), wood),
+        0, 0.07, 0.3, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.07, 0.1), iron), 0, 0.07, -0.38);
+    for (const x of [-0.18, 0, 0.18])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.02, 0.46, 8), iron),
+          x, 0.07, -0.62, Math.PI / 2, 0, 0);
+    T.pitchfork = { g, h: 0.16, currency: 'banana' };
+  }
+
+  // Meyve kasası. Tahtalar arası boşluklu, yoksa düz bir kutu.
+  {
+    const g = new THREE.Group();
+    const slat = PROP_MAT('#c08f4f', 0.9);
+    const dark = PROP_MAT('#8e6532', 0.9);
+    for (const s of [-1, 1]) {
+      for (let i = 0; i < 3; i++)
+        put(g, new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.14, 0.06), slat),
+            0, 0.1 + i * 0.19, s * 0.42);
+      for (let i = 0; i < 3; i++)
+        put(g, new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.14, 0.78), slat),
+            s * 0.45, 0.1 + i * 0.19, 0);
+    }
+    // Köşe direkleri: kasanın iskeleti görünsün.
+    for (const sx of [-1, 1]) for (const sz of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.56, 0.1), dark),
+          sx * 0.44, 0.28, sz * 0.41);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.05, 0.78), dark), 0, 0.04, 0);
+    T.crate = { g, h: 0.58, currency: 'berry' };
+  }
+
+  // Traktör. Yalnızca dev: hücre boyunda arka tekerlerle ön tekerler
+  // arasındaki fark kayboluyor ve geriye kırmızı bir yumru kalıyor.
+  {
+    const g = new THREE.Group();
+    const red = PROP_MAT('#cf3a2c', 0.45);
+    const dark = PROP_MAT('#2a2d33', 0.7);
+    const rim = PROP_MAT('#e8b528', 0.5);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.42, 1.25), red), 0, 0.6, 0.05);
+    // Kaput, gövdeden alçak ve öne uzuyor.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.34, 0.6), red), 0, 0.52, -0.82);
+    // Kabin: cam yerine koyu bir kutu, tepeden bakınca oturan yer belli olsun.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.46, 0.5), PROP_MAT('#39414d', 0.5)),
+        0, 1.02, 0.42);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.06, 0.58), red), 0, 1.28, 0.42);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.3, 8), dark), 0, 0.84, -0.62);
+    // Arka tekerler büyük, ön tekerler küçük — traktörü traktör yapan oran.
+    for (const s of [-1, 1]) {
+      const back = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.2, 16), dark);
+      put(g, back, s * 0.42, 0.42, 0.5, 0, 0, Math.PI / 2);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.22, 12), rim),
+          s * 0.43, 0.42, 0.5, 0, 0, Math.PI / 2);
+      const front = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.16, 14), dark);
+      put(g, front, s * 0.36, 0.24, -0.78, 0, 0, Math.PI / 2);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.18, 10), rim),
+          s * 0.37, 0.24, -0.78, 0, 0, Math.PI / 2);
+    }
+    T.tractor = { g, h: 1.32, currency: 'melon', only: 'giant' };
+  }
+
+  // El arabası.
+  //
+  // İlk denemede ayaklı mavi bir kutuydu: teker kasanın arkasına düşüyordu ve
+  // yukarıdan hiç görünmüyordu, saplar da ayak sanılıyordu. El arabasını el
+  // arabası yapan tek şey **tek teker**, ve o teker görünmüyorsa geriye
+  // ayaklı bir kutu kalıyor.
+  //
+  // Şimdi teker kasanın önünde, ondan taşacak kadar dışarıda, ve koyu. Saplar
+  // arkaya doğru iki paralel çubuk, uçlarında kırmızı tutamaklar — o iki
+  // renkli nokta, onları ayaktan ayıran şey.
+  {
+    const g = new THREE.Group();
+    const tray = PROP_MAT('#3f7fc4', 0.5);
+    const deep = PROP_MAT('#2f639f', 0.55);
+    const steel = new THREE.MeshStandardMaterial({
+      color: '#8d98a3', roughness: 0.4, metalness: 0.45 });
+    const kova = new THREE.Mesh(new THREE.CylinderGeometry(0.54, 0.32, 0.4, 4), tray);
+    put(g, kova, 0, 0.52, 0.06, 0, Math.PI / 4, 0).scale.z = 1.15;
+    // Kasanın ağzı: koyu bir çerçeve, yoksa kapalı bir kutu gibi duruyor.
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.045, 6, 4), deep),
+        0, 0.72, 0.06, Math.PI / 2, Math.PI / 4, 0).scale.z = 1.15;
+    // Saplar, geriye uzanıyor.
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8), steel),
+          s * 0.32, 0.4, 0.76, 1.42, 0, 0);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.24, 8), PROP_MAT('#c2452f', 0.6)),
+          s * 0.32, 0.22, 1.24, Math.PI / 2, 0, 0);
+    // Tek teker, kasanın önünde ve ondan taşıyor: tepeden görünen tek şey o.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.16, 18), PROP_MAT('#26292f', 0.75)),
+        0, 0.3, -0.72, 0, 0, Math.PI / 2);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.18, 10), PROP_MAT('#b9c3cb', 0.4)),
+        0, 0.3, -0.72, 0, 0, Math.PI / 2);
+    // Tekeri kasaya bağlayan çatal.
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.66, 8), steel),
+          s * 0.15, 0.33, -0.42, 1.5, 0, 0);
+    // Ayaklar.
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.42, 8), steel),
+          s * 0.28, 0.21, 0.46);
+    T.wheelbarrow = { g, h: 0.82, currency: 'banana', only: 'giant' };
+  }
+
+  // Korkuluk. Yalnızca dev: şapka, kollar ve haç direği küçültülünce tek bir
+  // dikey çubuğa iniyor, ve tepeden bakılan bir çubuk hiçbir şeydir.
+  {
+    const g = new THREE.Group();
+    const post = PROP_MAT('#8a6236', 0.9);
+    const straw = PROP_MAT('#e0c05f', 0.9);
+    const shirt = PROP_MAT('#c2452f', 0.7);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.5, 0.12), post), 0, 0.75, 0);
+    // Kollar: haçın yatay kolu, yukarıdan bakınca ilk okunan şey.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.11, 0.11), post), 0, 1.18, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.5, 0.3), shirt), 0, 1.0, 0.02);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.18, 0.18), shirt), s * 0.52, 1.18, 0.02);
+    // Saman: kollardan ve gövdeden çıkan tutamlar.
+    for (const s of [-1, 1]) for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.01, 0.3, 6), straw),
+          s * 0.76, 1.16 + (i - 1) * 0.05, 0.02, 0, 0, s * 1.2);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.27, 14, 12), PROP_MAT('#d9b96a', 0.85)),
+        0, 1.58, 0);
+    // Şapka: kenarı geniş, çünkü tepeden görünen tek şey o.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.05, 16), straw), 0, 1.76, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.29, 0.26, 16), straw), 0, 1.9, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.035, 6, 18), PROP_MAT('#7f4a2a', 0.8)),
+        0, 1.8, 0, Math.PI / 2, 0, 0);
+    for (const s of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), PROP_MAT('#2b2b30', 0.6)),
+          s * 0.1, 1.62, -0.22);
+    T.scarecrow = { g, h: 2.0, currency: 'lychee', only: 'giant' };
+  }
+
   return T;
 }
 
@@ -5320,6 +5601,57 @@ function grassTexture() {
   return tex;
 }
 
+// Sürülmüş toprak. Karıklar tek yöne gidiyor — bir tarla, ekilmiş olduğunu
+// bu çizgilerle söylüyor, rengiyle değil.
+//
+// En zor kısmı ahşaptan ayırmaktı: ikisi de kahverengi ve ikisi de tek yöne
+// giden çizgiler. Ayıran üç şey var — toprak belirgin şekilde daha koyu,
+// karıklar tahta derzleri gibi keskin değil yumuşak geçişli, ve aralarına
+// taş ve filiz serpiştirilmiş. Parlak bir zemin değil: bu, oyundaki en mat
+// yüzey, ve yanındaki meyve ondan ayrılsın diye öyle.
+function soilTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#6b4526';
+  ctx.fillRect(0, 0, S, S);
+  // Karıklar: her biri koyu bir oluk ve onun yanında güneş gören bir sırt.
+  const rows = 7, rh = S / rows;
+  for (let i = 0; i < rows; i++) {
+    const y = i * rh;
+    const grad = ctx.createLinearGradient(0, y, 0, y + rh);
+    grad.addColorStop(0, '#7d5330');
+    grad.addColorStop(0.45, '#5c3a1e');
+    grad.addColorStop(0.55, '#54331a');
+    grad.addColorStop(1, '#79502e');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, y, S, rh);
+  }
+  // Toprak kümeleri.
+  for (let i = 0; i < 1800; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.09;
+    ctx.fillStyle = Math.random() < 0.5 ? '#482c14' : '#8b5f38';
+    const x = Math.random() * S, y = Math.random() * S, r = 1 + Math.random() * 2.4;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  // Taşlar ve filizler — ikisi de seyrek, yoksa zemin gürültüye dönüyor.
+  for (let i = 0; i < 90; i++) {
+    ctx.globalAlpha = 0.5 + Math.random() * 0.3;
+    ctx.fillStyle = '#9b8c78';
+    const x = Math.random() * S, y = Math.random() * S;
+    ctx.beginPath(); ctx.arc(x, y, 1 + Math.random() * 1.6, 0, Math.PI * 2); ctx.fill();
+  }
+  for (let i = 0; i < 120; i++) {
+    ctx.globalAlpha = 0.35 + Math.random() * 0.35;
+    ctx.fillStyle = Math.random() < 0.5 ? '#4f8f37' : '#6fae45';
+    const x = Math.random() * S, y = Math.random() * S;
+    ctx.fillRect(x, y, 1.1, 2 + Math.random() * 3);
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(5, 5);
+  return tex;
+}
+
 // Floorboards. Seams run one way only, so the repeat has to be square or the
 // planks come out as tiles.
 function woodTexture() {
@@ -5537,11 +5869,14 @@ function tileTexture() {
 // three are a couple of hundred thousand canvas operations and most sessions
 // never reach the levels that need them.
 const GROUND_TEX = {};
-const groundTex = kind => GROUND_TEX[kind] ||
-  (GROUND_TEX[kind] = ({ sand: groundTexture, grass: grassTexture,
-     wood: woodTexture, snow: snowTexture, marble: marbleTexture,
-     deck: deckTexture, bar: barTexture, asphalt: asphaltTexture,
-     tiles: tileTexture })[kind]());
+// Dağıtıcı kendi adıyla duruyor, çünkü `GROUND_TEX` **önbellek** — açılışta
+// boş ve yalnızca oynanmış temaları içeriyor. "Bu temanın zemini tanımlı mı"
+// sorusu ona sorulduğunda cevap her zaman "hayır" çıkıyor.
+const GROUND_MAKERS = { sand: groundTexture, grass: grassTexture,
+  wood: woodTexture, snow: snowTexture, marble: marbleTexture,
+  deck: deckTexture, bar: barTexture, asphalt: asphaltTexture,
+  tiles: tileTexture, soil: soilTexture };
+const groundTex = kind => GROUND_TEX[kind] || (GROUND_TEX[kind] = GROUND_MAKERS[kind]());
 // The sand is an island in turquoise water rather than sand to the horizon:
 // it ties the board to the app icon, and it gives the field a visible edge —
 // before this you could not tell where the board stopped.
@@ -5707,6 +6042,16 @@ const THEMES = {
     edge: '#46536a', surf: null,
     props: ['tv', 'piano', 'headphones', 'hairdryer', 'radio', 'fan',
             'laptop', 'phone', 'gamepad', 'fridge', 'heli'],
+  },
+  // Oyunun adı Fruit Hole ve meyvenin geldiği yer dokuz temanın hiçbiri
+  // değildi. Zemin sürülmüş toprak: karıkları olan tek yüzey, ve oyundaki en
+  // koyu kahverengi — ahşabın yanına konsa ayrılsın diye.
+  farm: {
+    name: 'Harvest', icon: '🚜',
+    ground: 'soil', surround: '#3f6b2e', ripples: false,
+    edge: '#7fae4c', surf: null,
+    props: ['haybale', 'chicken', 'eggs', 'churn', 'wateringcan', 'pitchfork',
+            'crate', 'tractor', 'wheelbarrow', 'scarecrow'],
   },
   mixed: {
     name: 'Everything', icon: '🎲',
@@ -6323,7 +6668,10 @@ const PATTERNS = [
     big: () => scatter(0.1),
   },
   {
-    name: 'Cross', icon: '🔀', theme: 'space',
+    // Orbit üç düzende birden kullanılıyordu ve üçü de keyfiydi; halkalı
+    // düzenler (Orbits, Whirl, Bloom) o temayı zaten daha iyi taşıyor.
+    // Kesişen iki kol, sürülmüş bir tarlanın karıklarının üstünde duruyor.
+    name: 'Cross', icon: '🔀', theme: 'farm',
     // two broad bands crossing, leaving four open corners
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
@@ -6392,7 +6740,11 @@ const PATTERNS = [
     big: (ring, turn) => ring % 4 === 1 && Math.abs(Math.sin(turn * Math.PI * 5)) > 0.93,
   },
   {
-    name: 'Whirl', icon: '🌀', polar: true, theme: 'tech',
+    // Gadget Shop üç düzende birden kullanılıyordu; Harvest'ın ikinci
+    // düzeni buradan geliyor. Tek düzenle kalsaydı yeni tema ilk turda
+    // yalnızca 19. bölümde görünürdü — öteki temaların hepsi ikişer yerde
+    // çıkıyor. Sarmal, sürülmüş toprakta ekin dairesi oluyor.
+    name: 'Whirl', icon: '🌀', polar: true, theme: 'farm',
     // Three arms winding outward. A slot is on an arm when its angle is
     // close to where the arm has turned to by that radius, which is what
     // makes the arm a curve rather than a straight spoke.
@@ -8531,6 +8883,24 @@ window.fruitHoleTheme = () => {
     polar: !!currentPattern.polar,
   };
 };
+// Tema tablosunun kendisi. Tek tek bölüm açıp bakmak, bir temanın hiçbir
+// düzende kullanılmadığını ya da bir nesnenin hiçbir temaya ait olmadığını
+// göstermiyor — ikisi de sessiz hata: oyun çalışıyor, o içerik hiç çıkmıyor.
+window.fruitHoleThemeTable = () => ({
+  themes: Object.entries(THEMES).map(([id, t]) => ({
+    id, name: t.name, ground: t.ground, props: t.props,
+    patterns: PATTERNS.filter(p => p.theme === id).map(p => p.name),
+  })),
+  props: Object.keys(PROPS),
+  giantOnly: Object.keys(PROPS).filter(k => PROPS[k].only === 'giant'),
+  grounds: Object.keys(GROUND_MAKERS),
+  patternCount: PATTERNS.length,
+});
+// Hücre boyunda yerleştirilmiş nesneler. Dev olarak işaretlenen bir nesnenin
+// küçük çıkması, ekranda okunmaz bir yumru demek — ve bu, tarlaya bakarak
+// fark edilmiyor, çünkü zaten okunmuyor.
+window.fruitHoleSmallProps = () =>
+  [...new Set(fruits.filter(f => f.prop && !f.giant).map(f => f.prop))];
 window.fruitHoleLevelName = () => currentPattern.name;
 
 // Skins, read off the live material rather than off the saved value — the

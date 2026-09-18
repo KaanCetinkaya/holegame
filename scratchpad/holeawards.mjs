@@ -80,14 +80,23 @@ console.log('\n1. liste oyunun sonuna kadar uzanıyor');
 
   // Aileler: her biri birden fazla basamak taşımalı, yoksa "ilerleme" değil
   // tek seferlik bir rozet olur.
-  const aileler = {};
-  for (const x of a) {
-    const k = x.id.replace(/\d+$/, '');
-    aileler[k] = (aileler[k] || 0) + 1;
-  }
-  const cok = Object.entries(aileler).filter(([, n]) => n >= 3);
+  //
+  // Aile, kimliğin baş harflerinden tahmin edilmiyor — ilk yazışımda öyle
+  // yapıyordu ve `find63`'ü `findall` diye yeniden adlandırınca aile üçten
+  // ikiye düştü, oysa yapıda değişen bir şey yoktu. Aileyi tanımlayan gerçek
+  // şey `after` zinciri; ölçüm de onu takip ediyor.
+  const zincirler = a.filter(x => !x.after).map(kok => {
+    let n = 1, su = kok.id;
+    for (;;) {
+      const next = a.find(x => x.after === su);
+      if (!next) break;
+      n++; su = next.id;
+    }
+    return { kok: kok.id, n };
+  });
+  const cok = zincirler.filter(z => z.n >= 3);
   check(cok.length >= 4, 'en az dört ailede üç basamak var',
-    cok.map(([k, n]) => `${k}:${n}`).join(' '));
+    zincirler.map(z => `${z.kok}:${z.n}`).join(' '));
   await pg.close();
 }
 

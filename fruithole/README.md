@@ -1156,6 +1156,67 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Onuncu tema: Harvest 🚜
+
+Oyunun adı **Fruit Hole** ve meyvenin geldiği yer dokuz temanın hiçbiri
+değildi: plaj, saha, ev, kar, banka, yörünge, bar, otopark, mağaza. Tarla
+vardı, çiftlik yoktu.
+
+**Zemin sürülmüş toprak.** Karıkları olan tek yüzey ve oyundaki en koyu
+kahverengi. En zor kısmı ahşaptan ayırmaktı — ikisi de kahverengi, ikisi de
+tek yöne giden çizgiler. Ayıran üç şey: toprak belirgin şekilde daha koyu,
+karıklar tahta derzi gibi keskin değil yumuşak geçişli, ve aralarına taş ile
+filiz serpiştirilmiş.
+
+**On yeni nesne**, koleksiyon 63'ten 73'e çıktı: saman balyası, tavuk,
+yumurtalı yuva, süt güğümü, sulama kabı, yaba, meyve kasası, traktör, el
+arabası, korkuluk. Son üçü yalnızca dev — küçültülünce okunmaz oluyorlar.
+
+### Üçü tepeden okunmuyordu
+
+Bu temanın kuralı ötekilerle aynı: oyun yukarıdan bakıyor, yani ayakta duran
+ince bir şey bir noktadır. İlk çizimde üç nesne bu sınavı geçemedi ve bunu
+ancak ekran görüntüsüne bakınca gördüm.
+
+| nesne | ne görünüyordu | ne değişti |
+|---|---|---|
+| tavuk | beyazdı ve kardan adamdan ayrılmıyordu — iki beyaz küre, önünde beyaz bir koni | kızıl kahve oldu, kuyruk yatık bir yelpaze, ibik başın tepesinde |
+| sulama kabı | yeşil bir kova | emzik `-z`'ye, yani kameradan **uzağa** bakıyordu; gövdenin arkasında kayboluyordu |
+| el arabası | ayaklı mavi bir kutu | tek teker kasanın arkasındaydı ve hiç görünmüyordu; öne alındı, saplara kırmızı tutamak kondu |
+
+Sulama kabındaki hata, iglonun kapısında bir kez öğrenilmişti: tepeden bakan
+bir oyunda "ön", kameraya bakan yön. İkinci kez yapıldı.
+
+### Düzenler
+
+Yeni tema iki düzen aldı, öteki temaların hepsi gibi:
+
+- **Cross (19)** — Orbit üç düzende birden kullanılıyordu ve üçü de keyfiydi;
+  halkalı düzenler (Orbits, Whirl, Bloom) o temayı zaten daha iyi taşıyor.
+- **Whirl (12)** — Gadget Shop da üç tutuyordu. Tek düzenle kalsaydı yeni tema
+  ilk turda yalnızca 19. bölümde görünürdü. Sarmal, sürülmüş toprakta ekin
+  dairesi oluyor.
+
+### `scratchpad/holetheme.mjs`
+
+Harvest eklenirken yazıldı ama ölçtüğü şey tek bir tema değil, bütün tablonun
+tutarlılığı. Buradaki hataların hepsi **sessiz** — oyun çalışmaya devam ediyor,
+sadece o içerik ekrana hiç gelmiyor:
+
+- bir temanın listesinde olmayan bir nesne kimliği → o nesne hiç çıkmıyor
+- bir tema hiçbir düzende kullanılmıyor → ilk turda hiç görünmüyor
+- bir nesne hiçbir temaya ait değil → yalnızca "Everything" bölümlerinde çıkıyor
+- bir temanın zemini tanımsız → zemin sessizce başka bir şeyle çiziliyor
+- dev olarak işaretlenmiş bir nesne hücre boyunda çıkıyor → okunmaz bir yumru
+
+Test bir kez de kendi hatasıyla düştü: zeminleri `GROUND_TEX`'e soruyordu, oysa
+o bir **önbellek** — açılışta boş ve yalnızca oynanmış temaları içeriyor.
+Dağıtıcı `GROUND_MAKERS` adıyla ayrıldı ve soru ona soruluyor.
+
+`holetech.mjs` de düzeltildi: listesinde Whirl vardı, o artık farm. Test
+hiçbir şey iddia etmediği için "geçmeye" devam ederdi — ama teknoloji
+eşyalarının resmi diye sürülmüş bir tarlanın resmini çekerdi.
+
 ## Başarımlar 15. bölümde bitiyordu
 
 Beş tane vardı: 100 meyve ye, 1000 meyve ye, 10. bölüme ulaş, 15 yıldız
