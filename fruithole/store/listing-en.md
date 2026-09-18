@@ -106,24 +106,23 @@ standing up, a striped melon, an apple with its stalk and leaf, a banana
 curving off the ground. You cannot touch them at the start. Sweep enough of
 the field, grow into one, and it pays for the whole trip.
 
-🏖️ NOT ONLY FRUIT
-Sixty-three objects are scattered through the crop, and which ones you meet
-depends on where you are. Sunglasses, flip-flops and a bucket and spade on the
-beach. A football, boots and the cup itself on the pitch. Toy cars and coffee
-mugs indoors. A snowman, a penguin and an igloo in the snow. Bitcoin, euros and
-gold bars on the bank floor. A satellite, a ringed planet and a whole rocket in
-orbit. Cocktails at the bar. Burgers and parked cars at the drive-in.
-Televisions, headphones, a game pad — and a fridge to grow into — on the shop
-floor.
+🧺 SIXTY-THREE THINGS TO FIND
+Scattered through the crop is whatever belongs where you are. Sunglasses and a
+bucket and spade on the beach. A football and the cup on the pitch. A snowman,
+a penguin and an igloo in the snow. Gold bars on the bank floor. A rocket in
+orbit. Cocktails at the bar, burgers at the drive-in, a fridge on the shop
+floor. Every one you swallow is kept, and the Collection screen holds them all
+— the ones you have in colour, the ones still out there as silhouettes.
 
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, ink, lime, candy, ocean — and gold and chrome, which
 catch the light in a way flat colour cannot. Half open as you climb, half are
 bought with fruit.
 
-🎁 A CHEST EVERY LEVEL
-Clear a field and a chest drops. Tap it, it bursts, and fruit lands in your
-counters — more of it the faster you finished.
+🎁 CHESTS
+Clear a field and a chest drops — tap it, it bursts, and the faster you
+finished the more it pays. A second chest fills on the menu every four hours,
+free, and you can see what is inside before you open it.
 
 ⚡ ONE FINGER, FULLY OFFLINE
 Press anywhere and drag. That's the whole control scheme. No connection needed.
