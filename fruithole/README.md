@@ -1156,6 +1156,49 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Yeni oyuncu birinci bölümü kaybediyordu
+
+Ölçüm, tahmin değil. `scratchpad/holefirst.mjs` temiz bir profille ilk
+dakikayı geçiyor; ona eşlik eden koşu birinci bölümü üç beceri seviyesinde
+sonuna kadar oynuyor. Beceri burada "en yakın meyveye doğru sürme olasılığı"
+— yeni oyuncu aşağı yukarı böyle oynuyor, satır satır süpürmüyor.
+
+```
+beceri 0.55   KAYBETTİ   tarlanın %49'u, süre bitti
+beceri 0.80   kazandı    3.6 saniye kalarak
+beceri 1.00   kazandı    15.9 saniye kalarak
+```
+
+Yani parmağını nasıl süreceğini henüz öğrenmemiş oyuncu ilk bölümü
+kaybediyor, ve temiz oynayan bile 101 saniyenin 16'sını artırabiliyor.
+TikTok'tan gelen herkesin oynayacağı bölüm bu.
+
+**2.6 katsayısına dokunulmadı.** Üstündeki yorum neden öyle olduğunu zaten
+yazıyor: eski formül %42-82 boş süre bırakıyordu, hiçbir bölüm
+kaybedilemiyordu, her koşu üç yıldız veriyordu ve "+15 saniye" ödüllü
+reklamı hiç çıkmıyordu. O gerekçe yerinde. Hesaba katmadığı tek şey
+**birinci** bölümdü.
+
+Zorluk kaldırılmadı, geciktirildi — `ease()`, ilk dört bölüme sırasıyla
+1.45, 1.30, 1.18 ve 1.08 çarpanı veriyor, beşinciden itibaren 1. Sonuç:
+
+```
+bölüm 1   acemi 47.5s kaldı    orta 75.5s
+bölüm 2   acemi 39.8s          orta 72.4s
+bölüm 3   acemi 34.8s          orta 60.8s
+bölüm 5   acemi 27.0s          orta 45.4s   ← ek süre yok
+bölüm 8   acemi  5.5s          orta 14.5s
+```
+
+Gerilim 8. bölümde geliyor ve acemi orayı 5.5 saniyeyle sıyırıyor. Yıldız
+tarafı da kendiliğinden düzgün: üç yıldız sürenin %45'ini istiyor, birinci
+bölümde acemi %32'de kalıyor (iki yıldız, geliştirecek bir şey var), orta
+seviye %52 alıyor.
+
+**Ölçümün sınırı:** otomatik oyuncu en yakın meyveyi kovalıyor, bu kötü bir
+süpürme. İyi bir insanı temsil etmiyor — onu olduğundan zayıf gösteriyor.
+Ama yeni oyuncuyu iyi temsil ediyor, ve burada önemsediğimiz durum oydu.
+
 ## Teşhis ekranı: sessizliğin bedeli
 
 Sürüm yazısına **beş kez** dokununca teşhis ekranı açılıyor.
