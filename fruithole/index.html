@@ -1272,7 +1272,11 @@ function boosterUnlocked(b) { return level >= b.unlock; }
 // mission cannot be completed by progress made before it was handed out.
 // ---------------------------------------------------------------------
 const stats = JSON.parse(localStorage.getItem('fruithole_stats') || '{}');
-['fruits', 'levels', 'stars', 'bestCombo'].forEach(k => { if (!(k in stats)) stats[k] = 0; });
+// bestStreak, bestCombo'nun ölçemediği şeyi ölçüyor. Çarpan `Math.min(5, …)`
+// ile tavanlı, yani bestCombo asla 5'i geçmiyor ve üstüne basamak
+// kurulamıyor — "x8 kombo yap" diye bir hedef sonsuza kadar ulaşılamaz
+// olurdu. Ham zincir (arka arkaya yutulan meyve sayısı) tavansız.
+['fruits', 'levels', 'stars', 'bestCombo', 'bestStreak'].forEach(k => { if (!(k in stats)) stats[k] = 0; });
 function saveStats() { localStorage.setItem('fruithole_stats', JSON.stringify(stats)); }
 
 function dayKey(d) { return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
@@ -1314,11 +1318,55 @@ ensureDaily();
 
 const ACHIEVEMENTS = [
   { id: 'eat100',  icon: '🍇',  name: 'Hundred bites', desc: 'Eat 100 fruit in total',  goal: 100,  at: () => stats.fruits,    pay: 'berry',  reward: 400 },
-  { id: 'eat1000', icon: '🍽️', name: 'Never full',    desc: 'Eat 1000 fruit in total', goal: 1000, at: () => stats.fruits,    pay: 'berry',  reward: 1600 },
+  { id: 'eat1000', icon: '🍽️', name: 'Never full',    desc: 'Eat 1000 fruit in total', goal: 1000, at: () => stats.fruits,    pay: 'berry',  reward: 1600, after: 'eat100' },
   { id: 'lvl10',   icon: '🏁',  name: 'Tenth level',   desc: 'Reach level 10',      goal: 10,   at: () => level,           pay: 'banana', reward: 900 },
   { id: 'star15',  icon: '⭐',  name: 'Star hunter',   desc: 'Earn 15 stars',      goal: 15,   at: () => stats.stars,     pay: 'lychee', reward: 900 },
   { id: 'combo5',  icon: '🔥',  name: 'Chain eater',   desc: 'Hit an x5 combo',         goal: 5,    at: () => stats.bestCombo, pay: 'melon',  reward: 700 },
+
+  // İkinci ve üçüncü basamaklar.
+  //
+  // Yukarıdaki beşi, oyuncunun 12-15. bölümde hepsini bitirdiği bir listeydi
+  // — 1000 meyve dokuz bölüm, x5 kombo zaten kendiliğinden geliyor (ortalama
+  // çarpan 4.0-4.7), 15 yıldız beş bölüm. Ondan sonra Awards sekmesi ölüydü.
+  // Dükkânın 3. bölümde bitmesiyle aynı hata, aynı yerde: oyuncunun
+  // ilerlemeye devam ettiği ama oyunun ilerlemeyi ödüllendirmeyi bıraktığı
+  // bir aralık.
+  //
+  // `after`: bir basamak, bir öncekine ulaşılmadan listede görünmüyor. Yeni
+  // oyuncu on altı satır değil altı satır görüyor; liste oynadıkça büyüyor
+  // ve bitirilenler kupa gibi kalıyor.
+  { id: 'eat5000',  icon: '🍉', name: 'Bottomless',    desc: 'Eat 5000 fruit in total', goal: 5000, at: () => stats.fruits, pay: 'berry',  reward: 1600, after: 'eat1000' },
+  { id: 'lvl25',    icon: '🚩', name: 'Quarter way',   desc: 'Reach level 25',          goal: 25,   at: () => level,        pay: 'lychee', reward: 1000, after: 'lvl10' },
+  { id: 'lvl50',    icon: '🎖️', name: 'Fifty fields',  desc: 'Reach level 50',          goal: 50,   at: () => level,        pay: 'melon',  reward: 1800, after: 'lvl25' },
+  { id: 'star60',   icon: '🌟', name: 'Star collector', desc: 'Earn 60 stars',          goal: 60,   at: () => stats.stars,  pay: 'melon',  reward: 1000, after: 'star15' },
+  { id: 'star120',  icon: '💫', name: 'Star hoard',    desc: 'Earn 120 stars',          goal: 120,  at: () => stats.stars,  pay: 'banana', reward: 1800, after: 'star60' },
+
+  // Zincir, çarpanın ölçemediği şey. Çarpan 5'te tavanlı — `Math.min(5, …)`
+  // — yani "x8 kombo" diye bir hedef sonsuza kadar ulaşılamazdı. Ham zincir
+  // sayılıyor: arka arkaya, arada 0.9 saniyeden fazla boşluk bırakmadan
+  // yutulan meyve. Hedefler ölçümden: kusursuz bir süpürme simülasyonunda en
+  // uzun zincir bölüme göre 61 ile 297 arasında çıkıyor, ve gerçek oyuncu
+  // simülasyondan kötü. 50 ulaşılabilir bir hedef, 100 iyi bir tarlayı iyi
+  // oynamayı istiyor.
+  { id: 'chain50',  icon: '⚡', name: 'Unbroken',      desc: 'Eat 50 fruit in one chain',  goal: 50,  at: () => stats.bestStreak, pay: 'berry',  reward: 900,  after: 'combo5' },
+  { id: 'chain100', icon: '☄️', name: 'One breath',    desc: 'Eat 100 fruit in one chain', goal: 100, at: () => stats.bestStreak, pay: 'lychee', reward: 1600, after: 'chain50' },
+
+  // Koleksiyon 63 nesne üretti ve hiçbir başarım ona bakmıyordu.
+  { id: 'find20',   icon: '🧺', name: 'Beachcomber',   desc: 'Find 20 objects',  goal: 20, at: () => found.size, pay: 'berry',  reward: 500 },
+  { id: 'find40',   icon: '🗃️', name: 'Curator',       desc: 'Find 40 objects',  goal: 40, at: () => found.size, pay: 'melon',  reward: 1000, after: 'find20' },
+  { id: 'find63',   icon: '🏅', name: 'Nothing left',  desc: 'Find all 63 objects', goal: 63, at: () => found.size, pay: 'banana', reward: 2000, after: 'find40' },
+
+  { id: 'streak7',  icon: '📆', name: 'Seven days',    desc: 'Reach a 7 day streak', goal: 7, at: () => daily.streak || 0, pay: 'lychee', reward: 900 },
 ];
+const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
+// Bir basamak, öncülü **kazanıldığında** görünüyor — alındığında değil.
+// Alınmamış bir ödül yüzünden sıradaki hedefin saklanması, oyuncuyu
+// ilerlediğini görmekten mahrum bırakırdı.
+function achVisible(a) {
+  if (!a.after) return true;
+  const p = ACH_BY_ID[a.after];
+  return !p || !!achClaimed[p.id] || p.at() >= p.goal;
+}
 const achClaimed = JSON.parse(localStorage.getItem('fruithole_ach') || '{}');
 function saveAch() { localStorage.setItem('fruithole_ach', JSON.stringify(achClaimed)); }
 
@@ -1329,7 +1377,7 @@ function missionDone(m) { return missionAt(m) >= m.goal; }
 // something claimable anywhere? used to badge the menu button
 function anyClaimable() {
   const mission = (daily.missions || []).some(m => missionDone(m) && !m.claimed);
-  const ach = ACHIEVEMENTS.some(a => !achClaimed[a.id] && a.at() >= a.goal);
+  const ach = ACHIEVEMENTS.some(a => !achClaimed[a.id] && achVisible(a) && a.at() >= a.goal);
   return mission || ach;
 }
 
@@ -2484,7 +2532,7 @@ function renderGoals() {
 
   const aList = document.getElementById('achList');
   aList.innerHTML = '';
-  ACHIEVEMENTS.forEach(a => {
+  ACHIEVEMENTS.filter(achVisible).forEach(a => {
     aList.appendChild(goalRow(
       a.icon, a.name, `${a.desc} · ${a.reward} ${TYPE_BY_ID[a.pay].label}`,
       a.at(), a.goal, !!achClaimed[a.id],
@@ -2505,7 +2553,7 @@ function claimMission(m) {
 }
 
 function claimAch(a) {
-  if (achClaimed[a.id] || a.at() < a.goal) return;
+  if (achClaimed[a.id] || !achVisible(a) || a.at() < a.goal) return;
   achClaimed[a.id] = true;
   saveAch();
   bumpCurrency(a.pay, a.reward);
@@ -7871,6 +7919,7 @@ function eatFruit(f, now) {
   stats.fruits++;
   daily.fruits = (daily.fruits || 0) + 1;
   if (mult > stats.bestCombo) stats.bestCombo = mult;
+  if (streak > (stats.bestStreak || 0)) stats.bestStreak = streak;
   if (mult > (daily.bestCombo || 0)) daily.bestCombo = mult;
   if (mult >= 2 && streak % 4 === 0) showCombo(mult);
   updateProgressUI();
@@ -8521,6 +8570,12 @@ window.fruitHoleFieldHash = () => {
 // Whether there is a leaderboard to talk to at all. In a browser, and in any
 // build made without the plugin, every part of this is false and the game has
 // to be unaffected by that.
+window.fruitHoleAwards = () => ACHIEVEMENTS.map(a => ({
+  id: a.id, goal: a.goal, at: a.at(), pay: a.pay, reward: a.reward,
+  after: a.after || null, visible: achVisible(a), claimed: !!achClaimed[a.id],
+  done: a.at() >= a.goal,
+}));
+window.fruitHoleClaimAward = id => claimAch(ACH_BY_ID[id]);
 window.fruitHoleRate = () => ({ ...rate, due3: rateDue(3), due2: rateDue(2) });
 window.fruitHoleAskRate = () => askRate();
 window.fruitHoleNotif = () => ({ ...notif, on: NOTIF_ON,
@@ -8655,9 +8710,10 @@ window.fruitHoleIncome = () => {
   const unit = growthUnit();
   const pay = {}; TYPES.forEach(t => pay[t.id] = 0);
   let x = SPAWN_X, z = spawnZ(), t = 0;
-  let streak = 0, lastAt = -9999, mults = [];
+  let streak = 0, lastAt = -9999, mults = [], best = 0;
   const swallow = f => {
     streak = (t - lastAt < 0.9) ? streak + 1 : 1;
+    if (streak > best) best = streak;
     lastAt = t;
     const m = Math.min(5, 1 + Math.floor(streak / 4));
     mults.push(m);
@@ -8686,6 +8742,9 @@ window.fruitHoleIncome = () => {
     level, pattern: currentPattern.name, fruit: total, giants,
     pay, sum,
     avgMult: +(mults.reduce((a, b) => a + b, 0) / Math.max(1, mults.length)).toFixed(2),
+    // En uzun kesintisiz zincir. Zincir başarımlarının hedefleri buradan
+    // okunuyor — tahminle konulan bir hedef ya hiç ulaşılamaz ya bedava.
+    bestStreak: best,
     sweepSeconds: +t.toFixed(1), levelSeconds: levelTime(),
     floor: total - giants + giants * 12,
     ceiling: (total - giants) * 5 + giants * 60,

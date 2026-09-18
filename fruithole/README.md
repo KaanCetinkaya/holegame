@@ -1156,6 +1156,73 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Başarımlar 15. bölümde bitiyordu
+
+Beş tane vardı: 100 meyve ye, 1000 meyve ye, 10. bölüme ulaş, 15 yıldız
+topla, x5 kombo yap. Hiçbiri ölçülmemişti. Ölçünce:
+
+| başarım | ne kadar sürüyor |
+|---|---|
+| 100 meyve | bir bölüm (bölüm başına 60-240 meyve) |
+| 1000 meyve | ~9 bölüm |
+| 10. bölüm | 10 bölüm |
+| 15 yıldız | 5 bölüm |
+| x5 kombo | kendiliğinden — ortalama çarpan zaten 4.0-4.7 |
+
+Yani oyuncu **12-15. bölümde beşini de bitiriyor** ve Awards sekmesi ondan
+sonra ölü bir ekran oluyor. Dükkânın 3. bölümde bitmesiyle birebir aynı hata,
+aynı sebeple: kimse listenin ne kadar sürdüğüne bakmamıştı.
+
+On altıya çıktı. Altı aile, çoğu üç basamaklı:
+
+| aile | basamaklar |
+|---|---|
+| meyve | 100 · 1000 · 5000 |
+| bölüm | 10 · 25 · 50 |
+| yıldız | 15 · 60 · 120 |
+| zincir | x5 kombo · 50 meyve · 100 meyve |
+| koleksiyon | 20 · 40 · 63 nesne |
+| seri | 7 gün |
+
+**Basamaklar sırayla açılıyor.** Bir basamak, öncülüne ulaşılmadan listede
+görünmüyor: yeni oyuncu on altı satır değil altı satır görüyor, liste
+oynadıkça büyüyor, bitirilenler kupa gibi kalıyor. Açılma koşulu "öncül
+**kazanıldı**", "öncül **alındı**" değil — alınmamış bir ödül yüzünden
+sıradaki hedefi saklamak, oyuncuyu ilerlediğini görmekten mahrum bırakırdı.
+
+**Zincir başarımları çarpanı değil ham zinciri sayıyor.** Çarpan
+`Math.min(5, 1 + floor(streak/4))` ile **5'te tavanlı**, yani `bestCombo`
+asla 5'i geçmiyor ve "x8 kombo yap" diye bir hedef sonsuza kadar kilitli
+kalırdı — ekranda ömür boyu `0/8` yazardı ve kimse sebebini anlamazdı. Bunun
+için `stats.bestStreak` eklendi: arka arkaya, arada 0.9 saniyeden fazla boşluk
+bırakmadan yutulan meyve sayısı, tavansız.
+
+Hedefler tahminle değil ölçümle konuldu. `fruitHoleIncome()` artık en uzun
+zinciri de döndürüyor; kusursuz bir süpürmede bölüme göre:
+
+| bölüm | 1 | 5 | 10 | 16 | 25 | 40 | 50 |
+|---|---|---|---|---|---|---|---|
+| en uzun zincir | 156 | 61 | 297 | 274 | 66 | 82 | 81 |
+
+En kötü tarlada bile 61, en iyisinde 297. Gerçek oyuncu simülasyondan kötü
+olduğu için 50 ulaşılabilir bir hedef, 100 iyi bir tarlayı iyi oynamayı
+istiyor.
+
+**Koleksiyona bakan üç basamak var.** 63 nesne üretildi ve hiçbir başarım
+onlara bakmıyordu; en üst basamak oyundaki nesne sayısıyla birebir bağlı, yani
+tema eklenip nesne sayısı değişirse test onu yakalıyor.
+
+**Ödül ölçeği.** Beş eski başarımın toplamı 4500'dü; şimdi 18 600. Yükseltme
+ağacı 26 420, kaplamalar 30 500 — yani başarımlar hâlâ süs, ikinci bir gelir
+kapısı değil. Tek bir başarım en fazla 2000, yani bir bölümlük kazancın
+(~1500) biraz üstü. Ödüller dört meyveye dengeli dağıtıldı (4400-5000 arası):
+hepsi tek meyveye aksaydı yalnızca o dalın yükseltmelerine yarardı.
+
+**Ölçen dosya `scratchpad/holeawards.mjs`.** Listenin uzunluğunu, her hedefin
+gerçekten ulaşılabilir olduğunu (en uç durumu tohumlayıp tamamlanıyor mu diye
+bakarak), basamakların sırayla açılmasını, iki kez alınamamasını ve ödül
+ölçeğini ölçüyor.
+
 ## Zamanlı sandık
 
 Oyunun geri dönüş sebeplerinin hepsi **günlük** ölçekteydi: günlük ödül,
