@@ -5931,6 +5931,174 @@ function waterTexture() {
   tex.repeat.set(58, 58);
   return tex;
 }
+// ---------------------------------------------------------------------
+// Tarlanın dışı
+//
+// Tahtanın etrafındaki 200x200 düzlem. Plajda dalgalanan deniz vardı; kalan
+// dokuz temada **tek renk** bir zemindi — yani ekranın kenarındaki geniş bir
+// şerit, oyunun geri kalanı kodla üretilmiş dokularla doluyken, düz boyaydı.
+//
+// Hepsi uzaktan ve çoğunlukla karenin kenarında görünüyor, o yüzden ince
+// ayrıntı işe yaramıyor: her biri bir bakışta "orası neresi" diyecek kadar,
+// fazlası değil. Tile boyu da ona göre — desenin tekrarı görünürse kenar
+// duvar kâğıdına dönüyor.
+// ---------------------------------------------------------------------
+
+// Yıldız alanı. Orbit temasının yorumu zaten "kenarından ötesi karanlık"
+// diyordu; düz lacivert bir şerit onu söylemiyordu, yıldızlar söylüyor.
+function starfieldTexture() {
+  const S = 512, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#05070f';
+  ctx.fillRect(0, 0, S, S);
+  // Uzak toz: çok sayıda, çok sönük.
+  for (let i = 0; i < 900; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.14;
+    ctx.fillStyle = '#9fb4d8';
+    ctx.fillRect(Math.random() * S, Math.random() * S, 1, 1);
+  }
+  // Yakın yıldızlar: az sayıda, parlak, ve birkaçı renkli.
+  for (let i = 0; i < 110; i++) {
+    const x = Math.random() * S, y = Math.random() * S;
+    const r = 0.7 + Math.random() * 1.5;
+    ctx.globalAlpha = 0.5 + Math.random() * 0.5;
+    const t = Math.random();
+    ctx.fillStyle = t < 0.12 ? '#ffd9a0' : t < 0.24 ? '#a8c8ff' : '#ffffff';
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    // En parlak birkaçına hafif bir hale.
+    if (r > 1.8) {
+      ctx.globalAlpha = 0.12;
+      ctx.beginPath(); ctx.arc(x, y, r * 3.2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  // 200 birimlik düzlemde 8 tekrar = tile başına 25 birim. Ekranda aynı anda
+  // bir-iki tile görünüyor, yani takımyıldızın tekrarı fark edilmiyor.
+  tex.repeat.set(8, 8);
+  return tex;
+}
+
+// Biçilmiş çim: şeritler. Sahanın da çiftliğin de dışı bu, ama iki ayrı
+// renkte — biri stadyum çimi, öteki tarla otu.
+function mownTexture(a, b, stripe) {
+  const S = 256, [c, ctx] = newCanvas(S);
+  const bands = 6, bh = S / bands;
+  for (let i = 0; i < bands; i++) {
+    ctx.fillStyle = i % 2 ? a : b;
+    ctx.fillRect(0, i * bh, S, bh);
+  }
+  for (let i = 0; i < 2200; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? stripe : '#ffffff';
+    ctx.fillRect(Math.random() * S, Math.random() * S, 1.1, 2 + Math.random() * 3);
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(26, 26);
+  return tex;
+}
+
+// Buz: soluk mavi, çatlaklı. Karın dışı deniz değil, donmuş göl.
+function iceTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  const g = ctx.createLinearGradient(0, 0, S, S);
+  g.addColorStop(0, '#8fc2e4');
+  g.addColorStop(0.5, '#a8d4ee');
+  g.addColorStop(1, '#84b8dd');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+  ctx.strokeStyle = '#d9eefb'; ctx.lineWidth = 1.2;
+  for (let i = 0; i < 26; i++) {
+    ctx.globalAlpha = 0.18 + Math.random() * 0.3;
+    ctx.beginPath();
+    let x = Math.random() * S, y = Math.random() * S;
+    ctx.moveTo(x, y);
+    for (let k = 0; k < 3; k++) {
+      x += (Math.random() - 0.5) * 90; y += (Math.random() - 0.5) * 90;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(14, 14);
+  return tex;
+}
+
+// Benekli koyu zemin. Stadyum betonu, karanlık oda, mağaza zemini — üçü de
+// aynı fikrin farklı rengi: gözün üstünde durmayacağı, ama düz de olmayan
+// bir yüzey.
+function speckTexture(base, dark, light, rep = 18) {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = base; ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2600; i++) {
+    ctx.globalAlpha = 0.04 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? dark : light;
+    const x = Math.random() * S, y = Math.random() * S, r = 0.6 + Math.random() * 2.2;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(rep, rep);
+  return tex;
+}
+
+// Cilalı koyu taş, altın damarlı. Bankanın mermeri tahtada; dışı onun koyu
+// hâli.
+function darkStoneTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#161d1f'; ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 1400; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.07;
+    ctx.fillStyle = Math.random() < 0.5 ? '#0c1112' : '#2a3436';
+    const x = Math.random() * S, y = Math.random() * S, r = 1 + Math.random() * 3;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.strokeStyle = '#b9922f'; ctx.lineWidth = 0.9;
+  for (let i = 0; i < 10; i++) {
+    ctx.globalAlpha = 0.16 + Math.random() * 0.2;
+    ctx.beginPath();
+    let x = Math.random() * S, y = Math.random() * S;
+    ctx.moveTo(x, y);
+    for (let k = 0; k < 4; k++) {
+      x += (Math.random() - 0.5) * 80; y += (Math.random() - 0.5) * 80;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(16, 16);
+  return tex;
+}
+
+// Asfalt, tahtadakinden koyu: otoparkın dışı da otopark.
+function darkAsphaltTexture() {
+  const tex = speckTexture('#22252b', '#15181d', '#3a3f48', 20);
+  return tex;
+}
+
+// Zeminler gibi tembel: bir tema ilk kez oynandığında üretiliyor.
+const SURROUND_TEX = {};
+const SURROUND_MAKERS = {
+  stars: starfieldTexture,
+  ice: iceTexture,
+  pitchside: () => mownTexture('#243141', '#1e2937', '#33455a', 18),
+  meadow: () => mownTexture('#3f6b2e', '#487934', '#5f9a44', 22),
+  concrete: () => speckTexture('#2d3b4d', '#212c3a', '#41536a', 16),
+  room: () => speckTexture('#241612', '#180d0a', '#3b241c', 14),
+  shopfloor: () => speckTexture('#151b26', '#0e1219', '#232d3e', 16),
+  parlour: () => speckTexture('#4a382a', '#33261c', '#63503c', 16),
+  bankstone: darkStoneTexture,
+  tarmac: darkAsphaltTexture,
+};
+const surroundTex = kind => SURROUND_TEX[kind] ||
+  (SURROUND_TEX[kind] = SURROUND_MAKERS[kind]());
+
 const waterTex = waterTexture();
 const water = new THREE.Mesh(
   new THREE.PlaneGeometry(200, 200),
@@ -6000,6 +6168,8 @@ const THEMES = {
     ground: 'grass', surround: '#2d3b4d', ripples: false,
     edge: '#f4f7fa', surf: null,
     props: ['football', 'boot', 'marker', 'shirt', 'trophy', 'goal'],
+    // Sahanın dışı stadyum zemini: beyaz çizginin ötesindeki karanlık.
+    beyond: 'concrete',
     // Kapalı bir maç günü: gökyüzü beyaza yakın, aşağıdan çimen yansıyor.
     light: { sky: '#eef4ff', bounce: '#9ccf7a', hemi: 1.45, amb: '#f2f6ff', ambI: 0.42, sun: '#fffdf2', sunI: 0.70 },
   },
@@ -6008,6 +6178,8 @@ const THEMES = {
     ground: 'wood', surround: '#4a382a', ripples: false,
     edge: '#7c5c3c', surf: null,
     props: ['lolly', 'donut', 'mug', 'ball', 'car', 'duck'],
+    // Parkenin dışı, odanın gölgede kalan kısmı.
+    beyond: 'parlour',
     // İç mekân: ampul sarısı, güneş yok. Anahtar ışık düşük, dolgu yüksek —
     // bir odada gölgeler yumuşaktır.
     light: { sky: '#fff0d8', bounce: '#c79a68', hemi: 1.35, amb: '#ffeccd', ambI: 0.52, sun: '#ffdca8', sunI: 0.55 },
@@ -6019,6 +6191,8 @@ const THEMES = {
     ground: 'snow', surround: '#78b4dd', ripples: false,
     edge: '#f4fafe', surf: null,
     props: ['snowman', 'mitten', 'candycane', 'penguin', 'igloo', 'sled', 'pine', 'mug'],
+    // Karın dışı deniz değil, donmuş göl: soluk mavi ve çatlaklı.
+    beyond: 'ice',
     // Kar her şeyi geri yansıtıyor: dolgu oyundaki en yüksek yer burası, ve
     // ışığın tamamı mavi tarafta.
     light: { sky: '#dceeff', bounce: '#eaf5ff', hemi: 1.75, amb: '#eaf4ff', ambI: 0.55, sun: '#eaf4ff', sunI: 0.62 },
@@ -6028,6 +6202,8 @@ const THEMES = {
     ground: 'marble', surround: '#1e2a2c', ripples: false,
     edge: '#b9922f', surf: null,
     props: ['bitcoin', 'euro', 'rupee', 'peso', 'notes', 'moneybag', 'goldbars', 'trophy'],
+    // Mermerin dışı onun cilalı koyu hâli, altın damarlarıyla.
+    beyond: 'bankstone',
     // Mermer banka zemini: nötr tavan ışığı, aşağıdan altın yansıması.
     light: { sky: '#f6f8fb', bounce: '#cfa94e', hemi: 1.4, amb: '#fbf6e8', ambI: 0.45, sun: '#fff6df', sunI: 0.70 },
   },
@@ -6039,6 +6215,9 @@ const THEMES = {
     ground: 'deck', surround: '#080b18', ripples: false,
     edge: '#3d4a66', surf: null,
     props: ['satellite', 'planet', 'helmet', 'drum', 'rocket', 'marker'],
+    // Kenarından ötesi gerçekten karanlık — ve yıldızlı. Bu temanın
+    // yorumu bunu zaten söylüyordu; düz lacivert bir şerit söylemiyordu.
+    beyond: 'stars',
     // Uzayda saçılma yok: dolgu neredeyse sıfır, anahtar ışık sert ve beyaz.
     // Tek tema burada anahtar ışık yükseltiliyor, çünkü gölgenin sert olması
     // burada hata değil, yerin kendisi.
@@ -6051,6 +6230,8 @@ const THEMES = {
     ground: 'bar', surround: '#241612', ripples: false,
     edge: '#c98f4e', surf: null,
     props: ['cocktail', 'lime', 'shaker', 'bottle', 'icebucket', 'lolly', 'parasol'],
+    // Tezgâhın dışı, akşam ışığında kalan karanlık oda.
+    beyond: 'room',
     // Akşam barı: amber, alçak, ve aşağıdan koyu ahşap yansıyor.
     light: { sky: '#ffd9a0', bounce: '#4a2418', hemi: 1.2, amb: '#ffcf95', ambI: 0.40, sun: '#ffb867', sunI: 0.55 },
   },
@@ -6059,6 +6240,8 @@ const THEMES = {
     ground: 'asphalt', surround: '#2b2e35', ripples: false,
     edge: '#e8e4d2', surf: null,
     props: ['burger', 'fries', 'soda', 'pizza', 'sedan', 'pickup', 'car', 'cone', 'donut'],
+    // Otoparkın dışı da otopark: tahtadakinden koyu asfalt.
+    beyond: 'tarmac',
     // Alacakaranlıkta otopark, sodyum lambası: turuncu üstten, gri asfalt
     // alttan.
     light: { sky: '#ffd9b0', bounce: '#3b3f47', hemi: 1.25, amb: '#ffdcb8', ambI: 0.40, sun: '#ffc98a', sunI: 0.62 },
@@ -6072,6 +6255,8 @@ const THEMES = {
     edge: '#46536a', surf: null,
     props: ['tv', 'piano', 'headphones', 'hairdryer', 'radio', 'fan',
             'laptop', 'phone', 'gamepad', 'fridge', 'heli'],
+    // Mağaza zemini, tahtadakinden koyu.
+    beyond: 'shopfloor',
     // Mağaza florasanı: soğuk beyaz, ve koyu zeminden geri gelen hiçbir şey.
     //
     // İlk değerler daha maviydi (`#e6f0ff` / `#dce8f7` / `#f2f8ff`) ve muzu
@@ -6090,6 +6275,8 @@ const THEMES = {
     edge: '#7fae4c', surf: null,
     props: ['haybale', 'chicken', 'eggs', 'churn', 'wateringcan', 'pitchfork',
             'crate', 'tractor', 'wheelbarrow', 'scarecrow'],
+    // Sürülmüş tarlanın dışı biçilmemiş ot.
+    beyond: 'meadow',
     // Altın saat: hasat ışığı. Aşağıdan toprak ve ekin yansıyor.
     light: { sky: '#ffe9c0', bounce: '#7a6a3a', hemi: 1.45, amb: '#ffeccf', ambI: 0.48, sun: '#ffd89a', sunI: 0.78 },
   },
@@ -6167,8 +6354,15 @@ function applyTheme(theme) {
   applyLight(theme);
   ground.material.map = groundTex(theme.ground);
   ground.material.needsUpdate = true;
-  water.material.map = theme.ripples ? waterTex : null;
-  water.material.color.set(theme.ripples ? '#ffffff' : theme.surround);
+  // Tarlanın dışı. Plajda dalgalanan deniz, kalan yerlerde o yerin kendi
+  // zemini — önceden dokuz tema tek renk bir boyaya bakıyordu.
+  //
+  // Doku varsa renk beyaza çekiliyor: `map` ile `color` çarpılıyor, yani
+  // temanın kendi rengi orada kalsaydı doku onun altında boğulurdu. Rengi
+  // dokunun kendisi taşıyor.
+  const dis = theme.ripples ? waterTex : theme.beyond ? surroundTex(theme.beyond) : null;
+  water.material.map = dis;
+  water.material.color.set(dis ? '#ffffff' : theme.surround);
   water.material.needsUpdate = true;
   shore.material.color.set(theme.edge);
   surf.visible = !!theme.surf;
@@ -9178,8 +9372,10 @@ window.fruitHoleTheme = () => {
 window.fruitHoleThemeTable = () => ({
   themes: Object.entries(THEMES).map(([id, t]) => ({
     id, name: t.name, ground: t.ground, props: t.props,
+    ripples: !!t.ripples, beyond: t.beyond || null,
     patterns: PATTERNS.filter(p => p.theme === id).map(p => p.name),
   })),
+  surrounds: Object.keys(SURROUND_MAKERS),
   props: Object.keys(PROPS),
   giantOnly: Object.keys(PROPS).filter(k => PROPS[k].only === 'giant'),
   grounds: Object.keys(GROUND_MAKERS),

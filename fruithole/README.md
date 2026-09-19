@@ -1156,6 +1156,53 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Tarlanın dışı düz boyaydı
+
+Tahtanın etrafındaki 200×200 düzlem. Plajda dalgalanan deniz vardı — kendi
+dokusu, kendi hareketi. Kalan **dokuz temada tek renk** bir zemindi.
+
+Yani oyunun her şeyi kodla ürettiği bir projede, ekranın kenarındaki geniş
+şerit düz boyaydı. Orbit temasının yorumu "kenarından ötesi karanlık" diyordu
+ve orada düz lacivert bir şerit vardı; kar temasının dışı denizin mavisiydi.
+
+Artık her yerin dışı da bir yer:
+
+| yer | dışı |
+|---|---|
+| Beach | dalgalanan deniz *(eskisi)* |
+| Orbit | **yıldız alanı** — uzak toz, yakın yıldızlar, birkaçında hale |
+| Snow Day | donmuş göl: soluk mavi, çatlaklı |
+| Harvest | biçilmemiş ot, şeritli |
+| Match Day | stadyum betonu, beyaz çizginin ötesi |
+| Payday | mermerin cilalı koyu hâli, altın damarlı |
+| Happy Hour | akşam ışığında kalan karanlık oda |
+| Drive-In | tahtadakinden koyu asfalt |
+| Gadget Shop | tahtadakinden koyu mağaza zemini |
+| Indoors | odanın gölgede kalan kısmı |
+
+**Hepsi uzaktan ve karenin kenarında görünüyor**, o yüzden ince ayrıntı işe
+yaramıyor: her biri bir bakışta "orası neresi" diyecek kadar, fazlası değil.
+Tile boyu da ona göre seçildi — desenin tekrarı görünürse kenar duvar kâğıdına
+dönüyor. Yıldız alanı 512px ve 8 tekrar, yani tile başına 25 birim: ekranda
+aynı anda bir-iki tane görünüyor ve takımyıldız tekrarı fark edilmiyor.
+
+**Doku varken renk beyaza çekiliyor.** Three.js `map` ile `color`'ı çarpıyor;
+temanın kendi `surround` rengi orada kalsaydı doku onun altında boğulurdu.
+Rengi artık dokunun kendisi taşıyor.
+
+Zeminler gibi tembel üretiliyorlar: bir tema ilk kez oynandığında.
+
+### Ölçülen
+
+`holetheme.mjs` üç şey daha bakıyor:
+
+- **her yerin tarla dışı da bir yer** — ne dalga ne `beyond` varsa kenar
+  sessizce düz renge düşüyor, yani buradaki düzeltme geri alınmış oluyor
+- **tarla dışı dokuları tanımlı** — `beyond` adı yanlış yazılırsa üretici
+  bulunamıyor
+- **her yerin kendi dışı var** — kenar, o yerin neresi olduğunu söyleyen
+  ikinci işaret; ikisi aynı dışa bakarsa o işaret kayboluyor
+
 ## On yer vardı, tek ışık vardı
 
 Zemin temaya göre değişiyordu, ışık değişmiyordu. Işık rigi açılışta bir kez

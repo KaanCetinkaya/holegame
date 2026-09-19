@@ -69,6 +69,23 @@ console.log('\n1. tablo tutarlı');
   const sahipsiz = T.props.filter(id => !T.themes.some(t => t.props && t.props.includes(id)));
   check(sahipsiz.length === 0, 'her nesnenin bir teması var', sahipsiz.join(' ') || '-');
 
+  // Tarlanın dışı. Bir temada ne dalga ne de `beyond` varsa kenar düz renge
+  // düşüyor — oyunun geri kalanı kodla üretilmiş dokularla doluyken ekranın
+  // kenarındaki geniş şerit düz boya oluyor, ve bu tam olarak burada
+  // düzeltilen şeydi. Geri dönmesi sessiz olurdu.
+  const disi = T.themes.filter(t => t.patterns.length && !t.ripples && !t.beyond);
+  check(disi.length === 0, 'her yerin tarla dışı da bir yer', disi.map(t => t.id).join(' ') || '-');
+  const bilinmeyenDis = T.themes.filter(t => t.beyond && !T.surrounds.includes(t.beyond));
+  check(bilinmeyenDis.length === 0, 'tarla dışı dokuları tanımlı',
+    bilinmeyenDis.map(t => `${t.id}:${t.beyond}`).join(' ') || '-');
+  // İki yer aynı dışa bakmasın: kenar, o yerin neresi olduğunu söyleyen
+  // ikinci işaret.
+  const disSay = {};
+  T.themes.forEach(t => { if (t.beyond) disSay[t.beyond] = (disSay[t.beyond] || 0) + 1; });
+  const paylasan = Object.entries(disSay).filter(([, n]) => n > 1);
+  check(paylasan.length === 0, 'her yerin kendi dışı var',
+    paylasan.map(([k, n]) => `${k}:${n}`).join(' ') || '-');
+
   const zeminsiz = T.themes.filter(t => !T.grounds.includes(t.ground));
   check(zeminsiz.length === 0, 'her temanın zemini tanımlı',
     zeminsiz.map(t => `${t.id}:${t.ground}`).join(' ') || '-');
