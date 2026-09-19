@@ -3202,8 +3202,16 @@ const camera = new THREE.OrthographicCamera(-8, 8, 8, -8, 0.1, 100);
 // Bright, mostly ambient light: the sun is there to place the shadows, not
 // to model the fruit. A strong key light drops one side of every sphere
 // into shade and reads as muddy at this size.
-scene.add(new THREE.HemisphereLight('#ffffff', '#f0b877', 1.5));
-scene.add(new THREE.AmbientLight('#fff4de', 0.45));
+const hemi = new THREE.HemisphereLight('#ffffff', '#f0b877', 1.5);
+scene.add(hemi);
+const amb = new THREE.AmbientLight('#fff4de', 0.45);
+scene.add(amb);
+// Varsayılan ışık, yani bir temanın kendi ışığı yoksa bugünkü görüntü.
+// Kumsalın öğle ışığı: on temanın hepsi bunu kullanıyordu.
+const LIGHT_DEFAULT = {
+  sky: '#ffffff', bounce: '#f0b877', hemi: 1.5,
+  amb: '#fff4de', ambI: 0.45, sun: '#fff8e8', sunI: 0.72,
+};
 // Nearly overhead. A low sun throws a shadow as long as the tower is tall,
 // and once every cell holds a tower the board is covered in parallel streaks
 // running off to one side — which is read, correctly, as everything leaning.
@@ -5981,6 +5989,9 @@ const THEMES = {
     edge: '#bff3f5', surf: '#ecfeff',
     props: ['starfish', 'shell', 'shades', 'flipflop', 'bucket', 'cone',
             'parasol', 'swimring', 'lounger', 'flamingo', 'ball', 'lolly'],
+    // Öğle güneşi ve kumun geri yansıttığı sıcaklık. Oyunun varsayılanı
+    // buydu ve burada doğru.
+    light: { sky: '#ffffff', bounce: '#f0b877', hemi: 1.5, amb: '#fff4de', ambI: 0.45, sun: '#fff8e8', sunI: 0.72 },
   },
   pitch: {
     name: 'Match Day', icon: '⚽',
@@ -5989,12 +6000,17 @@ const THEMES = {
     ground: 'grass', surround: '#2d3b4d', ripples: false,
     edge: '#f4f7fa', surf: null,
     props: ['football', 'boot', 'marker', 'shirt', 'trophy', 'goal'],
+    // Kapalı bir maç günü: gökyüzü beyaza yakın, aşağıdan çimen yansıyor.
+    light: { sky: '#eef4ff', bounce: '#9ccf7a', hemi: 1.45, amb: '#f2f6ff', ambI: 0.42, sun: '#fffdf2', sunI: 0.70 },
   },
   home: {
     name: 'Indoors', icon: '🏠',
     ground: 'wood', surround: '#4a382a', ripples: false,
     edge: '#7c5c3c', surf: null,
     props: ['lolly', 'donut', 'mug', 'ball', 'car', 'duck'],
+    // İç mekân: ampul sarısı, güneş yok. Anahtar ışık düşük, dolgu yüksek —
+    // bir odada gölgeler yumuşaktır.
+    light: { sky: '#fff0d8', bounce: '#c79a68', hemi: 1.35, amb: '#ffeccd', ambI: 0.52, sun: '#ffdca8', sunI: 0.55 },
   },
   snow: {
     name: 'Snow Day', icon: '❄️',
@@ -6003,12 +6019,17 @@ const THEMES = {
     ground: 'snow', surround: '#78b4dd', ripples: false,
     edge: '#f4fafe', surf: null,
     props: ['snowman', 'mitten', 'candycane', 'penguin', 'igloo', 'sled', 'pine', 'mug'],
+    // Kar her şeyi geri yansıtıyor: dolgu oyundaki en yüksek yer burası, ve
+    // ışığın tamamı mavi tarafta.
+    light: { sky: '#dceeff', bounce: '#eaf5ff', hemi: 1.75, amb: '#eaf4ff', ambI: 0.55, sun: '#eaf4ff', sunI: 0.62 },
   },
   money: {
     name: 'Payday', icon: '💰',
     ground: 'marble', surround: '#1e2a2c', ripples: false,
     edge: '#b9922f', surf: null,
     props: ['bitcoin', 'euro', 'rupee', 'peso', 'notes', 'moneybag', 'goldbars', 'trophy'],
+    // Mermer banka zemini: nötr tavan ışığı, aşağıdan altın yansıması.
+    light: { sky: '#f6f8fb', bounce: '#cfa94e', hemi: 1.4, amb: '#fbf6e8', ambI: 0.45, sun: '#fff6df', sunI: 0.70 },
   },
   space: {
     name: 'Orbit', icon: '🚀',
@@ -6018,6 +6039,10 @@ const THEMES = {
     ground: 'deck', surround: '#080b18', ripples: false,
     edge: '#3d4a66', surf: null,
     props: ['satellite', 'planet', 'helmet', 'drum', 'rocket', 'marker'],
+    // Uzayda saçılma yok: dolgu neredeyse sıfır, anahtar ışık sert ve beyaz.
+    // Tek tema burada anahtar ışık yükseltiliyor, çünkü gölgenin sert olması
+    // burada hata değil, yerin kendisi.
+    light: { sky: '#c9d6ff', bounce: '#10131f', hemi: 1.0, amb: '#aebdd6', ambI: 0.22, sun: '#ffffff', sunI: 0.95 },
   },
   cocktail: {
     name: 'Happy Hour', icon: '🍹',
@@ -6026,12 +6051,17 @@ const THEMES = {
     ground: 'bar', surround: '#241612', ripples: false,
     edge: '#c98f4e', surf: null,
     props: ['cocktail', 'lime', 'shaker', 'bottle', 'icebucket', 'lolly', 'parasol'],
+    // Akşam barı: amber, alçak, ve aşağıdan koyu ahşap yansıyor.
+    light: { sky: '#ffd9a0', bounce: '#4a2418', hemi: 1.2, amb: '#ffcf95', ambI: 0.40, sun: '#ffb867', sunI: 0.55 },
   },
   drivein: {
     name: 'Drive-In', icon: '🍔',
     ground: 'asphalt', surround: '#2b2e35', ripples: false,
     edge: '#e8e4d2', surf: null,
     props: ['burger', 'fries', 'soda', 'pizza', 'sedan', 'pickup', 'car', 'cone', 'donut'],
+    // Alacakaranlıkta otopark, sodyum lambası: turuncu üstten, gri asfalt
+    // alttan.
+    light: { sky: '#ffd9b0', bounce: '#3b3f47', hemi: 1.25, amb: '#ffdcb8', ambI: 0.40, sun: '#ffc98a', sunI: 0.62 },
   },
   tech: {
     name: 'Gadget Shop', icon: '📺',
@@ -6042,6 +6072,14 @@ const THEMES = {
     edge: '#46536a', surf: null,
     props: ['tv', 'piano', 'headphones', 'hairdryer', 'radio', 'fan',
             'laptop', 'phone', 'gamepad', 'fridge', 'heli'],
+    // Mağaza florasanı: soğuk beyaz, ve koyu zeminden geri gelen hiçbir şey.
+    //
+    // İlk değerler daha maviydi (`#e6f0ff` / `#dce8f7` / `#f2f8ff`) ve muzu
+    // zeytin yeşiline çeviriyordu. Gerçek florasan altında sarı gerçekten
+    // yeşile kaçar, ama bu oyunda dört meyve rengini birbirinden ayırmak
+    // okunurluğun kendisi — birini boşaltmak üslup tercihi değil, oynanış
+    // bedeli. Mavi azaltıldı, soğukluk duruyor.
+    light: { sky: '#eaeff7', bounce: '#1b2230', hemi: 1.25, amb: '#e6ecf4', ambI: 0.35, sun: '#f8fbff', sunI: 0.72 },
   },
   // Oyunun adı Fruit Hole ve meyvenin geldiği yer dokuz temanın hiçbiri
   // değildi. Zemin sürülmüş toprak: karıkları olan tek yüzey, ve oyundaki en
@@ -6052,12 +6090,16 @@ const THEMES = {
     edge: '#7fae4c', surf: null,
     props: ['haybale', 'chicken', 'eggs', 'churn', 'wateringcan', 'pitchfork',
             'crate', 'tractor', 'wheelbarrow', 'scarecrow'],
+    // Altın saat: hasat ışığı. Aşağıdan toprak ve ekin yansıyor.
+    light: { sky: '#ffe9c0', bounce: '#7a6a3a', hemi: 1.45, amb: '#ffeccf', ambI: 0.48, sun: '#ffd89a', sunI: 0.78 },
   },
   mixed: {
     name: 'Everything', icon: '🎲',
     ground: 'sand', surround: '#22c9cd', ripples: true,
     edge: '#bff3f5', surf: '#ecfeff',
     props: null,                       // null: draw from the whole pool
+    // Kumsalın ışığı: menü de bu temayı kullanıyor.
+    light: { sky: '#ffffff', bounce: '#f0b877', hemi: 1.5, amb: '#fff4de', ambI: 0.45, sun: '#fff8e8', sunI: 0.72 },
   },
 };
 // Aynı şekil, ikinci turda başka bir yerde.
@@ -6098,8 +6140,31 @@ function themeForLevel() {
 
 let currentTheme = THEMES.beach;
 
+// Zemin değişiyordu, ışık değişmiyordu.
+//
+// On yer vardı ve hepsi aynı sıcak öğle güneşiyle aydınlanıyordu: uzay
+// istasyonunun güvertesi de, akşam barının cilalı tezgâhı da, kar da.
+// Zemin "akşam" diyor, ışık "öğlen" diyordu, ve bu her karede görünüyordu.
+//
+// Anahtar ışık **yükseltilmiyor**, yalnızca rengi ve dolgunun oranı
+// değişiyor. Sert bir anahtar ışık her kürenin bir yanını gölgeye atıyor ve
+// bu boyutta çamur gibi okunuyor — ışık rigi kurulurken öğrenilmiş şey bu,
+// ve tema başına ışık onu bozmamalı. Tek istisna Orbit: uzayda saçılma yok,
+// dolgu oradaki düşüklüğüyle anlamlı.
+function applyLight(theme) {
+  const L = theme.light || LIGHT_DEFAULT;
+  hemi.color.set(L.sky ?? LIGHT_DEFAULT.sky);
+  hemi.groundColor.set(L.bounce ?? LIGHT_DEFAULT.bounce);
+  hemi.intensity = L.hemi ?? LIGHT_DEFAULT.hemi;
+  amb.color.set(L.amb ?? LIGHT_DEFAULT.amb);
+  amb.intensity = L.ambI ?? LIGHT_DEFAULT.ambI;
+  sun.color.set(L.sun ?? LIGHT_DEFAULT.sun);
+  sun.intensity = L.sunI ?? LIGHT_DEFAULT.sunI;
+}
+
 function applyTheme(theme) {
   currentTheme = theme;
+  applyLight(theme);
   ground.material.map = groundTex(theme.ground);
   ground.material.needsUpdate = true;
   water.material.map = theme.ripples ? waterTex : null;
@@ -9084,6 +9149,16 @@ window.fruitHoleCircleCells = () => {
 
 // What theme a level actually built with, and whether anything from another
 // theme's set slipped onto the board.
+// Sahnedeki ışığın o anki hâli. Tema başına ışık, ekran görüntüsüne
+// bakmadan doğrulanamayan bir şey değil — hangi değerlerin uygulandığı
+// ölçülebilir olmalı, yoksa bir temanın ışığı sessizce varsayılana düşer.
+window.fruitHoleLights = () => ({
+  theme: currentTheme.name,
+  hemi: { sky: '#' + hemi.color.getHexString(),
+          bounce: '#' + hemi.groundColor.getHexString(), i: +hemi.intensity.toFixed(3) },
+  amb: { c: '#' + amb.color.getHexString(), i: +amb.intensity.toFixed(3) },
+  sun: { c: '#' + sun.color.getHexString(), i: +sun.intensity.toFixed(3) },
+});
 window.fruitHoleTheme = () => {
   const on = fruits.filter(f => !f.eaten && f.prop);
   const kinds = [...new Set(on.map(f => f.prop))].sort();

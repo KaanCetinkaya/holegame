@@ -178,7 +178,55 @@ console.log('\n5. dev-only nesneler hücre boyunda çıkmıyor');
     hatali.slice(0, 6).join(' ') || '-');
 }
 
-console.log('\n6. resimler');
+console.log('\n6. ışık');
+{
+  // Zemin değişiyordu, ışık değişmiyordu: on yer aynı sıcak öğle güneşiyle
+  // aydınlanıyordu. Artık her temanın kendi ışığı var, ve burada ölçülen iki
+  // şey:
+  //
+  //   1. Işık gerçekten temaya göre değişiyor mu — bir temanın ışığı sessizce
+  //      varsayılana düşerse ekran görüntüsüne bakmadan fark edilmez.
+  //   2. Hiçbir tema meyveyi okunmaz hale getirecek kadar karanlık değil.
+  //      Işığı kısmak atmosfer üretiyor ama oynanabilirliği bozabilir, ve
+  //      bu oyunda ekrandaki her şey meyvenin ayırt edilmesine bağlı.
+  const isik = {};
+  for (const t of T.themes) {
+    if (!t.patterns.length) continue;
+    const lvl = T.order.findIndex((_, i) => T.patternThemes[i] === t.id) + 1;
+    if (!lvl) continue;
+    isik[t.id] = await pg.evaluate(l => {
+      window.fruitHoleSeedField(9000 + l);
+      window.fruitHoleProbe(l);
+      return window.fruitHoleLights();
+    }, lvl);
+  }
+  const imza = o => `${o.hemi.sky}|${o.hemi.bounce}|${o.hemi.i}|${o.amb.c}|${o.amb.i}|${o.sun.c}|${o.sun.i}`;
+  const imzalar = Object.entries(isik).map(([k, v]) => [k, imza(v)]);
+  const benzersiz = new Set(imzalar.map(([, v]) => v));
+  console.log('    ' + Object.entries(isik)
+    .map(([k, v]) => `${k}:${v.sun.c}/${v.sun.i}`).join(' '));
+  // Kumsal ve "Everything" aynı ışığı paylaşıyor (menü de o temayı kullanıyor),
+  // ama geri kalanın hepsi ayrı olmalı.
+  check(benzersiz.size >= Object.keys(isik).length - 1,
+    'her yerin kendi ışığı var', `${benzersiz.size} / ${Object.keys(isik).length}`);
+
+  // Toplam aydınlanma: yarımküre + ortam + anahtar. Çok düşükse tarla
+  // okunmaz, çok yüksekse renkler yıkanır.
+  const toplam = o => +(o.hemi.i + o.amb.i + o.sun.i).toFixed(2);
+  const zayif = Object.entries(isik).filter(([, v]) => toplam(v) < 1.9);
+  check(zayif.length === 0, 'hiçbir yer okunamayacak kadar karanlık değil',
+    zayif.map(([k, v]) => `${k}:${toplam(v)}`).join(' ') ||
+    Object.entries(isik).map(([k, v]) => `${k}:${toplam(v)}`).join(' '));
+
+  // Anahtar ışık yükseltilmiyor: sert bir anahtar ışık her kürenin bir yanını
+  // gölgeye atıyor ve bu boyutta çamur gibi okunuyor. Tek istisna Orbit —
+  // uzayda saçılma yok ve gölgenin sert olması orada yerin kendisi.
+  const sert = Object.entries(isik).filter(([k, v]) => v.sun.i > 0.8 && k !== 'space');
+  check(sert.length === 0, 'Orbit dışında anahtar ışık sertleştirilmemiş',
+    sert.map(([k, v]) => `${k}:${v.sun.i}`).join(' ') || '-');
+}
+
+console.log('\n7. resimler');
 {
   // Karar gözle veriliyor: bir zeminin ötekinden ayrılıp ayrılmadığı
   // ölçülemiyor. Her temadan bir kare.

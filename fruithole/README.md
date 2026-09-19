@@ -1156,6 +1156,65 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## On yer vardı, tek ışık vardı
+
+Zemin temaya göre değişiyordu, ışık değişmiyordu. Işık rigi açılışta bir kez
+kuruluyor ve `applyTheme()` ona hiç dokunmuyordu:
+
+```js
+new THREE.HemisphereLight('#ffffff', '#f0b877', 1.5)   // sıcak, kum yansıması
+new THREE.AmbientLight('#fff4de', 0.45)
+new THREE.DirectionalLight('#fff8e8', 0.72)
+```
+
+Üçü de öğle güneşi. Yani uzay istasyonunun güvertesi de, akşam barının cilalı
+tezgâhı da, kar da aynı sıcak ışıkla aydınlanıyordu. Zemin "akşam" diyor, ışık
+"öğlen" diyordu — ve bu her karede görünüyordu.
+
+Artık her temanın kendi ışığı var:
+
+| yer | ışık |
+|---|---|
+| Beach | öğle güneşi, kumdan sıcak yansıma (varsayılan) |
+| Match Day | kapalı maç günü, aşağıdan çimen |
+| Indoors | ampul sarısı, anahtar ışık düşük, dolgu yüksek |
+| Snow Day | soğuk mavi, oyundaki **en yüksek dolgu** — kar her şeyi geri yansıtır |
+| Payday | nötr tavan, aşağıdan altın |
+| Orbit | sert beyaz anahtar, **neredeyse sıfır dolgu** |
+| Happy Hour | amber, alçak, koyu ahşap yansıması |
+| Drive-In | sodyum lambası: turuncu üstten, gri asfalt alttan |
+| Gadget Shop | soğuk mağaza florasanı |
+| Harvest | altın saat, aşağıdan toprak ve ekin |
+
+**Anahtar ışık yükseltilmiyor.** Işık rigi kurulurken öğrenilmiş bir şey var ve
+yorumu hâlâ orada duruyor: sert bir anahtar ışık her kürenin bir yanını gölgeye
+atıyor ve bu boyutta çamur gibi okunuyor. Tema başına ışık bunu bozmamalı —
+değişen şey rengin kendisi ve dolgunun oranı. Tek istisna **Orbit**: uzayda
+saçılma yok, gölgenin sert olması orada hata değil, yerin kendisi.
+
+### Soğuk ışığın bedeli: muz
+
+Gadget Shop'un ilk değerleri daha maviydi (`#e6f0ff` / `#dce8f7` / `#f2f8ff`) ve
+ekran görüntüsünde **muzlar zeytin yeşiline kaçıyordu**. Gerçek florasan altında
+sarı gerçekten yeşile kaçar, yani fizik olarak doğruydu — ama bu oyunda dört
+meyve rengini birbirinden ayırmak okunurluğun kendisi. Birini boşaltmak üslup
+tercihi değil, **oynanış bedeli**. Mavi azaltıldı, soğukluk durdu.
+
+### Ölçülen
+
+`holetheme.mjs` üç şeye bakıyor, çünkü ekran görüntüsüne bakmadan
+doğrulanamayan bir değişiklik sessizce varsayılana düşebilir:
+
+- **Her yerin kendi ışığı var mı** — bir temanın `light` alanı unutulursa
+  varsayılana düşer ve kimse fark etmez (10/10).
+- **Hiçbir yer okunamayacak kadar karanlık değil** — toplam aydınlanma
+  (yarımküre + ortam + anahtar) 2.15 ile 2.92 arasında, eşik 1.9. Işığı kısmak
+  atmosfer üretiyor ama ekrandaki her şey meyvenin ayırt edilmesine bağlı.
+- **Orbit dışında anahtar ışık sertleştirilmemiş** — yukarıdaki kuralın testi.
+
+Menü etkilenmiyor: `buildMenuDiorama()` her zaman `beach` temasını uyguluyor,
+yani ön ekran hangi bölümde kalırsan kal aynı ışıkta duruyor.
+
 ## Beş yeni düzen: 19'dan 24'e
 
 On dokuz düzen vardı ve 19. bölümden sonra baştan başlıyorlardı. Beş yenisi
