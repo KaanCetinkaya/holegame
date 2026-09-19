@@ -171,17 +171,22 @@ saniyede delik büyüyor ama arkasında geniş bir temiz alan bırakıyor ve kam
 onu takip ediyor.
 
 Artık kaydın ne zaman başlayacağına **ölçerek** karar veriliyor
-(`window.fruitHoleAhead()`): delik en az üç saniye ısındıktan sonra, çevresinde
+(`window.fruitHoleAhead()`): delik en az üç saniye ısındıktan sonra, **önünde**
 50 meyve olan **ve** tarlanın kenarından en az 2.5 birim içeride olduğu ilk
 kare aranıyor.
 
-İkinci şart birincisinin eksiğinden çıktı: yalnızca meyve sayısına bakınca
-delik yoğun bir öbeğe yapıştı, ama öbek tarlanın sol kenarındaydı ve karenin
-üçte biri tarlanın dışındaki düz yeşil zemin oldu. Kalabalık bir kare
-istiyoruz, kalabalığın yanında boş bir şerit değil.
+Üç denemede oturdu, üçü de bir öncekinin eksiğinden çıktı:
 
-Eşik de ölçümden: 26 denendi ve zayıf çıktı (delik seyrek bir bölgede
-duruyordu), 50'de ilk kare deliğin üç dev çileğin dibinde durduğu an oldu.
+1. **Yalnızca meyve sayısı.** Delik yoğun bir öbeğe yapıştı ama öbek tarlanın
+   sol kenarındaydı; kamera deliği takip ettiği için karenin üçte biri
+   tarlanın dışındaki düz yeşil zemin oldu. → kenar şartı eklendi.
+2. **Eşik 26.** Delik seyrek bir bölgede durdu. → 50'ye çıkarıldı; o eşikte
+   ilk kare deliğin üç dev çileğin dibinde durduğu an oldu.
+3. **Sayım daireseldi.** Kare yine zayıf çıkabiliyordu, çünkü kamera deliği
+   **ortalamıyor**, gideceği yeri gösteriyor — deliğin arkasında kalan meyve
+   de sayılıyordu. Ölçüldü: delik +z ucunda doğuyor (doğuş z = 9.8, halfZ =
+   17.9) ve -z'ye ilerliyor, yani ekranda yukarısı azalan z. Sayım artık
+   yalnızca öne bakıyor (yarıçap 9 birim, deliğin 3 birim arkasına kadar).
 
 ## Ne kadar sıklıkla
 

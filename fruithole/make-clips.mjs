@@ -76,7 +76,7 @@ const PRE_MIN = Number(arg('pre', 3));
 const PRE_MAX = Number(arg('premax', 12));
 // Deliğin kaç birim çevresine, kaç meyve. Yarıçap tahtanın yarı genişliği
 // kadar (13 sütun × 1.05 ≈ 13.7 birim), yani "deliğin etrafında görünen yer".
-const AHEAD_R = Number(arg('aheadr', 7));
+const AHEAD_R = Number(arg('aheadr', 9));
 const AHEAD_MIN = Number(arg('ahead', 50));
 // Deliğin tarla kenarına en az bu kadar uzak olması isteniyor: kamera deliği
 // takip ediyor, kenardaki bir delik kadrajın bir kısmını tarla dışına

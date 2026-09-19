@@ -9233,11 +9233,20 @@ window.fruitHoleWhere = () => ({
 // gecikme, deliğin o sırada tarlanın neresinde olduğunu bilmiyor: ilk kare
 // süpürülmüş boş toprağa düşebiliyor, ve TikTok'ta ilk kare her şey.
 // Kaydın ne zaman başlayacağına bu sayıya bakarak karar veriliyor.
-window.fruitHoleAhead = (r = 7) => {
+// Sayım **öne** bakıyor, çevreye değil.
+//
+// İlk hâli deliğin etrafındaki daireyi sayıyordu ve kare yine zayıf çıkıyordu:
+// kamera deliği ortalamıyor, deliğin gideceği yeri gösteriyor. Delik +z
+// ucunda doğup -z'ye ilerliyor (ölçüldü: doğuş z = 9.8, halfZ = 17.9), yani
+// ekranda yukarısı azalan z. Deliğin arkasında kalan meyve sayılınca, tepesi
+// dolu görünen ama önü boş olan kareler "yeterince kalabalık" sayılıyordu.
+window.fruitHoleAhead = (r = 9, back = 3) => {
   let n = 0;
   for (const f of fruits) {
     if (f.eaten) continue;
-    if (Math.hypot(f.x - holeX, f.z - holeZ) <= r) n++;
+    const dz = f.z - holeZ;
+    if (dz > back) continue;                       // deliğin arkası sayılmıyor
+    if (Math.hypot(f.x - holeX, dz) <= r) n++;
   }
   return n;
 };
