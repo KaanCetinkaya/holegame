@@ -69,34 +69,55 @@ const arg = (k, d) => {
 // Isınma yalan söylemiyor: gösterilen şey oyunun gerçekten altıncı
 // saniyesi, büyütülmüş bir delik değil.
 const SECONDS = Number(arg('seconds', 9));
-const PRE = Number(arg('pre', 6));
+// Isınma: kaydetmeden oynanan kısım. Alt sınır deliğin büyümesi için, üst
+// sınır beklemenin bir yerde bitmesi için; arada karar `fruitHoleAhead()`
+// ile veriliyor.
+const PRE_MIN = Number(arg('pre', 3));
+const PRE_MAX = Number(arg('premax', 12));
+// Deliğin kaç birim çevresine, kaç meyve. Yarıçap tahtanın yarı genişliği
+// kadar (13 sütun × 1.05 ≈ 13.7 birim), yani "deliğin etrafında görünen yer".
+const AHEAD_R = Number(arg('aheadr', 7));
+const AHEAD_MIN = Number(arg('ahead', 50));
+// Deliğin tarla kenarına en az bu kadar uzak olması isteniyor: kamera deliği
+// takip ediyor, kenardaki bir delik kadrajın bir kısmını tarla dışına
+// harcıyor.
+const EDGE = Number(arg('edge', 2.5));
 const ONLY = arg('only', null);
 
 // Hangi bölümler?
 //
-// İlk seçim gözle yapılmıştı ve yanlış çıktı: Pillars (bölüm 4) seçilmişti,
-// klibin yarısı boş zemindi. Ölçünce sebebi görüldü — Pillars tarladaki en
-// seyrek desenlerden biri, 155 meyve. Yoğunluk (meyve / tarla alanı) 20
-// bölüm için ölçüldü ve seçim ona göre yapıldı:
+// İlk seçim gözle yapılmıştı ve yanlış çıktı: Pillars seçilmişti, klibin
+// yarısı boş zemindi. Ölçünce sebebi görüldü — Pillars tarladaki en seyrek
+// desenlerden biri. Tanıtımda satan şey kalabalık bir tarlanın süpürülmesi;
+// boş zemin izleyiciyi kaydırtıyor.
 //
-//   19 Cross   492 meyve  1.01      4 Pillars  155 meyve  0.45
-//   15 Ring    460        0.94      6 Piles    111        0.30
-//   10 Stairs  438        1.02
-//    9 Blocks  422        0.98
-//    1 Pyramid 292        0.93
+// **Düzen adıyla isteniyor, bölüm numarasıyla değil.** Buradaki numaralar
+// bir kez kaydı: on dokuz düzen yirmi dörde çıkınca 9. bölüm voxel tahtası,
+// 15. bölüm arabalı sinema, 19. bölüm yörünge olmaktan çıktı. Dosya yine
+// beş video üretiyordu — sadece `shop.mp4`'te mağaza, `space.mp4`'te uzay
+// yoktu, ve bunu ancak videoyu izleyen biri fark edebilirdi. Numara artık
+// oyunun kendi sırasından okunuyor.
 //
-// Tanıtımda satan şey kalabalık bir tarlanın süpürülmesi; boş zemin
-// izleyiciyi kaydırtıyor. Aşağıdakilerin hepsi üst sıradan, ve temaları
-// birbirinden farklı — beşi de kumsal olsa beş klip tek klip gibi izlenirdi.
+// Yoğunluk 24 bölüm için yeniden ölçüldü (tohumlu tarla, meyve sayısı):
 //
-// Bölüm numarası deseni belirliyor ama eşleme düz sırayla gitmiyor, o yüzden
-// buradaki numaralar ölçümden geliyor, hesaptan değil.
+//   24 Cross   482      11 Blocks  479      19 Ring    479
+//   12 Stairs  427      14 Heart   420      10 Walls   385
+//    1 Pyramid 277       7 Piles   116       4 Pillars 129
+//
+// Seçilenlerin temaları birbirinden farklı: altısı da kumsal olsa altı klip
+// tek klip gibi izlenirdi.
 const CLIPS = [
-  { id: 'beach',  level: 1,  note: 'Pyramid · kumsal — 292 meyve' },
-  { id: 'shop',   level: 9,  note: 'Blocks · teknoloji mağazası, voxel — 422' },
-  { id: 'boss',   level: 10, note: 'Stairs · patron bölümü, devasa meyve — 438' },
-  { id: 'drive',  level: 15, note: 'Ring · arabalı sinema — 460' },
-  { id: 'space',  level: 19, note: 'Cross · yörünge — 492, en yoğunu' },
+  { id: 'farm',   pattern: 'Cross',   note: 'Harvest · sürülmüş tarla, yeni tema — 482 meyve, en yoğunu' },
+  { id: 'shop',   pattern: 'Blocks',  note: 'Gadget Shop · voxel tahta — 479' },
+  { id: 'drive',  pattern: 'Ring',    note: 'Drive-In · arabalı sinema — 479' },
+  { id: 'bar',    pattern: 'Stairs',  note: 'Happy Hour · bar tezgâhı — 427' },
+  { id: 'space',  pattern: 'Heart',   note: 'Orbit · istasyon güvertesi — 420' },
+  // Patron bölümü: her onuncu bölüm, tahtanın ucunda devasa bir meyve.
+  // Düzen değil olay seçiliyor, o yüzden numara burada doğrudan veriliyor.
+  { id: 'boss',   level: 10,          note: 'patron bölümü — 385 meyve, 9 dev' },
+  // Kumsal en parlak zemin ve ikonun görünümü; yoğunluğu orta ama oyunun
+  // kendini tanıttığı kare bu.
+  { id: 'beach',  pattern: 'Pyramid', note: 'Beach · birinci bölüm — 277' },
 ];
 
 // Oyunun saatini sahteleyen katman. Sayfadaki her şeyden önce çalışması
@@ -144,6 +165,22 @@ const br = await chromium.launch({
 
 const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
 
+// Düzen adı -> bölüm numarası, oyunun kendi sırasından.
+{
+  const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
+  await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
+  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
+    { timeout: 25000 });
+  const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);
+  await pg.close();
+  for (const c of CLIPS) {
+    if (!c.pattern) continue;
+    const i = order.indexOf(c.pattern);
+    if (i < 0) throw new Error(`düzen bulunamadı: ${c.pattern} — oyundakiler: ${order.join(', ')}`);
+    c.level = i + 1;
+  }
+}
+
 const dusen = [];
 for (const clip of CLIPS) {
   if (ONLY && clip.id !== ONLY) continue;
@@ -151,7 +188,7 @@ for (const clip of CLIPS) {
   // yüzünden hepsini baştan üretmek yirmi dakika demek.
   try {
   const t0 = Date.now();
-  console.log(`\n${clip.id} — ${clip.note}`);
+  console.log(`\n${clip.id} — bölüm ${clip.level} — ${clip.note}`);
 
   const frameDir = join(TMP, clip.id);
   rmSync(frameDir, { recursive: true, force: true });
@@ -199,10 +236,45 @@ for (const clip of CLIPS) {
     const d = Math.hypot(dx, dz) || 1;
     window.fruitHoleSteer(dx / d, dz / d);
   });
-  for (let f = 0; f < Math.round(PRE * FPS); f++) {
+  //
+  // Ne zaman kaydetmeye başlanacağı sabit bir gecikme değil, **deliğin
+  // çevresindeki meyve sayısı**.
+  //
+  // Sabit altı saniye şunu bilmiyordu: delik o an tarlanın neresinde. Ölçüm
+  // tam olarak bunu gösterdi — 24. bölümün ilk karesinde ekranın alt yarısı
+  // süpürülmüş boş toprak, meyve yukarıda kalmıştı. Tanıtımda ilk kare her
+  // şey; 1. videonun ortalama izlenmesi 2.34 saniyeydi, yani izleyici tam
+  // orada bırakıyor.
+  //
+  // Alt sınır delik büyüsün diye, üst sınır sonsuza kadar beklemesin diye.
+  // Arada, çevresinde AHEAD_MIN meyve olan ilk kare aranıyor.
+  // İkinci şart: delik tarlanın kenarında olmasın.
+  //
+  // Yalnızca meyve sayısına bakmak yetmedi. İlk denemede delik yoğun bir
+  // öbeğe yapıştı ama öbek tarlanın sol kenarındaydı, ve kamera deliği takip
+  // ettiği için karenin üçte biri tarlanın dışındaki düz yeşil zemin oldu.
+  // Kalabalık bir kare istiyoruz, kalabalığın yanında boş bir şerit değil.
+  const durum = () => pg.evaluate(r => {
+    const w = window.fruitHoleWhere();
+    return { yakin: window.fruitHoleAhead(r), x: w.x, halfX: w.halfX };
+  }, AHEAD_R);
+  const uygun = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE;
+  let warm = 0;
+  for (; warm < Math.round(PRE_MIN * FPS); warm++) {
     await steer();
     await pg.evaluate(d => window.__step(d), 1000 / FPS);
   }
+  const enCok = Math.round(PRE_MAX * FPS);
+  let d = await durum();
+  while (warm < enCok && !uygun(d)) {
+    await steer();
+    await pg.evaluate(dt => window.__step(dt), 1000 / FPS);
+    d = await durum();
+    warm++;
+  }
+  console.log(`  kayıt ${(warm / FPS).toFixed(1)}. saniyede başlıyor · ` +
+    `çevrede ${d.yakin} meyve · kenara ${(d.halfX - Math.abs(d.x)).toFixed(1)} birim` +
+    (uygun(d) ? '' : '  (şart sağlanmadı, üst sınıra dayandı)'));
 
   const total = Math.round(SECONDS * FPS);
   let shots = 0;
@@ -254,5 +326,5 @@ for (const clip of CLIPS) {
 
 await br.close();
 srv.close();
-console.log(dusen.length ? `\nüretilemeyen: ${dusen.join(', ')}` : '\nbeşi de çıktı');
+console.log(dusen.length ? `\nüretilemeyen: ${dusen.join(', ')}` : `\n${CLIPS.length} klibin hepsi çıktı`);
 console.log(`klipler: ${OUT}`);

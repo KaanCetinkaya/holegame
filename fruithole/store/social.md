@@ -52,39 +52,63 @@ gelmez.
 
 ## Kliplerin açıklamaları
 
-Beş klip var, beşi de 15 saniye, sessiz. Sıraya göre değil, **gün aşırı**
-yükle; hepsini bir günde atmak hesabın dağıtımını bölüyor.
+Yedi klip var, hepsi 9 saniye, sessiz, 1080×1920. **Gün aşırı** yükle;
+hepsini bir günde atmak hesabın dağıtımını bölüyor.
 
-### space.mp4 — Cross, yörünge
-İlk yüklenecek olan bu. En yoğun tarla, en çok "izlenmiş" hissi veriyor.
+Sıra rastgele değil: ilk üçü en yoğun tarlalar, ve `farm.mp4` yeni olan şeyi
+gösteriyor.
+
+### 1. farm.mp4 — Cross, sürülmüş tarla  *(ilk yüklenecek)*
+Oyundaki en yeni yer ve ikinci en yoğun tarla. İlk kare deliğin tam üç dev
+çileğin dibinde durduğu an.
 ```
-POV: you are the hole and the fruit has nowhere to go 🕳️🍉
+POV: you are the hole and the harvest has nowhere to go 🕳️🍓
 
 #satisfying #mobilegame #asmrgaming #indiegame #fruitgame
 ```
 
-### boss.mp4 — 10. bölüm, devasa çilek
-```
-Every 10th level ends in one giant fruit. You cannot take it early 👑🍓
-
-#bossfight #mobilegaming #satisfying #indiedev #gaming
-```
-
-### shop.mp4 — Blocks, teknoloji mağazası
+### 2. shop.mp4 — Blocks, teknoloji mağazası
+Tarladaki en yoğun bölüm (hücre başına 1.04 meyve) ve voxel görünümü tek
+başına bir kanca.
 ```
 The whole shop floor went in. TVs, headphones, one fridge 📺🕳️
 
 #satisfying #mobilegame #voxel #indiegame #oddlysatisfying
 ```
 
-### drive.mp4 — Ring, arabalı sinema
+### 3. drive.mp4 — Ring, arabalı sinema
 ```
 Drive-in cleared. Burgers, fries and the parked cars 🍔🚗
 
 #satisfying #mobilegaming #indiegame #gaming #fyp
 ```
 
-### beach.mp4 — Pyramid, kumsal
+### 4. boss.mp4 — 10. bölüm, patron
+Her onuncu bölümün sonunda devasa bir meyve var ve erkenden alınamıyor.
+```
+Every 10th level ends in one giant fruit. You cannot take it early 👑🍓
+
+#bossfight #mobilegaming #satisfying #indiedev #gaming
+```
+
+### 5. bar.mp4 — Stairs, bar tezgâhı
+Oyunun akşam ışığındaki tek yeri; koyu ahşap ve pirinç.
+```
+Happy hour. The cocktails went first 🍹🕳️
+
+#satisfying #mobilegame #indiegame #oddlysatisfying #gaming
+```
+
+### 6. space.mp4 — Heart, istasyon güvertesi
+Kenarından ötesi karanlık: tahtanın bittiği yer görünüyor.
+```
+No floor past the edge. Just the dark 🚀🕳️
+
+#satisfying #mobilegaming #space #indiegame #gaming
+```
+
+### 7. beach.mp4 — Pyramid, birinci bölüm
+Oyunun en parlak zemini ve ikonun görünümü — yeni oyuncunun gördüğü ilk şey.
 ```
 Started on the beach. Ended with the whole pyramid 🏖️🍓
 
@@ -138,11 +162,38 @@ Buna göre iki şey değişti (`make-clips.mjs`):
 Bir sonraki ölçümde bakılacak tek sayı: **ortalama izlenme**. 2.34'ten
 yukarı gitmiyorsa sorun süre değil, görüntünün kendisi.
 
+### İkinci tur: kaydın başladığı an
+
+Süreyi 9'a indirmek ve 6 saniye ısınmak yetmedi. 24. bölümün ilk karesine
+bakınca sebep görüldü: **ekranın alt yarısı süpürülmüş boş toprak**tı. Sabit
+bir gecikme, deliğin o sırada tarlanın neresinde olduğunu bilmiyor — altı
+saniyede delik büyüyor ama arkasında geniş bir temiz alan bırakıyor ve kamera
+onu takip ediyor.
+
+Artık kaydın ne zaman başlayacağına **ölçerek** karar veriliyor
+(`window.fruitHoleAhead()`): delik en az üç saniye ısındıktan sonra, çevresinde
+50 meyve olan **ve** tarlanın kenarından en az 2.5 birim içeride olduğu ilk
+kare aranıyor.
+
+İkinci şart birincisinin eksiğinden çıktı: yalnızca meyve sayısına bakınca
+delik yoğun bir öbeğe yapıştı, ama öbek tarlanın sol kenarındaydı ve karenin
+üçte biri tarlanın dışındaki düz yeşil zemin oldu. Kalabalık bir kare
+istiyoruz, kalabalığın yanında boş bir şerit değil.
+
+Eşik de ölçümden: 26 denendi ve zayıf çıktı (delik seyrek bir bölgede
+duruyordu), 50'de ilk kare deliğin üç dev çileğin dibinde durduğu an oldu.
+
 ## Ne kadar sıklıkla
 
-Günde bir, en fazla. Beş klip beş gün eder; bitince
-`node fruithole/make-clips.mjs --seconds 20` ile yenilerini üretiriz —
-bölüm numarasını değiştirmek yeni bir tarla ve yeni bir tema demek.
+Günde bir, en fazla. Yedi klip yedi gün eder; bitince
+`node fruithole/make-clips.mjs` ile yenilerini üretiriz. Tarla her
+çalıştırmada farklı çıkıyor (klipler tohumlanmıyor), yani aynı bölüm bile
+aynı videoyu vermiyor.
+
+Klipler artık bölüm numarasıyla değil **düzenin adıyla** isteniyor. Numaralar
+bir kez kaydı: on dokuz düzen yirmi dörde çıkınca 9. bölüm voxel tahtası, 15.
+bölüm arabalı sinema olmaktan çıktı — dosya yine beş video üretiyordu, sadece
+`shop.mp4`'te mağaza yoktu.
 
 İlk 5-10 videonun hiç izlenmemesi normal. Hesap ısınana kadar dağıtım
 düşük olur, ve bu bir şeyin yanlış olduğu anlamına gelmez.
