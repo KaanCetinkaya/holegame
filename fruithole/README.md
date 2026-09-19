@@ -1156,6 +1156,78 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Havada olan şey
+
+Zemin, ışık ve kenar o yerin **neresi** olduğunu söylüyordu. Hiçbiri orada
+**zaman geçtiğini** söylemiyordu: plajdaki dalga dışında on yerin hepsi
+duruyordu.
+
+Ama hepsine atmosfer koymak, dağınıklık üretmenin en hızlı yolu. Yalnızca
+doğal olarak okunan beş yere kondu:
+
+| yer | havada olan | nasıl |
+|---|---|---|
+| Snow Day | yağan kar | düşüyor, yanlamasına savruluyor — tek gerçekten hızlı olan |
+| Harvest | saman tozu | yavaş düşüyor, çok savruluyor |
+| Happy Hour | ışıkta duran toz | düşmüyor, süzülüyor |
+| Orbit | kırıntı | yerçekimi yok: süzülüyor, az ve sönük |
+| Indoors | ev tozu | neredeyse fark edilmeyecek kadar az |
+
+Plajda zaten dalga var. Saha, banka, otopark ve mağazada havada olması
+gereken bir şey yok, ve uydurmak o yerleri anlatmak değil süslemek olurdu.
+
+Tek `THREE.Points`, tema başına parametreli: sayı, boyut, renk, opaklık, düşüş
+hızı, savrulma, tepe yüksekliği. Kutu **deliği takip ediyor** — tahtaya
+sabitlenmiş bir kutu, uzun bir bölümde oyuncu ilerledikçe ekranın dışında
+kalırdı.
+
+### Görünmez çıktı, ve sebebi `size`
+
+İlk sürümde ekranda **hiçbir şey yoktu**. Parçacıklar oradaydı: sonda 110
+tanesi, `visible: true`, y 0.27 ile 9.88 arasında, ve `renderer.info` 140
+nokta çizdiğini söylüyordu. Yani "kurulmuş olmak" ile "görünüyor olmak" aynı
+şey değildi, ve ekran görüntüsü ikisini ayırt edemiyordu.
+
+Sırayla elenen şüpheler:
+
+1. **Hareket kısıtlı mı?** `prefers-reduced-motion` ölçüldü: `false`.
+2. **Sürücü nokta boyutunu kısıyor mu?** SwiftShader'ın
+   `ALIASED_POINT_SIZE_RANGE` değeri okundu: `[1, 1023]`. Sorun o değil.
+3. **Gerçekten çiziliyorlar mı?** Renk mor, boyut 20, derinlik testi kapalı
+   yapıldı — ve göründüler. Yani çiziliyorlardı.
+
+Cevap üçüncü adımda çıktı: `size` **dünya birimi değil**. Değerler dünya
+birimi sanılarak yazılmıştı (kar için 0.26) ve her parçacık pikselin altında
+kalıyordu. Ölçüldü: bu kamerada (y = 13) `size: 20` ekranda ~9 piksel ediyor,
+yani birim başına ~0.45 piksel. Bugünkü değerler o ölçümden geliyor — kar 11,
+saman 8, toz 5-6.
+
+İkinci hata aynı yerde çıktı: kutu x'te ±12 idi, oysa tarlanın yarı genişliği
+6.83. Parçacıkların çoğu kadrajın dışına, tarlanın ötesindeki zemine
+saçılıyordu. ±8'e indirildi.
+
+Üçüncüsü sprite'ın kendisiydi: yumuşak bir gradyandı ve durağan karede havada
+süzülen zerre gibi değil **masanın üstündeki leke** gibi okunuyordu. Zerreyi
+zerre yapan şey küçük ve keskin olması.
+
+### Beyaz kar beyaz zeminde kaybolur
+
+Kar beyazdı ve kar tarlasında görünmüyordu. Yukarıdan bakan bir kamerada bu
+fiziksel olarak da doğru: karın üstüne düşen karı ayıran şey gölgesidir.
+Gölgeli karın rengi alındı (`#9fc4e4`), yani tarlaya karşı okunuyor.
+
+### Ölçülen
+
+- **birkaç yerde havada bir şey var** (5/10) — hepsinde olmasını beklemiyoruz
+- **kurulan her atmosfer görünür ölçekte** — `size` 3'ün, opaklık 0.2'nin
+  altındaysa kurulmuş ama görünmez demektir, ve bu bir kez oldu
+- **atmosfersiz yerde kalıntı yok** — önceki temanın parçacıkları taşmıyor
+- **parçacık bütçesi aşılmıyor** (en çok 110 / 140)
+- **parçacıklar kadrajın içinde kalıyor**
+- **hareket kısıtlıyken atmosfer hiç kurulmuyor** — ekranın dörtte birini
+  kaplayan sürekli hareket, o ayarı açan insanın kapatmak istediği şeyin ta
+  kendisi
+
 ## Tarlanın dışı düz boyaydı
 
 Tahtanın etrafındaki 200×200 düzlem. Plajda dalgalanan deniz vardı — kendi

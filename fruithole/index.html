@@ -6178,6 +6178,9 @@ const THEMES = {
     ground: 'wood', surround: '#4a382a', ripples: false,
     edge: '#7c5c3c', surf: null,
     props: ['lolly', 'donut', 'mug', 'ball', 'car', 'duck'],
+    // Ev tozu: çok az, çok sönük, neredeyse fark edilmeyecek kadar. Amaç
+    // odanın durmadığını söylemek, toz göstermek değil.
+    air: { n: 30, size: 5, colour: '#fff3dd', opacity: 0.4, fall: 0.18, drift: 0.22, top: 5 },
     // Parkenin dışı, odanın gölgede kalan kısmı.
     beyond: 'parlour',
     // İç mekân: ampul sarısı, güneş yok. Anahtar ışık düşük, dolgu yüksek —
@@ -6191,6 +6194,14 @@ const THEMES = {
     ground: 'snow', surround: '#78b4dd', ripples: false,
     edge: '#f4fafe', surf: null,
     props: ['snowman', 'mitten', 'candycane', 'penguin', 'igloo', 'sled', 'pine', 'mug'],
+    // Yağan kar, ve rengi beyaz **değil**.
+    //
+    // İlk denemede beyazdı ve ekranda hiç görünmedi: parçacıklar oradaydı
+    // (ölçüldü — 110 tanesi, y 0.27 ile 9.88 arasında, görünür), ama beyaz
+    // kar beyaz zeminde kaybolur. Yukarıdan bakan bir kamerada fiziksel
+    // olarak da öyle: karın üstüne düşen karı ayıran şey gölgesidir.
+    // Gölgeli karın rengi alındı, yani tarlaya karşı okunuyor.
+    air: { n: 110, size: 11, colour: '#9fc4e4', opacity: 0.72, fall: 2.4, drift: 1.1, top: 10 },
     // Karın dışı deniz değil, donmuş göl: soluk mavi ve çatlaklı.
     beyond: 'ice',
     // Kar her şeyi geri yansıtıyor: dolgu oyundaki en yüksek yer burası, ve
@@ -6215,6 +6226,9 @@ const THEMES = {
     ground: 'deck', surround: '#080b18', ripples: false,
     edge: '#3d4a66', surf: null,
     props: ['satellite', 'planet', 'helmet', 'drum', 'rocket', 'marker'],
+    // Yerçekimi yok: kırıntı süzülüyor, düşmüyor. Az sayıda ve sönük —
+    // uzayda kalabalık bir hava olmaz.
+    air: { n: 34, size: 6, colour: '#dbe8ff', opacity: 0.6, fall: 0, drift: 0.28, top: 8 },
     // Kenarından ötesi gerçekten karanlık — ve yıldızlı. Bu temanın
     // yorumu bunu zaten söylüyordu; düz lacivert bir şerit söylemiyordu.
     beyond: 'stars',
@@ -6230,6 +6244,9 @@ const THEMES = {
     ground: 'bar', surround: '#241612', ripples: false,
     edge: '#c98f4e', surf: null,
     props: ['cocktail', 'lime', 'shaker', 'bottle', 'icebucket', 'lolly', 'parasol'],
+    // Işıkta duran toz. Düşmüyor, süzülüyor — akşam lambasının altındaki
+    // havanın kendisi.
+    air: { n: 45, size: 6, colour: '#ffe2b4', opacity: 0.55, fall: 0, drift: 0.35, top: 5 },
     // Tezgâhın dışı, akşam ışığında kalan karanlık oda.
     beyond: 'room',
     // Akşam barı: amber, alçak, ve aşağıdan koyu ahşap yansıyor.
@@ -6275,6 +6292,9 @@ const THEMES = {
     edge: '#7fae4c', surf: null,
     props: ['haybale', 'chicken', 'eggs', 'churn', 'wateringcan', 'pitchfork',
             'crate', 'tractor', 'wheelbarrow', 'scarecrow'],
+    // Savrulan saman tozu: biçilmiş bir tarlanın üstündeki şey. Düşüyor
+    // ama yavaş, ve yanlamasına sürükleniyor.
+    air: { n: 70, size: 8, colour: '#f7e7b8', opacity: 0.6, fall: 0.7, drift: 1.5, top: 7 },
     // Sürülmüş tarlanın dışı biçilmemiş ot.
     beyond: 'meadow',
     // Altın saat: hasat ışığı. Aşağıdan toprak ve ekin yansıyor.
@@ -6352,6 +6372,7 @@ function applyLight(theme) {
 function applyTheme(theme) {
   currentTheme = theme;
   applyLight(theme);
+  applyAir(theme);
   ground.material.map = groundTex(theme.ground);
   ground.material.needsUpdate = true;
   // Tarlanın dışı. Plajda dalgalanan deniz, kalan yerlerde o yerin kendi
@@ -8687,6 +8708,124 @@ function burst(x, y, z, type) {
   }
 }
 
+// ---------------------------------------------------------------------
+// Havada olan şey
+//
+// On yer vardı ve hiçbiri kıpırdamıyordu — plajdaki dalga dışında. Zemin,
+// ışık ve kenar o yerin neresi olduğunu söylüyordu; hiçbiri orada **zaman
+// geçtiğini** söylemiyordu.
+//
+// Ama hepsine atmosfer koymak, uyardığım dağınıklığı üretmenin en hızlı
+// yolu. Bu yüzden yalnızca doğal olarak okunanlara kondu: karda yağan kar,
+// tarlada savrulan saman tozu, barda ışıkta duran toz, yörüngede süzülen
+// kırıntı, evde toz. Plajda zaten dalga var; saha, banka, otopark ve
+// mağazada havada olması gereken bir şey yok ve uydurmak, o yerleri
+// anlatmak değil süslemek olurdu.
+//
+// Okunurluk kuralı: parçacıklar meyvenin önüne geçmemeli. Hepsi küçük ve
+// yarı saydam, `depthWrite` kapalı — yani birbirlerini ve arkalarındaki
+// hiçbir şeyi kesmiyorlar.
+function airSpriteTexture() {
+  const S = 64, [c, ctx] = newCanvas(S);
+  // Sert çekirdek, dar geçiş.
+  //
+  // İlk sprite yumuşak bir gradyandı ve durağan karede havada süzülen bir
+  // zerre gibi değil, **masanın üstündeki leke** gibi okunuyordu. Zerreyi
+  // zerre yapan şey küçük ve keskin olması; yumuşaklık onu yüzeye yapıştırdı.
+  const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.34, 'rgba(255,255,255,.95)');
+  g.addColorStop(0.55, 'rgba(255,255,255,.35)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+  return finishTexture(c);
+}
+
+// Kutu deliği takip ediyor. Tahtaya sabitlenmiş bir kutu, uzun bir bölümde
+// oyuncu ilerledikçe ekranın dışında kalırdı.
+// Kutu, görünen alan kadar. İlk değerler (x'te ±12) tarlanın yarı
+// genişliğinin (6.83) iki katıydı: parçacıkların çoğu kadrajın dışına,
+// tarlanın ötesindeki zemine saçılıyordu.
+const AIR_MAX = 140;
+const AIR_HALF_X = 8, AIR_HALF_Z = 14;
+const airPos = new Float32Array(AIR_MAX * 3);
+const airVel = new Float32Array(AIR_MAX * 3);
+const airGeo = new THREE.BufferGeometry();
+airGeo.setAttribute('position', new THREE.BufferAttribute(airPos, 3));
+// `size` dünya birimi **değil**.
+//
+// İlk değerler dünya birimi sanılarak yazılmıştı (kar için 0.26) ve ekranda
+// hiçbir şey görünmedi — parçacıklar oradaydı, `renderer.info` 140 nokta
+// çizdiğini söylüyordu, ama her biri pikselin altında kalıyordu. Ölçüldü:
+// bu kamerada (y = 13) `size: 20` ekranda ~9 piksel ediyor, yani birim
+// başına ~0.45 piksel. Aşağıdaki değerler o ölçümden geliyor.
+//
+// `sizeAttenuation` açık: kameraya yakın olan parçacık büyük görünüyor ve
+// "havada" olduğunu söyleyen şey de o — düz boyutta hepsi aynı düzlemdeymiş
+// gibi duruyor.
+const airMat = new THREE.PointsMaterial({
+  map: airSpriteTexture(), size: 10, sizeAttenuation: true,
+  transparent: true, opacity: 0.7, depthWrite: false,
+});
+const airPoints = new THREE.Points(airGeo, airMat);
+airPoints.frustumCulled = false;
+airPoints.visible = false;
+scene.add(airPoints);
+
+// Hareketi kapatmış oyuncuda hava da duruyor. Ekranın dörtte birini kaplayan
+// sürekli hareket, bu ayarı açan insanın kapatmak istediği şeyin ta kendisi.
+const AIR_OK = !(window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+let airCfg = null, airCount = 0;
+function airRespawn(i, cfg, fresh) {
+  const o = i * 3;
+  airPos[o] = holeX + (Math.random() - 0.5) * AIR_HALF_X * 2;
+  airPos[o + 2] = holeZ + (Math.random() - 0.5) * AIR_HALF_Z * 2;
+  // Düşen şey tepeden başlıyor; süzülen şey bulunduğu yükseklikte kalıyor.
+  airPos[o + 1] = cfg.fall > 0
+    ? (fresh ? Math.random() * cfg.top : cfg.top)
+    : 0.6 + Math.random() * cfg.top;
+  const sp = cfg.drift;
+  airVel[o] = (Math.random() - 0.5) * sp;
+  airVel[o + 1] = cfg.fall > 0 ? -cfg.fall * (0.7 + Math.random() * 0.6)
+                               : (Math.random() - 0.5) * 0.12;
+  airVel[o + 2] = (Math.random() - 0.5) * sp;
+}
+
+function applyAir(theme) {
+  airCfg = AIR_OK ? (theme.air || null) : null;
+  if (!airCfg) { airPoints.visible = false; airCount = 0; return; }
+  airCount = Math.min(AIR_MAX, airCfg.n);
+  airMat.size = airCfg.size;
+  airMat.color.set(airCfg.colour);
+  airMat.opacity = airCfg.opacity;
+  for (let i = 0; i < airCount; i++) airRespawn(i, airCfg, true);
+  // Kullanılmayan yuvalar hiç çizilmiyor.
+  airGeo.setDrawRange(0, airCount);
+  airGeo.attributes.position.needsUpdate = true;
+  airPoints.visible = true;
+}
+
+function stepAir(dt) {
+  if (!airCfg || !airCount) return;
+  const cfg = airCfg;
+  for (let i = 0; i < airCount; i++) {
+    const o = i * 3;
+    airPos[o] += airVel[o] * dt;
+    airPos[o + 1] += airVel[o + 1] * dt;
+    airPos[o + 2] += airVel[o + 2] * dt;
+    // Yere değdiyse ya da kutudan çıktıysa başa dön.
+    if (airPos[o + 1] < 0.05 || airPos[o + 1] > cfg.top + 1.5 ||
+        Math.abs(airPos[o] - holeX) > AIR_HALF_X ||
+        Math.abs(airPos[o + 2] - holeZ) > AIR_HALF_Z) {
+      airRespawn(i, cfg, false);
+    }
+  }
+  airGeo.attributes.position.needsUpdate = true;
+}
+
 function stepFlecks(dt) {
   for (let i = flecks.length - 1; i >= 0; i--) {
     const f = flecks[i];
@@ -9346,6 +9485,31 @@ window.fruitHoleCircleCells = () => {
 // Sahnedeki ışığın o anki hâli. Tema başına ışık, ekran görüntüsüne
 // bakmadan doğrulanamayan bir şey değil — hangi değerlerin uygulandığı
 // ölçülebilir olmalı, yoksa bir temanın ışığı sessizce varsayılana düşer.
+// Havadaki parçacıkların durumu. Görünüp görünmediği ekran görüntüsünden
+// anlaşılmayabiliyor — küçük ve sönükler, ve hiç kurulmamış olmakla
+// kurulup görünmemek aynı resmi veriyor.
+window.fruitHoleAir = () => {
+  const ys = [];
+  for (let i = 0; i < airCount; i++) ys.push(+airPos[i * 3 + 1].toFixed(2));
+  ys.sort((a, b) => a - b);
+  return {
+    theme: currentTheme.name, ok: AIR_OK, cfg: airCfg, count: airCount,
+    visible: airPoints.visible, size: airMat.size,
+    colour: '#' + airMat.color.getHexString(), opacity: airMat.opacity,
+    yMin: ys[0], yMax: ys[ys.length - 1],
+    box: { halfX: AIR_HALF_X, halfZ: AIR_HALF_Z, max: AIR_MAX },
+    // Kutudan kaçan var mı: parçacık ekranın dışına çıkarsa onu üretmenin
+    // bir anlamı kalmıyor.
+    strayed: (() => {
+      let n = 0;
+      for (let i = 0; i < airCount; i++) {
+        if (Math.abs(airPos[i * 3] - holeX) > AIR_HALF_X + 0.5 ||
+            Math.abs(airPos[i * 3 + 2] - holeZ) > AIR_HALF_Z + 0.5) n++;
+      }
+      return n;
+    })(),
+  };
+};
 window.fruitHoleLights = () => ({
   theme: currentTheme.name,
   hemi: { sky: '#' + hemi.color.getHexString(),
@@ -9984,6 +10148,7 @@ function tick(now) {
   }
 
   stepFlecks(dt);
+  stepAir(dt);
   stepWater(now);
 
   // The collar swells a little on a swallow and settles back.

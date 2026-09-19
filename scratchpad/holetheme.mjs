@@ -243,7 +243,77 @@ console.log('\n6. ışık');
     sert.map(([k, v]) => `${k}:${v.sun.i}`).join(' ') || '-');
 }
 
-console.log('\n7. resimler');
+console.log('\n7. havada olan şey');
+{
+  // On yer vardı ve hiçbiri kıpırdamıyordu. Atmosfer yalnızca doğal olarak
+  // okunan yerlere kondu — hepsine koymak süslemek olurdu — ama konduğu
+  // yerde gerçekten çalıştığı ölçülmeli. Bu özellik bir kez tamamen
+  // görünmez çıktı: parçacıklar vardı, `renderer.info` 140 nokta çizdiğini
+  // söylüyordu, ama `size` dünya birimi sanıldığı için her biri pikselin
+  // altında kalıyordu. Yani "kurulmuş" olmak "görünüyor" demek değil.
+  const hava = {};
+  for (const t of T.themes) {
+    if (!t.patterns.length) continue;
+    const lvl = T.patternThemes.findIndex(x => x === t.id) + 1;
+    if (!lvl) continue;
+    await pg.evaluate(l => {
+      window.fruitHoleSeedField(9500 + l);
+      window.fruitHoleProbe(l);
+    }, lvl);
+    // Birkaç kare geçsin. Tarla yeniden kurulduğunda delik başka bir yere
+    // taşınıyor ve parçacıklar bir önceki yerin çevresinde kalıyor; onları
+    // toplayan şey `stepAir`, yani bir sonraki kare. Beklemeden ölçmek,
+    // kimsenin görmediği tek karelik bir durumu ölçmek olurdu.
+    await pg.waitForTimeout(500);
+    hava[t.id] = await pg.evaluate(() => window.fruitHoleAir());
+  }
+  const olan = Object.entries(hava).filter(([, v]) => v.count > 0);
+  console.log('    ' + olan.map(([k, v]) => `${k}:${v.count}`).join(' ') || '    (yok)');
+  check(olan.length >= 4, 'birkaç yerde havada bir şey var',
+    `${olan.length} / ${Object.keys(hava).length}`);
+
+  // Kurulan her yerde gerçekten görünür durumda ve ekranda okunacak boyutta.
+  // `size` piksel ölçeğinde: 1'in altı görünmez demek.
+  const sessiz = olan.filter(([, v]) => !v.visible || v.size < 3 || v.opacity < 0.2);
+  check(sessiz.length === 0, 'kurulan her atmosfer görünür ölçekte',
+    sessiz.map(([k, v]) => `${k}:${v.size}/${v.opacity}`).join(' ') || '-');
+
+  // Atmosferi olmayan yerde önceki temadan kalıntı kalmamalı.
+  const sizinti = Object.entries(hava).filter(([, v]) => !v.cfg && (v.count > 0 || v.visible));
+  check(sizinti.length === 0, 'atmosfersiz yerde kalıntı yok',
+    sizinti.map(([k]) => k).join(' ') || '-');
+
+  // Bütçe ve kadraj.
+  const tasan = olan.filter(([, v]) => v.count > v.box.max);
+  check(tasan.length === 0, 'parçacık bütçesi aşılmıyor', `en çok ${Math.max(...olan.map(([, v]) => v.count))} / ${olan[0][1].box.max}`);
+  const kacan = olan.filter(([, v]) => v.strayed > 0);
+  check(kacan.length === 0, 'parçacıklar kadrajın içinde kalıyor',
+    kacan.map(([k, v]) => `${k}:${v.strayed}`).join(' ') || '-');
+}
+
+console.log('\n8. hareket kapalıyken hava da duruyor');
+{
+  // Ekranın dörtte birini kaplayan sürekli hareket, bu ayarı açan insanın
+  // kapatmak istediği şeyin ta kendisi.
+  const kisik = await br.newPage({ viewport: { width: 412, height: 915 }, reducedMotion: 'reduce' });
+  kisik.on('pageerror', e => { console.log('  SAYFA HATASI: ' + e); fails.push(String(e)); });
+  await kisik.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem('fruithole_level', '10');   // Snow Day: en yoğun atmosfer
+  });
+  await kisik.goto('http://localhost:8263/', { waitUntil: 'load' });
+  await kisik.waitForFunction(() => window.fruitHoleAir, { timeout: 40000 });
+  if (await kisik.isVisible('#dailyBtn')) await kisik.click('#dailyBtn');
+  await kisik.waitForSelector('#playBtn', { state: 'visible', timeout: 25000 });
+  await kisik.click('#playBtn');
+  await kisik.waitForTimeout(1800);
+  const a = await kisik.evaluate(() => window.fruitHoleAir());
+  check(a.ok === false, 'hareket kısıtlı okundu');
+  check(a.count === 0 && !a.visible, 'atmosfer kurulmuyor', `${a.count} parçacık`);
+  await kisik.close();
+}
+
+console.log('\n9. resimler');
 {
   // Karar gözle veriliyor: bir zeminin ötekinden ayrılıp ayrılmadığı
   // ölçülemiyor. Her temadan bir kare.
