@@ -9779,6 +9779,29 @@ window.fruitHoleAhead = (r = 9, back = 3) => {
   }
   return n;
 };
+// Tarladaki devlerin **listesi**: nerede, ne kadar büyük, delik yutabiliyor mu.
+//
+// `fruitHoleGiants()` zaten vardı ama başka bir soruyu cevaplıyor — bölüm
+// başına kaç dev var ve en yakını doğuş noktasından ne kadar uzakta,
+// yani denge sorusunu. Bu, o anki tarladaki devlerin tek tek nerede
+// olduğunu söylüyor. Aynı adı kullanmak eskisini sessizce eziyordu ve
+// `holegate.mjs` onu kullanıyor.
+//
+// Tanıtım klibi için. Ölçüm şunu gösterdi: en iyi tutan video, ekranda
+// **beklenecek bir dev meyve** olanıydı (ortalama izlenme 3.35 sn, ötekiler
+// 2.2-2.7). Klibin nerede başlayıp nerede biteceğine bu liste karar veriyor —
+// delik devi yutamayacak kadar küçükken başlıyor, yuttuğunda bitiyor.
+//
+// Yutma eşiği oyunun kendi kuralı: `f.r <= holeRadius * 0.92`.
+window.fruitHoleGiantList = () => fruits
+  .filter(f => !f.eaten && f.giant)
+  .map(f => ({
+    x: +f.x.toFixed(2), z: +f.z.toFixed(2), r: +f.r.toFixed(2),
+    dz: +(f.z - holeZ).toFixed(2),
+    dist: +Math.hypot(f.x - holeX, f.z - holeZ).toFixed(2),
+    eatable: f.r <= holeRadius * 0.92,
+  }))
+  .sort((a, b) => a.dist - b.dist);
 window.fruitHoleForceBoss = (v) => { forceBoss = v; };
 window.fruitHoleStartDaily = () => startDailyRun();
 window.fruitHoleStartLevel = () => startLevel();

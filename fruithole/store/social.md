@@ -58,11 +58,16 @@ hepsini bir günde atmak hesabın dağıtımını bölüyor.
 Sıra rastgele değil: ilk üçü en yoğun tarlalar, ve `farm.mp4` yeni olan şeyi
 gösteriyor.
 
+**Açıklamalar bir kural söyleyip soru doğuruyor**, durum bildirmiyor. Sebebi
+aşağıda, "Ölçüm" başlığında: bunu yapan tek klip ötekilerden bir saniye uzun
+izlendi. Kalıp şu — *bir kural + o kuralın doğurduğu soru*, ve klibin sonu
+cevabı veriyor.
+
 ### 1. farm.mp4 — Cross, sürülmüş tarla  *(ilk yüklenecek)*
-Oyundaki en yeni yer ve ikinci en yoğun tarla. İlk kare deliğin tam üç dev
-çileğin dibinde durduğu an.
+Oyundaki en yeni yer ve ikinci en yoğun tarla. Klip, delik dev karpuzu
+yutamayacak kadar küçükken başlıyor ve o karpuzun yutulduğu anda bitiyor.
 ```
-POV: you are the hole and the harvest has nowhere to go 🕳️🍓
+The hole only grows by eating. So how does it ever swallow that melon? 🕳️🍉
 
 #satisfying #mobilegame #asmrgaming #indiegame #fruitgame
 ```
@@ -71,14 +76,14 @@ POV: you are the hole and the harvest has nowhere to go 🕳️🍓
 Tarladaki en yoğun bölüm (hücre başına 1.04 meyve) ve voxel görünümü tek
 başına bir kanca.
 ```
-The whole shop floor went in. TVs, headphones, one fridge 📺🕳️
+Nothing here is too heavy. Only too big — for now 📺🕳️
 
 #satisfying #mobilegame #voxel #indiegame #oddlysatisfying
 ```
 
 ### 3. drive.mp4 — Ring, arabalı sinema
 ```
-Drive-in cleared. Burgers, fries and the parked cars 🍔🚗
+The cars are bigger than the hole. Watch what happens at the end 🍔🚗
 
 #satisfying #mobilegaming #indiegame #gaming #fyp
 ```
@@ -94,7 +99,7 @@ Every 10th level ends in one giant fruit. You cannot take it early 👑🍓
 ### 5. bar.mp4 — Stairs, bar tezgâhı
 Oyunun akşam ışığındaki tek yeri; koyu ahşap ve pirinç.
 ```
-Happy hour. The cocktails went first 🍹🕳️
+Every glass makes the hole a little wider. Guess what goes last 🍹🕳️
 
 #satisfying #mobilegame #indiegame #oddlysatisfying #gaming
 ```
@@ -102,7 +107,7 @@ Happy hour. The cocktails went first 🍹🕳️
 ### 6. space.mp4 — Heart, istasyon güvertesi
 Kenarından ötesi karanlık: tahtanın bittiği yer görünüyor.
 ```
-No floor past the edge. Just the dark 🚀🕳️
+There is no floor past the edge. The big one is right on it 🚀🕳️
 
 #satisfying #mobilegaming #space #indiegame #gaming
 ```
@@ -110,7 +115,7 @@ No floor past the edge. Just the dark 🚀🕳️
 ### 7. beach.mp4 — Pyramid, birinci bölüm
 Oyunun en parlak zemini ve ikonun görünümü — yeni oyuncunun gördüğü ilk şey.
 ```
-Started on the beach. Ended with the whole pyramid 🏖️🍓
+Level 1 starts smaller than a coconut. How big can 9 seconds get? 🏖️🥥
 
 #satisfying #relaxing #mobilegame #indiegame #beach
 ```
@@ -135,58 +140,53 @@ POV: you're the hole
 **3. Dikey ve tam ekran.** Klipler 1080×1920, yani doğru. Kırpma, filtre
 ekleme.
 
-## Ölçüm — 1. video (17 Eylül, space.mp4, 15 sn)
+## Ölçüm — ilk üç video
 
-```
-izlenme            266
-toplam oynatma     9dk 41sn
-ortalama izlenme   2.34 sn
-tamamlanma         %4
-yeni takipçi       0
-beğeni             0
-```
+| video | tarih | süre | izlenme | ort. izlenme | tamamlanma | beğeni |
+|---|---|---|---|---|---|---|
+| #1 "POV: …the fruit has nowhere to go" | 17 Eyl | 15 sn | 399 | 2.73 sn | %5.4 | 1 |
+| **boss** "Every 10th level ends in one giant fruit" | 18 Eyl | 9 sn | 378 | **3.35 sn** | %6.3 | **3** |
+| farm "POV: …the harvest has nowhere to go" | 19 Eyl | 9 sn | 275 | 2.21 sn | %6.8 | 0 |
 
-**Okunuşu: dağıtım sorunu yok, kanca sorunu var.** TikTok videoyu 266 kişiye
-gösterdi; izleyici ortalama 2.34 saniyede bıraktı. Yani mesele videonun
-görülmemesi değil, görülünce tutmaması.
+### Sayılar zamanla değişiyor
 
-Buna göre iki şey değişti (`make-clips.mjs`):
+#1 ilk ölçüldüğünde 266 izlenme / 2.34 sn / %4'tü. Üç gün sonra 399 / 2.73 /
+%5.4. Yani **ortalama izlenme video olgunlaştıkça yükseliyor** — muhtemelen
+sonraki dağıtım daha isabetli kitleye gidiyor.
 
-* **Süre 15 → 9 saniye.** Tamamlanma TikTok'un en ağır tarttığı sinyal ve bu
-  görüntü için 15 saniye uzun.
-* **Kayıt koşunun 6. saniyesinden başlıyor.** Eski kliplerin ilk saniyesinde
-  delik küçüktü ve tarla açılmamıştı — ilk kare "ne oluyor" sorusunu
-  cevaplamıyordu. Artık kamera döndüğünde delik büyümüş ve süpürülmüş bir yol
-  var.
+Bunun iki sonucu var ve ikisi de burada bir kez yanlış yapıldı:
 
-Bir sonraki ölçümde bakılacak tek sayı: **ortalama izlenme**. 2.34'ten
-yukarı gitmiyorsa sorun süre değil, görüntünün kendisi.
+* **İzlenme sayıları farklı günlerde atılan videolar arasında
+  karşılaştırılamaz.** Eski video daha çok zaman geçirmiş olur. "275, 378,
+  399 — demek ki iyileşiyoruz" diye okumak yanlıştı.
+* **Ortalama izlenme de yaşa duyarlı.** 1 günlük farm'ı (2.21) 2 günlük
+  boss'la (3.35) doğrudan karşılaştırmak aynı hata olurdu.
 
-### İkinci tur: kaydın başladığı an
+### Yine de bir sonuç var
 
-Süreyi 9'a indirmek ve 6 saniye ısınmak yetmedi. 24. bölümün ilk karesine
-bakınca sebep görüldü: **ekranın alt yarısı süpürülmüş boş toprak**tı. Sabit
-bir gecikme, deliğin o sırada tarlanın neresinde olduğunu bilmiyor — altı
-saniyede delik büyüyor ama arkasında geniş bir temiz alan bırakıyor ve kamera
-onu takip ediyor.
+**boss ötekilerden iyi, ve bu yaştan bağımsız:** #1'den daha genç olduğu hâlde
+ondan yüksek, ve bu veride yaş arttıkça sayı yükseliyor. Yani boss'un önde
+olmasını yaş açıklamıyor.
 
-Artık kaydın ne zaman başlayacağına **ölçerek** karar veriliyor
-(`window.fruitHoleAhead()`): delik en az üç saniye ısındıktan sonra, **önünde**
-50 meyve olan **ve** tarlanın kenarından en az 2.5 birim içeride olduğu ilk
-kare aranıyor.
+boss'ta farklı olan iki şey:
 
-Üç denemede oturdu, üçü de bir öncekinin eksiğinden çıktı:
+1. **Açıklaması bir kural söyleyip soru doğuruyor.** *"Every 10th level ends
+   in one giant fruit. You cannot take it early."* — izleyicide "peki nasıl
+   alıyor?" sorusu doğuyor. Öteki iki açıklama durum bildiriyor: *"POV: you
+   are the hole and the fruit has nowhere to go"* hiçbir şey sormuyor.
+2. **Ekranda beklenecek bir nesne var.** Devasa meyve görünüyor ve açıkça o
+   an yutulamıyor. Öteki kliplerde böyle bir nesne yok — delik düzenli
+   tempoda meyve yiyor, 1. saniyede ne varsa 9'unda da o.
 
-1. **Yalnızca meyve sayısı.** Delik yoğun bir öbeğe yapıştı ama öbek tarlanın
-   sol kenarındaydı; kamera deliği takip ettiği için karenin üçte biri
-   tarlanın dışındaki düz yeşil zemin oldu. → kenar şartı eklendi.
-2. **Eşik 26.** Delik seyrek bir bölgede durdu. → 50'ye çıkarıldı; o eşikte
-   ilk kare deliğin üç dev çileğin dibinde durduğu an oldu.
-3. **Sayım daireseldi.** Kare yine zayıf çıkabiliyordu, çünkü kamera deliği
-   **ortalamıyor**, gideceği yeri gösteriyor — deliğin arkasında kalan meyve
-   de sayılıyordu. Ölçüldü: delik +z ucunda doğuyor (doğuş z = 9.8, halfZ =
-   17.9) ve -z'ye ilerliyor, yani ekranda yukarısı azalan z. Sayım artık
-   yalnızca öne bakıyor (yarıçap 9 birim, deliğin 3 birim arkasına kadar).
+### Buna göre değişen
+
+"9 saniyeye inelim ve ilk kareyi doldur alım" hipotezi tek başına işe
+yaramadı — iki klip de 9 saniye ve aralarında 1.1 saniye fark var. Fark
+içerikte.
+
+Klipler artık **dönüşüm** olarak kuruluyor: delik dev meyveyi yutamayacak
+kadar küçükken başlıyor ve klip o devin yutulduğu anda bitiyor. Açıklamalar
+da durum değil **kural/soru** biçiminde.
 
 ## Ne kadar sıklıkla
 

@@ -82,6 +82,9 @@ const AHEAD_MIN = Number(arg('ahead', 50));
 // takip ediyor, kenardaki bir delik kadrajın bir kısmını tarla dışına
 // harcıyor.
 const EDGE = Number(arg('edge', 2.5));
+// Dev yutulana kadar kaç saniye daha çekilsin. Klip sondan kesildiği için bu
+// süre videoya girmiyor, yalnızca aramaya harcanıyor.
+const SEARCH = Number(arg('search', 12));
 const ONLY = arg('only', null);
 
 // Hangi bölümler?
@@ -228,14 +231,30 @@ for (const clip of CLIPS) {
 
   // Isınma: kaydetmeden oyna. Kare yakalamadığımız için bu kısım hızlı
   // geçiyor — maliyeti yalnızca çizim, ekran görüntüsü değil.
-  const steer = () => pg.evaluate(() => {
+  // Otomatik oynayan taraf en yakın meyveye gidiyor — ama yutulabilir hâle
+  // gelmiş bir dev varsa ona yöneliyor.
+  //
+  // Onsuz klip sözünü tutmuyordu: açılışta beklenecek bir dev gösteriyor,
+  // sonra delik en yakın meyveleri kovalarken dev kadrajın dışında kalıyordu.
+  // Söz veren bir açılış ve tutulmayan bir son, hiç söz vermemekten kötü.
+  //
+  // Sürmek ve kareyi ilerletmek tek çağrıda: her kare için iki tur yerine bir
+  // tur. Dönen sayılar adımdan **önceki** durum — dev sayısının düştüğü kare,
+  // devin bir önceki adımda yutulduğu kare demek.
+  const adim = () => pg.evaluate(dt => {
     const w = window.fruitHoleWhere();
-    const n = window.fruitHoleNearest();
-    if (!n) { window.fruitHoleSteer(0, 0); return; }
-    const dx = n.x - w.x, dz = n.z - w.z;
-    const d = Math.hypot(dx, dz) || 1;
-    window.fruitHoleSteer(dx / d, dz / d);
-  });
+    const g = window.fruitHoleGiantList();
+    const yut = g.filter(x => x.eatable && x.dist < 15);
+    const hedef = yut.length ? yut[0] : window.fruitHoleNearest();
+    if (!hedef) window.fruitHoleSteer(0, 0);
+    else {
+      const dx = hedef.x - w.x, dz = hedef.z - w.z;
+      const d = Math.hypot(dx, dz) || 1;
+      window.fruitHoleSteer(dx / d, dz / d);
+    }
+    window.__step(dt);
+    return { dev: g.length, eaten: w.eaten, total: w.total, timeLeft: w.timeLeft, state: w.state };
+  }, 1000 / FPS);
   //
   // Ne zaman kaydetmeye başlanacağı sabit bir gecikme değil, **deliğin
   // çevresindeki meyve sayısı**.
@@ -248,6 +267,19 @@ for (const clip of CLIPS) {
   //
   // Alt sınır delik büyüsün diye, üst sınır sonsuza kadar beklemesin diye.
   // Arada, çevresinde AHEAD_MIN meyve olan ilk kare aranıyor.
+  // Üçüncü şart, ve ölçüme göre en önemlisi: **ekranda beklenecek bir dev
+  // olmalı**, ve delik onu o an yutamamalı.
+  //
+  // İlk üç videonun sayıları bunu söyledi. En iyi tutan klip (ortalama
+  // izlenme 3.35 sn; ötekiler 2.21 ve 2.73) patron bölümüydü — tek farkı
+  // ekranda açıkça yutulamayan devasa bir meyve olmasıydı. Öteki kliplerde
+  // 1. saniyede ne varsa 9'unda da o vardı: düzenli tempoda meyve yiyen
+  // büyümüş bir delik, yani beklenecek hiçbir şey.
+  //
+  // "9 saniyeye inelim ve ilk kareyi doldur alım" hipotezi tek başına işe
+  // yaramamıştı; iki klip de 9 saniyeydi ve aralarında 1.1 saniye fark vardı.
+  // Fark içerikteydi.
+
   // İkinci şart: delik tarlanın kenarında olmasın.
   //
   // Yalnızca meyve sayısına bakmak yetmedi. İlk denemede delik yoğun bir
@@ -256,47 +288,83 @@ for (const clip of CLIPS) {
   // Kalabalık bir kare istiyoruz, kalabalığın yanında boş bir şerit değil.
   const durum = () => pg.evaluate(r => {
     const w = window.fruitHoleWhere();
-    return { yakin: window.fruitHoleAhead(r), x: w.x, halfX: w.halfX };
+    const g = window.fruitHoleGiantList();
+    // Kadrajda olan dev: önümüzde (dz negatif, kamera yukarısı) ve yakın.
+    const onde = g.filter(x => x.dz < 3 && x.dist < 13);
+    return {
+      yakin: window.fruitHoleAhead(r), x: w.x, halfX: w.halfX,
+      dev: onde.length, yutulabilir: onde.filter(x => x.eatable).length,
+      enYakinDev: onde.length ? onde[0].dist : null,
+    };
   }, AHEAD_R);
-  const uygun = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE;
+  const uygun = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE
+    && d.dev > 0 && d.yutulabilir === 0;
   let warm = 0;
-  for (; warm < Math.round(PRE_MIN * FPS); warm++) {
-    await steer();
-    await pg.evaluate(d => window.__step(d), 1000 / FPS);
-  }
+  for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim();
   const enCok = Math.round(PRE_MAX * FPS);
   let d = await durum();
   while (warm < enCok && !uygun(d)) {
-    await steer();
-    await pg.evaluate(dt => window.__step(dt), 1000 / FPS);
+    await adim();
     d = await durum();
     warm++;
   }
   console.log(`  kayıt ${(warm / FPS).toFixed(1)}. saniyede başlıyor · ` +
-    `çevrede ${d.yakin} meyve · kenara ${(d.halfX - Math.abs(d.x)).toFixed(1)} birim` +
+    `çevrede ${d.yakin} meyve · kenara ${(d.halfX - Math.abs(d.x)).toFixed(1)} birim · ` +
+    `kadrajda ${d.dev} dev (yutulabilir ${d.yutulabilir})` +
     (uygun(d) ? '' : '  (şart sağlanmadı, üst sınıra dayandı)'));
 
+  // Kayıt: halka tampon, ve **sondan** kesiliyor.
+  //
+  // Başlangıç şartı klibin sözünü veriyor (kadrajda yutulamayan bir dev),
+  // ama sözü tutan şey sonda: devin yutulduğu an. İlk denemede klip dokuzuncu
+  // saniyede, delik daha "Size 3"teyken kesiliyordu — açılış soruyordu,
+  // kapanış cevap vermiyordu.
+  //
+  // O yüzden dokuz saniye çekip durmuyoruz: dev yutulana kadar çekiyoruz
+  // (üst sınır SEARCH saniye), sonra ffmpeg'e yalnızca **son** SECONDS × FPS
+  // kareyi veriyoruz. Klibin bittiği yer devin yutulduğu yer + kısa bir kuyruk;
+  // klibin başladığı yer oradan dokuz saniye geri.
+  //
+  // Yutma şöyle anlaşılıyor: `fruitHoleGiantList()` yenmemiş devleri sayıyor,
+  // sayı düşerse bir dev yenmiştir. Düşüş klibin sonuna sığmayacak kadar
+  // erkense (ilk saniyelerde) beklemeye devam ediliyor — ödemenin sonda olması
+  // gerekiyor, ortada değil.
   const total = Math.round(SECONDS * FPS);
-  let shots = 0;
-  for (let f = 0; f < total; f++) {
-    // Otomatik oynayan taraf: en yakın meyveye doğru sür. Basit, ama
-    // ekranda görünen şey tam olarak iyi bir oyuncunun yaptığı şey —
-    // tarlayı süpüren sürekli bir yol.
-    await steer();
-    await pg.evaluate(d => window.__step(d), 1000 / FPS);
+  const TAIL = Math.round(0.6 * FPS);        // yutmadan sonra nefes payı
+  const ARA = Math.round(SEARCH * FPS);      // yutma aranacak ek süre
+  let f = 0, yutuldu = -1, erken = 0, onceki = null;
+  while (true) {
+    const s = await adim();
     await pg.screenshot({
       path: join(frameDir, String(f).padStart(5, '0') + '.png'),
       animations: 'disabled',
     });
-    shots++;
-    if (f % 60 === 0) {
-      const w = await pg.evaluate(() => window.fruitHoleWhere());
-      process.stdout.write(`  ${f}/${total} kare · yenen ${w.eaten}/${w.total} · süre ${w.timeLeft}s\r`);
+    if (onceki !== null && s.dev < onceki) {
+      if (f + TAIL >= total) { if (yutuldu < 0) yutuldu = f; }
+      else erken++;
     }
+    onceki = s.dev;
+    if (f % 60 === 0) {
+      process.stdout.write(`  ${f} kare · yenen ${s.eaten}/${s.total} · ` +
+        `dev ${s.dev} · süre ${s.timeLeft}s\r`);
+    }
+    f++;
+    if (yutuldu >= 0 && f > yutuldu + TAIL) break;
+    if (f >= total + ARA) break;
+    if (s.state !== 'playing') break;   // bölüm bitti: daha fazla kare yok
   }
   const son = await pg.evaluate(() => window.fruitHoleWhere());
   await pg.close();
-  console.log(`  ${shots} kare · yenen ${son.eaten}/${son.total} · durum ${son.state}        `);
+
+  const sonKare = yutuldu >= 0 ? Math.min(f - 1, yutuldu + TAIL) : f - 1;
+  const basKare = Math.max(0, sonKare - total + 1);
+  const adet = sonKare - basKare + 1;
+  console.log(`  ${f} kare çekildi · yenen ${son.eaten}/${son.total} · durum ${son.state}   `);
+  console.log(`  klip ${basKare}-${sonKare} arası (${(adet / FPS).toFixed(1)} sn) · ` +
+    (yutuldu >= 0
+      ? `dev ${((yutuldu - basKare) / FPS).toFixed(1)}. saniyede yutuluyor`
+      : 'UYARI: dev yutulmadı, sondan kesildi — ödeme yok') +
+    (erken ? ` · ${erken} erken yutma atlandı` : ''));
 
   // Yenen meyve sayısı sıfırsa video boş bir tarla gösteriyor demektir;
   // sessizce bir dosya bırakmaktansa söylemek daha iyi.
@@ -306,7 +374,9 @@ for (const clip of CLIPS) {
   const r = spawnSync(ffmpeg, [
     '-y', '-hide_banner', '-loglevel', 'error',
     '-framerate', String(FPS),
+    '-start_number', String(basKare),
     '-i', join(frameDir, '%05d.png'),
+    '-frames:v', String(adet),
     '-vf', `scale=${OUT_W}:${OUT_H}:flags=lanczos`,
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '20',
     '-pix_fmt', 'yuv420p',          // yoksa bazı oynatıcılar hiç açmıyor
