@@ -15,9 +15,13 @@ pg.on('console', m => { if (m.type()==='error' && !m.text().includes('404')) err
 await pg.goto('http://localhost:8163/', { waitUntil:'load' });
 await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 20000 });
 
-console.log(' blm | meyve | açılış r | birim   | dev r | gereken r | süpürme %  | süre');
-console.log('-----+-------+----------+---------+-------+-----------+------------+------');
-for (let lvl = 1; lvl <= 15; lvl++) {
+// Kaç bölüm? Oyunun kendi sırasından. Sabit 15 yazıyordu ve düzen sayısı
+// 19'dan 24'e çıkınca son dokuz düzen — beşi yepyeni — hiç ölçülmedi.
+const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);
+
+console.log(' blm | düzen     | meyve | açılış r | birim   | dev r | gereken r | süpürme %  | süre');
+console.log('-----+-----------+-------+----------+---------+-------+-----------+------------+------');
+for (let lvl = 1; lvl <= order.length; lvl++) {
   const r = await pg.evaluate(n => {
     const p = window.fruitHoleProbe(n);
     const g = window.fruitHoleGiants();
@@ -26,7 +30,7 @@ for (let lvl = 1; lvl <= 15; lvl++) {
              need: g.needR, giantR: g.needR ? +(g.needR*0.92).toFixed(2) : null };
   }, lvl);
   const pct = r.need ? 100 * ((r.need - r.start) / r.unit) / r.fruit : null;
-  console.log(` ${String(lvl).padStart(3)} | ${String(r.fruit).padStart(5)} | ` +
+  console.log(` ${String(lvl).padStart(3)} | ${order[lvl - 1].padEnd(9)} | ${String(r.fruit).padStart(5)} | ` +
               `${r.start.toFixed(2).padStart(8)} | ${r.unit.toFixed(4)} | ` +
               `${String(r.giantR ?? '-').padStart(5)} | ${String(r.need ?? '-').padStart(9)} | ` +
               `${(pct === null ? '-' : '%' + pct.toFixed(0)).padStart(10)} | ${Math.round(r.secs)}s`);
