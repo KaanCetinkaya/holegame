@@ -151,11 +151,20 @@ ekleme.
 
 ## Ölçüm — ilk üç video
 
-| video | tarih | süre | izlenme | ort. izlenme | tamamlanma | beğeni |
-|---|---|---|---|---|---|---|
-| #1 "POV: …the fruit has nowhere to go" | 17 Eyl | 15 sn | 399 | 2.73 sn | %5.4 | 1 |
-| **boss** "Every 10th level ends in one giant fruit" | 18 Eyl | 9 sn | 378 | **3.35 sn** | %6.3 | **3** |
-| farm "POV: …the harvest has nowhere to go" | 19 Eyl | 9 sn | 275 | 2.21 sn | %6.8 | 0 |
+| video | tarih | süre | izlenme | ort. izlenme | **süresinin %'si** | tamamlanma | beğeni |
+|---|---|---|---|---|---|---|---|
+| #1 "POV: …the fruit has nowhere to go" | 17 Eyl | 15 sn | 399 | 2.73 sn | %18 | %5.4 | 1 |
+| **boss** "Every 10th level ends in one giant fruit" | 18 Eyl | 15 sn | 378 | **3.35 sn** | %22 | %6.3 | **3** |
+| farm "POV: …the harvest has nowhere to go" | 19 Eyl | 9 sn | 275 | 2.21 sn | **%25** | %6.8 | 0 |
+| tractor "The hole only grows by eating…" | 20 Eyl 20:00 | 9 sn | — | — | — | — | — |
+
+Dördüncü satır yeni kurgunun ilki: dev yutulurken biten klip, kural/soru
+açıklama. 22 Eylül'de ölçülecek — karşılaştırma boss ile, çünkü yaşları o
+zaman denk olur.
+
+**Süre sütunu TikTok panelinden okunuyor, hatırlanarak değil.** boss burada
+bir kez 9 saniye yazılmıştı; panelde 00:15 görünüyor. Yanlış süre yalnızca
+bir satırı bozmuyor, ondan çıkarılan sonucu da bozuyor (aşağıya bak).
 
 ### Sayılar zamanla değişiyor
 
@@ -170,12 +179,21 @@ Bunun iki sonucu var ve ikisi de burada bir kez yanlış yapıldı:
   399 — demek ki iyileşiyoruz" diye okumak yanlıştı.
 * **Ortalama izlenme de yaşa duyarlı.** 1 günlük farm'ı (2.21) 2 günlük
   boss'la (3.35) doğrudan karşılaştırmak aynı hata olurdu.
+* **Ortalama izlenme süreye de duyarlı, ve bu üçüncü hata burada yapıldı.**
+  9 saniyelik bir video 9 saniyeden fazla izlenemez. 15 saniyelik boss'un
+  3.35'i ile 9 saniyelik farm'ın 2.21'i aynı ölçek değil: oran olarak farm
+  %25, boss %22, #1 %18. **Saniye değil, süresinin yüzdesi karşılaştırılır.**
 
 ### Yine de bir sonuç var
 
 **boss ötekilerden iyi, ve bu yaştan bağımsız:** #1'den daha genç olduğu hâlde
 ondan yüksek, ve bu veride yaş arttıkça sayı yükseliyor. Yani boss'un önde
-olmasını yaş açıklamıyor.
+olmasını yaş açıklamıyor. İkisi de 15 saniye, yani süre de açıklamıyor.
+
+Oran olarak bakınca farm öne geçiyor (%25) — ama farm'ın beğenisi sıfır,
+boss'unki üç. İkisi farklı şeyi ölçüyor: oran "izletiyor mu", beğeni "hoşuna
+gitti mi". Yeni kurgu ikisini birden hedefliyor: 9 saniye (oran) + beklenecek
+bir dev ve kural/soru açıklama (beğeni).
 
 boss'ta farklı olan iki şey:
 
@@ -189,9 +207,10 @@ boss'ta farklı olan iki şey:
 
 ### Buna göre değişen
 
-"9 saniyeye inelim ve ilk kareyi doldur alım" hipotezi tek başına işe
-yaramadı — iki klip de 9 saniye ve aralarında 1.1 saniye fark var. Fark
-içerikte.
+"9 saniyeye inelim ve ilk kareyi dolduralım" hipotezi **süre tarafında
+tutuyor** — 9 saniyelik klip oran olarak en çok izlenen. Tutmadığı yer
+beğeni: farm sıfır aldı, 15 saniyelik boss üç. Yani süreyi kısaltmak
+izletiyor, ama izleyene bir şey vaat etmiyor.
 
 Klipler artık **dönüşüm** olarak kuruluyor: delik dev meyveyi yutamayacak
 kadar küçükken başlıyor ve klip o devin yutulduğu anda bitiyor. Açıklamalar
