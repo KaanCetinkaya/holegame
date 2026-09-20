@@ -56,10 +56,25 @@ await ONCE.goto('http://localhost:8199/', { waitUntil: 'load' });
 await ONCE.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
   { timeout: 25000 });
 const ORDER = await ONCE.evaluate(() => window.fruitHoleThemeTable().order);
-await ONCE.close();
 const IDX = ORDER.indexOf('Pillars');
 if (IDX < 0) throw new Error(`Pillars deseni yok — oyundakiler: ${ORDER.join(', ')}`);
-const BOLUM = IDX + 1 + ORDER.length * 2;
+// Bölüm numarası da hesaplanmıyor, **sorulup bulunuyor**.
+//
+// Burada `IDX + 1 + ORDER.length * 2` yazıyordu: "aynı desen iki tur sonra
+// yine aynı numarada" varsayımı. Tur başına 7 kayma gelince bu varsayım
+// çöktü ve test yine sessizce başka bir tahtayı (Island) ölçüp sütunları
+// yerinde bulamadı — yukarıdaki notun anlattığı hatanın birebir aynısı,
+// bir kat yukarıdan. Numarayı artık oyun söylüyor.
+//
+// 13'ten başlıyor: tahta o bölümde 34 satıra oturuyor ve sütunların şeride
+// dönüp dönmediği ancak uzun tahtada görülüyor.
+let BOLUM = 0;
+for (let n = 13; n <= ORDER.length * 6 && !BOLUM; n++) {
+  const r = await ONCE.evaluate(k => window.fruitHoleLoop(k), n);
+  if (r.pattern === 'Pillars') BOLUM = n;
+}
+await ONCE.close();
+if (!BOLUM) throw new Error('Pillars hiçbir bölümde bulunamadı');
 
 await pg.addInitScript(n => localStorage.setItem('fruithole_level', String(n)), BOLUM);
 await pg.goto('http://localhost:8199/', { waitUntil: 'load' });
