@@ -1156,6 +1156,62 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Depo ne yüklediğimizi bilmiyordu
+
+İki sürüm kodu boşa gitti — 25 ve 27 — ve ikisi de aynı şekilde: paket
+yüklenmiş bir kodla derlendi, derleme yürüdü, hata **Play'in yükleme
+kutusunda** ortaya çıktı, yani dakikalarca süren bir derlemeden sonra.
+
+`build-aab.mjs`'de bir koruma vardı ama **tahmin**di: git'e bakıp "sürüm
+artırıldıktan sonra oyun değişmiş" diyordu. Çoğu zaman haklıydı, harcanmış bir
+kodu bilemiyordu, ve uyarısı derlemeyi **durdurmuyordu**.
+
+Asıl eksik buydu: depo ne yüklediğimizi bilmiyordu. Bilmediği için soru her
+seferinde insana soruluyordu, ve insan da unutabiliyordu.
+
+### Kayıt
+
+`app-version.json` artık yüklenmiş kodları tutuyor:
+
+```json
+"fruithole": {
+  "versionCode": 30,
+  "versionName": "1.10",
+  "uploaded": [21, 22, 23, 24, 25, 26, 27, 28, 29]
+}
+```
+
+- **`build-aab.mjs` listedeki bir kodla derlemeyi reddediyor** — uyarmıyor,
+  durduruyor, ve sıradaki numarayı söylüyor. Kontrol sürüm dosyası okunur
+  okunmaz çalışıyor: harcanmış bir kod için gradle'a dokunmanın anlamı yok.
+- **`npm run uploaded:fruithole`** yükledikten sonra çalıştırılıyor. Kodu
+  listeye ekliyor **ve** `versionCode`'u bir artırıyor. İkisinin aynı komutta
+  olması önemli: ayrı olsalardı ikincisi unutulurdu, ve zaten unutulan şey tam
+  olarak oydu.
+
+### Derlenmemiş bir paketi yüklemiş olamazsın
+
+Kayıt komutu ilk hâlinde yanlışlıkla iki kez çalıştırılınca hiç derlenmemiş
+bir kodu "yüklendi" diye işaretliyordu. Atlanan numaranın bir maliyeti yok —
+Play yalnızca artan ve kullanılmamış kod istiyor — ama listeyi yalancı yapıyor,
+ve bu listenin tek işi doğru olmak.
+
+Bunun için `build-aab.mjs` başarılı bir `.aab`'den sonra `built` alanını
+yazıyor, kayıt komutu da onu şart koşuyor. `.aab` her derlemede aynı yolun
+üstüne yazıldığı için (`app-release.aab`) dosyanın varlığı hangi sürümü
+taşıdığını söylemiyor; `built` söylüyor. Gerçekten gerekiyorsa `--force` var.
+
+### Listenin doğruluğu
+
+Buradaki liste depo geçmişinden çıkarıldı: kitaplık listesinde 21-27
+görünüyordu, 28 ve 29 derlenip yüklendi. **Tek kaynak değil** — Play Console →
+Release → App bundle explorer yüklenmiş her kodu listeliyor, ve ihtilafta
+doğru olan o.
+
+`scratchpad/holebuildguard.mjs` üç şey ölçüyor: harcanmış kod derlemeyi
+durduruyor ve sıradakini söylüyor, temiz kod durmuyor, ve `uploaded` alanı
+olmayan bir dosya (öteki üç uygulama) eskisi gibi derleniyor.
+
 ## Havada olan şey
 
 Zemin, ışık ve kenar o yerin **neresi** olduğunu söylüyordu. Hiçbiri orada

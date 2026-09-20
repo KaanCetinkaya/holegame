@@ -32,12 +32,17 @@ const check = (ok, what, saw) => {
 };
 
 // Sahte bir depo: build-aab.mjs'nin okuduğu her şey, istediğimiz hâliyle.
-function repo({ deps = {}, installed = null, props, keystore = true, native = true }) {
+function repo({ deps = {}, installed = null, props, keystore = true, native = true,
+                versionCode = 23, uploaded = undefined }) {
   const root = mkdtempSync(join(tmpdir(), 'guard-'));
   copyFileSync(SRC, join(root, 'build-aab.mjs'));
   writeFileSync(join(root, 'package.json'), JSON.stringify({ dependencies: deps }));
-  writeFileSync(join(root, 'app-version.json'),
-    JSON.stringify({ fruithole: { versionCode: 23, versionName: '1.8.3' } }));
+  writeFileSync(join(root, 'app-version.json'), JSON.stringify({
+    fruithole: {
+      versionCode, versionName: '1.8.3',
+      ...(uploaded === undefined ? {} : { uploaded }),
+    },
+  }));
 
   // installed verilmezse bütün bağımlılıklar kurulmuş sayılıyor.
   for (const d of (installed === null ? Object.keys(deps) : installed)) {
@@ -53,8 +58,10 @@ function repo({ deps = {}, installed = null, props, keystore = true, native = tr
     mkdirSync(join(root, 'android-fruithole', 'app'), { recursive: true });
     // local.properties varsa SDK aranmıyor; bu testin konusu o değil.
     writeFileSync(join(root, 'android-fruithole', 'local.properties'), 'sdk.dir=/x\n');
+    // Şablonun kendi satırları: sürüm yazımı bunları arıyor, yoksa derleme
+    // daha o adımda duruyor ve sonraki kontroller hiç görülmüyor.
     writeFileSync(join(root, 'android-fruithole', 'app', 'build.gradle'),
-      'android {\n}\n');
+      'android {\n  defaultConfig {\n    versionCode 1\n    versionName "1.0"\n  }\n}\n');
   }
 
   const ksPath = join(root, 'fake.jks');
@@ -152,6 +159,41 @@ console.log('\n6. keystore.properties eksik alan');
   check(r.code === 1, 'derleme başlamadı');
   check(/keyAlias/.test(r.out) && /keyPassword/.test(r.out), 'eksik alanları sayıyor',
     (r.out.match(/eksik alan.*/) || ['-'])[0]);
+}
+
+// ---- 7: zaten yüklenmiş versionCode ----
+console.log('\n7. harcanmış versionCode');
+{
+  // Bu, depoda kayıt tutulmadığı için iki kez olan şeyin testi: 25 ve 27
+  // yüklenmişti, sonraki derleme aynı numarayla çıktı, ve hata ancak Play'in
+  // yükleme kutusunda — dakikalarca süren bir derlemeden sonra — görüldü.
+  //
+  // Eskiden buradaki tek koruma git'e bakan bir tahmindi ve **durdurmuyordu**,
+  // yalnızca uyarıyordu. Artık kayıt var ve derleme hiç başlamıyor.
+  const r = run(repo({ deps: DEPS, versionCode: 27, uploaded: [21, 25, 27] }));
+  check(r.code === 1, 'derleme başlamadı');
+  check(/zaten Play'e yüklenmiş/.test(r.out), 'sebebini söylüyor');
+  check(/28/.test(r.out), 'sıradaki numarayı söylüyor',
+    (r.out.match(/versionCode -> \d+/) || ['-'])[0]);
+}
+
+console.log('\n8. temiz versionCode geçiyor');
+{
+  // Liste varken temiz bir numara engellenmemeli — koruma yalnızca harcanmış
+  // olanı durduruyor. Derleme Gradle'a kadar gidip orada düşüyor (bu sahte
+  // depoda gradlew yok), yani sürüm kontrolünü geçtiği buradan anlaşılıyor.
+  const r = run(repo({ deps: DEPS, versionCode: 28, uploaded: [21, 25, 27] }));
+  check(!/zaten Play'e yüklenmiş/.test(r.out), 'sürüm kontrolüne takılmadı');
+  check(/Yüklenmiş kodlar: 21, 25, 27/.test(r.out), 'yüklenenleri yine de yazıyor');
+}
+
+console.log('\n9. liste yokken eski davranış');
+{
+  // `uploaded` alanı olmayan bir dosya (öteki uygulamalar, ve depo
+  // güncellenmeden önceki hâli) hâlâ derlenebilmeli.
+  const r = run(repo({ deps: DEPS, versionCode: 23 }));
+  check(!/zaten Play'e yüklenmiş/.test(r.out), 'liste yoksa engellemiyor');
+  check(!/Yüklenmiş kodlar/.test(r.out), 'boş liste için satır yazmıyor');
 }
 
 console.log(fails.length ? `\n${fails.length} kontrol düştü` : '\nhepsi geçti');

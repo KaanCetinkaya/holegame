@@ -202,6 +202,38 @@ if (!version) {
   process.exit(1);
 }
 
+// Bu kod zaten yüklendiyse derleme hiç başlamıyor.
+//
+// Aşağıdaki git kontrolü bir **tahmin**: "sürüm artırıldıktan sonra oyun
+// değişmiş" diyor ve çoğu zaman haklı, ama harcanmış bir kodu bilemiyor —
+// yalnızca şüphelenebiliyor, ve uyarısı derlemeyi durdurmuyordu. 25 ve 27
+// tam olarak böyle harcandı: uyarı çıktı, derleme yürüdü, Play yükleme
+// kutusunda reddetti, ve o noktaya kadar geçen her şey boşa gitti.
+//
+// `uploaded` bir tahmin değil, kayıt. Yükledikten sonra
+// `npm run uploaded:<uygulama>` çalıştırılıyor; o komut kodu buraya yazıp
+// versionCode'u bir artırıyor. Yani "hangisini yüklemiştik" sorusunun
+// cevabı dosyada duruyor ve artırmayı unutmak mümkün olmuyor.
+const uploaded = Array.isArray(version.uploaded) ? version.uploaded : [];
+if (uploaded.includes(version.versionCode)) {
+  console.error('\n' + '!'.repeat(60));
+  console.error(`DURDU: versionCode ${version.versionCode} zaten Play'e yüklenmiş.`);
+  console.error(`Yüklenenler: ${uploaded.join(', ')}`);
+  console.error('');
+  console.error('Play aynı kodu ikinci kez kabul etmiyor, yani bu paket derlense');
+  console.error('bile yükleme kutusunda reddedilirdi.');
+  console.error('');
+  console.error(`  app-version.json > ${appName}.versionCode -> ${Math.max(...uploaded) + 1}`);
+  console.error('');
+  console.error('Liste yanlışsa doğrusu Play Console > Release > App bundle');
+  console.error('explorer\'da; oradan düzeltip tekrar dene.');
+  console.error('!'.repeat(60) + '\n');
+  process.exit(1);
+}
+if (uploaded.length) {
+  console.log(`Yüklenmiş kodlar: ${uploaded.join(', ')} — ${version.versionCode} temiz.`);
+}
+
 // --- imza bloğunu app/build.gradle'a enjekte et ---
 const gradleFile = join(projectPath, 'app', 'build.gradle');
 let gradle = readFileSync(gradleFile, 'utf8');
@@ -217,6 +249,7 @@ if (gradle === beforeVersion && !gradle.includes(`versionCode ${version.versionC
   process.exit(1);
 }
 console.log(`Sürüm: ${version.versionName} (code ${version.versionCode})`);
+
 
 // Oyun app-version.json'dan sonra değiştiyse, bu versionCode muhtemelen
 // harcanmıştır.
@@ -397,6 +430,23 @@ if (res.status !== 0) {
 console.log('\n' + '='.repeat(60));
 console.log(existsSync(out) ? `HAZIR:\n${out}` : `Build bitti ama dosya bulunamadı: ${out}`);
 console.log('='.repeat(60));
+
+// Hangi kodun gerçekten derlendiği yazılıyor.
+//
+// .aab her derlemede aynı yolun üstüne yazılıyor (`app-release.aab`), yani
+// dosyanın varlığı hangi sürümü taşıdığını söylemiyor. Bu satır söylüyor,
+// ve `mark-uploaded.mjs` onu şart koşuyor: derlenmemiş bir paketi yüklemiş
+// olamazsın. Kayıt komutunun yanlışlıkla iki kez çalıştırılması da böyle
+// duruyor — ikinci seferde sıradaki kod henüz derlenmemiş oluyor.
+if (!wantApk && existsSync(out)) {
+  try {
+    const fresh = JSON.parse(readFileSync(versionFile, 'utf8'));
+    fresh[appName].built = version.versionCode;
+    writeFileSync(versionFile, JSON.stringify(fresh, null, 2) + '\n');
+  } catch (e) {
+    console.warn('not: app-version.json güncellenemedi, `built` yazılamadı.');
+  }
+}
 
 // Dosyanın durduğu klasörü aç.
 //
