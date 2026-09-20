@@ -1833,6 +1833,75 @@ değişiyor.
 
 İlk tur bilerek dokunulmadan bırakıldı — oyunun ilk izlenimi o kürasyon.
 
+(Desen sayısı o ölçümden sonra 24'e çıktı. Tema kayması 3 ve 10 tema
+olduğundan aynı mantıkla çalışıyor; aşağıdaki iki ekleme 24'e göre.)
+
+### Tema dönüyordu, tahta dönmüyordu
+
+Tema kayması bir şeyi çözmüyordu: **tahtanın şekli** ikinci turda birebir
+aynıydı. 25. bölüm yine Pyramid'di, aynı teraslar, aynı yerde. Kalan tek
+fark %7 daha kısa süreydi, ve kimse süreyi görmüyor — şekli görüyor. Yani
+oyunu 25. bölüme kadar getiren oyuncu, tam da elde tutulmaya değer oyuncu,
+orada "bunu gördüm" diyordu.
+
+İki ekleme var, ve ikisi ayrı işi yapıyor:
+
+**1. Tahta çevriliyor.** Desenin fonksiyonlarına hücrenin kendi indisi yerine
+çevrilmiş indisi veriliyor — hücre yerinde duruyor, şekil aynalanıyor.
+Maliyeti iki çıkarma, yeni bir düzen yazmak yok. Üç çevirme sırayla geliyor
+(sol-sağ aynası, ön-arka aynası, yarım tur), dolayısıyla bir düzen ancak
+dördüncü turda kendine dönüyor: 96 bölüm.
+
+Ayna simetrik bir tahtada hiçbir şey değiştirmez, ve bu tahmin edilecek bir
+şey değil — ölçüldü (`scratchpad/holeloop.mjs`, desenin kendi cevabından
+imza çıkarıp karşılaştırıyor):
+
+```
+mirrorX  20/24 düzende tahtayı değiştiriyor
+mirrorZ  23/24
+half     23/24
+hiçbirinden etkilenmeyen: Orbits
+```
+
+Orbits'in `empty` ve `type` fonksiyonları yalnızca halka numarasına bakıyor,
+açıya değil — açıyı yansıtmak şeklini değiştirmiyor. (Devlerinin yeri yine de
+değişiyor: `big` açıyı okuyor.) Test bu listeyi iki yönlü tutuyor: yeni bir
+düzen sessizce sabitlenirse de, Orbits bir gün değişmeye başlarsa da düşüyor.
+
+Izgarada ayna bir eşleme olduğu için dolu hücre sayısı birebir korunuyor, ve
+test bunu sınır olarak kullanıyor: değiştiyse indis tahtanın dışına taşmış
+demektir. Kutupsalda korunmuyor, sebebi ölçüldü — halkalar tahtanın
+dikdörtgen kenarında kesiliyor, yani daire tam değil, ve açıyı yansıtmak
+kesilen yerle dolu yeri takas ediyor (Whirl 630 → 528). Bu desenin kendi
+şekli, ama sınırsız da değil: dörtte birden fazla boşalıyorsa test düşüyor.
+
+**2. Sıra kayıyor.** Çevirme simetrik tahtalarda yetmediği için 25. bölümün
+yine Pyramid olmaması ayrıca sağlanıyor: tur başına 7 kayma. 7 ile 24
+aralarında asal, yani hiçbir tur bir düzeni atlamıyor — sıra değişiyor,
+kadro değişmiyor. Test her turda 24 düzenin hepsinin göründüğünü sayıyor.
+
+```
+ 25 | tur 2 | mirrorX | Rings
+ 49 | tur 3 | mirrorZ | Whirl
+ 73 | tur 4 | half    | Bloom
+ 97 | tur 5 | none    | Wave
+```
+
+**Tur ekranda yazıyor.** Düzen adının önüne `LOOP 2 ·` geliyor. Aynı ismi
+ikinci kez gören oyuncunun "hata mı" değil "ikinci tur" diye okuması için;
+tekrar, tekrar olduğu söylendiğinde ilerleme olur.
+
+Günlük koşu yine dışarıda, yukarıdaki sebeple: `tier()` oyuncunun bölümünü
+okuyor, çevirme günlüğe de işleseydi 12. bölümdeki oyuncuyla 44. bölümdeki
+oyuncu aynı gün farklı tahta görürdü. `holedaily.mjs` bunu zaten ölçüyor —
+karşılaştırdığı iki profilden biri 44. bölümde, yani ikinci turda.
+
+Bir de sayfayı hiç açtırmayan bir tuzak çıktı: tur etiketi için `tier()`
+çağrılıyor, `tier()` desen listesini okuyor, ve o listeyi kuran satır
+dosyanın çok altında. Etiketi tazeleyen fonksiyon açılışta bir kez oradan
+geçiyor, o an liste henüz yok, ve oyun hiç açılmadan düşüyor. Etiket artık
+tahta kurulmuşsa yazılıyor.
+
 **Günlük meydan okuma da dışarıda, ama bu ikinci denemede oldu.** İlk sürüm
 "günlüğe dokunmuyorum" varsayıyordu; günlük tarla da aynı yoldan geçiyor ve
 `tier()` oyuncunun bölümünü okuyor, yani 12. bölümdeki oyuncuyla 44.

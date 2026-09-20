@@ -2263,7 +2263,15 @@ function refreshLevelTag() {
   // Both halves of what makes this level itself: where you are, and what
   // shape the field is in.
   const th = p && THEMES[p.theme];
-  patternTagEl.textContent =
+  // Turu söylemek, tekrar eden bir düzeni tekrar olmaktan çıkarıyor: aynı
+  // ismi ikinci kez gören oyuncu "hata mı" diye değil "ikinci tur" diye
+  // okuyor. Tahta zaten çevrilmiş olarak geliyor (bkz. TIER_TWISTS).
+  // `p` yoksa henüz tahta kurulmamış demek — bu fonksiyon sayfa açılırken bir
+  // kez oradan geçiyor, ve `tier()` desen listesini okuyor. Liste o an hâlâ
+  // tanımlanmamış oluyor, yani koşulsuz bir `tier()` çağrısı sayfayı hiç
+  // açılmadan düşürüyor.
+  const loop = p && tier() > 0 ? `LOOP ${tier() + 1} · ` : '';
+  patternTagEl.textContent = loop +
     (isBossLevel(level) ? 'BOSS · ' : '') +
     (p ? `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}` : '') + best;
 }
@@ -6440,6 +6448,56 @@ let levelGoal = 0;   // fruit that must be eaten to finish the level
 // harder tier with less time on the clock.
 function tier() { return Math.floor((level - 1) / PATTERNS.length); }
 
+// Tur 2 ve sonrası: aynı düzen, çevrilmiş tahta.
+//
+// 24 bölümden sonra liste başa dönüyordu. Süre %7 kısalıyor ve tema
+// kayıyordu, ama tahtanın **şekli** birebir aynıydı — yani oyunu 25. bölüme
+// kadar getiren oyuncu, tam da elde tutmaya değer oyuncu, orada "bunu
+// gördüm" diyordu.
+//
+// Çözüm düzen yazmak değil, düzene başka bir yerden bakmak: desenin
+// fonksiyonlarına hücrenin kendi indisi yerine **çevrilmiş** indisi
+// veriliyor. Hücre yerinde duruyor, şekil aynalanıyor. Maliyeti iki çıkarma.
+//
+// Üç çevirme var, dolayısıyla bir düzen dördüncü turda kendine dönüyor:
+// 96 bölüm. Kutupsal desenlerde indis açı, o yüzden ayna yerine açı
+// yansıması yapılıyor — aynı iş, başka aritmetik.
+//
+// Simetrik bir tahtada (Checkers, Blocks) ayna hiçbir şey değiştirmiyor; o
+// yüzden turla birlikte **sıra da kayıyor**, aşağıda. İkisi ayrı şeyler:
+// çevirme tahtayı, kayma hangi tahtanın kaçıncı bölüm olduğunu değiştiriyor.
+const TIER_TWISTS = [
+  null,                                                    // tur 1: olduğu gibi
+  { id: 'mirrorX',                                         // sol-sağ aynası
+    grid: (a, b) => [a, COLS - 1 - b],
+    polar: (a, b) => [a, (1.5 - b) % 1] },
+  { id: 'mirrorZ',                                         // ön-arka aynası
+    grid: (a, b) => [rows - 1 - a, b],
+    polar: (a, b) => [a, (1 - b) % 1] },
+  { id: 'half',                                            // yarım tur
+    grid: (a, b) => [rows - 1 - a, COLS - 1 - b],
+    polar: (a, b) => [a, (b + 0.5) % 1] },
+];
+
+// Günlük koşu çevrilmiyor. `tier()` oyuncunun bölümünü okuyor, yani 12.
+// bölümdeki oyuncuyla 44. bölümdeki oyuncu aynı gün için farklı tahta
+// görürdü — günlük meydan okumanın verdiği tek söz bu değil. Tema tarafında
+// aynı hata bir kez yapılmıştı, `holedaily.mjs` yakalamıştı.
+function tierTwist() {
+  if (dailyRun) return null;
+  return TIER_TWISTS[tier() % TIER_TWISTS.length];
+}
+
+// Turla kayan sıra: 25. bölüm yine Pyramid olmasın.
+//
+// 7 seçildi çünkü 24 ile aralarında asal — yani kayma hiçbir turda bir düzeni
+// atlamıyor, yalnızca sırayı değiştiriyor.
+const TIER_SHIFT = 7;
+function patternForLevel(n) {
+  const t = Math.floor((n - 1) / PATTERNS.length);
+  return PATTERNS[((n - 1) + t * TIER_SHIFT) % PATTERNS.length];
+}
+
 function gridToWorld(row, col) {
   return {
     x: (col - (COLS - 1) / 2) * CELL,
@@ -7305,14 +7363,22 @@ function buildField() {
   // the player has got.
   currentPattern = forcedPattern != null
     ? PATTERNS[forcedPattern % PATTERNS.length]
-    : PATTERNS[(level - 1) % PATTERNS.length];
+    : patternForLevel(level);
   // Latched before a single fruit is built, because fruitVisual() reads it.
   setVoxelField(!!currentPattern.voxel);
   applyTheme(themeForLevel());
   const pool = currentTheme.props || SMALL_PROPS;
   const themePool = pool.filter(id => SMALL_PROPS.includes(id));
+  // Turun çevirmesi burada uygulanıyor: hücre yerinde kalıyor, desene
+  // sorulan indis çevriliyor. Dünya konumu (x, z) hücrenin kendi konumu —
+  // yani zemin, kenar ve doğuş noktası hiç kıpırdamıyor.
+  const twist = tierTwist();
+  const bak = currentPattern.polar
+    ? (a, b) => (twist ? twist.polar(a, b) : [a, b])
+    : (a, b) => (twist ? twist.grid(a, b) : [a, b]);
   for (const cell of currentPattern.polar ? polarCells() : gridCells()) {
-      const { a, b, x, z } = cell;
+      const { x, z } = cell;
+      const [a, b] = bak(cell.a, cell.b);
       if (currentPattern.empty && currentPattern.empty(a, b)) continue;
       const big = currentPattern.big ? currentPattern.big(a, b) : scatter(0.12);
       const radius = big ? BIG_R : NORMAL_R;
@@ -9802,6 +9868,50 @@ window.fruitHoleGiantList = () => fruits
     eatable: f.r <= holeRadius * 0.92,
   }))
   .sort((a, b) => a.dist - b.dist);
+// Tur çevirmeleri: hangi bölüm hangi düzeni hangi çevirmeyle alıyor.
+window.fruitHoleLoop = (n) => {
+  const t = Math.floor((n - 1) / PATTERNS.length);
+  const tw = TIER_TWISTS[t % TIER_TWISTS.length];
+  return { level: n, tier: t, loop: t + 1, twist: tw ? tw.id : 'none',
+           pattern: patternForLevel(n).name, shift: TIER_SHIFT };
+};
+
+// Bir düzenin bir çevirmedeki **şekli**, tek bir dizge olarak.
+//
+// Testin soracağı soru şu: ayna gerçekten tahtayı değiştiriyor mu? Simetrik
+// bir düzende değiştirmiyor, ve bunu tahmin etmek yerine ölçmek gerekiyor.
+// Karşılaştırma yalnızca desenin kendi cevabına bakıyor — meyve türü ve boş
+// hücre — çünkü asıl tekrar eden şey o. Rastgele olan taraf (nesneler,
+// devlerin yeri, yığın boyu) zaten her koşuda farklı.
+//
+// Satır sayısı 34'e sabitleniyor: 13. bölümden sonra oyunun kendi değeri bu,
+// ve iki şekli farklı boyda tahtada karşılaştırmak ölçüyü bozar.
+window.fruitHoleShapeSig = (patternName, twistId) => {
+  const p = PATTERNS.find(x => x.name === patternName);
+  if (!p) throw new Error('düzen yok: ' + patternName);
+  const tw = twistId === 'none' ? null : TIER_TWISTS.find(x => x && x.id === twistId);
+  if (twistId !== 'none' && !tw) throw new Error('çevirme yok: ' + twistId);
+  const oldRows = rows, oldHalfZ = fieldHalfZ;
+  rows = 34; fieldHalfZ = (rows * CELL) / 2;
+  // Deseninin içinde rastgelelik varsa iki okuma arasında oynamasın.
+  seedField(0x5EED);
+  let s = '';
+  for (const c of p.polar ? polarCells() : gridCells()) {
+    const [a, b] = tw ? (p.polar ? tw.polar(c.a, c.b) : tw.grid(c.a, c.b)) : [c.a, c.b];
+    s += (p.empty && p.empty(a, b)) ? '.' : String(p.type(a, b));
+  }
+  unseedField();
+  rows = oldRows; fieldHalfZ = oldHalfZ;
+  // FNV-1a: iki şeklin aynı olup olmadığını sormak için yeter.
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  // `filled` dolu hücre sayısı. Izgarada ayna bir eşleme olduğu için bu sayı
+  // çevirmeden etkilenmemeli — değiştiyse indis sınırın dışına taşmış demek.
+  return { pattern: p.name, twist: twistId, polar: !!p.polar,
+           cells: s.length, filled: s.length - (s.split('.').length - 1),
+           sig: (h >>> 0).toString(16) };
+};
+
 window.fruitHoleForceBoss = (v) => { forceBoss = v; };
 window.fruitHoleStartDaily = () => startDailyRun();
 window.fruitHoleStartLevel = () => startLevel();
