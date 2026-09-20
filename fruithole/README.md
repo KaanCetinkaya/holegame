@@ -1156,6 +1156,46 @@ kalmalı" diyordu ve geçiyordu — ama beklentinin kendisi yanlıştı: reddetm
 kalıcı bir cevap değil ve düğmeyi gizlemek oyuncuya fikrini değiştirme yolu
 bırakmıyordu.
 
+## Deliğin kendisi
+
+Ekranda en çok bakılan şey ve üç yerden zayıftı. Üçü de yalnızca yakından
+bakınca görülüyordu — oynarken delik küçük, ve küçükken her şey idare eder
+görünüyor.
+
+**Kuyu kuyu gibi okunmuyordu.** Tuğla sıraları vardı ve her sıranın rengi
+ışığa göre hesaplanıyordu (`lit = cos(mid - 1.25π)`), ama üstlerine serilen
+karanlık **ortalanmış** bir radyal geçişti — yani her yönde aynı. O da ışığı
+siliyordu: kuyunun aydınlık yanı da karanlık yanı kadar koyu çıkıyordu ve
+geriye bakışımlı, dipsiz bir disk kalıyordu. Yukarıdan bakılan bir çukuru
+çukur yapan şey tam olarak o bakışımsızlık.
+
+Karanlığın merkezi ışığın geldiği yönün tersine itildi, sol üst duvara ince
+bir parlaklık kondu, ve tuğla kontrastı artırıldı (`46 + lit*72 - i*7`, eski
+`52 + lit*44 - i*5`) — karanlık artık bakışımsız olduğu için sıraların
+aydınlık yanı ekrana ulaşabiliyor. Eski değerlerde tuğlalar teknik olarak
+oradaydı ama görünmüyorlardı.
+
+**Yaka üç düz halkaydı** — turuncu bir disk, krem bir şerit, siyah bir çember
+— ve yukarıdan basılmış bir hedef tahtası gibi duruyordu. Artık bir gölge
+dokusu taşıyor ve o doku kaplamanın rengiyle **çarpılıyor**: rengi kaplama
+veriyor, hacmi doku. On kaplamanın hepsi aynı dokuyu kullanıyor ve hiçbiri
+rengini kaybetmiyor.
+
+**Delik zeminin üstünde duruyordu, içinde değil.** Yakanın dışında hiçbir
+koyulaşma yoktu, yani tarlayla arasında hiçbir bağ yoktu. Temas gölgesi
+`holeGroup`'un içinde, yani delikle birlikte büyüyor — oyundaki her nesnenin
+zaten yaptığı şeyin deliğe ait olanı.
+
+Bir de ağzın hemen içine, zeminin kalınlığını söyleyen bir gölge kondu:
+onsuz yaka ile kuyu arasında hiçbir geçiş yoktu.
+
+### Görülen ama düzeltilmeyen
+
+Bölüm başında, delik en küçükken, **kaplamanın rengi neredeyse hiç
+görünmüyor**: boyut yayı henüz boş ve geriye siyah çember ile ince krem şerit
+kalıyor. Yani satın alınan kaplama, bölümün ilk saniyelerinde görünmüyor.
+Ayrı bir iş; burada not olarak duruyor.
+
 ## Depo ne yüklediğimizi bilmiyordu
 
 İki sürüm kodu boşa gitti — 25 ve 27 — ve ikisi de aynı şekilde: paket

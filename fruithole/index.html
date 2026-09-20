@@ -7804,7 +7804,10 @@ function holeInteriorTexture() {
       const lit = Math.max(0, Math.cos(mid - Math.PI * 1.25));
       // Cool stone rather than brick. Brown courses under a pale collar read
       // as a plant pot; the shaft wants to look like it goes somewhere cold.
-      const base = 52 + lit * 44 - i * 5;
+      // Kontrast artırıldı (eski: 44 ve -5). Karanlık artık bakışımsız
+      // olduğu için sıraların aydınlık yanı ekrana ulaşabiliyor; eski
+      // değerlerde tuğlalar teknik olarak oradaydı ama görünmüyordu.
+      const base = 46 + lit * 72 - i * 7;
       ctx.fillStyle = `rgb(${(base * 0.66) | 0}, ${(base * 0.82) | 0}, ${base | 0})`;
       ctx.beginPath();
       ctx.arc(cx, cy, r0, a0, a1);
@@ -7813,26 +7816,110 @@ function holeInteriorTexture() {
     }
   }
 
-  // and the dark that swallows it
-  // Tinted rather than flat black, and a little more transparent than it
-  // was. Pure black at .92 swallowed the shaft whole: the courses were
-  // repainted in cool stone and none of it reached the screen, so the mouth
-  // was a hole punched in the page rather than somewhere that goes down.
-  const g = ctx.createRadialGradient(cx, cy, R * 0.03, cx, cy, R);
-  g.addColorStop(0, 'rgba(4,8,16,.97)');
-  g.addColorStop(0.5, 'rgba(7,13,25,.82)');
-  g.addColorStop(0.86, 'rgba(10,18,32,.34)');
-  g.addColorStop(1, 'rgba(12,20,36,.06)');
+  // Yutan karanlık, ve merkezi **kaymış**.
+  //
+  // Önceden ortalanmış bir radyal geçişti, yani her yönde aynı. Bu, tuğla
+  // sıralarına verilen ışığı siliyordu: kuyunun aydınlık yanı da karanlık
+  // yanı kadar koyuydu ve ortaya bakışımlı, dipsiz bir disk çıkıyordu.
+  // Yukarıdan bakılan bir çukuru çukur yapan şey tam olarak bu bakışımsızlık
+  // — ışığın vurduğu duvar görünür, karşısındaki dibe gider.
+  //
+  // Karanlığın merkezi ışığın geldiği yönün **tersine** itildi (ışık sol
+  // üstten geliyor, karanlık sağ alta toplanıyor).
+  const ox = cx + R * 0.17, oy = cy + R * 0.17;
+  const g = ctx.createRadialGradient(ox, oy, R * 0.03, ox, oy, R * 1.12);
+  g.addColorStop(0, 'rgba(3,6,13,.98)');
+  g.addColorStop(0.42, 'rgba(6,11,22,.88)');
+  g.addColorStop(0.72, 'rgba(9,16,29,.52)');
+  g.addColorStop(0.92, 'rgba(11,19,34,.16)');
+  g.addColorStop(1, 'rgba(12,20,36,.04)');
   ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+
+  // Işığın vurduğu duvar: sol üstte ince bir parlaklık. Onsuz kuyunun
+  // aydınlık yanı "daha az karanlık"tan ibaret kalıyor, "aydınlık" olmuyor.
+  const w = ctx.createRadialGradient(cx - R * 0.42, cy - R * 0.42, R * 0.05,
+                                     cx - R * 0.30, cy - R * 0.30, R * 0.78);
+  w.addColorStop(0, 'rgba(150,178,208,.34)');
+  w.addColorStop(0.55, 'rgba(110,138,170,.12)');
+  w.addColorStop(1, 'rgba(90,120,150,0)');
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = w;
+  ctx.fillRect(0, 0, S, S);
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Ağzın hemen içindeki gölge: zeminin kalınlığı. Onsuz yaka ile kuyu
+  // arasında hiçbir geçiş yok ve delik zemine oyulmuş değil, üstüne
+  // yapıştırılmış gibi duruyor.
+  const lip = ctx.createRadialGradient(cx, cy, R * 0.80, cx, cy, R);
+  lip.addColorStop(0, 'rgba(6,10,18,0)');
+  lip.addColorStop(0.55, 'rgba(6,10,18,.30)');
+  lip.addColorStop(1, 'rgba(4,7,13,.72)');
+  ctx.fillStyle = lip;
   ctx.fillRect(0, 0, S, S);
   ctx.restore();
   return finishTexture(c);
 }
+// Yakanın gölgesi.
+//
+// Yaka üç düz halkaydı — turuncu bir disk, krem bir şerit, siyah bir çember —
+// ve yukarıdan bakınca basılmış bir hedef tahtası gibi duruyordu. Bu doku
+// kaplamanın rengiyle **çarpılıyor** (three.js `map` ile `color`'ı çarpar),
+// yani rengi kaplama veriyor, hacmi bu. On kaplamanın hepsi aynı dokuyu
+// kullanıyor ve hiçbiri rengini kaybetmiyor.
+//
+// Işık sol üstten: yakanın o yanı açılıyor, karşı yanı koyuluyor. Ayrıca
+// dışa doğru hafif bir koyulaşma var — düz bir şerit değil, kenarı yuvarlanan
+// bir bilezik.
+function collarShadeTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, S, S);
+  const cx = S / 2, cy = S / 2, R = S / 2;
+  // Dışa doğru koyulaşma.
+  const rim = ctx.createRadialGradient(cx, cy, R * 0.55, cx, cy, R);
+  rim.addColorStop(0, 'rgba(0,0,0,0)');
+  rim.addColorStop(1, 'rgba(0,0,0,.26)');
+  ctx.fillStyle = rim;
+  ctx.fillRect(0, 0, S, S);
+  // Yön: sol üst açık, sağ alt koyu.
+  const dir = ctx.createLinearGradient(0, 0, S, S);
+  dir.addColorStop(0, 'rgba(255,255,255,.22)');
+  dir.addColorStop(0.45, 'rgba(255,255,255,0)');
+  dir.addColorStop(1, 'rgba(0,0,0,.20)');
+  ctx.fillStyle = dir;
+  ctx.fillRect(0, 0, S, S);
+  return finishTexture(c);
+}
+const COLLAR_SHADE = collarShadeTexture();
+
+// Zemindeki temas gölgesi.
+//
+// Delik zeminin **üstünde** duruyordu, içinde değil: yakanın dışında hiçbir
+// koyulaşma yoktu, yani tarlayla arasında hiçbir bağ yoktu. Bu, yakanın
+// hemen dışına serilen yumuşak bir gölge — oyundaki bütün nesnelerin zaten
+// yaptığı şeyin deliğe ait olanı.
+function contactShadowTexture() {
+  const S = 128, [c, ctx] = newCanvas(S);
+  const cx = S / 2, cy = S / 2, R = S / 2;
+  const g = ctx.createRadialGradient(cx, cy, R * 0.62, cx, cy, R);
+  g.addColorStop(0, 'rgba(0,0,0,.34)');
+  g.addColorStop(0.55, 'rgba(0,0,0,.15)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+  return finishTexture(c);
+}
+const CONTACT_MAT = new THREE.MeshBasicMaterial({
+  map: contactShadowTexture(), transparent: true, depthWrite: false,
+});
+
 const HOLE_INTERIOR_MAT = new THREE.MeshBasicMaterial({ map: holeInteriorTexture() });
 const HOLE_RIM_MAT = new THREE.MeshStandardMaterial({
   color: '#f59321', roughness: 0.35, metalness: 0.05,
 });
-const HOLE_LIP_MAT = new THREE.MeshStandardMaterial({ color: '#ffc978', roughness: 0.5 });
+const HOLE_LIP_MAT = new THREE.MeshStandardMaterial({
+  color: '#ffc978', roughness: 0.5, map: COLLAR_SHADE });
 
 // One pair of materials, recoloured, rather than a set per skin: the hole is
 // rebuilt whenever it resets and ten spare materials would just be ten things
@@ -7897,7 +7984,14 @@ function buildHole() {
   inner.rotation.x = -Math.PI / 2;
   inner.position.y = 0.03;
 
-  holeGroup.add(edge, band, sizeArc, inner);
+  // Temas gölgesi en altta, yakanın dışına taşacak kadar geniş. holeGroup'un
+  // içinde çünkü delikle birlikte büyümesi gerekiyor.
+  const contact = new THREE.Mesh(
+    new THREE.CircleGeometry(BASE_HOLE_R * 1.42, 40), CONTACT_MAT);
+  contact.rotation.x = -Math.PI / 2;
+  contact.position.y = 0.012;
+
+  holeGroup.add(contact, edge, band, sizeArc, inner);
   scene.add(holeGroup);
 
   // Super magnet's reach, drawn on the ground while it is running.
