@@ -63,11 +63,20 @@ aşağıda, "Ölçüm" başlığında: bunu yapan tek klip ötekilerden bir sani
 izlendi. Kalıp şu — *bir kural + o kuralın doğurduğu soru*, ve klibin sonu
 cevabı veriyor.
 
+**Yeniden üretince açıklamayı klibe bakarak doğrula.** Klip, yutulan devin
+üstünde bitiyor ama o devin *ne olduğu* temaya göre değişiyor: dev meyveler
+tema nesnesi olarak çiziliyor, yani tarlada traktör, mağazada buzdolabı.
+Tarla her çalıştırmada farklı, dolayısıyla son karedeki nesne de. Açıklamada
+karpuz yazıp videoda traktör yutulursa söz tutulmamış olur.
+
 ### 1. farm.mp4 — Cross, sürülmüş tarla  *(ilk yüklenecek)*
-Oyundaki en yeni yer ve ikinci en yoğun tarla. Klip, delik dev karpuzu
-yutamayacak kadar küçükken başlıyor ve o karpuzun yutulduğu anda bitiyor.
+Oyundaki en yeni yer ve ikinci en yoğun tarla. Klip, delik "Size 2"yken ve
+kadrajda yutamadığı devler varken başlıyor; 8.4. saniyede kırmızı traktörü
+yutuyor ve orada bitiyor. Delik 2'den 4'e çıkıyor.
+
+Açıklama traktörü söylüyor, karpuzu değil: klibin tuttuğu söz o.
 ```
-The hole only grows by eating. So how does it ever swallow that melon? 🕳️🍉
+The hole only grows by eating. So how does a whole tractor fit? 🚜🕳️
 
 #satisfying #mobilegame #asmrgaming #indiegame #fruitgame
 ```

@@ -185,6 +185,7 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
 }
 
 const dusen = [];
+let cikan = 0;
 for (const clip of CLIPS) {
   if (ONLY && clip.id !== ONLY) continue;
   // Bir klibin düşmesi partiyi bitirmemeli: dördü çıkmışken beşincisi
@@ -387,6 +388,7 @@ for (const clip of CLIPS) {
   if (r.status !== 0) { console.log('  ffmpeg düştü:\n' + (r.stderr || '')); continue; }
 
   rmSync(frameDir, { recursive: true, force: true });
+  cikan++;
   console.log(`  -> ${mp4}  (${Math.round((Date.now() - t0) / 1000)} sn sürdü)`);
   } catch (e) {
     console.log(`  DÜŞTÜ: ${String(e).split('\n')[0]}`);
@@ -396,5 +398,9 @@ for (const clip of CLIPS) {
 
 await br.close();
 srv.close();
-console.log(dusen.length ? `\nüretilemeyen: ${dusen.join(', ')}` : `\n${CLIPS.length} klibin hepsi çıktı`);
+// Sayı üretilenden okunuyor: `--only farm` ile tek klip çıkarken "7 klibin
+// hepsi çıktı" yazıyordu.
+console.log(dusen.length
+  ? `\n${cikan} klip çıktı · üretilemeyen: ${dusen.join(', ')}`
+  : `\n${cikan} klip çıktı`);
 console.log(`klipler: ${OUT}`);
