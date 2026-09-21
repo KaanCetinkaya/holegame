@@ -8359,11 +8359,31 @@ const ORDER_TARGET = 25;    // seçim bu tur süresini arıyor (saniye)
 // insanın payı o aradaki fark.
 const ORDER_SLACK = 2.0;
 const ORDER_FLOOR = 30;     // küçük tarlada bile bölüm bölüm olsun
-// Devler bölümünün kat sayısı ayrı ölçülüyor: modeli de ayrı (büyüme + tur),
-// ve iki parçalı bir modelin hatası tek parçalının hatasıyla aynı olmak
-// zorunda değil. Başlangıç değeri siparişinkiyle aynı, sonra oynanıp
-// düzeltiliyor.
-let GIANT_SLACK = 2.0;
+// Devler bölümünün kat sayısı ayrı, çünkü modeli de ayrı.
+//
+// İlk model büyüme süresiyle dev turunu **topluyordu** ve ölçüm bunun yanlış
+// olduğunu söyledi: dört tahtada büyüme 25 saniyede sabit çıktı (devlerin boyu
+// zaten tarlanın üçte birine göre seçiliyor), gerçek süre ise 10-24 arasında
+// oynadı ve tura bağlıydı.
+//
+//   blm | büyüme + tur | gerçek | oran
+//    15 | 25.4 + 10.9  |  21.3  | 0.59
+//    35 | 25.4 +  6.4  |  10.1  | 0.32
+//    55 | 24.8 + 13.4  |  22.1  | 0.58
+//    75 | 25.4 +  9.3  |  24.0  | 0.69
+//
+// Sebebi şu: delik büyümek için ayrı bir tur atmıyor. Devlere giderken
+// zaten yoldakileri yiyor, yani büyüme turun **içinde** oluyor. Toplamak, aynı
+// süreyi iki kez saymak.
+//
+// Tur tek başına daha iyi tahmin ediyor: gerçek süre turun 1.6-2.6 katı
+// (toplamlı modelde yayılma 2.2 kat, turda 1.6). 4.0, o bota saatin
+// %40-65'ini kullandırıyor — sipariş bölümlerindeki %45-56 ile aynı yer.
+//
+// Büyüme yine de duruyor, taban olarak: atlanamayan tek şey o. Şu ölçümde
+// hiçbir tahtada bağlayıcı olmuyor (25 saniye, 30 saniyelik tabanın altında),
+// ama devlerin boyu bir gün büyürse bağlayan terim o olur.
+const GIANT_SLACK = 4.0;
 
 // Duraklar: birbirine deliğin ağzı kadar yakın meyveler **tek** durak.
 //
@@ -8471,7 +8491,7 @@ function levelTime() {
   const base = missionKind === 'order'
     ? Math.max(ORDER_FLOOR, Math.round(orderTourSeconds(orderType) * ORDER_SLACK))
     : missionKind === 'giants'
-    ? Math.max(ORDER_FLOOR, Math.round((growSeconds() + giantTourSeconds()) * GIANT_SLACK))
+    ? Math.max(ORDER_FLOOR, growSeconds(), Math.round(giantTourSeconds() * GIANT_SLACK))
     : Math.round(sweepSeconds() * 2.6);
   const squeeze = 1 - Math.min(0.28, tier() * 0.07);   // later cycles are tighter
   return Math.round(base * squeeze * ease()) + upg('time') * 5;
