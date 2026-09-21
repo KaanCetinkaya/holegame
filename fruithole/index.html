@@ -8298,7 +8298,20 @@ function sweepSeconds() {
 // (5.1-33.9 sn) 4 kata (6.4-28.2 sn) indiriyor. Kalan iki uç, Pillars ve
 // Bloom, tarlanın kendisi küçük olduğu için daha uzun bir tur sunamıyor.
 const ORDER_TARGET = 25;    // seçim bu tur süresini arıyor (saniye)
-const ORDER_SLACK = 2.6;    // süpürmenin kat sayısıyla aynı: kaybedilebilir kalsın
+// Kat sayı ölçüldü, kopyalanmadı.
+//
+// İlk hâli süpürmenin katsayısıydı (2.6) ve gerçek koşuda fazla çıktı:
+// `scratchpad/holeorderplay.mjs` üç sipariş bölümünü otomatik oynadı ve
+// saatin yalnızca %36-45'ini kullandı — üçünde de üç yıldız, hiçbirinde
+// kaybetme ihtimali yok. Süpürmenin 2.6'sı kendi modeline göre üçte bir pay
+// bırakıyor; tur modeli daha isabetli çıktığı için aynı pay daha küçük bir
+// kat sayı demek.
+//
+// Bot turun 0.9-1.25 katında bitiriyor, yani model iyi tahmin ediyor. 2.0,
+// o bota %59-64 kullandırıyor (iki yıldız sınırının hemen altı) ve bottan
+// yavaş oynayan birine hâlâ yetiyor. Bot kusursuz dönüyor ve hiç duraksamıyor;
+// insanın payı o aradaki fark.
+const ORDER_SLACK = 2.0;
 const ORDER_FLOOR = 30;     // küçük tarlada bile bölüm bölüm olsun
 
 // Aynı hücredeki kule tek durak: üst üste duran meyveler tek geçişte düşüyor.

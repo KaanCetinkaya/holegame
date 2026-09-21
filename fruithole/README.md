@@ -1910,6 +1910,85 @@ görüyordu. Oyunun günlük için verdiği tek söz buydu.
 `scratchpad/holedaily.mjs` iki koşunun tarla özetini karşılaştırıyor ve
 yakaladı — `dailyRun` artık en başta eleniyor.
 
+## Sipariş bölümleri 📋
+
+Yirmi dört düzenin hepsi aynı işi istiyordu: tarlayı süpür. Düzen **tahtanın
+şeklini** değiştiriyor, yapılan işi değiştirmiyor — ve tur çevirmesi de
+(yukarıda) şekli değiştiren bir şey, işi değil.
+
+Sipariş bölümü işi değiştiriyor: bölüm tarlanın tamamı bittiğinde değil, **tek
+bir meyvenin hepsi** yendiğinde bitiyor. Rota bambaşka — süpürmek yerine bir
+rengi kovalamak, ve yoldaki öteki meyveler yalnızca büyümek için.
+
+Sonu 5 olan bölümler: 5, 15, 25… Patronla (her onuncu) hiç çakışmıyor ve iki
+sipariş arası on bölüm. Menüde, bölüm listesinde ve üst satırda 📋 ile
+işaretli; kuralı ipucu satırı söylüyor, yani yeni bir ekran açmıyor.
+
+### Saat: süpürme modeli burada yanlış cevap veriyor
+
+Oyunun saati `sweepSeconds()` ile veriliyor ve o model **alanı** ölçüyor:
+tarlanın tamamı, delik genişledikçe hızlanarak. Sipariş bölümünde oyuncu boş
+bölgeleri atlayıp hedeften hedefe düz gidiyor, yani ölçü alan değil **yol**.
+
+Ölçüldü (`scratchpad/holeorder.mjs`, gerçek tarlada en yakın komşu turu):
+
+```
+tek bir meyvenin hepsini toplama turu    5-34 sn
+bölümün süpürme saati                  113-148 sn
+```
+
+Yani sipariş süpürme saatiyle verilseydi altıda bir sürede biterdi: her koşu
+üç yıldız, hiçbir koşu kaybedilemez, "+15 saniye" reklamının anlamı yok.
+
+### Hedef meyve sayıya göre seçilmiyor
+
+Bir türden çok olması yolun uzun olması demek değil — hepsi bir köşede
+olabilir. İlk kural "tarlanın dörtte birine en yakın tür"dü ve tur süresini
+5.1 ile 33.9 saniye arasında bıraktı, yani altı kat: aynı görev bir bölümde
+sprint, ötekinde gezinti.
+
+Dört türün turu da ölçülüp **hedefe (25 sn) en yakın olanı** seçiliyor. Bu tek
+başına yayılmayı 6 kattan 4 kata indiriyor (6.4-28.2 sn). Kalan iki uç,
+Pillars ve Bloom, tarlanın kendisi küçük olduğu için daha uzun bir tur
+sunamıyor; onlar için 30 saniyelik bir taban var.
+
+### Kat sayı kopyalanmadı, ölçüldü
+
+İlk hâli süpürmenin katsayısıydı (2.6). `scratchpad/holeorderplay.mjs` üç
+sipariş bölümünü sahte saatle gerçekten oynadı:
+
+```
+ blm | hedef | saat | kullanılan | kalan | yıldız
+   5 |    46 |   60 |       27.2 |  32.8 |    3
+  15 |    63 |   56 |       19.3 |  36.7 |    3
+  25 |    65 |   45 |       21.5 |  23.5 |    3
+```
+
+Saatin %36-45'i kullanılmış, üçünde de üç yıldız. 2.0'a çekildi. Bot turun
+0.9-1.25 katında bitiriyor — yani tur modeli isabetli, ve kalan pay botla
+insan arasındaki fark için.
+
+Nesneler sayılmıyor: "bütün muzları ye" diyen bir görevde sulama kabı muz
+değil, ve oyuncu ona bakıp muz saymaz. Günlük koşuda sipariş yok, sebebi
+yukarıdaki tur çevirmesiyle aynı.
+
+### Açılışta düşen oyun
+
+Bu iş çalışırken üçüncü kez aynı tuzağa düşüldü, ve bu sefer oyuncuya
+çıkacaktı: sipariş görevi **tarla kurulurken** hesaplanıyor, hesap deliğin
+hızını okuyor, hız ise dosyanın en sonunda `const` ile duruyordu. Tarla ise
+sayfa açılırken kuruluyor. Sonuç: kaydı 5. bölümde olan herkes için oyun
+açılmıyordu — yükleme perdesi hiç kalkmıyordu.
+
+Birinci bölümde açılıyordu, çünkü orada görev yok. Yani her zamanki deneme
+(yeni profil, birinci bölüm) bunu göremezdi.
+
+`scratchpad/holeboot.mjs` artık bu çizgiyi tutuyor: oyunu sıradan bir
+bölümde, sipariş bölümünde, patron bölümünde, ikinci turda ve dördüncü turda,
+hem gerçek hem sahte saatle açıyor, ve yalnızca perde kalkıp menüye
+varılıyorsa geçiyor. Hızı eski yerine geri koyunca 5, 25 ve 35. bölümlerde
+tam o hatayla düşüyor.
+
 ## Yeni oyuncu birinci bölümü kaybediyordu
 
 Ölçüm, tahmin değil. `scratchpad/holefirst.mjs` temiz bir profille ilk
