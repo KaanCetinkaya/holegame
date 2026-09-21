@@ -132,9 +132,12 @@ Press anywhere and drag. That's the whole control scheme. No connection.
 Ready to clear the field?
 ```
 
-## What's new — 1.11 / versionCode 31 (≤ 500 chars per language)
+## What's new — 1.10 / versionCode 31 (≤ 500 chars per language)
 
-Bu not **bir sonraki .aab'ye** ait, ve sürüm kodu 31.
+Bu not 31 numaralı yüklemeye ait. Play'de **31 (1.10)** diye görünüyor:
+`npm run uploaded:fruithole` sürüm **kodunu** artırıyor, sürüm **adını**
+değil. İkisi ayrı şeyler — kodu Play sayıyor, adı oyuncu görüyor — ve adın
+1.10'da kalması bilerek: 30 ile 31 aynı içeriği taşıyor.
 
 Önce 30 yazılmıştı, çünkü `app-version.json` 30'u gönderilmemiş sayıyordu.
 Play kabul etmedi: *"30 sürüm kodu daha önce kullanıldı."* Yani 30 çoktan
