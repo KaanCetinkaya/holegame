@@ -78,9 +78,9 @@ console.log(' en kolay üç bölüm:', enKolay.map(x => `${x.lvl} ${x.ad} (${x.o
 // 2. Kablolama: görev doğru bölümlerde mi, saat modele uyuyor mu?
 // ---------------------------------------------------------------------
 const hata = [];
-console.log('\n--- 2. hangi bölümde sipariş var ---');
+console.log('\n--- 2. hangi bölümde görev var, hangi tip ---');
 console.log(' blm | görev   | hedef | saat | süpürme saati ne olurdu');
-for (const lvl of [1, 4, 5, 9, 10, 14, 15, 20, 25, 30, 35]) {
+for (const lvl of [1, 4, 5, 9, 10, 14, 15, 20, 25, 30, 35, 45, 55]) {
   const r = await pg.evaluate(n => {
     window.fruitHoleProbe(n);
     return window.fruitHoleOrder();
@@ -88,8 +88,15 @@ for (const lvl of [1, 4, 5, 9, 10, 14, 15, 20, 25, 30, 35]) {
   console.log(` ${String(lvl).padStart(3)} | ${String(r.mission ?? '-').padEnd(7)} | ` +
     `${String(r.goal).padStart(5)} | ${String(r.saat).padStart(4)} | ${Math.round(r.supurme * 2.6)}`);
   const olmali = lvl % 10 === 5;
-  if (olmali && !r.mission) hata.push(`${lvl}. bölümde sipariş olmalıydı`);
-  if (!olmali && r.mission) hata.push(`${lvl}. bölümde sipariş olmamalıydı`);
+  // Tipler sırayla: 5 sipariş, 15 devler, 25 sipariş… Bir tarafın sabitlenmesi
+  // (hep sipariş) sessizce olabilir, o yüzden tip de kontrol ediliyor.
+  const tip = olmali ? (Math.floor((lvl - 5) / 10) % 2 === 0 ? 'order' : 'giants') : null;
+  if (olmali && !r.mission) hata.push(`${lvl}. bölümde görev olmalıydı`);
+  if (!olmali && r.mission) hata.push(`${lvl}. bölümde görev olmamalıydı`);
+  if (olmali && r.mission && r.mission !== tip) {
+    hata.push(`${lvl}. bölümün görevi ${r.mission}, olması gereken ${tip}`);
+  }
+  if (olmali && r.mission === 'order' && !r.type) hata.push(`${lvl}. siparişin hedef meyvesi yok`);
   if (olmali && r.mission) {
     if (!r.goal) hata.push(`${lvl}. bölümün hedefi sıfır`);
     // Sipariş saati süpürme saatinden kısa olmalı: görev de kısa. Uzun

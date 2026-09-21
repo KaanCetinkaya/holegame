@@ -1002,14 +1002,50 @@ function isBossLevel(n) { return n > 0 && n % BOSS_EVERY === 0; }
 // rotayı değiştiriyor: süpürmek yerine bir rengi kovalamak.
 const ORDER_EVERY = 10, ORDER_AT = 5;
 function isOrderLevel(n) { return n > 0 && n % ORDER_EVERY === ORDER_AT; }
-// Görevin durumu: hedef meyve, kaç tane var, kaçı yendi. Sipariş yoksa
-// `orderType` null ve her şey eskisi gibi çalışıyor.
+// İki görev tipi var ve sırayla geliyorlar: 5 sipariş, 15 devler, 25 sipariş…
+//
+// Tek tip, ikinci kez görüldüğünde artık görev değil kural oluyordu. İkisi
+// farklı şey istiyor: sipariş bir rengi kovalamak, devler ise önce büyümek —
+// biri rota, öteki sıralama sorusu.
+function missionKindFor(n) {
+  if (!isOrderLevel(n)) return null;
+  return Math.floor((n - ORDER_AT) / ORDER_EVERY) % 2 === 0 ? 'order' : 'giants';
+}
+// Görevin ekranda söylediği üç şey, tek yerde: simgesi, saydığı şeyin adı ve
+// kuralı. Dağıttığımızda biri güncellenip öteki unutuluyor — üst satır
+// "muzlar" derken bitiş ekranının "meyve" demesi böyle oluyor.
+const MISSION_ICON = { order: '📋', giants: '🍉' };
+function missionNoun() {
+  if (missionKind === 'order') return TYPE_BY_ID[orderType].label;
+  if (missionKind === 'giants') return 'Giant';
+  return 'fruit';
+}
+// Çoğulu ekleyen yer bir tane. `label + 's'` diyen üç satır vardı ve üçü de
+// "strawberrys" yazıyordu; dördüncüsü yazılınca dördü de yazacaktı.
+function plural(w) {
+  return /[^aeiou]y$/i.test(w) ? w.slice(0, -1) + 'ies' : w + 's';
+}
+function missionNouns(n) {
+  const w = missionNoun();
+  return n === 1 ? w : plural(w);
+}
+function missionRule() {
+  if (missionKind === 'order') {
+    return `ORDER: swallow every ${missionNoun().toLowerCase()} before the clock runs out`;
+  }
+  if (missionKind === 'giants') {
+    return 'GIANTS: eat your way up to size, then swallow every giant';
+  }
+  return HINT_DEFAULT;
+}
+// Görevin durumu: tipi, (siparişte) hedef meyve, kaç tane var, kaçı yendi.
+// Görev yoksa `missionKind` null ve her şey eskisi gibi çalışıyor.
 //
 // Tahta durumunun geri kalanıyla birlikte aşağıda dursun isterdim, ama üst
 // satırı tazeleyen fonksiyon sayfa açılırken bir kez çalışıyor ve aşağıda
 // `let` ile duran bir değişkeni o an okumak oyunu hiç açtırmıyor. Aynı tuzağa
 // tur etiketinde de düşülmüştü.
-let orderType = null, orderGoal = 0, orderEaten = 0;
+let missionKind = null, orderType = null, missionGoal = 0, missionEaten = 0;
 // Against GIANT_R of 1.34 and a hole that tops out at 2.75. Measured rather
 // than guessed at — see scratchpad/holeboss.mjs for what fraction of the
 // field this actually costs.
@@ -2169,7 +2205,8 @@ function refreshMenuLevel() {
   document.getElementById('menuLvlN').textContent = level;
   // Menüde de yazıyor: sıradaki bölüm sipariş bölümüyse oyuncu Play'e basmadan
   // önce bilsin. Görevin sürprizi kuralın kendisi değil, hangi meyve olduğu.
-  menuSubEl.textContent = (isOrderLevel(level) ? '📋 ORDER · ' : '') +
+  const mk = missionKindFor(level);
+  menuSubEl.textContent = (mk ? `${MISSION_ICON[mk]} ${mk === 'order' ? 'ORDER' : 'GIANTS'} · ` : '') +
     (best ? '★'.repeat(best) + '☆'.repeat(3 - best) : 'New level');
 
   // Banner: the next thing the player will be given, or the star total once
@@ -2295,8 +2332,8 @@ function refreshLevelTag() {
   const loop = p && tier() > 0 ? `LOOP ${tier() + 1} · ` : '';
   // Sipariş bölümünde satır görevi söylüyor: hangi meyve, kaçta kaç. Düzenin
   // adı da kalıyor — tahtanın şekli yine tahtanın şekli.
-  const ord = orderType
-    ? `📋 ${TYPE_BY_ID[orderType].label.toUpperCase()}S ${orderEaten}/${orderGoal} · ` : '';
+  const ord = missionKind
+    ? `${MISSION_ICON[missionKind]} ${plural(missionNoun()).toUpperCase()} ${missionEaten}/${missionGoal} · ` : '';
   patternTagEl.textContent = loop + ord +
     (isBossLevel(level) ? 'BOSS · ' : '') +
     (p ? `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}` : '') + best;
@@ -2748,10 +2785,10 @@ function renderLevels() {
     const boss = isBossLevel(n);
     // Sipariş bölümü listede de işaretli: oyuncu neyin geldiğini görüyor, ve
     // on bölümde bir gelen bir şeyin beklenmesi bir sebep.
-    const ord = isOrderLevel(n);
+    const ord = missionKindFor(n);
     const b = document.createElement('button');
     b.className = 'lvBtn' + (n === level ? ' now' : locked ? ' locked' : '') + (boss ? ' boss' : '');
-    b.innerHTML = `<span class="n">${boss ? '👑' : ord ? '📋' : ''}${n}</span>` +
+    b.innerHTML = `<span class="n">${boss ? '👑' : ord ? MISSION_ICON[ord] : ''}${n}</span>` +
       `<span class="s">${locked
         ? (ICONS.lock ? `<span class="icoImg" style="background-image:url(${ICONS.lock});width:17px;height:17px;margin:0 auto"></span>` : '🔒')
         : '★'.repeat(got) + '☆'.repeat(3 - got)}</span>`;
@@ -7483,14 +7520,23 @@ function buildField() {
   // nesneler yerleştikten sonra seçiliyor: tur ölçümü tahtanın son hâline
   // bakmalı. Nesneler sayılmıyor — "bütün muzları ye" diyen bir görevde
   // sulama kabı muz değil, ve oyuncu ona bakıp muz saymaz.
-  orderType = null; orderGoal = 0; orderEaten = 0;
-  if (!dailyRun && isOrderLevel(level)) {
-    orderType = pickOrderType();
-    orderGoal = orderType
-      ? fruits.filter(f => !f.prop && f.type === orderType).length : 0;
-    // Hedef yoksa sipariş de yok: tahtada o tür hiç kalmamışsa bölüm normal
-    // süpürme bölümü olarak açılır, boş bir görevle değil.
-    if (!orderGoal) orderType = null;
+  missionKind = null; orderType = null; missionGoal = 0; missionEaten = 0;
+  if (!dailyRun) {
+    const kind = missionKindFor(level);
+    if (kind === 'order') {
+      orderType = pickOrderType();
+      missionGoal = orderType
+        ? fruits.filter(f => !f.prop && f.type === orderType).length : 0;
+    } else if (kind === 'giants') {
+      // Devlerin hepsi: nesne olarak çizilenler de dahil. Sipariş görevinde
+      // nesne sayılmıyordu çünkü traktör muz değil; burada tam tersi, çünkü
+      // görev "büyük olanları al" diyor ve traktör tahtadaki en büyük şey.
+      missionGoal = fruits.filter(f => f.giant).length;
+    }
+    // Hedef yoksa görev de yok: bölüm normal süpürme bölümü olarak açılır,
+    // boş bir görevle değil.
+    missionKind = missionGoal ? kind : null;
+    if (!missionKind) orderType = null;
   }
   armDrop();
 }
@@ -8313,6 +8359,11 @@ const ORDER_TARGET = 25;    // seçim bu tur süresini arıyor (saniye)
 // insanın payı o aradaki fark.
 const ORDER_SLACK = 2.0;
 const ORDER_FLOOR = 30;     // küçük tarlada bile bölüm bölüm olsun
+// Devler bölümünün kat sayısı ayrı ölçülüyor: modeli de ayrı (büyüme + tur),
+// ve iki parçalı bir modelin hatası tek parçalının hatasıyla aynı olmak
+// zorunda değil. Başlangıç değeri siparişinkiyle aynı, sonra oynanıp
+// düzeltiliyor.
+let GIANT_SLACK = 2.0;
 
 // Duraklar: birbirine deliğin ağzı kadar yakın meyveler **tek** durak.
 //
@@ -8326,10 +8377,9 @@ const ORDER_FLOOR = 30;     // küçük tarlada bile bölüm bölüm olsun
 // tavan 2.75). Sabit, çünkü model bölüm başında kuruluyor ve deliğin o an
 // nerede olacağını bilmiyor; doğru sayı ortalama olan.
 const ORDER_MERGE = 2.2;
-function orderStops(typeId) {
+function mergeStops(list) {
   const out = [], gorulen = new Set();
-  for (const f of fruits) {
-    if (f.eaten || f.prop || f.type !== typeId) continue;
+  for (const f of list) {
     const k = Math.round(f.x / ORDER_MERGE) + ',' + Math.round(f.z / ORDER_MERGE);
     if (gorulen.has(k)) continue;
     gorulen.add(k);
@@ -8338,8 +8388,9 @@ function orderStops(typeId) {
   return out;
 }
 
-function orderTourSeconds(typeId) {
-  const kalan = orderStops(typeId);
+// En yakın komşu turu: doğuş noktasından başlayıp her durağa uğramak.
+function tourSeconds(stops) {
+  const kalan = stops.slice();
   let x = SPAWN_X, z = spawnZ(), yol = 0;
   while (kalan.length) {
     let en = 0, ed = Infinity;
@@ -8352,6 +8403,47 @@ function orderTourSeconds(typeId) {
     kalan.splice(en, 1);
   }
   return yol / BASE_MOVE_SPEED;
+}
+
+function orderStops(typeId) {
+  return mergeStops(fruits.filter(f => !f.eaten && !f.prop && f.type === typeId));
+}
+function orderTourSeconds(typeId) { return tourSeconds(orderStops(typeId)); }
+
+// ---------------------------------------------------------------------
+// Devler bölümünün saati
+//
+// Burada iki iş var ve ikincisi birincisi olmadan yapılamıyor: **önce
+// büyümek**, sonra devleri toplamak. Sipariş bölümünde oyuncu ilk saniyeden
+// itibaren göreve çalışabiliyor; burada tahtadaki hiçbir dev, delik yeterince
+// büyüyene kadar yutulamıyor — boyut kapısı oyunun kendi kuralı ve devlerin
+// boyu ona göre seçiliyor (`placeGiants`, tarlanın kabaca üçte biri).
+//
+// Saat de iki parçalı: büyüme süresi + devlerin turu. Büyüme, süpürme
+// modelinin aynısı — alanı delik genişledikçe süpürmek — ama tarlanın tamamı
+// yerine yalnızca deve yetişmeye yetecek kadarı.
+function giantNeedR() {
+  const devler = fruits.filter(f => !f.eaten && f.giant);
+  if (!devler.length) return holeRadius;
+  return Math.max(...devler.map(f => f.r)) / 0.92;
+}
+
+function growSeconds() {
+  const need = (giantNeedR() - holeRadius) / growthUnit();   // kaç meyve yemek gerek
+  if (need <= 0) return 0;
+  const area = fieldHalfX * 2 * fieldHalfZ * 2;
+  const perFruit = area / Math.max(1, levelGoal);            // meyve başına düşen alan
+  const steps = 40, dN = need / steps;
+  let t = 0;
+  for (let i = 0; i < steps; i++) {
+    const r = Math.min(HOLE_MAX, holeRadius + dN * (i + 0.5) * growthUnit());
+    t += (dN * perFruit) / (2 * r * BASE_MOVE_SPEED);
+  }
+  return t;
+}
+
+function giantTourSeconds() {
+  return tourSeconds(mergeStops(fruits.filter(f => !f.eaten && f.giant)));
 }
 
 function pickOrderType() {
@@ -8376,8 +8468,10 @@ function levelTime() {
   // at all on a wandering one. The old formula (60 + fruit * 0.35) left
   // 42-82% spare everywhere: no level could be lost, every level scored
   // three stars, and the rewarded "+15 seconds" ad never appeared.
-  const base = orderType
+  const base = missionKind === 'order'
     ? Math.max(ORDER_FLOOR, Math.round(orderTourSeconds(orderType) * ORDER_SLACK))
+    : missionKind === 'giants'
+    ? Math.max(ORDER_FLOOR, Math.round((growSeconds() + giantTourSeconds()) * GIANT_SLACK))
     : Math.round(sweepSeconds() * 2.6);
   const squeeze = 1 - Math.min(0.28, tier() * 0.07);   // later cycles are tighter
   return Math.round(base * squeeze * ease()) + upg('time') * 5;
@@ -8420,12 +8514,12 @@ function updateProgressUI() {
   // Çubuk neyi bitirdiğini gösteriyor: sipariş bölümünde tarlanın tamamını
   // değil, hedef meyveyi. Yoksa oyuncu çubuğa bakıp yarıdayım sanırdı ve
   // bölüm habersiz biterdi.
-  const yapilan = orderType ? orderEaten : eatenCount;
-  const hedef = orderType ? orderGoal : levelGoal;
+  const yapilan = missionKind ? missionEaten : eatenCount;
+  const hedef = missionKind ? missionGoal : levelGoal;
   const pct = hedef ? Math.min(100, Math.round((yapilan / hedef) * 100)) : 0;
   if (pct !== lastProgPct) {
     progFillEl.style.width = pct + '%'; lastProgPct = pct;
-    if (orderType) refreshLevelTag();
+    if (missionKind) refreshLevelTag();
   }
   if (state !== 'playing') return;
   const s = liveStars();
@@ -8589,9 +8683,7 @@ function startRun() {
   // İpucu satırı zaten her koşu başında görünüp ilk dokunuşta sönüyor —
   // siparişin kuralını anlatacak yer burası. Ayrı bir ekran açmak, oyunu
   // sekiz saniyede bir kurala durdurmak demekti.
-  hintEl.textContent = orderType
-    ? `ORDER: swallow every ${TYPE_BY_ID[orderType].label.toLowerCase()} before the clock runs out`
-    : HINT_DEFAULT;
+  hintEl.textContent = missionRule();
   hintEl.style.opacity = '.8';
   state = 'playing';
   refreshMusic();
@@ -8769,8 +8861,8 @@ function fillStats(earnedStars) {
   // Siparişte iki sayı var ve ikisi de anlamlı: görev ne kadar tamamlandı, ve
   // yolda toplam ne yendi. Yalnızca toplamı göstermek, bölümü bitiren işi
   // görünmez bırakırdı.
-  const ordLine = orderType
-    ? `<span class="pill">📋 ${orderEaten}/${orderGoal} ${TYPE_BY_ID[orderType].label.toLowerCase()}s</span>`
+  const ordLine = missionKind
+    ? `<span class="pill">${MISSION_ICON[missionKind]} ${missionEaten}/${missionGoal} ${plural(missionNoun()).toLowerCase()}</span>`
     : '';
   overlayStatsEl.innerHTML = starLine + ordLine +
     `<span class="pill">🍇 ${eatenCount} fruit</span>` +
@@ -8949,12 +9041,10 @@ function onTimeUp() {
   fillStats();
   // Kaç kaldığı, bölümün ne istediğine göre: siparişte kalan meyve tarlanın
   // tamamı değil, hedef meyve.
-  const left = orderType
-    ? Math.max(0, orderGoal - orderEaten)
+  const left = missionKind
+    ? Math.max(0, missionGoal - missionEaten)
     : Math.max(0, levelGoal - eatenCount);
-  const ne = orderType
-    ? `${TYPE_BY_ID[orderType].label.toLowerCase()}${left === 1 ? '' : 's'} left`
-    : 'fruit left';
+  const ne = missionKind ? `${missionNouns(left).toLowerCase()} left` : 'fruit left';
   showOverlay("Time's Up! ⏱", `${left} ${ne}`, 'Retry', startLevel, !revivedThisLevel);
 }
 
@@ -9196,7 +9286,8 @@ let rimPulse = 0;
 function eatFruit(f, now) {
   f.eaten = true;
   eatenCount++;
-  if (orderType && !f.prop && f.type === orderType) orderEaten++;
+  if (missionKind === 'order' && !f.prop && f.type === orderType) missionEaten++;
+  else if (missionKind === 'giants' && f.giant) missionEaten++;
   if (f.prop) markFound(f.prop);
   // chaining eats pays a multiplier, so sweeping a same-type patch in one
   // pass is worth more than picking fruit off one at a time
@@ -9254,7 +9345,7 @@ function eatFruit(f, now) {
     else {
       fieldGroup.remove(mesh);
       // Sipariş bölümünde tarlanın tamamı değil, hedef meyve bitiriyor.
-      if (orderType ? orderEaten >= orderGoal : eatenCount >= levelGoal) onCleared();
+      if (missionKind ? missionEaten >= missionGoal : eatenCount >= levelGoal) onCleared();
     }
   })(performance.now());
 }
@@ -10379,7 +10470,7 @@ window.fruitHoleOrder = (typeId) => {
     return {
       total: hepsi.length, counts: sayim,
       // Bölümün kendi görevi: sipariş varsa hangi meyve, kaçta kaç.
-      mission: orderType, goal: orderGoal, done: orderEaten,
+      mission: missionKind, type: orderType, goal: missionGoal, done: missionEaten,
       saat: levelTime(), supurme: +sweepSeconds().toFixed(1),
     };
   }
@@ -10393,10 +10484,12 @@ window.fruitHoleOrder = (typeId) => {
 
 // Hedef meyveye doğru sür: sipariş bölümünü otomatik oynatmak için.
 window.fruitHoleOrderNearest = () => {
-  if (!orderType) return null;
+  if (!missionKind) return null;
   let en = null, ed = Infinity;
   for (const f of fruits) {
-    if (f.eaten || f.prop || f.type !== orderType) continue;
+    // Siparişte hedef meyve, devler bölümünde dev.
+    if (f.eaten) continue;
+    if (missionKind === 'order' ? (f.prop || f.type !== orderType) : !f.giant) continue;
     const d = (f.x - holeX) ** 2 + (f.z - holeZ) ** 2;
     if (d < ed) { ed = d; en = f; }
   }
