@@ -1916,8 +1916,12 @@ Yirmi dört düzenin hepsi aynı işi istiyordu: tarlayı süpür. Düzen **taht
 şeklini** değiştiriyor, yapılan işi değiştirmiyor — ve tur çevirmesi de
 (yukarıda) şekli değiştiren bir şey, işi değil.
 
-Sipariş bölümü işi değiştiriyor: bölüm tarlanın tamamı bittiğinde değil, **tek
-bir meyvenin hepsi** yendiğinde bitiyor. Rota bambaşka — süpürmek yerine bir
+Görev bölümleri işi değiştiriyor. Üç tip var ve sırayla geliyorlar — 5
+sipariş, 15 devler, 25 rush, 35 sipariş… — yani iki görev arası on bölüm ve
+aynı tip otuz bölümde bir.
+
+Sipariş: bölüm tarlanın tamamı bittiğinde değil, **tek bir meyvenin hepsi**
+yendiğinde bitiyor. Rota bambaşka — süpürmek yerine bir
 rengi kovalamak, ve yoldaki öteki meyveler yalnızca büyümek için.
 
 Sonu 5 olan bölümler: 5, 15, 25… Patronla (her onuncu) hiç çakışmıyor ve iki
@@ -1999,6 +2003,42 @@ duraksamıyor ve yanlış meyveye gitmiyor.
 Nesneler sayılmıyor: "bütün muzları ye" diyen bir görevde sulama kabı muz
 değil, ve oyuncu ona bakıp muz saymaz. Günlük koşuda sipariş yok, sebebi
 yukarıdaki tur çevirmesiyle aynı.
+
+### Üçüncü tip: ⏱ Rush
+
+İlk iki görev **ne yiyeceğini** değiştiriyor. Üçüncüsü **ne kadar
+durabileceğini**: saat 12 saniyede başlıyor, yenen her meyve 0.35 ekliyor,
+tavan 30 saniye. İş yine tarlayı süpürmek ama tempoyu tahta değil oyuncu
+belirliyor — duran kaybediyor.
+
+Eşik aritmetikten çıkıyor: saniyede 1 saniye harcanıyor, 0.35 × (saniyedeki
+meyve) kazanılıyor, yani **saniyede ~3 meyve** başa baş. Altında saat eriyor,
+üstünde doluyor.
+
+Tavan olmasaydı geç safhada saat yüz saniyeye çıkardı ve bölüm sıradan bir
+süpürmeye dönerdi.
+
+Ölçüm (`scratchpad/holeorderplay.mjs`, iki rush bölümü):
+
+```
+ blm | hedef | bitti mi | kalan saat | yıldız
+  25 |   197 | bitti    |  22.0 / 30 |    3
+  55 |   388 | bitti    |  23.8 / 30 |    3
+```
+
+Ve ölçümün gösterdiği, tasarlanmayan ama doğru olan şey: **gerilim bölümün
+sonunda.** Bot koşunun ortasında saati tavana dayıyor, sonlara doğru tarla
+seyrekleşince saat beslenmeyi bırakıyor ve düşmeye başlıyor. Yani rush'ın zor
+yeri son otuz meyve.
+
+İki şey de saatin şekli yüzünden yanlış ölçüyordu:
+
+* **Yıldızlar** bölümün başlangıç saatine bakıyordu. Rush'ta saat 12'de
+  başlayıp tavana tırmandığı için oran hep 1'in üstündeydi — her koşu üç
+  yıldız. Artık tavana göre: hiç sıkışmadan geçen üç, son saniyede yetişen bir.
+* **Testin kare bütçesi** "saat + 5 saniye"ydi. Rush'ta saat, bölümün ne kadar
+  süreceğini değil ne kadar durabileceğini söylüyor; bot tarlanın üçte ikisini
+  yemişken bütçe bitti ve test "bitirilemedi" dedi. Saat o sırada tavandaydı.
 
 ### Görevlerin ödülü
 
