@@ -100,7 +100,7 @@ huddled together, and never a slice: the whole fruit standing up, stalk and
 leaf. You cannot touch them at the start. Sweep, grow into one, and it pays
 for the whole trip.
 
-🧺 SEVENTY-THREE THINGS TO FIND
+🧺 EIGHTY THINGS TO FIND
 Scattered through the crop is whatever belongs where you are. A bucket and
 spade on the beach. A snowman in the snow. Gold bars on the bank floor. A
 rocket in orbit. Cocktails at the bar, a tractor out on the farm. Every one you
@@ -155,7 +155,7 @@ Every fifth level now asks for something else. An order level ends when every ba
 
 Past the last layout the fields come back mirrored and in a new order, in themes they have never worn, with less time on the clock.
 
-Plus the Collection screen for the 73 objects hidden in the crop, a free chest every four hours, and fourteen more achievements.
+Plus the Collection screen for the 80 objects hidden in the crop, a free chest every four hours, and fourteen more achievements.
 ```
 
 Türkçe (459 karakter):
@@ -164,7 +164,7 @@ Her beşinci bölüm artık başka bir şey istiyor. Sipariş bölümü tahtadak
 
 Son düzenden sonra tarlalar aynalanmış hâlde, başka sırayla ve hiç görmedikleri temalarda geri geliyor; saat de daha kısa.
 
-Ayrıca ekinin arasına saklı 73 nesne için koleksiyon ekranı, dört saatte bir dolan bedava sandık ve on dört yeni başarım.
+Ayrıca ekinin arasına saklı 80 nesne için koleksiyon ekranı, dört saatte bir dolan bedava sandık ve on dört yeni başarım.
 ```
 
 ## What's new — 1.10 / versionCode 30 (≤ 500 chars per language)

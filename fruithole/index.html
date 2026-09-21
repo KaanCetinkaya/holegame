@@ -1414,7 +1414,7 @@ const ACHIEVEMENTS = [
   // Hedef, oyundaki nesne sayısıyla birebir. Açıklamada sayı yazmıyor:
   // tema eklendiğinde 63 yazan bir cümle sessizce yalan olurdu. Sayının
   // kaydığını `holeawards.mjs` yakalıyor.
-  { id: 'findall',  icon: '🏅', name: 'Nothing left',  desc: 'Find every object', goal: 73, at: () => found.size, pay: 'banana', reward: 2000, after: 'find40' },
+  { id: 'findall',  icon: '🏅', name: 'Nothing left',  desc: 'Find every object', goal: 80, at: () => found.size, pay: 'banana', reward: 2000, after: 'find40' },
 
   { id: 'streak7',  icon: '📆', name: 'Seven days',    desc: 'Reach a 7 day streak', goal: 7, at: () => daily.streak || 0, pay: 'lychee', reward: 900 },
 
@@ -5468,6 +5468,132 @@ function propTemplates() {
     T.scarecrow = { g, h: 2.0, currency: 'lychee', only: 'giant' };
   }
 
+  // --- market ---------------------------------------------------------
+  //
+  // Hasat meyvenin geldiği yerdi; pazar gittiği yer. Oyunun iki ucu artık
+  // tahtada.
+  //
+  // Buradaki hepsi de tepeden okunuyor: yukarıdan bir nesneyi tanıtan şey
+  // silueti, o yüzden hiçbiri ince ve dik değil.
+
+  // Terazi. Yukarıdan iki daire ve arasında bir çubuk — o iki dairenin eşit
+  // ve simetrik olması, bunu masadaki başka hiçbir şeye benzetmiyor.
+  {
+    const g = new THREE.Group();
+    const brass = new THREE.MeshStandardMaterial({
+      color: '#c9a44c', roughness: 0.34, metalness: 0.6 });
+    const dark = PROP_MAT('#6b5220', 0.6);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.1, 14), dark), 0, 0.05, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.5, 10), brass), 0, 0.3, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.05, 0.07), brass), 0, 0.56, 0);
+    for (const s of [-1, 1]) {
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.18, 6), brass),
+          s * 0.42, 0.47, 0);
+      // Kefe: sığ bir tas, hafif eğimli. Düz disk tabak gibi duruyordu.
+      const pan = new THREE.Mesh(new THREE.SphereGeometry(0.23, 14, 8, 0, Math.PI * 2, 0, 0.9), brass);
+      put(g, pan, s * 0.42, 0.38, 0, Math.PI, 0, 0);
+    }
+    T.scales = { g, h: 0.6, currency: 'melon' };
+  }
+
+  // Hasır sepet. Örgüsü yukarıdan görünen tek şey, o yüzden halkalar
+  // tepeden bakıldığında da okunacak kadar kalın.
+  {
+    const g = new THREE.Group();
+    const wick = PROP_MAT('#c8913f', 0.92);
+    const wickDark = PROP_MAT('#9c6b26', 0.9);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.34, 0.38, 16, 1, true), wick), 0, 0.19, 0);
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.4 - i * 0.025, 0.035, 6, 18), wickDark),
+          0, 0.07 + i * 0.13, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CircleGeometry(0.34, 16), wickDark), 0, 0.02, 0, -Math.PI / 2, 0, 0);
+    // Kulp: tek yay, sepetin ne olduğunu söyleyen parça.
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.035, 6, 16, Math.PI), wick),
+        0, 0.38, 0, 0, Math.PI / 2, 0);
+    T.basket = { g, h: 0.74, currency: 'berry' };
+  }
+
+  // Ekmek. Uzun bir somun, üstünde çapraz kesikler: kesikler olmadan
+  // yukarıdan bakınca bu bir tomruk.
+  {
+    const g = new THREE.Group();
+    const crust = PROP_MAT('#c98a43', 0.95);
+    const loaf = new THREE.Mesh(new THREE.CapsuleGeometry(0.19, 0.62, 6, 12), crust);
+    put(g, loaf, 0, 0.19, 0, 0, 0, Math.PI / 2);
+    for (const x of [-0.22, 0, 0.22])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.04, 0.2), PROP_MAT('#8f5b23', 0.9)),
+          x, 0.33, 0, 0, 0.5, 0);
+    T.bread = { g, h: 0.4, currency: 'banana' };
+  }
+
+  // Peynir. Üçgen dilim — yukarıdan üçgen olan tek nesne, ve delikleri
+  // sarının hangi sarı olduğunu söylüyor.
+  {
+    const g = new THREE.Group();
+    const body = PROP_MAT('#f2c440', 0.85);
+    // Üç kenarlı bir silindir: dilimin kendisi.
+    const wedge = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.3, 3), body);
+    put(g, wedge, 0, 0.15, 0, 0, 0.4, 0);
+    for (const [x, z, r] of [[-0.05, 0.06, 0.07], [0.12, -0.02, 0.05], [0.02, -0.14, 0.045]])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), PROP_MAT('#d9a520', 0.8)),
+          x, 0.3, z);
+    T.cheese = { g, h: 0.32, currency: 'banana' };
+  }
+
+  // Reçel kavanozu. Cam gövde, bez kapak: kapak olmadan bu bir bardak.
+  {
+    const g = new THREE.Group();
+    const glass = new THREE.MeshStandardMaterial({
+      color: '#d2452f', roughness: 0.22, metalness: 0.05 });
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.22, 0.42, 14), glass), 0, 0.21, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.1, 14), PROP_MAT('#f3e7cd', 0.95)),
+        0, 0.46, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.025, 6, 16), PROP_MAT('#9c7c3a', 0.8)),
+        0, 0.42, 0, Math.PI / 2, 0, 0);
+    T.jar = { g, h: 0.52, currency: 'lychee' };
+  }
+
+  // Çuval. Ağzı büzülmüş, gövdesi şişkin — yukarıdan bir daire, ama tepesinde
+  // düğümü var ve o düğüm onu kasadan da kovadan da ayırıyor.
+  {
+    const g = new THREE.Group();
+    const sackMat = PROP_MAT('#b39a6d', 0.96);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.36, 14, 10), sackMat);
+    body.scale.set(1, 0.9, 1);
+    put(g, body, 0, 0.32, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 0.2, 12), sackMat), 0, 0.62, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.03, 6, 12), PROP_MAT('#7d6537', 0.8)),
+        0, 0.66, 0, Math.PI / 2, 0, 0);
+    // Ağızdan taşan tahıl: çuvalın dolu olduğunu söyleyen şey.
+    for (const [x, z] of [[-0.06, 0.04], [0.07, -0.03], [0.01, 0.08]])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), PROP_MAT('#e6d49b', 0.9)),
+          x, 0.74, z);
+    T.sack = { g, h: 0.78, currency: 'melon' };
+  }
+
+  // Tente. Yalnızca dev: çizgileri hücre boyunda birbirine giriyor ve geriye
+  // kırmızı-beyaz bir bulanıklık kalıyor.
+  {
+    const g = new THREE.Group();
+    const pole = PROP_MAT('#6f6a60', 0.7);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.5, 8), pole),
+          sx * 0.62, 0.75, sz * 0.52);
+    // Şerit şerit örtü: kırmızı ve krem, dörder dilim.
+    const w = 1.36, d = 1.16, n = 6;
+    for (let i = 0; i < n; i++) {
+      const mat = PROP_MAT(i % 2 ? '#e8e0cd' : '#c4463c', 0.9);
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(w / n, 0.06, d), mat);
+      put(g, strip, -w / 2 + w / n * (i + 0.5), 1.54, 0);
+    }
+    // Saçak: örtünün ön kenarında dalgalı şerit.
+    for (let i = 0; i < n; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(w / n * 0.9, 0.16, 0.05),
+          PROP_MAT(i % 2 ? '#c4463c' : '#e8e0cd', 0.9)),
+          -w / 2 + w / n * (i + 0.5), 1.46, d / 2);
+    T.awning = { g, h: 1.62, currency: 'berry', only: 'giant' };
+  }
+
   return T;
 }
 
@@ -5751,6 +5877,65 @@ function soilTexture() {
   return tex;
 }
 
+// Arnavut kaldırımı: pazarın zemini.
+//
+// Oyundaki on zeminin hiçbiri taş değildi — mermer var ama o cilalı ve
+// dümdüz, banka zemini. Buradaki taş yuvarlak, aşınmış ve derzleri koyu;
+// yukarıdan bakınca asfalttan ayıran şey de o derzler.
+//
+// Taşlar ızgaraya oturmuyor: her sıra yarım taş kaydırılıyor ve her taşın
+// köşesi biraz yuvarlatılıyor. Hizalı bir taş deseni döşemeye benziyor,
+// kaldırıma değil.
+function cobbleTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#4b453d';                       // derz: taşların arası
+  ctx.fillRect(0, 0, S, S);
+  const cols = 8, rows = 10, cw = S / cols, ch = S / rows;
+  for (let r = 0; r < rows; r++) {
+    for (let i = -1; i <= cols; i++) {
+      const ox = (r % 2 ? cw / 2 : 0) + i * cw;
+      const x = ox + cw * 0.06, y = r * ch + ch * 0.08;
+      const w = cw * 0.88, h = ch * 0.84;
+      // Her taş kendi tonunda: aynı griden yapılmış bir kaldırım boyanmış
+      // gibi duruyor.
+      const t = 0.82 + Math.random() * 0.3;
+      const base = [168, 158, 146].map(v => Math.min(255, Math.round(v * t)));
+      ctx.fillStyle = `rgb(${base[0]},${base[1]},${base[2]})`;
+      const rad = Math.min(w, h) * 0.34;
+      ctx.beginPath();
+      ctx.moveTo(x + rad, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rad);
+      ctx.arcTo(x + w, y + h, x, y + h, rad);
+      ctx.arcTo(x, y + h, x, y, rad);
+      ctx.arcTo(x, y, x + w, y, rad);
+      ctx.fill();
+      // Üst kenarda ışık, alt kenarda gölge: taş yassı bir leke değil.
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x + rad * 0.5, y + 1, w - rad, 1.6);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(x + rad * 0.5, y + h - 2.6, w - rad, 1.6);
+      ctx.globalAlpha = 1;
+    }
+  }
+  // Aşınma: taşların üstünde açık lekeler, aralarda toz.
+  for (let i = 0; i < 900; i++) {
+    ctx.globalAlpha = 0.04 + Math.random() * 0.07;
+    ctx.fillStyle = Math.random() < 0.5 ? '#ffffff' : '#3a342d';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  // 4, 6 değil: altıda taş hücrenin dörtte birine iniyor ve yukarıdan
+  // bakınca desen taşa değil kumaşa benziyor. Dörtte bir taş bir meyve
+  // kadar, yani ölçek okunuyor.
+  tex.repeat.set(4, 4);
+  return tex;
+}
+
 // Floorboards. Seams run one way only, so the repeat has to be square or the
 // planks come out as tiles.
 function woodTexture() {
@@ -5974,7 +6159,7 @@ const GROUND_TEX = {};
 const GROUND_MAKERS = { sand: groundTexture, grass: grassTexture,
   wood: woodTexture, snow: snowTexture, marble: marbleTexture,
   deck: deckTexture, bar: barTexture, asphalt: asphaltTexture,
-  tiles: tileTexture, soil: soilTexture };
+  tiles: tileTexture, soil: soilTexture, cobbles: cobbleTexture };
 const groundTex = kind => GROUND_TEX[kind] || (GROUND_TEX[kind] = GROUND_MAKERS[kind]());
 // The sand is an island in turquoise water rather than sand to the horizon:
 // it ties the board to the app icon, and it gives the field a visible edge —
@@ -6186,6 +6371,11 @@ const SURROUND_MAKERS = {
   parlour: () => speckTexture('#4a382a', '#33261c', '#63503c', 16),
   bankstone: darkStoneTexture,
   tarmac: darkAsphaltTexture,
+  // Pazarın dışı yine kaldırım, ama gölgede kalan yan sokak: aynı taş,
+  // biraz koyusu. İlk değer mağaza zemini kadar karanlıktı ve gündüz
+  // kurulan bir pazarın etrafını geceye çeviriyordu — tahtanın dışı
+  // tahtadan koyu olmalı, başka bir yer değil.
+  sidestreet: () => speckTexture('#5b544a', '#484238', '#726a5d', 15),
 };
 const surroundTex = kind => SURROUND_TEX[kind] ||
   (SURROUND_TEX[kind] = SURROUND_MAKERS[kind]());
@@ -6390,6 +6580,24 @@ const THEMES = {
     beyond: 'meadow',
     // Altın saat: hasat ışığı. Aşağıdan toprak ve ekin yansıyor.
     light: { sky: '#ffe9c0', bounce: '#7a6a3a', hemi: 1.45, amb: '#ffeccf', ambI: 0.48, sun: '#ffd89a', sunI: 0.78 },
+  },
+  // Hasat meyvenin geldiği yerdi. Pazar gittiği yer — ve oyunun iki ucu
+  // arasındaki fark zeminde görünüyor: orada sürülmüş toprak, burada aşınmış
+  // taş. Oyundaki ilk taş zemin bu; mermer var ama o cilalı ve dümdüz.
+  market: {
+    name: 'Market Day', icon: '🧺',
+    ground: 'cobbles', surround: '#5b544a', ripples: false,
+    // Kenar: kaldırım taşı. Tahtanın bittiği yeri bir kenar taşı söylüyor.
+    edge: '#cbbfa8', surf: null,
+    props: ['scales', 'basket', 'bread', 'cheese', 'jar', 'sack', 'crate', 'awning'],
+    // Sabah pazarının havası: tenteden sızan ışıkta duran toz, ve hafifçe
+    // yanlamasına sürüklenen. Kalabalık değil — tozu göstermek değil, yerin
+    // durmadığını söylemek amaç.
+    air: { n: 42, size: 6, colour: '#ffeac6', opacity: 0.45, fall: 0.3, drift: 0.9, top: 6 },
+    beyond: 'sidestreet',
+    // Sabah: gökyüzü açık ve serin, aşağıdan taşın soluk grisi geliyor.
+    // Tentelerin altından geçen ışık sıcak, o yüzden anahtar ışık hafif amber.
+    light: { sky: '#eef3ff', bounce: '#a9a294', hemi: 1.42, amb: '#fdf4e6', ambI: 0.44, sun: '#fff1d2', sunI: 0.74 },
   },
   mixed: {
     name: 'Everything', icon: '🎲',
@@ -7047,7 +7255,9 @@ const PATTERNS = [
     props: 0.05,
   },
   {
-    name: 'Piles', icon: '🥞', theme: 'drivein',
+    // Pazara taşındı: üst üste yığılmış meyve, pazarın kendisi. Arabalı
+    // sinemadan alındı çünkü orada üç düzen vardı, burada hiç yoktu.
+    name: 'Piles', icon: '🥞', theme: 'market',
     // sparse ground with tall piles dotted across it
     empty: (r, c) => !(r % 2 === 1 && c % 2 === 1) || blob(r, c, 0.35, 13) < 0.32,
     stack: (r, c) => ridge((blob(r, c, 0.35, 13) - 0.32) / 0.68, 3),
@@ -7086,7 +7296,9 @@ const PATTERNS = [
     // kadar kayıyor, yani bant boyunca süpürürken yön sürekli değişiyor.
     // Chevrons da enine gider ama köşelidir ve seni bir ağza huniler; bu
     // sürekli, ve takip edilecek bir çizgi.
-    name: 'Wave', icon: '🌊', theme: 'beach',
+    // Kumsaldan pazara. Kumsalda da üç düzen vardı; şekil bir dalga ama
+    // dalga olmak zorunda değil — taş zeminde sıra sıra tezgâh oluyor.
+    name: 'Wave', icon: '🌊', theme: 'market',
     props: 0.05,
     empty: (r, c) => waveAt(r, c) === null,
     // Bant başına tek meyve: dalgalar ancak tek renkliyken çizgi olarak
