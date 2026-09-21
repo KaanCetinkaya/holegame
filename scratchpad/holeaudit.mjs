@@ -115,11 +115,18 @@ for (let lvl = 1; lvl <= 40; lvl++) {
   const r = await pg.evaluate((n) => {
     const p = window.fruitHoleProbe(n);
     const g = window.fruitHoleGrow();
-    return { pattern: p.pattern, fruit: p.fruit, seconds: p.seconds, left: g.left };
+    const o = window.fruitHoleOrder();
+    return { pattern: p.pattern, fruit: p.fruit, seconds: p.seconds, left: g.left,
+             mission: o.mission };
   }, lvl);
   if (errs.length > before) bad.push(`${lvl} (${r.pattern})`);
   if (!r.fruit || !r.left) bad.push(`${lvl} (${r.pattern}) boş tarla`);
-  if (!r.seconds || r.seconds < 20) bad.push(`${lvl} (${r.pattern}) saat ${r.seconds}sn`);
+  // Alt sınır görev tipine göre. Rush bölümünde saat **bilerek** kısa
+  // başlıyor (12 saniye) ve yenen her meyveyle doluyor; oradaki 20 saniyelik
+  // eşik, tasarımı hata sanardı. Eşiğin varlık sebebi duruyor: kazayla
+  // saniyelere inmiş bir saat hâlâ yakalanıyor.
+  const enAz = r.mission === 'rush' ? 8 : 20;
+  if (!r.seconds || r.seconds < enAz) bad.push(`${lvl} (${r.pattern}) saat ${r.seconds}sn`);
   stats.push(r);
 }
 check(bad.length === 0, '1-40 arası her bölüm kuruldu, tarlası ve saati var',
@@ -138,6 +145,8 @@ for (const n of [100, 250, 999]) {
     const p = window.fruitHoleProbe(lvl);
     return { pattern: p.pattern, fruit: p.fruit, seconds: p.seconds };
   }, n);
+  // 100, 250 ve 999'un hiçbiri rush değil (hepsi 10'a bölünüyor ya da
+  // sonu 5 değil), yani buradaki eşik olduğu gibi kalıyor.
   check(errs.length === before && r.fruit > 0 && r.seconds > 20,
     `${n}. bölüm kuruluyor`, `${r.pattern}, ${r.fruit} meyve, ${r.seconds}sn`);
 }
