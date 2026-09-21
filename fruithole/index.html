@@ -1007,18 +1007,19 @@ function isOrderLevel(n) { return n > 0 && n % ORDER_EVERY === ORDER_AT; }
 // Tek tip, ikinci kez görüldüğünde artık görev değil kural oluyordu. İkisi
 // farklı şey istiyor: sipariş bir rengi kovalamak, devler ise önce büyümek —
 // biri rota, öteki sıralama sorusu.
+const MISSION_KINDS = ['order', 'giants', 'rush'];
 function missionKindFor(n) {
   if (!isOrderLevel(n)) return null;
-  return Math.floor((n - ORDER_AT) / ORDER_EVERY) % 2 === 0 ? 'order' : 'giants';
+  return MISSION_KINDS[Math.floor((n - ORDER_AT) / ORDER_EVERY) % MISSION_KINDS.length];
 }
 // Görevin ekranda söylediği üç şey, tek yerde: simgesi, saydığı şeyin adı ve
 // kuralı. Dağıttığımızda biri güncellenip öteki unutuluyor — üst satır
 // "muzlar" derken bitiş ekranının "meyve" demesi böyle oluyor.
-const MISSION_ICON = { order: '📋', giants: '🍉' };
+const MISSION_ICON = { order: '📋', giants: '🍉', rush: '⏱' };
 function missionNoun() {
   if (missionKind === 'order') return TYPE_BY_ID[orderType].label;
   if (missionKind === 'giants') return 'Giant';
-  return 'fruit';
+  return 'Fruit';
 }
 // Çoğulu ekleyen yer bir tane. `label + 's'` diyen üç satır vardı ve üçü de
 // "strawberrys" yazıyordu; dördüncüsü yazılınca dördü de yazacaktı.
@@ -1035,6 +1036,9 @@ function missionRule() {
   }
   if (missionKind === 'giants') {
     return 'GIANTS: eat your way up to size, then swallow every giant';
+  }
+  if (missionKind === 'rush') {
+    return 'RUSH: the clock is short — every fruit you swallow adds to it';
   }
   return HINT_DEFAULT;
 }
@@ -7540,6 +7544,12 @@ function buildField() {
       orderType = pickOrderType();
       missionGoal = orderType
         ? fruits.filter(f => !f.prop && f.type === orderType).length : 0;
+    } else if (kind === 'rush') {
+      // Rush tarlanın tamamını istiyor, tıpkı sıradan bir bölüm gibi. Değişen
+      // şey saat: kısa başlıyor ve her meyve ona ekliyor, yani bölüm bir
+      // süpürme değil bir kovalamaca. Hedef `levelGoal` ile aynı olduğu için
+      // ilerleme çubuğu da eskisi gibi çalışıyor.
+      missionGoal = fruits.length;
     } else if (kind === 'giants') {
       // Devlerin hepsi: nesne olarak çizilenler de dahil. Sipariş görevinde
       // nesne sayılmıyordu çünkü traktör muz değil; burada tam tersi, çünkü
@@ -8372,6 +8382,17 @@ const ORDER_TARGET = 25;    // seçim bu tur süresini arıyor (saniye)
 // insanın payı o aradaki fark.
 const ORDER_SLACK = 2.0;
 const ORDER_FLOOR = 30;     // küçük tarlada bile bölüm bölüm olsun
+// Rush: saat kısa başlıyor ve her meyve ona ekliyor.
+//
+// Öteki iki görev "neyi yiyeceğini" değiştiriyor; bu, "ne kadar durabileceğini"
+// değiştiriyor. Duran oyuncu kaybediyor — tarlayı süpürmek aynı iş, ama
+// tempoyu tarlanın kendisi belirlemiyor, sen belirliyorsun.
+//
+// Tavan var: yoksa geç safhada saat yüz saniyeye çıkıp bölüm sıradan bir
+// süpürmeye dönüyor. Sayılar aşağıda ölçülüp yerleşti.
+const RUSH_START = 12;      // saniye
+const RUSH_BONUS = 0.35;    // meyve başına eklenen
+const RUSH_CAP = 30;        // saatin çıkabileceği tavan
 // Devler bölümünün kat sayısı ayrı, çünkü modeli de ayrı.
 //
 // İlk model büyüme süresiyle dev turunu **topluyordu** ve ölçüm bunun yanlış
@@ -8505,6 +8526,8 @@ function levelTime() {
     ? Math.max(ORDER_FLOOR, Math.round(orderTourSeconds(orderType) * ORDER_SLACK))
     : missionKind === 'giants'
     ? Math.max(ORDER_FLOOR, growSeconds(), Math.round(giantTourSeconds() * GIANT_SLACK))
+    : missionKind === 'rush'
+    ? RUSH_START
     : Math.round(sweepSeconds() * 2.6);
   const squeeze = 1 - Math.min(0.28, tier() * 0.07);   // later cycles are tighter
   return Math.round(base * squeeze * ease()) + upg('time') * 5;
@@ -9328,6 +9351,13 @@ function eatFruit(f, now) {
   eatenCount++;
   if (missionKind === 'order' && !f.prop && f.type === orderType) missionEaten++;
   else if (missionKind === 'giants' && f.giant) missionEaten++;
+  else if (missionKind === 'rush') {
+    missionEaten++;
+    // Saat yenen meyveden besleniyor. Tavanı aşmıyor ve zaten tavanın
+    // üstündeyse (yükseltmeyle başlamış olabilir) düşürmüyor.
+    timeLeft = Math.max(timeLeft, Math.min(RUSH_CAP, timeLeft + RUSH_BONUS));
+    updateTimeUI();
+  }
   if (f.prop) markFound(f.prop);
   // chaining eats pays a multiplier, so sweeping a same-type patch in one
   // pass is worth more than picking fruit off one at a time
@@ -10534,9 +10564,10 @@ window.fruitHoleOrderNearest = () => {
   if (!missionKind) return null;
   let en = null, ed = Infinity;
   for (const f of fruits) {
-    // Siparişte hedef meyve, devler bölümünde dev.
+    // Siparişte hedef meyve, devler bölümünde dev, rush'ta ne varsa.
     if (f.eaten) continue;
-    if (missionKind === 'order' ? (f.prop || f.type !== orderType) : !f.giant) continue;
+    if (missionKind === 'order' && (f.prop || f.type !== orderType)) continue;
+    if (missionKind === 'giants' && !f.giant) continue;
     const d = (f.x - holeX) ** 2 + (f.z - holeZ) ** 2;
     if (d < ed) { ed = d; en = f; }
   }
