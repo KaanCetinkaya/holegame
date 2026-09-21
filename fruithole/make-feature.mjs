@@ -32,7 +32,14 @@ const PORT = 8123;
 // dark — and one level in nineteen is voxel. Level 6 is the drive-in, also
 // dark and thinner. Sand is the brightest ground the game owns and the fruit
 // read as fruit on it.
-const LEVEL = process.argv[2] || '20';
+// Bölüm numarası değil **tema adı** isteniyor.
+//
+// Burada "20" yazıyordu ve yanında "Level 20: the beach" diye bir yorum vardı.
+// Düzen sayısı 19'dan 24'e çıkınca 20. bölüm kumsal olmaktan çıktı; dosya yine
+// çalışıyor, yine bir görsel üretiyor, sadece mağaza sayfasının en tepesindeki
+// resim başka bir yerde geçiyor. Aynı hata make-shots ve make-clips'te de
+// çıkmıştı; numara artık oyunun kendi tablosundan çözülüyor.
+const THEME = process.argv[2] || 'beach';
 
 const srv = createServer((req, res) => {
   const p = req.url === '/' ? '/index.html' : req.url.split('?')[0];
@@ -49,6 +56,29 @@ const browser = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium',
   args: ['--use-gl=swiftshader'],
 });
+// Temanın hangi bölüm olduğunu oyuna sor. Aynı temada birden çok düzen varsa
+// en yoğun olanı seçiliyor: feature grafiğinde satan şey dolu bir tarla.
+const LEVEL = await (async () => {
+  const pg = await browser.newPage({ viewport: { width: 412, height: 915 } });
+  await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
+  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function', { timeout: 25000 });
+  const t = await pg.evaluate(() => window.fruitHoleThemeTable());
+  const adaylar = t.patternThemes
+    .map((tema, i) => ({ tema, level: i + 1, ad: t.order[i] }))
+    .filter(x => x.tema === THEME);
+  if (!adaylar.length) {
+    throw new Error(`tema bulunamadı: ${THEME} — oyundakiler: ${[...new Set(t.patternThemes)].join(', ')}`);
+  }
+  let en = adaylar[0], enCok = -1;
+  for (const a of adaylar) {
+    const n = await pg.evaluate(l => window.fruitHoleProbe(l).fruit, a.level);
+    if (n > enCok) { enCok = n; en = a; }
+  }
+  await pg.close();
+  console.log(`tema ${THEME} -> bölüm ${en.level} (${en.ad}), ${enCok} meyve`);
+  return String(en.level);
+})();
+
 const page = await browser.newPage({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 2 });
 await page.addInitScript(l => localStorage.setItem('fruithole_level', l), LEVEL);
 await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
@@ -61,10 +91,20 @@ await page.waitForTimeout(700);
 
 // Eat a short swathe. On a full board the hole is buried under fruit, and the
 // hole is the thing the game is named after — it has to be in the picture.
+//
+// Başlangıç deliğiyle bu yetmiyordu: 1024x500'e sığdırılmış bir tarlada
+// açılış deliği meyvelerin arasında kayboluyor, ve mağaza sayfasının en
+// tepesindeki resimde görünmeyen şey yok demektir. Delik birkaç bölüm oynamış
+// bir oyuncunun deliği kadar açılıyor (make-shots'taki "2-grown" ile aynı
+// yöntem) ve arkasında süpürülmüş bir iz bırakacak kadar sürülüyor — iz,
+// oyunun ne yaptığını tek karede anlatan şey.
+await page.evaluate(() => window.fruitHoleSetSize(0.32));
 await page.mouse.move(512, 250);
 await page.mouse.down();
-await page.mouse.move(512, 200, { steps: 8 });
-await page.waitForTimeout(1100);
+await page.mouse.move(512, 170, { steps: 8 });
+await page.waitForTimeout(1400);
+await page.mouse.move(600, 210, { steps: 6 });
+await page.waitForTimeout(1200);
 await page.mouse.up();
 await page.waitForTimeout(600);
 
@@ -75,7 +115,7 @@ await page.evaluate(() => {
   }
   // Play frames a fixed 10.8-unit width; on a 1024x500 plate that is six huge
   // fruit and no shape. Pull back until the level reads as a level.
-  window.fruitHoleZoom(7.4);
+  window.fruitHoleZoom(9.2);
 
   const wrap = document.createElement('div');
   wrap.style.cssText = `position:fixed; inset:0; z-index:99; pointer-events:none;
