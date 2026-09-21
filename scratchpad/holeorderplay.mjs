@@ -5,9 +5,10 @@
 //
 // `holeorder.mjs` turu **modelle** ölçüyor: en yakın komşu, düz çizgiler, tam
 // hız. Gerçek oyuncu öyle oynamıyor — delik dönerken savruluyor, yoldaki
-// meyveye takılıyor, büyümek için hedef dışına sapıyor. Saat o modelin 2.6
-// katı olarak veriliyor ve bu kat sayı bir varsayım; burada tarlayı gerçekten
-// oynayıp ne kadarının kullanıldığına bakılıyor.
+// meyveye takılıyor, büyümek için hedef dışına sapıyor. Saat o modelin bir kat
+// sayısı olarak veriliyor (siparişte 2.0, devlerde 4.0) ve o kat sayı burada
+// ölçülüyor: tarla gerçekten oynanıp saatin ne kadarının kullanıldığına
+// bakılıyor. İki görev tipini de oynuyor.
 //
 // Oyun saati sahteleniyor (make-clips.mjs'deki yöntem): konteynerde GPU yok,
 // gerçek zamanlı oynamak ölçümü çizim hızına bağlardı.
@@ -56,7 +57,7 @@ const fails = [];
 // Tarla her koşuda farklı kuruluyor (tohumlanmıyor), yani başka bir koşunun
 // tur süresiyle bu koşunun süresini karşılaştırmak iki ayrı tahtayı
 // karşılaştırmak olur. Bir kez öyle yapıldı ve model "bozuk" göründü.
-console.log(' blm | hedef | saat | model | bitti mi | kullanılan | kalan | yıldız | gerçek/model | notu');
+console.log(' blm | hedef | saat | model | bitti mi | kullanılan | kalan | yıldız | gerçek/tur   | notu');
 console.log('-----+-------+------+-------+----------+------------+-------+--------+--------------+-----');
 
 for (const lvl of LEVELS) {
@@ -117,9 +118,12 @@ for (const lvl of LEVELS) {
   const kullanilan = +(saat - s.timeLeft).toFixed(1);
   const oran = s.timeLeft / saat;
   const yildiz = oran >= 0.45 ? 3 : oran >= 0.2 ? 2 : 1;
-  // Modelin ham tahmini: saatin kat sayıdan önceki hâli.
-  const model = bas.mission === 'giants'
-    ? +(bas.buyume + bas.devTuru).toFixed(1) : null;
+  // Modelin ham tahmini: saatin kat sayıdan önceki hâli. Devler bölümünde bu
+  // **tur**, büyüme değil — büyüme turun içinde oluyor, ikisini toplamak aynı
+  // süreyi iki kez saymak. Sütun bir süre toplamı yazdı ve oyunun kullandığı
+  // formülle uyuşmuyordu; ölçüm aracının kendi sayısını uydurması, ölçtüğü
+  // şeyi bozmasının en sessiz yolu.
+  const model = bas.mission === 'giants' ? bas.devTuru : null;
   console.log(` ${String(lvl).padStart(3)} | ${String(bas.goal).padStart(5)} | ${String(saat).padStart(4)} | ` +
     `${String(model ?? '-').padStart(5)} | ${(bitti ? 'bitti' : s.state).padEnd(8)} | ` +
     `${String(kullanilan).padStart(10)} | ` +
