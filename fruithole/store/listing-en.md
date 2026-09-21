@@ -47,87 +47,115 @@ Console.
 ```
 You are the hole in the middle of a fruit field — and the clock is running! 🕳️🍇
 
-Drag anywhere to steer the hole across the field and swallow every fruit it
-touches. The more you eat, the bigger you get: blackberries and lychees first,
-then whole banana slices and melons. Clear the field before time runs out,
-grab the stars, move on.
+Drag anywhere to steer the hole and swallow every fruit it touches. The more
+you eat, the bigger you get: blackberries and lychees first, then whole banana
+slices and melons. Clear the field before time runs out, take the stars, move
+on.
 
 ⭐ EARN STARS
 Finishing isn't enough — how fast you finish is what counts. The more time left
-on the clock, the more stars you take. Your best rating on every level is kept,
-so you can always come back and beat it.
+on the clock, the more stars. Your best on every level is kept, so you can
+come back and beat it.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
 Twenty-four hand-built layouts: a stepped pyramid taken down terrace by terrace,
-four towers standing over the field, chevrons, solid circles, hollow rings, a
-heart, a star, an island, a diamond, a staircase, winding walls, a rolling
-wave, a chequerboard, a fruit tree and a pinched hourglass.
+four towers standing over the field, hollow rings, a heart, an island, a
+staircase, winding walls, a rolling wave, a chequerboard and a fruit tree.
 Three throw out the grid and lay the field in rings around you — orbits
 opening outward from where you stand, a five-petalled bloom, three spiral arms.
 
 And each one is somewhere. A beach with the sea running up the sand. A mown
-football pitch. Floorboards indoors. Fresh snow. A marble bank floor veined
-with gold. A station deck with nothing but the dark past its edge. A lacquered
-bar top. A car park. A dark shop floor. A field ploughed into furrows. The
-ground changes, and so does what is lying on it.
+football pitch. Fresh snow. A marble bank floor veined with gold. A station
+deck with nothing but the dark past its edge. A lacquered bar top. A field
+ploughed into furrows. The ground changes, and so does what is lying on it.
 
 🔥 CHAIN COMBOS
-Eat fruit back to back and the multiplier climbs. Sweeping a whole patch in one
-pass pays far better than picking it off one piece at a time.
+Eat fruit back to back and the multiplier climbs. Sweeping a patch in one pass
+pays far better than picking it off one piece at a time.
 
 ⬆️ UPGRADES
 Every fruit you collect is worth something. Make the hole faster, start bigger,
-add seconds to every level, or switch on a magnet that drags nearby fruit in.
-Each upgrade track is paid for with a different fruit.
+add seconds to every level, or switch on a magnet that drags fruit in. Each
+track is paid for with a different fruit.
 
 🎁 BOOSTERS
 Three ways out of a tight spot: +15 seconds, a burst that grows the hole at
-once, and 8 seconds of super magnetism. They unlock as you climb.
+once, and 8 seconds of super magnetism.
 
 👑 BOSS LEVELS
-Every tenth level ends in one colossal fruit at the far end of the board. It
-is wider than any giant, so there is no taking it early — the only way to it
-is to sweep the field, and it is in shot from the first frame.
+Every tenth level ends in one colossal fruit at the far end of the board,
+wider than any giant. There is no taking it early — the only way to it is to
+sweep the field, and it is in shot from the first frame.
 
 📅 DAILY CHALLENGE
 One field a day, the same field for every player — built from the date itself,
 so nobody gets an easier board. Upgrades are switched off, so the score says
-how well you played today, not how long you have been playing. Come back
-tomorrow and keep the streak alive.
-
-📋 DAILY MISSIONS
-Three fresh missions every day, a login reward that grows with your streak, and
-achievements to chase.
+how well you played today, not how long you have played. Three fresh daily
+missions, a login reward that grows with your streak, achievements to chase.
 
 🗼 STACKS AND GIANTS
 Fruit is piled into towers you take down in one pass. Scattered across every
 field are giants — more than twice the width of your opening, sometimes three
-of a kind huddled together. A giant is never a slice: it is the whole fruit
-standing up, stalk and leaf and all. You cannot touch them at the start.
-Sweep enough of the field, grow into one, and it pays for the whole trip.
+huddled together, and never a slice: the whole fruit standing up, stalk and
+leaf. You cannot touch them at the start. Sweep, grow into one, and it pays
+for the whole trip.
 
 🧺 SEVENTY-THREE THINGS TO FIND
 Scattered through the crop is whatever belongs where you are. A bucket and
-spade on the beach. A football on the pitch. A snowman and a penguin in the
-snow. Gold bars on the bank floor. A rocket in orbit. Cocktails at the bar,
-burgers at the drive-in, a tractor and a scarecrow out on the farm. Every one
-you swallow is kept, and the Collection screen holds them all — the ones you
-have in colour, the ones still out there as silhouettes.
+spade on the beach. A snowman in the snow. Gold bars on the bank floor. A
+rocket in orbit. Cocktails at the bar, a tractor out on the farm. Every one you
+swallow is kept, and the Collection screen holds them all — the ones you have
+in colour, the ones still out there as silhouettes.
 
 🕳️ TEN HOLE SKINS
-Mint, grape, coral, ink, lime, candy, ocean — and gold and chrome, which
-catch the light in a way flat colour cannot. Half open as you climb, half are
-bought with fruit.
+Mint, grape, coral, ink, lime, candy, ocean — and gold and chrome, which catch
+the light in a way flat colour cannot. Half open as you climb, half are bought.
+
+📋 MISSION LEVELS
+Every fifth level wants something else. An order level ends when every banana
+is gone — one colour chased across the field instead of the whole crop swept.
+A giant level ends when every giant is swallowed, and you cannot take one
+until you have eaten your way up to its size. The two take turns.
+
+🔁 KEEP GOING
+Past the last layout the fields come back mirrored, in a new order, in themes
+they have never worn, with less time on the clock.
 
 🎁 CHESTS
 Clear a field and a chest drops — tap it, it bursts, and the faster you
-finished the more it pays. A second chest fills on the menu every four hours,
-free, and you can see what is inside before you open it.
+finished the more it pays. A second fills on the menu every four hours, free,
+and you can see inside before you open it.
 
 ⚡ ONE FINGER, FULLY OFFLINE
-Press anywhere and drag. That's the whole control scheme. No connection needed.
+Press anywhere and drag. That's the whole control scheme. No connection.
 
 Ready to clear the field?
+```
+
+## What's new — sıradaki yükleme (≤ 500 chars per language)
+
+Bu not **bir sonraki .aab'ye** ait ve sürüm kodu depoya bakılarak yazılıyor:
+`app-version.json` 30'u gönderilmemiş sayıyor, yani bu build 30 olarak çıkar.
+30 gönderildiyse `npm run uploaded:fruithole` çalıştırılmamış demektir; o
+durumda kod 31'dir ve bu not yine geçerlidir — çünkü aynı derleme hem 1.10'un
+içeriğini hem bunları taşıyor.
+
+English (493 chars):
+```
+Every fifth level now asks for something else. An order level ends when every banana on the board is gone; a giant level ends when every giant is swallowed, and you cannot take one until you have grown into it. The two take turns.
+
+Past the last layout the fields come back mirrored and in a new order, in themes they have never worn, with less time on the clock.
+
+Plus the Collection screen for the 73 objects hidden in the crop, a free chest every four hours, and fourteen more achievements.
+```
+
+Türkçe (459 karakter):
+```
+Her beşinci bölüm artık başka bir şey istiyor. Sipariş bölümü tahtadaki bütün muzlar bitince biter; dev bölümü bütün devler yutulunca — ve bir devi, ona yetişecek kadar büyümeden alamazsın. İkisi sırayla geliyor.
+
+Son düzenden sonra tarlalar aynalanmış hâlde, başka sırayla ve hiç görmedikleri temalarda geri geliyor; saat de daha kısa.
+
+Ayrıca ekinin arasına saklı 73 nesne için koleksiyon ekranı, dört saatte bir dolan bedava sandık ve on dört yeni başarım.
 ```
 
 ## What's new — 1.10 / versionCode 30 (≤ 500 chars per language)

@@ -77,8 +77,16 @@ const SHOTS = [
     } },
   { name: '3-snow', pattern: 'Walls', cap: 'Every level is a shape — and a place',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1300], [-90, -90, 500]]) },
-  { name: '4-rings', pattern: 'Orbits', cap: 'Rings that open out from where you stand',
-    play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1100]]) },
+  // Görev bölümü. Sekiz görselin sekizi de "tarlayı süpür" diyordu, oysa
+  // oyunun beşinci bölümünden itibaren bazı bölümler başka bir şey istiyor —
+  // ve mağazada görünmeyen bir şey, indirme kararında yok demektir.
+  //
+  // Halkalar (Orbits) buradan çıktı: metin onları zaten anlatıyor, ve Play
+  // sekiz telefon görseliyle sınırlı. Bölüm 5 sipariş bölümü; üst satırda
+  // "📋 STRAWBERRIES 6/47" gibi bir sayaç duruyor, yani görsel kuralı kendi
+  // söylüyor.
+  { name: '4-mission', level: 5, cap: 'Some levels want one fruit, not the field',
+    play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1100], [70, -70, 500]]) },
   // Menü, boş bir cüzdanla değil. localStorage temizlendiği için sayaçlar
   // sıfır çıkıyordu ve mağaza görselinde sıfır, oyunun bitmemiş olduğunu
   // ima ediyor — oysa orada görülmesi gereken şey birkaç bölüm oynamış bir
