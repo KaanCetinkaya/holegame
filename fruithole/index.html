@@ -7683,6 +7683,12 @@ function placeGiants() {
 // ---------------------------------------------------------------------
 const BASE_HOLE_R = 0.55;
 const HOLE_MAX = BASE_HOLE_R + 2.2;
+// Deliğin taban hızı. Ana döngünün yanında duruyordu ve orası dosyanın en
+// sonu — yani sayfa açılırken tarla kurulurken henüz tanımlı değil. Süre
+// hesabı oraya baktığı an oyun hiç açılmıyordu: kaydı 5. bölümde olan bir
+// oyuncuda sipariş görevi kuruluyor, görev turu hızı okuyor, ve yükleme
+// perdesi hiç kalkmıyordu. Hızın yeri deliğin yanı.
+const BASE_MOVE_SPEED = 3.4;
 
 // How much the hole gains per fruit — measured against the FIELD, not fixed.
 //
@@ -10487,7 +10493,6 @@ refreshTchestBtn();
 showMenu();
 maybeShowDaily();
 
-const BASE_MOVE_SPEED = 3.4;
 let lastT = performance.now();
 
 function tick(now) {
