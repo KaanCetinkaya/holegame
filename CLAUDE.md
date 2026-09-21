@@ -15,6 +15,18 @@ npm run aab:fruithole
 Makinesi Windows, kabuk PowerShell. JDK:
 `C:\Program Files\Eclipse Adoptium\jdk-21.0.12.8-hotspot`.
 
+**`&&` kullanma, her komut ayrı satır.** Kaan'ın PowerShell'i 5.1 ve `&&`
+orada bir ayraç değil: komut hiç çalışmıyor, yerine
+*"The token '&&' is not a valid statement separator in this version"* diyor.
+Üç komutu tek satıra dizmek, üçünün de çalışmaması demek.
+
+```
+cd C:\Users\HP\holegame
+git add -A
+git commit -m "mesaj"
+git push
+```
+
 ## Derleme
 
 Uygulama başına ayrı komut var ve `node build-aab.mjs` tek başına **Hole**'u
