@@ -1,4 +1,8 @@
 node_modules/
+# IDE'nin kendi ayarları. Kaan'ın makinesinde IntelliJ projeyi açınca
+# oluşuyor ve `git add -A` onları sessizce topluyor: sürüm kaydını tutan tek
+# satırlık bir commit, beş bin satırlık bir IDE ayar yığınıyla geldi.
+.idea/
 /android/
 /ios/
 .DS_Store
