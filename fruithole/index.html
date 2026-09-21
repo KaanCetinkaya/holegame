@@ -8561,7 +8561,13 @@ function ease() {
 // Stars reflect how much time is still on the clock, so clearing fast is
 // worth more than clearing at all. Shown live during play, awarded on clear.
 function liveStars() {
-  const ratio = timeLeft / Math.max(1, levelTime());
+  // Rush'ta saat başlangıç değerine göre ölçülemez: 12 saniyede başlayıp
+  // tavana dayanıyor, yani oran her zaman 1'in üstünde ve her koşu üç yıldız
+  // olurdu. Ölçü tavanın neresinde bitirdiğin — hiç sıkışmadan geçen oyuncu
+  // üç, son saniyelerde yetişen bir.
+  const ratio = missionKind === 'rush'
+    ? timeLeft / RUSH_CAP
+    : timeLeft / Math.max(1, levelTime());
   return ratio >= 0.45 ? 3 : ratio >= 0.2 ? 2 : 1;
 }
 

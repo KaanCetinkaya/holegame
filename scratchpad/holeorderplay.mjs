@@ -110,7 +110,12 @@ for (const lvl of LEVELS) {
 
   const saat = bas.saat;
   let s = { state: 'playing', timeLeft: saat, done: 0, goal: bas.goal };
-  const enCok = Math.round((saat + 5) * FPS);
+  // Kare bütçesi saatten çıkarılamaz: rush bölümünde saat her meyveyle
+  // doluyor, yani "saat + 5 saniye" bölümün ne kadar süreceğini değil
+  // yalnızca ne kadar dayanabileceğini söylüyor. Bot ilk ölçümde tarlanın
+  // üçte ikisini yemişken bütçe bitti ve test "bitirilemedi" dedi — oysa
+  // saat tavandaydı, yani kaybetmiyordu.
+  const enCok = Math.round((bas.mission === 'rush' ? 100 : saat + 5) * FPS);
   let kare = 0;
   while (kare < enCok && s.state === 'playing') { s = await adim(); kare++; }
 
