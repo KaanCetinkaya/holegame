@@ -82,8 +82,17 @@ check(await pg.evaluate(() => document.getElementById('pause').classList.contain
   'geri gelince kendiliğinden devam etmiyor, panel duruyor');
 
 await pg.evaluate(() => document.getElementById('resumeBtn').click());
-await pg.waitForTimeout(1500);
-const t2 = await pg.evaluate(() => window.fruitHoleGrow().timeLeft);
+// Sabit 1.5 saniye beklemek yetmedi: paket 5 tarayıcıyı birden koşarken sayfa
+// o kadar aç kalabiliyor ki tek bir kare bile çizilmiyor, saat de karede
+// ilerlediği için olduğu yerde kalıyor. Test o zaman oyunu değil konteynerin
+// yükünü ölçüyordu — tek başına koşunca aynı sürüm geçiyordu.
+//
+// Şart aynı, bekleme esnek: saat ilerleyene kadar, en çok on saniye.
+let t2 = t1;
+for (let i = 0; i < 20 && !(t2 < t1); i++) {
+  await pg.waitForTimeout(500);
+  t2 = await pg.evaluate(() => window.fruitHoleGrow().timeLeft);
+}
 check(t2 < t1, 'devam düğmesinden sonra saat yeniden işliyor', `${t1}sn -> ${t2}sn`);
 check(t2 > t1 - 3, 'duraklanan saniyeler toptan yazılmıyor', `${(t1 - t2).toFixed(1)}sn düştü`);
 
