@@ -85,8 +85,32 @@ const SHOTS = [
   // sekiz telefon görseliyle sınırlı. Bölüm 5 sipariş bölümü; üst satırda
   // "📋 STRAWBERRIES 6/47" gibi bir sayaç duruyor, yani görsel kuralı kendi
   // söylüyor.
+  // Sürüş hedefe göre: sabit yönlerle sürmek sayacı 0/45'te bırakıyordu ve
+  // "bir meyveyi kovala" diyen bir görselde sıfır, kuralı anlatmıyor. Tarla
+  // her çalıştırmada farklı olduğu için yön de her çalıştırmada hesaplanıyor —
+  // oyunun kendi "en yakın hedef" cevabına bakılıp o tarafa çekiliyor.
   { name: '4-mission', level: 5, cap: 'Some levels want one fruit, not the field',
-    play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1100], [70, -70, 500]]) },
+    play: async (pg, w, h) => {
+      await pg.mouse.move(w / 2, h / 2);
+      await pg.mouse.down();
+      for (let i = 0; i < 6; i++) {
+        const yon = await pg.evaluate(() => {
+          const o = window.fruitHoleOrder();
+          if (o.done >= 8) return null;                 // sayaç konuşuyor, yeter
+          const t = window.fruitHoleOrderNearest();
+          const me = window.fruitHoleWhere();
+          if (!t) return null;
+          // Kamera tepeden bakıyor: dünyada +x sağ, +z ekranda aşağı.
+          const dx = t.x - me.x, dz = t.z - me.z;
+          const d = Math.hypot(dx, dz) || 1;
+          return { x: dx / d, y: dz / d };
+        });
+        if (!yon) break;
+        await pg.mouse.move(w / 2 + yon.x * 140, h / 2 + yon.y * 140);
+        await pg.waitForTimeout(600);
+      }
+      await pg.mouse.up();
+    } },
   // Menü, boş bir cüzdanla değil. localStorage temizlendiği için sayaçlar
   // sıfır çıkıyordu ve mağaza görselinde sıfır, oyunun bitmemiş olduğunu
   // ima ediyor — oysa orada görülmesi gereken şey birkaç bölüm oynamış bir
