@@ -132,13 +132,19 @@ Press anywhere and drag. That's the whole control scheme. No connection.
 Ready to clear the field?
 ```
 
-## What's new — sıradaki yükleme (≤ 500 chars per language)
+## What's new — 1.11 / versionCode 31 (≤ 500 chars per language)
 
-Bu not **bir sonraki .aab'ye** ait ve sürüm kodu depoya bakılarak yazılıyor:
-`app-version.json` 30'u gönderilmemiş sayıyor, yani bu build 30 olarak çıkar.
-30 gönderildiyse `npm run uploaded:fruithole` çalıştırılmamış demektir; o
-durumda kod 31'dir ve bu not yine geçerlidir — çünkü aynı derleme hem 1.10'un
-içeriğini hem bunları taşıyor.
+Bu not **bir sonraki .aab'ye** ait, ve sürüm kodu 31.
+
+Önce 30 yazılmıştı, çünkü `app-version.json` 30'u gönderilmemiş sayıyordu.
+Play kabul etmedi: *"30 sürüm kodu daha önce kullanıldı."* Yani 30 çoktan
+yüklenmişti ve yükledikten sonra `npm run uploaded:fruithole` çalıştırılmamıştı
+— deponun kaydı bir sürüm geride kalmıştı.
+
+Ders, kaydın kendisinde: `uploaded` listesi yalnızca o komut çalıştırıldığında
+doğru. Çalıştırılmazsa depo "temiz" der, derleme sorunsuz biter, ve yanlış
+sadece Play'in yükleme kutusunda görünür. Notun içeriği değişmiyor — aynı
+derleme hem 1.10'un içeriğini hem bunları taşıyor.
 
 English (493 chars):
 ```
