@@ -8314,12 +8314,23 @@ const ORDER_TARGET = 25;    // seçim bu tur süresini arıyor (saniye)
 const ORDER_SLACK = 2.0;
 const ORDER_FLOOR = 30;     // küçük tarlada bile bölüm bölüm olsun
 
-// Aynı hücredeki kule tek durak: üst üste duran meyveler tek geçişte düşüyor.
+// Duraklar: birbirine deliğin ağzı kadar yakın meyveler **tek** durak.
+//
+// İlk hâli yalnızca aynı hücredeki kuleyi birleştiriyordu ve model, sıkışık
+// tahtalarda gerçeğin iki katını söylüyordu: tur her meyveye tek tek
+// uğruyor, oysa büyümüş bir delik bir geçişte yan yana üç meyveyi birden
+// alıyor. Ölçüde göründü — bot 35. bölümü modelin verdiği sürenin %58'inde
+// bitirdi, seyrek tahtalarda ise modele yakın kaldı.
+//
+// Birleştirme yarıçapı 2.2: deliğin bölüm ortasındaki ağzı kadar (taban 0.55,
+// tavan 2.75). Sabit, çünkü model bölüm başında kuruluyor ve deliğin o an
+// nerede olacağını bilmiyor; doğru sayı ortalama olan.
+const ORDER_MERGE = 2.2;
 function orderStops(typeId) {
   const out = [], gorulen = new Set();
   for (const f of fruits) {
     if (f.eaten || f.prop || f.type !== typeId) continue;
-    const k = f.x.toFixed(2) + ',' + f.z.toFixed(2);
+    const k = Math.round(f.x / ORDER_MERGE) + ',' + Math.round(f.z / ORDER_MERGE);
     if (gorulen.has(k)) continue;
     gorulen.add(k);
     out.push({ x: f.x, z: f.z });
