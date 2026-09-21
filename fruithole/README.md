@@ -2000,6 +2000,31 @@ Nesneler sayılmıyor: "bütün muzları ye" diyen bir görevde sulama kabı muz
 değil, ve oyuncu ona bakıp muz saymaz. Günlük koşuda sipariş yok, sebebi
 yukarıdaki tur çevirmesiyle aynı.
 
+### Görevlerin ödülü
+
+Başarım listesi görevleri görmüyordu: oyun on bölümde bir görev veriyor, ama
+on altı hedefin hiçbiri onlara bakmıyordu. Üç basamak eklendi ve sayılar
+seyrekliğe göre seçildi — görev on bölümde bir geldiği için "10 görev" yüz
+bölüm demek:
+
+```
+📋 Order up        1 görev bitir              →  beşinci bölümü bitiren herkes
+🧾 Regular        10 görev bitir              →  ~yüz bölüm
+🍉 Heavy lifting   5 dev bölümü temizle       →  ~doksan bölüm
+```
+
+Görev bölümleri ayrı sayılıyor, bölüm sayacına karışmıyorlar: karışsalardı
+"on görev bitir" ile "on bölüm bitir" aynı şey olurdu.
+
+`holeawards.mjs` yeni hedefleri kendiliğinden ölçüyor ama bir yeri elle
+güncellemek gerekti: test "her hedef en uç durumda tamamlanıyor mu" diye
+bakarken o uç durumu kendisi kuruyor, ve yeni sayaçlar orada yoktu. Yani yeni
+hedefler ulaşılamaz göründü ve test düştü — doğru davranış.
+
+Sayaçların gerçekten arttığını tablo göstermiyor; onu `holeorderplay.mjs`
+ölçüyor: bölümü oynayıp bitiriyor, sonra sayaca bakıyor. Artmayan bir sayaç
+ekranda hedefi sonsuza kadar 0/10'da tutar ve hiçbir hata vermez.
+
 ### Açılışta düşen oyun
 
 Bu iş çalışırken üçüncü kez aynı tuzağa düşüldü, ve bu sefer oyuncuya

@@ -131,6 +131,19 @@ for (const lvl of LEVELS) {
     `${String(model ? (kullanilan / model).toFixed(2) : '-').padStart(12)} | ` +
     `${s.done}/${s.goal} ${bas.mission}` +
     (model ? ` (büyüme ${bas.buyume} + tur ${bas.devTuru})` : ''));
+  // Görev sayacı gerçekten arttı mı? Başarımlar bunun üstünde duruyor ve
+  // artmayan bir sayaç tabloda görünmüyor — hedef orada durur, ilerleme
+  // sonsuza kadar 0/10 kalır.
+  if (bitti) {
+    const st = await pg.evaluate(() => window.fruitHoleStats());
+    if (!st.missions) fails.push(`${lvl}. bölüm bitti ama görev sayacı artmadı`);
+    if (bas.mission === 'giants' && !st.giantRuns) {
+      fails.push(`${lvl}. dev bölümü bitti ama dev sayacı artmadı`);
+    }
+    if (bas.mission === 'order' && st.giantRuns) {
+      fails.push(`${lvl}. sipariş bölümü dev sayacını artırdı`);
+    }
+  }
   if (!bitti) fails.push(`${lvl}. bölüm bitirilemedi (${s.done}/${s.goal})`);
   if (errs.length) fails.push(`${lvl}. bölüm sayfa hatası: ${errs[0]}`);
   await ctx.close();

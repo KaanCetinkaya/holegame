@@ -118,7 +118,11 @@ console.log('\n2. her hedef ulaşılabilir');
 
   const uc = await open({
     level: 200,
-    stats: { fruits: 999999, levels: 400, stars: 900, bestCombo: tavan, bestStreak: 999 },
+    // Görev sayaçları da burada: en uç durum "oyunun her şeyini yapmış
+    // oyuncu" demek, ve yeni bir hedef eklenip sayacı buraya eklenmezse
+    // aşağıdaki kontrol onu ulaşılamaz sayıp düşüyor — nitekim düştü.
+    stats: { fruits: 999999, levels: 400, stars: 900, bestCombo: tavan, bestStreak: 999,
+             missions: 99, giantRuns: 99 },
     daily: { date: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`,
              streak: 60, missions: [], rewardClaimed: true },
   });
