@@ -88,9 +88,12 @@ for (const lvl of [1, 4, 5, 9, 10, 14, 15, 20, 25, 30, 35, 45, 55]) {
   console.log(` ${String(lvl).padStart(3)} | ${String(r.mission ?? '-').padEnd(7)} | ` +
     `${String(r.goal).padStart(5)} | ${String(r.saat).padStart(4)} | ${Math.round(r.supurme * 2.6)}`);
   const olmali = lvl % 10 === 5;
-  // Tipler sırayla: 5 sipariş, 15 devler, 25 sipariş… Bir tarafın sabitlenmesi
-  // (hep sipariş) sessizce olabilir, o yüzden tip de kontrol ediliyor.
-  const tip = olmali ? (Math.floor((lvl - 5) / 10) % 2 === 0 ? 'order' : 'giants') : null;
+  // Tipler sırayla: 5 sipariş, 15 devler, 25 rush, 35 sipariş… Bir tarafın
+  // sabitlenmesi (hep sipariş) sessizce olabilir, o yüzden tip de kontrol
+  // ediliyor. Sıra burada bir kez daha yazılıyor — oyunun listesini okuyup
+  // ona bakmak, listeyi kendisiyle karşılaştırmak olurdu.
+  const TIPLER = ['order', 'giants', 'rush'];
+  const tip = olmali ? TIPLER[Math.floor((lvl - 5) / 10) % TIPLER.length] : null;
   if (olmali && !r.mission) hata.push(`${lvl}. bölümde görev olmalıydı`);
   if (!olmali && r.mission) hata.push(`${lvl}. bölümde görev olmamalıydı`);
   if (olmali && r.mission && r.mission !== tip) {
@@ -99,10 +102,14 @@ for (const lvl of [1, 4, 5, 9, 10, 14, 15, 20, 25, 30, 35, 45, 55]) {
   if (olmali && r.mission === 'order' && !r.type) hata.push(`${lvl}. siparişin hedef meyvesi yok`);
   if (olmali && r.mission) {
     if (!r.goal) hata.push(`${lvl}. bölümün hedefi sıfır`);
-    // Sipariş saati süpürme saatinden kısa olmalı: görev de kısa. Uzun
-    // olsaydı görev süpürmekten kolay olurdu ve bölüm kendini oynardı.
+    // Görev saati süpürme saatinden kısa olmalı: görev de kısa. Uzun olsaydı
+    // görev süpürmekten kolay olurdu ve bölüm kendini oynardı.
     if (r.saat >= r.supurme * 2.6) hata.push(`${lvl}. bölümün saati süpürmeden kısa değil: ${r.saat}`);
-    if (r.saat < 25) hata.push(`${lvl}. bölümün saati fazla kısa: ${r.saat}`);
+    // Alt sınır tipe göre: rush **bilerek** on saniyenin biraz üstünde
+    // başlıyor ve saati yenen meyve besliyor. Ötekilerde kısa bir saat hata
+    // olurdu, rush'ta tasarımın kendisi.
+    const enAz = r.mission === 'rush' ? 8 : 25;
+    if (r.saat < enAz) hata.push(`${lvl}. bölümün saati fazla kısa: ${r.saat}`);
   }
 }
 
