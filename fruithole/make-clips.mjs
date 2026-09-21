@@ -85,6 +85,10 @@ const EDGE = Number(arg('edge', 2.5));
 // Dev yutulana kadar kaç saniye daha çekilsin. Klip sondan kesildiği için bu
 // süre videoya girmiyor, yalnızca aramaya harcanıyor.
 const SEARCH = Number(arg('search', 12));
+// Kadrajdaki dev, deliğin kaç katına kadar büyük olabilir? 1.0 "şu an
+// yutulabilir", 1.6 "biraz büyümek gerek". Üstü, dokuz saniyede kapanmayan
+// bir açık demek.
+const NEAR_MAX = Number(arg('near', 1.6));
 const ONLY = arg('only', null);
 
 // Hangi bölümler?
@@ -296,10 +300,20 @@ for (const clip of CLIPS) {
       yakin: window.fruitHoleAhead(r), x: w.x, halfX: w.halfX,
       dev: onde.length, yutulabilir: onde.filter(x => x.eatable).length,
       enYakinDev: onde.length ? onde[0].dist : null,
+      // Dev ne kadar uzakta — mesafe olarak değil, **boyut olarak**. 1.0
+      // yutulabilir demek, 2.0 deliğin iki katı büyüklükte demek.
+      buyukluk: onde.length ? +(onde[0].r / (w.r * 0.92)).toFixed(2) : null,
     };
   }, AHEAD_R);
+  // Dördüncü şart: dev yalnızca yutulamaz değil, **neredeyse** yutulabilir
+  // olmalı.
+  //
+  // Beach klibinde çıktı: birinci bölümde delik küçücük başlıyor ve kadrajdaki
+  // dev karpuz onun üç katı. Açılış sözü veriyordu ama dokuz saniyede delik o
+  // boya ulaşmıyordu; arama süresi bitti ve klip ödemesiz kesildi. Söz
+  // verilecek dev, o sözün tutulabileceği kadar yakın olmalı.
   const uygun = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE
-    && d.dev > 0 && d.yutulabilir === 0;
+    && d.dev > 0 && d.yutulabilir === 0 && d.buyukluk <= NEAR_MAX;
   let warm = 0;
   for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim();
   const enCok = Math.round(PRE_MAX * FPS);
@@ -311,7 +325,7 @@ for (const clip of CLIPS) {
   }
   console.log(`  kayıt ${(warm / FPS).toFixed(1)}. saniyede başlıyor · ` +
     `çevrede ${d.yakin} meyve · kenara ${(d.halfX - Math.abs(d.x)).toFixed(1)} birim · ` +
-    `kadrajda ${d.dev} dev (yutulabilir ${d.yutulabilir})` +
+    `kadrajda ${d.dev} dev (yutulabilir ${d.yutulabilir}, büyüklük ${d.buyukluk})` +
     (uygun(d) ? '' : '  (şart sağlanmadı, üst sınıra dayandı)'));
 
   // Kayıt: halka tampon, ve **sondan** kesiliyor.
