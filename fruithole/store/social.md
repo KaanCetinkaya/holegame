@@ -153,14 +153,25 @@ ekleme.
 
 | video | tarih | süre | izlenme | ort. izlenme | **süresinin %'si** | tamamlanma | beğeni |
 |---|---|---|---|---|---|---|---|
-| #1 "POV: …the fruit has nowhere to go" | 17 Eyl | 15 sn | 399 | 2.73 sn | %18 | %5.4 | 1 |
-| **boss** "Every 10th level ends in one giant fruit" | 18 Eyl | 15 sn | 378 | **3.35 sn** | %22 | %6.3 | **3** |
-| farm "POV: …the harvest has nowhere to go" | 19 Eyl | 9 sn | 275 | 2.21 sn | **%25** | %6.8 | 0 |
-| tractor "The hole only grows by eating…" | 20 Eyl 20:00 | 9 sn | — | — | — | — | — |
+| #1 "POV: …the fruit has nowhere to go" | 17 Eyl | 15 sn | 401 | 2.72 sn | %18 | %5.4 | 1 |
+| boss "Every 10th level ends in one giant fruit" | 18 Eyl | 15 sn | 380 | 3.35 sn | %22 | %6.3 | 3 |
+| farm "POV: …the harvest has nowhere to go" | 19 Eyl | 9 sn | 278 | 2.30 sn | %26 | %7.0 | 0 |
+| **tractor "The hole only grows by eating…"** | 20 Eyl | 9 sn | 280 | **4.42 sn** | **%49** | **%12.2** | 2 |
 
-Dördüncü satır yeni kurgunun ilki: dev yutulurken biten klip, kural/soru
-açıklama. 22 Eylül'de ölçülecek — karşılaştırma boss ile, çünkü yaşları o
-zaman denk olur.
+**Son satır yeni kurgu, ve ölçü ikiye katlandı.** farm da 9 saniyeydi ve aynı
+yaşta (1 gün) 2.21 saniyede kalmıştı; iki günlükken 2.30. tractor bir günlükken
+4.42. Tamamlanma %7'den %12.2'ye.
+
+Karşılaştırma yaş olarak **tractor'ün aleyhine**: farm bir gün daha yaşlı ve bu
+veride sayılar yaşla yükseliyor. Yani aradaki fark en az bu kadar.
+
+İzlenme sayısı ikisinde de aynı (278 / 280) — beklenen: ilk dağıtım herkese
+aynı, fark sonrakinde çıkıyor. farm'ın grafiği ilk günden sonra sıfıra iniyor,
+yani TikTok onu dağıtmayı bırakmış. tractor'ün izletme oranı iki katı olduğu
+için orada durmaması gerekiyor; bunu 23 Eylül'de görürüz.
+
+Aradaki tek fark kurgu — klip devin yutulduğu anda bitiyor, açıklama kural
+söyleyip soru doğuruyor.
 
 **Süre sütunu TikTok panelinden okunuyor, hatırlanarak değil.** boss burada
 bir kez 9 saniye yazılmıştı; panelde 00:15 görünüyor. Yanlış süre yalnızca

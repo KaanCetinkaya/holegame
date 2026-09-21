@@ -10471,6 +10471,9 @@ window.fruitHoleOrder = (typeId) => {
       total: hepsi.length, counts: sayim,
       // Bölümün kendi görevi: sipariş varsa hangi meyve, kaçta kaç.
       mission: missionKind, type: orderType, goal: missionGoal, done: missionEaten,
+      // Devler görevinin saati iki parçalı; ikisi ayrı ayrı okunabilsin ki
+      // hangisinin şiştiği ölçülebilsin.
+      buyume: +growSeconds().toFixed(1), devTuru: +giantTourSeconds().toFixed(1),
       saat: levelTime(), supurme: +sweepSeconds().toFixed(1),
     };
   }

@@ -52,8 +52,12 @@ const br = await chromium.launch({
 });
 
 const fails = [];
-console.log(' blm | hedef | saat | bitti mi | kullanılan | kalan | yıldız | notu');
-console.log('-----+-------+------+----------+------------+-------+--------+-----');
+// Model sayıları **oynanan tahtadan** okunuyor, ayrı bir ölçümden değil.
+// Tarla her koşuda farklı kuruluyor (tohumlanmıyor), yani başka bir koşunun
+// tur süresiyle bu koşunun süresini karşılaştırmak iki ayrı tahtayı
+// karşılaştırmak olur. Bir kez öyle yapıldı ve model "bozuk" göründü.
+console.log(' blm | hedef | saat | model | bitti mi | kullanılan | kalan | yıldız | gerçek/model | notu');
+console.log('-----+-------+------+-------+----------+------------+-------+--------+--------------+-----');
 
 for (const lvl of LEVELS) {
   const ctx = await br.newContext({ viewport: { width: 412, height: 915 } });
@@ -113,10 +117,16 @@ for (const lvl of LEVELS) {
   const kullanilan = +(saat - s.timeLeft).toFixed(1);
   const oran = s.timeLeft / saat;
   const yildiz = oran >= 0.45 ? 3 : oran >= 0.2 ? 2 : 1;
+  // Modelin ham tahmini: saatin kat sayıdan önceki hâli.
+  const model = bas.mission === 'giants'
+    ? +(bas.buyume + bas.devTuru).toFixed(1) : null;
   console.log(` ${String(lvl).padStart(3)} | ${String(bas.goal).padStart(5)} | ${String(saat).padStart(4)} | ` +
-    `${(bitti ? 'bitti' : s.state).padEnd(8)} | ${String(kullanilan).padStart(10)} | ` +
+    `${String(model ?? '-').padStart(5)} | ${(bitti ? 'bitti' : s.state).padEnd(8)} | ` +
+    `${String(kullanilan).padStart(10)} | ` +
     `${String(s.timeLeft).padStart(5)} | ${bitti ? String(yildiz).padStart(6) : '     -'} | ` +
-    `${s.done}/${s.goal} ${bas.mission}`);
+    `${String(model ? (kullanilan / model).toFixed(2) : '-').padStart(12)} | ` +
+    `${s.done}/${s.goal} ${bas.mission}` +
+    (model ? ` (büyüme ${bas.buyume} + tur ${bas.devTuru})` : ''));
   if (!bitti) fails.push(`${lvl}. bölüm bitirilemedi (${s.done}/${s.goal})`);
   if (errs.length) fails.push(`${lvl}. bölüm sayfa hatası: ${errs[0]}`);
   await ctx.close();
