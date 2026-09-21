@@ -1954,19 +1954,47 @@ sunamıyor; onlar için 30 saniyelik bir taban var.
 
 ### Kat sayı kopyalanmadı, ölçüldü
 
-İlk hâli süpürmenin katsayısıydı (2.6). `scratchpad/holeorderplay.mjs` üç
-sipariş bölümünü sahte saatle gerçekten oynadı:
+İlk hâli süpürmenin katsayısıydı (2.6). `scratchpad/holeorderplay.mjs` sipariş
+bölümlerini sahte saatle gerçekten oynuyor — otomatik oyuncu hedef meyveye
+gidiyor, yutamadığı bir hedefe denk gelince büyümek için en yakın meyveye
+sapıyor. İlk ölçüm:
+
+```
+ blm | hedef | saat | kullanılan | yıldız
+   5 |    46 |   60 |       27.2 |    3
+  15 |    63 |   56 |       19.3 |    3
+  25 |    65 |   45 |       21.5 |    3
+```
+
+Saatin %36-45'i kullanılmış, üçünde de üç yıldız — yani kaybetmek mümkün
+değil. 2.0'a çekildi.
+
+### Tur modeli deliğin ağzını bilmiyordu
+
+İkinci ölçümde yayılma hâlâ genişti: bot bir bölümde saatin %50'sini,
+ötekinde %29'unu kullanıyordu. Sebep modeldeydi — tur her hedef meyveye tek
+tek uğruyor, oysa **büyümüş bir delik bir geçişte yan yana üçünü birden
+alıyor**. Yani model sıkışık tahtalarda gerçeğin iki katını söylüyor, seyrek
+tahtalarda isabet ediyordu; ölçüdeki imza tam olarak buydu.
+
+Birbirine 2.2 birimden yakın meyveler artık tek durak. 2.2, deliğin bölüm
+ortasındaki ağzı (taban 0.55, tavan 2.75); sabit, çünkü saat tahta kurulurken
+veriliyor ve deliğin o an nerede olacağı bilinmiyor.
+
+Düzeltmeden sonra, aynı katsayıyla (2.0):
 
 ```
  blm | hedef | saat | kullanılan | kalan | yıldız
-   5 |    46 |   60 |       27.2 |  32.8 |    3
-  15 |    63 |   56 |       19.3 |  36.7 |    3
-  25 |    65 |   45 |       21.5 |  23.5 |    3
+   5 |    57 |   41 |       18.3 |  22.7 |    3
+  15 |    71 |   35 |       19.6 |  15.4 |    2
+  25 |   109 |   29 |       15.1 |  13.9 |    3
+  35 |    32 |   33 |       15.9 |  17.1 |    3
+  45 |   126 |   33 |       16.9 |  16.1 |    3
 ```
 
-Saatin %36-45'i kullanılmış, üçünde de üç yıldız. 2.0'a çekildi. Bot turun
-0.9-1.25 katında bitiriyor — yani tur modeli isabetli, ve kalan pay botla
-insan arasındaki fark için.
+Kullanım %45-56 aralığına oturdu (önce %29-50) ve bir bölüm iki yıldıza
+düştü. Kalan pay bot ile insan arasındaki fark: bot kusursuz dönüyor, hiç
+duraksamıyor ve yanlış meyveye gitmiyor.
 
 Nesneler sayılmıyor: "bütün muzları ye" diyen bir görevde sulama kabı muz
 değil, ve oyuncu ona bakıp muz saymaz. Günlük koşuda sipariş yok, sebebi
