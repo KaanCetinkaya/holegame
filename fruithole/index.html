@@ -10666,6 +10666,65 @@ window.fruitHoleGiants = () => {
   };
 };
 window.fruitHoleFlecks = () => flecks.length;
+// Karenin masrafı neyden geliyor: gölge geçişinden mi, tarladan mı?
+//
+// `fruitHoleCost` tek bir sayı veriyor ve o sayının gölgeyi içerip
+// içermediği dışarıdan bilinemiyor — "kabaca iki katı" diye yazmak varsayım
+// olurdu. Burada aynı kare iki kez çiziliyor, biri gölgesiz, ve fark
+// ölçülüyor.
+//
+// Meyvelerin gölge bırakmadığı bir üçüncü ölçüm de var: gölge geçişi
+// sahnedeki **her** gölge bırakanı ikinci kez çiziyor, yani beş yüz meyvenin
+// gölgesi kapatılırsa kare neye iner — cevabı tahmin etmek yerine ölçmek.
+window.fruitHoleFrameSplit = () => {
+  const oku = () => {
+    renderer.render(scene, camera);
+    return { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles };
+  };
+  const golgeli = oku();
+
+  const wasShadow = renderer.shadowMap.enabled;
+  renderer.shadowMap.enabled = false;
+  const golgesiz = oku();
+  renderer.shadowMap.enabled = wasShadow;
+
+  // Yalnızca meyvelerin gölgesi kapalı: nesneler ve devler gölge bırakmaya
+  // devam ediyor.
+  const eski = fruits.map(f => f.mesh.castShadow);
+  for (const f of fruits) if (!f.prop && !f.giant) f.mesh.castShadow = false;
+  const meyvesiz = oku();
+  fruits.forEach((f, i) => { f.mesh.castShadow = eski[i]; });
+  oku();
+
+  // Sayaç yalnızca ana geçişi sayıyor: üç okumanın üçü de aynı çıkıyor, yani
+  // gölge geçişinin çağrıları bu sayının **içinde değil**. O yüzden gölgenin
+  // bedeli sayıyla değil süreyle ölçülüyor — aynı kare, üç kurulumda, saatle.
+  const sure = (kur, n = 12) => {
+    const geri = kur();
+    // Isınma: ilk kare gölge haritasını yeniden kuruyor.
+    renderer.render(scene, camera);
+    const t0 = performance.now();
+    for (let i = 0; i < n; i++) renderer.render(scene, camera);
+    const ms = (performance.now() - t0) / n;
+    geri();
+    return +ms.toFixed(2);
+  };
+
+  const msGolgeli = sure(() => () => {});
+  const msGolgesiz = sure(() => {
+    const was = renderer.shadowMap.enabled;
+    renderer.shadowMap.enabled = false;
+    return () => { renderer.shadowMap.enabled = was; };
+  });
+  const msMeyvesiz = sure(() => {
+    const was = fruits.map(f => f.mesh.castShadow);
+    for (const f of fruits) if (!f.prop && !f.giant) f.mesh.castShadow = false;
+    return () => { fruits.forEach((f, i) => { f.mesh.castShadow = was[i]; }); };
+  });
+
+  return { golgeli, golgesiz, meyvesiz, ms: { msGolgeli, msGolgesiz, msMeyvesiz },
+           meyve: fruits.filter(f => !f.eaten).length };
+};
 // Pretend a banner of this height is covering the bottom of the screen. The
 // ads themselves only exist inside the native shell, so this is the only way
 // to see in a browser what the menu looks like with one.
