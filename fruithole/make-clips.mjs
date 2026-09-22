@@ -31,7 +31,7 @@
 
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { createServer } from 'http';
-import { readFileSync, mkdirSync, rmSync, existsSync } from 'fs';
+import { readFileSync, mkdirSync, rmSync, existsSync, renameSync } from 'fs';
 import { spawnSync } from 'child_process';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -92,6 +92,21 @@ const NEAR_MAX = Number(arg('near', 1.6));
 // Klibin son kaç saniyesinde dev avlanıyor. Öncesinde otomatik oyuncu
 // sıradan meyveyi süpürüyor; yoldaki devi yine yiyebilir ama ona gitmiyor.
 const AV_SN = Number(arg('hunt', 4));
+// Soğuk açılış: klip kaç saniye boyunca devin üstünde yakın planda duruyor.
+//
+// shop klibinin panelinde izleyicilerin çoğu **0:01'de** bırakmıştı. Klibin
+// sonu zaten düzeltilmişti (dev yutuluyor) ve oran iki katına çıkmıştı — ama
+// o kazanç ancak birinci saniyeyi geçenlere ulaşıyor. Kaybedilen yer klibin
+// sonu değil, ilk karesi: kayıt tarlanın ortasında, yüzlerce meyvenin
+// arasında açılıyor ve hangisinin önemli olduğunu söyleyen bir şey yok.
+//
+// Artık ilk kare devin üstünde ve yakın: soru ilk karede soruluyor, süpürme
+// kamera geri çekilirken başlıyor. 0 vermek açılışı tamamen kapatıyor —
+// eski kurguyla karşılaştırmak için.
+const COLD = Number(arg('cold', 1.2));
+// Yakın planın genişliği. Oyunun kendi genişliği 5.4; bunun yarısı devi
+// kadrajın çoğunu kaplar hâle getiriyor.
+const COLD_W = Number(arg('coldw', 2.6));
 const ONLY = arg('only', null);
 
 // Hangi bölümler?
@@ -341,6 +356,66 @@ for (const clip of CLIPS) {
     `kadrajda ${d.dev} dev (yutulabilir ${d.yutulabilir}, büyüklük ${d.buyukluk})` +
     (uygun(d) ? '' : '  (şart sağlanmadı, üst sınıra dayandı)'));
 
+  // Soğuk açılış: klibin ilk COLD saniyesi, devin üstünde yakın planda.
+  //
+  // Ayrı çekiliyor ve gövdenin önüne ekleniyor, çünkü gövdenin **nerede
+  // başlayacağı** çekim bitmeden belli değil (aşağıdaki halka tampon). Yani
+  // "kaydın ilk saniyesinde kamerayı devde tut" diye bir şey yazılamıyor —
+  // o saniye çoğu zaman klibe hiç girmiyor.
+  //
+  // Araya bir kesme giriyor ve bu bilerek: kanca çekimi + kesme + oynanış,
+  // kısa videonun en sıradan kurgusu. Kesmeyi görünmez yapmaya çalışmak
+  // yerine kurgunun parçası sayıyoruz. Yakınlaştırma açılış boyunca oyunun
+  // kendi genişliğine dönüyor, böylece kesme yalnızca konumda oluyor,
+  // ölçekte değil.
+  const coldDir = join(frameDir, 'c');
+  const bodyDir = join(frameDir, 'b');
+  mkdirSync(coldDir, { recursive: true });
+  mkdirSync(bodyDir, { recursive: true });
+  let coldN = 0;
+  if (COLD > 0 && d.dev > 0) {
+    // Kadraj deliğin ve devin **ortası**: söz ikisinin birlikte görünmesinde
+    // — küçücük delik, kocaman meyve. Yalnızca deve bakmak bunun yarısını
+    // gösterirdi. Genişlik aradaki mesafeye göre, ama her hâlükârda oyunun
+    // kendi genişliğinden dar.
+    const ac = await pg.evaluate(([w0, dar, gen]) => {
+      const w = window.fruitHoleWhere();
+      const g = window.fruitHoleGiantList().filter(x => x.dz < 3 && x.dist < 13)[0];
+      if (!g) return null;
+      const halfW = Math.min(gen, Math.max(dar, g.dist * 0.62));
+      window.fruitHoleCamLook((w.x + g.x) / 2, (w.z + g.z) / 2, true);
+      window.fruitHoleZoom(halfW);
+      return { halfW: +halfW.toFixed(2), dist: g.dist, w0 };
+    }, [5.4, COLD_W, 4.6]);
+    if (ac) {
+      coldN = Math.round(COLD * FPS);
+      for (let i = 0; i < coldN; i++) {
+        // Açılış boyunca oyun oynanmaya devam ediyor — donmuş bir kare değil,
+        // canlı görüntü. Dev avlanmıyor: açılışta yutulması ödemeyi başa alır.
+        // Yakınlaştırma yumuşak açılıyor (smoothstep), sonunda oyunun kendi
+        // genişliğinde. Doğrusal açılınca başlangıç ve bitiş ikisi de sert
+        // duruyordu.
+        //
+        // Sıra önemli: yakınlaştırma **adımdan önce** kuruluyor. Sonra
+        // kurulsaydı ekran görüntüsü bir önceki karenin çizimini alırdı —
+        // kamera ayarı bir kare geriden gelirdi.
+        const t = i / coldN;
+        const e = t * t * (3 - 2 * t);
+        await pg.evaluate(w => window.fruitHoleZoom(w), ac.halfW + (5.4 - ac.halfW) * e);
+        await adim(false);
+        await pg.screenshot({
+          path: join(coldDir, String(i).padStart(5, '0') + '.png'),
+          animations: 'disabled',
+        });
+      }
+      await pg.evaluate(() => { window.fruitHoleCamLook(null); window.fruitHoleZoom(null); });
+      console.log(`  soğuk açılış ${(coldN / FPS).toFixed(1)} sn · ` +
+        `genişlik ${ac.halfW} -> 5.4 · dev ${ac.dist} birim ötede`);
+    } else {
+      console.log('  soğuk açılış atlandı: kadrajda dev yok');
+    }
+  }
+
   // Kayıt: halka tampon, ve **sondan** kesiliyor.
   //
   // Başlangıç şartı klibin sözünü veriyor (kadrajda yutulamayan bir dev),
@@ -357,7 +432,9 @@ for (const clip of CLIPS) {
   // sayı düşerse bir dev yenmiştir. Düşüş klibin sonuna sığmayacak kadar
   // erkense (ilk saniyelerde) beklemeye devam ediliyor — ödemenin sonda olması
   // gerekiyor, ortada değil.
-  const total = Math.round(SECONDS * FPS);
+  //
+  // Gövde, soğuk açılış kadar kısalıyor: toplam süre SECONDS olarak kalıyor.
+  const total = Math.round(SECONDS * FPS) - coldN;
   const TAIL = Math.round(0.6 * FPS);        // yutmadan sonra nefes payı
   const ARA = Math.round(SEARCH * FPS);      // yutma aranacak ek süre
   // Av penceresi: klibin son AV_SN saniyesi. Önce tarla süpürülüyor, sonra
@@ -368,7 +445,7 @@ for (const clip of CLIPS) {
   while (true) {
     const s = await adim(f >= AV_BASLA);
     await pg.screenshot({
-      path: join(frameDir, String(f).padStart(5, '0') + '.png'),
+      path: join(bodyDir, String(f).padStart(5, '0') + '.png'),
       animations: 'disabled',
     });
     if (onceki !== null && s.dev < onceki) {
@@ -392,9 +469,9 @@ for (const clip of CLIPS) {
   const basKare = Math.max(0, sonKare - total + 1);
   const adet = sonKare - basKare + 1;
   console.log(`  ${f} kare çekildi · yenen ${son.eaten}/${son.total} · durum ${son.state}   `);
-  console.log(`  klip ${basKare}-${sonKare} arası (${(adet / FPS).toFixed(1)} sn) · ` +
+  console.log(`  gövde ${basKare}-${sonKare} arası (${(adet / FPS).toFixed(1)} sn) · ` +
     (yutuldu >= 0
-      ? `dev ${((yutuldu - basKare) / FPS).toFixed(1)}. saniyede yutuluyor`
+      ? `dev ${((yutuldu - basKare + coldN) / FPS).toFixed(1)}. saniyede yutuluyor`
       : 'UYARI: dev yutulmadı, sondan kesildi — ödeme yok') +
     (erken ? ` · ${erken} erken yutma atlandı` : ''));
 
@@ -402,13 +479,31 @@ for (const clip of CLIPS) {
   // sessizce bir dosya bırakmaktansa söylemek daha iyi.
   if (son.eaten === 0) console.log('  UYARI: hiç meyve yenmemiş, klibe bakmadan yayınlama.');
 
+  // İki parçayı tek bir kesintisiz numaraya diziyoruz: soğuk açılış 0'dan,
+  // gövde onun ardından. ffmpeg'in `-start_number`'ı tek bir aralık okuyor,
+  // yani iki aralığı ona anlatmanın yolu yok; yeniden adlandırmak aynı
+  // dosya sisteminde bedavaya yakın ve concat listesinden çok daha az
+  // hareketli parçası var.
+  const cutDir = join(frameDir, 'x');
+  mkdirSync(cutDir, { recursive: true });
+  let k = 0;
+  for (let i = 0; i < coldN; i++) {
+    renameSync(join(coldDir, String(i).padStart(5, '0') + '.png'),
+      join(cutDir, String(k++).padStart(5, '0') + '.png'));
+  }
+  for (let i = basKare; i <= sonKare; i++) {
+    renameSync(join(bodyDir, String(i).padStart(5, '0') + '.png'),
+      join(cutDir, String(k++).padStart(5, '0') + '.png'));
+  }
+  console.log(`  klip ${(k / FPS).toFixed(1)} sn ` +
+    (coldN ? `(${(coldN / FPS).toFixed(1)} sn açılış + ${(adet / FPS).toFixed(1)} sn oynanış)` : ''));
+
   const mp4 = join(OUT, `${clip.id}.mp4`);
   const r = spawnSync(ffmpeg, [
     '-y', '-hide_banner', '-loglevel', 'error',
     '-framerate', String(FPS),
-    '-start_number', String(basKare),
-    '-i', join(frameDir, '%05d.png'),
-    '-frames:v', String(adet),
+    '-i', join(cutDir, '%05d.png'),
+    '-frames:v', String(k),
     '-vf', `scale=${OUT_W}:${OUT_H}:flags=lanczos`,
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '20',
     '-pix_fmt', 'yuv420p',          // yoksa bazı oynatıcılar hiç açmıyor

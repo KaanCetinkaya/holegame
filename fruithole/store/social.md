@@ -209,9 +209,24 @@ Sebebi de klibin kendisinde: kayıt tarlanın ortasında, delik zaten süpürür
 başlıyor. İlk karede ne olduğu belli değil — ekranda yüzlerce meyve var ve
 hangisinin önemli olduğunu söyleyen bir şey yok.
 
-**Denenecek kurgu:** klip devin üstünde yakın planla açılsın, yarım saniye
-sonra geri çekilip tarlayı ve deliği göstersin. İlk kare soruyu sorsun, süpürme
-sonra başlasın. Ölçüsü aynı iki sayı: izletme oranı ve tamamlanma.
+**Yapılan: soğuk açılış.** Klip artık deliğin ve en yakın devin ortasında,
+yakın planda açılıyor — ilk karede küçücük bir delik ve yanında ona sığmayan
+bir meyve var. Kamera 1.2 saniye içinde oyunun kendi genişliğine açılıyor,
+sonra oynanışa kesiliyor. Toplam süre değişmedi (9 sn): açılış gövdeden
+düşülüyor.
+
+Araya bir **kesme** giriyor ve bu bilerek. Gövdenin nerede başlayacağı çekim
+bitmeden belli olmuyor — klip sondan, devin yutulduğu andan geriye doğru
+kesiliyor — yani "kaydın ilk saniyesinde kamerayı devde tut" diye bir şey
+yazılamıyor; o saniye çoğu zaman klibe hiç girmiyor. Açılış ayrı çekilip
+öne ekleniyor. Kanca çekimi + kesme + oynanış zaten kısa videonun en sıradan
+kurgusu; yakınlaştırma açılış boyunca normale döndüğü için kesme yalnızca
+konumda oluyor, ölçekte değil.
+
+Ölçüsü aynı iki sayı: izletme oranı ve tamamlanma. Karşılaştırma shop'la
+yapılacak (%42 / %14.4) — aynı bölüm, aynı süre, tek farkı açılış.
+
+`--cold 0` açılışı kapatıyor, yani eski kurgu hâlâ üretilebiliyor.
 
 ### Dağıtım ilk günden sonra duruyor
 

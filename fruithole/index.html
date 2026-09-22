@@ -8476,6 +8476,12 @@ function resetHole() {
 // Camera
 // ---------------------------------------------------------------------
 let camX = 0, camZ = 0;
+// Kameranın takip ettiği nokta, delikten başkasıysa. Oynanışta hep null —
+// yalnızca `fruitHoleCamLook()` dolduruyor, o da tanıtım klibi çekilirken.
+// Değişken burada, kameranın yanında duruyor: kullanıldığı yer çizim döngüsü,
+// ve bir `let`i kullanıldığı yerin altında bırakmak bu dosyada üç kez oyunu
+// hiç açılmaz hâle getirdi (README, "Açılmayan oyun").
+let camLook = null;
 // The field is only seven columns wide, so the width sets the zoom -- that
 // keeps fruit a readable size on a phone instead of shrinking it to fit a
 // tall screen. Height then follows from the aspect ratio.
@@ -10917,11 +10923,39 @@ window.fruitHoleLean = () => {
 
 // Pull the play camera back without changing its angle — used to shoot store
 // art, where a screenful of six giant fruit says nothing about the level.
+//
+// Parametresiz (ya da null) çağrılınca oyunun kendi genişliğine dönüyor.
+// Klibin soğuk açılışı yakın plandan normale açılıyor ve "normal"in sayısını
+// klibin bilmesi gerekmiyor — burada zaten yazıyor, iki yere yazılsaydı
+// ayrışırdı.
 window.fruitHoleZoom = (halfWidth) => {
-  const aspect = innerWidth / innerHeight;
-  camera.left = -halfWidth; camera.right = halfWidth;
-  camera.top = halfWidth / aspect; camera.bottom = -halfWidth / aspect;
-  camera.updateProjectionMatrix();
+  if (halfWidth === null || halfWidth === undefined) fitCamera();
+  else {
+    const aspect = innerWidth / innerHeight;
+    camera.left = -halfWidth; camera.right = halfWidth;
+    camera.top = halfWidth / aspect; camera.bottom = -halfWidth / aspect;
+    camera.updateProjectionMatrix();
+  }
+  return camera.right;   // kurulan genişlik, ölçülebilsin diye
+};
+
+// Kamerayı bir an delikten başka bir şeye baktırmak — klibin soğuk açılışı.
+//
+// Neden var: shop klibinin panelinde izleyicilerin çoğu **0:01'de** bırakmış
+// (393 izlenmenin çoğu). Klibin sonu düzeltilmişti — dev yutuluyor, oran iki
+// katına çıktı — ama o kazanç ancak birinci saniyeyi geçenlere ulaşıyor.
+// Kayıt tarlanın ortasında, yüzlerce meyvenin arasında açılıyor ve ilk karede
+// hangisinin önemli olduğunu söyleyen hiçbir şey yok.
+//
+// `snap` ilk kare için: kamera oraya kaymadan, zaten oradayken açılıyor.
+// Sonra null geçilince takip deliğe kendi yumuşatmasıyla dönüyor.
+//
+// Oyunda hiçbir şeyi değiştirmiyor: çağrılmadığı sürece `camLook` null ve
+// kamera deliği takip ediyor.
+window.fruitHoleCamLook = (x, z, snap) => {
+  camLook = (x === null || x === undefined) ? null : { x, z };
+  if (camLook && snap) { camX = x; camZ = z; clampCamera(); }
+  return camLook;
 };
 
 window.fruitHoleTopDown = (n, aspect, tilt = 0) => {
@@ -11095,8 +11129,13 @@ function tick(now) {
     // at whatever speed the phone happens to be running, so a dropped frame
     // showed up as a lurch.
     const follow = 1 - Math.pow(1 - 0.09, dt * 60);
-    camX += (holeX - camX) * follow;
-    camZ += (holeZ - camZ) * follow;
+    // Takip hedefi normalde delik. `camLook` yalnızca klip çekilirken doluyor
+    // ve o zaman bile aynı yumuşatmadan geçiyor — kamera oraya sıçramıyor,
+    // kayıyor, ve bırakıldığında deliğe aynı şekilde geri kayıyor.
+    const hedefX = camLook ? camLook.x : holeX;
+    const hedefZ = camLook ? camLook.z : holeZ;
+    camX += (hedefX - camX) * follow;
+    camZ += (hedefZ - camZ) * follow;
     clampCamera();
     // The camera sits on the hole and nothing else moves it. A combo used to
     // add a decaying wobble here; see the note above eatFruit for why it is

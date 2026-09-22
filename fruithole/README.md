@@ -2712,6 +2712,7 @@ node scratchpad/holebalance.mjs  # süpürme süresi ve dev meyve eşiği
 node scratchpad/holecircles.mjs  # Bubbles daireleri yuvarlak ve ayrık mı
 node scratchpad/holeecon.mjs     # dükkân kaçıncı bölümde bitiyor
 node scratchpad/holeiap.mjs      # satın alma acknowledge/consume ediliyor mu
+node scratchpad/holecam.mjs      # kamerayı delikten başka bir şey oynatıyor mu
 ```
 
 Hepsi Playwright + başsız Chromium ile çalışıyor. `holecontext.mjs` ayrıca
@@ -2730,6 +2731,16 @@ gibi göstermesi.
 `window.fruitHoleShake()` kameranın anlık konumunu veriyor. Ölçtüğü kombo
 tekmesi kaldırıldı ama kendisi kaldı: artık baktığı şey, kamerayı delikten
 başka **hiçbir şeyin** oynatmadığı.
+
+O cümle bir kez yumuşatıldı. Tanıtım klibinin soğuk açılışı için
+`fruitHoleCamLook(x, z)` eklendi: kamera bir süre deliği değil verilen
+noktayı takip ediyor. Oynanışta hiç çağrılmıyor ve çağrılmadıkça takip hedefi
+delik — ama artık çizim döngüsünün ortasında bir dal var, yani sınırının
+ölçülmesi gerekiyor. `scratchpad/holecam.mjs` üçünü birden tutuyor:
+dokunulmamış oyunda kamera delikte, baktırılınca hedefte kalıyor (delik
+uzaklaşırken), bırakılınca deliğe dönüyor. Dördüncüsü `fruitHoleZoom(null)`
+— klip yakın plandan normale açılırken "normal"i oyundan soruyor, iki yere
+yazılsaydı ayrışırdı.
 
 ### Telefonda ileri bir bölümü açmak: `START_LEVEL`
 
