@@ -982,12 +982,25 @@ tek bir nesneye doğrultulmuş oluyor.
 **Yeni bir kazanma koşulu gerekmiyor.** Tahtadaki en büyük şey olduğu için
 zorunlu olarak sonuncu; "tarlayı temizle" zaten "onu yut" demek.
 
-### Ölçüm: %88
+### Ölçüm: %63-84 — ve önceki sayı yanlıştı
 
-Kolos açılana kadar tahtanın **%88'i** yenmiş olmak zorunda (devler için bu
-oran %30). Her bölümde aynı çıkıyor, çünkü büyüme oranı meyve sayısına göre
-ölçekleniyor. %12'lik pay, kolosun tam anlamıyla son parça olmasını değil,
-son iş olmasını sağlıyor.
+Kolos açılana kadar tahtanın **%63-84'ü** yenmiş olmak zorunda (devler için bu
+oran %23-34). Kalan pay, kolosun tam anlamıyla son parça olmasını değil, son
+iş olmasını sağlıyor.
+
+Burada aylarca **%88 ve %30** yazıyordu ve o sayılar hiçbir zaman doğru
+değildi. Üç ayrı yer — `holebalance.mjs`, `holeboss.mjs` ve oyunun kendi dev
+boyutlandırması — kaç parça yemek gerektiğini **her parçayı bir birim sayarak**
+hesaplıyordu. Oysa `eatFruit` büyük meyveyi 3×, devi 9× büyütüyor. Tahtada
+zaten %10 kadar iri meyve olduğu için üç hesap da olduğundan yüksek çıkıyordu.
+
+Görülmesi, iri payının %28'e çıkarılmasıyla oldu: sayı düzelmek yerine **%110**
+dedi, yani "tarlanın tamamı bile yetmiyor". Bir testin verdiği imkânsız cevap,
+verdiği yanlış cevaptan iyidir — yanlışı üç ay kimse fark etmedi.
+
+Üçü de artık tahtanın kendi karışımıyla ağırlıklandırıyor (`fruitHoleMix()`),
+tahminle değil: desenden desene iri payı %19 ile %62 arasında değişiyor, yani
+tek bir ortalama da yazılamazdı.
 
 ### Zorlaştırmıyor — ama bunu ölçmek üç deneme aldı
 
@@ -2237,6 +2250,62 @@ basılabilsin diye var.
 Test dördünü de kontrol ediyor: iki tuş da ekranın içinde, başlık örtülmüyor
 ve **dört sayacın dördü de görünüyor** — kaydırılabilir olması yetmiyor,
 çünkü kaydırılabildiğini söyleyen hiçbir şey yok.
+
+## Meyveler tahtada halı gibi duruyordu
+
+Kaan'ın gözlemi: *"diğer oyunlarda yutulacak cisimler biraz daha büyük."*
+Ölçüldü, doğru çıktı.
+
+| | ölçülen |
+|---|---|
+| ekranda görünen genişlik | 10.8 birim |
+| sıradan meyve çapı (0.46 yarıçap) | **ekranın %9'u** |
+| deliğin açılış çapı | %11 |
+| tahtadaki meyve sayısı (24. bölüm) | 478 |
+| **tahtanın iri meyve payı** | **%10.4** |
+| **1. bölümün iri payı** | **%2.3** |
+
+Yani tahtanın %89.6'sı en küçük meyveydi, ve en kötüsü yeni oyuncunun gördüğü
+ilk tahtaydı. Tür liderlerinde (Hole Stars, All in Hole) nesneler ekranın üçte
+biri kadar yer kaplıyor.
+
+Bu, TikTok panelindeki *"çoğu izleyici 0:01'de bıraktı"* ile aynı şeyi
+söylüyor: ilk bakışta hangi şeyin önemli olduğu belli değil.
+
+### Neden meyveyi doğrudan büyütmek çözüm değil
+
+Hücre 1.05, sıradan meyve 0.46 — yani zaten hücreyi neredeyse kenardan kenara
+dolduruyor. Meyveyi büyütmek hücreyi büyütmek demek, o da `COLS`'u ve yirmi
+dört desenin hepsini yeniden yazmak demek (desenler 13 sütuna göre yazılmış
+`(satır, sütun)` fonksiyonları). Ayrıca 0.46 bilerek seçilmişti: delik 0.55'te
+açılabilsin ve boyut kapısı ısırsın diye.
+
+Hücreyi büyütüp meyve sayısını sabit tutmak ise **kamerayı yaklaştırmakla aynı
+resmi** veriyor — bir meyvenin ekrandaki boyu yarıçapı bölü kamera genişliği.
+Gerçekten farklı olan tek şey meyve **sayısını** azaltmak, onun da bedeli
+ekonomi (kazanç meyve sayısıyla orantılı) ve büyüme eğrisi.
+
+### Yapılan: karışım
+
+Desenin kendi `big` kuralına dokunulmadı — o şeklin parçası (ağacın gövdesi,
+merdivenin basamağı). Üstüne **%18'lik serpiştirilmiş bir taban** kondu. İri
+payı %10.4'ten **%27.9**'a çıktı, 1. bölüm %2.3'ten %19.9'a; hiçbir desen
+artık halı değil. Meyve sayısı, hücre, desenler ve ödeme aynı kaldı — büyük
+meyve sıradanla aynı parayı ödüyor (yalnızca devler 12×), yani **ekonomi hiç
+etkilenmedi.**
+
+Bedeli büyümedeydi: büyük meyve deliği 3× büyütüyor, yani aynı sayıda meyve
+süpürmek %25 daha çok büyütür oldu. `GROW_SWEEP` 1.4 → 1.75 ile telafi edildi.
+Telafi edilmeseydi kolos tahtanın %68'i yerine %54'ünde açılırdı — "son iş"
+olması bozulurdu.
+
+Devler de büyüdü, ve bu bir yan etki değil düzeltme: dev boyu "tahtanın üçte
+biri süpürülünce ulaşılabilecek en geniş dev" diye tanımlı ama hesap yine her
+meyveyi bir birim sayıyordu. Doğrusuyla gereken yarıçap 1.1'den 1.14-1.46'ya
+çıktı.
+
+`scratchpad/holemix.mjs` her desen için oranı sayıyor ve hiçbirinin halıya
+dönmemesini bekliyor.
 
 ## Ekonomi: dükkân 3. bölümde bitiyordu
 

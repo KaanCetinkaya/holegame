@@ -7689,7 +7689,25 @@ function buildField() {
       const { x, z } = cell;
       const [a, b] = bak(cell.a, cell.b);
       if (currentPattern.empty && currentPattern.empty(a, b)) continue;
-      const big = currentPattern.big ? currentPattern.big(a, b) : scatter(0.12);
+      // Desenin kendi `big` kuralına dokunulmuyor: o şeklin parçası — ağacın
+      // gövdesi, merdivenin basamağı, adanın tepesi. Üstüne serpiştirilen bir
+      // **taban** geliyor.
+      //
+      // Sebebi ölçüldü: tahtanın %89.6'sı en küçük meyveydi (0.46), ve en
+      // kötüsü yeni oyuncunun gördüğü ilk tahtaydı — 1. bölüm %2.3. Ekranda
+      // bir meyve genişliğin %9'u kadar yer kaplıyor; türün önde gidenlerinde
+      // nesneler ekranın üçte biri. Tahta halı gibi okunuyordu, ve TikTok
+      // panelindeki "çoğu izleyici 0:01'de bıraktı" ile aynı şeyi söylüyor:
+      // ilk bakışta hangi şeyin önemli olduğu belli değil.
+      //
+      // Taban desenden bağımsız, çünkü yirmi dört desenin `big` kuralı
+      // birbirinden bambaşka (kimi hiç vermiyor, kimi blob eşiğiyle veriyor).
+      // Yirmi dördünü tek tek ayarlamak, yirmi dört ayrı ayar demekti.
+      // `scratchpad/holemix.mjs` her desen için oranı sayıyor ve hiçbirinin
+      // halıya dönmediğini bekliyor.
+      const BIG_FLOOR = 0.18;
+      const big = (currentPattern.big ? currentPattern.big(a, b) : false)
+        || scatter(BIG_FLOOR);
       const radius = big ? BIG_R : NORMAL_R;
       // Every so often a cell holds an object instead of a fruit. It pays
       // into one of the four counters all the same, so nothing downstream
@@ -7900,7 +7918,18 @@ function placeGiants() {
   // the field this comes out the same on every level, which is the point —
   // with the old flat rate the same sum said "two thirds of the board" on a
   // small level and "a tenth" on a big one.
-  const reach = 0.92 * (BASE_HOLE_R + fruits.length * 0.35 * growthUnit());
+  // Tahtanın üçte biri **kaç birim** büyütüyor: meyve sayısı değil.
+  //
+  // Burası `fruits.length * 0.35 * growthUnit()` diyordu, yani her meyveyi bir
+  // birim sayıyordu — oysa büyük meyve 3×, dev 9× büyütüyor (eatFruit). Tahtada
+  // zaten iri meyve olduğu için dev, tanımının söylediğinden hep bir tık küçük
+  // çıkıyordu; iri payı %10'dan %28'e çıkınca fark görmezden gelinemez oldu ve
+  // dev **küçülerek** tepki verdi — büyütme çalışmasının tam tersi.
+  //
+  // Devler henüz dizilmedi, yani buradaki toplam sıradan ve büyük meyveden
+  // geliyor: deve yetişmek için süpürülecek olan şey de tam olarak o.
+  const birim = fruits.reduce((s, f) => s + (f.eaten ? 0 : f.big ? 3 : 1), 0);
+  const reach = 0.92 * (BASE_HOLE_R + 0.35 * birim * growthUnit());
   const giantR = Math.max(0.95, Math.min(GIANT_R, reach));
 
   const want = 3 + Math.floor(rnd() * 3) + Math.min(3, Math.floor(rows / 12));
@@ -8003,7 +8032,19 @@ const BASE_MOVE_SPEED = 3.4;
 // within reach after about a third of the level and left the back half of
 // every board with nothing left to want. At 1.4 the board's last fruit
 // leaves you short of the cap, so a giant costs about half of it.
-const GROW_SWEEP = 1.4;
+//
+// 1.4 -> 1.75: tahtanın iri payı %10'dan %28'e çıktı ve iri meyve 3× büyütüyor.
+// Aynı sayıda meyve süpürmek artık %25 daha çok büyütüyordu; telafi edilmeseydi
+// dev tahtanın %23'ü yerine %18'inde, kolos %68'i yerine %54'ünde ulaşılır
+// olurdu — yani kolosun "son iş" olması bozulurdu. Oran korunuyor, iri olan
+// yalnızca meyvenin **görüntüsü**.
+//
+// Not: bu oranların eski değerleri de burada ilk kez doğru ölçüldü.
+// `holebalance.mjs` her meyveyi bir birim sayıyordu, oysa büyük 3× ve dev 9×
+// büyütüyor — yani README'de yazan "%88 / %30" hiçbir zaman doğru değildi,
+// gerçek değerler %65-71 ve %15-31'di. Test artık tahtanın kendi karışımıyla
+// ağırlıklandırıyor.
+const GROW_SWEEP = 1.75;
 // The field stops growing at 34 rows, which is level 13; the free head start
 // stops there too.
 const LEVEL_HEADSTART_CAP = 4;
@@ -10349,15 +10390,25 @@ window.fruitHoleBoss = () => {
                            eatsForColossus: null, pctForColossus: null,
                            distFromSpawn: null };
   const c = cs[0];
-  // eat n pieces -> radius grows by n * growthUnit(); it opens when the hole
-  // is wide enough for it, which is the same 0.92 the eating check uses.
+  // it opens when the hole is wide enough for it, which is the same 0.92 the
+  // eating check uses.
+  //
+  // Bir meyve bir birim büyütmüyor: büyük 3×, dev 9× (eatFruit). Burası
+  // `(need - holeRadius) / growthUnit()` diyordu, yani parça sayısını her
+  // parçayı bir birim sayarak buluyordu ve oran hep olduğundan yüksek
+  // çıkıyordu — tahtanın iri payı %10'ken %88, %28'ken %110, yani "tarlanın
+  // tamamı bile yetmiyor" diyordu. Gerçek sayı %65 civarındaydı.
   const need = c.r / 0.92;
-  const eats = Math.ceil((need - holeRadius) / growthUnit());
+  const birim = (need - holeRadius) / growthUnit();
+  // Süpürülecek olan kolosun kendisi değil, geri kalan tahta.
+  const kalan = live.filter(f => !f.colossus);
+  const guc = kalan.reduce((s, f) => s + (f.giant ? 9 : f.big ? 3 : 1), 0);
   return {
     boss: true, count: cs.length,
     colossusR: +c.r.toFixed(2),
-    eatsForColossus: eats,
-    pctForColossus: Math.round(100 * eats / Math.max(1, fruits.length - cs.length)),
+    // Kaç parça: tahtanın ortalama gücüne göre.
+    eatsForColossus: Math.ceil(birim / Math.max(1, guc / Math.max(1, kalan.length))),
+    pctForColossus: Math.round(100 * birim / Math.max(1, guc)),
     distFromSpawn: +Math.hypot(c.x - SPAWN_X, c.z - spawnZ()).toFixed(1),
   };
 };
@@ -10680,6 +10731,22 @@ window.fruitHoleGiants = () => {
     holeR: +(BASE_HOLE_R + Math.min(sizeStage - 1, LEVEL_HEADSTART_CAP) * 0.02
              + Math.min(upg('size'), SIZE_UPGRADE_CAP) * SIZE_UPGRADE_STEP).toFixed(2),
     needR: g.length ? +(Math.max(...g.map(f => f.r)) / 0.92).toFixed(2) : null,
+  };
+};
+// Tahtanın kaçta kaçı iri: sıradan (0.46), büyük (0.72), dev (1.34+).
+//
+// Meyvelerin ekranda küçük kaldığı gözle görüldü ve "büyüt" demek tek başına
+// bir sayı vermiyordu — hangi desende ne kadar büyük olduğu hiç sayılmamıştı.
+// Desenlerin `big` kuralı desenden desene bambaşka (bazısı hiç vermiyor,
+// bazısı blob eşiğiyle veriyor), yani tek bir oran yok.
+window.fruitHoleMix = () => {
+  const a = fruits.filter(f => !f.eaten);
+  const dev = a.filter(f => f.giant).length;
+  const buyuk = a.filter(f => f.big && !f.giant).length;
+  return {
+    toplam: a.length, siradan: a.length - buyuk - dev, buyuk, dev,
+    // İri payı: ekranda bir meyvenin iri okunması bu orana bağlı.
+    iriPay: +((buyuk + dev) / Math.max(1, a.length)).toFixed(3),
   };
 };
 window.fruitHoleFlecks = () => flecks.length;

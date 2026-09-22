@@ -378,15 +378,23 @@ for (const clip of CLIPS) {
     // — küçücük delik, kocaman meyve. Yalnızca deve bakmak bunun yarısını
     // gösterirdi. Genişlik aradaki mesafeye göre, ama her hâlükârda oyunun
     // kendi genişliğinden dar.
-    const ac = await pg.evaluate(([w0, dar, gen]) => {
+    //
+    // Dev uzaktaysa ikisi birden sığmıyor ve "ortasına bak" kuralı yakın planı
+    // tamamen yiyor: ilk denemede boss'ta dev 12.9 birim ötedeydi ve açılış
+    // 4.6 genişlikte, yani normalden ayırt edilemeyecek kadar geniş çıktı —
+    // soğuk açılışın hiç olmaması gibi. O durumda söz devde: kadraj yalnızca
+    // deve gidiyor, delik açılış bitince zaten geliyor.
+    const ac = await pg.evaluate(([dar, gen, yakin]) => {
       const w = window.fruitHoleWhere();
       const g = window.fruitHoleGiantList().filter(x => x.dz < 3 && x.dist < 13)[0];
       if (!g) return null;
-      const halfW = Math.min(gen, Math.max(dar, g.dist * 0.62));
-      window.fruitHoleCamLook((w.x + g.x) / 2, (w.z + g.z) / 2, true);
+      const ikisi = g.dist <= yakin;
+      const halfW = ikisi ? Math.min(gen, Math.max(dar, g.dist * 0.62)) : dar;
+      if (ikisi) window.fruitHoleCamLook((w.x + g.x) / 2, (w.z + g.z) / 2, true);
+      else window.fruitHoleCamLook(g.x, g.z, true);
       window.fruitHoleZoom(halfW);
-      return { halfW: +halfW.toFixed(2), dist: g.dist, w0 };
-    }, [5.4, COLD_W, 4.6]);
+      return { halfW: +halfW.toFixed(2), dist: g.dist, ikisi };
+    }, [COLD_W, 4.6, 6]);
     if (ac) {
       coldN = Math.round(COLD * FPS);
       for (let i = 0; i < coldN; i++) {
@@ -410,7 +418,8 @@ for (const clip of CLIPS) {
       }
       await pg.evaluate(() => { window.fruitHoleCamLook(null); window.fruitHoleZoom(null); });
       console.log(`  soğuk açılış ${(coldN / FPS).toFixed(1)} sn · ` +
-        `genişlik ${ac.halfW} -> 5.4 · dev ${ac.dist} birim ötede`);
+        `genişlik ${ac.halfW} -> 5.4 · dev ${ac.dist} birim ötede` +
+        (ac.ikisi ? ' · delik ve dev birlikte' : ' · yalnız dev (delik uzakta)'));
     } else {
       console.log('  soğuk açılış atlandı: kadrajda dev yok');
     }
