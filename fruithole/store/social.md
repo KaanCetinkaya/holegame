@@ -151,12 +151,23 @@ ekleme.
 
 ## Ölçüm — ilk üç video
 
-| video | tarih | süre | izlenme | ort. izlenme | **süresinin %'si** | tamamlanma | beğeni |
+| video | atıldı | süre | izlenme | ort. izlenme | **süresinin %'si** | tamamlanma | beğeni |
 |---|---|---|---|---|---|---|---|
-| #1 "POV: …the fruit has nowhere to go" | 17 Eyl | 15 sn | 401 | 2.72 sn | %18 | %5.4 | 1 |
-| boss "Every 10th level ends in one giant fruit" | 18 Eyl | 15 sn | 380 | 3.35 sn | %22 | %6.3 | 3 |
-| farm "POV: …the harvest has nowhere to go" | 19 Eyl | 9 sn | 278 | 2.30 sn | %26 | %7.0 | 0 |
-| **tractor "The hole only grows by eating…"** | 20 Eyl | 9 sn | 280 | **4.42 sn** | **%49** | **%12.2** | 2 |
+| #1 "POV: …the fruit has nowhere to go" | 17 Eyl 21:54 | 15 sn | 401 | 2.72 sn | %18 | %5.4 | 1 |
+| boss "Every 10th level ends in one giant fruit" | 18 Eyl 13:35 | 15 sn | 381 | 3.35 sn | %22 | %6.3 | 3 |
+| farm "POV: …the harvest has nowhere to go" | 19 Eyl 21:12 | 9 sn | 281 | 2.30 sn | %26 | %7.0 | 0 |
+| **tractor "The hole only grows by eating…"** | 20 Eyl 20:00 | 9 sn | 283 | **4.42 sn** | **%49** | **%12.2** | 2 |
+| shop "Nothing here is too heavy. Only too big" | 21 Eyl 22:07 | 9 sn | **393** | — | — | — | 1 |
+
+İzlenme ve beğeni sütunları 22 Eylül'de tazelendi; ortalama izlenme sütunu
+ilk ölçümden. shop'unki henüz alınmadı.
+
+**Saat de yazılıyor, yalnızca gün değil.** Bir kez "bugün attık mı" sorusuna
+dosya tarihinden cevap vermeye çalıştım — `shop.mp4`'ün üretilme saatinden.
+Yanlıştı: klip partisi yeniden üretiliyor, yani depodaki dosya atılandan
+**daha yeni bir render** olabiliyor ve çoğu zaman öyle. Dosyanın saati
+videonun var olduğu anı bile söylemiyor, sadece son render'ınkini. Neyin ne
+zaman atıldığının tek kaynağı TikTok Studio → Gönderiler.
 
 **Son satır yeni kurgu, ve ölçü ikiye katlandı.** farm da 9 saniyeydi ve aynı
 yaşta (1 gün) 2.21 saniyede kalmıştı; iki günlükken 2.30. tractor bir günlükken
@@ -176,6 +187,22 @@ söyleyip soru doğuruyor.
 **Süre sütunu TikTok panelinden okunuyor, hatırlanarak değil.** boss burada
 bir kez 9 saniye yazılmıştı; panelde 00:15 görünüyor. Yanlış süre yalnızca
 bir satırı bozmuyor, ondan çıkarılan sonucu da bozuyor (aşağıya bak).
+
+### Dağıtım ilk günden sonra duruyor
+
+22 Eylül'de beş videonun da sayısı yeniden okundu ve eski olanlar **hiç
+kıpırdamamış**: tractor 280 → 283, farm 278 → 281, boss 380 → 381. Aralarında
+üç güne kadar zaman var.
+
+Bu, aşağıdaki "sayılar zamanla değişiyor" notunun sınırını çiziyor: sayı
+yükseliyor ama **birkaç izlenme kadar**. Yani bir videonun kaderi ilk gün
+belli oluyor, ve iki videoyu karşılaştırmak için ikisinin de bir gün beklemesi
+yetiyor — bir hafta beklemeye gerek yok.
+
+shop bir günde 393 aldı; tractor ve farm bir günlükken ~280'deydi. Aynı süre
+(9 sn), aynı kurgu, %40 fazla ilk gün dağıtımı. Tek başına kanıt değil —
+TikTok'un ilk dağıtımı videodan videoya oynuyor — ama shop'un izletme oranı
+da yüksek çıkarsa kurgu iki kez doğrulanmış olur.
 
 ### Sayılar zamanla değişiyor
 
