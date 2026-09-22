@@ -59,9 +59,24 @@ async function open(profile) {
   return { ctx, pg };
 }
 
+// Günlük koşunun **gerçekten başlamasını** bekle, sabit bir süre değil.
+//
+// Burada 1200 ms vardı ve paket beş tarayıcıyı birden koşarken yetmedi:
+// sayfa o kadar aç kaldı ki tarla henüz kurulmamışken özet alındı, yani test
+// günlük tahtayı değil oyuncunun sıradan bölümünü ölçtü ve "tarla birebir
+// aynı değil" dedi. Tek başına koşunca aynı sürüm geçiyordu.
+//
+// Şart aynı, bekleme esnek: `dailyRun` açılana kadar, en çok on saniye.
 const playDaily = (pg) => pg.evaluate(async () => {
   window.fruitHoleStartDaily();
-  await new Promise(r => setTimeout(r, 1200));
+  for (let i = 0; i < 100; i++) {
+    if (window.fruitHoleDailyState().dailyRun) break;
+    await new Promise(r => setTimeout(r, 100));
+  }
+  // Tarla kurulduktan sonra bir nefes: düşüş animasyonu sürerken de özet
+  // doğru (hash `baseY` okuyor), ama devlerin yerleşmesi aynı kareyi
+  // bekliyor.
+  await new Promise(r => setTimeout(r, 300));
   return { ...window.fruitHoleFieldHash(), ...window.fruitHoleDailyState() };
 });
 
