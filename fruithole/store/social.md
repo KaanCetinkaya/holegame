@@ -157,10 +157,15 @@ ekleme.
 | boss "Every 10th level ends in one giant fruit" | 18 Eyl 13:35 | 15 sn | 381 | 3.35 sn | %22 | %6.3 | 3 |
 | farm "POV: …the harvest has nowhere to go" | 19 Eyl 21:12 | 9 sn | 281 | 2.30 sn | %26 | %7.0 | 0 |
 | **tractor "The hole only grows by eating…"** | 20 Eyl 20:00 | 9 sn | 283 | **4.42 sn** | **%49** | **%12.2** | 2 |
-| shop "Nothing here is too heavy. Only too big" | 21 Eyl 22:07 | 9 sn | **393** | — | — | — | 1 |
+| **shop "Nothing here is too heavy. Only too big"** | 21 Eyl 22:07 | 9 sn | **393** | **3.79 sn** | **%42** | **%14.4** | 1 |
 
 İzlenme ve beğeni sütunları 22 Eylül'de tazelendi; ortalama izlenme sütunu
-ilk ölçümden. shop'unki henüz alınmadı.
+ilk ölçümden.
+
+**Yeni kurgu ikinci kez doğrulandı.** İki yeni kurgu klibi %49 ve %42
+izletme, %12.2 ve %14.4 tamamlanma aldı; üç eski klip %26/%22/%18 ve
+%7.0/%6.3/%5.4'te kaldı. Aradaki fark iki kat ve **iki ölçümde de aynı
+yönde** — tek bir videonun şansı değil.
 
 **Saat de yazılıyor, yalnızca gün değil.** Bir kez "bugün attık mı" sorusuna
 dosya tarihinden cevap vermeye çalıştım — `shop.mp4`'ün üretilme saatinden.
@@ -187,6 +192,26 @@ söyleyip soru doğuruyor.
 **Süre sütunu TikTok panelinden okunuyor, hatırlanarak değil.** boss burada
 bir kez 9 saniye yazılmıştı; panelde 00:15 görünüyor. Yanlış süre yalnızca
 bir satırı bozmuyor, ondan çıkarılan sonucu da bozuyor (aşağıya bak).
+
+### Kaybedilen yer klibin sonu değil, ilk karesi
+
+shop'un panelinde asıl cümle grafiğin altında: *"Çoğu izleyici bu videoyu
+0:01 süresinde izlemeyi bıraktı."* Üç yüz doksan üç kişinin çoğu **ilk
+saniyede** gitmiş.
+
+Bu, bütün kurgu tartışmasının nereye bakması gerektiğini değiştiriyor. Şu ana
+kadar klibin **sonunu** düzelttik — dönüşüm, devin yutulduğu an, kural/soru
+açıklaması — ve işe yaradı: oran iki katına çıktı. Ama o kazanç, birinci
+saniyeyi geçenler üzerinde. Geçemeyenler klibin nasıl bittiğini hiç
+görmüyor.
+
+Sebebi de klibin kendisinde: kayıt tarlanın ortasında, delik zaten süpürürken
+başlıyor. İlk karede ne olduğu belli değil — ekranda yüzlerce meyve var ve
+hangisinin önemli olduğunu söyleyen bir şey yok.
+
+**Denenecek kurgu:** klip devin üstünde yakın planla açılsın, yarım saniye
+sonra geri çekilip tarlayı ve deliği göstersin. İlk kare soruyu sorsun, süpürme
+sonra başlasın. Ölçüsü aynı iki sayı: izletme oranı ve tamamlanma.
 
 ### Dağıtım ilk günden sonra duruyor
 
