@@ -142,6 +142,42 @@ Sonra telefonda: Goals ekranını aç. **🏆 Leaderboard düğmesi görünüyor
 giriş yapılmış ve tablo bağlanmış demektir. Görünmüyorsa üçünden biri:
 kimlik boş, eklenti yüklenmemiş, ya da giriş reddedilmiş.
 
+### 22 Eylül 2026 — 31 (1.10): düğme var, giriş yok
+
+Teşhis ekranı bu sefer soruyu bitirdi:
+
+```
+PlayGames    evet
+giriş        hayır
+sebep        oyuncu girişi tamamlamadı
+cevap        {"signedIn":false}
+tanı         4:
+tablo id     CgkIkbTDscoOEAIQAA
+🏆 düğme     hayır
+```
+
+`tanı 4` = **SIGN_IN_REQUIRED**, `10` (DEVELOPER_ERROR) değil. Bu ayrım
+bütün bir arama alanını kapatıyor: **SHA-1 ve OAuth istemcisi doğru.** Yanlış
+olsalardı Google 10 derdi. Eklenti de yüklü, tablo kimliği de dolu — yani
+1'den 5'e kadar bütün adımlar tamam.
+
+Geriye Play Console'un iki durumu kalıyor ve ikisi de cihazda **aynı**
+görünüyor, çünkü giriş hakkı olmayan hesaba Google hiçbir ekran göstermeden
+`signedIn:false` dönüyor:
+
+* Hesap **Play Games Services test kullanıcıları** listesinde değil. Bu liste
+  kapalı test kanalınınkinden ayrı — IAP'de aynı tuzağa bir kez düşülmüştü
+  (README, "Test ve sınırı"). Kapalı teste ekli olmak buraya yetmiyor.
+* Yapılandırma hiç **yayınlanmamış**. Yayınlanmamış bir yapılandırmaya test
+  kullanıcısı bile giremiyor.
+
+İkisi de konsol ayarı; yeni bir `versionCode` harcamıyor.
+
+**Bu, teşhis ekranının kendini ödediği ikinci sefer.** Aynı ekran olmadan
+elde yine "düğme çıkmıyor" kalırdı ve arada SHA-1'i yeniden üretip bir
+derleme daha yüklemek dururdu — ki durum kodu onun doğru olduğunu zaten
+söylüyor.
+
 ## B planı: eklenti derlenmezse
 
 Üç seçenek, tercih sırasıyla:
