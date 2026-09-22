@@ -484,6 +484,42 @@ On iki desen bittiğinde oyun durmaz: her tam tur bir **kademe** sayılır ve
 kademe başına süre %7 kısalır (en fazla %28). Yani desenler tekrar eder,
 zorluk etmez.
 
+## Bir kare kaça patlıyor
+
+Ölçüldü, ve sayı iyi değil: **oynanırken en ağır kare ~1000 çizim çağrısı**
+(24. bölüm, tarla). Orta segment bir Android'de rahat sınır kabaca 300.
+
+```
+ düzen     | tema             | meyve | çizim çağrısı
+ Cross     | tarla            |   504 |           995
+ Ring      | arabalı sinema   |   458 |           762
+ Pyramid   | kumsal           |   254 |           701
+ Blocks    | mağaza           |   445 |           437
+ Wave      | pazar            |   163 |           346
+ Piles     | pazar            |   115 |           279
+```
+
+Sebep tek cümle: **her meyve ayrı bir nesne**, yani her biri ayrı bir çizim
+çağrısı. Beş yüz meyvelik bir tarla beş yüz çağrı demek.
+
+`scratchpad/holecost.mjs` bu soruyu zaten soruyordu ama yanlış kameradan:
+tahtayı kurup ölçüyor ve o sırada kamera bütün tarlayı kadraja alıyor —
+telefonda öyle bir kare yok. `scratchpad/holeframe.mjs` bölümü başlatıp
+gerçekten oynuyor ve on karenin en kötüsünü alıyor. Beklenenin aksine sayı
+**düşmedi**: oyunun kendi kamerası da tarlanın çoğunu görüyor.
+
+**Gölge geçişi bu sayının içinde değil.** `renderer.info` yalnızca ana geçişi
+sayıyor — aynı kare gölge açık, gölge kapalı ve meyve gölgeleri kapalı
+çizilip sayaç okundu, üçü de aynı çıktı (`fruitHoleFrameSplit`). Gölgenin
+bedeli süreyle ölçüldü: 19. bölümde kare 3.42 ms'den 2.08 ms'ye iniyor, yani
+karenin kabaca %40'ı. Telefonda oran başka olur ama sıfır değil.
+
+Çözüm belli: aynı geometri ve malzemeyi paylaşan meyveleri tek çağrıda çizmek
+(instancing). Bin çağrı yirmiye iner. Ama düşme animasyonu, yeme animasyonu,
+mıknatıs ve gölgeler meyvenin kendi nesnesine dokunuyor, yani bu oyunun çizim
+yolunu baştan kurmak demek. Ölçüm burada duruyor; karar, gerçek telefonda
+takılma görülürse verilecek.
+
 ## Teknik notlar
 
 - **Grafikler tamamen prosedürel.** Her meyve tipinin kendi geometrisi ve
