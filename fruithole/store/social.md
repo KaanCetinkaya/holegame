@@ -227,6 +227,35 @@ Klipler artık **dönüşüm** olarak kuruluyor: delik dev meyveyi yutamayacak
 kadar küçükken başlıyor ve klip o devin yutulduğu anda bitiyor. Açıklamalar
 da durum değil **kural/soru** biçiminde.
 
+## 15 saniyelik deney
+
+Traktör (9 sn) izletmede öne geçti ama beğenide boss (15 sn) önde: 2'ye 3.
+İkisi farklı şeyi ölçüyor ve ikisi de aynı anda istenebilir, o yüzden aynı
+kurgunun uzun hâli de üretildi.
+
+**Ama uzun kurgu her tahtada kurulamıyor.** İki denemede de klip ödemesiz
+kesildi ve sebebi log'da yazıyordu: *"9 erken yutma atlandı."* Delik tarlayı
+süpürerken devleri **yolda** yiyor — onlara gitmesi bile gerekmiyor — ve on
+beş saniyelik pencerenin sonuna dev kalmıyor. Dokuz saniyede bu görünmemişti,
+çünkü pencere kısa olduğu için geriye hep bir dev kalıyordu.
+
+Otomatik oyuncuya "devi son dört saniyeye sakla" demek yetmedi: mesele
+kovalamak değil, üstünden geçmek.
+
+Çözüm bölüm seçiminde çıktı. **Patron bölümünün devasa meyvesi tasarım gereği
+tarla süpürülene kadar yenemiyor** — yani on beş saniyelik bir söz ancak orada
+tutulabiliyor. Klip Size 2'lik bir delikle üç dev karpuzun altında başlıyor ve
+14.4. saniyede birini yutuyor.
+
+```
+The big one at the end cannot be taken early. You have to earn the size 👑🍉
+
+#bossfight #satisfying #mobilegaming #indiedev #gaming
+```
+
+Karşılaştırma iki gün sonra, ikisinin yaşı denkken: 9 saniyelik drive ile 15
+saniyelik bu. Bakılacak sayı saniye değil **süresinin yüzdesi**, ve beğeni.
+
 ## Ne kadar sıklıkla
 
 Günde bir, en fazla. Yedi klip yedi gün eder; bitince
