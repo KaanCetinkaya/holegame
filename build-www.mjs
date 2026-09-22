@@ -71,6 +71,22 @@ if (LIVE_ADS) {
   fruit = swap(fruit, 'const ADS_TESTING = true;', 'const ADS_TESTING = false;',
     'fruithole/index.html (LIVE_ADS)');
 }
+
+// Başlangıç bölümü: yalnızca telefonda bir bölümü ölçmek için.
+//
+//   cross-env START_LEVEL=24 npm run apk:fruithole
+//
+// Yirmi dördüncü bölümün telefonda takılıp takılmadığını görmek için yirmi üç
+// bölüm oynamak gerekiyordu; kaydı elle kurcalamak da mağaza sürümünde mümkün
+// değil, o derleme hata ayıklamaya kapalı. Bayrak sürüm yazısına da giriyor,
+// çünkü ekranda hangi derlemenin olduğu karışırsa ölçüm de karışır.
+const START_LEVEL = parseInt(process.env.START_LEVEL || '0', 10);
+if (START_LEVEL > 0) {
+  fruit = swap(fruit, 'const START_LEVEL = 0;', `const START_LEVEL = ${START_LEVEL};`,
+    'fruithole/index.html (START_LEVEL)');
+  fruit = fruit.replace(`const APP_VERSION = '${V.versionName} (${V.versionCode})';`,
+    `const APP_VERSION = '${V.versionName} — test L${START_LEVEL}';`);
+}
 writeFileSync(r('www-fruithole', 'index.html'), fruit);
 
 // menu-bg.png deliberately does NOT travel with the build any more.
@@ -90,6 +106,10 @@ if (existsSync(r('www', 'three.module.js'))) {
 console.log(LIVE_ADS
   ? 'www-fruithole/index.html güncellendi (Fruit Hole) — REKLAMLAR GERÇEK. Bu derlemeyi kendi telefonunda oynama, kendi reklamına tıklamak hesabı kapattırır.'
   : 'www-fruithole/index.html güncellendi (Fruit Hole) — reklamlar test.');
+if (START_LEVEL > 0) {
+  console.log(`UYARI: bu bir TEST derlemesi — oyun ${START_LEVEL}. bölümden ` +
+    'açılıyor ve ilerleme kaydedilmiyor. Mağazaya bunu yükleme.');
+}
 
 // ---- Slice Rush -> www-slicer/ ----
 mkdirSync(r('www-slicer'), { recursive: true });

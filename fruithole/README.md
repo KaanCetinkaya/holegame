@@ -2703,7 +2703,8 @@ gerekir). Paketlenecek, kütüphanesi yerel sürümü üretmek için depo kökü
 npm run build:www        # -> www-fruithole/
 ```
 
-Ölçümler (`node build-www.mjs` sonrası, `scratchpad/hole*.mjs` — 21 dosya):
+Ölçümler (`node build-www.mjs` sonrası, `scratchpad/hole*.mjs` — sayısı
+burada yazmıyor, çünkü her yeni testte eskiyip yanlış oluyordu):
 
 ```bash
 node scratchpad/holegrow.mjs     # delik ne kadar hızlı büyüyor
@@ -2729,6 +2730,41 @@ gibi göstermesi.
 `window.fruitHoleShake()` kameranın anlık konumunu veriyor. Ölçtüğü kombo
 tekmesi kaldırıldı ama kendisi kaldı: artık baktığı şey, kamerayı delikten
 başka **hiçbir şeyin** oynatmadığı.
+
+### Telefonda ileri bir bölümü açmak: `START_LEVEL`
+
+"24. bölüm bu telefonda takılıyor mu" sorusunun cevabı yirmi üç bölüm
+oynamaktan geçiyordu. Mağaza sürümünde kaydı elle kurcalamak da mümkün değil:
+o derleme hata ayıklamaya kapalı, `chrome://inspect` onu görmüyor.
+
+```
+$env:START_LEVEL=24
+npm run apk:fruithole
+Remove-Item Env:\START_LEVEL
+```
+
+Çıkan APK istenen bölümden açılıyor ve haritada oraya kadar her şey açık.
+Bayrak `ADS_TESTING` ile aynı yolu izliyor — kaynakta `const START_LEVEL = 0;`
+hep kapalı duruyor, değeri `build-www.mjs` derleme sırasında koyuyor. Elle
+çevrilen bir sabit olsaydı açık unutulduğunda herkesin oyunu 24. bölümden
+başlardı; bunun eşi bir kez zaten yaşandı (aşağıda, "Test reklamı mı, gerçek
+reklam mı").
+
+İki koruma var, ikisi de bir hatayı sessiz olmaktan çıkarıyor:
+
+* **İlerleme kaydedilmiyor.** Bölüm yalnızca o oturum için ileri alınıyor,
+  `localStorage`'a yazılmıyor. Yoksa test için kurulan APK, üstüne sonradan
+  mağaza sürümü gelince gerçek ilerlemeyi 24'e sıçratmış olurdu.
+* **Sürüm yazısı değişiyor:** menünün köşesinde `1.11 (33)` yerine
+  `1.11 — test L24`. Ekranda hangi derlemenin olduğu karışırsa ölçüm de
+  karışır.
+
+Kurarken: bu APK senin yükleme anahtarınla imzalı, mağazadaki ise Google'ın
+imza anahtarıyla. İmzalar farklı olduğu için **önce mağaza sürümünü
+kaldırman** gerekiyor, yoksa Android "Uygulama yüklenmedi" diyor.
+
+`node scratchpad/holestart.mjs` ikisini birden ölçüyor: bayraklı derleme
+istenen bölümden açılıyor mu, ve bayraksız derleme bundan etkilenmemiş mi.
 
 ## İkon, splash ve mağaza görselleri
 
