@@ -89,6 +89,9 @@ const SEARCH = Number(arg('search', 12));
 // yutulabilir", 1.6 "biraz büyümek gerek". Üstü, dokuz saniyede kapanmayan
 // bir açık demek.
 const NEAR_MAX = Number(arg('near', 1.6));
+// Klibin son kaç saniyesinde dev avlanıyor. Öncesinde otomatik oyuncu
+// sıradan meyveyi süpürüyor; yoldaki devi yine yiyebilir ama ona gitmiyor.
+const AV_SN = Number(arg('hunt', 4));
 const ONLY = arg('only', null);
 
 // Hangi bölümler?
@@ -246,10 +249,20 @@ for (const clip of CLIPS) {
   // Sürmek ve kareyi ilerletmek tek çağrıda: her kare için iki tur yerine bir
   // tur. Dönen sayılar adımdan **önceki** durum — dev sayısının düştüğü kare,
   // devin bir önceki adımda yutulduğu kare demek.
-  const adim = () => pg.evaluate(dt => {
+  // `avla`: dev peşine düşülsün mü?
+  //
+  // Düşülmediğinde otomatik oyuncu sıradan meyveyi süpürüyor, ve yoldaki bir
+  // devi yine de yiyor — ama ona **gitmiyor**. Fark, ödemenin nereye
+  // düştüğünde: 15 saniyelik ilk denemede bot devleri erkenden yedi (sekiz
+  // tanesini), klip penceresinin sonunda yutulacak dev kalmadı ve klip
+  // ödemesiz kesildi. Dokuz saniyede bu görünmemişti çünkü pencere kısaydı;
+  // sorun oradaydı, sadece rastlamıyordu.
+  //
+  // Artık av son saniyelere saklanıyor: önce tarla süpürülüyor, sonra dev.
+  const adim = (avla = true) => pg.evaluate(([dt, av]) => {
     const w = window.fruitHoleWhere();
     const g = window.fruitHoleGiantList();
-    const yut = g.filter(x => x.eatable && x.dist < 15);
+    const yut = av ? g.filter(x => x.eatable && x.dist < 15) : [];
     const hedef = yut.length ? yut[0] : window.fruitHoleNearest();
     if (!hedef) window.fruitHoleSteer(0, 0);
     else {
@@ -259,7 +272,7 @@ for (const clip of CLIPS) {
     }
     window.__step(dt);
     return { dev: g.length, eaten: w.eaten, total: w.total, timeLeft: w.timeLeft, state: w.state };
-  }, 1000 / FPS);
+  }, [1000 / FPS, avla]);
   //
   // Ne zaman kaydetmeye başlanacağı sabit bir gecikme değil, **deliğin
   // çevresindeki meyve sayısı**.
@@ -315,11 +328,11 @@ for (const clip of CLIPS) {
   const uygun = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE
     && d.dev > 0 && d.yutulabilir === 0 && d.buyukluk <= NEAR_MAX;
   let warm = 0;
-  for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim();
+  for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim(false);
   const enCok = Math.round(PRE_MAX * FPS);
   let d = await durum();
   while (warm < enCok && !uygun(d)) {
-    await adim();
+    await adim(false);
     d = await durum();
     warm++;
   }
@@ -347,9 +360,13 @@ for (const clip of CLIPS) {
   const total = Math.round(SECONDS * FPS);
   const TAIL = Math.round(0.6 * FPS);        // yutmadan sonra nefes payı
   const ARA = Math.round(SEARCH * FPS);      // yutma aranacak ek süre
+  // Av penceresi: klibin son AV_SN saniyesi. Önce tarla süpürülüyor, sonra
+  // dev. Ödemenin sonda olmasının tek yolu bu — beklemek yetmiyor, devi
+  // ortada yememek gerekiyor.
+  const AV_BASLA = total - Math.round(AV_SN * FPS);
   let f = 0, yutuldu = -1, erken = 0, onceki = null;
   while (true) {
-    const s = await adim();
+    const s = await adim(f >= AV_BASLA);
     await pg.screenshot({
       path: join(frameDir, String(f).padStart(5, '0') + '.png'),
       animations: 'disabled',
