@@ -66,8 +66,8 @@ opening outward from where you stand, a five-petalled bloom, three spiral arms.
 
 And each one is somewhere. A beach with the sea running up the sand. A mown
 football pitch. Fresh snow. A marble bank floor veined with gold. A station
-deck with nothing but the dark past its edge. A lacquered bar top. A field
-ploughed into furrows. The ground changes, and so does what is lying on it.
+deck with nothing but the dark past its edge. A lacquered bar top. A ploughed
+field. A cobbled market square. The ground changes, and so does what is on it.
 
 🔥 CHAIN COMBOS
 Eat fruit back to back and the multiplier climbs. Sweeping a patch in one pass
@@ -108,8 +108,8 @@ swallow is kept, and the Collection screen holds them all — the ones you have
 in colour, the ones still out there as silhouettes.
 
 🕳️ TEN HOLE SKINS
-Mint, grape, coral, ink, lime, candy, ocean — and gold and chrome, which catch
-the light in a way flat colour cannot. Half open as you climb, half are bought.
+Mint, grape, coral, lime, candy — and gold and chrome, which catch the light
+in a way flat colour cannot. Half open as you climb, half are bought.
 
 📋 MISSION LEVELS
 Every fifth level wants something else. An order level ends when every banana
@@ -130,6 +130,31 @@ and you can see inside before you open it.
 Press anywhere and drag. That's the whole control scheme. No connection.
 
 Ready to clear the field?
+```
+
+## What's new — 1.11 / versionCode 32 (≤ 500 chars per language)
+
+Bu not **bir sonraki .aab'ye** ait. 30 ve 31 Play'e gitti; `app-version.json`
+ikisini de yüklenmiş sayıyor, yani sıradaki kod 32. Sürüm adı bu sefer
+değişiyor (1.10 → 1.11) çünkü içerik değişiyor: 31 ile aynı oyunu değil, yeni
+bir yer ve yeni bir görev tipi taşıyor.
+
+English (413 chars):
+```
+Every tenth mission level is now a race: the clock opens at twelve seconds and every fruit you swallow adds to it. Stop moving and it runs out.
+
+A new place to play as well — Market Day, a cobbled square with scales, baskets, bread, cheese, jars and sacks laid out across it, and a striped awning standing over the lot. That takes the collection to 80 objects.
+
+Plus three new achievements for the mission levels.
+```
+
+Türkçe (356 karakter):
+```
+Her onuncu görev bölümü artık bir yarış: saat on iki saniyede başlıyor ve yuttuğun her meyve ona ekliyor. Durursan biter.
+
+Yeni bir yer de geldi — Market Day: taş döşeli bir meydan, üstünde terazi, sepet, ekmek, peynir, kavanoz ve çuval, hepsinin üstünde çizgili bir tente. Koleksiyon böylece 80 nesneye çıktı.
+
+Ayrıca görev bölümleri için üç yeni başarım.
 ```
 
 ## What's new — 1.10 / versionCode 31 (≤ 500 chars per language)
