@@ -1277,7 +1277,11 @@ const BOOSTERS = [
     desc: '+15 seconds' },
   { id: 'grow',   icon: '💥', name: 'Grow',     unlock: 7,  pay: 'banana', cost: 150, free: 1,
     desc: 'Hole grows at once' },
-  { id: 'magnet', icon: '🌟', name: 'Super magnet', unlock: 10, pay: 'melon', cost: 135, free: 1,
+  // 135 -> 120: bir bölümün karpuz kazancının %52'siydi, kural yarısını
+  // geçmemesini istiyor. Sayının yanlış olduğu, `holeecon` bölüm başına tek
+  // tohum yerine üç tohumun ortalamasını almaya başlayınca görüldü — tek
+  // tohumla %44 diyordu ve o, şanslı bir tahtaydı.
+  { id: 'magnet', icon: '🌟', name: 'Super magnet', unlock: 10, pay: 'melon', cost: 120, free: 1,
     desc: '8 seconds of strong pull' },
 ];
 
@@ -2300,6 +2304,11 @@ function buildMenuDiorama() {
   fieldGroup.clear();
   fieldGroup.rotation.y = 0;
   fruits = [];
+  // Kayalar da: meshleri clear() ile gitti ama liste kalırsa çarpışma
+  // menüden kalma görünmez kayalara çarpar. Bir sonraki buildField zaten
+  // sıfırlıyor, yani bu satır bir hatayı düzeltmiyor — birinin doğmasını
+  // engelliyor.
+  rocks = [];
   eatenCount = 0; levelGoal = 0;
   fieldHalfX = 4.6; fieldHalfZ = 4.2;
   fitGround();
@@ -5646,6 +5655,72 @@ const BOMB_RATE = 0.012;
 // bölümde ceza veren bir şey, öğretmeden cezalandırmak olurdu.
 const BOMB_FROM = 6;
 
+// ---------------------------------------------------------------------
+// Kaya
+//
+// Bomba bir karardı — yutabilirsin, bedelini ödersin. Kaya bir **duvar**:
+// yutulamıyor ve deliğin içinden geçmesine izin vermiyor. Oyunun ilk
+// çarpışması bu; o ana kadar delik tahtadaki her şeyin altından geçiyordu.
+//
+// Fizik basit ve doğru okunuyor: kaya toprağa çakılı, ağzın kenarı onun
+// dibine değince duruyor. Yani **büyük delik daha uzaktan durduruluyor** —
+// ağız genişledikçe kayanın etrafından dolaşmak zorlaşıyor, ve bu tam
+// tersine dönmüş bir zorluk eğrisi: oyunun geri kalanında büyümek her şeyi
+// kolaylaştırıyor, burada bir bedeli oluyor.
+//
+// `fruits` listesine **girmiyor**. Girseydi yutma kontrolü, hedef sayısı,
+// görev sayaçları, mıknatıs ve otomatik oyuncu — hepsi tek tek "kaya hariç"
+// diye yazılmak zorunda kalırdı; bombada dört yeri kaçırmıştım. Ayrı liste,
+// bütün o soruları sormadan doğru cevap veriyor.
+const ROCK_R = 0.62;
+const ROCK_FROM = 9;          // bombadan sonra: iki yeni fikir aynı anda gelmesin
+// Kaç tane. Tahtadaki kaya sayısı değil, tahtanın **boyuna** göre: kısa bir
+// tahtada üç kaya bir labirent, uzun bir tahtada üç kaya fark edilmiyor.
+const ROCK_PER_ROW = 0.09;
+// Aralarındaki en az mesafe. En geniş ağız (HOLE_MAX) iki kayanın arasından
+// geçebilmeli, yoksa tahta kapanıyor ve bölüm bitirilemez hâle geliyor.
+//
+// Sabit değil fonksiyon, çünkü `HOLE_MAX` bu satırdan **sonra** tanımlı ve
+// burada okunması modülü açılışta patlatır — bu dosyada tam olarak bu hata
+// üç kez oldu ve üçünde de oyun hiç açılmadı (README, "Açılmayan oyun").
+// Yerine taşımak da olurdu ama kayanın bütün ayarları bir arada dursun.
+const rockGap = () => HOLE_MAX * 2 + ROCK_R * 2 + 1.2;
+// Kenara en az bu kadar: kenarla kaya arasında da geçecek bir şerit kalsın.
+//
+// Bunun sonucu ölçüldü ve kabul edildi: tahta 13.65 birim geniş, en geniş
+// ağız 5.5 — yani kayalar zorunlu olarak **orta koridorda** kalıyor (merkeze
+// ±2.2 birim). Kenara yaklaştırmak bir kayanın arkasında, kenarla arasında,
+// ağzın giremeyeceği bir şerit bırakır; oradaki meyveye geç kalındığında hiç
+// ulaşılamaz ve bölüm sessizce bitirilemez olur — oyun bunu hata olarak
+// göstermiyor, saat doluyor ve sebep görünmüyor.
+//
+// Orta koridor zaten deliğin en çok geçtiği yer, yani engel orada duruyor.
+const rockEdge = () => HOLE_MAX + ROCK_R + 1.2;
+
+const ROCK_GEO = (() => {
+  const g = new THREE.Group();
+  const tas = new THREE.MeshStandardMaterial({ color: '#8d9099', roughness: 0.92 });
+  const golge = new THREE.MeshStandardMaterial({ color: '#6b6e77', roughness: 0.95 });
+  // Düzensiz bir kaya: tek bir küre "top" gibi duruyor, birkaç köşeli parça
+  // üst üste binince taş oluyor.
+  //
+  // Nesneler gibi **yarım genişliği 1** olacak şekilde çiziliyor, çünkü
+  // çarpışma yarıçapı `ROCK_R` ve ölçek de o: geometri dar kalırsa delik
+  // görünen taşa değmeden duruyor, yani oyuncu görünmez bir duvara çarpıyor.
+  // İlk hâlinde geometri 0.86'ya kadar gidiyordu, çarpışma 1.0'a — aradaki
+  // fark tam olarak "buraya neden giremiyorum".
+  const ana = part(new THREE.DodecahedronGeometry(0.9, 0), tas, 0, 0.7, 0);
+  ana.rotation.set(0.4, 0.7, 0.2);
+  g.add(ana);
+  const yan = part(new THREE.DodecahedronGeometry(0.46, 0), golge, 0.5, 0.34, 0.34);
+  yan.rotation.set(0.9, 0.3, 0.5);
+  g.add(yan);
+  const ust = part(new THREE.DodecahedronGeometry(0.38, 0), tas, -0.32, 1.2, -0.22);
+  ust.rotation.set(0.2, 1.1, 0.8);
+  g.add(ust);
+  return g;
+})();
+
 // Fitili yanan koyu bir küre. PROPS'a **girmiyor**: oradaki her şey
 // koleksiyonun bir parçası ve "63 şeyden 41'ini buldun" listesine bir ceza
 // nesnesi koymak, bulunacak bir şeymiş gibi gösterirdi.
@@ -7835,6 +7910,13 @@ function buildField() {
         fruits.push({ mesh, x, z, r: radius, type, big, prop, eaten: false, baseY: y, nudge: 0 });
       }
   }
+  // Kayalar **devlerden önce**.
+  //
+  // Tersiydi ve yer bulamıyordu: kaya orta koridorda kalmak zorunda (±2.2
+  // birim) ve bir dev o koridorun tamamını kapatıyor, yani patron bölümleri
+  // üç denemeden ikisinde hiç kaya almadı. Şimdi kaya seçiyor, dev ona göre
+  // yerleşiyor — devin tahtada gidecek çok daha fazla yeri var.
+  placeRocks();
   placeGiants();
   placeBombs();
   // After the giants, so it takes its clearing from a settled board rather
@@ -7973,6 +8055,67 @@ function stepDrop(now) {
 // sit half-buried in a tower and there would be no way to tell it apart.
 // The gap it leaves is the tell — an object too big to take, with room around
 // it, reads as a target rather than as scenery.
+// Tahtadaki kayalar. `fruits`'ten ayrı bir liste — sebebi ROCK_R'nin yanında.
+let rocks = [];
+
+function placeRocks() {
+  rocks = [];
+  if (dailyRun || level < ROCK_FROM) return;
+  const kac = Math.max(1, Math.round(rows * ROCK_PER_ROW));
+  const gap = rockGap(), kenar = rockEdge();
+  const mX = fieldHalfX - kenar, mZ = fieldHalfZ - kenar;
+  if (mX <= 0 || mZ <= 0) return;   // tahta bir kaya taşıyamayacak kadar dar
+  for (let deneme = 0; deneme < kac * 40 && rocks.length < kac; deneme++) {
+    const x = (rnd() * 2 - 1) * mX;
+    const z = (rnd() * 2 - 1) * mZ;
+    // Deliğin doğduğu yer açık kalmalı: oyuncu bir kayaya yapışmış hâlde
+    // başlarsa ilk hareketi "neden gitmiyorum" olur.
+    if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + ROCK_R + 3) continue;
+    // Kolosun yeri de açık kalmalı: patron meyvesinin önüne kaya koymak,
+    // bölümün tek hedefini erişilmez yapabilir.
+    if (isBossLevel(level) && Math.hypot(x - 0, z + fieldHalfZ * 0.55) < COLOSSUS_R + gap * 0.5) continue;
+    if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < gap)) continue;
+    // Altındaki meyveleri al. Devlerin yaptığının aynısı: bir kayanın içinden
+    // görünen meyve, yutulamayacağı hâlde yutulabilir duruyor.
+    for (const f of fruits) {
+      if (f.eaten || f.giant) continue;
+      if (Math.hypot(f.x - x, f.z - z) > ROCK_R + NORMAL_R * 1.3) continue;
+      fieldGroup.remove(f.mesh);
+      f.eaten = true;
+      f.mesh.visible = false;
+    }
+    const mesh = ROCK_GEO.clone();
+    const jit = 0.9 + rnd() * 0.25;
+    mesh.scale.set(ROCK_R * jit, ROCK_R * jit, ROCK_R * jit);
+    mesh.position.set(x, 0, z);
+    mesh.rotation.y = rnd() * Math.PI * 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    fieldGroup.add(mesh);
+    rocks.push({ x, z, r: ROCK_R * jit, mesh });
+  }
+}
+
+// Deliği kayaların dışında tut.
+//
+// Hareketten **sonra** çağrılıyor ve üst üste binmeyi geri itiyor: durdurmak
+// yerine kaydırıyor. Parmağını kayaya doğru bastırınca delik yüzeyi boyunca
+// süzülüyor, çünkü geri itme yalnızca temas doğrultusunda oluyor ve ona dik
+// bileşen olduğu gibi kalıyor. Sert durdurmak, dokunmatik kontrolde parmağın
+// hâlâ hareket ettiği hâlde ekranda hiçbir şeyin olmaması demekti.
+function pushOutOfRocks() {
+  for (const r of rocks) {
+    const dx = holeX - r.x, dz = holeZ - r.z;
+    const enAz = holeRadius + r.r;
+    const d = Math.hypot(dx, dz);
+    if (d >= enAz) continue;
+    // Tam merkezdeyse yön yok: bir yöne it, yoksa NaN.
+    if (d < 0.0001) { holeX = r.x + enAz; continue; }
+    holeX = r.x + (dx / d) * enAz;
+    holeZ = r.z + (dz / d) * enAz;
+  }
+}
+
 // Bombalar, tarla ve devler yerleştikten sonra: mevcut bir meyvenin yerini
 // alıyorlar, yanına konmuyorlar. Yanına konsalardı tahta kalabalıklaşır ve
 // bomba "fazladan bir şey" gibi dururdu; yerini alınca tam da kaçınılacak
@@ -8107,7 +8250,14 @@ function placeGiants() {
     if (offsets.some(([ox, oz]) =>
       Math.abs(seed.x + ox) > fieldHalfX - giantR ||
       Math.abs(seed.z + oz) > fieldHalfZ - giantR ||
-      Math.hypot(seed.x + ox - SPAWN_X, seed.z + oz - spawnZ()) < 3.4)) continue;
+      Math.hypot(seed.x + ox - SPAWN_X, seed.z + oz - spawnZ()) < 3.4 ||
+      // Kayadan uzak dursun. Gereken boşluk, o devi yerken ağzın ne kadar
+      // geniş olacağı: dev `r / 0.92` genişliğinde bir ağızla yutuluyor ve
+      // kaya o ağzı kendi yarıçapı kadar daha uzakta tutuyor. Kaya artık önce
+      // yerleştiği için kaçınmak devin işi — devin gidecek çok daha fazla
+      // yeri var, kaya ise orta koridora sıkışmış durumda.
+      rocks.some(r => Math.hypot(r.x - seed.x - ox, r.z - seed.z - oz)
+        < giantR + r.r + giantR / 0.92 + 0.6))) continue;
 
     for (const [ox, oz] of offsets) {
       const gx = seed.x + ox, gz = seed.z + oz;
@@ -10962,6 +11112,30 @@ window.fruitHoleEatBomb = () => {
   const yanindakiler = onceCanli.filter(f => f.eaten && !f.bomb).length;
   return { yutuldu: b.eaten, sayacArtisi: eatenCount - oncekiSayac, yanindakiler };
 };
+// Kayalar: kaç tane, nerede, ve tahtayı kapatmıyorlar mı.
+window.fruitHoleRocks = () => ({
+  sayi: rocks.length,
+  yerler: rocks.map(r => ({ x: +r.x.toFixed(2), z: +r.z.toFixed(2), r: +r.r.toFixed(2) })),
+  // Birbirine en yakın iki kaya. En geniş ağız aralarından geçebilmeli.
+  enYakinIkili: rocks.length < 2 ? null : +Math.min(...rocks.flatMap((a, i) =>
+    rocks.slice(i + 1).map(b => Math.hypot(a.x - b.x, a.z - b.z)))).toFixed(2),
+  // Kenara en yakın kaya kaç birim içeride.
+  kenara: rocks.length ? +Math.min(...rocks.map(r =>
+    Math.min(fieldHalfX - Math.abs(r.x), fieldHalfZ - Math.abs(r.z)))).toFixed(2) : null,
+  dogusaEnYakin: rocks.length ? +Math.min(...rocks.map(r =>
+    Math.hypot(r.x - SPAWN_X, r.z - spawnZ()))).toFixed(2) : null,
+  agizTavani: HOLE_MAX,
+});
+
+// Deliği bir noktaya koymayı dene ve kayaların onu nereye ittiğini söyle.
+// Çarpışmayı ölçmenin tek yolu bu: gerçek parmakla sürmek konteynerde
+// zamanlamaya bağlı olurdu ve GPU yok.
+window.fruitHolePushTest = (x, z, r) => {
+  if (r != null) holeRadius = r;
+  holeX = x; holeZ = z;
+  pushOutOfRocks();
+  return { x: +holeX.toFixed(3), z: +holeZ.toFixed(3), r: +holeRadius.toFixed(2) };
+};
 window.fruitHoleFlecks = () => flecks.length;
 // Karenin masrafı neyden geliyor: gölge geçişinden mi, tarladan mı?
 //
@@ -11320,6 +11494,10 @@ function tick(now) {
       const mZ = fieldHalfZ - holeRadius * 0.5;
       holeX = Math.max(-mX, Math.min(mX, holeX));
       holeZ = Math.max(-mZ, Math.min(mZ, holeZ));
+      // Kayalar kenar kısıtından **sonra**: ikisi de iterse son sözü kaya
+      // söylesin, yoksa kenara sıkışmış bir delik kayanın içine geri
+      // itilebilir.
+      pushOutOfRocks();
     }
 
     // magnet upgrade: fruit the hole could swallow drifts toward it, so a

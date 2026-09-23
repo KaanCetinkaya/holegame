@@ -2301,6 +2301,81 @@ Bomba `PROPS`'a **girmiyor**: oradaki her şey koleksiyonun parçası ve "63
 şeyden 41'ini buldun" listesine bir ceza nesnesi koymak, onu bulunacak bir
 şeymiş gibi gösterirdi.
 
+## Kaya: oyunun ilk çarpışması
+
+Bomba bir **karar**dı — yutabilirsin, bedelini ödersin. Kaya bir **duvar**:
+yutulamıyor ve deliğin içinden geçmesine izin vermiyor. O ana kadar oyunda
+hiç çarpışma yoktu; delik tahtadaki her şeyin altından geçiyordu, yani
+"geçilemeyen yer" diye bir kavram da yoktu.
+
+Fizik basit ve doğru okunuyor: kaya toprağa çakılı, ağzın kenarı onun dibine
+değince duruyor. Yani **büyük delik daha uzaktan durduruluyor** — ağız
+genişledikçe kayanın etrafından dolaşmak zorlaşıyor. Oyunun geri kalanında
+büyümek her şeyi kolaylaştırıyor; burada ilk kez bir bedeli var.
+
+Durdurmuyor, **kaydırıyor**: geri itme yalnızca temas doğrultusunda, ona dik
+bileşen olduğu gibi kalıyor. Sert durdurmak, dokunmatik kontrolde parmağın
+hâlâ hareket ettiği hâlde ekranda hiçbir şeyin olmaması demekti.
+
+Kaya `fruits` listesine **girmiyor**, ayrı bir listede. Girseydi yutma
+kontrolü, hedef sayısı, görev sayaçları, mıknatıs ve otomatik oyuncu — hepsi
+tek tek "kaya hariç" diye yazılmak zorunda kalırdı; bombada tam olarak bunu
+yapmak gerekti ve dört yeri kaçırdım.
+
+### Tahtayı kapatmamak
+
+Bir engelin en kötü hâli bölümü bitirilemez yapması, ve oyun bunu hata olarak
+göstermiyor: saat doluyor, oyuncu kaybediyor, sebep görünmüyor. Üç kural:
+
+* İki kaya arası, **en geniş ağız** aradan geçecek kadar (`HOLE_MAX*2 + …`).
+* Kenarla kaya arası da öyle. Bunun ölçülen sonucu kabul edildi: tahta 13.65
+  birim geniş ve en geniş ağız 5.5, yani kayalar zorunlu olarak **orta
+  koridorda** kalıyor (merkeze ±2.2 birim). Kenara yaklaştırmak, arkasında
+  ağzın giremeyeceği bir şerit bırakır ve oradaki meyveye geç kalındığında
+  hiç ulaşılamaz. Orta koridor zaten deliğin en çok geçtiği yer.
+* Deliğin doğduğu yer ve kolosun yeri açık.
+
+### Kaya önce, dev sonra
+
+İlk hâlinde kayalar devlerden **sonra** konuyordu ve yer bulamıyordu: orta
+koridor dar, bir dev o koridorun tamamını kapatıyor, ve patron bölümleri üç
+denemeden ikisinde **hiç kaya almadı**. Bir engelin sessizce yok olması,
+onu düzeltmekten daha kötü.
+
+Sıra çevrildi. Kaya seçiyor, dev ona göre yerleşiyor — devin tahtada gidecek
+çok daha fazla yeri var. Devin kayadan uzaklığı da `HOLE_MAX` ile değil, **o
+devi yerken ağzın ne kadar geniş olacağıyla** ölçülüyor (`r / 0.92`): tavan
+ağızla ölçmek üç kısıtı üst üste bindiriyordu.
+
+### Çarpışma yarıçapı görünen taşa eşit olmalı
+
+Kaya önce nesneler gibi değil, dar çizilmişti: geometri 0.86'ya kadar
+gidiyordu, çarpışma 1.0'a. Aradaki fark tam olarak "buraya neden
+giremiyorum" — görünmez duvar. Artık nesneler gibi **yarım genişliği 1**
+olacak şekilde çiziliyor.
+
+### `holeboss`'un saat eşitliği fazla katıydı
+
+Kayalar gelince `holeboss` 20. ve 40. bölümde düştü: kolos varken ve yokken
+saat bir saniye farklı çıkıyordu. Sebep kayalar değildi — kaya meyve alıyor,
+devler başka yere düşüyor, kolosun oturduğu yerin yoğunluğu değişiyor, ve
+kolosun altından aldığı parça sayısı 7 ile 35 arasında oynuyor. Saat de
+tahtanın son hâlinde benzetilen bir süpürmeden geliyor.
+
+Yani test, ölçtüğü şeyden bir tık daha katı bir şey istiyordu: sorulan soru
+"kolos bölümü uzatıyor mu", cevabı da bir saniye değil. Sınır ±2 saniye oldu.
+
+### `holeecon` tek tohuma bağlıydı
+
+Kayalar rastgele akışa yeni bir şey eklediği için aynı tohum **başka bir
+tahta** üretti ve karpuz kazancı %17 oynadı: test "mıknatıs güçlendiricisi
+pahalı" dedi. Fiyat değişmemişti, örnek değişmişti.
+
+Ölçüm bölüm başına tek tohum yerine **üç tohumun ortalaması** oldu. Ve o
+zaman görüldü ki hata gerçekmiş, sadece sebebi başkaymış: süper mıknatıs bir
+bölümün karpuz kazancının %52'siydi (kural yarısını geçmemesini istiyor), tek
+tohumla %44 diyen ölçüm şanslı bir tahtaya bakıyormuş. Fiyat 135 → 120.
+
 ### Yol boyunca çıkan eski hata: patron bölümü bitmiyordu
 
 `holebomb.mjs` "hedef = parça − bomba" eşitliğini kontrol edince patron
@@ -2847,6 +2922,8 @@ node scratchpad/holecircles.mjs  # Bubbles daireleri yuvarlak ve ayrık mı
 node scratchpad/holeecon.mjs     # dükkân kaçıncı bölümde bitiyor
 node scratchpad/holeiap.mjs      # satın alma acknowledge/consume ediliyor mu
 node scratchpad/holecam.mjs      # kamerayı delikten başka bir şey oynatıyor mu
+node scratchpad/holebomb.mjs     # bombalar bölümü bitirilemez yapıyor mu
+node scratchpad/holerock.mjs     # kayalar tahtayı kapatıyor mu, durduruyorlar mı
 ```
 
 Hepsi Playwright + başsız Chromium ile çalışıyor. `holecontext.mjs` ayrıca

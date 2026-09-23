@@ -49,15 +49,39 @@ console.log('\n1. bölüm başına kazanç (yutma simülasyonu)');
 // seferde 58. Eşik koyan bir denge testinde bu, geçip geçmemenin zara
 // bağlanması demek. Her bölüm kendi sabit tohumunu alıyor, yani sayılar
 // çalıştırmalar arasında karşılaştırılabilir.
+// Bölüm başına **üç tohum**, ortalaması alınıyor.
+//
+// Tek tohum yeterli sanılmıştı ve değildi: tohum tahtayı sabitliyor ama
+// oyunun rastgele akışına yeni bir şey girer girmez (kayalar girdi) aynı
+// tohum **başka bir tahta** üretiyor. O gün karpuz kazancı %17 oynadı ve
+// "mıknatıs güçlendiricisi pahalı" diyen bir hata çıktı — fiyat
+// değişmemişti, örnek değişmişti.
+//
+// Üç tohum farkı tamamen kapatmıyor ama eşiğin zara bağlanmasını bitiriyor:
+// ölçülen şey artık bir tahta değil, o bölümün kazancı.
+const TOHUM = [1000, 2000, 3000];
 const rows = [];
 for (const n of LEVELS) {
-  const r = await pg.evaluate(lvl => {
-    window.fruitHoleSeedField(1000 + lvl);
-    window.fruitHoleProbe(lvl);
-    const out = window.fruitHoleIncome();
-    window.fruitHoleUnseedField();
-    return out;
-  }, n);
+  const r = await pg.evaluate(([lvl, tohumlar]) => {
+    const hepsi = tohumlar.map(t => {
+      window.fruitHoleSeedField(t + lvl);
+      window.fruitHoleProbe(lvl);
+      const out = window.fruitHoleIncome();
+      window.fruitHoleUnseedField();
+      return out;
+    });
+    // Sayısal alanların ortalaması; metin alanları ilk örnekten.
+    const ort = k => hepsi.reduce((s, x) => s + x[k], 0) / hepsi.length;
+    const ortPay = k => Math.round(hepsi.reduce((s, x) => s + x.pay[k], 0) / hepsi.length);
+    return {
+      ...hepsi[0],
+      fruit: Math.round(ort('fruit')), giants: Math.round(ort('giants')),
+      sum: Math.round(ort('sum')),
+      avgMult: +(ort('avgMult')).toFixed(2),
+      pay: { berry: ortPay('berry'), lychee: ortPay('lychee'),
+             banana: ortPay('banana'), melon: ortPay('melon') },
+    };
+  }, [n, TOHUM]);
   rows.push(r);
   const p = r.pay;
   console.log(`  bölüm ${String(n).padStart(2)}  ${r.pattern.padEnd(11)}` +
