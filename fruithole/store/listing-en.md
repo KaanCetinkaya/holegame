@@ -138,18 +138,22 @@ Ready to clear the field?
 Bu not **bir sonraki .aab'ye** ait. 33 Play'e gitti, sıradaki kod 34. Sürüm adı
 1.12 → 1.13: dördüncü görev tipi geldi, yani 33 ile aynı oyun değil.
 
-English (318 chars):
+English (472 chars):
 ```
-A fourth kind of mission level: the minefield. Bombs are buried right through the crop instead of turning up now and then, and every one you swallow takes five seconds off the clock. The clock carries a few bombs' worth of slack — sweep clean and you never spend it.
+A fourth kind of mission level: the minefield. Bombs are buried right through the crop, and every one you swallow takes five seconds off the clock. Missions now run order, giants, rush, minefield.
 
-Missions now run order, giants, rush, minefield.
+A fourth booster too — the twister, which clears everything around you in one go.
+
+Swallow a giant and it now tells you what it paid, where you took it. And a badge in the corner says what this level wants and how far you are, on every level rather than only on missions.
 ```
 
-Türkçe (286 karakter):
+Türkçe (416 karakter):
 ```
-Dördüncü görev tipi geldi: mayın tarlası. Bombalar arada bir çıkmak yerine tarlanın içine gömülü, ve yuttuğun her biri saatten beş saniye götürüyor. Saatte birkaç bombalık pay var — temiz süpürürsen o payı hiç harcamazsın.
+Dördüncü görev tipi geldi: mayın tarlası. Bombalar tarlanın içine gömülü ve yuttuğun her biri saatten beş saniye götürüyor. Görevler artık sırayla: sipariş, devler, hız, mayın.
 
-Görevler artık sırayla: sipariş, devler, hız, mayın.
+Dördüncü booster da var — kasırga, çevrendeki her şeyi tek seferde süpürüyor.
+
+Bir devi yuttuğunda ne ödediği artık yutulduğu yerde yazıyor. Köşedeki rozet de bölümün ne istediğini ve nerede olduğunu söylüyor — yalnızca görevlerde değil, her bölümde.
 ```
 
 ## What's new — 1.12 / versionCode 33 (≤ 500 chars per language)

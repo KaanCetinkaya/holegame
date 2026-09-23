@@ -2301,6 +2301,39 @@ Bomba `PROPS`'a **girmiyor**: oradaki her şey koleksiyonun parçası ve "63
 şeyden 41'ini buldun" listesine bir ceza nesnesi koymak, onu bulunacak bir
 şeymiş gibi gösterirdi.
 
+## Hedef rozeti: ne topladığın artık ekranda
+
+İlerleme çubuğu **"ne kadar"** diyordu ama **"ne"** demiyordu, ve bir sayı da
+taşımıyordu. Görev bölümlerinde sayı vardı ama desen satırının içine
+gömülüydü — küçük, ortada, turun ve düzenin adıyla aynı satırda. Sıradan bir
+bölümde ise hiç yoktu.
+
+Rozet duraklat düğmesinin altında: görev simgesi (ya da sıradan bölümde 🍇) ve
+`kaçta kaç`. O köşe zaten boştu ve soldaki bölüm rozetini dengeliyor. Hedef
+dolunca yeşile dönüyor.
+
+### Sayı artık tek yerde
+
+Desen satırından çıkarıldı. Aynı sayının iki yerde durması, ikisinden birinin
+güncellenip ötekinin unutulacağı yer — bu dosyada o hata birkaç kez yaşandı
+(en son "hepsini bul" hedefi). Satır artık yalnızca görevin **ne** olduğunu
+söylüyor, rozet **kaçta kaç** olduğunu.
+
+Bunun bir yan faydası da var: sayı orada olduğu için desen satırının tamamı
+her yemede yeniden yazılıyordu. Artık yalnızca bölüm değişince yazılıyor.
+
+### Çubuğa bağlanan bir sayı donuk kalırdı
+
+Rozet her yemede güncelleniyor, çubuk ise yalnızca yüzde değişince. 480
+parçalık bir tahtada yüzde beş yemede bir değişiyor — çubuğun güncellemesine
+bağlanan bir sayı dört yemede bir hareketsiz kalırdı.
+
+### Perde açıldığında gizlenmesi ayrı yazılmak zorunda
+
+`updateProgressUI` bitiş perdesinden sonra bir daha çağrılmıyor, yani rozeti
+gizleyecek kimse yok — perdenin üstünde asılı kalırdı. `showOverlay` ve
+`showMenu` onu ayrıca gizliyor, ve `scratchpad/holegoal.mjs` bunu ölçüyor.
+
 ## Dördüncü booster: kasırga
 
 Kaan'ın attığı ekran görüntülerinde alt barda **dört yuva** vardı, bizde üç.

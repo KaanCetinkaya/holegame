@@ -167,6 +167,24 @@
   #topbar::before { content: ''; position: absolute; inset: -1px 0 auto 0; height: 152px;
     z-index: -1; background: linear-gradient(180deg, rgba(12,60,68,.62) 0 62%, rgba(12,60,68,0) 100%);
     pointer-events: none; }
+  /* Ne topladığın, her an ekranda.
+     İlerleme çubuğu "ne kadar" diyordu ama "ne" demiyordu, ve sayı yoktu.
+     Görev bölümlerinde sayı desen satırının içine gömülüydü — küçük, ortada,
+     turun ve düzenin adıyla aynı satırda. Rozet duraklat düğmesinin altında,
+     o köşe zaten boştu ve soldaki bölüm rozetini dengeliyor. */
+  #goalTag { position: absolute; right: 12px; top: 64px; display: none;
+    align-items: center; gap: 6px;
+    background: #fff8ec; color: #5b2d8e; font-weight: 800; font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .03em; border-radius: 13px; padding: 6px 11px;
+    border: 3px solid #6b4fc0; box-shadow: 0 4px 0 rgba(0,0,0,.22); }
+  #goalTag.show { display: flex; }
+  #goalTag #goalIco { font-size: 15px; }
+  #goalTag.done { background: #d8ffd0; color: #1d6a28; border-color: #3c9a46; }
+  @media (max-width: 385px) {
+    #goalTag { top: 58px; font-size: 13px; padding: 5px 9px; }
+  }
+
   #wallet { position: absolute; left: 12px; top: 82px; display: flex; gap: 4px; }
   .card { width: 36px; border-radius: 11px; background: linear-gradient(180deg,#7a5fd0,#5b3fb0);
     border: 2px solid rgba(255,255,255,.45); box-shadow: 0 3px 0 rgba(0,0,0,.22);
@@ -830,6 +848,7 @@
       </div>
     </div>
     <button id="pauseBtn">❚❚</button>
+    <div id="goalTag"><span id="goalIco">🍇</span><span id="goalN">0/0</span></div>
     <div id="wallet"></div>
     <div id="patternTag"></div>
   </div>
@@ -1529,6 +1548,9 @@ const topbarEl = document.getElementById('topbar');
 const walletEl = document.getElementById('wallet');
 const pauseEl = document.getElementById('pause');
 const timeTagEl = document.getElementById('timeTag');
+const goalTagEl = document.getElementById('goalTag');
+const goalIcoEl = document.getElementById('goalIco');
+const goalNEl = document.getElementById('goalN');
 const timeNEl = document.getElementById('timeN');
 const patternTagEl = document.getElementById('patternTag');
 const hintEl = document.getElementById('hint');
@@ -2384,6 +2406,7 @@ function buildMenuDiorama() {
 // Every route back to the menu goes through here, so the counts shown are
 // never the ones from before the run.
 function showMenu() {
+  if (goalTagEl) goalTagEl.classList.remove('show');
   state = 'menu';
   refreshMusic();
   buildMenuDiorama();
@@ -2425,10 +2448,14 @@ function refreshLevelTag() {
   // tanımlanmamış oluyor, yani koşulsuz bir `tier()` çağrısı sayfayı hiç
   // açılmadan düşürüyor.
   const loop = p && tier() > 0 ? `LOOP ${tier() + 1} · ` : '';
-  // Sipariş bölümünde satır görevi söylüyor: hangi meyve, kaçta kaç. Düzenin
-  // adı da kalıyor — tahtanın şekli yine tahtanın şekli.
+  // Sipariş bölümünde satır görevin **ne** olduğunu söylüyor; kaçta kaç
+  // olduğu sağ üstteki hedef rozetinde. Düzenin adı da kalıyor — tahtanın
+  // şekli yine tahtanın şekli.
+  //
+  // Sayı eskiden buradaydı ve her yemede bu satırın tamamı yeniden
+  // yazılıyordu; artık yalnızca bölüm değişince yazılıyor.
   const ord = missionKind
-    ? `${MISSION_ICON[missionKind]} ${plural(missionNoun()).toUpperCase()} ${missionEaten}/${missionGoal} · ` : '';
+    ? `${MISSION_ICON[missionKind]} ${plural(missionNoun()).toUpperCase()} · ` : '';
   patternTagEl.textContent = loop + ord +
     (isBossLevel(level) ? 'BOSS · ' : '') +
     (p ? `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}` : '') + best;
@@ -9393,6 +9420,27 @@ function liveStars() {
 }
 
 let lastProgPct = -1, lastStarCount = -1;
+// Hedef rozeti: ne topladığın ve kaçta kaç olduğun.
+//
+// `refreshLevelTag` bu sayıyı desen satırının içinde de yazıyordu ve orası
+// kaldırıldı — aynı sayının iki yerde durması, ikisinden birinin güncellenip
+// ötekinin unutulacağı yer. Desen satırı artık yalnızca **ne** olduğunu
+// söylüyor (görevin adı, tur, düzen), rozet **kaçta kaç** olduğunu.
+let lastGoalText = '';
+function refreshGoalTag(yapilan, hedef) {
+  if (!goalTagEl) return;
+  const goster = state === 'playing' && hedef > 0;
+  goalTagEl.classList.toggle('show', goster);
+  if (!goster) return;
+  const ico = missionKind ? MISSION_ICON[missionKind] : '🍇';
+  const metin = `${Math.min(yapilan, hedef)}/${hedef}`;
+  if (metin === lastGoalText) return;
+  lastGoalText = metin;
+  goalIcoEl.textContent = ico;
+  goalNEl.textContent = metin;
+  goalTagEl.classList.toggle('done', yapilan >= hedef);
+}
+
 function updateProgressUI() {
   // Çubuk neyi bitirdiğini gösteriyor: sipariş bölümünde tarlanın tamamını
   // değil, hedef meyveyi. Yoksa oyuncu çubuğa bakıp yarıdayım sanırdı ve
@@ -9402,8 +9450,11 @@ function updateProgressUI() {
   const pct = hedef ? Math.min(100, Math.round((yapilan / hedef) * 100)) : 0;
   if (pct !== lastProgPct) {
     progFillEl.style.width = pct + '%'; lastProgPct = pct;
-    if (missionKind) refreshLevelTag();
   }
+  // Rozet her yemede yazılıyor, çubuk ise yalnızca yüzde değişince: çubuk bir
+  // genişlik, rozet bir sayı. 480 parçalık bir tahtada yüzde beş yemede bir
+  // değişiyor, yani çubuğa bağlanan bir sayı dört yemede bir donuk kalırdı.
+  refreshGoalTag(yapilan, hedef);
   if (state !== 'playing') return;
   const s = liveStars();
   if (s !== lastStarCount) {
@@ -9770,6 +9821,10 @@ function burstPips(from, colour) {
 }
 
 function showOverlay(title, sub, btnText, action, offerRevive) {
+  // Rozet yalnızca oynarken duruyor. Bitiş perdesi açıldığında `state` artık
+  // 'playing' değil ama `updateProgressUI` bir daha çağrılmıyor, yani rozeti
+  // gizleyecek kimse kalmıyor — perdenin üstünde asılı kalırdı.
+  if (goalTagEl) goalTagEl.classList.remove('show');
   overlayTitleEl.textContent = title;
   overlaySubEl.textContent = sub;
   actionBtnEl.textContent = btnText;
