@@ -53,8 +53,7 @@ before time runs out, take the stars, move on.
 
 ⭐ EARN STARS
 Finishing isn't enough — how fast you finish is what counts. The more time left
-on the clock, the more stars. Your best on every level is kept, so you can
-come back and beat it.
+on the clock, the more stars, and your best on every level is kept.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
 Twenty-four hand-built layouts: a stepped pyramid taken down terrace by terrace,
@@ -77,8 +76,8 @@ add seconds, or switch on a magnet that drags fruit in — each track paid for
 with a different fruit.
 
 🎁 BOOSTERS
-Three ways out of a tight spot: +15 seconds, a burst that grows the hole at
-once, and 8 seconds of super magnetism.
+Three ways out of a tight spot: +15 seconds, a burst of growth, and 8 seconds
+of super magnetism.
 
 👑 BOSS LEVELS
 Every tenth level ends in one colossal fruit at the far end of the board, wider
@@ -115,10 +114,11 @@ a way flat colour cannot. Half open as you climb, half are bought.
 
 📋 MISSION LEVELS
 Every fifth level wants something else. An order level ends when every banana
-is gone — one colour chased across the field instead of the whole crop swept.
-A giant level ends when every giant is swallowed, and you cannot take one
-until you have grown to its size. A rush level opens with twelve seconds on the
-clock and every fruit adds to it. The three take turns.
+is gone — one colour chased instead of the whole crop swept. A giant level ends
+when every giant is swallowed, and you cannot take one until you have grown to
+its size. A rush level opens with twelve seconds on the clock and every fruit
+adds to it. A minefield buries bombs through the crop, and five seconds go with
+each one you take. The four take turns.
 
 🔁 KEEP GOING
 Past the last layout the fields come back mirrored, in a new order, in themes
@@ -132,6 +132,25 @@ second fills on the menu every four hours, free.
 Press anywhere and drag. That's the whole control scheme. No connection.
 
 Ready to clear the field?
+```
+
+## What's new — 1.13 / versionCode 34 (≤ 500 chars per language)
+
+Bu not **bir sonraki .aab'ye** ait. 33 Play'e gitti, sıradaki kod 34. Sürüm adı
+1.12 → 1.13: dördüncü görev tipi geldi, yani 33 ile aynı oyun değil.
+
+English (318 chars):
+```
+A fourth kind of mission level: the minefield. Bombs are buried right through the crop instead of turning up now and then, and every one you swallow takes five seconds off the clock. The clock carries a few bombs' worth of slack — sweep clean and you never spend it.
+
+Missions now run order, giants, rush, minefield.
+```
+
+Türkçe (286 karakter):
+```
+Dördüncü görev tipi geldi: mayın tarlası. Bombalar arada bir çıkmak yerine tarlanın içine gömülü, ve yuttuğun her biri saatten beş saniye götürüyor. Saatte birkaç bombalık pay var — temiz süpürürsen o payı hiç harcamazsın.
+
+Görevler artık sırayla: sipariş, devler, hız, mayın.
 ```
 
 ## What's new — 1.12 / versionCode 33 (≤ 500 chars per language)
