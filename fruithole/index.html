@@ -258,6 +258,27 @@
   /* the pips that fly out of it */
   .pip3 { position: fixed; width: 12px; height: 12px; border-radius: 50%; pointer-events: none;
     z-index: 60; will-change: transform, opacity; }
+  /* Yutulan devin ödediği sayı, devin durduğu yerde.
+     Oyunun en önemli ekonomik gerçeği buydu ve hiçbir yerde yazmıyordu:
+     bir dev sıradan meyvenin **on iki katı** ödüyor. Oyuncu bunu ancak
+     sayacı gözleyip çıkarabilirdi, ki kimse yapmıyor. */
+  .payup { position: fixed; z-index: 61; pointer-events: none; transform: translate(-50%, -50%);
+    font-weight: 900; font-size: 26px; letter-spacing: .02em; white-space: nowrap;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35), 0 0 12px rgba(0,0,0,.25);
+    animation: payup 1s cubic-bezier(.2,.7,.3,1) forwards; }
+  /* İlk karede zaten görünür.
+     İlk hâli sıfır opaklıkla açılıp %18'de bire çıkıyordu ve ölçüldü:
+     160. milisaniyede opaklık hâlâ 0'dı. Kare hızı düşükken (konteynerde
+     2-4 fps, eski bir telefonda da benzeri) animasyonun ilk aralığı hiç
+     boyanmıyor ve etiket bir anlığına belirip kayboluyor — yani hiç
+     görünmüyor. Görünürlüğü animasyonun başlamasına bağlamak, en çok
+     ihtiyaç duyulan cihazda çalışmaması demek. */
+  @keyframes payup {
+    0%   { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+    22%  { opacity: 1; transform: translate(-50%, -85%) scale(1.14); }
+    55%  { opacity: 1; transform: translate(-50%, -110%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -190%) scale(.95); }
+  }
   /* A ring of collar colour round a pale lip round the dark, which is the
      hole seen from above — so the swatch is the thing, not a colour chip. */
   .skinDot { border-radius: 50%; background:
@@ -9412,6 +9433,44 @@ function flash(text) {
 }
 function showCombo(mult) { flash(`x${mult} COMBO!`); }
 
+// Yutulan şeyin ödediği sayı, yutulduğu yerde.
+//
+// Yalnızca **devlerde** çıkıyor, her meyvede değil. Sebebi tahtada: bir
+// bölümde 500 parça var ve her birine uçan bir sayı koymak hem okunmaz bir
+// kalabalık hem de yüzlerce DOM düğümü demek. Devde çıkması yeterli, çünkü
+// gösterilecek bilgi zaten orada — sıradan meyve zincir çarpanı kadar
+// ödüyor, dev onun **on iki katı**, ve bu fark hiçbir yerde yazmıyordu.
+//
+// Rengi meyvenin kendi rengi: hangi sayacın arttığını da söylüyor.
+function showPay(x, y, z, amount, typeId) {
+  _proj.set(x, y, z).project(camera);
+  // Kameranın arkasına düşen nokta ekranın ortasına yansıyor — dev kadraj
+  // dışındayken sayının ekranın ortasında belirmesi demek olurdu.
+  if (_proj.z > 1) return;
+  const el = document.createElement('div');
+  el.className = 'payup';
+  el.textContent = '+' + amount;
+  el.style.color = (TYPE_BY_ID[typeId] || TYPE_BY_ID.berry).light;
+  // Ekranın içine sıkıştırılıyor.
+  //
+  // Dev kadrajın kenarındayken yansıtılan nokta ekranın dışına düşüyor —
+  // ölçüldü, bir örnekte y = -32 çıktı, yani etiket hiç görünmedi. Kaçırılan
+  // şey oyunun en önemli ekonomik gerçeği olduğu için görünmemesi kabul
+  // edilemez; kenara yapışık da olsa okunması gerekiyor.
+  const KENAR = 30;
+  const px = (_proj.x * 0.5 + 0.5) * innerWidth;
+  const py = (-_proj.y * 0.5 + 0.5) * innerHeight;
+  el.style.left = Math.max(KENAR, Math.min(innerWidth - KENAR, px)) + 'px';
+  // Üstte HUD, altta booster çubuğu var: dikey pay ikisinden de geniş.
+  el.style.top = Math.max(KENAR * 4, Math.min(innerHeight - KENAR * 4, py)) + 'px';
+  document.body.appendChild(el);
+  // Animasyon bitince kendini siliyor: bir bölümde onlarca dev var ve
+  // temizlenmeyen düğümler birikirse ekranın üstünde görünmez bir katman
+  // kalıyor.
+  el.addEventListener('animationend', () => el.remove());
+  setTimeout(() => el.remove(), 1600);
+}
+
 // ---------------------------------------------------------------------
 // Booster bar
 // ---------------------------------------------------------------------
@@ -10181,7 +10240,9 @@ function eatFruit(f, now) {
   const mult = Math.min(5, 1 + Math.floor(streak / 4));
   // A giant is worth what it cost to grow into it, otherwise the reward for
   // the one thing on the board you had to work towards is a single fruit.
-  bumpCurrency(f.type, f.giant ? mult * 12 : mult);
+  const odeme = f.giant ? mult * 12 : mult;
+  bumpCurrency(f.type, odeme);
+  if (f.giant) showPay(f.x, f.mesh.position.y + 0.4, f.z, odeme, f.type);
   stats.fruits++;
   daily.fruits = (daily.fruits || 0) + 1;
   if (mult > stats.bestCombo) stats.bestCombo = mult;
@@ -11390,6 +11451,18 @@ window.fruitHoleTowers = () => {
     kuleHucre: kat.filter(k => k >= 6).length,
     dagilim,
   };
+};
+// Bir devi yedir: ağzı ona yetecek kadar açıp üstüne koyuyor ve oyunun kendi
+// yeme kontrolünü çalıştırıyor. `eatFruit`'i doğrudan çağırmak, ödeme
+// etiketinin gerçekten yeme yolundan geçtiğini ölçmezdi.
+window.fruitHoleEatGiant = () => {
+  const g = fruits.find(f => !f.eaten && f.giant);
+  if (!g) return null;
+  holeRadius = Math.min(HOLE_MAX, g.r / 0.92 + 0.05);
+  buildHole();
+  holeX = g.x; holeZ = g.z;
+  checkEat(performance.now());
+  return { yutuldu: g.eaten, r: +g.r.toFixed(2), agiz: +holeRadius.toFixed(2) };
 };
 window.fruitHoleFlecks = () => flecks.length;
 // Karenin masrafı neyden geliyor: gölge geçişinden mi, tarladan mı?

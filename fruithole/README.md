@@ -2301,6 +2301,47 @@ Bomba `PROPS`'a **girmiyor**: oradaki her şey koleksiyonun parçası ve "63
 şeyden 41'ini buldun" listesine bir ceza nesnesi koymak, onu bulunacak bir
 şeymiş gibi gösterirdi.
 
+## Devin ne ödediği artık yazıyor
+
+Kaan'ın attığı ekran görüntülerinde topların üstünde **"+2"** yazıyordu:
+hangisinin değerli olduğunu tahtada söylüyorlar. Bizde o bilgi vardı ama
+hiçbir yerde görünmüyordu — ve bizdeki hâli çok daha çarpıcı: **bir dev,
+sıradan meyvenin on iki katı ödüyor** (`bumpCurrency(f.type, f.giant ? mult *
+12 : mult)`). Oyuncu bunu ancak sayacı gözleyip çıkarabilirdi, ki kimse
+yapmıyor.
+
+Artık dev yutulunca ödediği sayı, yutulduğu yerde, meyvenin kendi renginde
+uçuyor. **Yalnızca devlerde**: bir bölümde 500 parça var ve her birine uçan
+bir sayı koymak hem okunmaz bir kalabalık hem yüzlerce DOM düğümü demek.
+Gösterilecek bilgi zaten devde.
+
+### Üçü de ölçümle çıktı, gözle değil
+
+**Etiket ilk 160 milisaniyede görünmüyordu.** Animasyon sıfır opaklıkla
+açılıp %18'de bire çıkıyordu; ölçüldüğünde 160. ms'de opaklık hâlâ 0'dı. Kare
+hızı düşükken animasyonun ilk aralığı hiç boyanmıyor ve etiket bir anlığına
+belirip kayboluyor — yani en çok ihtiyaç duyulan cihazda hiç görünmüyor.
+Artık ilk kareden itibaren görünür.
+
+**Kadrajın kenarındaki dev yutulunca etiket ekranın dışına düşüyordu**
+(ölçüldü: y = -32). Artık kenarlara sıkıştırılıyor; kenara yapışık da olsa
+okunuyor.
+
+**Kameranın arkasındaki bir nokta ekranın ortasına yansıyor.** Yansıtmanın
+`z > 1` olduğu durumda etiket hiç çıkmıyor, yoksa kadraj dışında yutulan bir
+devin sayısı ekranın ortasında belirirdi.
+
+### Ölçüm aracının kendisi yanılttı
+
+Ekran görüntüsü üç kez boş çıktı ve etiketin çizilmediği sanıldı. Sebep
+oyunda değildi: bu konteynerde `page.screenshot()` saniyeler sürüyor (GPU yok,
+2-4 fps) ve bir saniyelik animasyon o arada bitip etiketi siliyordu. Ölçüm
+"opaklık 1, konum (343,359)" derken kare boştu, çünkü ikisi **farklı anlara**
+bakıyordu. Karede görebilmek için animasyonsuz bir kopya bırakmak gerekti.
+
+`scratchpad/holepay.mjs` dördünü de tutuyor: etiket çıkıyor mu, sayı devin
+katı mı, ekranın içinde mi, ve kendini siliyor mu.
+
 ## Dördüncü görev tipi: mayın tarlası
 
 Üç görev tipi de aynı fiili istiyordu — **topla**. Sipariş bir rengi, devler
