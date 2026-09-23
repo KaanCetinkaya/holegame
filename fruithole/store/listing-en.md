@@ -58,8 +58,7 @@ on the clock, the more stars, and your best on every level is kept.
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
 Twenty-four hand-built layouts: a stepped pyramid taken down terrace by terrace,
 four towers, hollow rings, a heart, an island, a staircase, winding walls, a
-rolling wave, a chequerboard, a fruit tree. Three throw out the grid and lay
-the field in rings around you.
+rolling wave, a chequerboard. Three lay the field in rings around you.
 
 And each one is somewhere. A beach with the sea running up the sand. A mown
 football pitch. Fresh snow. A marble bank floor veined with gold. A station
@@ -76,8 +75,8 @@ add seconds, or switch on a magnet that drags fruit in — each track paid for
 with a different fruit.
 
 🎁 BOOSTERS
-Three ways out of a tight spot: +15 seconds, a burst of growth, and 8 seconds
-of super magnetism.
+Four ways out of a tight spot: +15 seconds, a burst of growth, 8 seconds of
+super magnetism, and a twister that clears everything around you.
 
 👑 BOSS LEVELS
 Every tenth level ends in one colossal fruit at the far end of the board, wider

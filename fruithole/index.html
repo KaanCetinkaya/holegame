@@ -664,6 +664,11 @@
      basılabilir en küçük ölçünün (yaklaşık 38px) altına inilmiyor. */
   @media (max-width: 385px) {
     .topKey { width: 38px; height: 38px; border-radius: 12px; font-size: 16px; }
+    /* Dördüncü booster gelince bar dar telefonda kenara dayandı: 320 pikselde
+       iki yanda dörder piksel kalıyordu. Ölçüldü, taşmıyordu ama o payla
+       yaşamak, bir sonraki eklemede taşmak demek. */
+    #boosterBar { gap: 10px; }
+    .slot { width: 58px; height: 58px; border-radius: 17px; font-size: 26px; }
     #menuWallet .mw b { font-size: 11px; }
     #menuWallet .mw { padding: 3px 6px 3px 3px; }
   }
@@ -1152,7 +1157,7 @@ const ICON_FOR = {
   levelsBtn: 'map', upgBtn: 'arrow', homeBtn: 'house',
   goalsBtn: 'clipboard', awardsBtn: 'trophy', shopBtn: 'cart',
 };
-const BOOSTER_ICON = { time: 'clock', grow: 'burst', magnet: 'star' };
+const BOOSTER_ICON = { time: 'clock', grow: 'burst', magnet: 'star', twister: 'twister' };
 const UPGRADE_ICON = { speed: 'dash', size: 'ring', time: 'clock', magnet: 'magnet' };
 // Missions and achievements are keyed by the emoji they used to show.
 const GOAL_ICON = {
@@ -1315,6 +1320,17 @@ const BOOSTERS = [
   // tohumla %44 diyordu ve o, şanslı bir tahtaydı.
   { id: 'magnet', icon: '🌟', name: 'Super magnet', unlock: 10, pay: 'melon', cost: 120, free: 1,
     desc: '8 seconds of strong pull' },
+  // Dördüncüsü ve dördüncü meyve.
+  //
+  // Üç booster üç meyveyi kullanıyordu ve **çilek boştaydı** — oyunun ilk
+  // meyvesi, en çok biriken sayaç, ve harcanacak tek yeri yoktu. Dört
+  // booster dört sayaç, ve hiçbiri ötekinin parasına ortak değil.
+  //
+  // Ötekilerden farkı fiili: süre ve büyüme sana bir şey veriyor, mıknatıs
+  // süpürmeye yardım ediyor. Kasırga **tahtadan bir parça siliyor** — sıkıştığın
+  // yeri tek seferde boşaltıyor.
+  { id: 'twister', icon: '🌪', name: 'Twister', unlock: 13, pay: 'berry', cost: 130, free: 1,
+    desc: 'Sweeps everything around you' },
 ];
 
 // ---------------------------------------------------------------------
@@ -9493,6 +9509,33 @@ function renderBoosters() {
   });
 }
 
+// Kasırga: çevredeki her şeyi tek seferde yutuyor.
+//
+// Ötekilerden farkı fiili — süre ve büyüme sana bir şey veriyor, mıknatıs
+// süpürmeye yardım ediyor; bu tahtadan bir parça siliyor.
+//
+// Üç kural var ve üçü de tasarımın kendisi:
+//
+//   * **Yutamayacağın şeyi yutmuyor.** Dev meyveyi kasırgayla almak, oyunun
+//     tek büyüme kapısını parayla açmak olurdu: bir bölümün asıl işi deve
+//     yetişecek kadar büyümek, ve bunu 130 çileğe satmak o işi siliyor.
+//   * **Bombayı almıyor.** Alsaydı sıkıştığın yeri boşaltmak için bastığın
+//     düğme saatinden yirmi saniye götürebilirdi — yardım eden bir şeyin
+//     cezalandırması, en kötü türden sürpriz.
+//   * **Zincir çarpanı tavanda.** Kasırga zaten bir süpürme, ve süpürmenin
+//     ödülü bu oyunda zincir. Tek tek yemiş gibi ödemek, aynı işi yapan iki
+//     yoldan birini sebepsiz ucuzlatırdı.
+const TWISTER_R = 4.5;
+function twister(now) {
+  const alinan = fruits.filter(f =>
+    !f.eaten && !f.bomb && f.r <= holeRadius * 0.92 &&
+    Math.hypot(f.x - holeX, f.z - holeZ) <= TWISTER_R);
+  // Zinciri tavana çıkarmak için hepsi aynı zaman damgasıyla yeniliyor:
+  // `eatFruit` ardışıklığı `now - lastEatAt < 900` ile ölçüyor.
+  for (const f of alinan) eatFruit(f, now);
+  return alinan.length;
+}
+
 function useBooster(b) {
   if (state !== 'playing' || !boosterUnlocked(b) || (boosters[b.id] || 0) <= 0) return;
   boosters[b.id]--;
@@ -9506,6 +9549,8 @@ function useBooster(b) {
     holeRadius = Math.min(HOLE_MAX, holeRadius + 0.4);
   } else if (b.id === 'magnet') {
     magnetBoostUntil = performance.now() + MAGNET_BOOST_MS;
+  } else if (b.id === 'twister') {
+    twister(performance.now());
   }
 
   sfx.booster();
@@ -10588,6 +10633,21 @@ const ICON_BUILDERS = {
   star(g) {
     g.add(part(extrude(starShape(5, 1.0, 0.45), 0.3), ICON_MAT.gold));
     g.add(part(extrude(starShape(5, 0.5, 0.22), 0.34), ICON_MAT.cream, 0, 0, 0.1));
+  },
+  // Kasırga: aşağı doğru daralan bir huni. Üç halka, her biri bir öncekinden
+  // dar ve hafifçe kaymış — düz bir koni "külah" gibi duruyordu, kaydırmak
+  // onu dönen bir şeye çeviriyor.
+  twister(g) {
+    const r = [1.0, 0.72, 0.46, 0.24];
+    const y = [0.72, 0.24, -0.2, -0.56];
+    const x = [0.1, -0.06, 0.12, -0.04];
+    for (let i = 0; i < r.length; i++) {
+      const t = part(new THREE.TorusGeometry(r[i], 0.13, 8, 22),
+        i % 2 ? ICON_MAT.white : ICON_MAT.blue, x[i], y[i], 0);
+      t.rotation.x = Math.PI / 2;
+      t.rotation.z = i * 0.5;
+      g.add(t);
+    }
   },
   lock(g) {
     g.add(part(new THREE.BoxGeometry(1.2, 0.98, 0.62), ICON_MAT.gold, 0, -0.3, 0));

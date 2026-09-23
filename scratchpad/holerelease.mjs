@@ -107,7 +107,15 @@ function sayiKontrol(n, ne, aralik = 12) {
 }
 sayiKontrol(TABLO.order.length, 'desen');
 sayiKontrol(propIds.length, 'eşya');
-check(/Three throw out the grid/.test(listing) === (polar.length === 3),
+// Aranan şey **sayı**, tam cümle değil.
+//
+// Eskiden `/Three throw out the grid/` arıyordu ve o cümlenin ortasındaki
+// kelimeleri kısaltmak (karakter sınırı için) testi düşürdü — oysa metin
+// hâlâ "Three ... rings around you" diyordu, yani bağlaması gereken sayı
+// yerindeydi. Cümlenin sözcüklerine bağlı bir test, metnin her düzenlemesinde
+// olmayan bir hata uyduruyor; bağlanması gereken tek şey kaç tane olduğu.
+const kutupsalMetin = /Three[^.]*rings around you/.test(listing);
+check(kutupsalMetin === (polar.length === 3),
   `mağaza metni ${polar.length} kutupsal desen diyor`);
 
 // --- kamera ---

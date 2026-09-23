@@ -2301,6 +2301,46 @@ Bomba `PROPS`'a **girmiyor**: oradaki her şey koleksiyonun parçası ve "63
 şeyden 41'ini buldun" listesine bir ceza nesnesi koymak, onu bulunacak bir
 şeymiş gibi gösterirdi.
 
+## Dördüncü booster: kasırga
+
+Kaan'ın attığı ekran görüntülerinde alt barda **dört yuva** vardı, bizde üç.
+Ama asıl sebep sayı değil: üç booster üç meyveyi kullanıyordu ve **çilek
+boştaydı** — oyunun ilk meyvesi, en çok biriken sayaç, harcanacak tek yeri
+yoktu. Dört booster dört sayaç, ve hiçbiri ötekinin parasına ortak değil.
+
+Ötekilerden farkı fiili: süre ve büyüme sana bir şey veriyor, mıknatıs
+süpürmeye yardım ediyor. Kasırga **tahtadan bir parça siliyor** — çevredeki
+4.5 birimdeki her şeyi tek seferde yutuyor.
+
+### Neyi almadığı, tasarımın kendisi
+
+* **Devi almıyor.** Alsaydı oyunun tek büyüme kapısı 130 çileğe satılmış
+  olurdu: bir bölümün asıl işi deve yetişecek kadar büyümek.
+* **Bombayı almıyor.** Alsaydı sıkıştığın yeri boşaltmak için bastığın düğme
+  saatinden yirmi saniye götürebilirdi — yardım eden bir şeyin cezalandırması,
+  en kötü türden sürpriz.
+* **Zincir çarpanı tavanda.** Kasırga zaten bir süpürme ve süpürmenin ödülü bu
+  oyunda zincir; tek tek yemiş gibi ödemek aynı işi yapan iki yoldan birini
+  sebepsiz ucuzlatırdı.
+
+Fiyat 130 çilek — bir bölümün çilek kazancının %42'si, ötekilerin (%44, %32,
+%41) tam ortasında.
+
+### Dördüncü yuva dar telefonda kenara dayandı
+
+320 piksellik bir ekranda bar iki yanda **dörder piksel** bırakıyordu.
+Taşmıyordu, ama o payla yaşamak bir sonraki eklemede taşmak demek. 385
+pikselin altında yuva 66'dan 58'e, aralık 16'dan 10'a iniyor; pay 29 piksele
+çıktı. `scratchpad/holetwister.mjs` 360 ve 320'de ölçüyor.
+
+### `holerelease` cümlenin sözcüklerine bağlıydı
+
+Mağaza metnini karakter sınırına sığdırmak için bir cümleyi kısaltınca test
+düştü: `/Three throw out the grid/` arıyordu. Oysa metin hâlâ "Three … rings
+around you" diyordu, yani bağlaması gereken **sayı** yerindeydi. Cümlenin
+sözcüklerine bağlı bir test, metnin her düzenlemesinde olmayan bir hata
+uyduruyor.
+
 ## Devin ne ödediği artık yazıyor
 
 Kaan'ın attığı ekran görüntülerinde topların üstünde **"+2"** yazıyordu:
