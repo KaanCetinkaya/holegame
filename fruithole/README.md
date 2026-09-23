@@ -2251,6 +2251,71 @@ Test dördünü de kontrol ediyor: iki tuş da ekranın içinde, başlık örtü
 ve **dört sayacın dördü de görünüyor** — kaydırılabilir olması yetmiyor,
 çünkü kaydırılabildiğini söyleyen hiçbir şey yok.
 
+## Bomba: tahtadaki ilk direnç
+
+O ana kadar bölümler birbirinden yalnızca **düzen** ve **saat** ile
+ayrılıyordu. Yutulacak her şey pasifti; seni durduran, cezalandıran, etrafından
+dolaşmanı isteyen hiçbir şey yoktu. Kaan'ın saydığı üç oyundan **Hole Stars**
+(Moon Active) tam olarak bunu yapıyor: *"sinsi blokerlerden kaçın, engelleri
+alt et."* Aradaki tek gerçek oynanış farkı buydu.
+
+Bomba her boyutta yutulabiliyor — yani bir **kapı** değil, bir **karar**.
+Yutarsan saatten 5 saniye gidiyor; para vermiyor, büyütmüyor, zinciri de
+bozmuyor (aynı hatayı iki kez ödetmemek için). İlk kez "nereye gitmeyeceğim"
+diye bir soru doğuyor, ve kalabalık bir öbeğin ortasındaki bomba o öbeğin
+tamamını riskli yapıyor.
+
+Ayarlar: 6. bölümden itibaren (yeni oyuncu önce oyunun ne olduğunu öğreniyor),
+hücrelerin %1.2'si, deliğin doğduğu yere 4.5 birimden yakın değil, ve günlük
+koşuda hiç yok — o tahta herkeste aynı olmak zorunda ve tek rastgele öğe bile
+adaleti bozar.
+
+### Dört şey, ve dördü de oynamadan görünmüyor
+
+**Bitirme şartına girmemeli.** Girseydi "kaçın" denen şeyi yemek zorunlu
+olurdu. `levelGoal` onu saymıyor — bombalar tahtada kalabilir.
+
+**Aynı şeyi görev hedefleri de yapıyordu.** `rush` hedefi `fruits.length`
+diyordu ve bombalar oraya giriyordu, ama yenince sayaca girmiyorlardı: 25.
+bölüm 187/189'da kilitlendi, `holeorderplay` yakaladı. Sipariş görevinde de
+aynısı vardı — bomba, yerini aldığı meyvenin tipini taşımaya devam ediyor.
+
+**Tek parçalık hücrelerde durmalı.** Bir hücre kule tutabiliyor ve kuledeki
+her parça listede ayrı bir girdi: aday listesine alınınca aynı hücreye iki
+bomba düşüyordu (ikisi de zemine konduğu için üst üste biniyorlardı), ve bir
+kulenin altındaki bomba üstündeki meyvelerin arkasında kalıyordu. Görünmeyen
+bir cezadan kaçınılamaz.
+
+**Mıknatıs onu çekmemeli.** Çekseydi parayla alınan bir yükseltme, oyuncunun
+kaçtığı şeyi ona doğru sürükleyen bir ceza olurdu.
+
+### Siyahtı, kırmızı oldu
+
+İlk hâli koyu gri bir küreydi ve ilk ekran görüntüsünde sorun ortaya çıktı:
+yukarıdan bakınca **oyuncunun kendi deliğine benziyordu.** Tahtadaki tek koyu
+daire delikti ve ikinci bir tane koymak "hangisi benim" sorusunu doğuruyor.
+Gövde koyu kırmızı oldu, üstüne açık renkli bir kuşak (yukarıdan düz bir
+daireyi halkaya çeviriyor) ve daha parlak bir fitil kıvılcımı.
+
+Bomba `PROPS`'a **girmiyor**: oradaki her şey koleksiyonun parçası ve "63
+şeyden 41'ini buldun" listesine bir ceza nesnesi koymak, onu bulunacak bir
+şeymiş gibi gösterirdi.
+
+### Yol boyunca çıkan eski hata: patron bölümü bitmiyordu
+
+`holebomb.mjs` "hedef = parça − bomba" eşitliğini kontrol edince patron
+bölümünde tutmadı, ve sebebi bombalardan değildi.
+
+`placeGiants` ezdiği parçaları listeden düşürüyor ve **sebebini de yazıyor**:
+ezilen parçalar "yenmiş" işaretleniyor ki üstlerine başka bir şey konmasın,
+ama listede kalırlarsa hedefe sayılıyorlar. `placeColossus` aynı şeyi yapıyor
+ve bu temizliği yapmıyordu.
+
+Yani her patron bölümünde hedef, ulaşılabilir olandan **9 parça fazlaydı**:
+tahtanın tamamını süpürsen bile bölüm bitmiyor, yalnızca saat dolunca
+kapanıyordu. Aylardır öyleydi ve hiçbir test bakmıyordu, çünkü hiçbir test
+"hedef gerçekten yenebilecek parça sayısı mı" diye sormamıştı.
+
 ## Meyveler tahtada halı gibi duruyordu
 
 Kaan'ın gözlemi: *"diğer oyunlarda yutulacak cisimler biraz daha büyük."*

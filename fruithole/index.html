@@ -131,6 +131,13 @@
     border: 3px solid rgba(255,255,255,.5); box-shadow: 0 4px 0 rgba(0,0,0,.22); }
   #timeTag .clock { font-size: 16px; }
   #timeTag.low { background: linear-gradient(180deg,#ff7a6b,#d62f2f); animation: pulse .6s ease infinite; }
+  /* Bomba yutuldu: saat bir kez kırmızıya çakıyor. Saatten beş saniye
+     gitmesi, sayı zaten akarken, tek başına fark edilmiyordu. */
+  #timeTag.hit { animation: timeHit .5s ease; }
+  @keyframes timeHit {
+    0%   { background: linear-gradient(180deg,#ff7a6b,#d62f2f); transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
   @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
 
   /* progress bar with the three stars sitting on it */
@@ -2073,6 +2080,9 @@ const sfx = {
   booster()   { ensureAudio(); [660, 880, 1180].forEach((f, i) => beep(f, 0.13, 'triangle', 0.17, i * 0.06)); vibrate([15, 30]); },
   // The board landing: a run of soft thumps spreading out with the wave.
   drop()      { ensureAudio(); for (let i = 0; i < 7; i++) beep(90 + i * 9, 0.1, 'sine', 0.09, i * 0.075); },
+  // Bomba: aşağı inen bir patlama. Yenen meyvenin sesi yukarı çıkıyor, bu
+  // onun tersi — hangisinin olduğu ekrana bakmadan anlaşılsın diye.
+  bomb()      { ensureAudio(); [300, 190, 120].forEach((f, i) => beep(f, 0.16, 'sawtooth', 0.2, i * 0.05)); vibrate([40, 30, 60]); },
 };
 
 // ---------------------------------------------------------------------
@@ -5609,6 +5619,68 @@ function propTemplates() {
 }
 
 const PROPS = propTemplates();
+
+// ---------------------------------------------------------------------
+// Bomba
+//
+// Tahtada oyuncuya karşı duran ilk şey. O ana kadar bölümler birbirinden
+// yalnızca **düzen** ve **saat** ile ayrılıyordu: yutulacak her şey pasif,
+// seni durduran hiçbir şey yok. Türün önde gidenlerinde (Hole Stars) tahta
+// sana karşı oynuyor, ve aradaki asıl fark buydu.
+//
+// Bomba her boyutta yutulabiliyor — yani bir kapı değil, bir **karar**.
+// Yutarsan saatten BOMB_COST saniye gidiyor, para ve büyüme vermiyor. İlk
+// kez "nereye gitmeyeceğim" diye bir soru doğuyor, ve kalabalık bir öbeğin
+// ortasındaki bomba o öbeğin tamamını riskli yapıyor.
+//
+// Bölümü bitirme şartına **girmiyor** (`levelGoal` onu saymıyor). Girseydi
+// kaçınmak imkânsız olurdu: tahtayı temizlemek için sonunda onu da yemek
+// gerekirdi, yani "kaçın" diyen bir şeyin üstüne "ama mecbursun" yazardı.
+// ---------------------------------------------------------------------
+const BOMB_R = 0.46;          // sıradan meyveyle aynı: her boyutta yutulabilir
+const BOMB_COST = 5;          // saniye
+// Hücrelerin kaçta kaçı bomba. Ölçüyle konacak; başlangıç değeri, bir
+// tahtada elle sayılabilecek kadar az ama yolda rastlanacak kadar çok.
+const BOMB_RATE = 0.012;
+// İlk bombalı bölüm. Yeni oyuncu önce oyunun ne olduğunu öğreniyor: ilk
+// bölümde ceza veren bir şey, öğretmeden cezalandırmak olurdu.
+const BOMB_FROM = 6;
+
+// Fitili yanan koyu bir küre. PROPS'a **girmiyor**: oradaki her şey
+// koleksiyonun bir parçası ve "63 şeyden 41'ini buldun" listesine bir ceza
+// nesnesi koymak, bulunacak bir şeymiş gibi gösterirdi.
+const BOMB_GEO = (() => {
+  const g = new THREE.Group();
+  // Gövde koyu **kırmızı**, siyah değil.
+  //
+  // İlk hâli siyahtı ve yukarıdan bakınca oyuncunun kendi deliğine
+  // benziyordu — tahtadaki tek koyu daire delikti, ve ikinci bir tane koymak
+  // "hangisi benim" sorusunu doğuruyor. Kırmızı hem tehlike rengi hem de
+  // tahtadaki hiçbir meyvenin olmadığı bir koyulukta.
+  const govde = new THREE.MeshStandardMaterial({ color: '#5e1116', roughness: 0.3, metalness: 0.25 });
+  const kusak = new THREE.MeshStandardMaterial({ color: '#f5f1e6', roughness: 0.5 });
+  const fitil = new THREE.MeshStandardMaterial({ color: '#8a6a3a', roughness: 0.8 });
+  const kivilcim = new THREE.MeshStandardMaterial({
+    color: '#ffd24a', emissive: '#ff6a00', emissiveIntensity: 1.4, roughness: 0.4 });
+  g.add(part(new THREE.SphereGeometry(0.8, 18, 14), govde, 0, 0.8, 0));
+  // Açık renk bir kuşak: yukarıdan bakınca düz bir daireyi halkaya çeviriyor,
+  // yani şekli tek renk bir lekeden ayırıyor. Torus kendi ekseninde dik
+  // doğuyor, yatırmak gerekiyor.
+  const k = part(new THREE.TorusGeometry(0.6, 0.1, 8, 20), kusak, 0, 1.15, 0);
+  k.rotation.x = Math.PI / 2;
+  g.add(k);
+  // Parlak bir nokta: yukarıdan bakınca düz bir daire, tahtadaki gölgeden
+  // ayırt edilemiyordu.
+  g.add(part(new THREE.SphereGeometry(0.22, 10, 8),
+    new THREE.MeshStandardMaterial({ color: '#c8666a', roughness: 0.2 }), -0.3, 1.35, -0.3));
+  // `part` yalnızca konum alıyor, açı almıyor — fitil eğimini kendimiz
+  // veriyoruz, yoksa dimdik duruyor ve mumdan ayırt edilemiyor.
+  const f = part(new THREE.CylinderGeometry(0.09, 0.09, 0.5, 8), fitil, 0.24, 1.62, 0);
+  f.rotation.z = -0.5;
+  g.add(f);
+  g.add(part(new THREE.SphereGeometry(0.2, 10, 8), kivilcim, 0.45, 1.82, 0));
+  return g;
+})();
 // A parasol or a lounger shrunk to fit a cell is a coloured lump — the slats
 // and the canopy segments are what make them readable, and neither survives
 // at that size. They are marked so they only ever turn up as giants.
@@ -7764,6 +7836,7 @@ function buildField() {
       }
   }
   placeGiants();
+  placeBombs();
   // After the giants, so it takes its clearing from a settled board rather
   // than having a giant dropped on top of it afterwards. A daily run is
   // never a boss: its level number is not a level number.
@@ -7772,8 +7845,26 @@ function buildField() {
   // moving. Null in normal play.
   const wantBoss = forceBoss == null ? (!dailyRun && isBossLevel(level)) : forceBoss;
   if (wantBoss) placeColossus();
+
+  // Kolosun ezdiği parçaları listeden düşür.
+  //
+  // `placeGiants` bunu kendi sonunda yapıyor ve sebebini de yazıyor: ezilen
+  // parçalar "yenmiş" işaretleniyor ki üstlerine başka bir şey konmasın, ama
+  // listede kalırlarsa **hedefe sayılıyorlar**. `placeColossus` aynı şeyi
+  // yapıyordu ve temizliği yapmıyordu, yani her patron bölümünde hedef
+  // ulaşılabilir olandan 9 parça fazlaydı: tahtanın tamamını süpürsen bile
+  // bölüm bitmiyor, yalnızca saat dolunca kapanıyordu.
+  //
+  // Bu, bombalardan önce de vardı; bombalar yalnızca görünür kıldı, çünkü
+  // `holebomb.mjs` "hedef = canlı parça − bomba" eşitliğini kontrol edince
+  // patron bölümünde tutmadı.
+  fruits = fruits.filter(f => !f.eaten);
+
   // A level ends when every fruit on the field has been eaten.
-  levelGoal = fruits.length;
+  //
+  // Bombalar sayılmıyor: tahtada kalabilirler. Sayılsalardı "kaçın" diyen bir
+  // şeyi yemek zorunlu olurdu.
+  levelGoal = fruits.filter(f => !f.bomb).length;
   // …ya da sipariş bölümünde, hedef meyvenin hepsi yendiğinde. Devler ve
   // nesneler yerleştikten sonra seçiliyor: tur ölçümü tahtanın son hâline
   // bakmalı. Nesneler sayılmıyor — "bütün muzları ye" diyen bir görevde
@@ -7783,14 +7874,22 @@ function buildField() {
     const kind = missionKindFor(level);
     if (kind === 'order') {
       orderType = pickOrderType();
+      // Bomba sayılmıyor. Bomba yerini aldığı meyvenin tipini taşımaya devam
+      // ediyor ve `prop`'u da yok, yani bu filtreden geçiyordu — ama yenince
+      // `eatFruit` sayaca dokunmadan dönüyor, yani hedef ulaşılamaz oluyordu.
       missionGoal = orderType
-        ? fruits.filter(f => !f.prop && f.type === orderType).length : 0;
+        ? fruits.filter(f => !f.prop && !f.bomb && f.type === orderType).length : 0;
     } else if (kind === 'rush') {
       // Rush tarlanın tamamını istiyor, tıpkı sıradan bir bölüm gibi. Değişen
       // şey saat: kısa başlıyor ve her meyve ona ekliyor, yani bölüm bir
       // süpürme değil bir kovalamaca. Hedef `levelGoal` ile aynı olduğu için
       // ilerleme çubuğu da eskisi gibi çalışıyor.
-      missionGoal = fruits.length;
+      //
+      // `fruits.length` yazıyordu ve bombalar gelince bu hedefi ulaşılamaz
+      // yaptı: bomba sayılıyor ama yenince sayaca girmiyor, yani 25. bölüm
+      // 187/189'da kilitlendi. `levelGoal` zaten bombasız sayı — cümlenin
+      // kendisi de "levelGoal ile aynı" diyordu, sayı öyle değildi.
+      missionGoal = levelGoal;
     } else if (kind === 'giants') {
       // Devlerin hepsi: nesne olarak çizilenler de dahil. Sipariş görevinde
       // nesne sayılmıyordu çünkü traktör muz değil; burada tam tersi, çünkü
@@ -7874,6 +7973,52 @@ function stepDrop(now) {
 // sit half-buried in a tower and there would be no way to tell it apart.
 // The gap it leaves is the tell — an object too big to take, with room around
 // it, reads as a target rather than as scenery.
+// Bombalar, tarla ve devler yerleştikten sonra: mevcut bir meyvenin yerini
+// alıyorlar, yanına konmuyorlar. Yanına konsalardı tahta kalabalıklaşır ve
+// bomba "fazladan bir şey" gibi dururdu; yerini alınca tam da kaçınılacak
+// yerde, öbeğin içinde duruyor.
+function placeBombs() {
+  if (dailyRun || level < BOMB_FROM) return;
+  // Yalnızca **tek parçalık** hücreler.
+  //
+  // Bir hücre kule tutabiliyor ve kuledeki her parça listede ayrı bir girdi.
+  // Aday olarak alınınca iki şey birden bozuldu: aynı hücreye iki bomba
+  // düşüyordu (ikisi de zemine konduğu için üst üste biniyorlardı), ve bir
+  // kulenin altındaki bomba üstündeki meyvelerin arkasında görünmüyordu —
+  // kaçınılması istenen bir şeyin görünmemesi, cezayı adaletsiz yapıyor.
+  const kulede = new Map();
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    const k = f.x + ',' + f.z;
+    kulede.set(k, (kulede.get(k) || 0) + 1);
+  }
+  const aday = fruits.filter(f =>
+    !f.eaten && !f.big && !f.prop &&
+    kulede.get(f.x + ',' + f.z) === 1 &&
+    // Deliğin doğduğu yerin dibinde olmasın: ilk yarım saniyede, daha kimse
+    // bir şey görmeden yenen bir ceza öğretmiyor, yalnızca canını sıkıyor.
+    Math.hypot(f.x - SPAWN_X, f.z - spawnZ()) > 4.5);
+  const kac = Math.round(fruits.length * BOMB_RATE);
+  for (let i = 0; i < kac && aday.length; i++) {
+    const f = aday.splice(Math.floor(rnd() * aday.length), 1)[0];
+    // Kulenin tamamı değil tek parça: bir hücrede üst üste duran meyvelerin
+    // yalnızca biri bombaysa geri kalanı hâlâ yenebilir olmalı.
+    fieldGroup.remove(f.mesh);
+    const mesh = BOMB_GEO.clone();
+    mesh.scale.set(BOMB_R, BOMB_R, BOMB_R);
+    mesh.position.set(f.x, 0, f.z);
+    mesh.userData.ox = f.x; mesh.userData.oz = f.z;
+    mesh.rotation.y = rnd() * Math.PI * 2;
+    mesh.castShadow = true;
+    fieldGroup.add(mesh);
+    f.mesh = mesh;
+    f.r = BOMB_R;
+    f.bomb = true;
+    f.prop = null;
+    f.baseY = 0;
+  }
+}
+
 function placeColossus() {
   // The far end: the hole opens at +fieldHalfZ*0.55, so this is the point
   // furthest from it that is still comfortably on the board.
@@ -9033,6 +9178,15 @@ function updateTimeUI() {
   timeTagEl.classList.toggle('low', s <= 10);
 }
 
+// Saatin bir kez kırmızıya çakması. Sınıf önce kaldırılıp bir kare sonra
+// konuyor: arka arkaya iki bomba yenirse aynı sınıf zaten duruyor olur ve
+// tarayıcı animasyonu yeniden başlatmaz — ikinci bomba sessiz geçerdi.
+function flashTime() {
+  timeTagEl.classList.remove('hit');
+  void timeTagEl.offsetWidth;
+  timeTagEl.classList.add('hit');
+}
+
 // ---------------------------------------------------------------------
 // Level reward
 //
@@ -9624,6 +9778,21 @@ let rimPulse = 0;
 
 function eatFruit(f, now) {
   f.eaten = true;
+  // Bomba: para yok, büyüme yok, zincir yok, sayaç yok — yalnızca saat.
+  //
+  // `eatenCount` artmıyor, çünkü bölümü bitirme şartı ondan okunuyor ve bomba
+  // o şarta girmiyor. Zincir de bozulmuyor: bombayı yemek zaten yeterince
+  // cezalandırıyor, üstüne çarpanı sıfırlamak aynı hatayı iki kez ödetirdi.
+  if (f.bomb) {
+    timeLeft = Math.max(0, timeLeft - BOMB_COST);
+    updateTimeUI();
+    burst(f.x, f.mesh.position.y, f.z, 'berry');
+    sfx.bomb();
+    flashTime();
+    f.mesh.visible = false;
+    fieldGroup.remove(f.mesh);
+    return;
+  }
   eatenCount++;
   if (missionKind === 'order' && !f.prop && f.type === orderType) missionEaten++;
   else if (missionKind === 'giants' && f.giant) missionEaten++;
@@ -10422,7 +10591,9 @@ window.fruitHoleSteer = (x, z) => { joyX = x; joyY = z; };
 window.fruitHoleNearest = () => {
   let best = null, bd = Infinity;
   for (const f of fruits) {
-    if (f.eaten || f.r > holeRadius * 0.92) continue;
+    // Bomba hedef değil: otomatik oyuncu onu kovalarsa hem ölçüm hem klip,
+    // hiçbir oyuncunun yapmayacağı şeyi yapan bir delik gösterir.
+    if (f.eaten || f.bomb || f.r > holeRadius * 0.92) continue;
     const d = Math.hypot(f.x - holeX, f.z - holeZ);
     if (d < bd) { bd = d; best = f; }
   }
@@ -10748,6 +10919,48 @@ window.fruitHoleMix = () => {
     // İri payı: ekranda bir meyvenin iri okunması bu orana bağlı.
     iriPay: +((buyuk + dev) / Math.max(1, a.length)).toFixed(3),
   };
+};
+// Bombalar: kaç tane, nerede, ve bölümü bitirme şartına girmiyorlar mı.
+window.fruitHoleBombs = () => {
+  const live = fruits.filter(f => !f.eaten);
+  const b = live.filter(f => f.bomb);
+  return {
+    sayi: b.length,
+    toplam: live.length,
+    hedef: levelGoal,
+    // Bombalar hedefe girmemeli.
+    //
+    // Karşılaştırma canlı parçalarla değil listenin tamamıyla yapılıyor:
+    // canlı sayısı oyun oynandıkça düşüyor, hedef düşmüyor, yani oyunun
+    // ortasında sorulunca "canlı − bomba = hedef" her zaman tutmaz ve test
+    // olmayan bir hata uydurur. `buildField` yenmiş girdileri listeden
+    // düşürdüğü için liste boyu bu soruya her an doğru cevap veriyor.
+    hedefDisi: fruits.filter(f => !f.bomb).length === levelGoal,
+    // Deliğin doğduğu yere en yakın bomba kaç birim ötede.
+    enYakin: b.length
+      ? +Math.min(...b.map(f => Math.hypot(f.x - SPAWN_X, f.z - spawnZ()))).toFixed(2)
+      : null,
+    // Nerede duruyorlar: ekran görüntüsü alan araç kadrajı buradan kuruyor.
+    yerler: b.map(f => ({ x: +f.x.toFixed(2), z: +f.z.toFixed(2) })),
+    maliyet: BOMB_COST,
+  };
+};
+// Bir bombayı yedir: deliği üstüne koyup oyunun kendi yeme kontrolünü
+// çalıştırıyor. Bombayı doğrudan `eatFruit`'e vermek, tam da ölçülmek istenen
+// yolu — çapın yetip yetmediği, mesafenin yakın olup olmadığı — atlardı.
+// Deliği bombanın üstüne koymak komşu meyveleri de yutuyor — tahta kalabalık
+// ve ağız bombadan geniş. O yüzden yanında kaç sıradan parçanın gittiği de
+// dönüyor: "bomba sayaca dokunmuyor" ancak bu ikisi karşılaştırılarak
+// ölçülebiliyor, yoksa komşuların artışı bombanınmış gibi okunuyor.
+window.fruitHoleEatBomb = () => {
+  const b = fruits.find(f => !f.eaten && f.bomb);
+  if (!b) return null;
+  const oncekiSayac = eatenCount;
+  const onceCanli = fruits.filter(f => !f.eaten);
+  holeX = b.x; holeZ = b.z;
+  checkEat(performance.now());
+  const yanindakiler = onceCanli.filter(f => f.eaten && !f.bomb).length;
+  return { yutuldu: b.eaten, sayacArtisi: eatenCount - oncekiSayac, yanindakiler };
 };
 window.fruitHoleFlecks = () => flecks.length;
 // Karenin masrafı neyden geliyor: gölge geçişinden mi, tarladan mı?
@@ -11120,7 +11333,10 @@ function tick(now) {
     const mag = upg('magnet') * 0.28 + (now < magnetBoostUntil ? 1.6 : 0);
     if (mag > 0) {
       for (const f of fruits) {
-        if (f.eaten || f.r > holeRadius * 0.92) continue;
+        // Bombayı çekmiyor. Çekseydi mıknatıs yükseltmesi, oyuncunun
+        // kaçınmaya çalıştığı şeyi ona doğru sürükleyen bir ceza olurdu —
+        // parayla alınan bir şeyin oyunu kötüleştirmesi.
+        if (f.eaten || f.bomb || f.r > holeRadius * 0.92) continue;
         const dx = holeX - f.x, dz = holeZ - f.z;
         const d = Math.hypot(dx, dz);
         const reach = holeRadius + mag;
