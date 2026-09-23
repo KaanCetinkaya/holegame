@@ -2331,6 +2331,28 @@ düzleştirdi, her bölüm dört kata indi.
 dünyadaki y'sini veriyor — "kule ekledim ama görünmüyor" sorusu ancak buradan
 cevaplanıyor.
 
+### İri meyve yüksek kuleye girmiyor
+
+33'ü hazırlarken `holepillar` düştü ve sebebi kuleler değil, **iri meyve
+tabanıydı**. Pillars'ın tahtası zaten dört kuleden ibaret — sütunları bilerek
+7, 18, 21 ve 12 katlı (`PILLAR_H`) — ve aralarına karışan her iri parça hatayı
+katlıyor. Ölçüldü: sütunlar ekranda üst üste binip geçilmez bir şeride
+dönüyordu (**en dar aralık -231 piksel**) ve tepesi HUD'un altına giriyordu
+(**445px**, sınır 420).
+
+İri taban artık yalnızca **dört kattan alçak** hücrelere uygulanıyor. İri meyve
+alçak yığınlarda tahtayı iri gösteriyor; yüksek kulede ise kuleyi bozuyor.
+
+İki yanlış deneme daha oldu ve ikisi de aynı dersi verdi — *bir sınır, ait
+olduğu yerden geniş uygulanırsa başka bir şeyi bozar*:
+
+* `TOWER_Y_MAX` önce **bütün** yüksekliklere uygulandı ve desenlerin kendi
+  kulelerini kesti: 4. bölüm 129 meyveden 70'e düştü, `holerelease` "en seyrek
+  bölüm 80'in altında" dedi. Sınır artık yalnızca blob'un eklediği kümeye.
+* `holemix`'in "hiçbir desen halı olmasın" kuralı Pillars'ı halı saydı. Muafiyet
+  isimle değil ölçüyle: hücre başına ortalama beş kattan yüksek desenler kule
+  deseni sayılıyor (`fruitHoleMix().ortKat`).
+
 ### Hayvan: devler hep cansız şeylerdi
 
 Traktör, buzdolabı, helikopter, sedan. Tahtanın uzak ucunda durup "oraya

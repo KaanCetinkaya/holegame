@@ -27,6 +27,8 @@ const srv = createServer((req, res) => {
 // Tarla tohumlanıyor: tohumsuz bırakılınca aynı bölüm her çalıştırmada başka
 // bir dağılım veriyor ve eşik koyan bir testin geçmesi zara bağlı kalıyor.
 const EN_AZ = 0.08;   // her desende en az bu kadar iri meyve
+// Hücre başına bu kadar parça varsa desen bir kule deseni sayılıyor.
+const KULE_KAT = 5;
 
 const br = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium',
@@ -46,11 +48,20 @@ for (let n = 1; n <= 24; n++) {
     return { ad: p.pattern, ...window.fruitHoleMix() };
   }, n);
   tToplam += d.toplam; tIri += d.buyuk + d.dev;
-  const bayrak = d.iriPay < EN_AZ ? '  <-- halı' : '';
+  // Tahtası yüksek kulelerden ibaret olan desenler muaf.
+  //
+  // İri meyve yüksek bir sütunda kuleyi bozuyor — Pillars'ın sütunları 7, 18,
+  // 21 ve 12 katlı ve iri parça karışınca ekranda üst üste binip geçilmez bir
+  // şeride dönüyorlardı (`holepillar.mjs` ölçtü: en dar aralık -231 piksel).
+  // O yüzden iri taban oraya bilerek konmuyor, ve düşük iri payı orada bir
+  // hata değil tasarım. Muafiyet isimle değil **ölçüyle**: hücre başına
+  // ortalama kat sayısı.
+  const kuleDesen = d.ortKat >= KULE_KAT;
+  const bayrak = d.iriPay < EN_AZ ? (kuleDesen ? '  (kule deseni, muaf)' : '  <-- halı') : '';
   console.log(`  ${String(n).padStart(2)}    ${d.ad.padEnd(14)} ${String(d.toplam).padStart(5)} ` +
     `${String(d.siradan).padStart(8)} ${String(d.buyuk).padStart(6)} ${String(d.dev).padStart(4)}` +
-    `   %${(d.iriPay * 100).toFixed(1).padStart(5)}${bayrak}`);
-  if (d.iriPay < EN_AZ) fails.push(`${n}. bölüm (${d.ad}): iri payı %${(d.iriPay * 100).toFixed(1)}`);
+    `   %${(d.iriPay * 100).toFixed(1).padStart(5)}  ${d.ortKat.toFixed(1)} kat${bayrak}`);
+  if (d.iriPay < EN_AZ && !kuleDesen) fails.push(`${n}. bölüm (${d.ad}): iri payı %${(d.iriPay * 100).toFixed(1)}`);
 }
 console.log(`\n24 bölümün ortalaması: %${(tIri / tToplam * 100).toFixed(1)} iri`);
 console.log(fails.length

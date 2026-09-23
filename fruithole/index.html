@@ -7993,8 +7993,19 @@ function buildField() {
       // `scratchpad/holemix.mjs` her desen için oranı sayıyor ve hiçbirinin
       // halıya dönmediğini bekliyor.
       const BIG_FLOOR = 0.18;
+      // Desenin kendi kule yüksekliği, taban kuralından **önce** hesaplanıyor.
+      //
+      // Taban her hücreye uygulandığında yüksek kuleli desenler bozuldu:
+      // Pillars'ın sütunları 7, 18, 21 ve 12 katlı ve içlerine karışan her iri
+      // parça hatayı katlıyor. Ölçüldü — sütunlar ekranda üst üste binip
+      // geçilmez bir şeride dönüyordu (en dar aralık -231 piksel) ve tepesi
+      // HUD'un altına giriyordu (445px, sınır 420). İri meyve alçak yığınlarda
+      // tahtayı iri gösteriyor, yüksek kulede ise kuleyi bozuyor.
+      const desenKat = currentPattern.stack
+        ? Math.max(1, currentPattern.stack(a, b)) : 1;
+      const BIG_MAX_STACK = 4;
       const big = (currentPattern.big ? currentPattern.big(a, b) : false)
-        || scatter(BIG_FLOOR);
+        || (desenKat <= BIG_MAX_STACK && scatter(BIG_FLOOR));
       const radius = big ? BIG_R : NORMAL_R;
       // Every so often a cell holds an object instead of a fruit. It pays
       // into one of the four counters all the same, so nothing downstream
@@ -8024,7 +8035,7 @@ function buildField() {
       // the hole passes under them.
       // Props stand alone. Stacked they interlock into an unreadable pile,
       // and their whole reason for being on the board is being recognisable.
-      let height = prop || !currentPattern.stack ? 1 : Math.max(1, currentPattern.stack(a, b));
+      let height = prop ? 1 : desenKat;
       if (!prop && rnd() < 0.07) height = Math.max(height, 3 + Math.floor(rnd() * 3));
       // Kule kümesi: birkaç hücrede bir arada, on iki katı bulan sütunlar.
       //
@@ -8036,19 +8047,24 @@ function buildField() {
       // Dağılım `rnd()` ile değil **blob** ile: rastgele serpiştirilmiş tek
       // tek uzun sütunlar tarlada hata gibi duruyor, bitişik bir küme ise
       // duvar gibi. blob mekânsal, yani komşu hücreler aynı cevabı alıyor.
-      if (!prop && blob(a, b, 0.42, 4141) > 0.72) {
-        height = Math.max(height, 5 + Math.floor(rnd() * 3));
+      //
+      // Yükseklik **dünya biriminde** sınırlanıyor, kat sayısında değil: parça
+      // yarıçapı 0.46 da olabilir 0.72 de, yani aynı kat sayısı iki kat farklı
+      // yükseklik verebiliyor. İlk denemede 9-13 kat verildi ve ekranda hiçbir
+      // şey değişmedi — 19. bölümün en yüksek kulesi y=18.4'e çıkıyordu, kamera
+      // ise y=13'te, yani kule kameranın üstünden geçiyordu.
+      //
+      // Sınır yalnızca **buraya** uygulanıyor, `height`'ın tamamına değil.
+      // Genel uygulandığında desenlerin kendi tasarımını kesti: Pillars'ın
+      // sütunları bilerek 7, 18, 21 ve 12 katlı (`PILLAR_H`) ve o bölüm zaten
+      // dört kuleden ibaret — sınır onları sekize indirince 4. bölüm 129
+      // meyveden 70'e düştü ve `holerelease` "en seyrek bölüm 80 meyvenin
+      // altında" dedi. Desenin kendi kulesi oyunun eskiden beri gösterdiği
+      // şey; kısıtlanacak olan benim eklediğim küme.
+      if (!prop && blob(a, b, 0.42, 4141) > 0.76) {
+        const tavan = Math.max(1, Math.floor(TOWER_Y_MAX / (radius * 2.05)));
+        height = Math.max(height, Math.min(tavan, 5 + Math.floor(rnd() * 3)));
       }
-      // Yükseklik **dünya biriminde** sınırlanıyor, kat sayısında değil.
-      //
-      // İlk denemede kat sayısı 9-13 verildi ve ölçüm sebebi söyledi:
-      // 19. bölümün en yüksek kulesi y=18.4'e çıkıyordu, kamera ise y=13'te.
-      // Kule kameranın üstünden geçiyordu, yani ekranda hiç görünmüyordu —
-      // "kule ekledim ama görünmüyor" diye bakılacak yer buydu.
-      //
-      // Kat sayısıyla sınırlamak işe yaramaz: parça yarıçapı 0.46 da olabilir
-      // 0.72 de, yani aynı kat sayısı iki kat farklı yükseklik verebiliyor.
-      height = Math.min(height, Math.max(1, Math.floor(TOWER_Y_MAX / (radius * 2.05))));
       for (let k = 0; k < height; k++) {
         // A little jitter in size and lean. Without it every cell holds an
         // identical object and the field reads as a printed grid rather than
@@ -11231,6 +11247,12 @@ window.fruitHoleMix = () => {
     toplam: a.length, siradan: a.length - buyuk - dev, buyuk, dev,
     // İri payı: ekranda bir meyvenin iri okunması bu orana bağlı.
     iriPay: +((buyuk + dev) / Math.max(1, a.length)).toFixed(3),
+    // Hücre başına ortalama kaç parça. İri payının düşük olması her desende
+    // aynı şeyi anlatmıyor: tahtası yüksek kulelerden ibaret olan bir desende
+    // (Pillars: 7, 18, 21, 12 katlı sütunlar) iri meyve kuleyi bozuyor, o
+    // yüzden oraya bilerek konmuyor. "Halı mı" sorusu ancak bu sayıyla
+    // birlikte cevaplanabiliyor.
+    ortKat: +(a.length / Math.max(1, new Set(a.map(f => f.x + ',' + f.z)).size)).toFixed(2),
   };
 };
 // Bombalar: kaç tane, nerede, ve bölümü bitirme şartına girmiyorlar mı.

@@ -48,9 +48,8 @@ Console.
 You are the hole in the middle of a fruit field — and the clock is running! 🕳️🍇
 
 Drag anywhere to steer the hole and swallow every fruit it touches. The more
-you eat, the bigger you get: blackberries and lychees first, then whole banana
-slices and melons. Clear the field before time runs out, take the stars, move
-on.
+you eat, the bigger you get: berries first, then whole melons. Clear the field
+before time runs out, take the stars, move on.
 
 ⭐ EARN STARS
 Finishing isn't enough — how fast you finish is what counts. The more time left
@@ -59,10 +58,9 @@ come back and beat it.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
 Twenty-four hand-built layouts: a stepped pyramid taken down terrace by terrace,
-four towers standing over the field, hollow rings, a heart, an island, a
-staircase, winding walls, a rolling wave, a chequerboard and a fruit tree.
-Three throw out the grid and lay the field in rings around you — orbits
-opening outward from where you stand, a five-petalled bloom, three spiral arms.
+four towers, hollow rings, a heart, an island, a staircase, winding walls, a
+rolling wave, a chequerboard, a fruit tree. Three throw out the grid and lay
+the field in rings around you.
 
 And each one is somewhere. A beach with the sea running up the sand. A mown
 football pitch. Fresh snow. A marble bank floor veined with gold. A station
@@ -71,65 +69,88 @@ field. A cobbled market square. The ground changes, and so does what is on it.
 
 🔥 CHAIN COMBOS
 Eat fruit back to back and the multiplier climbs. Sweeping a patch in one pass
-pays far better than picking it off one piece at a time.
+pays far better than picking it off piece by piece.
 
 ⬆️ UPGRADES
 Every fruit you collect is worth something. Make the hole faster, start bigger,
-add seconds to every level, or switch on a magnet that drags fruit in. Each
-track is paid for with a different fruit.
+add seconds, or switch on a magnet that drags fruit in — each track paid for
+with a different fruit.
 
 🎁 BOOSTERS
 Three ways out of a tight spot: +15 seconds, a burst that grows the hole at
 once, and 8 seconds of super magnetism.
 
 👑 BOSS LEVELS
-Every tenth level ends in one colossal fruit at the far end of the board,
-wider than any giant. There is no taking it early — the only way to it is to
-sweep the field, and it is in shot from the first frame.
+Every tenth level ends in one colossal fruit at the far end of the board, wider
+than any giant. There is no taking it early — the only way to it is to sweep
+the field.
 
 📅 DAILY CHALLENGE
-One field a day, the same field for every player — built from the date itself,
-so nobody gets an easier board. Upgrades are switched off, so the score says
-how well you played today, not how long you have played. Three fresh daily
-missions, a login reward that grows with your streak, achievements to chase.
+One field a day, the same for every player — built from the date itself, so
+nobody gets an easier board. Upgrades are off, so the score says how well you
+played today, not how long you have played. Plus daily missions, a login reward
+that grows with your streak, and achievements to chase.
 
 🗼 STACKS AND GIANTS
 Fruit is piled into towers you take down in one pass. Scattered across every
-field are giants — more than twice the width of your opening, sometimes three
-huddled together, and never a slice: the whole fruit standing up, stalk and
-leaf. You cannot touch them at the start. Sweep, grow into one, and it pays
-for the whole trip.
+field are giants — twice the width of your opening, sometimes three huddled
+together, and never a slice: the whole fruit, stalk and leaf. Sweep, grow into
+one, and it pays for the whole trip.
 
-🧺 EIGHTY THINGS TO FIND
+🧺 EIGHTY-THREE THINGS TO FIND
 Scattered through the crop is whatever belongs where you are. A bucket and
-spade on the beach. A snowman in the snow. Gold bars on the bank floor. A
-rocket in orbit. Cocktails at the bar, a tractor out on the farm. Every one you
-swallow is kept, and the Collection screen holds them all — the ones you have
-in colour, the ones still out there as silhouettes.
+spade on the beach. Gold bars on the bank floor. A rocket in orbit. A tractor
+out on the farm — and standing beside it, a cow; a crab on the sand, a polar
+bear in the snow. Every one you swallow is kept, and the Collection screen
+holds them all: the ones you have in colour, the rest as silhouettes.
+
+💣 NOT EVERYTHING IS FRUIT
+A bomb goes down as easily as a berry and takes five seconds off the clock, so
+a crowded patch is worth a second look. A rock cannot be swallowed at all — and
+the wider your opening grows, the further out it stops you.
 
 🕳️ TEN HOLE SKINS
-Mint, grape, coral, lime, candy — and gold and chrome, which catch the light
-in a way flat colour cannot. Half open as you climb, half are bought.
+Mint, grape, coral, lime, candy — and gold and chrome, which catch the light in
+a way flat colour cannot. Half open as you climb, half are bought.
 
 📋 MISSION LEVELS
 Every fifth level wants something else. An order level ends when every banana
 is gone — one colour chased across the field instead of the whole crop swept.
 A giant level ends when every giant is swallowed, and you cannot take one
-until you have eaten your way up to its size. The two take turns.
+until you have grown to its size. A rush level opens with twelve seconds on the
+clock and every fruit adds to it. The three take turns.
 
 🔁 KEEP GOING
 Past the last layout the fields come back mirrored, in a new order, in themes
 they have never worn, with less time on the clock.
 
 🎁 CHESTS
-Clear a field and a chest drops — tap it, it bursts, and the faster you
-finished the more it pays. A second fills on the menu every four hours, free,
-and you can see inside before you open it.
+Clear a field and a chest drops — the faster you finished, the more it pays. A
+second fills on the menu every four hours, free.
 
 ⚡ ONE FINGER, FULLY OFFLINE
 Press anywhere and drag. That's the whole control scheme. No connection.
 
 Ready to clear the field?
+```
+
+## What's new — 1.12 / versionCode 33 (≤ 500 chars per language)
+
+Bu not **bir sonraki .aab'ye** ait. 32 Play'e gitti, sıradaki kod 33. Sürüm adı
+1.11 → 1.12: tahtanın kendisi değişti, yani 32 ile aynı oyun değil.
+
+English (447 chars):
+```
+The field pushes back now. A bomb goes down as easily as a berry and takes five seconds off the clock, so a crowded patch is worth a second look. A rock cannot be swallowed at all — and the wider your opening grows, the further out it stops you.
+
+The fruit itself is bigger, piled into taller towers, and three giants are now animals: a cow out on the farm, a crab on the sand, a polar bear in the snow. The collection goes to 83.
+```
+
+Türkçe (392 karakter):
+```
+Tarla artık karşılık veriyor. Bomba bir çilek kadar kolay yutuluyor ve saatten beş saniye götürüyor, yani kalabalık bir öbeğe iki kere bakmak gerekiyor. Kaya ise hiç yutulamıyor — ve ağzın genişledikçe seni daha uzaktan durduruyor.
+
+Meyveler de irileşti, kuleler yükseldi, ve üç dev artık bir hayvan: tarlada inek, kumsalda yengeç, karda kutup ayısı. Koleksiyon 83 nesneye çıktı.
 ```
 
 ## What's new — 1.11 / versionCode 32 (≤ 500 chars per language)
