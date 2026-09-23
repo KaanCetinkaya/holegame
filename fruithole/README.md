@@ -2301,6 +2301,56 @@ Bomba `PROPS`'a **girmiyor**: oradaki her şey koleksiyonun parçası ve "63
 şeyden 41'ini buldun" listesine bir ceza nesnesi koymak, onu bulunacak bir
 şeymiş gibi gösterirdi.
 
+## Kuleler ve dev hayvanlar
+
+Kaan üç ekran görüntüsü attı (tür liderlerinden) ve üç şey istedi: **top**,
+**hayvan**, **kule**. Üçü de aynı şeyi söylüyordu — tahtada göze çarpan,
+bakılacak bir kütle yok.
+
+**Top** zaten yapılmıştı: iri meyve payı %10'dan %28'e çıkarken tahtanın
+dörtte biri yuvarlak, bütün meyveye dönmüştü (bir üstteki bölüm).
+
+### Kule: sınır kat sayısında değil, dünyada
+
+Tahtadaki en yüksek şey beş katlıydı ve yukarıdan bakınca her yer aynı
+yükseklikte bir doku gibi okunuyordu. Artık **blob**'la seçilen bitişik bir
+hücre kümesinde 5-7 katlı sütunlar var: dağılım `rnd()` ile olsaydı tek tek
+uzun sütunlar tarlada hata gibi dururdu, bitişik olunca duvar gibi duruyor.
+
+İlk deneme 9-13 kat verdi ve **ekranda hiçbir şey değişmedi**. Sebebi ölçünce
+çıktı: 19. bölümün en yüksek kulesi **y=18.4**'e ulaşıyordu, kamera ise
+**y=13**'te. Kule kameranın üstünden geçiyordu.
+
+Yükseklik artık dünya biriminde sınırlı (`TOWER_Y_MAX = 8.0`), kat sayısında
+değil — parça yarıçapı 0.46 ile 0.72 arasında değişiyor, yani aynı kat sayısı
+iki kat farklı yükseklik verebiliyor. Sınırın değeri de eskisinin **üstünde**
+seçildi: ilk denemede 4.6 kondu ve yeni kuleyi eklerken eski tahtayı
+düzleştirdi, her bölüm dört kata indi.
+
+`window.fruitHoleTowers()` hücre başına kat sayısını ve en yüksek tepenin
+dünyadaki y'sini veriyor — "kule ekledim ama görünmüyor" sorusu ancak buradan
+cevaplanıyor.
+
+### Hayvan: devler hep cansız şeylerdi
+
+Traktör, buzdolabı, helikopter, sedan. Tahtanın uzak ucunda durup "oraya
+gideceğim" dedirten şey hep bir makineydi. Üç dev hayvan eklendi: **inek**
+(Harvest), **yengeç** (Beach), **kutup ayısı** (Snow Day).
+
+Hepsi **yukarıdan** okunacak şekilde çizildi, ki hayvanda bu nesnelerden zor:
+bir hayvanı tanıtan şey profilidir ve tepeden bakınca profil yok. Üçü de
+plandan ayırt edilebilir bir şeye dayanıyor — ineğin lekeleri, yengecin
+kıskaçları, ayının kulakları. Ayının gövdesi bembeyaz değil gri-mavi, çünkü
+kar temasının zemini de beyaz.
+
+### "Hepsini bul" hedefi artık elle yazılmıyor
+
+Nesne sayısı iki yerde duruyordu: `ALL_PROPS` ve başarım tablosundaki
+`goal: 80`. Market Day yedi nesne eklerken hatırlanıp güncellenmişti; üç
+hayvan eklenirken hatırlanacağının garantisi yoktu, ve unutulursa hedef ya
+ulaşılamaz oluyor ya da tahtada bulunacak şey bitmeden veriliyor. İkisi de
+sessiz. Hedef artık `ALL_PROPS.length`'ten türetiliyor.
+
 ## Kaya: oyunun ilk çarpışması
 
 Bomba bir **karar**dı — yutabilirsin, bedelini ödersin. Kaya bir **duvar**:
