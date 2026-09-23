@@ -79,20 +79,20 @@ console.log(' en kolay üç bölüm:', enKolay.map(x => `${x.lvl} ${x.ad} (${x.o
 // ---------------------------------------------------------------------
 const hata = [];
 console.log('\n--- 2. hangi bölümde görev var, hangi tip ---');
-console.log(' blm | görev   | hedef | saat | süpürme saati ne olurdu');
+console.log(' blm | görev   | hedef | saat | görevsiz | ham taban');
 for (const lvl of [1, 4, 5, 9, 10, 14, 15, 20, 25, 30, 35, 45, 55]) {
   const r = await pg.evaluate(n => {
     window.fruitHoleProbe(n);
     return window.fruitHoleOrder();
   }, lvl);
   console.log(` ${String(lvl).padStart(3)} | ${String(r.mission ?? '-').padEnd(7)} | ` +
-    `${String(r.goal).padStart(5)} | ${String(r.saat).padStart(4)} | ${Math.round(r.supurme * 2.6)}`);
+    `${String(r.goal).padStart(5)} | ${String(r.saat).padStart(4)} | ${String(r.duzSaat).padStart(4)} | ${Math.round(r.supurme * 2.6)}`);
   const olmali = lvl % 10 === 5;
   // Tipler sırayla: 5 sipariş, 15 devler, 25 rush, 35 sipariş… Bir tarafın
   // sabitlenmesi (hep sipariş) sessizce olabilir, o yüzden tip de kontrol
   // ediliyor. Sıra burada bir kez daha yazılıyor — oyunun listesini okuyup
   // ona bakmak, listeyi kendisiyle karşılaştırmak olurdu.
-  const TIPLER = ['order', 'giants', 'rush'];
+  const TIPLER = ['order', 'giants', 'rush', 'mines'];
   const tip = olmali ? TIPLER[Math.floor((lvl - 5) / 10) % TIPLER.length] : null;
   if (olmali && !r.mission) hata.push(`${lvl}. bölümde görev olmalıydı`);
   if (!olmali && r.mission) hata.push(`${lvl}. bölümde görev olmamalıydı`);
@@ -104,7 +104,25 @@ for (const lvl of [1, 4, 5, 9, 10, 14, 15, 20, 25, 30, 35, 45, 55]) {
     if (!r.goal) hata.push(`${lvl}. bölümün hedefi sıfır`);
     // Görev saati süpürme saatinden kısa olmalı: görev de kısa. Uzun olsaydı
     // görev süpürmekten kolay olurdu ve bölüm kendini oynardı.
-    if (r.saat >= r.supurme * 2.6) hata.push(`${lvl}. bölümün saati süpürmeden kısa değil: ${r.saat}`);
+    //
+    // **Mayın hariç, ve sebebi kuralın kendisinde.** Mayın bölümünün saati
+    // bilerek uzun: tahtanın %7'si bomba ve her biri beş saniye götürüyor,
+    // yani fazladan pay oyuncuya verilmiş bir kolaylık değil, tarlanın geri
+    // alacağı bir avans. Kontrol edilecek şey payın **sınırlı** olması:
+    // dört bombadan fazlasını karşılamamalı, yoksa bölüm gerçekten kendini
+    // oynar.
+    // Karşılaştırma `supurme * 2.6` ile değil `duzSaat` ile: birincisi ham
+    // taban, ikincisi aynı bölümün görevsiz saati — tur baskısı ve
+    // kolaylaştırma ikisine de uygulanmış hâli. İlk yazılışı ham tabana
+    // bakıyordu ve payı 20 saniye yerine 7 saniye ölçüyordu.
+    const MAYIN_PAY = 4 * 5;
+    if (r.mission === 'mines') {
+      const fazla = r.saat - r.duzSaat;
+      if (fazla <= 0) hata.push(`${lvl}. mayın bölümünün payı yok: ${fazla}sn`);
+      if (fazla > MAYIN_PAY + 2) hata.push(`${lvl}. mayın bölümünün payı fazla: ${fazla}sn`);
+    } else if (r.saat >= r.supurme * 2.6) {
+      hata.push(`${lvl}. bölümün saati süpürmeden kısa değil: ${r.saat}`);
+    }
     // Alt sınır tipe göre: rush **bilerek** on saniyenin biraz üstünde
     // başlıyor ve saati yenen meyve besliyor. Ötekilerde kısa bir saat hata
     // olurdu, rush'ta tasarımın kendisi.

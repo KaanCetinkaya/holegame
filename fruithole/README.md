@@ -2301,6 +2301,57 @@ Bomba `PROPS`'a **girmiyor**: oradaki her şey koleksiyonun parçası ve "63
 şeyden 41'ini buldun" listesine bir ceza nesnesi koymak, onu bulunacak bir
 şeymiş gibi gösterirdi.
 
+## Dördüncü görev tipi: mayın tarlası
+
+Üç görev tipi de aynı fiili istiyordu — **topla**. Sipariş bir rengi, devler
+boyutu, rush hızı. Eksik olan fiil **kaçın**, ve bomba katmanı yeni yapılmıştı:
+ikisi birleşti.
+
+Mayın bölümünde hücrelerin **%7'si** bomba (sıradan bölümde %1.2). Hedef
+tahtanın tamamı, tıpkı rush gibi; değişen şey tahtanın kendisi.
+
+**Yeni bir kaybetme şartı yok, ve bu bilerek.** Ceza zaten var olan saatte:
+her bomba beş saniye götürüyor, ve saat sıradan bir bölümün saati artı **dört
+bombalık pay**. Temiz süpüren oyuncu o payı hiç harcamıyor; beşinci bombadan
+sonra saat yetişmiyor. Ayrı bir "can" sayacı, ekranda ikinci bir kural ve
+kodda ikinci bir bitiş yolu demekti — ikisi de bir şeyin bozulacağı yer.
+
+Sıra artık dörtlü: **5 sipariş, 15 devler, 25 rush, 35 mayın, 45 sipariş…**
+Yani döngü 30 bölümden 40 bölüme çıktı.
+
+### Bombalar hücrenin tepesine taşındı
+
+Mayın bölümü %7 isterken **%2.9** aldı ve sebebi aday havuzundaydı. Bombalar
+"yalnızca tek parçalık hücreler"e konuyordu — iki bombanın aynı hücreye düşüp
+üst üste binmesini ve bir kulenin altında görünmez kalmasını önlemek için. Ama
+iri meyve payı %28'e çıkıp kuleler geldikten sonra tek parçalık hücre
+neredeyse kalmadı.
+
+Doğrusu hücreyi seçip **en üstteki** parçayı bombaya çevirmek: tepede olduğu
+için görünüyor, hücre başına bir tane olduğu için üst üste binmiyor, ve
+kulenin tepesindeki bir bomba gerçek bir karar — kuleyi almak onu da yutmak
+demek.
+
+### Ölçülemeyen şey: zorluğu
+
+`holeorderplay` 35. bölümü bitiriyor (206/206, 174 saniyenin 98.5'i). Ama
+**otomatik oyuncu bombaları hiç yemiyor** — `fruitHoleNearest` onları hedef
+saymıyor, ki klipler ve öteki ölçümler için doğrusu o. Yani elimizdeki sayı
+mükemmel kaçınan bir oyuncunun sayısı, yani **en iyi durum**.
+
+Mayın bölümünün gerçekten ısırıp ısırmadığı ancak telefonda oynayan biriyle
+belli olur. Payı (dört bomba) ya da oranı (%7) oradan gelecek bir cevaba göre
+ayarlanacak.
+
+### `holeorder` elmayla armudu karşılaştırıyordu
+
+Yeni tip eklenirken görüldü: test görev saatini `sweepSeconds() * 2.6` ile
+karşılaştırıyordu — o ham taban, oysa `levelTime()` onu tur baskısı,
+kolaylaştırma ve süre yükseltmesiyle çarpıp topluyor. Mayın bölümünün 20
+saniyelik payı o yüzden 7 saniye ölçülüyordu. Oyun artık aynı bölümün
+**görevsiz** saatini de veriyor (`fruitHoleOrder().duzSaat`) ve karşılaştırma
+onunla.
+
 ## Kuleler ve dev hayvanlar
 
 Kaan üç ekran görüntüsü attı (tür liderlerinden) ve üç şey istedi: **top**,

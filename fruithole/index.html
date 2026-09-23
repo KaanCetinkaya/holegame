@@ -1014,7 +1014,11 @@ function isOrderLevel(n) { return n > 0 && n % ORDER_EVERY === ORDER_AT; }
 // Tek tip, ikinci kez görüldüğünde artık görev değil kural oluyordu. İkisi
 // farklı şey istiyor: sipariş bir rengi kovalamak, devler ise önce büyümek —
 // biri rota, öteki sıralama sorusu.
-const MISSION_KINDS = ['order', 'giants', 'rush'];
+const MISSION_KINDS = ['order', 'giants', 'rush', 'mines'];
+// Mayın bölümünde hücrelerin kaçta kaçı bomba, ve saate kaç bombalık pay
+// ekleniyor. Dördü bedava, beşincisinden sonra saat yetmiyor.
+const MINE_RATE = 0.07;
+const MINE_ALLOW = 4;
 function missionKindFor(n) {
   if (!isOrderLevel(n)) return null;
   return MISSION_KINDS[Math.floor((n - ORDER_AT) / ORDER_EVERY) % MISSION_KINDS.length];
@@ -1022,11 +1026,15 @@ function missionKindFor(n) {
 // Görevin ekranda söylediği üç şey, tek yerde: simgesi, saydığı şeyin adı ve
 // kuralı. Dağıttığımızda biri güncellenip öteki unutuluyor — üst satır
 // "muzlar" derken bitiş ekranının "meyve" demesi böyle oluyor.
-const MISSION_ICON = { order: '📋', giants: '🍉', rush: '⏱' };
+const MISSION_ICON = { order: '📋', giants: '🍉', rush: '⏱', mines: '💣' };
+// Menüde ve bitiş ekranında görünen ad. `mk === 'order' ? 'ORDER' : 'GIANTS'`
+// yazıyordu ve rush bölümü menüde "GIANTS" diyordu — iki tip varken doğru
+// olan satır, üçüncüsü eklenince sessizce yanlış oldu.
+const MISSION_NAME = { order: 'ORDER', giants: 'GIANTS', rush: 'RUSH', mines: 'MINEFIELD' };
 function missionNoun() {
   if (missionKind === 'order') return TYPE_BY_ID[orderType].label;
   if (missionKind === 'giants') return 'Giant';
-  return 'Fruit';
+  return 'Fruit';   // rush ve mines: tahtanın tamamı
 }
 // Çoğulu ekleyen yer bir tane. `label + 's'` diyen üç satır vardı ve üçü de
 // "strawberrys" yazıyordu; dördüncüsü yazılınca dördü de yazacaktı.
@@ -1046,6 +1054,9 @@ function missionRule() {
   }
   if (missionKind === 'rush') {
     return 'RUSH: the clock is short — every fruit you swallow adds to it';
+  }
+  if (missionKind === 'mines') {
+    return 'MINEFIELD: the crop is full of bombs — every one costs you five seconds';
   }
   return HINT_DEFAULT;
 }
@@ -2248,7 +2259,7 @@ function refreshMenuLevel() {
   // Menüde de yazıyor: sıradaki bölüm sipariş bölümüyse oyuncu Play'e basmadan
   // önce bilsin. Görevin sürprizi kuralın kendisi değil, hangi meyve olduğu.
   const mk = missionKindFor(level);
-  menuSubEl.textContent = (mk ? `${MISSION_ICON[mk]} ${mk === 'order' ? 'ORDER' : 'GIANTS'} · ` : '') +
+  menuSubEl.textContent = (mk ? `${MISSION_ICON[mk]} ${MISSION_NAME[mk]} · ` : '') +
     (best ? '★'.repeat(best) + '☆'.repeat(3 - best) : 'New level');
 
   // Banner: the next thing the player will be given, or the star total once
@@ -8140,7 +8151,7 @@ function buildField() {
       // `eatFruit` sayaca dokunmadan dönüyor, yani hedef ulaşılamaz oluyordu.
       missionGoal = orderType
         ? fruits.filter(f => !f.prop && !f.bomb && f.type === orderType).length : 0;
-    } else if (kind === 'rush') {
+    } else if (kind === 'rush' || kind === 'mines') {
       // Rush tarlanın tamamını istiyor, tıpkı sıradan bir bölüm gibi. Değişen
       // şey saat: kısa başlıyor ve her meyve ona ekliyor, yani bölüm bir
       // süpürme değil bir kovalamaca. Hedef `levelGoal` ile aynı olduğu için
@@ -8150,6 +8161,9 @@ function buildField() {
       // yaptı: bomba sayılıyor ama yenince sayaca girmiyor, yani 25. bölüm
       // 187/189'da kilitlendi. `levelGoal` zaten bombasız sayı — cümlenin
       // kendisi de "levelGoal ile aynı" diyordu, sayı öyle değildi.
+      //
+      // Mayın da aynı hedefi istiyor: tahtanın tamamı. Değişen şey tahtanın
+      // kendisi — hücrelerin %7'si bomba — ve saatin ona göre pay taşıması.
       missionGoal = levelGoal;
     } else if (kind === 'giants') {
       // Devlerin hepsi: nesne olarak çizilenler de dahil. Sipariş görevinde
@@ -8301,34 +8315,54 @@ function pushOutOfRocks() {
 // yerde, öbeğin içinde duruyor.
 function placeBombs() {
   if (dailyRun || level < BOMB_FROM) return;
-  // Yalnızca **tek parçalık** hücreler.
+  // Hücre başına en fazla bir bomba, ve o da **kulenin tepesinde**.
   //
   // Bir hücre kule tutabiliyor ve kuledeki her parça listede ayrı bir girdi.
-  // Aday olarak alınınca iki şey birden bozuldu: aynı hücreye iki bomba
-  // düşüyordu (ikisi de zemine konduğu için üst üste biniyorlardı), ve bir
-  // kulenin altındaki bomba üstündeki meyvelerin arkasında görünmüyordu —
-  // kaçınılması istenen bir şeyin görünmemesi, cezayı adaletsiz yapıyor.
-  const kulede = new Map();
+  // Parçaları tek tek aday almak iki şeyi birden bozuyordu: aynı hücreye iki
+  // bomba düşüyordu (ikisi de zemine konduğu için üst üste biniyorlardı), ve
+  // bir kulenin altındaki bomba üstündeki meyvelerin arkasında kalıyordu —
+  // kaçınılması istenen bir şeyin görünmemesi cezayı adaletsiz yapıyor.
+  //
+  // İlk çözüm "yalnızca tek parçalık hücreler" demekti ve **aday havuzunu
+  // kuruttu**: iri meyve payı %28 ve kuleler geldikten sonra tek parçalık
+  // hücre neredeyse kalmadı, mayın bölümü %7 yerine %2.9 bomba aldı.
+  //
+  // Doğrusu hücreyi seçip **en üstteki** parçayı bombaya çevirmek. Tepede
+  // duruyor, yani görünüyor; hücre başına bir tane, yani üst üste binmiyor;
+  // ve kulenin tepesindeki bir bomba gerçek bir karar: kuleyi almak onu da
+  // yutmak demek.
+  const hucreler = new Map();
   for (const f of fruits) {
-    if (f.eaten) continue;
+    if (f.eaten || f.prop) continue;
+    if (Math.hypot(f.x - SPAWN_X, f.z - spawnZ()) <= 4.5) continue;
     const k = f.x + ',' + f.z;
-    kulede.set(k, (kulede.get(k) || 0) + 1);
+    const ust = hucreler.get(k);
+    if (!ust || (f.mesh ? f.mesh.position.y : 0) > (ust.mesh ? ust.mesh.position.y : 0)) {
+      hucreler.set(k, f);
+    }
   }
-  const aday = fruits.filter(f =>
-    !f.eaten && !f.big && !f.prop &&
-    kulede.get(f.x + ',' + f.z) === 1 &&
-    // Deliğin doğduğu yerin dibinde olmasın: ilk yarım saniyede, daha kimse
-    // bir şey görmeden yenen bir ceza öğretmiyor, yalnızca canını sıkıyor.
-    Math.hypot(f.x - SPAWN_X, f.z - spawnZ()) > 4.5);
-  const kac = Math.round(fruits.length * BOMB_RATE);
+  // Tepesi iri olan hücre atlanıyor: iri meyve tahtanın okunmasını sağlayan
+  // şey ve yerine ceza koymak onu geri alıyor.
+  const aday = [...hucreler.values()].filter(f => !f.big);
+  // Mayın bölümünde tahta bomba dolu.
+  //
+  // `missionKind` henüz atanmadı — buildField onu bombalardan sonra kuruyor —
+  // o yüzden tip aynı kaynaktan, `missionKindFor` ile soruluyor. Değişkeni
+  // beklemek için sırayı değiştirmek, bombaların yerleşimini görev seçimine
+  // bağımlı yapardı ve o bağ yanlış yönde.
+  const mayin = missionKindFor(level) === 'mines';
+  const kac = Math.round(fruits.length * (mayin ? MINE_RATE : BOMB_RATE));
   for (let i = 0; i < kac && aday.length; i++) {
     const f = aday.splice(Math.floor(rnd() * aday.length), 1)[0];
     // Kulenin tamamı değil tek parça: bir hücrede üst üste duran meyvelerin
-    // yalnızca biri bombaysa geri kalanı hâlâ yenebilir olmalı.
+    // yalnızca biri bombaysa geri kalanı hâlâ yenebilir olmalı. Bomba
+    // parçanın kendi yüksekliğinde duruyor — zemine konsaydı kulenin içinde
+    // kaybolurdu.
+    const y = f.mesh ? f.mesh.position.y : 0;
     fieldGroup.remove(f.mesh);
     const mesh = BOMB_GEO.clone();
     mesh.scale.set(BOMB_R, BOMB_R, BOMB_R);
-    mesh.position.set(f.x, 0, f.z);
+    mesh.position.set(f.x, y, f.z);
     mesh.userData.ox = f.x; mesh.userData.oz = f.z;
     mesh.rotation.y = rnd() * Math.PI * 2;
     mesh.castShadow = true;
@@ -8337,7 +8371,7 @@ function placeBombs() {
     f.r = BOMB_R;
     f.bomb = true;
     f.prop = null;
-    f.baseY = 0;
+    f.baseY = y;
   }
 }
 
@@ -9272,6 +9306,12 @@ function levelTime() {
     ? Math.max(ORDER_FLOOR, growSeconds(), Math.round(giantTourSeconds() * GIANT_SLACK))
     : missionKind === 'rush'
     ? RUSH_START
+    // Mayın: sıradan bir bölümün saati, artı dört bombalık pay. Tarlayı
+    // temiz süpüren oyuncu o payı hiç harcamıyor; her bombada beş saniye
+    // gidiyor ve beşincisinden sonra saat yetişmiyor. Yani ceza yeni bir
+    // kaybetme şartı değil — zaten var olan saat.
+    : missionKind === 'mines'
+    ? Math.round(sweepSeconds() * 2.6) + MINE_ALLOW * BOMB_COST
     : Math.round(sweepSeconds() * 2.6);
   const squeeze = 1 - Math.min(0.28, tier() * 0.07);   // later cycles are tighter
   return Math.round(base * squeeze * ease()) + upg('time') * 5;
@@ -10125,6 +10165,7 @@ function eatFruit(f, now) {
   eatenCount++;
   if (missionKind === 'order' && !f.prop && f.type === orderType) missionEaten++;
   else if (missionKind === 'giants' && f.giant) missionEaten++;
+  else if (missionKind === 'mines') missionEaten++;
   else if (missionKind === 'rush') {
     missionEaten++;
     // Saat yenen meyveden besleniyor. Tavanı aşmıyor ve zaten tavanın
@@ -11511,6 +11552,17 @@ window.fruitHoleOrder = (typeId) => {
       // hangisinin şiştiği ölçülebilsin.
       buyume: +growSeconds().toFixed(1), devTuru: +giantTourSeconds().toFixed(1),
       saat: levelTime(), supurme: +sweepSeconds().toFixed(1),
+      // Aynı bölümün **görevsiz** saati.
+      //
+      // `supurme * 2.6` ham taban ve `levelTime()` onu tur baskısıyla,
+      // kolaylaştırmayla ve süre yükseltmesiyle çarpıp topluyor; ikisini
+      // karşılaştıran bir test elmayla armudu karşılaştırıyor. Mayın
+      // bölümünün saate eklediği payın ölçülebilmesi için karşılaştırılacak
+      // sayı bu — aynı çarpanlardan geçmiş hâli.
+      duzSaat: (() => {
+        const k = missionKind; missionKind = null;
+        const t = levelTime(); missionKind = k; return t;
+      })(),
     };
   }
   return {

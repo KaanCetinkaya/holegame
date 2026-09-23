@@ -20,7 +20,7 @@ const arg = (k, d) => {
   const i = process.argv.indexOf('--' + k);
   return i === -1 ? d : process.argv[i + 1];
 };
-const LEVELS = String(arg('levels', '5,15,25')).split(',').map(Number);
+const LEVELS = String(arg('levels', '5,15,25,35')).split(',').map(Number);
 const FPS = 30;
 
 const srv = createServer((req, res) => {

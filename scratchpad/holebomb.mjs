@@ -47,7 +47,7 @@ const check = (ok, ad, not = '') => {
 // 1-5: bombasız bölümler. 6 ve sonrası: bombalı.
 console.log('bölüm başına bomba:');
 const satir = [];
-for (const n of [1, 3, 5, 6, 10, 14, 19, 24]) {
+for (const n of [1, 3, 5, 6, 10, 14, 19, 24, 35]) {
   const d = await pg.evaluate(lv => {
     window.fruitHoleProbe(lv);
     return window.fruitHoleBombs();
@@ -59,7 +59,10 @@ for (const n of [1, 3, 5, 6, 10, 14, 19, 24]) {
 }
 
 const erken = satir.filter(r => r.n < 6);
-const gec = satir.filter(r => r.n >= 6);
+// 35 mayın bölümü: tahtası bilerek bomba dolu, sıradan bölümün ölçüsüyle
+// bakılırsa "bomba payı %3'ün altında" kuralını düşürür.
+const gec = satir.filter(r => r.n >= 6 && r.n !== 35);
+const mayin = satir.find(r => r.n === 35);
 check(erken.every(r => r.sayi === 0), 'ilk beş bölümde bomba yok',
   `en çok ${Math.max(...erken.map(r => r.sayi))}`);
 check(gec.every(r => r.sayi > 0), '6. bölümden sonra her tahtada bomba var',
@@ -77,6 +80,22 @@ check(Math.max(...pay) < 0.03, 'bomba payı %3\'ün altında',
 const cakisan = gec.filter(r => new Set(r.yerler.map(y => y.x + ',' + y.z)).size !== r.yerler.length);
 check(cakisan.length === 0, 'iki bomba aynı hücrede değil',
   cakisan.length ? `${cakisan.map(r => r.n + '. bölüm').join(', ')}` : '');
+
+// Mayın bölümü: tahta gerçekten dolu mu?
+//
+// Dördüncü görev tipi bomba katmanının üstüne kuruldu ve tek farkı bu oran.
+// Oran sessizce sıradan seviyeye düşerse bölüm "mayın tarlası" der ve
+// sıradan bir süpürme bölümü olur — üstelik saatinde dört bombalık fazladan
+// payla, yani öncekinden **kolay**.
+console.log('\nmayın bölümü (35):');
+const mayinPay = mayin.sayi / mayin.toplam;
+console.log(`  ${mayin.sayi} bomba / ${mayin.toplam} parça — %${(mayinPay * 100).toFixed(1)}`);
+check(mayinPay > 0.04, 'mayın bölümünde bomba payı %4\'ün üstünde',
+  `%${(mayinPay * 100).toFixed(1)}`);
+check(mayin.sayi > gec.reduce((a, r) => Math.max(a, r.sayi), 0) * 2,
+  'mayın bölümünde sıradan bölümün iki katından çok bomba var',
+  `${mayin.sayi} karşı en çok ${gec.reduce((a, r) => Math.max(a, r.sayi), 0)}`);
+check(mayin.hedefDisi, 'mayın bölümünde de bombalar hedefe girmiyor');
 
 // Bombayı yut: saat gerçekten düşüyor mu?
 console.log('\nbombayı yutmak:');
