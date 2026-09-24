@@ -145,6 +145,11 @@ kimse testten ayrılmasın. Yeni sürüm yüklemek sayacı etkilemiyor;
 sayaç testçilerin kayıtlı kalmasıyla ilgili, hangi sürümü oynadıklarıyla
 değil.
 
+**24 Eylül 2026: Kaan testçi sayısını kontrol etti, 12'nin üstünde.** Sayaç
+işliyor ve ~27 Eylül'de doluyor. Bu satır burada, çünkü sayı yalnızca Play
+Console'da görünüyor ve buradan okunamıyor — yazılmazsa her oturumda yeniden
+sorulur, nitekim soruldu.
+
 ## Kapalı testin zaman çizelgesi
 
 Başvuruda tarih sorulursa depo geçmişinden:
