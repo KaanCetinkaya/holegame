@@ -233,6 +233,19 @@ hesap olması gerekiyor.
 Kontrol yolu: telefonda Play Store → profil → görünen adres. Teşhis ekranı
 bunu söyleyemiyor, çünkü eklenti hangi hesabın reddedildiğini vermiyor.
 
+**Ve bu da yanlış çıktı.** Test kullanıcıları listesine bakıldı: **ikisi de
+ekli** — `e.kaancetinkaya99@gmail.com` ve `eminkaancetinkaya9047@gmail.com`.
+Yani cihazdaki hesap listede ve giriş yine reddediliyor.
+
+İki Gmail'i fark etmek doğruydu, sebep olduğunu varsaymak değildi; liste
+açılıp bakılmadan yazılmıştı. Konsolun durumu buradan okunamıyor, o yüzden
+her adayda **önce ekran görüntüsü** isteniyor.
+
+Kalan aday: **Sürüm kanalları.** Play Games'in kendi kanal sistemi var ve
+yapılandırmanın oyunun bulunduğu kanala bağlı olması gerekiyor. Bağlı
+değilse hesap listede olsa bile giriş reddediliyor — cihazda görünen şey
+yine aynı: seçme ekranı açılıyor, sonra `signedIn:false`.
+
 ### 24 Eylül 2026 — sebep bulundu: manifest'te `games.APP_ID` yokmuş
 
 Düğmeye basıldı, **hiçbir ekran açılmadı** ve cevap değişmedi. Konsolda
