@@ -153,6 +153,20 @@
   .day .d { font-size: 10px; font-weight: 800; opacity: .7; }
   .day .c { font-size: 11px; font-weight: 800; color: #ffd23f; margin-top: 2px; }
 
+  /* Kesim başına ekrana çıkan sayı.
+     Rakiplerde ("Slice It All", "Slice Master") her kesimde "+1" fırlıyor ve
+     tarif edilen "juicy" hissin yarısı o. Bizde kombo sayacı vardı ama
+     kesimin kendisi ekranda hiçbir iz bırakmıyordu. */
+  .cutpop { position: fixed; z-index: 30; pointer-events: none;
+    transform: translate(-50%, -50%); font-weight: 900; font-size: 20px;
+    color: #ffd23f; text-shadow: 0 2px 6px rgba(0,0,0,.7);
+    animation: cutrise .62s ease-out forwards; }
+  @keyframes cutrise {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+    22%  { opacity: 1; transform: translate(-50%, -62%) scale(1.15); }
+    to   { opacity: 0; transform: translate(-50%, -125%) scale(1); }
+  }
+
   /* Hedef listesi. Dükkânla aynı dili konuşuyor: kutu, ad, sayı. */
   #goalList { width: 100%; max-width: 360px; margin-bottom: 16px;
               max-height: 52vh; overflow-y: auto; }
@@ -1096,6 +1110,38 @@ function spark(y, z, colour) {
     sparks.push({ m, vx: Math.cos(a) * 4.2, vy: Math.sin(a) * 4.2 + 1.6, life: 0.34 });
   }
 }
+// Kesim başına ekrana çıkan sayı.
+//
+// Fruit Hole'da aynı şey yapılmıştı ve iki kez bozulmuştu; ikisi de burada
+// baştan engelleniyor:
+//
+//   1. Kadraj dışındaki bir nokta kameranın arkasına düşünce yansıma
+//      ekranın **ortasına** çıkıyor — oyuncu neyin puan verdiğini değil,
+//      ekranın ortasında bir sayı gördüğünü sanıyor. `z > 1` olanlar
+//      atlanıyor.
+//   2. Etiketler silinmezse birikiyor; bir turda yüzlerce kesim var.
+//      Animasyon bitince kendini siliyor.
+const _vec = new THREE.Vector3();
+function cutPop(y, z, n) {
+  _vec.set(0, y, z).project(camera);
+  if (_vec.z > 1) return;                 // kameranın arkası
+  const el = document.createElement('div');
+  el.className = 'cutpop';
+  el.textContent = '+' + n;
+  el.style.left = Math.max(18, Math.min(innerWidth - 18,
+    (_vec.x * 0.5 + 0.5) * innerWidth)) + 'px';
+  el.style.top = Math.max(18, Math.min(innerHeight - 18,
+    (-_vec.y * 0.5 + 0.5) * innerHeight)) + 'px';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+// Kameranın kesimde aldığı küçük tepki.
+//
+// Kombo büyüdükçe artıyor ama tavanı var: sarsıntı hissi anlatmalı, nişan
+// almayı bozmamalı — oyuncunun yönettiği tek şey yükseklik ve kamerayı
+// zıplatmak o okumayı bozar.
+let kick = 0;
 function stepSparks(dt) {
   for (let i = sparks.length - 1; i >= 0; i--) {
     const s = sparks[i];
@@ -1938,8 +1984,12 @@ function collide(d0, y0, d1, y1) {
       // A cut is worth more inside a run than on its own: the combo is the
       // only thing in the game that rewards steering well rather than
       // steering safely.
-      runCoins += 1 + Math.floor(streak / 4);
+      const kazanc = 1 + Math.floor(streak / 4);
+      runCoins += kazanc;
       spark(yAt, -it.d, it.spec.flesh);
+      cutPop(yAt, -it.d, kazanc);
+      // Tepki komboyla büyüyor, 0.09'da duruyor.
+      kick = Math.min(0.09, 0.035 + streak * 0.004);
       sfx.slice(streak);
       if (streak >= 3 && streak % 3 === 0) {
         const el = $('combo');
@@ -2026,7 +2076,10 @@ function tick(now) {
   // birim ileride: yani oran (CAM_Z + LOOK_Z) / CAM_Z.
   const CAM_X = 1.15, CAM_Z = 8.0, LOOK_Z = 11;
   const lookX = CAM_X - CAM_X * ((CAM_Z + LOOK_Z) / CAM_Z);
-  camera.position.set(CAM_X, eye, -dist + CAM_Z);
+  // Sarsıntı hızla sönüyor: uzun süren bir titreme kesimin tepkisi değil,
+  // arıza gibi okunuyor.
+  kick *= Math.pow(0.0008, dt);
+  camera.position.set(CAM_X, eye + kick, -dist + CAM_Z + kick * 0.6);
   camera.lookAt(lookX, eye - 0.92, -dist - LOOK_Z);
   // Nearly overhead. Low and to the side stretched every shadow into a long
   // smear that read as another object lying on the floor.

@@ -192,6 +192,7 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
     node scratchpad/slicemine.mjs  # mayınlar geçilebilir mi
     node scratchpad/slblade.mjs    # bıçak nasıl görünüyor (kare çeker)
     node scratchpad/slicegoals.mjs # hedefler: sayma, ödeme, zincir, ekran
+    node scratchpad/slicecut.mjs   # kesim sayısı: çıkıyor mu, birikiyor mu
 
 `window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceMap`, `sliceDaily`,
 `sliceStart`, `sliceSetTarget`, `sliceAutoPlay`, `sliceGive`, `sliceRevive`,
@@ -219,6 +220,24 @@ bölümden ayırt edilemiyor.**
 
 Bu, harita sonsuz bölüm gösterdiği için görünmüyor. Oyuncu tırmanmaya devam
 ettiğini sanıyor, oysa 17'den sonra aynı bölümü farklı numarayla oynuyor.
+
+## Kesimin geri bildirimi
+
+Kesmek ekranda iz bırakmıyordu: nesne bölünüyor, bir avuç kıvılcım çıkıyor,
+devam. Kombo sayacı vardı ama kesimin **kendisi** hiçbir şey söylemiyordu.
+
+İki ekleme. Her kesimde kesim noktasında **+N** beliriyor (kazanılan para,
+komboyla büyüyor) ve kamera küçük bir tepki alıyor — kombo büyüdükçe artan,
+0.09'da duran bir sarsıntı. Tavanı var, çünkü oyuncunun yönettiği tek şey
+yükseklik ve zıplayan bir kamera o okumayı bozar.
+
+Rakiplerde ("Slice It All", "Slice Master") her kesimde bir sayı fırlıyor ve
+tarif edilen "juicy" hissin yarısı bu. Bkz. `PAZAR.md`.
+
+Etiketin iki bozulma yolu `slicecut.mjs` ile kapatıldı, ikisi de Fruit
+Hole'da bir kez yaşanmıştı: kadraj dışındaki bir nokta kameranın arkasına
+düşünce ekranın ortasına yansıyor, ve silinmeyen etiketler bir turda yüzlerce
+birikiyor.
 
 ## Arayüz İngilizce
 
