@@ -157,7 +157,8 @@ ekleme.
 | boss "Every 10th level ends in one giant fruit" | 18 Eyl 13:35 | 15 sn | 381 | 3.35 sn | %22 | %6.3 | 3 |
 | farm "POV: …the harvest has nowhere to go" | 19 Eyl 21:12 | 9 sn | 281 | 2.30 sn | %26 | %7.0 | 0 |
 | **tractor "The hole only grows by eating…"** | 20 Eyl 20:00 | 9 sn | 283 | **4.42 sn** | **%49** | **%12.2** | 2 |
-| **shop "Nothing here is too heavy. Only too big"** | 21 Eyl 22:07 | 9 sn | **393** | **3.79 sn** | **%42** | **%14.4** | 1 |
+| **shop "Nothing here is too heavy. Only too big"** | 21 Eyl 22:07 | 9 sn | **395** | **3.79 sn** | **%42** | **%14.4** | 1 |
+| drive "The cars are bigger than the hole" | 22 Eyl 22:29 | 9 sn | 365 | — | — | — | 2 |
 
 İzlenme ve beğeni sütunları 22 Eylül'de tazelendi; ortalama izlenme sütunu
 ilk ölçümden.
@@ -227,6 +228,22 @@ konumda oluyor, ölçekte değil.
 yapılacak (%42 / %14.4) — aynı bölüm, aynı süre, tek farkı açılış.
 
 `--cold 0` açılışı kapatıyor, yani eski kurgu hâlâ üretilebiliyor.
+
+### Altı video, hiçbiri açılmadı — ve asıl mesele bu
+
+24 Eylül panelinde altı video var ve izlenmeleri **281, 283, 365, 381, 395,
+401**. Aralarında altı gün, üç farklı kurgu ve iki farklı süre var; sonuç
+hep aynı bantta.
+
+Yani kurgu değişikliği **izletmeyi** iki katına çıkardı (%22 → %42-49) ama
+**erişimi** hiç değiştirmedi. TikTok her videoyu aynı büyüklükte bir gruba
+gösteriyor ve hiçbiri o grubun ötesine geçmiyor.
+
+Bu, üstündeki bölümün söylediğinin devamı: dağıtım ilk günden sonra duruyor,
+ve ilk gün de hep aynı büyüklükte. Altı denemede bir kez bile kırılmadığına
+göre eksik olan şey klibin kendisi değil — hesabın yaşı, gönderi sıklığı, ses
+seçimi ve ilk saniyedeki yazı gibi videonun dışındaki şeyler. Klip tarafında
+yapılacak şey bitti sayılır; oran zaten iki katına çıktı.
 
 ### Dağıtım ilk günden sonra duruyor
 
