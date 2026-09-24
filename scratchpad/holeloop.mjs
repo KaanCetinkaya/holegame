@@ -131,4 +131,11 @@ console.log(' (ızgara düzenlerinde sayı birebir korunmalı, yazılmadıysa ko
 console.log('\nsayfa hataları:', errs.length ? errs : 'yok');
 if (errs.length) hata.push(...errs);
 console.log(hata.length ? 'hatalar:\n - ' + hata.join('\n - ') : 'hepsi geçti');
+// Hata varsa çıkış kodu da söylesin.
+//
+// Bu dosya hatayı **basıyordu ama çıkış kodu 0 dönüyordu**, yani onu çağıran
+// her şey — toplu koşu, ileride bir CI — "geçti" diye okuyordu. Tam koşuda on
+// üç test böyle çıktı: hata basan ama başarı sinyali veren bir test, hiç test
+// olmamasından kötü, çünkü bakılmış olduğu izlenimi veriyor.
+process.exitCode = hata.length ? 1 : 0;
 await b.close(); srv.close();

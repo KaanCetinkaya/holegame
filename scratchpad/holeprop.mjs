@@ -43,5 +43,12 @@ await pg.screenshot({ path: `/tmp/tech/${ID}.png`,
   clip: { x: 150, y: 200, width: 300, height: 220 } });
 console.log(`/tmp/tech/${ID}.png`);
 console.log('hatalar: ' + (errs.length ? errs.join(' | ') : 'yok'));
+// Hata varsa çıkış kodu da söylesin.
+//
+// Bu dosya hatayı **basıyordu ama çıkış kodu 0 dönüyordu**, yani onu çağıran
+// her şey — toplu koşu, ileride bir CI — "geçti" diye okuyordu. Tam koşuda on
+// üç test böyle çıktı: hata basan ama başarı sinyali veren bir test, hiç test
+// olmamasından kötü, çünkü bakılmış olduğu izlenimi veriyor.
+process.exitCode = errs.length ? 1 : 0;
 await br.close();
 srv.close();

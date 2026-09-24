@@ -69,5 +69,12 @@ for (const n of [1, 3, 6, 10, 15, 20, 25, 30, 36, 45]) {
 
 console.log('\nhatalar: ' + (errs.length ? errs.join(' | ') : 'yok'));
 console.log(fails.length ? `\n${fails.length} SORUN:\n  ` + fails.join('\n  ') : '\nkapı ısırıyor');
+// Hata varsa çıkış kodu da söylesin.
+//
+// Bu dosya hatayı **basıyordu ama çıkış kodu 0 dönüyordu**, yani onu çağıran
+// her şey — toplu koşu, ileride bir CI — "geçti" diye okuyordu. Tam koşuda on
+// üç test böyle çıktı: hata basan ama başarı sinyali veren bir test, hiç test
+// olmamasından kötü, çünkü bakılmış olduğu izlenimi veriyor.
+process.exitCode = fails.length ? 1 : 0;
 await br.close();
 srv.close();

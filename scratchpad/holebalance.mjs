@@ -50,4 +50,11 @@ for (let lvl = 1; lvl <= order.length; lvl++) {
               `${(pct === null ? '-' : '%' + pct.toFixed(0)).padStart(10)} | ${Math.round(r.secs)}s`);
 }
 console.log('errors:', errs.length ? errs : 'none');
+// Hata varsa çıkış kodu da söylesin.
+//
+// Bu dosya hatayı **basıyordu ama çıkış kodu 0 dönüyordu**, yani onu çağıran
+// her şey — toplu koşu, ileride bir CI — "geçti" diye okuyordu. Tam koşuda on
+// üç test böyle çıktı: hata basan ama başarı sinyali veren bir test, hiç test
+// olmamasından kötü, çünkü bakılmış olduğu izlenimi veriyor.
+process.exitCode = errs.length ? 1 : 0;
 await b.close(); srv.close();
