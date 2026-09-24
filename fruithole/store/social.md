@@ -237,6 +237,34 @@ yapılacak (%42 / %14.4) — aynı bölüm, aynı süre, tek farkı açılış.
 
 `--cold 0` açılışı kapatıyor, yani eski kurgu hâlâ üretilebiliyor.
 
+### 2.300 izlenme, 6 profil görüntüleme
+
+24 Eylül, hesap paneli, son yedi gün:
+
+| | |
+|---|---|
+| video izlenmesi | **2.300** |
+| profil görüntülemesi | **6** |
+| beğeni | 8 |
+| yorum | 0 |
+| paylaşım | 0 |
+| takipçi (toplam) | 12 |
+
+**Binde iki.** İki bin üç yüz kişi izledi, altısı profile baktı.
+
+Bu, izletme oranından daha önemli bir sayı ve başka bir şeyi ölçüyor: klipler
+*klip olarak* çalışıyor (%44 izletme, %12 tamamlanma) ama **hiçbir şeye
+dönüşmüyor**. Paylaşım ve yorum sıfır.
+
+Sebebi kliplerin kendisinde: **oyunun adı hiçbir yerde geçmiyor.** Dokuz
+saniye izleyip beğenen biri bunun bir oyun olduğunu, adını ve nereden
+bulunacağını videodan öğrenemiyor. Ekranda LEVEL rozeti ve booster çubuğu var,
+marka yok. Bio'da link de yok (üretime çıkana kadar bilerek — kapalı testteki
+bir linke tıklayan "bulunamadı" görür ve bir daha gelmez).
+
+Yani sıradaki iş klibin **izletilmesi** değil, izleyeni bir yere
+gönderebilmesi.
+
 ### Altı video, hiçbiri açılmadı — ve asıl mesele bu
 
 24 Eylül panelinde altı video var ve izlenmeleri **281, 283, 365, 381, 395,

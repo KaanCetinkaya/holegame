@@ -248,6 +248,37 @@ for (const clip of CLIPS) {
   await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 30000 });
   await pg.click('#playBtn');
 
+  // Klibin altına oyunun adı.
+  //
+  // Ölçüm bunu istedi: 2.300 izlenmeye karşı **6 profil görüntülemesi**, sıfır
+  // paylaşım, sıfır yorum. Klipler klip olarak çalışıyor (%44 izletme) ama
+  // izleyen kişi bunun bir oyun olduğunu, adını ve nereden bulunacağını
+  // videodan öğrenemiyordu — ekranda LEVEL rozeti ve booster çubuğu vardı,
+  // marka yoktu.
+  //
+  // Yer bedava: o satırda normalde "Drag anywhere to steer the hole and
+  // swallow the fruit" yazıyor. Oynamayan birine verilen bir talimat, videonun
+  // en okunaklı satırını harcıyor. Süreye de dokunmuyor — sonuna kart koymak
+  // dokuz saniyenin yarım saniyesini götürürdü ve tamamlanma oranı TikTok'un
+  // en ağır tarttığı sinyal.
+  await pg.evaluate(() => {
+    const h = document.getElementById('hint');
+    if (h) h.style.display = 'none';
+    const m = document.createElement('div');
+    m.id = 'clipMark';
+    m.style.cssText = `position:fixed; left:0; right:0; bottom:calc(env(safe-area-inset-bottom,0px) + 128px);
+      text-align:center; z-index:80; pointer-events:none; line-height:1;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;`;
+    m.innerHTML = `
+      <div style="font-size:15px; font-weight:900; letter-spacing:.34em; color:#ffd08a;
+        -webkit-text-stroke:4px #4a2a0c; paint-order:stroke fill;
+        text-shadow:0 2px 0 #4a2a0c; margin-bottom:5px;">PEELO</div>
+      <div style="font-size:30px; font-weight:900; letter-spacing:-.5px; color:#fff;
+        -webkit-text-stroke:6px #4a2a0c; paint-order:stroke fill;
+        text-shadow:0 4px 0 #4a2a0c, 0 8px 14px rgba(0,0,0,.45);">FRUIT HOLE</div>`;
+    document.body.appendChild(m);
+  });
+
   // Tarla düşerken oyun zaten oynanamıyor; o bir buçuk saniyeyi klibe
   // koymuyoruz, izleyici ilk karede oynanış görmeli.
   await pump(Math.round(1.8 * FPS));
