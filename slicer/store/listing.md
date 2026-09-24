@@ -119,12 +119,20 @@ yalnızca ilk iki kare görünüyor, ve o ikisi oyunun ne olduğunu anlatmalı:
 Görseller `scratchpad/slshots.mjs` ile üretiliyor; oyun değişince komutu
 yeniden çalıştırmak yeterli.
 
+**Ama şu an bilerek eski.** 24 Eylül 2026: grafikler üst üste değişiyor (ton
+eşlemesi, kenar şeritleri, ortam haritası, bıçağın malzemesi) ve her
+değişiklikte on beş kareyi yeniden çekmek yedi dakika. Görünüm oturunca bir
+kez çekilecek. Yükleme öncesi son işlerden biri bu — mağazaya oyunun eski
+hâlini göstermemek için.
+
 **Kare üstündeki yazıda sayı verme.** Bir tur "on beş bölüm" yazdı; oyunda
 öyle bir sınır yok — `buildCourse(n)` her n için parkur üretiyor. Testler
 1-15 arasını ölçtüğü için öyle sanılmıştı.
 
 ## Yayın öncesi kontrol listesi
 
+0. **Mağaza görsellerini yeniden çek** (`node scratchpad/slshots.mjs`) —
+   depodakiler grafik değişikliklerinden eski.
 1. **`npm run release:slicer`** ile derle. `aab:slicer` değil: `release:`
    olan `ADS_TESTING`'i kapatıyor, öteki test reklamıyla derliyor ve derleme
    yine başarılı olduğu için bu ancak AdMob panelinde aylar sonra sıfır
