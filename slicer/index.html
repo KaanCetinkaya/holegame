@@ -497,6 +497,22 @@ floor.rotation.x = -Math.PI / 2;
 floor.receiveShadow = true;
 scene.add(floor);
 
+// Koridorun yanındaki boşluğu dolduran koyu zemin.
+//
+// Kamera bıçağın tam arkasındayken görünmüyordu; yana alınınca koridorun sol
+// kenarının ötesi ekrana girdi ve orada hiçbir şey yok — sahnenin arka plan
+// rengi de yok, yani **siyah bir kama** açıldı (mağaza görsellerinde
+// görülüyordu). Koridorun kendisini genişletmek doku ölçeğini bozardı:
+// zemin dokusu genişliğe bir kez sığıyor (repeat 1×40), yani şerit çizgileri
+// esnerdi. Ayrı ve dokusuz bir düzlem boşluğu kapatıyor, koridora
+// dokunmuyor.
+const beyond = new THREE.Mesh(
+  new THREE.PlaneGeometry(400, 900),
+  new THREE.MeshBasicMaterial({ color: '#2a1f4a', fog: false }));
+beyond.rotation.x = -Math.PI / 2;
+beyond.position.y = -0.06;
+scene.add(beyond);
+
 // Sized and placed so the bottom edge lands on the floor: the hills live in
 // the bottom of the texture, and with the plane centred higher they sat
 // underground and the horizon was a flat colour band.
@@ -1717,6 +1733,7 @@ function tick(now) {
   sun.position.set(-3.5, 19, -dist + 3);
   sun.target.position.set(0, 1.5, -dist - 5);
   floor.position.z = -dist;
+  beyond.position.z = -dist;
   floor.material.map.offset.y = dist * 0.05;
   sky.position.z = -dist - 58;
 
