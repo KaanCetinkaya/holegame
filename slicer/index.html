@@ -578,6 +578,30 @@ for (const sx of [-10, 10]) {
 // the bottom of the texture, and with the plane centred higher they sat
 // underground and the horizon was a flat colour band.
 const SKY_H = 62;
+// Ortam haritası. Metalin yansıtacak bir şeyi olsun diye.
+//
+// Sahnede ortam yoktu ve bu, metali metal olmaktan çıkarıyordu: yansıma
+// olmadan `metalness` yüzeyi parlatmıyor, **karartıyor**. Bıçak bu yüzden
+// önce siyah bir üçgendi, sonra metalness kısılınca mat beyaz bir levha
+// oldu — ikisi de ucuz duruyordu, çünkü ikisi de metal değildi.
+//
+// Ortam gökyüzünün kendi dokusundan üretiliyor: yeni bir görsel dosyası
+// yok, koridorun üstündeki akşam ışığı ne ise bıçağın üstünde yansıyan da
+// o. PMREM bulanıklaştırılmış hâlini hazırlıyor, pürüzlü yüzeyler onu
+// kullanıyor.
+//
+// Bütün `MeshStandardMaterial`'lar bundan payını alıyor — meyvelerin
+// kabuğundaki hafif parlaklık da buradan geliyor.
+{
+  const eq = skyTexture();
+  eq.mapping = THREE.EquirectangularReflectionMapping;
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  scene.environment = pmrem.fromEquirectangular(eq).texture;
+  pmrem.dispose();
+  eq.dispose();
+}
+
 const sky = new THREE.Mesh(
   new THREE.PlaneGeometry(150, SKY_H),
   new THREE.MeshBasicMaterial({ map: skyTexture(), depthWrite: false, fog: false }));
@@ -620,9 +644,16 @@ function buildBlade(spec) {
   // şey bıçak değil, altındaki parlak kutuydu. Pürüz artırılıp metal
   // düşürüldü, üstüne hafif bir kendi ışığı kondu: karanlık koridorda
   // silueti taşıyan şey o.
+  // Ortam haritası geldiği için metal yeniden metal olabiliyor: 0.12'ye
+  // düşürülmüştü çünkü yansıma yokken yüzeyi karartıyordu. Kendi ışığına da
+  // gerek kalmadı — parlaklık artık yansımadan geliyor.
+  // Metalness 0.85 / yoğunluk 1.35 ile bıçak gökyüzünü o kadar çok
+  // yansıtıyordu ki kendi rengi kayboluyordu — altı bıçağın altısı da aynı
+  // mor görünürdü ve dükkân anlamsız olurdu. Yarı metal, ölçülü yansıma:
+  // hem parlıyor hem bakır bakır, altın altın duruyor.
   const steel = new THREE.MeshStandardMaterial({
-    color: spec.steel, roughness: 0.34, metalness: 0.12,
-    emissive: spec.steel, emissiveIntensity: 0.18 });
+    color: spec.steel, roughness: 0.26, metalness: 0.62,
+    envMapIntensity: 0.85 });
 
   // Kalınlık 0.06'ydı. Kamera bıçağın arkasında duruyor, yani ona neredeyse
   // tam profilden bakıyor: o kalınlıkta ekranda birkaç piksellik bir çizgi
