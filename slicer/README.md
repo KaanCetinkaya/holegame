@@ -188,11 +188,30 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
     node scratchpad/slicemeta.mjs  # para, çift ödeme, devam etme, dükkân
     node scratchpad/slicegaps.mjs  # engel dizileri geçilebilir mi
     node scratchpad/slicemap.mjs   # harita, ilerleme, günlük ödül serisi
+    node scratchpad/slicewall.mjs  # içerik kaçıncı bölümde tükeniyor
 
 `window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceMap`, `sliceDaily`,
 `sliceStart`, `sliceSetTarget`, `sliceAutoPlay`, `sliceGive`, `sliceRevive`,
 `sliceDouble`, `sliceSetDay`, `sliceReset` testlerin oyunu parmaksız
 oynamasını sağlar.
+
+## İçerik 17. bölümde tükeniyor
+
+Bölüm üretimi sonsuz — `buildCourse(n)` her n için parkur kuruyor. Ama üç
+ayarın üçü de sonlu ve `scratchpad/slicewall.mjs` nerede durduklarını ölçtü:
+
+| ölçü | tavana çıktığı bölüm | tavan |
+|---|---|---|
+| parça havuzu (`PIECES`) | **5** | altı parça, en yüksek `minLevel` 5 |
+| parkur boyu | **12** | `Math.min(24 + n * 2, 48)` yuva → 165.8 |
+| hız | **17** | `Math.min(8 + (n - 1) * 0.45, 15)` |
+
+17'den sonra meyve ~43, demir ~3.5, boy 165.8, hız 15. Ölçüm 30. bölüme
+kadar gidiyor ve son sekiz bölümün hepsi aynı bantta: **30. bölüm 17.
+bölümden ayırt edilemiyor.**
+
+Bu, harita sonsuz bölüm gösterdiği için görünmüyor. Oyuncu tırmanmaya devam
+ettiğini sanıyor, oysa 17'den sonra aynı bölümü farklı numarayla oynuyor.
 
 ## Arayüz İngilizce
 
