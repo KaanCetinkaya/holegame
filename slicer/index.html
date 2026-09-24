@@ -768,6 +768,52 @@ function hazardTexture() {
 const LIP_GEO = new THREE.BoxGeometry(5.3, 0.34, 0.5);
 const lipMat = new THREE.MeshStandardMaterial({ map: hazardTexture(), roughness: 0.5 });
 
+// Mayın: kesilmemesi gereken şey.
+//
+// Oyunun tek kararı yükseklikti ve kesmek otomatikti — bıçak neye değerse
+// kesiyordu, yani "iyi oynamak" ile "hattı takip etmek" aynı şeydi. Mayın
+// hattın üstüne oturuyor ve devamı başka bir yükseklikte: her karşılaşma
+// *kes ama şunu atla* kararı oluyor.
+//
+// Görünüşü meyveden de demirden de ayrı olmak zorunda. Demirler kırmızı ve
+// köşeli, meyveler yuvarlak ve renkli; mayın siyah, dikenli ve tepesinde
+// yanan bir fitil var — koridorun moru içinde tek sıcak nokta o.
+const MINE_R = 0.42;
+const MINE_GEO = new THREE.SphereGeometry(MINE_R, 16, 12);
+const SPIKE_GEO = new THREE.ConeGeometry(0.11, 0.26, 6);
+const FUSE_GEO = new THREE.CylinderGeometry(0.045, 0.045, 0.3, 6);
+const WICK_GEO = new THREE.SphereGeometry(0.11, 10, 8);
+const mineMat = new THREE.MeshStandardMaterial({
+  color: '#16141c', roughness: 0.45, metalness: 0.6 });
+const spikeMat = new THREE.MeshStandardMaterial({
+  color: '#2b2733', roughness: 0.4, metalness: 0.7 });
+const fuseMat = new THREE.MeshStandardMaterial({ color: '#6b5636', roughness: 0.9 });
+// Fitilin ucu ışık almadan da parlasın: sahnedeki ışık koridorun sonunda
+// zayıflıyor ve tam da uzaktan görülmesi gereken şey bu.
+const wickMat = new THREE.MeshBasicMaterial({ color: '#ffb02e' });
+
+function makeMine() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(MINE_GEO, mineMat);
+  body.castShadow = true;
+  g.add(body);
+  // Altı diken, kutupları boş: aşağıdaki gölgeye, yukarıdaki fitile yer.
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    const s = new THREE.Mesh(SPIKE_GEO, spikeMat);
+    s.position.set(Math.cos(a) * MINE_R * 0.92, Math.sin(a) * MINE_R * 0.92, 0);
+    s.rotation.z = a - Math.PI / 2;
+    g.add(s);
+  }
+  const fuse = new THREE.Mesh(FUSE_GEO, fuseMat);
+  fuse.position.y = MINE_R + 0.13;
+  g.add(fuse);
+  const wick = new THREE.Mesh(WICK_GEO, wickMat);
+  wick.position.y = MINE_R + 0.3;
+  g.add(wick);
+  return g;
+}
+
 // ---------------------------------------------------------------------
 // The cut
 // ---------------------------------------------------------------------
@@ -1005,6 +1051,38 @@ const PIECES = [
       for (let k = 0; k < 2; k++) c.fruit(gapY);
       return gapY;
     } },
+  // Mayın: hattın üstünde, kesilmemesi gereken şey.
+  //
+  // Meyve sırası bir yükseklikte akıyor, mayın tam o hizada oturuyor ve
+  // devamı başka bir hizada. Oyuncu hattı bırakmak zorunda — oyunun ilk
+  // gerçek kararı bu.
+  //
+  // Kaçış yüksekliği tahminle değil ulaşılabilirlikle seçiliyor: bıçağın
+  // iki yuvalık mesafede tırmanabileceği kadar. Yeterli yer yoksa parça
+  // mayın koymuyor ve sıradan bir sıraya dönüyor — demirdeki `bar()` false
+  // dönünce ne yapılıyorsa aynısı. Geçilemez bir tahta zorluk değil, hata.
+  { id: 'mine', minLevel: 8, weight: 2, build(c) {
+      // Mayının yarıçapı + en uzun bıçağın menzili + pay. Bunun altındaki
+      // bir kaçış, kaçış değil.
+      const GEREKEN = MINE_R + 0.22 + 0.34;
+      const yer = c.reach(SPACING * 2) * 0.85;
+      if (yer < GEREKEN) { for (let k = 0; k < 4; k++) c.fruit(c.y); return c.y; }
+
+      const orta = (LANE_LOW + LANE_HIGH) / 2;
+      const yön = c.y > orta ? -1 : 1;
+      const kaçış = c.clamp(c.y + yön * Math.min(yer, GEREKEN + 0.5));
+      // Şeridin kenarına sıkışıp kaçışın mayına yapıştığı durum: vazgeç.
+      if (Math.abs(kaçış - c.y) < GEREKEN) {
+        for (let k = 0; k < 4; k++) c.fruit(c.y);
+        return c.y;
+      }
+
+      for (let k = 0; k < 2; k++) c.fruit(c.y);
+      c.skip(1);                       // tırmanacak yer
+      c.mine(c.y);
+      for (let k = 0; k < 3 + ((Math.random() * 3) | 0); k++) c.fruit(kaçış);
+      return kaçış;
+    } },
   // Nefes: kısa bir boşluk. Her yuvası dolu bir parkur okunmuyor.
   { id: 'rest', minLevel: 1, weight: 1, build(c) {
       c.skip(1 + ((Math.random() * 2) | 0));
@@ -1094,6 +1172,23 @@ function buildCourse(n) {
       scene.add(mesh);
       items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop });
       lastBar = { d, gapY };
+      return true;
+    },
+    // Mayın. Bir yuva yiyor ve o yükseklikte durulamaz hâle getiriyor.
+    mine(at) {
+      if (slot >= slots) return false;
+      const d = slot++ * SPACING;
+      const mesh = makeMine();
+      mesh.position.set(0, at, -d);
+      scene.add(mesh);
+
+      const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.set(0, 0.02, -d);
+      shadow.scale.setScalar(MINE_R * 2.4 * (1 - Math.min(0.5, at * 0.08)));
+      scene.add(shadow);
+
+      items.push({ kind: 'mine', mesh, shadow, d, y: at, r: MINE_R });
       return true;
     },
   };
@@ -1301,6 +1396,11 @@ function endRun(ok) {
     showScreen('clear');
     sfx.clear();
   } else {
+    // Başlık neye çarpıldığını söylüyor. "You hit a bar!" yazarken mayına
+    // basmak, oyuncuya yanlış şeyi öğretirdi: bir daha aynı hatayı yapmamak
+    // için önce ne olduğunu bilmesi gerek.
+    $('overTitle').textContent =
+      hitItem && hitItem.kind === 'mine' ? 'You cut a mine!' : 'You hit a bar!';
     $('overSub').textContent = `${cutCount} / ${totalCuts} cut · 🪙 ${runCoins}`;
     // One continue per run. Two would turn any level into a matter of
     // patience rather than steering.
@@ -1431,6 +1531,14 @@ function collide(d0, y0, d1, y1) {
       if (Math.abs(yAt - it.y) < it.half + 0.2) return { hit: it, y: yAt };
       continue;
     }
+    // Mayın meyveyle aynı yarıçap kuralını kullanıyor — bıçağın menzili
+    // dahil. Yani uzun bıçak mayına da daha erken değiyor: dükkândaki
+    // yükseltme artık saf kazanç değil, takas. Bu bilerek böyle.
+    if (it.kind === 'mine') {
+      if (Math.abs(yAt - it.y) < it.r + 0.14 + BLADES[activeBlade].reach)
+        return { hit: it, y: yAt };
+      continue;
+    }
     if (Math.abs(yAt - it.y) < it.r + 0.14 + BLADES[activeBlade].reach) {
       sliceObject(it, yAt);
       streak++;
@@ -1533,7 +1641,16 @@ window.sliceProbe = () => ({
   state, level, maxLevel, dist: +dist.toFixed(2), bladeY: +bladeY.toFixed(2),
   cut: cutCount, total: totalCuts, streak, shards: shards.length,
   items: items.length, courseEnd: +courseEnd.toFixed(1),
+  // Hız dışarıdan okunabilir olmalı: ulaşılabilirlik hesabının paydası o ve
+  // testin onu oyunun formülünden kopyalaması, formül değişince testin
+  // sessizce yanlış şeyi ölçmesi demek olurdu.
+  hiz: +speed.toFixed(2),
 });
+// Parkurun tamamı. sliceBars/sliceMines tek tür veriyor; kaçış hattının
+// ulaşılabilirliği için meyvelerle mayınların birlikte görülmesi gerekiyor.
+window.sliceAll = () => items.map(i => ({
+  kind: i.kind, d: +i.d.toFixed(2), y: +i.y.toFixed(2), cut: !!i.cut,
+})).sort((a, b) => a.d - b.d);
 window.sliceSetTarget = y => { targetY = Math.max(LANE_LOW, Math.min(LANE_HIGH, y)); };
 window.sliceAutoPlay = () => {
   // Steer for whatever is next, so a run can be played without a finger.
@@ -1545,20 +1662,47 @@ window.sliceAutoPlay = () => {
   // noise. The blade needs about a second to cross the lane, which at these
   // speeds is roughly ten units of course.
   const LOOK = Math.max(10, speed * 1.1);
-  let bar = null, fruit = null;
+  let bar = null, mine = null, fruit = null;
   for (const it of items) {
     if (it.d < dist + 0.6) continue;
     if (it.kind === 'bar') {
       if (it.d < dist + LOOK && (!bar || it.d < bar.d)) bar = it;
+    } else if (it.kind === 'mine') {
+      if (it.d < dist + LOOK && (!mine || it.d < mine.d)) mine = it;
     } else if (!it.cut && (!fruit || it.d < fruit.d)) fruit = it;
   }
   if (bar) {
     window.sliceSetTarget(bar.fromTop ? LANE_LOW + 0.25 : LANE_HIGH - 0.25);
     return 'dodge';
   }
+  // Mayın meyveden önce geliyor, aynı gerekçeyle: bu döngü eskiden meyve
+  // olmayan her şeyi meyve sayıyordu, yani mayın eklendiğinde otomatik
+  // oyuncu doğrudan mayının üstüne sürerdi ve onunla alınan her ölçüm
+  // çöp olurdu.
+  if (mine) {
+    const tehlike = MINE_R + 0.14 + BLADES[activeBlade].reach + 0.25;
+    // Mayından sonraki ilk meyve zaten kaçış hattında duruyor; parçanın
+    // kurduğu çizgi o, uydurmaya gerek yok.
+    let sonraki = null;
+    for (const it of items) {
+      if (it.kind !== 'fruit' || it.cut || it.d <= mine.d) continue;
+      if (!sonraki || it.d < sonraki.d) sonraki = it;
+    }
+    if (sonraki && Math.abs(sonraki.y - mine.y) > tehlike) {
+      window.sliceSetTarget(sonraki.y);
+      return 'avoid';
+    }
+    window.sliceSetTarget(mine.y > (LANE_LOW + LANE_HIGH) / 2
+      ? LANE_LOW + 0.25 : LANE_HIGH - 0.25);
+    return 'avoid';
+  }
   if (fruit) { window.sliceSetTarget(fruit.y); return 'cut'; }
   return null;
 };
+// Mayınların yeri — dizinin geçilebilir olduğunu dışarıdan doğrulamak için.
+window.sliceMines = () => items.filter(i => i.kind === 'mine').map(i => ({
+  d: +i.d.toFixed(2), y: +i.y.toFixed(2), r: i.r,
+})).sort((a, b) => a.d - b.d);
 window.sliceStart = n => { if (n) level = n; startLevel(); };
 // Engellerin yeri ve bıraktıkları boşluk — dizinin geçilebilir olduğunu
 // dışarıdan doğrulamak için.
