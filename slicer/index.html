@@ -1677,9 +1677,24 @@ function tick(now) {
   // Bıçak x=0'da duruyor; kamerayı 1.1'e koymak onu ekranın sol kenarına
   // itiyordu. Yandan bakış derinlik veriyor, ama bu kadarı oyuncunun
   // yönettiği şeyi köşeye sürgün ediyor.
-  const eye = bladeY * 0.34 + 2.8;
-  camera.position.set(0.45, eye, -dist + 8.2);
-  camera.lookAt(0.08, eye - 0.74, -dist - 11);
+  // Dörtte üç açı. Kamera yana ve yukarı alındı, **baktığı nokta bıçakta
+  // bırakılarak**: eskiden yalnızca kamera taşınmıştı ve bakış ekseni
+  // yerinde kaldığı için bıçak sol kenara sürülmüştü. Bakış bıçağa
+  // kilitlenince bıçak ortada kalıyor ama artık ona profilden değil yandan
+  // bakılıyor — arkadan bakılan bir bıçak bir çizgidir, sorunun kendisi
+  // buydu.
+  const eye = bladeY * 0.34 + 3.05;
+  // Bakış noktasının x'i elle seçilmiyor, hesaplanıyor.
+  //
+  // Kamerayı yana almak tek başına bıçağı köşeye sürüyor: bakış ekseni
+  // yerinde kalıyor ve bıçak eksenin uzağına düşüyor. Bıçağın ortada kalması
+  // için bakış noktası, kameradan bıçağa çizilen doğrunun ileri uzantısında
+  // olmalı. Kamera bıçaktan CAM_Z birim geride, bakılan nokta ise LOOK_Z
+  // birim ileride: yani oran (CAM_Z + LOOK_Z) / CAM_Z.
+  const CAM_X = 1.15, CAM_Z = 8.0, LOOK_Z = 11;
+  const lookX = CAM_X - CAM_X * ((CAM_Z + LOOK_Z) / CAM_Z);
+  camera.position.set(CAM_X, eye, -dist + CAM_Z);
+  camera.lookAt(lookX, eye - 0.92, -dist - LOOK_Z);
   // Nearly overhead. Low and to the side stretched every shadow into a long
   // smear that read as another object lying on the floor.
   sun.position.set(-3.5, 19, -dist + 3);
