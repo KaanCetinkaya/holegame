@@ -46,11 +46,18 @@ Steer the hole. Swallow the field. 🕳️🍓
 New levels every week · Free on Android
 ```
 
+Bu ilk bio. Şu an geçerli olan aşağıda, "Geliştirici anlatısı deneyi" —
+oyunu değil onu yapan kişiyi anlatıyor.
+
 **Link:** Play mağaza sayfası. Production'a çıkana kadar link koyma —
 kapalı testte olan bir linke tıklayan kişi "bulunamadı" görür ve bir daha
 gelmez.
 
 ## Kliplerin açıklamaları
+
+**Buradaki açıklamalar ölçülmüş hâlleri — yeni parti aşağıda, "Geliştirici
+anlatısı deneyi" başlığında.** Bunlar duruyor çünkü karşılaştırmanın öteki
+ucu: %42-49 izletme, 281-401 izlenme bu metinlerle alındı.
 
 Yedi klip var, hepsi 9 saniye, sessiz, 1080×1920. **Gün aşırı** yükle;
 hepsini bir günde atmak hesabın dağıtımını bölüyor.
@@ -412,6 +419,155 @@ The big one at the end cannot be taken early. You have to earn the size 👑🍉
 
 Karşılaştırma iki gün sonra, ikisinin yaşı denkken: 9 saniyelik drive ile 15
 saniyelik bu. Bakılacak sayı saniye değil **süresinin yüzdesi**, ve beğeni.
+
+## Geliştirici anlatısı deneyi
+
+Altı videonun hepsi 281-401 izlenme bandında kaldı. Kurgu değişikliği
+izletmeyi iki katına çıkardı ama **erişimi hiç kımıldatmadı** — yani bundan
+sonra denenecek şey klibin içinde değil, çevresinde.
+
+Denenen şey şu: **klip aynı, anlatan değişiyor.** Bugüne kadar açıklamalar
+oyunu anlatıyordu ("the hole only grows by eating"). Bu partide oyunu **yapan
+kişi** anlatıyor: *"day 43 of building my own mobile game"*. Klipler bir
+oyunun reklamı olmaktan çıkıp bir kişinin günlüğü oluyor.
+
+Neden bunun bir şansı var: TikTok'ta oyun reklamı sonsuz, ama tek başına oyun
+yapan birinin ilerlemesi takip edilecek bir **dizi**. İkinci videoyu izleme
+sebebi oyun değil, devam. Altı denemede sabit kalan şey de tam olarak buydu —
+kimse hesaba geri gelmiyordu (2.300 izlenme → 6 profil ziyareti, 0 yorum).
+
+**Değişen tek şey açıklama, ekran yazısı ve bio.** Klipler birebir aynı
+dosyalar — yoksa hangi şeyin işe yaradığı ölçülemez. Kurgu tarafı üç kez
+doğrulandı, ona dokunulmuyor.
+
+### Gün numarası
+
+Gün 1 = **13 Ağustos 2026**, Fruit Hole'un ilk commit'i. (Depo 9 Ağustos'ta
+açıldı ama o Hole'du, bu oyun değil. Sayı doğru olsun.)
+
+| tarih | gün | klip |
+|---|---|---|
+| 24 Eyl | 43 | beach |
+| 25 Eyl | 44 | farm |
+| 26 Eyl | 45 | shop |
+| 27 Eyl | 46 | drive |
+| 28 Eyl | 47 | bar |
+| 29 Eyl | 48 | space |
+| 30 Eyl | 49 | boss |
+
+Bir gün atlarsan numarayı da atla — takvim günü sayılıyor, gönderi değil.
+Anlatı yalan söylemeye başladığı gün biter.
+
+### Bio
+
+```
+solo dev · building Peelo: Fruit Hole 🕳️
+new level every week · free on Android
+```
+
+Ama beklenti düşük tutulsun: **bio'yu 2.300 izlenmede 6 kişi gördü.** Profil
+ziyareti bu kadar azken bio'yu değiştirmek neredeyse bedava ve neredeyse
+etkisiz. Deneyin asıl değişkeni açıklama ve ekran yazısı; bio sadece oraya
+gelen altı kişi tutarsız bir şey görmesin diye.
+
+### Ekran yazısı
+
+TikTok'un kendi yazı aracıyla, yükleme ekranında ekleniyor — klibin içinde
+değil. **İlk 2 saniye, ekranın üst üçte biri:** altta TikTok'un kendi arayüzü
+var, ortada bizim PEELO yazımız. Üstü boş, oraya girsin.
+
+Açıklamanın ilk satırı zaten günü söylüyor; ekran yazısı onu tekrarlamıyor, o
+klipte **ne yaptığını** söylüyor. İkisi birlikte bir günlük sayfası ediyor.
+
+### Açıklamalar
+
+Her biri üç parça: gün satırı, o klibin doğruladığı söz, etiketler. Sözler
+eski açıklamalardan alındı — onlar klibe bakarak doğrulanmıştı, tekrar
+doğrulamaya gerek yok.
+
+**1. beach.mp4** — ekran yazısı: `level 1. this is where everyone starts`
+```
+day 43 of building my own mobile game 🕳️
+
+level 1 starts smaller than a coconut. how big can 9 seconds get?
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**2. farm.mp4** — ekran yazısı: `i made a tractor edible today 🚜`
+```
+day 44 of building my own mobile game 🚜🕳️
+
+the hole only grows by eating. so how does a whole tractor fit?
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**3. shop.mp4** — ekran yazısı: `every one of these is a separate object`
+```
+day 45 of building my own mobile game 📺🕳️
+
+nothing in here is too heavy. only too big — for now.
+
+#indiedev #solodev #gamedev #voxel #oddlysatisfying
+```
+
+**4. drive.mp4** — ekran yazısı: `the cars are bigger than the hole`
+```
+day 46 of building my own mobile game 🚗🕳️
+
+the cars are bigger than the hole. watch what happens at the end.
+
+#indiedev #solodev #gamedev #mobilegaming #satisfying
+```
+
+**5. bar.mp4** — ekran yazısı: `the only level at night`
+```
+day 47 of building my own mobile game 🍹🕳️
+
+every glass makes the hole a little wider. guess what goes last.
+
+#indiedev #solodev #gamedev #mobilegame #oddlysatisfying
+```
+
+**6. space.mp4** — ekran yazısı: `there is no floor past the edge`
+```
+day 48 of building my own mobile game 🚀🕳️
+
+past the edge there is no floor. the big one is sitting right on it.
+
+#indiedev #solodev #gamedev #space #satisfying
+```
+
+**7. boss.mp4** — ekran yazısı: `every 10th level is a boss`
+```
+day 49 of building my own mobile game 👑🍓
+
+every 10th level ends in one giant fruit. you cannot take it early.
+
+#indiedev #solodev #gamedev #bossfight #mobilegaming
+```
+
+### Neye bakılacak
+
+Bir şey kanıtlanmış sayılmaz diye üç ölçü var ve üçü ayrı soruya bakıyor:
+
+* **İzlenme** — 281-401 bandı kırıldı mı. Asıl soru bu; izletme oranı zaten
+  çözüldü, kırılmayan tek şey erişim.
+* **Profil ziyareti** — altı videoda 6 taneydi. Anlatı işe yarıyorsa ilk
+  kıpırdayacak sayı bu, çünkü "bunu kim yapıyor" sorusu doğuyor.
+* **Takipçi** — 12'ydi. Dizi kurulduysa buradan görünür.
+
+Beğeni ve yorum da bakılır ama tek başlarına karar verdirmez: altı videoda
+toplam 9 beğeni, 0 yorum var — bu sayılarda gürültü sinyalden büyük.
+
+**Ölçüm klipler bir günlükken.** Dağıtım ilk günden sonra duruyor (yukarıda
+ölçüldü), yani bir gün beklemek yetiyor ve bir haftalıkla bir günlüğü
+karşılaştırmak hata.
+
+Üç klip sonunda üçü de eski bantta kalıyorsa anlatı da erişimi çözmüyor
+demektir; o zaman kalan değişkenler gönderi sıklığı, ses seçimi ve hesabın
+yaşı.
 
 ## Ne kadar sıklıkla
 
