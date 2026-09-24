@@ -216,6 +216,23 @@ denenmemişti.
 **Sıradaki adım konsol değil, o düğme.** Hesap seçme ekranı açılıyorsa sorun
 yok; hiç açılmıyorsa yapılandırmanın yayınlanmamış olması adayı geri gelir.
 
+### 24 Eylül 2026 akşamı — iki farklı Gmail
+
+36 telefonda: hesap seçme ekranı **açılıyor**, "Devam"a basılıyor, cevap
+`signIn signedIn:false döndü`.
+
+Sebep listede değil, telefonda: cihazdaki Google Play hesabı
+**eminkaancetinkaya9047@gmail.com**. Test kullanıcılarına eklenen adres
+öteki hesap. Google telefonda hangi hesap açıksa ona bakıyor — o listede
+yoksa seçme ekranını gösteriyor ama sonra `signedIn:false` dönüyor.
+
+Günlerce "Gmail'i ekledin mi" diye dönülmesinin sebebi buydu: soru doğruydu,
+**hangi** Gmail diye sorulmamıştı. Bir hesabın var olması yetmiyor, cihazdaki
+hesap olması gerekiyor.
+
+Kontrol yolu: telefonda Play Store → profil → görünen adres. Teşhis ekranı
+bunu söyleyemiyor, çünkü eklenti hangi hesabın reddedildiğini vermiyor.
+
 ### 24 Eylül 2026 — sebep bulundu: manifest'te `games.APP_ID` yokmuş
 
 Düğmeye basıldı, **hiçbir ekran açılmadı** ve cevap değişmedi. Konsolda
