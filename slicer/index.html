@@ -1158,12 +1158,78 @@ const PIECES = [
       }
       return kaçış;
     } },
+  // Mengene: karşılıklı iki demir, aralarında dar bir pencere.
+  //
+  // Şimdiye kadarki bütün demirler tek taraflıydı — tavandan ya da yerden —
+  // ve cevap hep "öteki uca git"ti. Karşılıklı iki demir bunu bozuyor: tek
+  // doğru yükseklik var ve o da şeridin ortasında.
+  { id: 'squeeze', minLevel: 12, weight: 2, build(c) {
+      const orta = (LANE_LOW + LANE_HIGH) / 2;
+      // Açıklık şeridin tam ortasında değil, kaydırılmış: ortada olsa
+      // oyuncu hiç kıpırdamadan geçer ve parça bir şey sormamış olur.
+      const yer = c.clamp(orta + (Math.random() < 0.5 ? -0.7 : 0.7));
+      if (!c.window(yer)) { for (let k = 0; k < 4; k++) c.fruit(c.y); return c.y; }
+      for (let k = 0; k < 3 + ((Math.random() * 3) | 0); k++) c.fruit(yer);
+      return yer;
+    } },
+  // Salınım: sırayla tavandan ve yerden üç kapı, her birinin boşluğunda
+  // meyve. Tek tek hepsi kolay; arka arkaya gelmesi tempoyu kuruyor.
+  //
+  // 18. bölümden açılıyor: içerik ölçümü (scratchpad/slicewall.mjs) hız ve
+  // boy tavanlarının 12 ve 17'de dolduğunu, sonrasının birbirinin aynı
+  // olduğunu gösterdi. Yeni parça, tavanları yükseltmeden yeni şey söyleyen
+  // tek yol.
+  { id: 'sweep', minLevel: 18, weight: 2, build(c) {
+      let üst = Math.random() < 0.5;
+      let son = c.y;
+      for (let i = 0; i < 3; i++) {
+        const gap = üst ? LANE_LOW + 0.55 : LANE_HIGH - 0.55;
+        if (!c.bar(üst, gap)) { c.fruit(son); break; }
+        for (let k = 0; k < 2; k++) c.fruit(gap);
+        son = gap;
+        üst = !üst;
+      }
+      return son;
+    } },
   // Nefes: kısa bir boşluk. Her yuvası dolu bir parkur okunmuyor.
   { id: 'rest', minLevel: 1, weight: 1, build(c) {
       c.skip(1 + ((Math.random() * 2) | 0));
       return c.y;
     } },
 ];
+
+// Bir demir gövdesi. `bar()` ve `window()` ikisi de bunu kullanıyor;
+// pencere aynı `d`'de iki kez çağırıyor.
+function koyDemir(fromTop, h, d, gapY) {
+  const mesh = new THREE.Group();
+  const bar = new THREE.Mesh(BAR_GEO, barMat);
+  bar.scale.y = h;
+  bar.castShadow = true;
+  mesh.add(bar);
+  // Boşluğa bakan kenara uyarı şeridi. Demir düz bir kırmızı levha olarak
+  // duruyordu ve oyuncunun okuması gereken şey levha değil, bıraktığı
+  // boşluk — şerit o kenarı işaretliyor.
+  const lip = new THREE.Mesh(LIP_GEO, lipMat);
+  lip.position.y = fromTop ? -h / 2 : h / 2;
+  lip.position.z = 0.02;
+  mesh.add(lip);
+  for (const sx of [-2.2, 2.2]) {
+    const bolt = new THREE.Mesh(BOLT_GEO, boltMat);
+    bolt.position.set(sx, fromTop ? h / 2 - 0.3 : -h / 2 + 0.3, 0);
+    mesh.add(bolt);
+  }
+  const cy = fromTop ? (LANE_HIGH + 2.2) - h / 2 : (LANE_LOW - 2.2) + h / 2;
+  mesh.position.set(0, cy, -d);
+  scene.add(mesh);
+  // Boşluğun gerçek yeri nesnenin üstünde taşınıyor.
+  //
+  // Dışarıya bunu bildiren probe eskiden hesaplamıyordu, varsayıyordu:
+  // "üstten gelen demirin boşluğu şeridin altındadır". Tek taraflı demirler
+  // için doğruydu; pencerede iki demir **aynı** boşluğu paylaşıyor ve o
+  // varsayım ikisine iki ayrı, uydurma değer veriyor. Geçilebilirlik testi
+  // de o uydurma değerleri okuyup her pencereyi imkânsız ilan etti.
+  items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop, gapY });
+}
 
 function buildCourse(n) {
   for (const it of items) { scene.remove(it.mesh); if (it.shadow) scene.remove(it.shadow); }
@@ -1240,27 +1306,35 @@ function buildCourse(n) {
       if (h <= 0.6) return false;
 
       slot++;
-      const mesh = new THREE.Group();
-      const bar = new THREE.Mesh(BAR_GEO, barMat);
-      bar.scale.y = h;
-      bar.castShadow = true;
-      mesh.add(bar);
-      // Boşluğa bakan kenara uyarı şeridi. Demir düz bir kırmızı levha
-      // olarak duruyordu ve oyuncunun okuması gereken şey levha değil,
-      // bıraktığı boşluk — şerit o kenarı işaretliyor.
-      const lip = new THREE.Mesh(LIP_GEO, lipMat);
-      lip.position.y = fromTop ? -h / 2 : h / 2;
-      lip.position.z = 0.02;
-      mesh.add(lip);
-      for (const sx of [-2.2, 2.2]) {
-        const bolt = new THREE.Mesh(BOLT_GEO, boltMat);
-        bolt.position.set(sx, fromTop ? h / 2 - 0.3 : -h / 2 + 0.3, 0);
-        mesh.add(bolt);
-      }
-      const cy = fromTop ? (LANE_HIGH + 2.2) - h / 2 : (LANE_LOW - 2.2) + h / 2;
-      mesh.position.set(0, cy, -d);
-      scene.add(mesh);
-      items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop });
+      koyDemir(fromTop, h, d, gapY);
+      lastBar = { d, gapY };
+      return true;
+    },
+    // Pencere: aynı hizada, biri tavandan biri yerden iki demir.
+    //
+    // `bar()` her demiri kendi yuvasına koyuyor, yani onunla iki demir en
+    // yakın ihtimalle bir yuva arayla durabiliyor — arka arkaya iki kapı,
+    // aynı anda bir pencere değil. İlk "mengene" denemesi tam bu yüzden
+    // mengene olmadı: ölçüm karşıt demir çifti hiç bulamadı, çünkü aradaki
+    // mesafe üç yuvaydı.
+    //
+    // Buradaki iki gövde aynı `d`'de duruyor ve tek yuva harcıyor. Yeni olan
+    // şey de bu: şimdiye kadar her demirin cevabı "öteki uca git"ti, burada
+    // tek doğru yükseklik var ve o da şeridin ortasında bir yerde.
+    window(gapY, aciklik = 1.6) {
+      if (slot >= slots) return false;
+      const d = slot * SPACING;
+      if (lastBar && (d - lastBar.d) / runSpeed < Math.abs(gapY - lastBar.gapY) / CLIMB)
+        return false;
+      const ustKenar = gapY + aciklik / 2;
+      const altKenar = gapY - aciklik / 2;
+      const hUst = (LANE_HIGH + 2.2) - ustKenar;
+      const hAlt = altKenar - (LANE_LOW - 2.2);
+      if (hUst <= 0.6 || hAlt <= 0.6) return false;
+
+      slot++;
+      koyDemir(true, hUst, d, gapY);
+      koyDemir(false, hAlt, d, gapY);
       lastBar = { d, gapY };
       return true;
     },
@@ -1838,7 +1912,8 @@ window.sliceStart = n => { if (n) level = n; startLevel(); };
 window.sliceBars = () => items.filter(i => i.kind === 'bar').map(i => ({
   d: +i.d.toFixed(2), y: +i.y.toFixed(2), half: +i.half.toFixed(2),
   fromTop: i.fromTop,
-  gapY: i.fromTop ? LANE_LOW + 0.4 : LANE_HIGH - 0.4,
+  // Kurulurken kaydedilen gerçek değer. Burada uydurulmuyor.
+  gapY: +i.gapY.toFixed(2),
 })).sort((a, b) => a.d - b.d);
 window.sliceMeta = () => ({
   coins, runCoins, banked: paidOut, revived,

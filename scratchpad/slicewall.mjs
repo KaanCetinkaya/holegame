@@ -88,7 +88,17 @@ const boyDurdu = satır.find(r => r.boy >= satır[SON - 1].boy);
 const hızDurdu = satır.find(r => r.hız >= 15);
 console.log(`parkur boyu tavanına ${boyDurdu ? boyDurdu.n + '. bölümde' : 'hiç'} ulaşıyor`);
 console.log(`hız tavanına ${hızDurdu ? hızDurdu.n + '. bölümde' : 'hiç'} ulaşıyor`);
-console.log(`parça havuzu 5. bölümde doluyor (PIECES içindeki en yüksek minLevel)`);
+// Havuzun ne zaman dolduğu oyundan okunuyor, elle yazılmıyor.
+//
+// Burada "5. bölümde doluyor" yazıyordu ve iki kez sessizce yanlış oldu:
+// mayın 8. bölümde, salınım 18. bölümde havuza girdi. Bu dosyanın işi tam
+// olarak "içerik ne zaman tükeniyor" sorusuna cevap vermek; cevabı sabit
+// yazmak onu bozar.
+const parcalar = await pg.evaluate(() => window.slicePieces());
+const enGec = parcalar.reduce((m, p) => Math.max(m, p.minLevel), 0);
+console.log(`parça havuzu ${enGec}. bölümde doluyor ` +
+  `(${parcalar.length} parça: ` +
+  parcalar.map(p => `${p.id}@${p.minLevel}`).join(', ') + ')');
 console.log(`son sekiz bölümde meyve sayısı sabit mi: ${durdu('meyve', 6) ? 'EVET' : 'hayır'}`);
 console.log(`son sekiz bölümde demir sayısı sabit mi: ${durdu('demir', 3) ? 'EVET' : 'hayır'}`);
 

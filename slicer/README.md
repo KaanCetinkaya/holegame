@@ -189,6 +189,8 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
     node scratchpad/slicegaps.mjs  # engel dizileri geçilebilir mi
     node scratchpad/slicemap.mjs   # harita, ilerleme, günlük ödül serisi
     node scratchpad/slicewall.mjs  # içerik kaçıncı bölümde tükeniyor
+    node scratchpad/slicemine.mjs  # mayınlar geçilebilir mi
+    node scratchpad/slblade.mjs    # bıçak nasıl görünüyor (kare çeker)
 
 `window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceMap`, `sliceDaily`,
 `sliceStart`, `sliceSetTarget`, `sliceAutoPlay`, `sliceGive`, `sliceRevive`,
@@ -202,9 +204,13 @@ ayarın üçü de sonlu ve `scratchpad/slicewall.mjs` nerede durduklarını öl�
 
 | ölçü | tavana çıktığı bölüm | tavan |
 |---|---|---|
-| parça havuzu (`PIECES`) | **5** | altı parça, en yüksek `minLevel` 5 |
+| parça havuzu (`PIECES`) | **18** | dokuz parça, en yüksek `minLevel` 18 |
 | parkur boyu | **12** | `Math.min(24 + n * 2, 48)` yuva → 165.8 |
 | hız | **17** | `Math.min(8 + (n - 1) * 0.45, 15)` |
+
+Havuz 5'te doluyordu; mayın (8), mengene (12) ve salınım (18) eklenerek 18'e
+taşındı. Boy ve hız tavanları yerinde — oradan sonrası hâlâ aynı, ama artık
+üç parça daha geç geliyor.
 
 17'den sonra meyve ~43, demir ~3.5, boy 165.8, hız 15. Ölçüm 30. bölüme
 kadar gidiyor ve son sekiz bölümün hepsi aynı bantta: **30. bölüm 17.
