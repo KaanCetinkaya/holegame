@@ -143,7 +143,12 @@ const CLIPS = [
   // Kumsal en parlak zemin ve ikonun görünümü; yoğunluğu orta ama oyunun
   // kendini tanıttığı kare bu.
   { id: 'beach',  pattern: 'Pyramid', note: 'Beach · birinci bölüm — 277' },
+  // Gadget Shop'un fayans zemini üstünde halka halka dizilmiş tahta. Voxel
+  // olan Blocks'la aynı tema ama bambaşka görünüyor: orada her şey kutu,
+  // burada sıradan meyveler eş merkezli çemberler kuruyor.
+  { id: 'orbits', pattern: 'Orbits',  note: 'Gadget Shop · fayans zemin, halka düzen — 279' },
 ];
+
 
 // Oyunun saatini sahteleyen katman. Sayfadaki her şeyden önce çalışması
 // gerekiyor, yoksa oyun gerçek rAF'a çoktan abone olmuş olur.

@@ -454,6 +454,7 @@ açıldı ama o Hole'du, bu oyun değil. Sayı doğru olsun.)
 | 28 Eyl | 47 | bar | |
 | 29 Eyl | 48 | space | |
 | 30 Eyl | 49 | boss | |
+| 1 Eki | 50 | orbits | |
 
 Bir gün atlarsan numarayı da atla — takvim günü sayılıyor, gönderi değil.
 Anlatı yalan söylemeye başladığı gün biter.
@@ -547,6 +548,20 @@ every 10th level ends in one giant fruit. you cannot take it early.
 
 #indiedev #solodev #gamedev #bossfight #mobilegaming
 ```
+
+**8. orbits.mp4** — ekran yazısı: `rings, not rows`
+```
+day 50 of building my own mobile game 🕳️
+
+the fruit is laid out in rings. the hole starts in the middle of them.
+
+#indiedev #solodev #gamedev #satisfying #oddlysatisfying
+```
+
+Bu klip Kaan'ın telefonda gördüğü tahtadan çıktı: 51. bölüm, **Orbits** deseni,
+Gadget Shop'un fayans zemini. Blocks'la aynı tema ama bambaşka görünüyor —
+orada her şey voxel kutu, burada sıradan meyveler eş merkezli çemberler
+kuruyor. Sekiz klip sekiz gün eder.
 
 ### Neye bakılacak
 
