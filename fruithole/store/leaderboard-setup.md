@@ -173,6 +173,28 @@ görünüyor, çünkü giriş hakkı olmayan hesaba Google hiçbir ekran göster
 
 İkisi de konsol ayarı; yeni bir `versionCode` harcamıyor.
 
+### 24 Eylül 2026 — Gmail listede, `tanı` hâlâ 4
+
+Kaan Gmail'ini **Play Games Services test kullanıcılarına ekledi** ve teşhis
+ekranı hâlâ aynı şeyi diyor: `giriş hayır`, `cevap {"signedIn":false}`,
+`tanı 4`. Yani yukarıdaki iki maddeden birincisi elendi.
+
+Kalan: **yapılandırma yayınlanmamış.** Play Games Services'ın kendi
+yayınlama adımı var ve kapalı testten ayrı; yayınlanmamış bir yapılandırmaya
+test kullanıcısı bile giremiyor ve cihazda görünen şey tam olarak bu —
+hiçbir ekran açılmadan `signedIn:false`.
+
+Elenmeyen iki ayrıntı daha, ikisi de bedava kontrol:
+
+* **Telefondaki Play Games hesabı** listeye eklenen Gmail mi? Cihazda birden
+  fazla hesap varsa Play Games başka birini kullanıyor olabilir ve sonuç
+  aynı görünür.
+* Liste değişikliği **hemen yayılmıyor**; Google birkaç saate kadar
+  gecikebiliyor.
+
+Bu satır burada, çünkü "Gmail'i ekledin mi" sorusu iki kez soruldu. Konsolun
+durumu buradan okunamıyor, yani yazılmazsa her oturumda yeniden sorulur.
+
 **Bu, teşhis ekranının kendini ödediği ikinci sefer.** Aynı ekran olmadan
 elde yine "düğme çıkmıyor" kalırdı ve arada SHA-1'i yeniden üretip bir
 derleme daha yüklemek dururdu — ki durum kodu onun doğru olduğunu zaten
