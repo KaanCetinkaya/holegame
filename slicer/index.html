@@ -153,6 +153,30 @@
   .day .d { font-size: 10px; font-weight: 800; opacity: .7; }
   .day .c { font-size: 11px; font-weight: 800; color: #ffd23f; margin-top: 2px; }
 
+  /* Hedef listesi. Dükkânla aynı dili konuşuyor: kutu, ad, sayı. */
+  #goalList { width: 100%; max-width: 360px; margin-bottom: 16px;
+              max-height: 52vh; overflow-y: auto; }
+  .goal { display: flex; align-items: center; gap: 9px; text-align: left;
+          background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.14);
+          border-radius: 13px; padding: 8px 10px; margin-bottom: 7px; }
+  /* Alınabilir olan sarı: listede gözle taranacak tek şey o. */
+  .goal.ready { border-color: #ffd23f; background: rgba(255,210,63,.16); cursor: pointer; }
+  .goal.taken { opacity: .5; }
+  .goal .ic { font-size: 20px; flex: none; width: 26px; text-align: center; }
+  .goal .tx { flex: 1 1 auto; min-width: 0; }
+  .goal .nm { font-size: 12px; font-weight: 800; }
+  .goal .ds { font-size: 10px; opacity: .72; }
+  /* İlerleme çubuğu: "100'den kaçı" sorusunun cevabı sayıdan önce burada. */
+  .goal .bar { height: 4px; border-radius: 3px; margin-top: 4px;
+               background: rgba(255,255,255,.14); overflow: hidden; }
+  .goal .bar i { display: block; height: 100%; background: #ffd23f; }
+  .goal .pv { flex: none; font-size: 11px; font-weight: 800; color: #ffd23f; }
+  /* Menüdeki düğmede bekleyen ödül varken bir nokta. */
+  #goalsBtn { position: relative; }
+  #goalsBtn.alert::after { content: ''; position: absolute; top: 7px; right: 11px;
+    width: 9px; height: 9px; border-radius: 50%; background: #ff4d5e;
+    border: 2px solid #1b1230; }
+
   /* Sürüm yazısı. Menünün sol alt köşesinde, okunacak kadar ama dikkat
      çekmeyecek kadar soluk. */
   #verTag { position: absolute; left: 12px; bottom: 12px;
@@ -185,6 +209,7 @@
       <button class="btn" id="playBtn">PLAY</button>
       <button class="btn alt" id="mapBtn">LEVELS</button>
       <button class="btn alt" id="shopBtn">BLADES</button>
+      <button class="btn alt" id="goalsBtn">GOALS</button>
     </div>
     <span id="verTag">dev</span>
   </div>
@@ -204,6 +229,15 @@
     <div id="dayRow"></div>
     <div class="stack">
       <button class="btn" id="dOk">🪙 <span id="dCoins">0</span> COLLECT</button>
+    </div>
+  </div>
+
+  <div class="screen" id="goals">
+    <h2>Goals</h2>
+    <p>Every one of them pays. Take the coins when it lights up.</p>
+    <div id="goalList"></div>
+    <div class="stack">
+      <button class="btn alt" id="goalsClose">CLOSE</button>
     </div>
   </div>
 
@@ -1387,8 +1421,11 @@ let cutCount = 0, totalCuts = 0, streak = 0, runBest = 0;
 let runCoins = 0, revived = false, hitItem = null, paidOut = false;
 let last = performance.now();
 
+// Haritaya eklenmeyen bir ekran açılmıyor: showScreen hepsini gizliyor ve
+// hiçbirini göstermiyor, yani düğme çalışıyor gibi görünüp boş bir sahne
+// bırakıyor. Hedef ekranı bir tur böyle unutuldu.
 const screens = { menu: $('menu'), map: $('map'), shop: $('shop'), pause: $('pause'),
-                  over: $('over'), clear: $('clear') };
+                  over: $('over'), clear: $('clear'), goals: $('goals') };
 function showScreen(name) {
   for (const k in screens) screens[k].classList.toggle('show', k === name);
   $('hud').classList.toggle('show', name === null);
@@ -1400,6 +1437,50 @@ function refreshMenu() {
   $('mStars').textContent = totalStars();
   $('mCombo').textContent = bestCombo;
   $('mCoins').textContent = '🪙 ' + coins;
+  refreshGoalsDot();
+}
+
+// ---------------------------------------------------------------------
+// Goals
+// ---------------------------------------------------------------------
+function renderGoals() {
+  const wrap = $('goalList');
+  wrap.innerHTML = '';
+  for (const g of GOALS) {
+    if (!goalVisible(g)) continue;
+    const alindi = !!goalTaken[g.id];
+    const hazir = goalClaimable(g);
+    const simdi = Math.min(g.at(), g.goal);
+    const el = document.createElement('div');
+    el.className = 'goal' + (hazir ? ' ready' : '') + (alindi ? ' taken' : '');
+    el.innerHTML = `
+      <div class="ic">${g.icon}</div>
+      <div class="tx">
+        <div class="nm">${g.name}</div>
+        <div class="ds">${g.desc}</div>
+        <div class="bar"><i style="width:${(simdi / g.goal * 100).toFixed(0)}%"></i></div>
+      </div>
+      <div class="pv">${alindi ? '✓' : hazir ? '🪙 ' + g.pay : simdi + ' / ' + g.goal}</div>`;
+    if (hazir) el.onclick = () => takeGoal(g);
+    wrap.appendChild(el);
+  }
+}
+
+function takeGoal(g) {
+  if (!goalClaimable(g)) return;
+  goalTaken[g.id] = true;
+  saveGoals();
+  coins += g.pay;
+  store.set('slicerush_coins', coins);
+  sfx.clear();
+  refreshMenu();
+  renderGoals();
+}
+
+// Menüdeki nokta. Alınacak bir şey varken yanıyor; hedef ekranını hiç
+// açmamış bir oyuncu da ödülün orada beklediğini görüyor.
+function refreshGoalsDot() {
+  $('goalsBtn').classList.toggle('alert', anyGoalClaimable());
 }
 
 // ---------------------------------------------------------------------
@@ -1475,6 +1556,57 @@ function renderMap() {
 // day and pay nothing.
 const DAILY = [30, 45, 65, 95, 140, 200, 300];
 const dayNumber = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+// ---------------------------------------------------------------------
+// Hedefler
+// ---------------------------------------------------------------------
+// Oyunun meta katmanı yoktu: bölüm geçiliyor, para birikiyor, bıçak
+// alınıyor ve orada bitiyordu. Bir daha açmak için sebep, ilerlemenin
+// görünür olmasından geçiyor — sayılar tutuluyor ama hiçbir yerde
+// toplanmıyordu.
+//
+// Ömür boyu sayaçlar. Tur içi sayaçlardan ayrı: `cutCount` bir turun,
+// `stats.cuts` hepsinin.
+let stats = store.get('slicerush_stats', { cuts: 0, runs: 0, cleared: 0, coins: 0 });
+const saveStats = () => store.set('slicerush_stats', stats);
+
+// Alınmış hedefler. Ödül iki kez ödenmesin diye ayrı tutuluyor — hedefin
+// kendisi sağlanmış olarak kalıyor, ödülü bir kez veriliyor.
+let goalTaken = store.get('slicerush_goals', {});
+const saveGoals = () => store.set('slicerush_goals', goalTaken);
+
+// Hedefler. Her biri bir sayıyı okuyor ve para ödüyor.
+//
+// Ödüller bıçak fiyatlarına göre ayarlandı (300 / 900 / 2200 / 5000 /
+// 11000): hepsini toplamak bir bıçak eder, yani hedefler dükkânın yerini
+// almıyor, ona bir başlangıç veriyor.
+const GOALS = [
+  { id: 'cut100',   icon: '🔪', name: 'First hundred',  desc: 'Cut 100 things',
+    goal: 100,  at: () => stats.cuts,       pay: 200 },
+  { id: 'cut1000',  icon: '🗡️', name: 'Thousand cuts',  desc: 'Cut 1000 things',
+    goal: 1000, at: () => stats.cuts,       pay: 900,  after: 'cut100' },
+  { id: 'combo10',  icon: '🔥', name: 'Chain of ten',   desc: 'Hit an x10 combo',
+    goal: 10,   at: () => bestCombo,        pay: 300 },
+  { id: 'combo25',  icon: '💥', name: 'Unbroken',       desc: 'Hit an x25 combo',
+    goal: 25,   at: () => bestCombo,        pay: 800,  after: 'combo10' },
+  { id: 'lvl10',    icon: '🏁', name: 'Tenth level',    desc: 'Reach level 10',
+    goal: 10,   at: () => maxLevel,         pay: 400 },
+  { id: 'lvl25',    icon: '🚩', name: 'Deep runner',    desc: 'Reach level 25',
+    goal: 25,   at: () => maxLevel,         pay: 1200, after: 'lvl10' },
+  { id: 'stars30',  icon: '⭐', name: 'Star hunter',    desc: 'Earn 30 stars',
+    goal: 30,   at: () => totalStars(),     pay: 700 },
+  { id: 'blades3',  icon: '🛠️', name: 'Collector',      desc: 'Own 3 blades',
+    goal: 3,    at: () => ownedBlades.length, pay: 600 },
+  { id: 'day7',     icon: '🎁', name: 'Seven days',     desc: 'Reach a 7 day streak',
+    goal: 7,    at: () => dayStreak,        pay: 1000 },
+];
+
+// Zincirin ikinci halkası, birincisi alınmadan görünmüyor: dokuz hedefin
+// hepsini birden göstermek listeyi yapılacaklar listesine çeviriyor.
+const goalVisible = g => !g.after || goalTaken[g.after];
+const goalDone = g => g.at() >= g.goal;
+const goalClaimable = g => goalVisible(g) && goalDone(g) && !goalTaken[g.id];
+const anyGoalClaimable = () => GOALS.some(goalClaimable);
+
 let dayLast    = store.get('slicerush_dayLast', 0);
 let dayStreak  = store.get('slicerush_dayStreak', 0);
 let dayPending = 0;
@@ -1534,12 +1666,20 @@ function bankCoins(mult) {
   paidOut = true;
   const got = runCoins * mult;
   coins += got;
+  stats.coins += got;
+  saveStats();
   store.set('slicerush_coins', coins);
   refreshMenu();
   return got;
 }
 
 function endRun(ok) {
+  // Ömür boyu sayaçlar, turun iyi ya da kötü bitmesinden bağımsız: kesilen
+  // kesilmiştir. Hedeflerin okuduğu yer burası.
+  stats.cuts += cutCount;
+  stats.runs += 1;
+  if (ok) stats.cleared += 1;
+  saveStats();
   if (ok) {
     const pct = totalCuts ? cutCount / totalCuts : 0;
     const stars = pct >= 0.9 ? 3 : pct >= 0.7 ? 2 : pct >= 0.4 ? 1 : 0;
@@ -1625,6 +1765,8 @@ $('mapBtn').onclick       = () => { showScreen('map'); renderMap(); };
 $('mapClose').onclick     = () => showScreen('menu');
 $('shopBtn').onclick      = () => { renderShop(); showScreen('shop'); };
 $('shopClose').onclick    = () => showScreen('menu');
+$('goalsBtn').onclick     = () => { renderGoals(); showScreen('goals'); };
+$('goalsClose').onclick   = () => showScreen('menu');
 
 // Continue after a crash. The bar that was hit is taken off the course and
 // the blade is nudged past where it stood — dropping the player back in
@@ -1920,6 +2062,21 @@ window.sliceMeta = () => ({
   blade: activeBlade, owned: [...ownedBlades],
   reach: BLADES[activeBlade].reach,
 });
+// Hedeflerin durumu — dışarıdan doğrulamak için.
+window.sliceGoals = () => ({
+  stats: { ...stats },
+  list: GOALS.filter(goalVisible).map(g => ({
+    id: g.id, at: g.at(), goal: g.goal, pay: g.pay,
+    done: goalDone(g), taken: !!goalTaken[g.id], claimable: goalClaimable(g),
+  })),
+  gizli: GOALS.filter(g => !goalVisible(g)).map(g => g.id),
+  nokta: $('goalsBtn').classList.contains('alert'),
+});
+window.sliceTakeGoal = id => {
+  const g = GOALS.find(x => x.id === id);
+  if (g) takeGoal(g);
+  return window.sliceGoals();
+};
 window.sliceGive = n => { coins += n; store.set('slicerush_coins', coins); refreshMenu(); };
 window.sliceRevive = () => $('reviveBtn').click();
 window.sliceDouble = () => $('dblBtn').click();

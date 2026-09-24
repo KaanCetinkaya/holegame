@@ -191,6 +191,7 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
     node scratchpad/slicewall.mjs  # içerik kaçıncı bölümde tükeniyor
     node scratchpad/slicemine.mjs  # mayınlar geçilebilir mi
     node scratchpad/slblade.mjs    # bıçak nasıl görünüyor (kare çeker)
+    node scratchpad/slicegoals.mjs # hedefler: sayma, ödeme, zincir, ekran
 
 `window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceMap`, `sliceDaily`,
 `sliceStart`, `sliceSetTarget`, `sliceAutoPlay`, `sliceGive`, `sliceRevive`,
@@ -243,9 +244,33 @@ Sürüm yazısı menünün sol alt köşesinde. Kaynakta `dev`, gerçek numaray�
 `build-www.mjs` `app-version.json`'dan yazıyor — "güncelleme telefona indi
 mi" sorusunun tek cevabı o.
 
+## Hedefler
+
+Oyunun meta katmanı yoktu: bölüm geçiliyor, para birikiyor, bıçak alınıyor ve
+orada bitiyordu. Sayılar zaten tutuluyordu ama hiçbir yerde toplanmıyordu.
+
+Dokuz hedef, her biri bir sayıyı okuyor ve para ödüyor. Ödüller bıçak
+fiyatlarına göre ayarlandı (300 / 900 / 2200 / 5000 / 11000): hepsi toplanınca
+bir bıçak ediyor — yani hedefler dükkânın yerini almıyor, ona başlangıç
+veriyor.
+
+**Zincirin ikinci halkası birincisi alınmadan görünmüyor.** Dokuz satırı
+birden göstermek listeyi yapılacaklar listesine çeviriyor; altısı görünüyor,
+üçü sırasını bekliyor.
+
+Ömür boyu sayaçlar (`slicerush_stats`) tur içi sayaçlardan ayrı: `cutCount`
+bir turun, `stats.cuts` hepsinin.
+
+### Ekranı haritaya eklemeyi unutma
+
+`showScreen` yalnızca `screens` haritasındaki ekranları tanıyor. Haritada
+olmayan bir ad verilince **hepsini gizliyor ve hiçbirini göstermiyor** —
+düğme çalışıyor gibi görünüp boş bir sahne bırakıyor. Hedef ekranı bir tur
+böyle unutuldu ve testler bunu görmedi, çünkü hepsi probe okuyordu.
+`slicegoals.mjs` artık DOM'a da bakıyor.
+
 ## Eksikler
 
 - AdMob uygulaması açılmadı; test reklam kimlikleri kullanılıyor
   (`AD_UNITS.rewarded` ve `patch-manifest.mjs` → `slicer.appId`)
-- Başarım yok (günlük ödül var, hedef listesi yok)
 - Telefonda hiç denenmedi
