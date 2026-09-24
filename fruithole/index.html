@@ -1829,11 +1829,31 @@ async function submitDailyScore(score) {
   } catch (e) { }
 }
 
+// Tablo açma denemesinin sonucu. Burada tutulmak zorunda, çünkü ekranda
+// hiçbir şey olmaması iki ayrı şey demek olabiliyor: giriş tamamlanmadı, ya
+// da tablo açılamadı. İkisi de aynı görünüyor.
+//
+// Bu `catch (e) { }` idi — hata tamamen yutuluyordu. 24 Eylül'de hesap seçme
+// ekranı çıktı, "Devam"a basıldı ve sonrasında **hiçbir şey olmadı**; elde
+// bakılacak tek bir iz yoktu. Yutulan bir hata, hata ayıklanamayan bir hata.
+let _boardErr = '';
 async function openLeaderboard() {
-  if (!gamesReady()) return;
+  if (!gamesReady()) { _boardErr = 'giriş yok, tablo istenmedi'; return; }
   try {
     await _Games.showLeaderboard({ leaderboardId: LEADERBOARD_ID });
-  } catch (e) { }
+    _boardErr = 'showLeaderboard sorunsuz döndü';
+  } catch (e) {
+    _boardErr = 'showLeaderboard: ' + String((e && (e.message || e.errorMessage)) || e);
+    // Tek tablo açılmadıysa bütün tabloları dene: kimliğin yanlış olmasıyla
+    // eklentinin hiç açamaması aynı görünüyor, bu ikisini ayırıyor.
+    try {
+      await _Games.showAllLeaderboards();
+      _boardErr += ' · showAllLeaderboards açıldı (kimlik şüpheli)';
+    } catch (e2) {
+      _boardErr += ' · showAllLeaderboards: ' +
+        String((e2 && (e2.message || e2.errorMessage)) || e2);
+    }
+  }
 }
 
 gamesInit();
@@ -8772,6 +8792,7 @@ const APP_VERSION = 'dev';
     if (_gamesProbe) h += row('tanı', _gamesProbe, /geçti/.test(_gamesProbe));
     h += row('tablo id', LEADERBOARD_ID || '(boş)', !!LEADERBOARD_ID);
     h += row('🏆 düğme', yn(gamesReady()), gamesReady());
+    if (_boardErr) h += row('tablo', _boardErr, /sorunsuz/.test(_boardErr));
 
     h += '<div class="grp">MAĞAZA</div>';
     h += row('Purchases', yn(!!_Purchases), !!_Purchases);
