@@ -158,15 +158,23 @@ ekleme.
 | farm "POV: …the harvest has nowhere to go" | 19 Eyl 21:12 | 9 sn | 281 | 2.30 sn | %26 | %7.0 | 0 |
 | **tractor "The hole only grows by eating…"** | 20 Eyl 20:00 | 9 sn | 283 | **4.42 sn** | **%49** | **%12.2** | 2 |
 | **shop "Nothing here is too heavy. Only too big"** | 21 Eyl 22:07 | 9 sn | **395** | **3.79 sn** | **%42** | **%14.4** | 1 |
-| drive "The cars are bigger than the hole" | 22 Eyl 22:29 | 9 sn | 365 | — | — | — | 2 |
+| **drive "The cars are bigger than the hole"** | 22 Eyl 22:29 | 9 sn | 365 | **3.96 sn** | **%44** | **%12.1** | 2 |
 
 İzlenme ve beğeni sütunları 22 Eylül'de tazelendi; ortalama izlenme sütunu
 ilk ölçümden.
 
-**Yeni kurgu ikinci kez doğrulandı.** İki yeni kurgu klibi %49 ve %42
-izletme, %12.2 ve %14.4 tamamlanma aldı; üç eski klip %26/%22/%18 ve
-%7.0/%6.3/%5.4'te kaldı. Aradaki fark iki kat ve **iki ölçümde de aynı
-yönde** — tek bir videonun şansı değil.
+**Yeni kurgu üç kez doğrulandı ve iş bitti.**
+
+| | izletme | tamamlanma |
+|---|---|---|
+| yeni kurgu (tractor, shop, drive) | %49, %42, %44 | %12.2, %14.4, %12.1 |
+| eski kurgu (farm, boss, #1) | %26, %22, %18 | %7.0, %6.3, %5.4 |
+
+Üç ölçüm, üç farklı tahta, aynı bant. İzletme iki katına çıktı, tamamlanma
+iki katına çıktı, ve dağılım dar — yani bu bir şans değil, kurgunun kendisi.
+
+Klip tarafında ayarlanacak bir şey kalmadı sayılır. Bundan sonra oynayacak
+olan şey videonun dışında (aşağıda, "Altı video").
 
 **Saat de yazılıyor, yalnızca gün değil.** Bir kez "bugün attık mı" sorusuna
 dosya tarihinden cevap vermeye çalıştım — `shop.mp4`'ün üretilme saatinden.

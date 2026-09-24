@@ -52,20 +52,34 @@ const check = (ok, ad, not = '') => {
 
 // Deliği bir devin üstüne koyup yutturmak: gerçek parmakla sürmek
 // konteynerde zamanlamaya bağlı olurdu ve GPU yok.
-const yut = await pg.evaluate(() => window.fruitHoleEatGiant());
+const yut = await pg.evaluate(() => {
+  const r = window.fruitHoleEatGiant();
+  // Etiket bu çağrının içinde yaratılıyor; ölçüm de burada, arada hiç
+  // zaman geçmeden.
+  window.__payOku = () => ({
+    etiket: document.querySelectorAll('.payup').length,
+    metin: [...document.querySelectorAll('.payup')].map(e => e.textContent),
+    konum: [...document.querySelectorAll('.payup')].map(e => ({
+      l: parseFloat(e.style.left), t: parseFloat(e.style.top),
+    })),
+    w: innerWidth, h: innerHeight,
+  });
+  window.__payAnlik = window.__payOku();
+  return r;
+});
 if (!yut) { console.log('  bu tahtada dev yok'); }
 else console.log(`  dev yarıçapı ${yut.r}, ağız ${yut.agiz} -> yutuldu: ${yut.yutuldu}`);
 
-// Oyunun kendi karesini bir süre döndür ki yeme kontrolü çalışsın.
-await pg.waitForTimeout(1500);
-const d = await pg.evaluate(() => ({
-  etiket: document.querySelectorAll('.payup').length,
-  metin: [...document.querySelectorAll('.payup')].map(e => e.textContent),
-  konum: [...document.querySelectorAll('.payup')].map(e => ({
-    l: parseFloat(e.style.left), t: parseFloat(e.style.top),
-  })),
-  w: innerWidth, h: innerHeight,
-}));
+// Etiket **yutmayla aynı çağrıda** okunuyor, bekleyerek değil.
+//
+// Önce 1.5 saniye bekleniyordu ve test tam koşusunda düştü, tek başına
+// koşulunca geçti: etiket 1.6 saniyede kendini siliyor, yani bekleme yük
+// altında yarışı kaybediyor. Bu dosyanın zaten yazdığı ders — "olay sayfanın
+// içinden, zamanlamaya bağlı değil" — kendi içinde tutulmamıştı.
+//
+// Silinmenin ölçümü aşağıda, ayrı ve bilerek bekleyerek yapılıyor: orada
+// beklemek testin konusu.
+const d = await pg.evaluate(() => window.__payAnlik);
 console.log(`  ekranda ${d.etiket} etiket: ${d.metin.join(', ') || '-'}`);
 check(d.etiket > 0, 'dev yutulunca ödeme etiketi çıkıyor');
 // Sayı on iki katı olmalı: zincir çarpanı 1-5, yani 12 ile 60 arası.
