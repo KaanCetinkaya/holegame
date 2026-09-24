@@ -768,7 +768,14 @@
   #diag { position: fixed; inset: 0; z-index: 90; display: none;
     background: rgba(10,12,18,.94); color: #e8ecf4;
     font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace;
-    padding: 18px 14px; overflow-y: auto; -webkit-user-select: text; user-select: text; }
+    overflow-y: auto; -webkit-user-select: text; user-select: text;
+    /* Alt boşluk reklam şeridini ve sistem çubuğunu hesaba katıyor.
+       Düz 18px'ti ve ekranın en altındaki düğmeler — "Sign in again",
+       "Open leaderboard", "Copy" — banner'ın ve gezinme çubuğunun altında
+       kalıyordu. Kaydırınca da çıkmıyorlar, çünkü sayfanın sonu oraya
+       denk geliyor: yani teşhis ekranının en önemli düğmesine, tam da
+       girişin bozuk olduğunu söylediği ekranda, basılamıyordu. */
+    padding: 18px 14px calc(18px + var(--adPad) + var(--navPad)); }
   #diag.show { display: block; }
   #diag h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: .06em; }
   #diag .grp { margin: 14px 0 4px; color: #8fb7ff; letter-spacing: .08em; }
@@ -777,7 +784,16 @@
   #diag .row span { flex: 1 1 auto; word-break: break-all; }
   #diag .ok { color: #6ee7a8; }
   #diag .no { color: #ff8b8b; }
-  #diag .acts { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+  /* Düğmeler panelin altına yapışık duruyor, metnin sonunda değil.
+     Telefonda reklam şeridinin altında kalıyorlardı ve tam da girişin
+     bozuk olduğunu söyleyen ekranda "Sign in again"e basılamıyordu.
+     İlk denemede alt boşluk büyütüldü; ölçüm onun yetmediğini gösterdi —
+     eski boşlukla da düğme şeridin üstündeydi, yani sebep boşluk değil,
+     düğmenin kaydırılabilir metnin en sonunda olması. Yapışık bir satır
+     içerik ne kadar uzarsa uzasın aynı yerde duruyor. */
+  #diag .acts { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap;
+    position: sticky; bottom: 0; padding: 10px 0 2px;
+    background: linear-gradient(180deg, rgba(10,12,18,0), rgba(10,12,18,.94) 22%); }
   #diag button { font: inherit; padding: 9px 14px; border-radius: 8px;
     border: 1px solid #44506a; background: #1d2433; color: #e8ecf4; }
   /* Item standing on a plinth, label on a chip beneath it, and the whole
