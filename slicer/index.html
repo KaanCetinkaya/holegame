@@ -410,12 +410,21 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 // Halves are trimmed with per-material planes, which only work with local
 // clipping switched on.
 renderer.localClippingEnabled = true;
+// Ton eşlemesi hiç kurulmamıştı, yani sahne doğrudan lineer değerlerle
+// çiziliyordu: parlak yerler beyaza yapışıyor, gölgeler düz bir mora
+// oturuyor ve arada renk kalmıyordu. ACES ikisini de toparlıyor — asıl
+// kazanç meyvelerin kendi renklerinde, çünkü koridor zaten koyu.
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.25;
 app.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 // The fog is what stops the far end of the course being a wall of objects:
 // things fade in rather than popping, and it hides where the floor stops.
-scene.fog = new THREE.Fog('#3a2568', 26, 64);
+// Sis rengi ufkun rengi olmalı. #3a2568 koyu mordu ve gökyüzü orada
+// pembe-turuncu: uzaktaki nesneler arkalarındaki gökyüzüne değil, başka bir
+// renge karışıyordu ve mesafe okunmuyordu.
+scene.fog = new THREE.Fog('#6b4a7a', 30, 78);
 
 const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.1, 160);
 
@@ -547,6 +556,24 @@ beyond.rotation.x = -Math.PI / 2;
 beyond.position.y = -0.06;
 scene.add(beyond);
 
+// Koridorun iki kenarında ışık şeridi.
+//
+// Koridor düz bir zemin levhasıydı ve nerede bittiği ancak dokudaki soluk
+// çizgilerden anlaşılıyordu — yani hız da, şeridin sınırı da okunmuyordu.
+// İki ince parlak şerit ikisini birden veriyor: kenar belli oluyor ve
+// altından akıp giden çizgi hızı anlatıyor. Ton eşlemesinin dışında,
+// parlaklığını kaybetmesin.
+const RAIL_MAT = new THREE.MeshBasicMaterial({ color: '#7c5cff', fog: true });
+RAIL_MAT.toneMapped = false;
+const rails = [];
+for (const sx of [-10, 10]) {
+  const r = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 600), RAIL_MAT);
+  r.rotation.x = -Math.PI / 2;
+  r.position.set(sx, 0.015, 0);
+  scene.add(r);
+  rails.push(r);
+}
+
 // Sized and placed so the bottom edge lands on the floor: the hills live in
 // the bottom of the texture, and with the plane centred higher they sat
 // underground and the horizon was a flat colour band.
@@ -626,10 +653,17 @@ function buildBlade(spec) {
   // kutuydu: bıçağın kendisi 0.13 kalınlığındayken kenar ondan iki kat
   // kalındı, yani ekranda bıçağın altına yapışmış ayrı bir beyaz tuğla gibi
   // duruyordu. İnceltildi ve bıçağın kalınlığına oturtuldu.
-  const edge = new THREE.Mesh(
-    new THREE.BoxGeometry(1.42, 0.05, 0.16),
-    new THREE.MeshStandardMaterial({
-      color: '#ffffff', emissive: spec.edge, emissiveIntensity: 1.5, roughness: 0.1 }));
+  // Kesen kenar ton eşlemesinin dışında.
+  //
+  // ACES parlak uçları sıkıştırıyor ve bu doğru — meyvelerin rengi onunla
+  // düzeldi — ama ışık **yayan** bir yüzeyi de kısıyor: kenar camgöbeği
+  // parlaklığını kaybedip gri bir çubuğa döndü. `toneMapped = false` onu
+  // eğrinin dışında bırakıyor, yani kenar yine kendi rengiyle parlıyor.
+  // Gölgelenmeye de ihtiyacı yok: parlayan bir şeyin üstüne düşen ışık
+  // görünmez.
+  const edgeMat = new THREE.MeshBasicMaterial({ color: spec.edge });
+  edgeMat.toneMapped = false;
+  const edge = new THREE.Mesh(new THREE.BoxGeometry(1.42, 0.05, 0.16), edgeMat);
   edge.position.set(0.16, -0.235, 0);
   edge.rotation.z = 0.17;
   roll.add(edge);
@@ -870,6 +904,9 @@ const fuseMat = new THREE.MeshStandardMaterial({ color: '#6b5636', roughness: 0.
 // Fitilin ucu ışık almadan da parlasın: sahnedeki ışık koridorun sonunda
 // zayıflıyor ve tam da uzaktan görülmesi gereken şey bu.
 const wickMat = new THREE.MeshBasicMaterial({ color: '#ffb02e' });
+// Fitil de ton eşlemesinin dışında: uzaktan görülmesi gereken tek sıcak
+// nokta o ve ACES onu da kısıyor.
+wickMat.toneMapped = false;
 
 function makeMine() {
   const g = new THREE.Group();
@@ -1950,6 +1987,7 @@ function tick(now) {
   sun.target.position.set(0, 1.5, -dist - 5);
   floor.position.z = -dist;
   beyond.position.z = -dist;
+  for (const r of rails) r.position.z = -dist;
   floor.material.map.offset.y = dist * 0.05;
   sky.position.z = -dist - 58;
 

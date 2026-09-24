@@ -53,6 +53,11 @@ Every cut earns coins. Steel, copper, emerald, sapphire, gold, obsidian —
 each reaches a little further than the last, which is worth having in the
 tight gaps late on.
 
+🎯 GOALS
+Nine of them, and every one pays coins: a hundred cuts, an unbroken chain, a
+week of coming back. The second half of each pair only appears once you have
+taken the first.
+
 ⭐ STARS
 One, two or three per level depending on how much you cut. Clearing
 everything is always possible — the question is the line you take. The level
@@ -104,7 +109,8 @@ güvenliği formunu yalanlar.
 - `4-clear.png` — bölüm sonu, üç yıldız
 - `5-blades.png` — bıçak dükkânı
 - `6-map.png` — bölüm haritası, yarısı yıldızlı
-- `7-menu.png` — ana menü
+- `7-goals.png` — hedefler, ikisi alınmayı bekliyor
+- `8-menu.png` — ana menü
 
 Telefon görüntüleri 1080×1920, `tablet/` içindekiler 1440×2560. Aramada
 yalnızca ilk iki kare görünüyor, ve o ikisi oyunun ne olduğunu anlatmalı:

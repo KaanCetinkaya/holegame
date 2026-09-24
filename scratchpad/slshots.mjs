@@ -92,7 +92,23 @@ const SHOTS = [
       await pg.waitForTimeout(400);
       return null;
     }, menu: true },
-  { name: '7-menu', lvl: 1, cap: null, run: async () => null, menu: true },
+  // Hedef ekranı: mağazada "burada toplanacak bir şey var" diyen tek kare.
+  // İlerleme göstermek, tür içindeki rakiplerin ayrıştığı yer (PAZAR.md).
+  { name: '7-goals', lvl: 1, cap: 'Goals that pay you back',
+    seed: {
+      slicerush_level: '14',
+      slicerush_combo: '12',
+      slicerush_coins: '1450',
+      slicerush_blades: JSON.stringify([0, 1]),
+      slicerush_stars: JSON.stringify({ 1:3, 2:3, 3:2, 4:3, 5:2, 6:3, 7:1, 8:2, 9:3, 10:2, 11:3, 12:1, 13:2 }),
+      slicerush_stats: JSON.stringify({ cuts: 412, runs: 24, cleared: 18, coins: 1450 }),
+    },
+    run: async pg => {
+      await pg.evaluate(() => document.getElementById('goalsBtn').click());
+      await pg.waitForTimeout(400);
+      return null;
+    }, menu: true },
+  { name: '8-menu', lvl: 1, cap: null, run: async () => null, menu: true },
 ];
 
 async function shoot(dir, w, h, scale) {
