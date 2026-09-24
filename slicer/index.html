@@ -520,8 +520,32 @@ scene.add(sky);
 // course could no longer nose it up and down.
 function buildBlade(spec) {
   const g = new THREE.Group();
+  // Yatırma burada, parçaları saran bir grupta yapılıyor.
+  //
+  // İlk deneme `bladeModel.rotation.x` ile denendi ve bıçağı **yukarı
+  // doğrulttu**: Euler sırası yüzünden X dönüşü yaw'dan önce uygulanıyor,
+  // yani modelin uzun ekseni etrafında değil dünyanın X'i etrafında
+  // dönüyordu. İç grup bu belirsizliği ortadan kaldırıyor — parçalar burada
+  // kendi uzun ekseni (+X) etrafında yatıyor, dışarıdaki yaw sonra onu
+  // koridora doğrultuyor.
+  const roll = new THREE.Group();
+  // Yatırma denendi ve **geri alındı**. 0.5 radyanda bıçağın yüzü gerçekten
+  // görünüyor, ama onunla birlikte parlayan kenarın da geniş yüzü kameraya
+  // dönüyor ve ekranda bıçak değil, bıçağın üstüne yapışmış kocaman bir cam
+  // levha duruyor (ölçüm: scratchpad/slblade.mjs, blade-sonra3-oyun.png).
+  // Sıfırda bırakıldı; grup yerinde duruyor çünkü asıl belirsizlik dönüş
+  // ekseniydi ve onu çözen şey bu.
+  roll.rotation.x = 0;
+  g.add(roll);
+  // Metalness 0.55'ti ve sahnede ortam haritası yok. Metal, yansıtacak bir
+  // şey olmadığında parlamıyor — **kararıyor**: çelik kısım mor zeminin
+  // önünde neredeyse siyah bir üçgen olarak duruyordu ve oyuncunun gördüğü
+  // şey bıçak değil, altındaki parlak kutuydu. Pürüz artırılıp metal
+  // düşürüldü, üstüne hafif bir kendi ışığı kondu: karanlık koridorda
+  // silueti taşıyan şey o.
   const steel = new THREE.MeshStandardMaterial({
-    color: spec.steel, roughness: 0.14, metalness: 0.55 });
+    color: spec.steel, roughness: 0.34, metalness: 0.12,
+    emissive: spec.steel, emissiveIntensity: 0.18 });
 
   // Kalınlık 0.06'ydı. Kamera bıçağın arkasında duruyor, yani ona neredeyse
   // tam profilden bakıyor: o kalınlıkta ekranda birkaç piksellik bir çizgi
@@ -543,18 +567,23 @@ function buildBlade(spec) {
   b.computeVertexNormals();
   const blade = new THREE.Mesh(b, steel);
   blade.castShadow = true;
-  g.add(blade);
+  roll.add(blade);
 
   // A glowing edge along the cutting side. From behind, a bare steel wedge
   // was a grey sliver against a purple sky and you could not tell what
   // height it was at — which is the only thing the player is steering.
+  // Kesen kenar. Eskiden 0.08 yüksekliğinde ama **0.30 derinliğinde** bir
+  // kutuydu: bıçağın kendisi 0.13 kalınlığındayken kenar ondan iki kat
+  // kalındı, yani ekranda bıçağın altına yapışmış ayrı bir beyaz tuğla gibi
+  // duruyordu. İnceltildi ve bıçağın kalınlığına oturtuldu.
   const edge = new THREE.Mesh(
-    new THREE.BoxGeometry(1.42, 0.08, 0.3),
+    new THREE.BoxGeometry(1.42, 0.05, 0.16),
     new THREE.MeshStandardMaterial({
-      color: '#ffffff', emissive: spec.edge, emissiveIntensity: 1.1, roughness: 0.1 }));
-  edge.position.set(0.16, -0.23, 0);
+      color: '#ffffff', emissive: spec.edge, emissiveIntensity: 1.5, roughness: 0.1 }));
+  edge.position.set(0.16, -0.235, 0);
   edge.rotation.z = 0.17;
-  g.add(edge);
+  roll.add(edge);
+
 
   const grip = new THREE.Mesh(
     new THREE.CylinderGeometry(0.17, 0.2, 0.7, 12),
@@ -562,13 +591,13 @@ function buildBlade(spec) {
   grip.rotation.z = Math.PI / 2;
   grip.position.set(-0.86, 0, 0);
   grip.castShadow = true;
-  g.add(grip);
+  roll.add(grip);
   const collar = new THREE.Mesh(
     new THREE.CylinderGeometry(0.22, 0.22, 0.13, 12),
     new THREE.MeshStandardMaterial({ color: '#d8b64a', roughness: 0.3, metalness: 0.6 }));
   collar.rotation.z = Math.PI / 2;
   collar.position.set(-0.52, 0, 0);
-  g.add(collar);
+  roll.add(collar);
   return g;
 }
 const blade = new THREE.Group();
@@ -1061,12 +1090,19 @@ const PIECES = [
   // iki yuvalık mesafede tırmanabileceği kadar. Yeterli yer yoksa parça
   // mayın koymuyor ve sıradan bir sıraya dönüyor — demirdeki `bar()` false
   // dönünce ne yapılıyorsa aynısı. Geçilemez bir tahta zorluk değil, hata.
-  { id: 'mine', minLevel: 8, weight: 2, build(c) {
+  { id: 'mine', minLevel: 8, weight: 3, build(c) {
       // Mayının yarıçapı + en uzun bıçağın menzili + pay. Bunun altındaki
       // bir kaçış, kaçış değil.
       const GEREKEN = MINE_R + 0.22 + 0.34;
       const yer = c.reach(SPACING * 2) * 0.85;
       if (yer < GEREKEN) { for (let k = 0; k < 4; k++) c.fruit(c.y); return c.y; }
+      // Arkasından kaçış hattı gelemeyecekse mayın hiç konmuyor.
+      //
+      // `c.fruit()` yuva bitince sessizce geri dönüyor, yani mayın parkurun
+      // son nesnesi olarak kalabiliyordu: oyuncunun geldiği hattın tam
+      // üstünde, arkasında gidilecek hiçbir şey yok. Ölçüldü — 9, 14 ve 17.
+      // bölümlerde çıktı. Oyuncu açısından bu zorluk değil, uyarısız ölüm.
+      if (c.kalan() < 7) { for (let k = 0; k < 4; k++) c.fruit(c.y); return c.y; }
 
       const orta = (LANE_LOW + LANE_HIGH) / 2;
       const yön = c.y > orta ? -1 : 1;
@@ -1081,6 +1117,21 @@ const PIECES = [
       c.skip(1);                       // tırmanacak yer
       c.mine(c.y);
       for (let k = 0; k < 3 + ((Math.random() * 3) | 0); k++) c.fruit(kaçış);
+
+      // 14. bölümden sonra ikinci mayın: kaçış hattı da güvenli değil, geri
+      // dönmek gerekiyor. İçerik 17. bölümde tükeniyordu (ölçüm:
+      // scratchpad/slicewall.mjs) — parça havuzu 5'te doluyor, boy 12'de,
+      // hız 17'de duruyor ve sonrası birbirinin aynı. Aynı parçanın zor
+      // hâli, yeni parça yazmadan o duvarı ileri itiyor.
+      if (c.lvl >= 14 && c.kalan() >= 5) {
+        const geri = c.clamp(kaçış - yön * Math.min(yer, GEREKEN + 0.5));
+        if (Math.abs(geri - kaçış) >= GEREKEN) {
+          c.skip(1);
+          c.mine(kaçış);
+          for (let k = 0; k < 2 + ((Math.random() * 3) | 0); k++) c.fruit(geri);
+          return geri;
+        }
+      }
       return kaçış;
     } },
   // Nefes: kısa bir boşluk. Her yuvası dolu bir parkur okunmuyor.
@@ -1109,6 +1160,13 @@ function buildCourse(n) {
   // kuralını tek yerde tutuyor.
   const c = {
     y: (LANE_LOW + LANE_HIGH) / 2,
+    // Parçalar bölüm numarasını görüyor: geç bölümlerde aynı parçanın daha
+    // zor bir hâlini kurabilmeleri için. Eskiden yalnızca `pool` filtresi
+    // vardı, yani bir parça ya vardı ya yoktu — arası yoktu.
+    lvl: n,
+    // Kaç yuva kaldı. Mayın gibi "arkasından kaçış hattı gelmesi şart" olan
+    // parçaların, yer kalmadığında hiç başlamaması için.
+    kalan: () => slots - slot,
     clamp: v => Math.max(LANE_LOW, Math.min(LANE_HIGH, v)),
     // Bıçak bu kadar parkurda ne kadar yükselebilir?
     reach: span => (span / runSpeed) * CLIMB,
@@ -1699,6 +1757,12 @@ window.sliceAutoPlay = () => {
   if (fruit) { window.sliceSetTarget(fruit.y); return 'cut'; }
   return null;
 };
+// Parça havuzu: hangi parça hangi bölümden itibaren ve hangi ağırlıkta.
+// İçerik duvarını ölçen araç bunu elle yazıyordu ("havuz 5. bölümde doluyor")
+// ve mayın 8. bölümde eklenince sessizce yanlış oldu.
+window.slicePieces = () => PIECES.map(p => ({
+  id: p.id, minLevel: p.minLevel, weight: p.weight,
+}));
 // Mayınların yeri — dizinin geçilebilir olduğunu dışarıdan doğrulamak için.
 window.sliceMines = () => items.filter(i => i.kind === 'mine').map(i => ({
   d: +i.d.toFixed(2), y: +i.y.toFixed(2), r: i.r,

@@ -22,7 +22,7 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
 
-const ÖRNEK = 6;
+const ÖRNEK = 5;
 const SON = 30;
 
 const srv = createServer((req, res) => {
@@ -54,23 +54,26 @@ for (let n = 1; n <= SON; n++) {
       window.sliceStart(lvl);
       const p = window.sliceProbe();
       const demir = window.sliceBars().length;
-      return { nesne: p.items, demir, meyve: p.items - demir, boy: p.courseEnd };
+      const mayin = window.sliceMines ? window.sliceMines().length : 0;
+      return { nesne: p.items, demir, mayin, meyve: p.items - demir - mayin,
+               boy: p.courseEnd };
     }, n));
   }
   const ort = k => +(örnekler.reduce((s, o) => s + o[k], 0) / ÖRNEK).toFixed(1);
   // Hız oyunun kendi formülünden; probe vermiyor ve tur sırasında ölçmek
   // zamanlamaya bağlı olurdu.
   satır.push({
-    n, meyve: ort('meyve'), demir: ort('demir'), boy: ort('boy'),
+    n, meyve: ort('meyve'), demir: ort('demir'), mayin: ort('mayin'), boy: ort('boy'),
     hız: +Math.min(8 + (n - 1) * 0.45, 15).toFixed(2),
   });
 }
 
-console.log(' blm | meyve | demir | parkur boyu | hız');
-console.log('-----+-------+-------+-------------+------');
+console.log(' blm | meyve | demir | mayın | parkur boyu | hız');
+console.log('-----+-------+-------+-------+-------------+------');
 for (const r of satır) {
   console.log(` ${String(r.n).padStart(3)} | ${String(r.meyve).padStart(5)} | ` +
-    `${String(r.demir).padStart(5)} | ${String(r.boy).padStart(11)} | ${r.hız.toFixed(2)}`);
+    `${String(r.demir).padStart(5)} | ${String(r.mayin).padStart(5)} | ` +
+    `${String(r.boy).padStart(11)} | ${r.hız.toFixed(2)}`);
 }
 
 // Duvar: bir ölçü artık kıpırdamıyorsa orada durmuş demektir. Son beş

@@ -146,8 +146,14 @@ check(oldu.length === 0, 'mayınlı bölümler bitirilebiliyor', oldu.join(' | '
 // --- 4. mayını kesmek turu bitiriyor mu ---
 console.log('\n4) Mayına değince ne oluyor');
 const son = await pg.evaluate(async () => {
-  window.sliceStart(12);
-  const m = window.sliceMines()[0];
+  // Tahta rastgele: 12. bölümde her kurulumda mayın çıkmıyor. Bir tane
+  // bulana kadar yeniden kur — testin konusu mayına değince ne olduğu,
+  // mayının o kurulumda çıkıp çıkmadığı değil.
+  let m = null;
+  for (let k = 0; k < 25 && !m; k++) {
+    window.sliceStart(12 + (k % 8));
+    m = window.sliceMines()[0] || null;
+  }
   if (!m) return { yok: true };
   // Bıçağı mayının hizasına kilitle ve oraya kadar sür.
   await new Promise(res => {
