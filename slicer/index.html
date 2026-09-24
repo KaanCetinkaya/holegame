@@ -1123,10 +1123,18 @@ const PIECES = [
       // scratchpad/slicewall.mjs) — parça havuzu 5'te doluyor, boy 12'de,
       // hız 17'de duruyor ve sonrası birbirinin aynı. Aynı parçanın zor
       // hâli, yeni parça yazmadan o duvarı ileri itiyor.
-      if (c.lvl >= 14 && c.kalan() >= 5) {
+      if (c.lvl >= 14 && c.kalan() >= 6) {
         const geri = c.clamp(kaçış - yön * Math.min(yer, GEREKEN + 0.5));
         if (Math.abs(geri - kaçış) >= GEREKEN) {
-          c.skip(1);
+          // İki yuva, bir değil.
+          //
+          // Kaçış mesafesi `reach(SPACING * 2)` ile hesaplanıyor, yani iki
+          // yuvalık tırmanma varsayılıyor — ama ikinci mayına yalnızca bir
+          // yuva bırakılıyordu. Tavan hızında bu 1.23 birim tırmanma
+          // demek ve gereken ayrım 0.98: kâğıt üstünde yetiyor, bıçağın
+          // hedefi gecikmeli takip etmesiyle yetmiyor. Ölçüldü — mayınları
+          // bilen otomatik sürücü 14, 26 ve 30. bölümlerde mayına öldü.
+          c.skip(2);
           c.mine(kaçış);
           for (let k = 0; k < 2 + ((Math.random() * 3) | 0); k++) c.fruit(geri);
           return geri;
@@ -1155,6 +1163,14 @@ function buildCourse(n) {
 
   let slot = 0;
   let lastBar = null;               // { d, gapY } — where the last bar forced it
+  // Bölüm başına mayın tavanı.
+  //
+  // Ağırlık artırılıp 14'ten sonra çift mayın eklenince bir tahtada **on**
+  // mayın çıkabildi ve orada mayınları bilen sürücü bile öldü. Mayın karar
+  // kattırsın diye var; her yuvada bir tane olması karar değil ezber
+  // gerektiriyor.
+  const MAYIN_TAVAN = 4;
+  let mayinSay = 0;
 
   // Parçaların kullandığı kalem. Yuva sayacını, son engeli ve ulaşılabilirlik
   // kuralını tek yerde tutuyor.
@@ -1234,7 +1250,8 @@ function buildCourse(n) {
     },
     // Mayın. Bir yuva yiyor ve o yükseklikte durulamaz hâle getiriyor.
     mine(at) {
-      if (slot >= slots) return false;
+      if (slot >= slots || mayinSay >= MAYIN_TAVAN) return false;
+      mayinSay++;
       const d = slot++ * SPACING;
       const mesh = makeMine();
       mesh.position.set(0, at, -d);
@@ -1754,19 +1771,35 @@ window.sliceAutoPlay = () => {
   // çöp olurdu.
   if (mine) {
     const tehlike = MINE_R + 0.14 + BLADES[activeBlade].reach + 0.25;
-    // Mayından sonraki ilk meyve zaten kaçış hattında duruyor; parçanın
-    // kurduğu çizgi o, uydurmaya gerek yok.
+    // Yakındaki **bütün** mayınlar hesaba katılıyor, yalnızca en yakını
+    // değil.
+    //
+    // Eskiden sadece en yakın mayına bakılıyordu ve 14. bölümden sonra
+    // ikinci mayın ilkinin kaçış hattına konuyor: birinciden kaçmak
+    // ikincinin üstüne sürmek demekti. Ölçüldü — mayınları bilen sürücü
+    // 14, 17, 26 ve 30. bölümlerde mayına öldü, demire değil.
+    const yakinlar = items.filter(it =>
+      it.kind === 'mine' && it.d >= dist + 0.6 && it.d < dist + LOOK);
+    const güvenli = y => yakinlar.every(m => Math.abs(y - m.y) > tehlike);
+
     let sonraki = null;
     for (const it of items) {
       if (it.kind !== 'fruit' || it.cut || it.d <= mine.d) continue;
       if (!sonraki || it.d < sonraki.d) sonraki = it;
     }
-    if (sonraki && Math.abs(sonraki.y - mine.y) > tehlike) {
+    if (sonraki && güvenli(sonraki.y)) {
       window.sliceSetTarget(sonraki.y);
       return 'avoid';
     }
-    window.sliceSetTarget(mine.y > (LANE_LOW + LANE_HIGH) / 2
-      ? LANE_LOW + 0.25 : LANE_HIGH - 0.25);
+    // Meyve hattı da güvenli değilse şeridi tara ve güvenli bir yükseklik
+    // bul; hiçbiri değilse mayınlardan en uzak noktaya git.
+    let enIyi = null, enIyiPay = -1;
+    for (let y = LANE_LOW + 0.2; y <= LANE_HIGH - 0.2; y += 0.2) {
+      const pay = yakinlar.reduce((m, o) => Math.min(m, Math.abs(y - o.y)), 99);
+      if (pay > enIyiPay) { enIyiPay = pay; enIyi = y; }
+    }
+    window.sliceSetTarget(enIyi != null ? enIyi
+      : (mine.y > (LANE_LOW + LANE_HIGH) / 2 ? LANE_LOW + 0.25 : LANE_HIGH - 0.25));
     return 'avoid';
   }
   if (fruit) { window.sliceSetTarget(fruit.y); return 'cut'; }
