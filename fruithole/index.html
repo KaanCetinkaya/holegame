@@ -878,6 +878,10 @@
 
   <div id="pause" class="screen">
     <h1>Paused</h1>
+    <!-- Grafik bağlamı kaybolduğunda görünüyor. Oyuncu bunu görmeden
+         Resume'a basarsa boş bir tahtaya dönüyor ve süre işlemeye devam
+         ediyor — telefonda tam olarak bu oldu. -->
+    <p id="glNotice" hidden>Graphics restarting… the board will come back.</p>
     <div class="menuRow">
       <button class="btn" id="resumeBtn">Resume</button>
     </div>
@@ -2822,6 +2826,10 @@ function pauseGame() {
 
 function resumeGame() {
   if (state !== 'paused') return;
+  // Bağlam yokken oyuna dönülmüyor. Geri dönülen şey boş bir tahta olur ve
+  // saat işlediği için bölüm orada kaybedilir; düğme de zaten kapalı ama
+  // klavye ya da bir sonraki değişiklik onu atlayabilir.
+  if (glLost) return;
   pauseEl.classList.remove('show');
   boosterBarEl.classList.add('show');
   sizeTagEl.classList.add('show');
@@ -3384,6 +3392,38 @@ let glLost = false;
 // sefere tahmin etmemek için: teşhis ekranı okuyor. Sıfır kalıyorsa beyaz
 // ekranın sebebi bağlam kaybı değil, başka yere bakmak gerekiyor.
 let _glLostN = 0, _glLostAt = '';
+// Geri gelmesi için kaç kez zorlandı. 24 Eylül 2026'da 48. bölümde kayıp
+// gerçekten oldu (sayaç bunu yakaladı) ve tahta bir daha gelmedi: bağlamın
+// kendiliğinden geri verilmesi bekleniyordu, Android WebView vermedi.
+let _glTries = 0, _glTimer = 0;
+
+// Panel yazısı ve Resume düğmesi. Bağlam yokken oyuna dönmek, boş bir
+// tahtaya dönmek demek — ve saat işlemeye devam ettiği için bölüm orada
+// kaybediliyor. Telefonda görülen ekran tam olarak buydu: Size 1, 2/137,
+// meyve yok, süre akıyor.
+function refreshGlNotice() {
+  const not = document.getElementById('glNotice');
+  const btn = document.getElementById('resumeBtn');
+  if (not) not.hidden = !glLost;
+  if (btn) {
+    btn.disabled = glLost;
+    btn.style.opacity = glLost ? '.45' : '';
+  }
+}
+
+// Bağlamı geri almayı dene, birkaç kez.
+//
+// `preventDefault()` tarayıcıya "geri verebilirsin" diyor ama vermeye
+// zorlamıyor. forceContextRestore() isteyen taraf oluyor. Sonsuz denemiyor:
+// dördüncüden sonra cihaz gerçekten veremiyordur ve her deneme bir GPU
+// ayırma girişimi, yani ısrar durumu kötüleştirebilir.
+function glRetry() {
+  if (!glLost || _glTries >= 4) return;
+  _glTries++;
+  try { renderer.forceContextRestore(); } catch (e) {}
+  _glTimer = setTimeout(glRetry, 1500);
+}
+
 renderer.domElement.addEventListener('webglcontextlost', (e) => {
   e.preventDefault();                 // without this it is never coming back
   glLost = true;
@@ -3392,14 +3432,24 @@ renderer.domElement.addEventListener('webglcontextlost', (e) => {
   // Stop the clock. Losing a level to a blank screen is the one outcome
   // worse than the blank screen.
   if (state === 'playing') pauseGame();
+  refreshGlNotice();
+  _glTries = 0;
+  clearTimeout(_glTimer);
+  _glTimer = setTimeout(glRetry, 700);
 }, false);
 renderer.domElement.addEventListener('webglcontextrestored', () => {
   glLost = false;
+  clearTimeout(_glTimer);
+  _glTries = 0;
   // Every texture and geometry in this game is generated in code and still
   // held in memory, so three re-uploads them on the next draw. What it does
   // not do is reset its own cached idea of the GL state.
   if (renderer.resetState) renderer.resetState();
   resize();
+  // Bir kareyi hemen çiz: oyuncu duraklama ekranındayken arkadaki tahtanın
+  // geri geldiğini görmeli, Resume'a basıp öğrenmemeli.
+  try { renderer.render(scene, camera); } catch (err) {}
+  refreshGlNotice();
 }, false);
 
 const scene = new THREE.Scene();
@@ -4005,6 +4055,25 @@ const setVoxelField = on => { voxelField = on; };
 // most wants you to tell apart looked the same from overhead. On the voxel
 // board both parts are boxes: a turned cylinder next to a voxel apple looks
 // like a mistake.
+// Sap ve yaprak her çağrıda birebir aynı çıkıyor, o yüzden bir kez kurulup
+// paylaşılıyorlar.
+//
+// Eskiden her dev elma için yeniden kuruluyorlardı ve tahta temizlenirken
+// `fieldGroup.clear()` onları yalnızca sahne ağacından çıkarıyordu — GPU'da
+// kalıyorlardı. Ölçüldü: yirmi bölüm kurmak 2190 geometri yaratıyordu ve
+// sayı hiç düşmüyordu; 1-60 arası bir tur 2295, aynı turu ikinci kez oynamak
+// 4211. Telefonda bunun sonu bağlam kaybı: 48. ve 50. bölümde tahta bomboş
+// kaldı, çünkü sürücü bağlamı öldürdü. Dolayısıyla bu satırlar bir
+// düzenleme değil, o hatanın kendisi.
+const APPLE_STALK_GEO = {
+  düz: new THREE.CylinderGeometry(0.05, 0.075, 0.42, 6),
+  vox: new THREE.BoxGeometry(0.11, 0.42, 0.11),
+};
+const APPLE_LEAF_GEO = {
+  düz: new THREE.SphereGeometry(0.26, 8, 6),
+  vox: new THREE.BoxGeometry(0.46, 0.09, 0.24),
+};
+
 function makeWholeApple() {
   const g = new THREE.Group();
   const add = m => { m.castShadow = true; g.add(m); return m; };
@@ -4012,13 +4081,11 @@ function makeWholeApple() {
   add(new THREE.Mesh(vox ? VOX_WHOLE.lychee : WHOLE_GEO.lychee,
                      vox ? VOX_MAT : WHOLE_MAT.lychee));
   const stalk = add(new THREE.Mesh(
-    vox ? new THREE.BoxGeometry(0.11, 0.42, 0.11)
-        : new THREE.CylinderGeometry(0.05, 0.075, 0.42, 6), STALK_MAT));
+    vox ? APPLE_STALK_GEO.vox : APPLE_STALK_GEO.düz, STALK_MAT));
   stalk.position.set(0, 0.98, 0);
   stalk.rotation.z = 0.22;
   const leaf = add(new THREE.Mesh(
-    vox ? new THREE.BoxGeometry(0.46, 0.09, 0.24) : new THREE.SphereGeometry(0.26, 8, 6),
-    LEAF_MAT));
+    vox ? APPLE_LEAF_GEO.vox : APPLE_LEAF_GEO.düz, LEAF_MAT));
   if (!vox) leaf.scale.set(1, 0.22, 0.55);
   leaf.position.set(0.3, 1.02, 0.04);
   leaf.rotation.y = 0.5;
@@ -8999,8 +9066,25 @@ let sizeArc = null;
 const HOLE_EDGE_MAT = new THREE.MeshStandardMaterial({ color: '#1d2230', roughness: 0.7 });
 const ARC_SEGMENTS = 40;
 
+// Bir grubun içindeki geometrileri GPU'dan bırak.
+//
+// `scene.remove()` yalnızca sahne ağacından çıkarıyor; geometri kartta
+// duruyor. Malzemelere dokunulmuyor — buradakilerin hepsi paylaşımlı sabitler
+// (HOLE_LIP_MAT, MAGNET_EDGE_MAT…), onları bırakmak bir sonraki bölümü
+// bozardı.
+function freeGeoms(root) {
+  if (!root) return;
+  root.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+}
+
 function buildHole() {
-  if (holeGroup) scene.remove(holeGroup);
+  // Her bölümde yeniden kuruluyor ve yedi geometri üretiyor. Eskisi
+  // bırakılmadığı için GPU'daki geometri sayısı bölüm bölüm tırmanıyordu:
+  // 1. bölümde 13, 30'da 282, 60'ta 572 — hiç düşmeden. Bağlam kaybının
+  // 46-50. bölümlerde gelip 1. bölümde hiç gelmemesinin sebebi buydu;
+  // tek bir tahtanın ağırlığı değil, oynandıkça biriken bellek.
+  if (holeGroup) { scene.remove(holeGroup); freeGeoms(holeGroup); }
+  if (magnetRing) { scene.remove(magnetRing); freeGeoms(magnetRing); }
   holeGroup = new THREE.Group();
 
   // The collar proper: a flat annulus, lit and shadowed like the ground it
@@ -11687,6 +11771,21 @@ window.fruitHoleFrameSplit = () => {
 // ads themselves only exist inside the native shell, so this is the only way
 // to see in a browser what the menu looks like with one.
 window.fruitHoleAdPad = px => { setAdPad(px); return getComputedStyle(document.documentElement).getPropertyValue('--adPad'); };
+// GPU'da kaç kaynak duruyor.
+//
+// Bağlam kaybı 46-50. bölümlerde geliyor ve hiç 1. bölümde gelmiyor: yani
+// tek bir tahtanın ağırlığı değil, oynandıkça **biriken** bir şey. Bunu
+// tahminle tartışmak yerine okuyan bir yer olsun diye burada. Sayılar bölüm
+// bölüm yükseliyorsa sızıntı var; sabitse sebep başka.
+// Sahnenin kendisi. Bellek sızıntısı ararken "bu geometriyi kim kurdu"
+// sorusunun cevabı ancak three'nin sınıfına ulaşarak alınabiliyor ve oyun
+// THREE'yi modül olarak aldığı için dışarıda global yok.
+window.fruitHoleScene = () => scene;
+window.fruitHoleMem = () => ({
+  geometries: renderer.info.memory.geometries,
+  textures: renderer.info.memory.textures,
+  programs: renderer.info.programs ? renderer.info.programs.length : -1,
+});
 // What a level costs to draw. Voxel fruit are boxes, and boxes are easy to
 // spend a million triangles on without noticing — this is the number that
 // says whether the look is affordable on a phone.
