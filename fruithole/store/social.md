@@ -237,6 +237,43 @@ yapılacak (%42 / %14.4) — aynı bölüm, aynı süre, tek farkı açılış.
 
 `--cold 0` açılışı kapatıyor, yani eski kurgu hâlâ üretilebiliyor.
 
+### Tür liderlerinin TikTok hesabı yok, ve sebebi var
+
+24 Eylül'de bakıldı: **All in Hole, Hole Stars, Attack Hole, Hole Em All** —
+hiçbirinin oyun hesabı yok. Bir eksiklik değil, bilinçli bir fark.
+
+All in Hole günde **50 bin dolar üstü** IAP yapıyor, Attack Hole **100 milyon**
+indirme aldı. O rakamlar organik TikTok'tan gelmiyor, **satın alınan
+trafikten** geliyor. Homa ve Moon Active'in UA bütçesi var; bizim yok, ve bu
+dosyanın en başındaki hesap zaten onu söylüyor (indirme başına ~$0.16 değer,
+$0.50-2.00 maliyet).
+
+Yani **kopyalanacak bir oyun kitabı yok.** Tür liderleri bizim yaptığımız şeyi
+yapmak zorunda değil.
+
+### Kliplerimiz reklam kreatifi, organik içerik değil
+
+Bulgunun asıl söylediği bu, ve 2.300 izlenmeye karşı 6 profil görüntülemesini
+tam olarak açıklıyor.
+
+Reklam kreatifi birini durdurup iki saniyede satmak zorunda: sessiz, hızlı,
+yüzsüz, tek bir mekanik. Bizim klipler tam olarak bu — ve o işi iyi yapıyorlar
+(%44 izletme, %12 tamamlanma).
+
+Organik içerik başka bir iş yapıyor: **takip ettirmek.** Ve oyun tarafında
+organik büyüyen hesaplar neredeyse her zaman **geliştiricinin kendisi** —
+"şöyle bir oyun yapıyorum", "on dördüncü gün", ekranda yazı, arada yüz ya da
+ses. İzleyici oyunu değil **yapan kişiyi** takip ediyor, oyun da onunla
+geliyor.
+
+Bizde o taraf hiç yok: altı videonun altısı da sessiz, anlatısız, imzasız
+oynanış. Marka artık klibin altında (24 Eylül) ama bir kişi yok.
+
+**Yapılabilecek deneme:** aynı oynanış, üstüne geliştirici anlatısı. Klip
+üretimi zaten bir komut; değişen tek şey açıklamanın ve ekran yazısının
+kimden geldiği. Bu, klibin içinde değil **yükleme anında** kurulan bir şey,
+yani tamamen Kaan'ın elinde.
+
 ### 2.300 izlenme, 6 profil görüntüleme
 
 24 Eylül, hesap paneli, son yedi gün:
