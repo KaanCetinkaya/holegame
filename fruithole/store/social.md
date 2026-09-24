@@ -445,15 +445,15 @@ doğrulandı, ona dokunulmuyor.
 Gün 1 = **13 Ağustos 2026**, Fruit Hole'un ilk commit'i. (Depo 9 Ağustos'ta
 açıldı ama o Hole'du, bu oyun değil. Sayı doğru olsun.)
 
-| tarih | gün | klip |
-|---|---|---|
-| 24 Eyl | 43 | beach |
-| 25 Eyl | 44 | farm |
-| 26 Eyl | 45 | shop |
-| 27 Eyl | 46 | drive |
-| 28 Eyl | 47 | bar |
-| 29 Eyl | 48 | space |
-| 30 Eyl | 49 | boss |
+| tarih | gün | klip | durum |
+|---|---|---|---|
+| 24 Eyl | 43 | beach | **atıldı** |
+| 25 Eyl | 44 | farm | |
+| 26 Eyl | 45 | shop | |
+| 27 Eyl | 46 | drive | |
+| 28 Eyl | 47 | bar | |
+| 29 Eyl | 48 | space | |
+| 30 Eyl | 49 | boss | |
 
 Bir gün atlarsan numarayı da atla — takvim günü sayılıyor, gönderi değil.
 Anlatı yalan söylemeye başladığı gün biter.
