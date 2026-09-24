@@ -195,6 +195,27 @@ Elenmeyen iki ayrıntı daha, ikisi de bedava kontrol:
 Bu satır burada, çünkü "Gmail'i ekledin mi" sorusu iki kez soruldu. Konsolun
 durumu buradan okunamıyor, yani yazılmazsa her oturumda yeniden sorulur.
 
+### Ama `tanı 4` tek başına bir arıza değil
+
+Yukarıdaki bütün çıkarım bir şeyi atlıyordu ve düzeltilmesi gerek:
+**teşhis ekranındaki cevap açılıştaki _sessiz_ girişin cevabı.**
+
+`gamesInit()` `_Games.signIn()` çağırıyor, eklentinin varsayılanı `silent:
+true`, ve sessiz giriş o oyuna **daha önce hiç girmemiş** bir oyuncuda
+reddedilir — tasarım gereği. Yani `{"signedIn":false}` + `tanı 4`, bozuk bir
+yapılandırmanın değil, henüz giriş yapmamış bir oyuncunun beklenen cevabı.
+
+Gerçek giriş `signInInteractive()`'de (`silent: false`) ve ona yalnızca
+teşhis ekranındaki **"Sign in again"** düğmesinden ulaşılıyor.
+
+Ve o düğmeye 24 Eylül'e kadar **basılamıyordu**: reklam şeridiyle sistem
+çubuğunun altında kalıyordu (düzeltildi, düğme satırı artık panele yapışık).
+Yani "giriş neden olmuyor" sorusu tartışılırken, girişi başlatan tek yol
+denenmemişti.
+
+**Sıradaki adım konsol değil, o düğme.** Hesap seçme ekranı açılıyorsa sorun
+yok; hiç açılmıyorsa yapılandırmanın yayınlanmamış olması adayı geri gelir.
+
 **Bu, teşhis ekranının kendini ödediği ikinci sefer.** Aynı ekran olmadan
 elde yine "düğme çıkmıyor" kalırdı ve arada SHA-1'i yeniden üretip bir
 derleme daha yüklemek dururdu — ki durum kodu onun doğru olduğunu zaten
