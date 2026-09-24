@@ -117,6 +117,22 @@ let slicer = readFileSync(r('slicer', 'index.html'), 'utf8');
 slicer = swap(slicer,
   '"three": "https://esm.sh/three@0.161.0"',
   '"three": "./three.module.js"', 'slicer/index.html');
+
+// Sürüm yazısı ve reklam anahtarı, Fruit Hole'daki ile aynı gerekçeyle.
+//
+// Bu iki satır burada yoktu ve ikisi de sessiz kaybediyordu: LIVE_ADS yalnızca
+// Fruit Hole'u çeviriyordu, yani `npm run aab:slicer` ile üretilen bir mağaza
+// paketi **test reklamı** taşıyor ve hiç gelir getirmiyordu. Derleme başarılı
+// olduğu için bunu ancak AdMob panelinde aylar sonra sıfır görerek fark
+// ederdin.
+const SV = JSON.parse(readFileSync(r('app-version.json'), 'utf8')).slicer;
+slicer = swap(slicer, "const APP_VERSION = 'dev';",
+  `const APP_VERSION = '${SV.versionName} (${SV.versionCode})';`,
+  'slicer/index.html (APP_VERSION)');
+if (LIVE_ADS) {
+  slicer = swap(slicer, 'const ADS_TESTING = true;', 'const ADS_TESTING = false;',
+    'slicer/index.html (LIVE_ADS)');
+}
 writeFileSync(r('www-slicer', 'index.html'), slicer);
 
 if (existsSync(r('www', 'three.module.js'))) {
@@ -124,7 +140,9 @@ if (existsSync(r('www', 'three.module.js'))) {
 } else {
   console.warn('UYARI: www/three.module.js yok, www-slicer/ kütüphanesiz kaldı.');
 }
-console.log('www-slicer/index.html güncellendi (Slice Rush).');
+console.log(LIVE_ADS
+  ? 'www-slicer/index.html güncellendi (Slice Rush) — REKLAMLAR GERÇEK. Bu derlemeyi kendi telefonunda oynama, kendi reklamına tıklamak hesabı kapattırır.'
+  : 'www-slicer/index.html güncellendi (Slice Rush) — reklamlar test.');
 
 // ---- Motor Works -> www-tycoon/ ----
 mkdirSync(r('www-tycoon'), { recursive: true });
@@ -132,6 +150,13 @@ let tycoon = readFileSync(r('tycoon', 'index.html'), 'utf8');
 tycoon = swap(tycoon,
   '"three": "https://esm.sh/three@0.161.0"',
   '"three": "./three.module.js"', 'tycoon/index.html');
+
+// Motor Works'te de aynı anahtar var ve o da çevrilmiyordu. Sürüm yazısı
+// burada yok (oyunun menüsünde yeri yok), reklam anahtarı var.
+if (LIVE_ADS) {
+  tycoon = swap(tycoon, 'const ADS_TESTING = true;', 'const ADS_TESTING = false;',
+    'tycoon/index.html (LIVE_ADS)');
+}
 writeFileSync(r('www-tycoon', 'index.html'), tycoon);
 
 if (existsSync(r('www', 'three.module.js'))) {
@@ -139,7 +164,9 @@ if (existsSync(r('www', 'three.module.js'))) {
 } else {
   console.warn('UYARI: www/three.module.js yok, www-tycoon/ kütüphanesiz kaldı.');
 }
-console.log('www-tycoon/index.html güncellendi (Motor Works).');
+console.log(LIVE_ADS
+  ? 'www-tycoon/index.html güncellendi (Motor Works) — REKLAMLAR GERÇEK.'
+  : 'www-tycoon/index.html güncellendi (Motor Works) — reklamlar test.');
 
 console.log('\nSonra:');
 console.log('  npm run sync:hole        # Hole');

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -152,93 +152,100 @@
   .day.done { background: rgba(255,210,63,.16); border-color: #ffd23f; }
   .day .d { font-size: 10px; font-weight: 800; opacity: .7; }
   .day .c { font-size: 11px; font-weight: 800; color: #ffd23f; margin-top: 2px; }
+
+  /* Sürüm yazısı. Menünün sol alt köşesinde, okunacak kadar ama dikkat
+     çekmeyecek kadar soluk. */
+  #verTag { position: absolute; left: 12px; bottom: 12px;
+            font-size: 10px; font-weight: 700; letter-spacing: .04em;
+            color: rgba(255,255,255,.45); }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="hud">
-    <div class="pill" id="levelTag">BÖLÜM 1</div>
+    <div class="pill" id="levelTag">LEVEL 1</div>
     <div class="pill" id="scoreTag">🔪 0</div>
     <div class="pill" id="coinTag">🪙 0</div>
     <div class="pill" id="pauseBtn">⏸</div>
   </div>
   <div id="barWrap"><div id="bar"></div></div>
   <div id="combo"></div>
-  <div id="hint">Parmağını yukarı aşağı kaydır</div>
+  <div id="hint">Slide your finger up and down</div>
 
   <div class="screen show" id="menu">
     <h1>🔪 Slice Rush</h1>
-    <p>Bıçak kendi gidiyor. Sen sadece yüksekliğini ayarla —<br>her şeyi kes, demire çarpma.</p>
+    <p>The blade flies itself. You only set its height —<br>cut everything, miss the bars.</p>
     <div class="card">
-      <div class="row"><span>Bölüm</span><span id="mLevel">1</span></div>
-      <div class="row"><span>Toplam yıldız</span><span id="mStars">0</span></div>
-      <div class="row"><span>En iyi kombo</span><span id="mCombo">0</span></div>
-      <div class="row"><span>Kasa</span><span id="mCoins">🪙 0</span></div>
+      <div class="row"><span>Level</span><span id="mLevel">1</span></div>
+      <div class="row"><span>Total stars</span><span id="mStars">0</span></div>
+      <div class="row"><span>Best combo</span><span id="mCombo">0</span></div>
+      <div class="row"><span>Coins</span><span id="mCoins">🪙 0</span></div>
     </div>
     <div class="stack">
-      <button class="btn" id="playBtn">OYNA</button>
-      <button class="btn alt" id="mapBtn">BÖLÜMLER</button>
-      <button class="btn alt" id="shopBtn">BIÇAKLAR</button>
+      <button class="btn" id="playBtn">PLAY</button>
+      <button class="btn alt" id="mapBtn">LEVELS</button>
+      <button class="btn alt" id="shopBtn">BLADES</button>
     </div>
+    <span id="verTag">dev</span>
   </div>
 
   <div class="screen" id="map">
-    <h2>Bölümler</h2>
-    <p>Geçtiğin bölümü tekrar oynayıp yıldızını yükseltebilirsin.</p>
+    <h2>Levels</h2>
+    <p>Replay a level you have cleared to raise its stars.</p>
     <div id="mapGrid"></div>
     <div class="stack">
-      <button class="btn alt" id="mapClose">KAPAT</button>
+      <button class="btn alt" id="mapClose">CLOSE</button>
     </div>
   </div>
 
   <div class="screen" id="daily">
-    <h2>Günlük ödül 🎁</h2>
-    <p id="dStreak">1. gün</p>
+    <h2>Daily reward 🎁</h2>
+    <p id="dStreak">Day 1</p>
     <div id="dayRow"></div>
     <div class="stack">
-      <button class="btn" id="dOk">🪙 <span id="dCoins">0</span> AL</button>
+      <button class="btn" id="dOk">🪙 <span id="dCoins">0</span> COLLECT</button>
     </div>
   </div>
 
   <div class="screen" id="shop">
-    <h2>Bıçaklar</h2>
-    <p>Uzun bıçak daha erken değiyor — dar boşluklarda işe yarıyor.</p>
+    <h2>Blades</h2>
+    <p>A longer blade reaches sooner — worth having in the tight gaps.</p>
     <div id="blades"></div>
     <div class="stack">
-      <button class="btn alt" id="shopClose">KAPAT</button>
+      <button class="btn alt" id="shopClose">CLOSE</button>
     </div>
   </div>
 
   <div class="screen" id="pause">
-    <h2>Duraklatıldı</h2>
+    <h2>Paused</h2>
     <div class="stack">
-      <button class="btn" id="resumeBtn">DEVAM</button>
-      <button class="btn alt" id="quitBtn">ANA MENÜ</button>
+      <button class="btn" id="resumeBtn">RESUME</button>
+      <button class="btn alt" id="quitBtn">MAIN MENU</button>
     </div>
   </div>
 
   <div class="screen" id="over">
-    <h2 id="overTitle">Demire çarptın!</h2>
-    <p id="overSub">Bölümü baştan al.</p>
+    <h2 id="overTitle">You hit a bar!</h2>
+    <p id="overSub">Start the level again.</p>
     <div class="stack">
-      <button class="btn" id="reviveBtn">📺 REKLAM İZLE, DEVAM ET</button>
-      <button class="btn alt" id="retryBtn">TEKRAR DENE</button>
-      <button class="btn alt" id="overQuitBtn">ANA MENÜ</button>
+      <button class="btn" id="reviveBtn">📺 WATCH AD, CARRY ON</button>
+      <button class="btn alt" id="retryBtn">TRY AGAIN</button>
+      <button class="btn alt" id="overQuitBtn">MAIN MENU</button>
     </div>
   </div>
 
   <div class="screen" id="clear">
-    <h2>Bölüm bitti! 🎉</h2>
+    <h2>Level clear! 🎉</h2>
     <div class="stars" id="clearStars"></div>
     <div class="card">
-      <div class="row"><span>Kesilen</span><span id="cCut">0 / 0</span></div>
-      <div class="row"><span>En uzun kombo</span><span id="cCombo">0</span></div>
-      <div class="row"><span>Toplanan</span><span id="cCoins">🪙 0</span></div>
+      <div class="row"><span>Cut</span><span id="cCut">0 / 0</span></div>
+      <div class="row"><span>Longest combo</span><span id="cCombo">0</span></div>
+      <div class="row"><span>Collected</span><span id="cCoins">🪙 0</span></div>
     </div>
     <div class="stack">
-      <button class="btn" id="dblBtn">📺 REKLAM İZLE, ×2 AL</button>
-      <button class="btn" id="nextBtn">SONRAKİ BÖLÜM</button>
-      <button class="btn alt" id="clearQuitBtn">ANA MENÜ</button>
+      <button class="btn" id="dblBtn">📺 WATCH AD, TAKE ×2</button>
+      <button class="btn" id="nextBtn">NEXT LEVEL</button>
+      <button class="btn alt" id="clearQuitBtn">MAIN MENU</button>
     </div>
   </div>
 </div>
@@ -299,6 +306,18 @@ const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _A
 const AD_UNITS = { rewarded: 'ca-app-pub-3940256099942544/5224354917' };
 const ADS_TESTING = true;
 
+// Menünün köşesindeki sürüm yazısı. Kaynakta 'dev' duruyor, gerçek numarayı
+// build-www.mjs app-version.json'dan yazıyor — tek doğru kaynak orası.
+//
+// Fruit Hole'da bu yazı olmadan "güncelleme telefona indi mi" sorusuna cevap
+// verilemiyordu: mağaza güncellemeyi kendi zamanında indiriyor ve ekranda
+// hangi derlemenin olduğunu söyleyen hiçbir şey yoktu.
+const APP_VERSION = 'dev';
+{
+  const el = document.getElementById('verTag');
+  if (el) el.textContent = APP_VERSION === 'dev' ? 'dev' : 'v' + APP_VERSION;
+}
+
 async function adsInit() {
   if (!ADS_ON) return;
   try { await _AdMob.initialize({ initializeForTesting: ADS_TESTING }); } catch (e) {}
@@ -337,12 +356,12 @@ let activeBlade = store.get('slicerush_blade', 0);
 // tight gaps late on. One stat, because a shop of pure colours is not worth
 // saving for and two stats would need every level retuned per blade.
 const BLADES = [
-  { name: 'Çelik',   steel: '#eef3f8', edge: '#8fe4ff', grip: '#8b3f2a', price: 0,    reach: 0 },
-  { name: 'Bakır',   steel: '#e0a06a', edge: '#ffd9a0', grip: '#5c3a22', price: 300,  reach: 0.04 },
-  { name: 'Zümrüt',  steel: '#8ce0b0', edge: '#c8ffe4', grip: '#24503c', price: 900,  reach: 0.08 },
-  { name: 'Safir',   steel: '#8ab4ff', edge: '#d6e8ff', grip: '#23335c', price: 2200, reach: 0.12 },
-  { name: 'Altın',   steel: '#ffd257', edge: '#fff2b8', grip: '#6b4a10', price: 5000, reach: 0.17 },
-  { name: 'Obsidyen',steel: '#4a4f5c', edge: '#ff7ad1', grip: '#1c1f26', price: 11000, reach: 0.22 },
+  { name: 'Steel',   steel: '#eef3f8', edge: '#8fe4ff', grip: '#8b3f2a', price: 0,    reach: 0 },
+  { name: 'Copper',   steel: '#e0a06a', edge: '#ffd9a0', grip: '#5c3a22', price: 300,  reach: 0.04 },
+  { name: 'Emerald',  steel: '#8ce0b0', edge: '#c8ffe4', grip: '#24503c', price: 900,  reach: 0.08 },
+  { name: 'Sapphire',   steel: '#8ab4ff', edge: '#d6e8ff', grip: '#23335c', price: 2200, reach: 0.12 },
+  { name: 'Gold',   steel: '#ffd257', edge: '#fff2b8', grip: '#6b4a10', price: 5000, reach: 0.17 },
+  { name: 'Obsidian',steel: '#4a4f5c', edge: '#ff7ad1', grip: '#1c1f26', price: 11000, reach: 0.22 },
 ];
 const totalStars = () => Object.values(starsByLvl).reduce((a, b) => a + b, 0);
 
@@ -1136,7 +1155,7 @@ function renderShop() {
     el.innerHTML = `
       <div class="sw" style="background:linear-gradient(90deg, ${b.grip} 0 14%, ${b.steel} 14% 82%, ${b.edge})"></div>
       <div class="nm">${b.name}</div>
-      <div class="pr">${owned ? (i === activeBlade ? 'TAKILI' : 'SEÇ') : '🪙 ' + b.price}</div>`;
+      <div class="pr">${owned ? (i === activeBlade ? 'EQUIPPED' : 'EQUIP') : '🪙 ' + b.price}</div>`;
     el.onclick = () => {
       if (owned) {
         activeBlade = i;
@@ -1204,7 +1223,7 @@ function checkDaily() {
   const d = dayNumber();
   if (dayLast === d) return;
   dayPending = (d - dayLast === 1) ? Math.min(7, dayStreak + 1) : 1;
-  $('dStreak').textContent = dayPending + '. gün' + (dayPending >= 7 ? ' — en yüksek' : '');
+  $('dStreak').textContent = 'Day ' + dayPending + (dayPending >= 7 ? ' — highest' : '');
   $('dCoins').textContent = DAILY[dayPending - 1];
   $('dayRow').innerHTML = DAILY.map((c, i) =>
     `<div class="day${i < dayPending ? ' done' : ''}"><div class="d">${i + 1}</div><div class="c">${c}</div></div>`
@@ -1236,7 +1255,7 @@ function startLevel() {
   history.length = 0;
   for (const s of shards) { scene.remove(s.g); for (const m of s.mats) m.dispose(); }
   shards.length = 0;
-  $('levelTag').textContent = 'BÖLÜM ' + level;
+  $('levelTag').textContent = 'LEVEL ' + level;
   $('scoreTag').textContent = '🔪 0';
   $('coinTag').textContent = '🪙 0';
   $('bar').style.width = '0%';
@@ -1277,17 +1296,17 @@ function endRun(ok) {
     $('cCombo').textContent = runBest;
     $('cCoins').textContent = '🪙 ' + runCoins;
     $('dblBtn').disabled = false;
-    $('dblBtn').textContent = '📺 REKLAM İZLE, ×2 AL';
+    $('dblBtn').textContent = '📺 WATCH AD, TAKE ×2';
     state = 'clear';
     showScreen('clear');
     sfx.clear();
   } else {
-    $('overSub').textContent = `${cutCount} / ${totalCuts} kesildi · 🪙 ${runCoins}`;
+    $('overSub').textContent = `${cutCount} / ${totalCuts} cut · 🪙 ${runCoins}`;
     // One continue per run. Two would turn any level into a matter of
     // patience rather than steering.
     $('reviveBtn').style.display = revived ? 'none' : '';
     $('reviveBtn').disabled = false;
-    $('reviveBtn').textContent = '📺 REKLAM İZLE, DEVAM ET';
+    $('reviveBtn').textContent = '📺 WATCH AD, CARRY ON';
     state = 'over';
     showScreen('over');
     sfx.crash();
@@ -1350,9 +1369,9 @@ $('reviveBtn').onclick = async () => {
   const b = $('reviveBtn');
   if (b.disabled || revived) return;
   b.disabled = true;
-  b.textContent = 'REKLAM AÇILIYOR…';
+  b.textContent = 'OPENING AD…';
   const ok = await showRewarded();
-  if (!ok) { b.disabled = false; b.textContent = '📺 REKLAM İZLE, DEVAM ET'; return; }
+  if (!ok) { b.disabled = false; b.textContent = '📺 WATCH AD, CARRY ON'; return; }
   revived = true;
   if (hitItem) {
     scene.remove(hitItem.mesh);
@@ -1372,11 +1391,11 @@ $('dblBtn').onclick = async () => {
   const b = $('dblBtn');
   if (b.disabled) return;
   b.disabled = true;
-  b.textContent = 'REKLAM AÇILIYOR…';
+  b.textContent = 'OPENING AD…';
   const ok = await showRewarded();
   const got = bankCoins(ok ? 2 : 1);
   $('cCoins').textContent = '🪙 ' + got;
-  b.textContent = ok ? '×2 ALINDI ✓' : 'REKLAM AÇILMADI';
+  b.textContent = ok ? '×2 TAKEN ✓' : 'AD DID NOT OPEN';
 };
 $('pauseBtn').onclick     = () => { if (state === 'playing') { state = 'paused'; showScreen('pause'); } };
 $('resumeBtn').onclick    = () => { state = 'playing'; showScreen(null); last = performance.now(); };

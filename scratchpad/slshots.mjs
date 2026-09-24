@@ -36,9 +36,9 @@ async function drive(pg, until, max = 400) {
 }
 
 const SHOTS = [
-  { name: '1-cut', lvl: 4, cap: 'Kes, ikiye ayrılsın',
+  { name: '1-cut', lvl: 4, cap: 'Cut it clean in half',
     run: pg => drive(pg, p => p.shards >= 2) },
-  { name: '2-combo', lvl: 6, cap: 'Üst üste kes, kombo büyüsün',
+  { name: '2-combo', lvl: 6, cap: 'Cut without missing, grow the combo',
     run: async pg => {
       const p = await drive(pg, q => q.streak >= 6);
       // kombo yazısı görünürken yakala
@@ -52,12 +52,12 @@ const SHOTS = [
     } },
   // Demire yapışık bir kare kırmızı bir duvardan ibaret. Bir engelin
   // ilerisini, aradaki boşluk görünürken yakala.
-  { name: '3-bars', lvl: 9, cap: 'Kırmızı demire çarpma',
+  { name: '3-bars', lvl: 9, cap: 'Do not hit the red bars',
     run: pg => drive(pg, p => p.dist > 34, 160) },
   // drive() oyun bittiği anda dönüyor — 'clear' beklemek yetmiyor, çarpınca
   // da dönüyor ve kare "üç yıldız al" başlığıyla çarpma ekranını gösteriyordu.
   // Bitene kadar tekrar dene.
-  { name: '4-clear', lvl: 2, cap: 'Hepsini kes, üç yıldız al',
+  { name: '4-clear', lvl: 2, cap: 'Cut everything, take three stars',
     run: async pg => {
       for (let k = 0; k < 6; k++) {
         const p = await drive(pg, q => q.state === 'clear');
@@ -68,14 +68,31 @@ const SHOTS = [
       }
       return null;
     } },
-  { name: '5-blades', lvl: 1, cap: 'Kestikçe biriktir, bıçak al',
+  { name: '5-blades', lvl: 1, cap: 'Earn coins, buy a longer blade',
     run: async pg => {
       await pg.evaluate(() => { window.sliceGive(4000); });
       await pg.evaluate(() => document.getElementById('shopBtn').click());
       await pg.waitForTimeout(300);
       return null;
     }, menu: true },
-  { name: '6-menu', lvl: 1, cap: null, run: async () => null, menu: true },
+  // Sayı yazmıyor: bölümler tükenmiyor, buildCourse(n) her n için parkur
+  // üretiyor. Testler 1-15 arasını ölçtüğü için bir ara "on beş bölüm"
+  // yazılmıştı — mağazada tutulmayacak bir söz olurdu.
+  // Bölüm haritası oyuna sonradan girdi ve hiçbir karede yoktu. Mağazada
+  // "burada ilerleme var" diyen tek kare bu, o yüzden boş değil yarısı
+  // yıldızlanmış bir kayıtla çekiliyor.
+  { name: '6-map', lvl: 1, cap: 'Three stars on every level',
+    seed: {
+      slicerush_level: '9',
+      slicerush_stars: JSON.stringify({ 1: 3, 2: 3, 3: 2, 4: 3, 5: 2, 6: 3, 7: 1, 8: 2 }),
+      slicerush_coins: '1850',
+    },
+    run: async pg => {
+      await pg.evaluate(() => document.getElementById('mapBtn').click());
+      await pg.waitForTimeout(400);
+      return null;
+    }, menu: true },
+  { name: '7-menu', lvl: 1, cap: null, run: async () => null, menu: true },
 ];
 
 async function shoot(dir, w, h, scale) {
@@ -84,10 +101,21 @@ async function shoot(dir, w, h, scale) {
       viewport: { width: w / scale, height: h / scale }, deviceScaleFactor: scale });
     const errs = [];
     pg.on('pageerror', e => errs.push(String(e)));
-    await pg.addInitScript(() => localStorage.clear());
+    // Kayıt sıfırlanıyor; bir kare ilerlemiş bir kayıt istiyorsa onu
+    // `seed` ile sayfa açılmadan önce yazıyor. Sonradan localStorage'a
+    // yazmak işe yaramıyor: oyun değerleri açılışta okuyup kendi
+    // değişkenlerinde tutuyor.
+    await pg.addInitScript(seed => {
+      localStorage.clear();
+      for (const [k, v] of Object.entries(seed || {})) localStorage.setItem(k, v);
+    }, s.seed || null);
     await pg.goto('http://localhost:8145/', { waitUntil: 'load' });
     await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
     await pg.waitForTimeout(400);
+    // Günlük ödül penceresi açılışta kendini gösteriyor ve her karenin
+    // üstünde duruyor. Kapatılmazsa yedi görselin yedisi de oyunu değil
+    // pencereyi gösteriyor.
+    if (await pg.isVisible('#dOk')) { await pg.click('#dOk'); await pg.waitForTimeout(250); }
     if (!s.menu) {
       await pg.evaluate(n => window.sliceStart(n), s.lvl);
       await pg.waitForTimeout(400);
@@ -129,6 +157,7 @@ await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8145/', { waitUntil: 'load' });
 await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
 await pg.waitForTimeout(400);
+if (await pg.isVisible('#dOk')) { await pg.click('#dOk'); await pg.waitForTimeout(250); }
 await pg.evaluate(() => window.sliceStart(5));
 await pg.waitForTimeout(400);
 await drive(pg, p => p.shards >= 2);
@@ -148,8 +177,8 @@ await pg.evaluate(() => {
         <span style="color:#8fe4ff">RUSH</span></div>
       <div style="margin-top:18px;font-size:21px;font-weight:800;line-height:1.4;
                   color:#cfd4e2;text-shadow:0 2px 10px rgba(0,0,0,.9)">
-        Tek parmak, tek eksen<br>
-        <span style="color:#ffd23f">Her şeyi kes, demire çarpma</span></div>
+        One finger, one axis<br>
+        <span style="color:#ffd23f">Cut everything, miss the bars</span></div>
     </div>`;
   document.body.appendChild(d);
 });

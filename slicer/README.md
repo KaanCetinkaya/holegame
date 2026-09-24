@@ -194,8 +194,33 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
 `sliceDouble`, `sliceSetDay`, `sliceReset` testlerin oyunu parmaksız
 oynamasını sağlar.
 
+## Arayüz İngilizce
+
+Oyunun yazıları Eylül 2026'da Türkçeden çevrildi. Sebebi mağaza metninde
+duruyordu ve kimse yan yana koymamıştı: listeleme İngilizce yazılmıştı, hedef
+ülke ABD ve Avrupa, ama oyun açılınca ekranda **BÖLÜM 1** yazıyordu. İndiren
+kişi ilk saniyede anladığı şeyin yanlış dilde olduğunu görüyordu.
+
+Değişen yalnızca oyuncunun okuduğu satırlar. Kod yorumları ve bu belgeler
+Türkçe kalıyor.
+
+## Mağazaya derleme
+
+    npm run release:slicer
+
+`aab:slicer` **değil**. Aradaki tek fark `ADS_TESTING`: `release:` olan onu
+kapatıyor, öteki test reklamıyla derliyor. İkisi de "başarılı" diyor ve
+üretilen `.aab` ikisinde de yükleniyor — fark ancak AdMob panelinde aylar
+sonra sıfır görülerek anlaşılır. Bu anahtar eskiden yalnızca Fruit Hole için
+çevriliyordu; Slice Rush'ın her derlemesi test reklamı taşıyordu.
+
+Sürüm yazısı menünün sol alt köşesinde. Kaynakta `dev`, gerçek numarayı
+`build-www.mjs` `app-version.json`'dan yazıyor — "güncelleme telefona indi
+mi" sorusunun tek cevabı o.
+
 ## Eksikler
 
 - AdMob uygulaması açılmadı; test reklam kimlikleri kullanılıyor
+  (`AD_UNITS.rewarded` ve `patch-manifest.mjs` → `slicer.appId`)
 - Başarım yok (günlük ödül var, hedef listesi yok)
 - Telefonda hiç denenmedi

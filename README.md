@@ -1,14 +1,23 @@
 # Hole
 
-Bu depo **iki ayrı oyun** barındırıyor. İkisi de tek dosyalık Three.js oyunu; tarayıcıda oynanır, Capacitor ile ayrı Android uygulamalarına paketlenir.
+Bu depo **dört ayrı oyun** barındırıyor. Hepsi tek dosyalık Three.js oyunu; tarayıcıda oynanır, Capacitor ile ayrı Android uygulamalarına paketlenir.
 
-| Oyun | Kaynak | Build klasörü | appId |
-|---|---|---|---|
-| **Hole** | `index.html` | `www/` | `com.kaancetinkaya.hole` |
-| **Fruit Hole** | `fruithole/index.html` | `www-fruithole/` | `com.kaancetinkaya.fruithole` |
+| Oyun | Kaynak | Build klasörü | appId | Durum |
+|---|---|---|---|---|
+| **Hole** | `index.html` | `www/` | `com.kaancetinkaya.hole` | prototip |
+| **Fruit Hole** | `fruithole/index.html` | `www-fruithole/` | `com.kaancetinkaya.fruithole` | kapalı test |
+| **Slice Rush** | `slicer/index.html` | `www-slicer/` | `com.kaancetinkaya.slicerush` | mağazaya hazır |
+| **Motor Works** | `tycoon/index.html` | `www-tycoon/` | `com.kaancetinkaya.motorworks` | oynanır |
 
 **Hole** — Rapier fizikli, şehri yutan klasik delik oyunu.
 **Fruit Hole** — meyve tarlasında süreye karşı, parmakla sürüklenen ve yuttukça büyüyen delik. Ayrıntı: [`fruithole/README.md`](fruithole/README.md).
+**Slice Rush** — kendi giden bir bıçak, parmak yalnızca yüksekliğini ayarlıyor; değdiği her şey gerçekten ikiye bölünüyor. Ayrıntı: [`slicer/README.md`](slicer/README.md).
+**Motor Works** — kendi kendine çalışan oto fabrikası (idle/tycoon). Ayrıntı: [`tycoon/README.md`](tycoon/README.md).
+
+> **Mağazaya giden derleme `release:` ile yapılır** (`release:fruithole`,
+> `release:slicer`, `release:tycoon`). `aab:` olan test reklamıyla derliyor ve
+> yine başarılı oluyor — aradaki fark ancak AdMob panelinde aylar sonra sıfır
+> görülerek fark edilir.
 
 ## Yapı
 

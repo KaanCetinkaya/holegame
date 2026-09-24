@@ -12,12 +12,21 @@ const srv = createServer((req,res)=>{
 const b = await chromium.launch({ executablePath:'/opt/pw-browsers/chromium', args:['--use-gl=swiftshader'] });
 const pg = await b.newPage({ viewport:{width:412,height:915}, deviceScaleFactor:2 });
 const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
-pg.on('console', m => { if (m.type()==='error') errs.push('CONSOLE: '+m.text()); });
+// 404 sayılmıyor: tarayıcı favicon istiyor, sunucu vermiyor. Oyunla ilgisi
+// yok ve testi kırmızıya boyamaktan başka bir şey yapmıyor.
+pg.on('console', m => { if (m.type()==='error' && !m.text().includes('404')) errs.push('CONSOLE: '+m.text()); });
 await pg.goto('http://localhost:8111/', { waitUntil:'load' });
 await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
 await pg.waitForTimeout(700);
 await pg.screenshot({ path: `${OUT}/slice_menu.png` });
 console.log('menu   ', JSON.stringify(await pg.evaluate(() => window.sliceProbe())));
+
+// Günlük ödül ekranı menünün üstünde açılıyor ve #playBtn'e giden tıklamayı
+// yutuyor. Bu dosya ödül ekranı eklenmeden önce yazılmıştı; o gün sessizce
+// bozuldu ve hata "playBtn tıklanamıyor" diye değil, otuz saniyelik bir zaman
+// aşımı olarak göründü — yani testin ne ölçtüğüyle ilgisiz bir mesaj.
+if (await pg.isVisible('#dOk')) await pg.click('#dOk');
+await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 15000 });
 
 await pg.click('#playBtn');
 await pg.waitForTimeout(400);

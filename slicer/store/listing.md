@@ -2,73 +2,29 @@
 
 > Bunları Play Console'a yapıştır. Karakter sınırları yazılı.
 
+**Oyunun arayüzü İngilizce.** Eylül 2026'da Türkçeden çevrildi: mağaza metni
+İngilizceydi ama oyun açılınca "BÖLÜM 1" yazıyordu. Hedef ülke ABD ve Avrupa
+(sebebi `fruithole/store/social.md` → "Neden burası": Türkiye'de eCPM beşte
+bir). Bu yüzden **Türkçe listeleme açılmıyor** — açılırsa oyun Türkçe
+sanılır.
+
 ## Uygulama adı (≤ 30 karakter)
 
-```
-Slice Rush: Kes ve Geç
-```
-
-İngilizce mağazalar için `Slice Rush: Cut It All`. **Yayına almadan önce
-Play'de mutlaka arat** — Fruit Hole'da bu kontrol atlandığı için 13 bin
-yorumlu bir rakiple aynı ada düşüldü.
-
-## Kısa açıklama (≤ 80 karakter)
-
-```
-Bıçağı yönet, önüne geleni ikiye böl, demire çarpma. Tek parmak.
-```
-
-## Tam açıklama (≤ 4000 karakter)
-
-```
-Bıçak kendi gidiyor. Sen sadece yüksekliğini ayarlıyorsun. 🔪
-
-Parmağını yukarı aşağı kaydır — bıçak koridorda ilerlerken önüne çıkan her
-şeyi ikiye böl. Karpuz, elma, portakal, pasta, fıçı, teneke, sandık… hepsi
-gerçekten ikiye ayrılıyor: kesik yüzü görüyorsun, iki yarım havada dönerek
-savruluyor.
-
-🔪 KESME GERÇEK
-Hazır bir "kırık model" ile değiştirmiyoruz. Nesne tam bıçağın geçtiği
-yükseklikten bölünüyor — tepesinden kesersen bir kapak ve bir kâse, ortadan
-kesersen iki eşit yarım. Aynı karpuzu iki kez aynı şekilde kesemezsin.
-
-🔥 KOMBO
-Arka arkaya kestikçe çarpan büyüyor ve her kesim daha çok para ediyor.
-Güvenli sürmek seni bitirir; iyi sürmek kazandırır.
-
-⛔ KIRMIZI DEMİRLER
-Tavandan sarkan ve yerden çıkan demirler var. Aralarındaki boşluk, bıçağın
-olması gereken yer. Çarparsan tur biter — ya baştan alırsın, ya kısa bir
-video izleyip kaldığın yerden devam edersin.
-
-🗡️ ALTI BIÇAK
-Kestikçe para birikiyor. Bakır, zümrüt, safir, altın, obsidyen — her biri bir
-öncekinden biraz daha uzun, yani dar boşluklarda daha erken değiyor.
-
-⭐ YILDIZLAR
-Her bölümde ne kadarını kestiğine göre bir, iki ya da üç yıldız. Hepsini
-kesmek her zaman mümkün — mesele nereden geçtiğin.
-
-⚡ TEK PARMAK, İNTERNETSİZ
-Tek eksen, tek hareket. Bağlantı gerektirmiyor, kayıtların telefonunda kalıyor.
-
-Bıçağı eline al.
-```
-
-## English
-
-**App name**
 ```
 Slice Rush: Cut It All
 ```
 
-**Short description**
+**Yayına almadan önce Play'de mutlaka arat.** Fruit Hole'da bu kontrol
+atlandığı için 13 bin yorumlu bir rakiple aynı ada düşüldü.
+
+## Kısa açıklama (≤ 80 karakter)
+
 ```
 Steer the blade, cut everything in half, dodge the bars. One finger.
 ```
 
-**Full description**
+## Tam açıklama (≤ 4000 karakter)
+
 ```
 The blade flies itself. All you do is set its height. 🔪
 
@@ -93,25 +49,33 @@ where the blade has to be. Hit one and the run is over — start again, or
 watch a short video and carry on from where you were.
 
 🗡️ SIX BLADES
-Every cut earns coins. Copper, emerald, sapphire, gold, obsidian — each
-reaches a little further than the last, which is worth having in the tight
-gaps late on.
+Every cut earns coins. Steel, copper, emerald, sapphire, gold, obsidian —
+each reaches a little further than the last, which is worth having in the
+tight gaps late on.
 
 ⭐ STARS
 One, two or three per level depending on how much you cut. Clearing
-everything is always possible — the question is the line you take.
+everything is always possible — the question is the line you take. The level
+map keeps every score, so you can go back for a star you left behind.
+
+🎁 A REWARD EVERY DAY
+Come back tomorrow and the next reward is bigger — seven days in a row and
+it is a blade's worth of coins.
 
 ⚡ ONE FINGER, FULLY OFFLINE
-One axis, one motion. No connection needed, and your save lives on your
-phone.
+One axis, one motion. No connection needed, no account, and your save lives
+on your phone.
 
 Pick up the blade.
 ```
 
+Bu metnin karakter sayısı ~1.700, sınır 4.000. Yeri var; doldurmak zorunlu
+değil ve Fruit Hole'un 3.989'u bir erdem değil.
+
 ## Kategori / etiketler
 
 - Kategori: **Oyunlar → Aksiyon** (ya da Gündelik; tür Play'de ikisinde de var)
-- Etiketler: kesme, bıçak, refleks, tek parmak, offline, arcade, satisfying
+- Etiketler: slicing, knife, reflex, one finger, offline, arcade, satisfying
 
 ## İçerik derecelendirmesi
 
@@ -123,8 +87,12 @@ satın alma **yok**.
 
 - Toplanan kişisel veri: **yok** (ilerleme `localStorage`'da, cihazda kalıyor)
 - Üçüncü taraf: **Google AdMob** (reklam kimliği ve ölçüm verisi)
-- Gizlilik politikası: Fruit Hole'unkiyle aynı sayfa ya da `docs/` altına
-  ikinci bir sayfa
+- Gizlilik politikası: **`docs/privacy-slicerush.html`**
+  → `https://kaancetinkaya.github.io/holegame/privacy-slicerush.html`
+
+Fruit Hole'unki kullanılmıyor: o sayfa banner, geçiş reklamı ve uygulama içi
+satın almadan bahsediyor, Slice Rush'ta üçü de yok. Yanlış beyan Play'in veri
+güvenliği formunu yalanlar.
 
 ## Hazır görseller (bu klasörde)
 
@@ -135,7 +103,8 @@ satın alma **yok**.
 - `3-bars.png` — kırmızı demirler ve aradaki boşluk
 - `4-clear.png` — bölüm sonu, üç yıldız
 - `5-blades.png` — bıçak dükkânı
-- `6-menu.png` — ana menü
+- `6-map.png` — bölüm haritası, yarısı yıldızlı
+- `7-menu.png` — ana menü
 
 Telefon görüntüleri 1080×1920, `tablet/` içindekiler 1440×2560. Aramada
 yalnızca ilk iki kare görünüyor, ve o ikisi oyunun ne olduğunu anlatmalı:
@@ -144,11 +113,20 @@ yalnızca ilk iki kare görünüyor, ve o ikisi oyunun ne olduğunu anlatmalı:
 Görseller `scratchpad/slshots.mjs` ile üretiliyor; oyun değişince komutu
 yeniden çalıştırmak yeterli.
 
+**Kare üstündeki yazıda sayı verme.** Bir tur "on beş bölüm" yazdı; oyunda
+öyle bir sınır yok — `buildCourse(n)` her n için parkur üretiyor. Testler
+1-15 arasını ölçtüğü için öyle sanılmıştı.
+
 ## Yayın öncesi kontrol listesi
 
-1. `slicer/index.html` içinde `ADS_TESTING = false`
-2. `AD_UNITS.rewarded` gerçek AdMob birimiyle değiştirilmeli
+1. **`npm run release:slicer`** ile derle. `aab:slicer` değil: `release:`
+   olan `ADS_TESTING`'i kapatıyor, öteki test reklamıyla derliyor ve derleme
+   yine başarılı olduğu için bu ancak AdMob panelinde aylar sonra sıfır
+   görerek fark edilir.
+2. `AD_UNITS.rewarded` gerçek AdMob birimiyle değiştirilmeli (`slicer/index.html`)
 3. `patch-manifest.mjs` içindeki `slicer.appId` gerçek AdMob uygulama
    kimliğiyle değiştirilmeli (şu an Google'ın test kimliği)
 4. Uygulama adı Play'de tekrar aratılmalı
-5. `app-version.json` → `slicer.versionCode` artırılmalı
+5. `app-version.json` → `slicer.versionCode` artırılmalı, yükledikten sonra
+   `npm run uploaded:slicer`
+6. Gizlilik politikası sayfası yayında mı (`docs/privacy-slicerush.html`)
