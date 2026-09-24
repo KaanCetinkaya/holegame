@@ -21,22 +21,44 @@ let bad = 0;
 for (let lvl = 1; lvl <= 15; lvl++) {
   const r = await pg.evaluate(n => {
     window.fruitHoleProbe(n);
-    return { ...window.fruitHoleGiants(), unit: window.fruitHoleGrow().unit };
+    const m = window.fruitHoleMix();
+    return { ...window.fruitHoleGiants(), unit: window.fruitHoleGrow().unit,
+      // Tahtanın kendi karışımı: her meyve aynı kadar büyütmüyor.
+      carpan: +((m.siradan + m.buyuk * 3 + m.dev * 9) / Math.max(1, m.toplam)).toFixed(3) };
   }, lvl);
   // Fruit eaten before the hole is wide enough to take a giant. The rate is
   // read from the game rather than written here: it used to be the constant
   // 0.017, and when growth was tied to the field size instead this test went
   // on dividing by the old number and called a working level a failure.
-  const need = Math.ceil((r.needR - r.holeR) / r.unit);
+  //
+  // Ve aynı hata bir kez daha yapılmış: bölen `unit`ti, yani **her meyve bir
+  // birim büyütüyor** varsayılıyordu. Oysa iri meyve 3, dev 9 birim veriyor
+  // (eatFruit). Tahtada %10-28 iri meyve olduğu için sayı hep olduğundan
+  // yüksek çıkıyordu — 10. bölümde tarlanın **%109'u** gibi imkânsız bir
+  // değere kadar. Bir testin "tarlanın tamamından fazlasını süpür" demesi,
+  // oyunun değil testin bozuk olduğunun işareti.
+  //
+  // Çarpan tahminle değil tahtanın kendi karışımından geliyor; aynı düzeltme
+  // holebalance.mjs'de zaten yapılmıştı, buraya taşınmamıştı.
+  const need = Math.ceil((r.needR - r.holeR) / (r.unit * r.carpan));
   const share = need / r.total;
   // A giant should cost roughly a third of the board on every level — free
   // is not a target, and two thirds is not reachable.
-  const ok = r.count >= 3 && r.nearestToSpawn >= 3.4 && share > 0.15 && share < 0.5;
+  //
+  // Patron bölümleri hariç. Her onuncu bölümün devasa meyvesi **tasarım
+  // gereği** tarla süpürülene kadar yenemiyor — oyunun en bilinen kuralı ve
+  // mağaza metninde de yazıyor. Tek bantla ölçmek onu hata sayıyordu:
+  // düzeltilmiş ölçümde 10. bölüm %69 çıkıyor, ötekiler %23-32.
+  const patron = lvl % 10 === 0;
+  const alt = patron ? 0.5 : 0.15;
+  const ust = patron ? 0.92 : 0.5;
+  const ok = r.count >= 3 && r.nearestToSpawn >= 3.4 && share > alt && share < ust;
   if (!ok) bad++;
   console.log(
     `lvl ${String(lvl).padStart(2)}  giants ${r.count}  fruit ${String(r.total).padStart(4)}` +
     `  nearest ${r.nearestToSpawn}  needs ~${String(need).padStart(3)} eaten ` +
-    `(%${Math.round(share * 100)} of field)  ${ok ? '' : '  <-- FAIL'}`);
+    `(%${Math.round(share * 100)} of field)${patron ? '  [patron]' : '        '}` +
+    `  ${ok ? '' : '  <-- FAIL'}`);
 }
 console.log('\npage errors:', errs.length ? errs : 'none');
 await b.close(); srv.close();
