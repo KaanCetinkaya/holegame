@@ -8705,6 +8705,20 @@ const APP_VERSION = 'dev';
 
     h += '<div class="grp">EKRAN</div>';
     h += row('GL kaybı', _glLostN ? `${_glLostN} kez · son ${_glLostAt}` : 'olmadı', _glLostN === 0);
+    // Kare ölçer: takılmanın olup olmadığını tahminden çıkarıp sayıya
+    // çeviriyor. Tarayıcıda ölçülemiyor (GPU yok), yani bu satırların tek
+    // okunacağı yer gerçek telefon.
+    if (perf.frames) {
+      const fps = perf.avgMs ? Math.round(1000 / perf.avgMs) : 0;
+      const pay = perf.slow / perf.frames;
+      h += row('kare', `${fps} fps ort · ${perf.frames} kare · ${perf.runs} koşu`, fps >= 45);
+      h += row('takılan', `${perf.slow} kare (%${(pay * 100).toFixed(1)}) 20 fps altında`,
+        pay < 0.01);
+      h += row('en kötü', `${perf.worstMs} ms · bölüm ${perf.worstLevel}`,
+        (perf.worstMs || 0) < 120);
+    } else {
+      h += row('kare', 'henüz ölçülmedi — bir bölüm oyna');
+    }
 
     h += '<div class="grp">REKLAM</div>';
     h += row('AdMob', yn(!!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob)),
@@ -9913,6 +9927,7 @@ function endDailyRun(swept) {
 }
 
 function onCleared() {
+  flushPerf();
   if (state !== 'playing') return;
   if (dailyRun) { endDailyRun(true); return; }
   const cleared = level;
@@ -10056,6 +10071,7 @@ document.getElementById('rateLater').addEventListener('click', () => {
 
 function onTimeUp() {
   if (state !== 'playing') return;
+  flushPerf();
   if (dailyRun) { endDailyRun(false); return; }
   state = 'lost';
   sfx.lose();
@@ -11579,6 +11595,18 @@ window.fruitHoleEatGiant = () => {
   checkEat(performance.now());
   return { yutuldu: g.eaten, r: +g.r.toFixed(2), agiz: +holeRadius.toFixed(2) };
 };
+// Kare ölçerin okuduğu ve sakladığı şey. `fruitHoleDiag`'ın gösterdiğiyle
+// aynı kaynak, yani testin baktığı sayı oyuncunun gördüğü sayı.
+window.fruitHolePerf = () => ({
+  ...perf,
+  acik: { n: perfN, worst: +perfWorst.toFixed(1), slow: perfSlow },
+});
+// Ölçümü sıfırla: test kendi koşusunu temiz bir sayfadan başlatabilsin.
+window.fruitHolePerfReset = () => {
+  for (const k of Object.keys(perf)) delete perf[k];
+  perfN = perfSum = perfWorst = perfSlow = 0; perfWorstLv = 0;
+  savePerf();
+};
 window.fruitHoleFlecks = () => flecks.length;
 // Karenin masrafı neyden geliyor: gölge geçişinden mi, tarladan mı?
 //
@@ -11920,10 +11948,66 @@ maybeShowDaily();
 
 let lastT = performance.now();
 
+// ---------------------------------------------------------------------
+// Kare ölçer
+//
+// "24. bölüm telefonda takılıyor mu" sorusu haftalardır cevapsız duruyor ve
+// asıl sebebi ölçememek: bu konteynerde GPU yok, SwiftShader'la çiziliyor ve
+// süre ölçümü yük altında zıplıyor — aynı kare "gölgesiz %20 daha yavaş"
+// diyebiliyor. Çizim çağrısı güvenilir (sayaç), süre değil.
+//
+// Yani bir iyileştirmenin işe yarayıp yaramadığını **ancak gerçek telefon**
+// söyleyebilir. Ölçer onu mümkün kılıyor: oynarken kare süreleri toplanıyor,
+// en kötüsü ve hangi bölümde olduğu saklanıyor, teşhis ekranı da okuyor.
+//
+// Saklanıyor, çünkü oyuncu teşhis ekranını takılmanın hemen ardından açmıyor
+// — oyunu bırakıp menüye dönüyor, belki kapatıp sonra bakıyor. Oturumda
+// kalan bir sayı tam da bakılacağı anda silinmiş olurdu.
+//
+// Maliyeti bir toplama ve bir karşılaştırma; ölçen şeyin kendisi ölçtüğünü
+// bozmasın diye başka hiçbir şey yapmıyor.
+const perf = JSON.parse(localStorage.getItem('fruithole_perf') || '{}');
+let perfN = 0, perfSum = 0, perfWorst = 0, perfWorstLv = 0, perfSlow = 0;
+function savePerf() {
+  try { localStorage.setItem('fruithole_perf', JSON.stringify(perf)); } catch (e) {}
+}
+// Koşu bitince yazılıyor, her karede değil: localStorage'a saniyede altmış
+// kez yazmak ölçtüğü şeyi bozar.
+function flushPerf() {
+  if (!perfN) return;
+  const ortMs = perfSum / perfN;
+  // En kötü kare hangi bölümdeyse o kayıt tutuluyor: takılmanın nerede
+  // olduğunu bilmek, ne kadar olduğunu bilmek kadar önemli.
+  if (perfWorst > (perf.worstMs || 0)) {
+    perf.worstMs = +perfWorst.toFixed(1);
+    perf.worstLevel = perfWorstLv;
+  }
+  perf.frames = (perf.frames || 0) + perfN;
+  perf.slow = (perf.slow || 0) + perfSlow;
+  // Ortalama, koşu sayısıyla ağırlıklı yürüyen ortalama.
+  perf.avgMs = +(((perf.avgMs || ortMs) * (perf.runs || 0) + ortMs) /
+    ((perf.runs || 0) + 1)).toFixed(2);
+  perf.runs = (perf.runs || 0) + 1;
+  perfN = perfSum = perfWorst = perfSlow = 0;
+  savePerf();
+}
+
 function tick(now) {
   const elapsed = (now - lastT) / 1000;
   const dt = Math.min(0.05, elapsed);   // movement stays stable on frame spikes
   lastT = now;
+
+  // Yalnızca oynarken ölçülüyor: menüdeki diorama tek bir halka meyve, yani
+  // oradaki kare süresi oyunun kare süresi hakkında hiçbir şey söylemiyor.
+  // İlk kare de atlanıyor (elapsed devasa çıkıyor, sayfa yeni açılmış).
+  if (state === 'playing' && elapsed > 0 && elapsed < 2) {
+    const ms = elapsed * 1000;
+    perfN++; perfSum += ms;
+    if (ms > perfWorst) { perfWorst = ms; perfWorstLv = level; }
+    // 50 ms = 20 fps. Altına düşen kare "takıldı" diye okunuyor; oyuncunun
+    // parmağıyla ekran arasındaki gecikmenin fark edildiği yer orası.
+    if (ms > 50) perfSlow++;
+  }
 
   // While the level is still landing the clock is held and the hole does not
   // answer the stick: a second and a half of a countdown you cannot play

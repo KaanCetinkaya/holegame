@@ -2301,6 +2301,51 @@ Bomba `PROPS`'a **girmiyor**: oradaki her şey koleksiyonun parçası ve "63
 şeyden 41'ini buldun" listesine bir ceza nesnesi koymak, onu bulunacak bir
 şeymiş gibi gösterirdi.
 
+## Kare ölçer: "takılıyor mu" sorusu artık tahmin değil
+
+Çizim çağrısı bütçesi aylardır aşılıyor — 800-1500 karşı 300 — ve instancing
+işi haftalardır "önce telefonda takılıyor mu bakalım" diye bekliyor. O soru
+hiç cevaplanmadı, çünkü cevaplayacak bir ölçü yoktu.
+
+**Bu konteynerde kare süresi ölçülemiyor.** GPU yok, SwiftShader'la çiziliyor
+ve süre yük altında zıplıyor: aynı kare için yapılan üç ölçüm "meyve gölgesini
+kapatmak %20 **daha yavaş**" diyebiliyor, ki saçma. Çizim çağrısı güvenilir
+(sayaç), süre değil. Yani buradan yapılacak bir optimizasyonun işe yarayıp
+yaramadığı **doğrulanamaz** — körlemesine olur.
+
+Ölçer bunu çözüyor: oynarken kare süreleri toplanıyor, en kötüsü ve **hangi
+bölümde** olduğu saklanıyor, teşhis ekranı da okuyor. Üç satır:
+
+```
+kare       58 fps ort · 12.400 kare · 9 koşu
+takılan    34 kare (%0.3) 20 fps altında
+en kötü    96 ms · bölüm 24
+```
+
+### Neden saklanıyor
+
+Oyuncu teşhis ekranını takılmanın hemen ardından açmıyor — oyunu bırakıp
+menüye dönüyor, belki kapatıp sonra bakıyor. Oturumda kalan bir sayı tam da
+bakılacağı anda silinmiş olurdu.
+
+Yazma koşu bitince oluyor, her karede değil: `localStorage`'a saniyede altmış
+kez yazmak ölçtüğü şeyi bozar.
+
+### Neden yalnızca oynarken
+
+Menüdeki diorama tek halka meyve. Oradaki kare süresi oyunun kare süresi
+hakkında hiçbir şey söylemiyor, ve menüde geçirilen dakikalar ortalamayı
+oyunun hiç olmadığı kadar iyi gösterirdi.
+
+### En kötü karenin bölümü de tutuluyor
+
+Takılmanın **nerede** olduğunu bilmek, ne kadar olduğunu bilmek kadar önemli:
+"96 ms" tek başına ne yapılacağını söylemiyor, "96 ms, bölüm 24" söylüyor.
+
+`scratchpad/holeperf.mjs` kablolamayı ölçüyor — sayının doğruluğunu değil, ki
+o burada ölçülemez: menüde sayılmıyor mu, koşu bitince saklanıyor mu, sayfa
+kapanınca duruyor mu, ve teşhis ekranı ölçerle aynı kaynaktan mı okuyor.
+
 ## Hedef rozeti: ne topladığın artık ekranda
 
 İlerleme çubuğu **"ne kadar"** diyordu ama **"ne"** demiyordu, ve bir sayı da
