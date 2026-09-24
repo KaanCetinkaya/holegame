@@ -669,19 +669,35 @@ function buildBlade(spec) {
   roll.add(edge);
 
 
+  // Sap ve bileziği gövdenin **arkasına** al, hizasına değil.
+  //
+  // Kamera yandan baktığı için silindir sapın ucu ekranda gövdenin yüzüne
+  // denk geliyordu: bıçağın ortasında duran kahverengi bir altıgen, leke
+  // gibi. Sorun rengi ya da biçimi değil, yerdi — gövdeyle aynı x
+  // aralığında durunca ondan önce çiziliyor ve onu örtüyordu.
+  //
+  // Bir de inceltildi: sap gövdeden kalın olmamalı, yoksa silueti bıçak
+  // değil çekiç okunuyor.
   const grip = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.17, 0.2, 0.7, 12),
-    new THREE.MeshStandardMaterial({ color: spec.grip, roughness: 0.7 }));
-  grip.rotation.z = Math.PI / 2;
-  grip.position.set(-0.86, 0, 0);
+    new THREE.BoxGeometry(0.66, 0.26, 0.2),
+    new THREE.MeshStandardMaterial({ color: spec.grip, roughness: 0.75 }));
+  grip.position.set(-0.92, -0.03, 0);
+  grip.rotation.z = -0.06;
   grip.castShadow = true;
   roll.add(grip);
+  // Bilezik gövdeyle sapın arasında, ikisini ayıran ince bir metal.
   const collar = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.22, 0.22, 0.13, 12),
+    new THREE.BoxGeometry(0.09, 0.4, 0.24),
     new THREE.MeshStandardMaterial({ color: '#d8b64a', roughness: 0.3, metalness: 0.6 }));
-  collar.rotation.z = Math.PI / 2;
-  collar.position.set(-0.52, 0, 0);
+  collar.position.set(-0.55, -0.01, 0);
   roll.add(collar);
+  // Sapın ucundaki topuz: silueti orada bitiriyor, yoksa sap havada
+  // kesiliyormuş gibi duruyor.
+  const butt = new THREE.Mesh(
+    new THREE.BoxGeometry(0.09, 0.3, 0.22),
+    new THREE.MeshStandardMaterial({ color: '#d8b64a', roughness: 0.35, metalness: 0.55 }));
+  butt.position.set(-1.24, -0.05, 0);
+  roll.add(butt);
   return g;
 }
 const blade = new THREE.Group();
