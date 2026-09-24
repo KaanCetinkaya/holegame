@@ -33,6 +33,9 @@ const APPS = {
     appId: 'ca-app-pub-2542927456156553~4653695871',
     // Uygulama içi satın alma yalnızca burada var.
     billing: true,
+    // Play Games Services proje kimliği (Play Console → Play Oyun
+    // Hizmetleri → Yapılandırma → "Proje Kimliği").
+    gamesId: '501004425745',
   },
   // Yeni oyunların kendi AdMob uygulamaları henüz açılmadı. Google'ın
   // herkese açık test App ID'si kullanılıyor: gerçek reklam göstermiyor
@@ -62,6 +65,64 @@ if (!existsSync(manifest)) {
 
 let xml = readFileSync(manifest, 'utf8');
 let changed = false;
+
+// --- Play Games Services proje kimliği ---
+//
+// Play Games bu meta-data'yı manifest'te **zorunlu** tutuyor. Yoksa giriş
+// sessizce başarısız oluyor: hesap seçme ekranı hiç açılmıyor, eklenti
+// `{"signedIn":false}` dönüyor, durum kodu 4 (SIGN_IN_REQUIRED) — yani
+// "oyuncu giriş yapmadı" diyor, "kurulum eksik" demiyor. Belirti, hesabın
+// test listesinde olmamasıyla birebir aynı görünüyor ve günlerce oraya
+// bakıldı.
+//
+// Eklentinin (`@modbender/capacitor-play-games`) kendi manifest'i bomboş:
+//
+//   <manifest xmlns:android="..." />
+//
+// Yani bu satırı koyacak başka kimse yok. `leaderboard-setup.md` adım 5
+// "eklenti kendi manifest'inde tanımlıyorsa gerekmiyor" diyordu — tanımlamıyor.
+//
+// Değer doğrudan sayı olarak yazılamıyor: Android bunu tam sayı sanıp
+// kırpıyor ve kimlik bozuluyor. Bu yüzden bir dize kaynağına yazılıp ona
+// referans veriliyor — Google'ın kendi belgesi de böyle söylüyor.
+if (app.gamesId) {
+  const strings = join(ROOT, app.dir, 'app', 'src', 'main', 'res', 'values', 'strings.xml');
+  if (existsSync(strings)) {
+    let s = readFileSync(strings, 'utf8');
+    const satir = `    <string name="game_services_project_id">${app.gamesId}</string>`;
+    if (!s.includes('game_services_project_id')) {
+      s = s.replace('</resources>', `${satir}\n</resources>`);
+      writeFileSync(strings, s);
+      console.log(`Play Games proje kimliği strings.xml'e yazıldı (${app.gamesId}).`);
+    } else if (!s.includes(`>${app.gamesId}<`)) {
+      s = s.replace(/<string name="game_services_project_id">[^<]*<\/string>/,
+        `<string name="game_services_project_id">${app.gamesId}</string>`);
+      writeFileSync(strings, s);
+      console.log('Play Games proje kimliği güncellendi.');
+    } else {
+      console.log('Play Games proje kimliği zaten yerinde.');
+    }
+  } else {
+    console.error(`HATA: ${strings} yok, Play Games kimliği yazılamadı.`);
+    process.exit(1);
+  }
+
+  if (!xml.includes('com.google.android.gms.games.APP_ID')) {
+    if (!xml.includes('</application>')) {
+      console.error('HATA: manifest içinde </application> yok, beklenmeyen biçim.');
+      process.exit(1);
+    }
+    const blok =
+      `\n        <meta-data\n` +
+      `            android:name="com.google.android.gms.games.APP_ID"\n` +
+      `            android:value="@string/game_services_project_id" />\n`;
+    xml = xml.replace('</application>', `${blok}    </application>`);
+    changed = true;
+    console.log(`Play Games APP_ID meta-data eklendi -> ${app.dir}`);
+  } else {
+    console.log('Play Games APP_ID meta-data zaten yerinde.');
+  }
+}
 
 // --- faturalandırma izni ---
 const BILLING = '<uses-permission android:name="com.android.vending.BILLING" />';

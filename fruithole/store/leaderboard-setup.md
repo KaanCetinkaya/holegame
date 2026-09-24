@@ -216,6 +216,40 @@ denenmemişti.
 **Sıradaki adım konsol değil, o düğme.** Hesap seçme ekranı açılıyorsa sorun
 yok; hiç açılmıyorsa yapılandırmanın yayınlanmamış olması adayı geri gelir.
 
+### 24 Eylül 2026 — sebep bulundu: manifest'te `games.APP_ID` yokmuş
+
+Düğmeye basıldı, **hiçbir ekran açılmadı** ve cevap değişmedi. Konsolda
+yapılandırma **Yayınlandı** görünüyor, yani o aday da elendi.
+
+Kalan yer adım 5'ti ve orada şöyle yazıyordu: *"Eklenti bunu kendi
+manifest'inde tanımlıyorsa ekstra bir şey gerekmiyor."* Tanımlamıyor.
+`@modbender/capacitor-play-games@0.4.0` paketinin manifest'i bomboş:
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" />
+```
+
+Yani şu satırı koyacak kimse yoktu:
+
+```xml
+<meta-data android:name="com.google.android.gms.games.APP_ID"
+           android:value="@string/game_services_project_id" />
+```
+
+Bu satır olmadan Play Games girişi **sessizce** başarısız oluyor: hesap
+seçme ekranı hiç açılmıyor, eklenti `{"signedIn":false}` dönüyor ve durum
+kodu **4** geliyor. Yani Google "oyuncu giriş yapmadı" diyor, "kurulumun
+eksik" demiyor — ve belirti, hesabın test listesinde olmamasıyla birebir
+aynı görünüyor. Günlerce test kullanıcısı listesine bakılmasının sebebi bu.
+
+`patch-manifest.mjs` artık hem meta-data'yı hem de `strings.xml` içindeki
+`game_services_project_id` dizesini yazıyor (proje kimliği `501004425745`,
+Play Console → Play Oyun Hizmetleri → Yapılandırma). Kimlik doğrudan sayı
+olarak yazılamıyor — Android onu tam sayı sanıp kırpıyor — o yüzden dize
+kaynağına gidiyor.
+
+Bir sonraki derlemede sınanacak.
+
 **Bu, teşhis ekranının kendini ödediği ikinci sefer.** Aynı ekran olmadan
 elde yine "düğme çıkmıyor" kalırdı ve arada SHA-1'i yeniden üretip bir
 derleme daha yüklemek dururdu — ki durum kodu onun doğru olduğunu zaten
