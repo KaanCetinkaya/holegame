@@ -3696,6 +3696,64 @@ let _glLostN = 0, _glLostAt = '';
 // kendiliğinden geri verilmesi bekleniyordu, Android WebView vermedi.
 let _glTries = 0, _glTimer = 0;
 
+// Beyaz ekranın **kalıcı** kaydı.
+//
+// Yukarıdaki sayaç hafızada duruyor ve uygulama kapanınca siliniyor. Beyaz
+// ekran gören oyuncunun ilk yaptığı şey uygulamayı kapatmak, yani tek
+// kanıtımız tam da kanıta ihtiyacımız olan anda yok oluyordu. Kaan'da iki kez
+// böyle oldu: "yine beyaz ekran verdi" diyor, ve elimizde hiçbir şey yok.
+//
+// Yazılanlar, tahminle ayırt edemediğimiz şeyler:
+//
+//   * bölüm ve tahtadaki canlı parça sayısı — yük gerçekten tahtayla mı
+//     ilgili, yoksa oynanan süreyle mi
+//   * GPU'daki geometri ve doku sayısı — sızıntı geri geldiyse burada
+//     tırmanır
+//   * o karedeki çizim çağrısı — yığınlar gerçekten iş görüyor mu
+//   * bağlam geri geldi mi, kaçıncı denemede
+//
+// Ve en önemlisi: **tip**. Beyaz ekran iki ayrı şeyden geliyor olabilir ve
+// ikisi aynı görünüyor — WebGL bağlamının düşmesi, ya da çizim döngüsünün
+// bir istisnayla durması. Bugüne kadar hangisi olduğunu bilmeden bakıldı.
+const GL_LOG_MAX = 10;
+let glLog = [];
+try { glLog = JSON.parse(localStorage.getItem('fruithole_gllog') || '[]'); } catch (e) { }
+function glLogYaz(tip, ek) {
+  try {
+    const bilgi = renderer && renderer.info;
+    glLog.unshift({
+      tip,
+      t: new Date().toISOString().slice(5, 16).replace('T', ' '),
+      lv: level,
+      parca: fruits ? fruits.filter(f => !f.eaten).length : -1,
+      geo: bilgi ? bilgi.memory.geometries : -1,
+      tex: bilgi ? bilgi.memory.textures : -1,
+      cagri: bilgi ? bilgi.render.calls : -1,
+      ...ek,
+    });
+    glLog = glLog.slice(0, GL_LOG_MAX);
+    localStorage.setItem('fruithole_gllog', JSON.stringify(glLog));
+  } catch (e) { }
+}
+
+// Yakalanmayan her hata da aynı deftere.
+//
+// Çizim döngüsünün içinde atılan bir istisna `requestAnimationFrame`
+// zincirini kırıyor: tahta olduğu yerde donuyor, arayüz duruyor, ekran
+// beyaz kalıyor — yani bağlam kaybıyla **birebir aynı** görünüyor. Hangisi
+// olduğunu ayıran tek şey bu satır.
+window.addEventListener('error', (e) => {
+  glLogYaz('hata', {
+    mesaj: String((e && e.message) || e).slice(0, 120),
+    yer: `${(e && e.filename ? String(e.filename).split('/').pop() : '?')}:${(e && e.lineno) || 0}`,
+  });
+});
+window.addEventListener('unhandledrejection', (e) => {
+  glLogYaz('söz', {
+    mesaj: String((e && e.reason && (e.reason.message || e.reason)) || '?').slice(0, 120),
+  });
+});
+
 // Panel yazısı ve Resume düğmesi. Bağlam yokken oyuna dönmek, boş bir
 // tahtaya dönmek demek — ve saat işlemeye devam ettiği için bölüm orada
 // kaybediliyor. Telefonda görülen ekran tam olarak buydu: Size 1, 2/137,
@@ -3728,6 +3786,7 @@ renderer.domElement.addEventListener('webglcontextlost', (e) => {
   glLost = true;
   _glLostN++;
   _glLostAt = new Date().toTimeString().slice(0, 8) + ' · bölüm ' + level;
+  glLogYaz('gl');
   // Stop the clock. Losing a level to a blank screen is the one outcome
   // worse than the blank screen.
   if (state === 'playing') pauseGame();
@@ -3738,6 +3797,16 @@ renderer.domElement.addEventListener('webglcontextlost', (e) => {
 }, false);
 renderer.domElement.addEventListener('webglcontextrestored', () => {
   glLost = false;
+  // Geri geldiği **kaçıncı denemede** — kaydın en üstündeki satıra yazılıyor,
+  // yeni bir satır açılmıyor: geri gelmesi ayrı bir olay değil, o olayın
+  // sonucu. Hiç gelmezse o satırda `geri` alanı hiç olmuyor ve tahtanın bir
+  // daha gelmediği oradan okunuyor.
+  try {
+    if (glLog[0] && glLog[0].tip === 'gl' && glLog[0].geri == null) {
+      glLog[0].geri = _glTries;
+      localStorage.setItem('fruithole_gllog', JSON.stringify(glLog));
+    }
+  } catch (e) { }
   clearTimeout(_glTimer);
   _glTries = 0;
   // Every texture and geometry in this game is generated in code and still
@@ -9663,6 +9732,23 @@ const APP_VERSION = 'dev';
 
     h += '<div class="grp">EKRAN</div>';
     h += row('GL kaybı', _glLostN ? `${_glLostN} kez · son ${_glLostAt}` : 'olmadı', _glLostN === 0);
+    // Kalıcı defter. Uygulama kapansa da duruyor, yani beyaz ekranı görüp
+    // uygulamayı kapatan oyuncunun elinde hâlâ kanıt oluyor.
+    if (glLog.length) {
+      h += row('defter', `${glLog.length} kayıt`, false);
+      for (const k of glLog) {
+        const ad = k.tip === 'gl' ? 'GL' : k.tip === 'hata' ? 'HATA' : 'SÖZ';
+        const geri = k.tip === 'gl'
+          ? (k.geri == null ? ' · GERİ GELMEDİ' : ` · ${k.geri}. denemede geldi`) : '';
+        h += row(`${ad} ${k.t}`,
+          `bölüm ${k.lv} · ${k.parca} parça · ${k.geo} geo · ${k.tex} doku · ` +
+          `${k.cagri} çizim${geri}${k.mesaj ? ' · ' + k.mesaj : ''}` +
+          `${k.yer ? ' (' + k.yer + ')' : ''}`,
+          false);
+      }
+    } else {
+      h += row('defter', 'boş — beyaz ekran kaydedilmemiş', true);
+    }
     // Kare ölçer: takılmanın olup olmadığını tahminden çıkarıp sayıya
     // çeviriyor. Tarayıcıda ölçülemiyor (GPU yok), yani bu satırların tek
     // okunacağı yer gerçek telefon.

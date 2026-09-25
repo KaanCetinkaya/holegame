@@ -3604,3 +3604,34 @@ durumu, deliğin hızı). Blok artık `TYPE_BY_ID`nin hemen altında.
 
 `holeboot.mjs` bunu yakalayan test: kayıtlı bölümü elle kurup oyunu gerçek
 saatle açıyor ve yalnızca menüye varılıyorsa geçiyor.
+
+## Beyaz ekranın defteri
+
+Beyaz ekran iki kez görüldü ve iki kez de elimizde hiçbir şey kalmadı. Sebebi
+basit: sayaç hafızadaydı, beyaz ekran gören oyuncunun ilk yaptığı şey
+uygulamayı kapatmak, ve kayıt tam da kanıta ihtiyacımız olan anda siliniyordu.
+"Yine beyaz ekran verdi" cümlesiyle, bakılacak hiçbir sayı olmadan kalındı.
+
+Artık `localStorage`'a yazılıyor (`fruithole_gllog`, son on kayıt) ve teşhis
+ekranında duruyor — sürüm yazısına beş kez dokun.
+
+Her kayıtta:
+
+```
+GL 09-25 16:47   bölüm 3 · 1848 parça · 13 geo · 11 doku · 43 çizim · GERİ GELMEDİ
+```
+
+* **bölüm ve parça sayısı** — yük tahtayla mı ilgili, oynanan süreyle mi
+* **geo / doku** — sızıntı geri geldiyse burada tırmanır
+* **çizim** — yığınlar gerçekten iş görüyor mu
+* **geri geldi mi, kaçıncı denemede** — `forceContextRestore` işe yarıyor mu
+
+Ve en önemlisi **tip**. Beyaz ekran iki ayrı şeyden geliyor olabilir ve ikisi
+ekranda birebir aynı görünüyor:
+
+* **GL** — WebGL bağlamı düştü.
+* **HATA** — çizim döngüsünde bir istisna atıldı, `requestAnimationFrame`
+  zinciri koptu, tahta donup kaldı.
+
+Bugüne kadar hangisi olduğu bilinmeden bakıldı. Artık yakalanmayan her hata ve
+her reddedilen söz de aynı deftere, mesajı ve satırıyla yazılıyor.
