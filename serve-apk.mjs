@@ -92,8 +92,10 @@ const page = `<!doctype html>
   b{color:#eef1f7}
   code{background:#222633;padding:1px 5px;border-radius:5px;font-size:12px}
 </style></head><body><div class="card">
-<h1>${app.label}</h1>
-<p>${mb} MB &middot; Android</p>
+<h1>${devMi ? app.label + ' DEV' : app.label}</h1>
+<p>${mb} MB &middot; ${devMi
+  ? 'yan yana kurulur, mağazadaki sürüme dokunmaz'
+  : '<b style="color:#ffb454">mağaza imzası</b> &middot; telefonda Play sürümü varsa kurulmaz'}</p>
 <a href="/${fileName}">APK'yı indir</a>
 <ol>
   <li><b>&quot;Dosya güvenli bir şekilde indirilemiyor&quot;</b> derse
