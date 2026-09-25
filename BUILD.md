@@ -288,6 +288,12 @@ npm run send:fruithole
 Ekrana bir adres yazıyor (`http://192.168.x.x:8787`); telefon ve bilgisayar
 aynı Wi-Fi'da olmak zorunda.
 
+Telefonda Chrome **"Dosya güvenli bir şekilde indirilemiyor"** diyorsa
+**Sakla**'ya bas. Dosyayla ilgisi yok: Chrome, adres `https` olmadığı için
+inen her çalıştırılabilir dosyaya bunu diyor. Uyarı dosyanın bozuk olduğunu
+sanmaya yetecek kadar ciddi görünüyor, o yüzden indirme sayfasının ilk
+maddesi artık bu.
+
 ## Yan yana kurulan "dev" sürümü
 
 Telefonda Play'den kurulu bir sürüm varken aynı paketi elle kurmak mümkün

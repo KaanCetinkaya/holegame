@@ -10,6 +10,12 @@
 // Neden dosya sunucusu değil de tek dosya: tarayıcı .apk'yı ancak doğru
 // MIME türüyle "indirilecek dosya" sayıyor. application/octet-stream ile
 // bazı Android tarayıcıları dosyayı .zip diye kaydedip kurulumu kırıyor.
+//
+// Chrome "Dosya güvenli bir şekilde indirilemiyor" diyor ve iki düğme
+// veriyor: Kapat, Sakla. Dosyayla ilgisi yok — Chrome https olmayan bir
+// adresten inen çalıştırılabilir dosyaların hepsine bunu diyor ve "Sakla"
+// indiriyor. Sayfadaki yönergenin ilk maddesi bu, çünkü uyarı dosyanın
+// bozuk olduğunu sanmaya yetecek kadar ciddi görünüyor.
 
 import { createServer } from 'http';
 import { createReadStream, existsSync, statSync } from 'fs';
@@ -82,12 +88,17 @@ const page = `<!doctype html>
   a{display:block;padding:16px;border-radius:14px;background:#4b7bec;color:#fff;
     text-decoration:none;font-weight:600;font-size:17px}
   ol{margin:24px 0 0;padding-left:20px;text-align:left;color:#98a0b3;font-size:13px}
-  li{margin:6px 0}
+  li{margin:8px 0}
+  b{color:#eef1f7}
+  code{background:#222633;padding:1px 5px;border-radius:5px;font-size:12px}
 </style></head><body><div class="card">
 <h1>${app.label}</h1>
 <p>${mb} MB &middot; Android</p>
 <a href="/${fileName}">APK'yı indir</a>
 <ol>
+  <li><b>&quot;Dosya güvenli bir şekilde indirilemiyor&quot;</b> derse
+      <b>Sakla</b>&#39;ya bas. Dosyada sorun yok — Chrome, adres
+      <code>https</code> olmadığı için her .apk&#39;ya bunu diyor.</li>
   <li>İndirme bitince bildirime dokun.</li>
   <li>&quot;Bilinmeyen kaynak&quot; uyarısı çıkarsa tarayıcıya izin ver.</li>
   <li>Kur.</li>
