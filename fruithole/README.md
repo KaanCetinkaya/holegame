@@ -1965,9 +1965,12 @@ Yirmi dört düzenin hepsi aynı işi istiyordu: tarlayı süpür. Düzen **taht
 şeklini** değiştiriyor, yapılan işi değiştirmiyor — ve tur çevirmesi de
 (yukarıda) şekli değiştiren bir şey, işi değil.
 
-Görev bölümleri işi değiştiriyor. Üç tip var ve sırayla geliyorlar — 5
-sipariş, 15 devler, 25 rush, 35 sipariş… — yani iki görev arası on bölüm ve
-aynı tip otuz bölümde bir.
+Görev bölümleri işi değiştiriyor. Dört tip var ve sırayla geliyorlar — 5
+sipariş, 15 devler, 25 rush, 35 mayın, 45 sipariş… — yani iki görev arası on
+bölüm ve aynı tip kırk bölümde bir.
+
+Bulmaca bu sıranın içinde değil, kendi sayacında (18, 28, 38…); sebebi aşağıda,
+"Bulmaca bölümleri" başlığında.
 
 Sipariş: bölüm tarlanın tamamı bittiğinde değil, **tek bir meyvenin hepsi**
 yendiğinde bitiyor. Rota bambaşka — süpürmek yerine bir
@@ -3314,3 +3317,115 @@ python3 fruithole/build-standalone.py /bir/yer/fruit-hole.html
 Three.js'i sayfanın içine gömer; ortaya çıkan tek HTML dosyası internetsiz,
 başka hiçbir dosyaya ihtiyaç duymadan açılır (~1.25 MB). Bir yere yükleyip
 telefondan denemek ya da birine göndermek için bunu kullan.
+
+## Bulmaca bölümleri 🧩
+
+Fruit Hole bir arcade oyunu: kaybettiren şey parmağın. Yeterince hızlı
+süremezsen saat bitiyor, ve **yanlış bir hareket yok** — hangi meyveyi önce
+yediğin hiçbir şeyi değiştirmiyor, çünkü sonunda hepsini yiyorsun. Oyuncunun
+verdiği tek karar rota, o da yalnızca hızı etkiliyor.
+
+Bulmaca olabilmesi için geri alınamaz bir yanlış lazım. Oyunda tek yönlü olan
+bir şey ilk günden beri var: **delik küçülmüyor.** Bugüne kadar bu hep bir
+ödüldü. Bulmaca bölümü onu bir borca çeviriyor.
+
+Tahta bir koridor ve odalardan ibaret. Odaların koridora bakan duvarında birer
+kapı var ve kapılar farklı genişlikte. Delik yedikçe büyüyor:
+
+* dar kapılı odaya **girmeden önce** şişersen, o oda bir daha açılmıyor;
+* bir odayı yedikten sonra **çıkabilmen** de gerekiyor, yani kapının hem
+  girişe hem çıkışa yetmesi lazım;
+* son oda tek yönlü — sırası gelince girilebiliyor, yendikten sonra
+  çıkılamıyor. Zaten yapacak iş kalmadığı için bu bir ceza değil, bir kural.
+
+Saat yok. Üst satırda `∞` yazıyor ve ana döngü bulmacada saate hiç dokunmuyor.
+Düşünecek adam acele ettirilmez. Yıldız da saatten okunamadığı için başka bir
+şeyi ölçüyor: kaç denemede çıkardığın (ilkinde üç, ikincide iki, sonrası bir).
+
+Bölümler: 18, 28, 38… Kaya 9. bölümde tanıtılıyor ve bulmacanın tamamı kayadan
+duvarlar — 8'de olsaydı oyuncunun gördüğü ilk kaya aynı zamanda geçemediği ilk
+kapı olurdu, yani kural tanıtılmadan sınav. 9-17 arası sıradan kayalarla "bu
+şey deliği durduruyor" öğreniliyor. Üç oda, 28'den sonra dört (tahta orada 34
+sıraya ulaşıyor ve dördüncü kapı ancak o derinliğe sığıyor).
+
+### Geçiş kuralı yeni değil, ölçülen bir sonuç
+
+`pushOutOfRocks` deliği her kayadan `holeRadius + kaya.r` uzakta tutuyor. İki
+kaya merkez merkeze `D` uzaktaysa aradan geçebilen en büyük delik:
+
+```
+limit = D / 2 - ROCK_R
+```
+
+Yani kapı için yeni bir çarpışma kodu yazılmadı; var olanın sonucu hesaplandı.
+`holepuzzle.mjs` bunu tasarlanan sayıdan değil **konan kayalardan** ölçüyor —
+sınırın altındaki deliği kapının ortasına koyup itilmediğini, üstündekini
+koyup itildiğini görüyor.
+
+### Tahta önce kuruluyor, soru sonra soruluyor
+
+Sıra önemli ve tersi çalışmıyor:
+
+1. Duvar çizgilerine yakın meyveler ve koridordakiler alınıyor. Koridor
+   bilerek boş: orası düşünme yeri. Orada meyve olsaydı oyuncu odalara
+   girmeden de büyüyebilirdi.
+2. Her odada **kalan** meyvenin büyütme değeri toplanıyor. Ölçülüyor,
+   varsayılmıyor — düzen odalara eşit meyve dağıtmıyor.
+3. Kapı genişlikleri o toplamlardan hesaplanıyor.
+4. Kayalar konuyor.
+
+Kapılar önce seçilseydi tahtaya uymazdı: `growthUnit()` canlı meyve sayısına
+bakıyor, yani bir odanın ne kadar büyüteceği ancak ayıklama bittikten sonra
+belli oluyor.
+
+Boş kalan oda dolduruluyor (`PUZZLE_MIN_ROOM = 30`). Ölçüldü: bazı düzenler
+kocaman boşluklar bırakıyor ve 38. bölümde bir oda **sıfır** meyveyle çıktı —
+soru sormayan bir oda, yani kapısının genişliğinin anlamı olmayan bir oda.
+18. bölüm de toplam 71 meyveyle çıkıyordu, bölüm olmaya yetmiyordu.
+
+### "Sıkıştın" kararı tek yönlü olmak zorunda
+
+Yanlışlıkla "sıkıştın" demek, hâlâ yolu olan bir oyuncunun bölümünü elinden
+almak demek. O yüzden oyun içindeki karar arama yapmıyor, yalnızca
+kanıtlanabilir iki hâle bakıyor — delik küçülmediği için ikisi de geri
+dönüşsüz:
+
+* içinde olduğun odanın kapısından artık çıkamıyorsun ve dışarıda meyve kalmış;
+* koridordasın ve meyve kalan odaların hiçbirine sığmıyorsun.
+
+Odayı yarım bırakıp dönmek gibi ince oyunlar bu kuralı yanıltmıyor: ikisi de
+yalnızca yarıçapa bakıyor.
+
+Tam arama (`puzzleFeasible`, alt küme üstünde) yalnızca **tahtayı kurarken** ve
+testte kullanılıyor. O arama odaların tam yendiğini varsayıyor, yani ihtiyatlı:
+"çözülebilir" dediğinde gerçekten çözülebilir, ama "çözülemez" demesi kesin
+değil. Bu yüzden oyuncuya o karar hiç gösterilmiyor.
+
+### Ölçüm
+
+`scratchpad/holepuzzle.mjs` — sekiz bulmaca bölümü kuruyor ve her birinde:
+
+```
+oda sayısı · tahta çözülebilir (tam arama)
+kapı genişliği kayalardan ölçüldü (tasarım ile aynı mı)
+kapı odanın bandına sığıyor · her oda dolu
+sınırın altındaki delik geçiyor, üstündeki geçmiyor (gerçek çarpışma)
+ara duvarlar dolu, iki ucu da kapalı
+koridorda meyve yok · her meyveye ulaşılabiliyor
+```
+
+Sonra iki koşu oynuyor: tahtanın kurduğu sıra baştan sona yürüyor ve tarla
+bitiyor; tembel sıra (doğduğun uçtan başlayıp ilerlemek) ölüyor **ve** oyun
+sıkışmayı aritmetiğin dediği adımda görüyor. Sekiz tahtanın sekizinde tembel
+sıra düşüyor — yani tahta gerçekten bir soru soruyor.
+
+İki ölçüm ilk yazıldığında yanlıştı, ikisi de sessizce:
+
+* Ara duvarın dolu olduğu, deliği duvarın üstüne koyup itilmesine bakarak
+  ölçülüyordu. Kaya deliği **duvar boyunca** itince `z` değişmiyor, yani her
+  duvar "sızdırıyor" diye okunuyordu. Doğrusu kayalar arasındaki boşluğu
+  ölçmek.
+* "Kapan odayı **önce** ye, tahta ölsün" diye bir ölçüm vardı. O odaya önce
+  girildiğinde delik küçük ve tek başına o odanın büyümesi kapıyı doldurmuyor,
+  yani çıkabiliyor. Oda ancak **sırası gelince** kapan oluyor; ölçülecek
+  eşitsizlik o.

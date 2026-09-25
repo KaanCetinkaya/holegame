@@ -1080,22 +1080,48 @@ function isOrderLevel(n) { return n > 0 && n % ORDER_EVERY === ORDER_AT; }
 // farklı şey istiyor: sipariş bir rengi kovalamak, devler ise önce büyümek —
 // biri rota, öteki sıralama sorusu.
 const MISSION_KINDS = ['order', 'giants', 'rush', 'mines'];
+// Bulmaca bölümü. Tahta duvarlarla odalara bölünüyor, her odanın kapısı başka
+// genişlikte, ve saat yok.
+//
+// Neden işe yarıyor: oyunun ilk gününden beri doğru olan tek yönlü bir kural
+// var — **delik küçülmüyor.** Bugüne kadar bu hep bir ödüldü. Burada bir borç:
+// dar kapılı odaya girmeden önce şişersen, o oda bir daha açılmıyor. Yani
+// kaybettiren şey parmağın hızı değil, yediklerinin sırası.
+//
+// Odalardan biri kapan: kapısı içeri girmeye yetiyor ama odayı yedikten sonra
+// çıkmaya yetmiyor. Yani o oda **en sona** kalmak zorunda. Bu, tahtanın
+// soruyu tek bakışta sorabilmesi demek: kapılar ekranda görünüyor.
+//
+// Neden ayrı bir sayaçta: öteki dört görev sırayla geliyor (5, 15, 25, 35),
+// beşincisi eklenseydi bulmaca elli bölümde bir çıkardı. Oysa Play'de "hole"
+// oyunlarının çoğu kendini Bulmaca'ya koymuş — aranan tür bu. Onda bir bölüm,
+// ve patronla (10) da siparişle (5) de çakışmıyor.
+//
+// İlki 8. bölüm değil 18: kaya 9. bölümde tanıtılıyor (`ROCK_FROM`) ve
+// bulmacanın tamamı kayadan yapılmış duvarlar. 8'de olsaydı oyuncunun gördüğü
+// **ilk** kaya, aynı zamanda geçemediği ilk kapı olurdu — kuralı kendisi olan
+// bir engel, tanıtılmadan sınav. 9-17 arası sıradan kayalarla "bu şey deliği
+// durduruyor" öğreniliyor, 18'de o kural bir soruya dönüyor.
+const PUZZLE_EVERY = 10, PUZZLE_AT = 8, PUZZLE_FIRST = 18;
+function isPuzzleLevel(n) { return n >= PUZZLE_FIRST && n % PUZZLE_EVERY === PUZZLE_AT; }
 // Mayın bölümünde hücrelerin kaçta kaçı bomba, ve saate kaç bombalık pay
 // ekleniyor. Dördü bedava, beşincisinden sonra saat yetmiyor.
 const MINE_RATE = 0.07;
 const MINE_ALLOW = 4;
 function missionKindFor(n) {
+  if (isPuzzleLevel(n)) return 'puzzle';
   if (!isOrderLevel(n)) return null;
   return MISSION_KINDS[Math.floor((n - ORDER_AT) / ORDER_EVERY) % MISSION_KINDS.length];
 }
 // Görevin ekranda söylediği üç şey, tek yerde: simgesi, saydığı şeyin adı ve
 // kuralı. Dağıttığımızda biri güncellenip öteki unutuluyor — üst satır
 // "muzlar" derken bitiş ekranının "meyve" demesi böyle oluyor.
-const MISSION_ICON = { order: '📋', giants: '🍉', rush: '⏱', mines: '💣' };
+const MISSION_ICON = { order: '📋', giants: '🍉', rush: '⏱', mines: '💣', puzzle: '🧩' };
 // Menüde ve bitiş ekranında görünen ad. `mk === 'order' ? 'ORDER' : 'GIANTS'`
 // yazıyordu ve rush bölümü menüde "GIANTS" diyordu — iki tip varken doğru
 // olan satır, üçüncüsü eklenince sessizce yanlış oldu.
-const MISSION_NAME = { order: 'ORDER', giants: 'GIANTS', rush: 'RUSH', mines: 'MINEFIELD' };
+const MISSION_NAME = { order: 'ORDER', giants: 'GIANTS', rush: 'RUSH',
+                       mines: 'MINEFIELD', puzzle: 'PUZZLE' };
 function missionNoun() {
   if (missionKind === 'order') return TYPE_BY_ID[orderType].label;
   if (missionKind === 'giants') return 'Giant';
@@ -1122,6 +1148,9 @@ function missionRule() {
   }
   if (missionKind === 'mines') {
     return 'MINEFIELD: the crop is full of bombs — every one costs you five seconds';
+  }
+  if (missionKind === 'puzzle') {
+    return 'PUZZLE: no clock. The hole only grows — go through the narrow doors first';
   }
   return HINT_DEFAULT;
 }
@@ -8273,9 +8302,22 @@ function buildField() {
   // birim) ve bir dev o koridorun tamamını kapatıyor, yani patron bölümleri
   // üç denemeden ikisinde hiç kaya almadı. Şimdi kaya seçiyor, dev ona göre
   // yerleşiyor — devin tahtada gidecek çok daha fazla yeri var.
-  placeRocks();
-  placeGiants();
-  placeBombs();
+  // Bulmaca tahtasında rastgele kaya, dev, bomba ve kolos yok.
+  //
+  // Hiçbiri "zor" olduğu için çıkarılmadı; ölçülemez oldukları için. Kapı
+  // genişlikleri odalardaki büyümeden hesaplanıyor, rastgele bir kaya o
+  // hesabın içinde olmayan bir duvar demek. Dev daha kötü: küçük delikle
+  // girilen bir odadaki dev yutulamaz ve tahta bitirilemez hâle gelir.
+  // Bomba ise saati eksiltiyor, bulmacada saat yok.
+  const bulmaca = !dailyRun && isPuzzleLevel(level);
+  if (bulmaca) {
+    buildPuzzle();
+  } else {
+    puzzleRooms = [];
+    placeRocks();
+    placeGiants();
+    placeBombs();
+  }
   // After the giants, so it takes its clearing from a settled board rather
   // than having a giant dropped on top of it afterwards. A daily run is
   // never a boss: its level number is not a level number.
@@ -8283,7 +8325,7 @@ function buildField() {
   // and without the colossus so the two can be compared with nothing else
   // moving. Null in normal play.
   const wantBoss = forceBoss == null ? (!dailyRun && isBossLevel(level)) : forceBoss;
-  if (wantBoss) placeColossus();
+  if (wantBoss && !bulmaca) placeColossus();
 
   // Kolosun ezdiği parçaları listeden düşür.
   //
@@ -8318,6 +8360,9 @@ function buildField() {
       // `eatFruit` sayaca dokunmadan dönüyor, yani hedef ulaşılamaz oluyordu.
       missionGoal = orderType
         ? fruits.filter(f => !f.prop && !f.bomb && f.type === orderType).length : 0;
+    } else if (kind === 'puzzle') {
+      // Bulmaca tarlanın tamamını istiyor — değişen şey saat değil, tahta.
+      missionGoal = levelGoal;
     } else if (kind === 'rush' || kind === 'mines') {
       // Rush tarlanın tamamını istiyor, tıpkı sıradan bir bölüm gibi. Değişen
       // şey saat: kısa başlıyor ve her meyve ona ekliyor, yani bölüm bir
@@ -8474,6 +8519,341 @@ function pushOutOfRocks() {
     holeX = r.x + (dx / d) * enAz;
     holeZ = r.z + (dz / d) * enAz;
   }
+}
+
+// ---------------------------------------------------------------------
+// Bulmaca tahtası
+//
+// Tahtanın sağ kenarı boş bir **koridor**; solu, üst üste dizilmiş odalar.
+// Odaların koridora bakan tek duvarı var ve o duvarda her odanın kendi kapısı.
+// Kapıların genişliği farklı.
+//
+// Geçiş kuralı oyunun zaten sahip olduğu şey: `pushOutOfRocks` deliği her
+// kayadan `holeRadius + kaya.r` uzakta tutuyor. Yani iki kaya merkez merkeze
+// D uzaktaysa aradan geçebilen en büyük delik `D/2 - ROCK_R`. Yeni bir
+// çarpışma kuralı yazılmadı; var olanın sonucu ölçüldü.
+//
+// Tahta şöyle kuruluyor ve sırası önemli:
+//
+//   1. Duvar çizgilerine yakın meyveler alınıyor (kaya konmadan önce, çünkü
+//      kapının nerede olacağı henüz belli değil).
+//   2. Her odada **kalan** meyvenin büyütme değeri toplanıyor. Ölçülüyor,
+//      varsayılmıyor: tahtanın deseni odalara eşit meyve dağıtmıyor.
+//   3. O toplamlardan kapı genişlikleri hesaplanıyor — yani tahta önce
+//      kuruluyor, soru sonra soruluyor. Tersi olsaydı kapılar tahtaya
+//      uymazdı.
+//   4. Kayalar konuyor.
+//
+// Odanın derinliği kapının tavanını belirliyor: kapı, odanın kendi bandından
+// geniş olamaz. Üç oda 8-27. bölümlerde, dörde 28'de çıkıyor — orada tahta
+// 34 sıraya ulaşmış oluyor ve dördüncü kapı sığıyor.
+// ---------------------------------------------------------------------
+const PUZZLE_CORR = 5.6;        // koridorun serbest genişliği
+const PUZZLE_MARGIN = 0.22;     // kapıya, gereken en dar ölçünün üstüne eklenen pay
+const PUZZLE_STEP = 0.9;        // duvardaki kaya aralığı — 2*ROCK_R'den küçük, yani duvar dolu
+const PUZZLE_CLEAR = 1.15;      // duvar çizgisine bu kadar yakın meyve alınıyor
+const PUZZLE_4ROOMS = 28;       // dördüncü oda bu bölümden itibaren
+// Bir odada en az bu kadar meyve. Altına düşen oda dolduruluyor.
+//
+// Ölçüldü: koridor tahtanın yarısını alıyor ve düzenlerin bir kısmı geri kalan
+// yarıya da kocaman boşluklar bırakıyor — 38. bölümde bir oda sıfır meyveyle,
+// 18. bölüm toplam 71 meyveyle çıktı. Sıfır meyveli oda soru sormuyor (kapısının
+// genişliğinin bir anlamı kalmıyor), 71 meyveli tahta da bölüm olmaya yetmiyor.
+const PUZZLE_MIN_ROOM = 30;
+
+let puzzleRooms = [];           // { z0, z1, cz, g, limit, gap, fruit }
+let puzzleOrder = [];           // tahtanın kurulduğu sıra — testin okuduğu şey
+let puzzleWallX = 0;
+let puzzleTries = 0, puzzleTriesLv = 0, puzzleDead = false;
+
+function puzzleOn() { return !dailyRun && isPuzzleLevel(level); }
+function puzzleCorrCX() { return fieldHalfX - PUZZLE_CORR / 2; }
+
+// Deliğin bölüm başındaki yarıçapı. `resetHole` ile aynı satır olmak zorunda:
+// kapı genişlikleri buradan hesaplanıyor ve ikisi ayrışırsa tahta ya imkânsız
+// ya bedava olur. O yüzden iki yerde yazılmıyor.
+function startHoleRadius() {
+  return BASE_HOLE_R
+    + Math.min(sizeStage - 1, LEVEL_HEADSTART_CAP) * 0.02
+    + Math.min(upg('size'), SIZE_UPGRADE_CAP) * SIZE_UPGRADE_STEP;
+}
+
+// Tahta **tam** odalar yenerek bitirilebilir mi?
+//
+// Durum uzayı küçük: hangi odalarda meyve kaldı (küme) ve delik nerede.
+// Yarıçap kümeden çıkıyor, çünkü yenen şeyin ne olduğu fark etmiyor — dört
+// oda için on altı durum, yani tam arama. Tahmin değil, sayım.
+//
+// Oyuncunun bir odayı yarım bırakıp dönme hakkı da var; bu arama onu
+// saymıyor, yani **ihtiyatlı**: "çözülebilir" dediğinde gerçekten çözülebilir.
+// Ters yönde kullanılamaz — bu yüzden oyun içindeki "sıkıştın" kararı bundan
+// değil, `puzzleStuck` içindeki tek yönlü kuraldan veriliyor.
+function puzzleFeasible(g, limit, r0, at = -1, left = null) {
+  const N = g.length;
+  const full = left == null ? (1 << N) - 1 : left;
+  const memo = new Map();
+  const walk = (mask, yer) => {
+    if (mask === 0) return true;
+    const key = mask * 8 + (yer + 1);
+    if (memo.has(key)) return memo.get(key);
+    let r = r0;
+    for (let i = 0; i < N; i++) if (!(mask & (1 << i))) r = Math.min(HOLE_MAX, r + g[i]);
+    let ok = false;
+    if (yer >= 0 && (mask & (1 << yer))) {
+      ok = walk(mask & ~(1 << yer), yer);           // içinde olduğun odayı bitir
+    } else if (yer >= 0 && r > limit[yer]) {
+      ok = false;                                    // oda boş ve kapıdan çıkamıyorsun
+    } else {
+      for (let i = 0; i < N && !ok; i++) {
+        if (!(mask & (1 << i)) || r > limit[i]) continue;
+        ok = walk(mask & ~(1 << i), i);
+      }
+    }
+    memo.set(key, ok);
+    return ok;
+  };
+  return walk(full, at);
+}
+
+// Kapı genişlikleri. Bir sıra seçiliyor ve kapılar **tam o sıraya** göre
+// biçiliyor: k. odaya girildiğinde delik ne kadarsa kapı o kadar, artı pay.
+// Son oda kapan — girmeye yetiyor, yedikten sonra çıkmaya yetmiyor.
+//
+// Sonra üç şey ölçülüyor: sıra gerçekten çözülebiliyor mu, tembel sıra
+// (koridorda yürürken ilk rastlanan odadan başlamak) düşüyor mu, ve kapan
+// gerçekten kapan mı. Üçü birden tutmayan aday atılıyor.
+function puzzlePlan(g, r0, maxGap) {
+  const N = g.length;
+  const minGap = 2 * (r0 + 0.30 + ROCK_R);
+  const kur = (perm) => {
+    const limit = new Array(N);
+    let r = r0;
+    for (let k = 0; k < N; k++) {
+      const i = perm[k];
+      const gerek = k < N - 1 ? Math.min(HOLE_MAX, r + g[i]) : r;
+      const gap = Math.max(minGap, Math.min(maxGap, 2 * (gerek + PUZZLE_MARGIN + ROCK_R)));
+      limit[i] = gap / 2 - ROCK_R;
+      r = Math.min(HOLE_MAX, r + g[i]);
+    }
+    return limit;
+  };
+  // Tembel sıra: koridorda doğduğun uçtan başlayıp ilerlemek. Odalar z'ye göre
+  // sıralı ve delik +z ucunda doğuyor, yani son odadan geriye doğru.
+  const tembel = [];
+  for (let i = N - 1; i >= 0; i--) tembel.push(i);
+  let yedek = null;
+  for (let deneme = 0; deneme < 200; deneme++) {
+    const perm = [];
+    for (let i = 0; i < N; i++) perm.push(i);
+    for (let i = N - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [perm[i], perm[j]] = [perm[j], perm[i]];
+    }
+    const limit = kur(perm);
+    if (!puzzleFeasible(g, limit, r0)) continue;
+    if (!yedek) yedek = { perm, limit };
+    // Kapan: son odanın kapısı, o oda yendikten sonra çıkışa yetmemeli.
+    const son = perm[N - 1];
+    let rSon = r0;
+    for (let k = 0; k < N - 1; k++) rSon = Math.min(HOLE_MAX, rSon + g[perm[k]]);
+    const kapan = Math.min(HOLE_MAX, rSon + g[son]) > limit[son] + 0.01;
+    if (!kapan) continue;
+    // Tembel sıra düşmeli, yoksa ortada bir soru yok.
+    if (tembelGecer(g, limit, r0, tembel)) continue;
+    return { perm, limit };
+  }
+  // Hiçbir aday üçünü birden tutmadıysa çözülebilen ilkine dönülüyor; hiç
+  // çözülebilen yoksa bütün kapılar sonuna kadar açılıyor. Oynanabilir ama
+  // sorusu zayıf bir tahta, imkânsız bir tahtadan iyidir.
+  if (yedek) return yedek;
+  return { perm: tembel.slice(), limit: g.map(() => maxGap / 2 - ROCK_R) };
+}
+
+// Verilen sıra baştan sona yürüyor mu? `puzzleFeasible` "bir yol var mı" diye
+// soruyor; bu, "**bu** yol yürüyor mu" diye.
+function tembelGecer(g, limit, r0, perm) {
+  let r = r0;
+  for (let k = 0; k < perm.length; k++) {
+    const i = perm[k];
+    if (r > limit[i]) return false;                     // giremiyor
+    r = Math.min(HOLE_MAX, r + g[i]);
+    if (k < perm.length - 1 && r > limit[i]) return false;   // çıkamıyor
+  }
+  return true;
+}
+
+function puzzleRock(x, z) {
+  const mesh = ROCK_GEO.clone();
+  mesh.scale.set(ROCK_R, ROCK_R, ROCK_R);
+  mesh.position.set(x, 0, z);
+  mesh.rotation.y = rnd() * Math.PI * 2;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  fieldGroup.add(mesh);
+  rocks.push({ x, z, r: ROCK_R, mesh });
+}
+
+function puzzleRockLine(x0, z0, x1, z1) {
+  const boy = Math.hypot(x1 - x0, z1 - z0);
+  const n = Math.max(1, Math.ceil(boy / PUZZLE_STEP));
+  for (let k = 0; k <= n; k++) {
+    puzzleRock(x0 + ((x1 - x0) * k) / n, z0 + ((z1 - z0) * k) / n);
+  }
+}
+
+// Bir noktanın verilen doğru parçasına uzaklığı. Meyve ayıklaması buradan
+// geçiyor: kayalar henüz konmadı, elde yalnızca duvarın çizgisi var.
+function segDist(px, pz, x0, z0, x1, z1) {
+  const dx = x1 - x0, dz = z1 - z0;
+  const kare = dx * dx + dz * dz;
+  const t = kare ? Math.max(0, Math.min(1, ((px - x0) * dx + (pz - z0) * dz) / kare)) : 0;
+  return Math.hypot(px - (x0 + dx * t), pz - (z0 + dz * t));
+}
+
+function buildPuzzle() {
+  rocks = [];
+  puzzleRooms = [];
+  const N = level >= PUZZLE_4ROOMS ? 4 : 3;
+  puzzleWallX = fieldHalfX - PUZZLE_CORR - ROCK_R;
+  const derin = (fieldHalfZ * 2) / N;
+  // Duvarlar tahtanın dışına yarım kaya taşıyor: kenar kısıtı deliğin
+  // yarıçapının yarısı kadar dışarı sarkmasına izin veriyor, yani duvar tam
+  // kenarda bitseydi delik ucundan dolanabilirdi.
+  const tasma = 0.5;
+  const cizgiler = [[puzzleWallX, -fieldHalfZ - tasma, puzzleWallX, fieldHalfZ + tasma]];
+  for (let i = 1; i < N; i++) {
+    const z = -fieldHalfZ + i * derin;
+    cizgiler.push([-fieldHalfX - tasma, z, puzzleWallX, z]);
+  }
+
+  // 1. Duvarların ve koridorun üstündeki meyveler alınıyor.
+  //
+  // Koridor bilerek boş: orası düşünme yeri. Orada meyve olsaydı oyuncu
+  // odalara girmeden de büyüyebilirdi, yani sorunun cevabı tahtada değil
+  // oyuncunun canı ne isterse orada olurdu.
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    const koridorda = f.x > puzzleWallX - ROCK_R - 0.3;
+    const duvarda = cizgiler.some(c => segDist(f.x, f.z, c[0], c[1], c[2], c[3]) < ROCK_R + PUZZLE_CLEAR);
+    if (!koridorda && !duvarda) continue;
+    fieldGroup.remove(f.mesh);
+    f.mesh.visible = false;
+    f.eaten = true;
+  }
+
+  // 2. Boş kalan odalar dolduruluyor.
+  //
+  // Düzenlerin bir kısmı tahtanın bütününe bakıyor ve kocaman boşluklar
+  // bırakıyor (Island, Ring, Bubbles). O boşluk bir odanın tamamına denk
+  // gelince oda soru sormayı bırakıyor: içinde yenecek şey yok, kapısının
+  // genişliğinin de bir anlamı kalmıyor. Ölçüldü — 38. bölümde bir oda sıfır
+  // meyveyle çıktı.
+  //
+  // Eklenen meyve odanın kendi ızgarasına konuyor, yani tahtanın geri kalanına
+  // benziyor; desenin şeklini bozmuyor çünkü orada zaten desen yok.
+  for (let i = 0; i < N; i++) {
+    const z0 = -fieldHalfZ + i * derin, z1 = z0 + derin;
+    const varOlan = fruits.filter(f => !f.eaten && f.x < puzzleWallX && f.z >= z0 && f.z < z1);
+    let hedef = PUZZLE_MIN_ROOM - varOlan.length;
+    if (hedef <= 0) continue;
+    const x0 = -fieldHalfX + CELL, x1 = puzzleWallX - ROCK_R - PUZZLE_CLEAR;
+    const zz0 = z0 + ROCK_R + PUZZLE_CLEAR, zz1 = z1 - ROCK_R - PUZZLE_CLEAR;
+    if (zz1 <= zz0) continue;
+    for (let sx = 0; sx < 6 && hedef > 0; sx++) {
+      for (let sz = 0; sz < 6 && hedef > 0; sz++) {
+        const x = x0 + ((x1 - x0) * (sx + 0.5)) / 6;
+        const z = zz0 + ((zz1 - zz0) * (sz + 0.5)) / 6;
+        // Zaten bir şey duran hücreye ikinci bir meyve konmuyor: iki parça üst
+        // üste binince ikisi de tek bir şey gibi okunuyor ve odanın kaç
+        // meyveden ibaret olduğu gözle sayılamaz oluyor.
+        if (fruits.some(f => !f.eaten && Math.hypot(f.x - x, f.z - z) < 0.72)) continue;
+        hedef--;
+        const type = TYPES[Math.floor(rnd() * TYPES.length)].id;
+        const vis = fruitVisual(type, NORMAL_R);
+        const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
+        mesh.scale.set(vis.sx, vis.sy, vis.sx);
+        mesh.position.set(x, vis.baseY, z);
+        mesh.userData.ox = x; mesh.userData.oz = z;
+        mesh.rotation.y = vis.upright ? 0 : rnd() * Math.PI * 2;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        fieldGroup.add(mesh);
+        fruits.push({ mesh, x, z, r: NORMAL_R, type, big: false, prop: null,
+                      eaten: false, baseY: vis.baseY, nudge: 0 });
+      }
+    }
+  }
+
+  // 3. Odalarda kalanın büyütme değeri. `growthUnit()` canlı meyve sayısına
+  //    bakıyor ve o sayı ancak ayıklama bittikten sonra doğru.
+  const canli = fruits.filter(f => !f.eaten);
+  const birim = (HOLE_MAX - BASE_HOLE_R) / Math.max(40, canli.length * GROW_SWEEP);
+  for (let i = 0; i < N; i++) {
+    const z0 = -fieldHalfZ + i * derin, z1 = z0 + derin;
+    const icinde = canli.filter(f => f.z >= z0 && f.z < z1);
+    const g = icinde.reduce((a, f) => a + birim * (f.giant ? 9 : f.big ? 3 : 1), 0);
+    puzzleRooms.push({ z0, z1, cz: (z0 + z1) / 2, g, fruit: icinde.length, limit: 0, gap: 0 });
+  }
+
+  // 3. Kapılar. Tavan odanın kendi bandı: kapı ondan geniş olamaz, yoksa
+  //    duvardan geriye hiçbir şey kalmaz ve oda oda olmaktan çıkar.
+  const maxGap = derin - 1.8;
+  const plan = puzzlePlan(puzzleRooms.map(rm => rm.g), startHoleRadius(), maxGap);
+  puzzleRooms.forEach((rm, i) => {
+    rm.limit = plan.limit[i];
+    rm.gap = (rm.limit + ROCK_R) * 2;
+  });
+  puzzleOrder = plan.perm.slice();
+
+  // 4. Kayalar. Dikey duvar kapıların dışında kalan parçalardan, ara duvarlar
+  //    baştan sona dolu.
+  for (const rm of puzzleRooms) {
+    const agiz0 = rm.cz - rm.gap / 2, agiz1 = rm.cz + rm.gap / 2;
+    const bas = rm === puzzleRooms[0] ? -fieldHalfZ - tasma : rm.z0;
+    const son = rm === puzzleRooms[puzzleRooms.length - 1] ? fieldHalfZ + tasma : rm.z1;
+    if (agiz0 > bas) puzzleRockLine(puzzleWallX, bas, puzzleWallX, agiz0);
+    if (son > agiz1) puzzleRockLine(puzzleWallX, agiz1, puzzleWallX, son);
+  }
+  for (let i = 1; i < puzzleRooms.length; i++) {
+    const z = puzzleRooms[i].z0;
+    puzzleRockLine(-fieldHalfX - tasma, z, puzzleWallX, z);
+  }
+}
+
+// Delik hangi odada? Koridor için -1.
+function puzzleWhere() {
+  if (!puzzleRooms.length || holeX > puzzleWallX) return -1;
+  for (let i = 0; i < puzzleRooms.length; i++) {
+    if (holeZ >= puzzleRooms[i].z0 && holeZ < puzzleRooms[i].z1) return i;
+  }
+  return -1;
+}
+
+// Tahta artık bitirilemez mi?
+//
+// Kural tek yönlü olmak zorunda: yanlışlıkla "sıkıştın" demek, hâlâ yolu olan
+// bir oyuncunun bölümünü elinden almak demek. O yüzden burada arama yok,
+// yalnızca kanıtlanabilir iki hâl var — delik küçülmediği için ikisi de
+// geri dönüşsüz:
+//
+//   * İçinde olduğun odanın kapısından artık çıkamıyorsun ve dışarıda meyve
+//     kalmış.
+//   * Koridordasın ve meyve kalan odaların hiçbirine sığmıyorsun.
+//
+// Odayı yarım bırakıp dönmek gibi ince oyunlar bu kuralı yanıltmıyor: ikisi
+// de yalnızca yarıçapa bakıyor ve yarıçap hiç azalmıyor.
+function puzzleStuck() {
+  if (!puzzleRooms.length) return false;
+  const kalan = puzzleRooms.map(rm =>
+    fruits.some(f => !f.eaten && !f.bomb && f.x < puzzleWallX && f.z >= rm.z0 && f.z < rm.z1));
+  if (!kalan.some(Boolean)) return false;
+  const gecmez = i => holeRadius > puzzleRooms[i].limit + 0.02;
+  const nerede = puzzleWhere();
+  if (nerede >= 0) {
+    const baskaYerdeVar = kalan.some((v, i) => v && i !== nerede);
+    return gecmez(nerede) && baskaYerdeVar;
+  }
+  return !kalan.some((v, i) => v && !gecmez(i));
 }
 
 // Bombalar, tarla ve devler yerleştikten sonra: mevcut bir meyvenin yerini
@@ -9211,12 +9591,14 @@ function resetHole() {
   //
   // The upgrade is capped for the same reason: at 0.06 a level and no
   // ceiling, a player with a full purse simply buys past the gate.
-  holeRadius = BASE_HOLE_R
-    + Math.min(sizeStage - 1, LEVEL_HEADSTART_CAP) * 0.02
-    + Math.min(upg('size'), SIZE_UPGRADE_CAP) * SIZE_UPGRADE_STEP;
+  holeRadius = startHoleRadius();
   startRadius = holeRadius;
-  holeX = SPAWN_X;
+  // Bulmacada delik koridorda doğuyor. Tahtanın ortasında doğsaydı bir odanın
+  // içinde başlardı — yani sıraya karar vermeden önce ilk odayı çoktan seçmiş
+  // olurdu, ve o oda dar kapılıysa bölüm ilk karede bitmiş olurdu.
+  holeX = puzzleOn() ? puzzleCorrCX() : SPAWN_X;
   holeZ = spawnZ();
+  puzzleDead = false;
   buildHole();
 }
 
@@ -9488,6 +9870,10 @@ function pickOrderType() {
 }
 
 function levelTime() {
+  // Bulmacada saat yok. Sayı yine de bir sayı olmak zorunda — `timeFull` ve
+  // bitiş ekranı okuyor — ama geri saymıyor: ana döngü bulmacada saate hiç
+  // dokunmuyor ve üst satır '∞' yazıyor. Düşünecek adam acele ettirilmez.
+  if (missionKind === 'puzzle') return 9999;
   // Derived from the route the hole actually has to travel, not from the
   // fruit count. Counting fruit gave sparse patterns like Island a short
   // clock for a full-size board to sweep, while dense ones like Blocks got a
@@ -9544,6 +9930,10 @@ function ease() {
 // Stars reflect how much time is still on the clock, so clearing fast is
 // worth more than clearing at all. Shown live during play, awarded on clear.
 function liveStars() {
+  // Bulmacada yıldız saatten okunamaz — saat yok. Ölçülen şey kaç denemede
+  // çıkardığın: ilk seferde üç, ikincide iki, sonrası bir. Yani yıldız
+  // "hızlı mıydın" değil, "doğru sırayı ilk seferde buldun mu".
+  if (missionKind === 'puzzle') return puzzleTries === 0 ? 3 : puzzleTries === 1 ? 2 : 1;
   // Rush'ta saat başlangıç değerine göre ölçülemez: 12 saniyede başlayıp
   // tavana dayanıyor, yani oran her zaman 1'in üstünde ve her koşu üç yıldız
   // olurdu. Ölçü tavanın neresinde bitirdiğin — hiç sıkışmadan geçen oyuncu
@@ -9782,6 +10172,9 @@ function startLevel() {
   dailyRun = false;
   forcedPattern = null;
   sizeStage = level;
+  // Deneme sayacı bölüme bağlı: aynı bulmacayı yeniden denemek yıldız
+  // düşürüyor, başka bir bölüme geçmek sayacı sıfırlıyor.
+  if (puzzleTriesLv !== level) { puzzleTries = 0; puzzleTriesLv = level; }
   rows = Math.min(22 + Math.floor((level - 1) / 2) * 2, 34);
   buildField();
   startRun();
@@ -9826,6 +10219,11 @@ function startRun() {
 }
 
 function updateTimeUI() {
+  if (missionKind === 'puzzle') {
+    if (lastWholeSecond !== -2) { lastWholeSecond = -2; timeNEl.textContent = '∞'; }
+    timeTagEl.classList.remove('low');
+    return;
+  }
   const s = Math.max(0, Math.ceil(timeLeft));
   if (s !== lastWholeSecond) {
     lastWholeSecond = s;
@@ -10206,6 +10604,23 @@ function onTimeUp() {
   showOverlay("Time's Up! ⏱", `${left} ${ne}`, 'Retry', startLevel, !revivedThisLevel);
 }
 
+// Bulmacanın kaybı: tahta artık bitirilemez.
+//
+// Ödüllü "+15 saniye" burada teklif edilmiyor. Saat bitmedi — sığmıyorsun, ve
+// hiçbir süre deliği geri küçültmüyor. Oyuncuya işe yaramayacak bir reklam
+// izletmek, reklamı da oyunu da bozar.
+function onStuck() {
+  if (state !== 'playing') return;
+  flushPerf();
+  state = 'lost';
+  sfx.lose();
+  fillStats();
+  puzzleTries++;
+  const left = Math.max(0, missionGoal - missionEaten);
+  showOverlay('Stuck! 🧩', `the hole no longer fits — ${left} fruit left`,
+              'Retry', startLevel, false);
+}
+
 // ---------------------------------------------------------------------
 // Eating
 // ---------------------------------------------------------------------
@@ -10461,7 +10876,7 @@ function eatFruit(f, now) {
   eatenCount++;
   if (missionKind === 'order' && !f.prop && f.type === orderType) missionEaten++;
   else if (missionKind === 'giants' && f.giant) missionEaten++;
-  else if (missionKind === 'mines') missionEaten++;
+  else if (missionKind === 'mines' || missionKind === 'puzzle') missionEaten++;
   else if (missionKind === 'rush') {
     missionEaten++;
     // Saat yenen meyveden besleniyor. Tavanı aşmıyor ve zaten tavanın
@@ -11666,6 +12081,56 @@ window.fruitHoleRocks = () => ({
   agizTavani: HOLE_MAX,
 });
 
+// Bulmaca tahtasının tamamı: odalar, kapılar, ve tahtanın **kendi** kurduğu
+// sıra. Testin iki ayrı soru sorabilmesi için ikisi de dönüyor — "bu tahta
+// çözülebilir mi" ile "kurulurken çözülebilir sanılmış mı" aynı şey değil.
+//
+// `rocks` de burada: kapı genişliği tasarlanan sayıdan değil, **konan
+// kayalardan** ölçülmeli. Aradaki farkın adı hata.
+window.fruitHolePuzzle = () => ({
+  on: missionKind === 'puzzle',
+  rooms: puzzleRooms.map((rm, i) => ({
+    i, z0: +rm.z0.toFixed(2), z1: +rm.z1.toFixed(2), cz: +rm.cz.toFixed(2),
+    g: +rm.g.toFixed(4), limit: +rm.limit.toFixed(3), gap: +rm.gap.toFixed(3),
+    fruit: rm.fruit,
+    kalan: fruits.filter(f => !f.eaten && f.x < puzzleWallX
+                             && f.z >= rm.z0 && f.z < rm.z1).length,
+  })),
+  order: puzzleOrder.slice(),
+  wallX: +puzzleWallX.toFixed(3), corrCX: +puzzleCorrCX().toFixed(3),
+  rockR: ROCK_R, holeMax: HOLE_MAX,
+  r0: +startHoleRadius().toFixed(4), holeR: +holeRadius.toFixed(4),
+  at: puzzleWhere(), stuck: puzzleStuck(), tries: puzzleTries,
+  feasible: puzzleRooms.length
+    ? puzzleFeasible(puzzleRooms.map(rm => rm.g), puzzleRooms.map(rm => rm.limit),
+                     startHoleRadius())
+    : null,
+  rocks: rocks.map(r => ({ x: +r.x.toFixed(3), z: +r.z.toFixed(3), r: +r.r.toFixed(3) })),
+  fruits: fruits.filter(f => !f.eaten)
+    .map(f => ({ x: +f.x.toFixed(2), z: +f.z.toFixed(2), r: +f.r.toFixed(2) })),
+});
+// Deliği bir odaya koy ve yarıçapını ayarla — sıra denemelerini oynamadan
+// yürütebilmek için. Kapıdan geçip geçmediğini söylemiyor; onu `pushTest`
+// ölçüyor.
+window.fruitHolePuzzlePut = (room, r) => {
+  const rm = room < 0 ? null : puzzleRooms[room];
+  if (r != null) holeRadius = r;
+  if (rm) { holeX = (-fieldHalfX + puzzleWallX) / 2; holeZ = rm.cz; }
+  else { holeX = puzzleCorrCX(); holeZ = spawnZ(); }
+  return { x: +holeX.toFixed(2), z: +holeZ.toFixed(2), r: +holeRadius.toFixed(3),
+           at: puzzleWhere(), stuck: puzzleStuck() };
+};
+// Bir odanın bütün meyvesini ye — sıranın sonucunu ölçmek için.
+window.fruitHolePuzzleEat = (room) => {
+  const rm = puzzleRooms[room];
+  if (!rm) return null;
+  const now = performance.now();
+  for (const f of fruits) {
+    if (f.eaten || f.x >= puzzleWallX || f.z < rm.z0 || f.z >= rm.z1) continue;
+    eatFruit(f, now);
+  }
+  return { r: +holeRadius.toFixed(4), eaten: eatenCount, stuck: puzzleStuck() };
+};
 // Deliği bir noktaya koymayı dene ve kayaların onu nereye ittiğini söyle.
 // Çarpışmayı ölçmenin tek yolu bu: gerçek parmakla sürmek konteynerde
 // zamanlamaya bağlı olurdu ve GPU yok.
@@ -12156,9 +12621,15 @@ function tick(now) {
   if (state === 'playing' && !settling) {
     // countdown follows wall-clock so it is not slowed by a low frame rate,
     // but a backgrounded tab must not drain the whole clock at once
-    timeLeft -= Math.min(0.25, elapsed);
-    if (timeLeft <= 0) { timeLeft = 0; updateTimeUI(); onTimeUp(); }
-    else updateTimeUI();
+    // Bulmacada saat hiç işlemiyor: kaybettiren şey süre değil sıra.
+    if (missionKind !== 'puzzle') {
+      timeLeft -= Math.min(0.25, elapsed);
+      if (timeLeft <= 0) { timeLeft = 0; updateTimeUI(); onTimeUp(); }
+      else updateTimeUI();
+    } else if (!puzzleDead && puzzleStuck()) {
+      puzzleDead = true;
+      onStuck();
+    }
 
     if (joyX || joyY) {
       const speed = BASE_MOVE_SPEED * (1 + upg('speed') * 0.08);
