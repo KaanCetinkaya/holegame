@@ -496,6 +496,20 @@ already at the upload screen — so both are counted here.
 
 ## Category / tags
 - Category: **Games → Casual**
+
+**Bulmaca'ya geçmek düşünülmeli.** 25 Eylül 2026'da Play'deki delik oyunları
+tarandı ve en yüksek puanlılar Bulmaca kategorisinde duruyor: All in Hole
+(4.8), Hole Busters 3D (4.7), Hole Stars (4.7), Hole Puzzle. Gündelik'te
+olanlar daha düşük: Drop in the Hole (4.4), Hole Collect (4.5, Arcade).
+
+All in Hole da bulmaca değil — delik sürüyorsun — ama kendini oraya koymuş.
+Kategori burada türden çok **bulunabilirlik** seçimi: hangi listelerde
+göründüğünü ve kimin "benzer oyunlar" bölümünde çıktığını belirliyor.
+Ücretsiz ve geri alınabilir bir ayar.
+
+Bu tarama daha önce yapılmamıştı; o güne kadar yalnızca Kaan'ın adını verdiği
+üç oyundan (All in Hole, Hole Em All, Hole Stars) konuşulmuştu ve mağazanın
+kendisine hiç bakılmamıştı.
 - Tags: hole, fruit, arcade, puzzle, one finger, offline, relaxing, idle
 
 ## Content rating
