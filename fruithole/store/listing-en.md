@@ -588,3 +588,19 @@ tablets, Chrome OS and Play Games on PC.
 
 Only screenshots go in those sections. The feature graphic and the icon each
 have their own field further up the page.
+
+## Görseller eskidi: resim tahtaları
+
+Sekiz ekran görüntüsünün hepsi ızgara düzenlerinden çekildi — piramit, kar,
+ada. Oyunda artık 3, 13, 23… bölümlerinde **resim tahtaları** var: mantar,
+balon, dondurma, çilek, karpuz, ananas, kiraz, çiçek. 1400-1850 parçadan
+kurulu ve mağazadaki hiçbir görselde yoklar.
+
+Bu bir bakım işi değil, satış işi: Play aramada ilk üç görseli gösteriyor ve
+kurulum kararının çoğu orada veriliyor. Rakiplerin görsellerinde tam da bu var
+— mısır koçanı, oyuncak ayı, Eyfel Kulesi — ve bizim ilk üç görselimiz onların
+yanında ızgara gibi duruyor.
+
+Üretim erişimi alındıktan sonra **ilk iş**: `make-shots.mjs` ile yeniden çek ve
+ilk üç sıraya bir resim tahtası koy. Aynısı `feature-1024x500.png` için de
+geçerli.
