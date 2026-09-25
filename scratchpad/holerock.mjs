@@ -64,8 +64,12 @@ const tavan = satir[0].agizTavani;
 // şapkasında taş. Buradaki kurallar (her tahtada kaya var, kaya doğuş noktasını
 // kapatmıyor, iki kayanın arası ağızdan geniş) ızgara tahtası içindi ve resim
 // tahtasında hepsi sıfıra bakıyor, yani anlamsız düşüyorlardı.
-const resimler = new Set(
-  (await pg.evaluate(() => window.fruitHolePictures())).levels);
+const resimler = new Set([
+  ...(await pg.evaluate(() => window.fruitHolePictures())).levels,
+  // Şerit tahtasında da kaya yok, aynı sebeple: şeridin ortasındaki kaya
+  // şeridi kesiyor.
+  ...(await pg.evaluate(() => window.fruitHoleRibbons())).levels,
+]);
 const erken = satir.filter(r => r.n < 9 && !resimler.has(r.n));
 const gec = satir.filter(r => r.n >= 9 && !resimler.has(r.n));
 check(erken.every(r => r.sayi === 0), 'dokuzuncu bölümden önce kaya yok',

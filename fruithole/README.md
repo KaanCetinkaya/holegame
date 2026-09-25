@@ -3830,3 +3830,50 @@ arada bir pay yok.
 `holepuzzle.mjs` ikisini ayrı ölçüyor: ilk bölümde **bütün** sıraların
 yürüdüğünü, sonrakilerde tembel sıranın düştüğünü. Kapan ve sıkışma ölçümleri
 de 18'den 28'e taşındı — olmaması gereken bir şeyi orada aramak yanlış olurdu.
+
+## Şerit tahtaları
+
+Kaan oynadıktan sonraki tek cümlesi: *"oyunu sıkıcı yapan şey çok fazla küçük
+meyve olması ve her bölümde yan yana diziliyor olmaları."*
+
+Doğru gözlem, ve rakiplerin ekran görüntülerinde tam tersi var. Orada parçalar
+hücre hücre **doldurulmuyor**, çizgiler boyunca **diziliyor**: sarmal, iç içe
+halkalar, yılan, zikzak, mandala. Aralarında boş toprak var ve her şerit **tek
+renk** — okunmasını sağlayan şey bu. Üstüne bir de iri meyveler konuyor, yani
+bakılacak bir yer oluyor.
+
+Bizim ızgaramız her hücreyi dolduruyor ve renkleri karıştırıyordu: ortaya bir
+şekil değil bir doku çıkıyor, ve doku her bölümde aynı dokuya benziyor. Düzen
+değişiyor, **diziliş** değişmiyor. Yirmi dört düzen yazmak bunu çözmüyor.
+
+Şerit tahtası bir eğri ailesi seçip boncukları eğrilerin üstüne diziyor:
+
+```
+spiral      doğuştan dışarı açılan tek sarmal, her tur başka renk
+rings       iç içe halkalar
+serpentine  uçlarda dönen yatay şerit
+chevron     zikzak sıralar
+loops       dağınık halkalar, her birinin ortasında iri meyve
+web         merkezden ışınlar + üstlerinden geçen halkalar (mandala)
+```
+
+Bölümler: 6, 16, 26, 36, 46, 56… Parça sayısı ızgaradan az (266-386'ya karşı
+300-550) ama ekranda daha çok şey var, çünkü **boşluk da bir şey**.
+
+Ölçüler şunlar ve keyfî değil:
+
+* **Boncuk yarıçapı 0.30.** Izgaranın en küçük meyvesi 0.46'ydı ve tahtayı
+  halıya çeviren de oydu.
+* **Boncuklar arası 0.68.** Bitişik olsalardı şerit düz bir çubuk olurdu;
+  aradaki boşluk diziyi boncuk boncuk okutuyor.
+* **Şeritler arası 1.9.** Deliğin açılış çapı 1.1, yani iki şeridin arasından
+  geçiyor ama ikisini birden yutamıyor. Oyuncunun şeridi **takip etmesi**
+  bundan çıkıyor.
+
+Adım dünya biriminde sabit tutuluyor, eğri üstünde değil: eşit olmasaydı
+sarmalın içi tıkanır dışı seyrelirdi.
+
+Izgara için yazılmış üç kural buraya uygulanmıyor ve sebebi her testte yazılı —
+şerit tahtasında kaya yok (şeridi keserdi), dev yok (aynı sebep), ve iri meyve
+payı düşük olduğu için "halı" sayılmıyor (şeridi okutan şey boncukların
+eşitliği).

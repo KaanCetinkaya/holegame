@@ -22,8 +22,12 @@ await pg.waitForSelector('#playBtn',{state:'visible',timeout:20000});
 // (her tahtada dev var, deliğin ona büyüyecek kadar tarlası var) ızgara
 // tahtası içindi; resim tahtasında sıfıra bölünüyor ve "tarlanın -%46'sını
 // süpür" gibi anlamsız sayılar çıkıyor.
-const resimler = new Set(
-  (await pg.evaluate(() => window.fruitHolePictures())).levels);
+const resimler = new Set([
+  ...(await pg.evaluate(() => window.fruitHolePictures())).levels,
+  // Şerit tahtalarında da dev yok: tahtayı eğriler kuruyor ve aralarına
+  // konan bir dev, şeridi kesen bir şey olurdu.
+  ...(await pg.evaluate(() => window.fruitHoleRibbons())).levels,
+]);
 
 let bad = 0;
 for (let lvl = 1; lvl <= 15; lvl++) {

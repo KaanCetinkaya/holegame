@@ -49,8 +49,13 @@ let tToplam = 0, tIri = 0;
 // boncukların eşitliği resmi okutan şey — ve bakılacak yer resmin kendisi.
 // Kural oraya uygulanınca "iri payı %0, halı" diyor ve tam tersini söylemiş
 // oluyor.
-const resimler = new Set(
-  (await pg.evaluate(() => window.fruitHolePictures())).levels);
+const resimler = new Set([
+  ...(await pg.evaluate(() => window.fruitHolePictures())).levels,
+  // Şerit tahtası da bilerek tek boy boncuktan: şeridi okutan şey
+  // boncukların eşitliği, ve bakılacak yer şeklin kendisi. Iri meyve orada
+  // dokuyu kıran bir şey değil, şeridin üstüne konan bir işaret.
+  ...(await pg.evaluate(() => window.fruitHoleRibbons())).levels,
+]);
 
 console.log(' bölüm  desen           toplam  sıradan  büyük  dev   iri payı');
 for (let n = 1; n <= 24; n++) {

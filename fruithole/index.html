@@ -1536,6 +1536,45 @@ const PICTURES = [
 ];
 
 function isPictureLevel(n) { return n >= 3 && n % 10 === 3; }
+
+// ---------------------------------------------------------------------
+// Şerit tahtaları
+//
+// Kaan'ın oynadıktan sonraki tek cümlesi: "oyunu sıkıcı yapan şey çok fazla
+// küçük meyve olması ve her bölümde yan yana diziliyor olmaları."
+//
+// Doğru gözlem, ve rakiplerin ekran görüntülerinde tam tersi var. Orada
+// parçalar hücre hücre **doldurulmuyor**, çizgiler boyunca **diziliyor**:
+// sarmal, iç içe halkalar, yılan, zikzak. Aralarında boş toprak var ve her
+// şerit **tek renk** — okunmasını sağlayan şey bu. Üstüne bir de iri
+// nesneler konuyor, yani bakılacak bir yer oluyor.
+//
+// Bizim ızgaramız her hücreyi dolduruyor ve renkleri karıştırıyor: ortaya bir
+// şekil değil bir doku çıkıyor, ve doku her bölümde aynı dokuya benziyor.
+// Düzen değişiyor, **diziliş** değişmiyor.
+//
+// Buradaki tahta bir eğri ailesi seçiyor ve boncukları o eğrilerin üstüne
+// diziyor. Parça sayısı ızgaradan az, ama ekranda daha çok şey var — çünkü
+// boşluk da bir şey.
+const RIBBON_EVERY = 10, RIBBON_AT = 6;
+function isRibbonLevel(n) { return n >= RIBBON_AT && n % RIBBON_EVERY === RIBBON_AT; }
+
+// Boncuklar arası mesafe ve şeritler arası mesafe.
+//
+// Boncuk yarıçapı 0.3: ızgaranın en küçük meyvesi 0.46'ydı ve tahtayı halıya
+// çeviren de oydu. Aralarındaki boşluk (0.68 - 0.6) dizinin boncuk boncuk
+// okunmasını sağlıyor; bitişik olsalardı şerit düz bir çubuk olurdu.
+const RIBBON_R = 0.30;
+const RIBBON_STEP = 0.68;
+// Şeritler arası: deliğin açılış çapı 1.1, yani iki şerit arasından geçebiliyor
+// ama ikisini birden yutamıyor. Oyuncunun şeridi **takip etmesi** bundan
+// çıkıyor.
+const RIBBON_GAP = 1.9;
+
+const RIBBONS = ['spiral', 'rings', 'serpentine', 'chevron', 'loops', 'spokes'];
+function ribbonForLevel(n) {
+  return RIBBONS[Math.floor((n - RIBBON_AT) / RIBBON_EVERY) % RIBBONS.length];
+}
 function pictureFor(n) {
   return PICTURES[Math.floor((n - 3) / 10) % PICTURES.length];
 }
@@ -8908,6 +8947,145 @@ function materialiseFruit() {
   }
 }
 
+// Bir şeridi tahtaya diz.
+//
+// `nokta(t)` eğriyi 0..1 arasında veriyor; adım dünya biriminde sabit
+// tutuluyor, yani eğri nereden geçerse geçsin boncuklar eşit aralıklı. Eşit
+// olmasaydı sarmalın içi tıkanır dışı seyrelirdi ve şerit şerit gibi durmazdı.
+function ribbonStrand(nokta, type, r = RIBBON_R) {
+  const ORNEK = 900;
+  let onceX = null, onceZ = null, biriken = 0;
+  const vis = { geo: PIC_GEO, mat: PIC_MAT[type], sx: r, sy: r, baseY: r };
+  for (let i = 0; i <= ORNEK; i++) {
+    const [x, z] = nokta(i / ORNEK);
+    if (onceX !== null) biriken += Math.hypot(x - onceX, z - onceZ);
+    const ilk = onceX === null;
+    onceX = x; onceZ = z;
+    if (!ilk && biriken < RIBBON_STEP) continue;
+    biriken = 0;
+    if (Math.abs(x) > fieldHalfX - 0.4 || Math.abs(z) > fieldHalfZ - 0.4) continue;
+    fruits.push({ mesh: null, vis, jit: 1, rotY: 0,
+                  x, z, r, type, big: false, prop: null,
+                  eaten: false, baseY: vis.baseY, nudge: 0 });
+  }
+}
+
+// Şeridin üstüne, arada bir, iri bir meyve.
+//
+// Rakiplerin tahtalarında küçük boncukların arasında hep bir-iki iri nesne
+// var ve tahtanın "bakılacak yeri" o oluyor. Sadece boncuktan ibaret bir
+// tahta, düzenli de olsa, yine tek bir dokuya dönüyor.
+function ribbonLandmarks(noktalar) {
+  for (const [x, z, type] of noktalar) {
+    if (Math.abs(x) > fieldHalfX - 1 || Math.abs(z) > fieldHalfZ - 1) continue;
+    const vis = fruitVisual(type, BIG_R, true);
+    fruits.push({ mesh: null, vis, jit: 1, rotY: rnd() * Math.PI * 2,
+                  x, z, r: BIG_R, type, big: true, prop: null,
+                  eaten: false, baseY: vis.baseY, nudge: 0 });
+  }
+}
+
+function buildRibbon(kind) {
+  const tipler = TYPES.map(t => t.id);
+  const renk = i => tipler[i % tipler.length];
+  const mZ = fieldHalfZ, mX = fieldHalfX;
+  const isaret = [];
+  const TAU = Math.PI * 2;
+
+  if (kind === 'spiral') {
+    // Doğuş noktasında başlayıp tahtayı dolduran tek bir sarmal. Renk her
+    // turda değişiyor, yani sarmal halka halka okunuyor.
+    const cz = 0, cx = 0;
+    const enBuyuk = Math.hypot(mX, mZ);
+    const tur = Math.floor(enBuyuk / RIBBON_GAP);
+    for (let k = 0; k < tur; k++) {
+      const r0 = RIBBON_GAP * (k + 0.6), r1 = RIBBON_GAP * (k + 1.6);
+      ribbonStrand(t => {
+        const a = t * TAU, rr = r0 + (r1 - r0) * t;
+        return [cx + Math.cos(a) * rr, cz + Math.sin(a) * rr * 0.92];
+      }, renk(k));
+      if (k % 2 === 1) isaret.push([cx + r0, cz, renk(k + 2)]);
+    }
+  } else if (kind === 'rings') {
+    const tur = Math.floor(Math.hypot(mX, mZ) / RIBBON_GAP);
+    for (let k = 1; k <= tur; k++) {
+      const rr = k * RIBBON_GAP;
+      ribbonStrand(t => [Math.cos(t * TAU) * rr, Math.sin(t * TAU) * rr * 0.92], renk(k));
+    }
+    isaret.push([0, 0, renk(0)]);
+    for (let k = 2; k <= tur; k += 3) isaret.push([0, k * RIBBON_GAP * 0.92, renk(k)]);
+  } else if (kind === 'serpentine') {
+    // Yılan: uçlarda dönen tek bir kesintisiz şerit.
+    //
+    // Satır sayısı tahtanın tamamını kaplayacak kadar: `-1` yazıyordu ve
+    // tahtanın +z ucunda dört birimlik boş toprak kalıyordu — üstelik tam da
+    // deliğin doğduğu yerde, yani oyuncunun gördüğü ilk şey boşluktu.
+    const satir = Math.ceil((mZ * 2 - 1.6) / RIBBON_GAP) + 1;
+    for (let k = 0; k < satir; k++) {
+      const z = -mZ + 0.8 + k * RIBBON_GAP;
+      if (z > mZ - 0.6) break;
+      const soldan = k % 2 === 0;
+      ribbonStrand(t => {
+        const x = (soldan ? -1 : 1) * (mX - 0.8) * (1 - 2 * t);
+        return [x, z];
+      }, renk(k));
+      if (k % 3 === 1) isaret.push([soldan ? mX - 1.4 : -(mX - 1.4), z, renk(k + 1)]);
+    }
+  } else if (kind === 'chevron') {
+    const satir = Math.floor((mZ * 2) / RIBBON_GAP) - 1;
+    for (let k = 0; k < satir; k++) {
+      const z = -mZ + 0.8 + k * RIBBON_GAP;
+      ribbonStrand(t => {
+        const x = (t * 2 - 1) * (mX - 0.6);
+        return [x, z + Math.abs(x) * 0.45 - 1.2];
+      }, renk(k));
+      if (k % 4 === 2) isaret.push([0, z - 1.2, renk(k)]);
+    }
+  } else if (kind === 'loops') {
+    // Dağınık halkalar: her biri tek renk, aralarında geniş boşluk.
+    // Halka sayısı: beş birimde bir yerine üçte bir. Yedi halka otuz birimlik
+    // tahtaya dağılınca ekranda aynı anda ancak ikisi kalıyordu ve tahta boş
+    // görünüyordu.
+    const say = Math.max(6, Math.round((mZ * 2) / 3));
+    for (let k = 0; k < say; k++) {
+      const cx = (rnd() * 2 - 1) * (mX - 3.2);
+      const cz = -mZ + 2.4 + (k + rnd() * 0.4) * ((mZ * 2 - 4.8) / say);
+      const rr = 1.6 + rnd() * 1.4;
+      ribbonStrand(t => [cx + Math.cos(t * TAU) * rr, cz + Math.sin(t * TAU) * rr], renk(k));
+      isaret.push([cx, cz, renk(k + 1)]);
+    }
+  } else {
+    // Ağ: merkezden çıkan ışınlar, üstlerinden geçen halkalar.
+    //
+    // Önce yalnızca ışınlardı ve tahta seyrek kalıyordu: kamalar dışarı doğru
+    // açıldıkça büyüyor, kenarda koca boşluklar bırakıyordu — 128 parça, ve
+    // ekranın yarısı boş toprak. Halkalar o boşlukları bağlıyor ve ortaya
+    // mandala çıkıyor.
+    const enBuyuk = Math.hypot(mX, mZ);
+    const kol = 14;
+    for (let k = 0; k < kol; k++) {
+      const a = (k / kol) * TAU;
+      ribbonStrand(t => {
+        const rr = 1.6 + t * (enBuyuk - 1.6);
+        return [Math.cos(a) * rr, Math.sin(a) * rr * 0.92];
+      }, renk(k));
+    }
+    const halka = Math.max(2, Math.floor(enBuyuk / (RIBBON_GAP * 2)));
+    for (let k = 1; k <= halka; k++) {
+      const rr = (k / (halka + 0.2)) * enBuyuk;
+      ribbonStrand(t => [Math.cos(t * TAU) * rr, Math.sin(t * TAU) * rr * 0.92],
+                   renk(k + 2));
+    }
+    isaret.push([0, 0, renk(2)]);
+    for (let k = 0; k < kol; k += 4) {
+      const a = (k / kol) * TAU;
+      isaret.push([Math.cos(a) * enBuyuk * 0.45, Math.sin(a) * enBuyuk * 0.42, renk(k + 1)]);
+    }
+  }
+
+  ribbonLandmarks(isaret);
+}
+
 function buildPicture(pic) {
   const w = pic.art[0].length * PICTURE_SCALE;
   const h = pic.art.length * PICTURE_SCALE;
@@ -8980,7 +9158,10 @@ function buildField() {
   // harita söylüyor.
   const resim = !dailyRun && isPictureLevel(level) ? pictureFor(level) : null;
   if (resim) buildPicture(resim);
-  for (const cell of resim ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
+  // Şerit tahtası: ızgara yine hiç çalışmıyor, parçaları eğriler diziyor.
+  const serit = !dailyRun && !resim && isRibbonLevel(level) ? ribbonForLevel(level) : null;
+  if (serit) buildRibbon(serit);
+  for (const cell of (resim || serit) ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
       const { x, z } = cell;
       const [a, b] = bak(cell.a, cell.b);
       if (currentPattern.empty && currentPattern.empty(a, b)) continue;
@@ -9111,7 +9292,7 @@ function buildField() {
   const bulmaca = !dailyRun && isPuzzleLevel(level);
   if (bulmaca) {
     buildPuzzle();
-  } else if (resim) {
+  } else if (resim || serit) {
     // Resim tahtasında rastgele kaya, dev, bomba ve kolos yok: hepsi resmin
     // üstüne konmuş, resimden olmayan şeyler. Tahtanın tamamı bir çizim ve
     // ortasındaki kaya onu bozuyor.
@@ -9130,7 +9311,7 @@ function buildField() {
   // and without the colossus so the two can be compared with nothing else
   // moving. Null in normal play.
   const wantBoss = forceBoss == null ? (!dailyRun && isBossLevel(level)) : forceBoss;
-  if (wantBoss && !bulmaca && !resim) placeColossus();
+  if (wantBoss && !bulmaca && !resim && !serit) placeColossus();
 
   // Kolosun ezdiği parçaları listeden düşür.
   //
@@ -12759,6 +12940,16 @@ window.fruitHoleShapeSig = (patternName, twistId) => {
 // Resim haritalarının kendisi: harfleri tanınıyor mu, satırları eşit mi,
 // tahtanın ne kadarını dolduruyor. Elle çizilen bir şeyin tek kontrolü bu —
 // bir satırı bir karakter eksik yazmak, resmi sessizce kaydırıyor.
+// Şerit bölümleri: hangi bölümler, hangi eğri ailesi.
+//
+// Izgara için yazılmış kurallar (her tahtada kaya var, iri meyve payı şu
+// kadar olmalı) burada geçerli değil — tahtayı desen değil eğriler kuruyor ve
+// bakılacak şey şeklin kendisi. Testlerin bunu bilmesi lazım.
+window.fruitHoleRibbons = () => ({
+  levels: RIBBONS.map((_, i) => RIBBON_AT + i * RIBBON_EVERY),
+  kinds: RIBBONS.slice(),
+  beadR: RIBBON_R, step: RIBBON_STEP, gap: RIBBON_GAP,
+});
 window.fruitHolePictures = () => ({
   levels: PICTURES.map((_, i) => 3 + i * 10),
   scale: PICTURE_SCALE,
