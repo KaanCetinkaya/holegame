@@ -2019,7 +2019,12 @@ async function prepareInterstitial() {
 }
 async function showInterstitial() {
   if (!ADS_ON || adsRemoved() || !_interReady) return;
+  // Reklamın ekranda olduğu aralık işaretleniyor: bağlam kaybı tam o sırada
+  // olduysa defter söylesin. Reklam WebView'in önüne başka bir yüzey koyuyor
+  // ve şüphelilerden biri bu.
+  _adUp = true;
   try { await _AdMob.showInterstitial(); } catch (e) { }
+  _adUp = false;
   _interReady = false;
   prepareInterstitial();
 }
@@ -3839,6 +3844,14 @@ let _glTries = 0, _glTimer = 0;
 // ikisi aynı görünüyor — WebGL bağlamının düşmesi, ya da çizim döngüsünün
 // bir istisnayla durması. Bugüne kadar hangisi olduğunu bilmeden bakıldı.
 const GL_LOG_MAX = 10;
+// Tahtanın en son ne zaman kurulduğu, ve o sırada reklam açık mıydı.
+//
+// Üç kaydın üçü de bölüm geçişinde geldi (5, 7, 9 — üçü de "Next"ten hemen
+// sonra) ama "geçişte" demek yetmiyor: geçişte iki ayrı şey oluyor, tahta
+// kuruluyor ve üçte bir ihtimalle araya reklam giriyor. Hangisi olduğu
+// yazılmadan ayırt edilemez, ve üçüncüsünde reklam hatırlanmıyordu.
+let _buildAt = 0;
+let _adUp = false;
 let glLog = [];
 try { glLog = JSON.parse(localStorage.getItem('fruithole_gllog') || '[]'); } catch (e) { }
 function glLogYaz(tip, ek) {
@@ -3852,6 +3865,11 @@ function glLogYaz(tip, ek) {
       geo: bilgi ? bilgi.memory.geometries : -1,
       tex: bilgi ? bilgi.memory.textures : -1,
       cagri: bilgi ? bilgi.render.calls : -1,
+      // Tahta kurulalı kaç milisaniye oldu, o an oyun hangi hâldeydi, ve
+      // ekranda reklam var mıydı.
+      ms: _buildAt ? Math.round(performance.now() - _buildAt) : -1,
+      hal: typeof state === 'string' ? state : '?',
+      rek: _adUp ? 1 : 0,
       ...ek,
     });
     glLog = glLog.slice(0, GL_LOG_MAX);
@@ -9179,6 +9197,7 @@ function buildField() {
     if (!missionKind) orderType = null;
   }
   armDrop();
+  _buildAt = performance.now();
 }
 
 // ---------------------------------------------------------------------
@@ -10029,7 +10048,11 @@ const APP_VERSION = 'dev';
           ? (k.geri == null ? ' · GERİ GELMEDİ' : ` · ${k.geri}. denemede geldi`) : '';
         h += row(`${ad} ${k.t}`,
           `bölüm ${k.lv} · ${k.parca} parça · ${k.geo} geo · ${k.tex} doku · ` +
-          `${k.cagri} çizim${geri}${k.mesaj ? ' · ' + k.mesaj : ''}` +
+          `${k.cagri} çizim` +
+          (k.ms != null ? ` · kuruluştan ${k.ms}ms` : '') +
+          (k.hal ? ` · ${k.hal}` : '') +
+          (k.rek ? ' · REKLAM AÇIK' : '') +
+          `${geri}${k.mesaj ? ' · ' + k.mesaj : ''}` +
           `${k.yer ? ' (' + k.yer + ')' : ''}`,
           false);
       }
@@ -10331,8 +10354,19 @@ function buildHole() {
   // 1. bölümde 13, 30'da 282, 60'ta 572 — hiç düşmeden. Bağlam kaybının
   // 46-50. bölümlerde gelip 1. bölümde hiç gelmemesinin sebebi buydu;
   // tek bir tahtanın ağırlığı değil, oynandıkça biriken bellek.
-  if (holeGroup) { scene.remove(holeGroup); freeGeoms(holeGroup); }
-  if (magnetRing) { scene.remove(magnetRing); freeGeoms(magnetRing); }
+  // Bir kez kuruluyor.
+  //
+  // Her bölümde yeniden kuruluyordu ve dokuz geometri üretip eskisini
+  // atıyordu. Bunun bir sebebi yoktu: hepsi sabitlerden (`BASE_HOLE_R`)
+  // üretiliyor, kaplama yalnızca **malzemenin** rengini değiştiriyor, yani
+  // üretilen şey her bölümde birebir aynıydı.
+  //
+  // Eskiden bırakılmadığı için geometri sayısı bölüm bölüm tırmanıyordu
+  // (1. bölümde 13, 30'da 282, 60'ta 572) ve o sızıntı kapatılmıştı — ama
+  // doğru çözüm bırakmak değil, hiç üretmemek. Kurup atmak GPU'dan yer isteyip
+  // geri vermek demek, ve telefondaki üç bağlam kaybının üçü de tam o anda,
+  // bölüm kurulurken geldi.
+  if (holeGroup) { arcSteps = -1; setSizeArc(0); return; }
   holeGroup = new THREE.Group();
 
   // The collar proper: a flat annulus, lit and shadowed like the ground it
@@ -10412,16 +10446,34 @@ function buildHole() {
 // around the ring. Drawing the first N of them gives a sliver of the tube —
 // on screen, nothing at all, which is exactly what it looked like.
 let arcSteps = -1;
+// Yayın kırk bir hâli, bir kez kurulup saklanıyor.
+//
+// Eskiden her adımda yeni bir geometri üretilip eskisi atılıyordu: yay
+// oynarken kırk kez büyüyor, yani bir bölümde kırk geometri kurulup kırkı
+// atılıyordu. Hepsi sabitlerden üretiliyor ve bölümden bölüme hiç
+// değişmiyorlar, yani üretilen şey her seferinde aynı şey.
+//
+// Bu, bağlam kaybının şüpheli listesinde: telefondaki üç kaydın üçü de GPU'dan
+// durmadan yer istenen bir anda geldi. Kırk bir geometrinin tamamı yedi bin
+// köşe, yani bellekte kalmaları bedava.
+const ARC_GEOS = [];
+function arcGeo(n) {
+  if (!ARC_GEOS[n]) {
+    ARC_GEOS[n] = n === 0
+      ? new THREE.BufferGeometry()
+      : new THREE.TorusGeometry(BASE_HOLE_R * 1.14, 0.075, 8,
+                                Math.max(2, n), (n / ARC_SEGMENTS) * Math.PI * 2);
+  }
+  return ARC_GEOS[n];
+}
+
 function setSizeArc(frac) {
   if (!sizeArc) return;
   const n = Math.round(Math.max(0, Math.min(1, frac)) * ARC_SEGMENTS);
   if (n === arcSteps) return;
   arcSteps = n;
-  sizeArc.geometry.dispose();
   sizeArc.visible = n > 0;
-  if (n === 0) { sizeArc.geometry = new THREE.BufferGeometry(); return; }
-  sizeArc.geometry = new THREE.TorusGeometry(
-    BASE_HOLE_R * 1.14, 0.075, 8, Math.max(2, n), (n / ARC_SEGMENTS) * Math.PI * 2);
+  sizeArc.geometry = arcGeo(n);
 }
 
 function resetHole() {

@@ -3748,3 +3748,43 @@ Koridor da 5.6'dan 4.6'ya indi: genişliği deliğin **tavandaki** hâline göre
 içinde ulaşıyor. Ekranın üçte biri boş kuma gidiyordu. Oda başına en az meyve
 de 30'dan 55'e çıktı — üç odalı bir tahta 111 meyveyle çıkıyordu ve odalar
 odadan çok koridor gibi duruyordu.
+
+### Bölüm geçişindeki GPU işi
+
+Üç bağlam kaybının üçü de bölüm geçişinde geldi — 5, 7 ve 9. bölümler, üçü de
+"Next"e basıldıktan hemen sonra. Reklamla ilgisi yok: reklam üç bölümde bir
+çıkıyor ve yalnızca 7'de vardı.
+
+O anda yapılan iki gereksiz iş bulundu ve kaldırıldı:
+
+**Delik her bölümde yeniden kuruluyordu** ve dokuz geometri üretip eskisini
+atıyordu. Bunun bir sebebi yoktu: hepsi `BASE_HOLE_R`'den üretiliyor, kaplama
+yalnızca **malzemenin** rengini değiştiriyor, yani üretilen şey her bölümde
+birebir aynıydı. Daha önce bu geometriler bırakılmadığı için sayı tırmanıyordu
+(1. bölümde 13, 30'da 282, 60'ta 572) ve o sızıntı kapatılmıştı — ama doğru
+çözüm bırakmak değil, hiç üretmemekmiş.
+
+**Boyut yayı oynarken kırk kez geometri üretip atıyordu.** Yayın kırk bir hâli
+artık bir kez kurulup saklanıyor; hepsi yedi bin köşe, yani bellekte durmaları
+bedava.
+
+### Sızıntı sanılan şey sızıntı değil
+
+Ölçüm sırasında geometri sayısı 1. bölümde 41, 19'da 318 çıktı ve bu ilk
+bakışta sızıntı gibi okundu. Değil: kaybolan geometriler silindir, koni ve
+küreydi — yani **nesnelerin** parçaları. Nesneler şablondan klonlanıyor ve
+klon geometriyi şablonla paylaşıyor, yani tahta değişince klon sahneden
+çıkıyor ama geometri şablonda duruyor. Sahnede görünmemesi bırakılmış olduğu
+anlamına gelmiyor.
+
+Uzun ölçüm bunu doğruluyor — sayı bir yerde duruyor:
+
+```
+bölüm 20 · 178      bölüm 34 · 272      bölüm 64 · 323
+bölüm 24 · 248      bölüm 40 · 272      bölüm 72 · 348
+bölüm 28 · 272      bölüm 56 · 272      bölüm 80 · 348
+```
+
+Temalar ilerledikçe yeni nesneler tanıtılıyor, hepsi bir kez görülünce sayı
+sabitleniyor. Yani bu bir önbellek, ve 348 küçük geometri hiçbir şeyi
+zorlamıyor.
