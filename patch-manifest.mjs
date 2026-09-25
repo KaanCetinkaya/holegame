@@ -17,7 +17,7 @@
 //
 //   node patch-manifest.mjs            (APP değişkenine göre hedefi seçer)
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -50,6 +50,12 @@ const APPS = {
     appId: 'ca-app-pub-3940256099942544~3347511713',
   },
 };
+
+// dev sürümünün ekranda görünen adı. `capacitor.config.js` bunu zaten
+// biliyor ama o dosya Capacitor'ün formatında; burada tek bir satırlık
+// karşılık yeterli.
+const APP_LABEL = { hole: 'Hole', fruithole: 'Fruit Hole',
+                    slicer: 'Slice Rush', tycoon: 'Motor Works' };
 
 const app = APPS[process.env.APP || 'hole'];
 if (!app) {
@@ -159,6 +165,74 @@ if (xml.includes('com.google.android.gms.ads.APPLICATION_ID')) {
   xml = xml.replace('</application>', `${block}    </application>`);
   changed = true;
   console.log(`AdMob App ID eklendi -> ${app.dir}`);
+}
+
+// --- yan yana kurulabilen "dev" sürümü ---
+//
+// Telefonda Play'den kurulu bir sürüm varken aynı paketi elle kurmak mümkün
+// değil: paket adı aynı, imza farklı (Play'deki Google'ın imzasıyla, bizimki
+// yükleme anahtarıyla) ve Android bunu reddediyor. Kaan'ın telefonunda tam
+// olarak bu oldu.
+//
+// Play'dekini silmek de bir seçenek değil — kapalı testin 14 günlük sayacı
+// dönerken uygulamayı kaldırıp takmak, hiç almaya değmeyecek bir risk.
+//
+// Çözüm hata ayıklama derlemesine ayrı bir kimlik vermek: `.dev` ekiyle paket
+// adı başkalaşıyor, yani Android için başka bir uygulama oluyor ve yan yana
+// duruyorlar. İmza da hata ayıklama anahtarı, yani çakışacak bir şey yok.
+//
+// Adı da ayrışıyor: `src/debug` kaynak kümesindeki bir dize, ana kümedekini
+// **eziyor** (çoğaltmıyor — çoğaltsaydı derleme "duplicate resource" derdi).
+// İki aynı simge, ikisi de "Fruit Hole" yazan, hangisinin hangisi olduğu
+// belli olmayan bir telefon, hatanın kendisinden daha kötü.
+{
+  const gradle = join(ROOT, app.dir, 'app', 'build.gradle');
+  if (existsSync(gradle)) {
+    let g = readFileSync(gradle, 'utf8');
+    // Capacitor'ün bazı sürümleri `debug` bloğunu kendisi üretiyor. İkinci bir
+    // tane eklemek Gradle'ı "duplicate build type" ile düşürürdü, o yüzden
+    // varsa içine yazılıyor, yoksa yeni bir tane açılıyor.
+    const ekler = '            applicationIdSuffix ".dev"\n' +
+                  '            versionNameSuffix "-dev"\n';
+    const varOlanDebug = /(buildTypes\s*\{[\s\S]*?\bdebug\s*\{)/;
+    if (g.includes('applicationIdSuffix')) {
+      console.log('dev derlemesi zaten tanımlı.');
+    } else if (!g.includes('buildTypes {')) {
+      console.error('HATA: build.gradle içinde buildTypes yok, beklenmeyen biçim.');
+      process.exit(1);
+    } else if (varOlanDebug.test(g)) {
+      g = g.replace(varOlanDebug, `$1\n${ekler}`);
+      writeFileSync(gradle, g);
+      console.log(`dev derlemesi var olan debug bloğuna yazıldı -> ${app.dir}`);
+    } else {
+      const blok =
+        'buildTypes {\n' +
+        '        debug {\n' + ekler +
+        '        }';
+      g = g.replace('buildTypes {', blok);
+      writeFileSync(gradle, g);
+      console.log(`dev derlemesi tanımlandı (.dev eki) -> ${app.dir}`);
+    }
+  }
+
+  const devDir = join(ROOT, app.dir, 'app', 'src', 'debug', 'res', 'values');
+  const devStrings = join(devDir, 'strings.xml');
+  if (existsSync(join(ROOT, app.dir, 'app', 'src', 'main'))) {
+    const ad = (APP_LABEL[process.env.APP || 'hole'] || 'App') + ' DEV';
+    const istenen =
+      '<?xml version=\'1.0\' encoding=\'utf-8\'?>\n' +
+      '<resources>\n' +
+      `    <string name="app_name">${ad}</string>\n` +
+      `    <string name="title_activity_main">${ad}</string>\n` +
+      '</resources>\n';
+    if (!existsSync(devStrings) || readFileSync(devStrings, 'utf8') !== istenen) {
+      mkdirSync(devDir, { recursive: true });
+      writeFileSync(devStrings, istenen);
+      console.log(`dev sürümünün adı yazıldı: ${ad}`);
+    } else {
+      console.log('dev sürümünün adı zaten yerinde.');
+    }
+  }
 }
 
 if (changed) writeFileSync(manifest, xml);

@@ -405,9 +405,15 @@ if (jdk.fallback) {
 // --- gradle ile paketle ---
 // .aab Play'e yüklemek için; telefona doğrudan kurulamaz. Elle kurup denemek
 // için `node build-aab.mjs apk` → aynı imzayla .apk üretir.
+// `node build-aab.mjs dev` → hata ayıklama imzasıyla ve `.dev` paket ekiyle
+// bir .apk. Telefonda Play'den kurulu sürümün **yanına** kuruluyor; mağazadaki
+// uygulamaya hiç dokunulmuyor. Sebebi patch-manifest.mjs'te yazılı.
 const wantApk = process.argv[2] === 'apk';
-const task = wantApk ? 'assembleRelease' : 'bundleRelease';
-const out = wantApk
+const wantDev = process.argv[2] === 'dev';
+const task = wantDev ? 'assembleDebug' : wantApk ? 'assembleRelease' : 'bundleRelease';
+const out = wantDev
+  ? resolve(projectPath, 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk')
+  : wantApk
   ? resolve(projectPath, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk')
   : resolve(projectPath, 'app', 'build', 'outputs', 'bundle', 'release', 'app-release.aab');
 

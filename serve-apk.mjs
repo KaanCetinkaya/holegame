@@ -32,13 +32,28 @@ if (!app) {
   process.exit(1);
 }
 
-const apk = join(ROOT, app.dir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk');
-if (!existsSync(apk)) {
+// İkisinden hangisi varsa o sunuluyor, yenisi kazanıyor.
+//
+// `dev` sürümü telefonda Play'den kurulu uygulamanın yanına kuruluyor
+// (`.dev` paket eki), `release` ise mağazaya giden imzayla. Kaan çoğunlukla
+// dev'i kuracak; release'i elle kurmak ancak mağazadaki sürüm telefonda
+// yokken mümkün.
+const adaylar = [
+  join(ROOT, app.dir, 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk'),
+  join(ROOT, app.dir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk'),
+].filter(existsSync);
+if (!adaylar.length) {
   console.error(
-    `\n.apk bulunamadı:\n${apk}\n\n` +
-    `Önce üret:  npm run apk:${appName}\n`);
+    `\n.apk bulunamadı. Önce üret:\n` +
+    `  npm run dev:${appName}   (telefondakinin yanına kurulur)\n` +
+    `  npm run apk:${appName}   (mağaza imzasıyla)\n`);
   process.exit(1);
 }
+adaylar.sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
+const apk = adaylar[0];
+const devMi = apk.includes('debug');
+console.log(devMi ? 'dev sürümü sunuluyor (yan yana kurulur)'
+                  : 'mağaza imzalı sürüm sunuluyor');
 
 const size = statSync(apk).size;
 const mb = (size / 1048576).toFixed(1);

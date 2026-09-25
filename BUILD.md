@@ -266,3 +266,43 @@ Tester bağlantıları:
 **Grup üyesi sayısı ile Play'in saydığı tester sayısı aynı şey değil.** Play,
 gruba katılmış *ve* opt-in linkinden "Become a tester" demiş kişileri sayıyor;
 gruba girip linki açmayan biri grupta görünür, sayaçta görünmez.
+
+## `.apk` Play'e yüklenmez
+
+Play Console'un sürüm sayfası yalnızca **`.aab`** kabul ediyor; `.apk`
+sürüklendiğinde "Geçerli bir uygulama paketi yükleyin" diyor ve başka bir şey
+söylemiyor. İkisi farklı iş için:
+
+| ne | ne için | komut |
+|---|---|---|
+| `.aab` | Play'e yüklemek | `npm run aab:fruithole` |
+| `.apk` (release) | mağaza imzasıyla elle kurmak | `npm run apk:fruithole` |
+| `.apk` (dev) | telefondakinin **yanına** kurmak | `npm run dev:fruithole` |
+
+Telefona kurmak için üretilen dosya ağa şu komutla açılıyor:
+
+```
+npm run send:fruithole
+```
+
+Ekrana bir adres yazıyor (`http://192.168.x.x:8787`); telefon ve bilgisayar
+aynı Wi-Fi'da olmak zorunda.
+
+## Yan yana kurulan "dev" sürümü
+
+Telefonda Play'den kurulu bir sürüm varken aynı paketi elle kurmak mümkün
+değil: paket adı aynı, imza farklı (Play'deki Google'ın imzasıyla, bizimki
+yükleme anahtarıyla) ve Android bunu reddediyor. Play'dekini silmek de
+kapalı testin 14 günlük sayacı dönerken alınacak bir risk değil.
+
+`npm run dev:fruithole` paket adına `.dev` ekleyip hata ayıklama imzasıyla
+derliyor. Telefonda **ikinci bir uygulama** oluyor — simgesi aynı, adı
+"Fruit Hole DEV" — ve mağazadaki sürüme hiç dokunmuyor.
+
+Dev sürümünde çalışmayan tek şey **🏆 liderlik tablosu**: Play Games
+yapılandırması `com.kaancetinkaya.fruithole` için açıldı, `.dev` onun için
+başka bir uygulama. Reklamlar zaten test reklamı.
+
+`scratchpad/holepatch.mjs` bunu sahte bir native proje üstünde ölçüyor:
+`android-fruithole/` depoda olmadığı için (`.gitignore`) bu betik başka türlü
+hiç denenmeden Kaan'ın makinesine gidiyordu.
