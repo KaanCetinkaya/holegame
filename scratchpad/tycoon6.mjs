@@ -14,6 +14,10 @@ const pg = await b.newPage({ viewport:{width:412,height:915}, deviceScaleFactor:
 const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
 await pg.goto('http://localhost:8153/', { waitUntil:'load' });
 await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 20000 });
+// Ölçüm kusursuz bir taşıyıcı varsayıyor: işçi oyuna girdikten sonra
+// bu bayrak olmadan sahte oyuncu hiçbir şey taşımıyor ve testler ölü bir
+// fabrikayı ölçüyor — seviye 1, kasa sıfır, ve yine 'geçti' diyorlar.
+await pg.evaluate(() => window.jeAutoCarry(true));
 await pg.waitForTimeout(500);
 const F = n => n>=1e12?(n/1e12).toFixed(2)+'T':n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toFixed(0);
 

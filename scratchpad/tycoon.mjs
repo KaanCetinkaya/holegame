@@ -16,6 +16,10 @@ const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
 pg.on('console', m => { if (m.type()==='error' && !m.text().includes('404')) errs.push('CONSOLE: '+m.text()); });
 await pg.goto('http://localhost:8115/', { waitUntil:'load' });
 await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 20000 });
+// Ölçüm kusursuz bir taşıyıcı varsayıyor: işçi oyuna girdikten sonra
+// bu bayrak olmadan sahte oyuncu hiçbir şey taşımıyor ve testler ölü bir
+// fabrikayı ölçüyor — seviye 1, kasa sıfır, ve yine 'geçti' diyorlar.
+await pg.evaluate(() => window.jeAutoCarry(true));
 await pg.waitForTimeout(1200);
 console.log('fresh  ', JSON.stringify(await pg.evaluate(() => window.jeProbe())));
 
@@ -44,16 +48,33 @@ const mid = await pg.evaluate(() => window.jeProbe());
 console.log('bought ', JSON.stringify(mid));
 await pg.screenshot({ path: `${OUT}/tycoon.png` });
 
-// four hours away
+// Dört saat yokluk — iki hâlde.
+//
+// Kural değişti: yokken yalnızca **otomatik** zincir dönüyor. Müdürü olmayan
+// bir istasyonun malını yerden alacak kimse yok, o yüzden orada kopuyor.
+// Eskiden bu test müdürsüz bir fabrikanın dört saatte 144.000 kazandığını
+// "doğru" sayıyordu; oyunun en verimli oynanışı uygulamayı kapatmak olurdu.
+//
+// İki hâl birden ölçülüyor, çünkü yalnızca sıfırı ölçmek "çevrimdışı hiç
+// çalışmıyor" hatasını da geçirir.
 const off = await pg.evaluate(() => {
+  const müdürsüz = (() => {
+    const a = window.jeProbe().cash;
+    window.jeOffline(4 * 3600);
+    return window.jeProbe().cash - a;
+  })();
+  // Bütün bağlara müdür: zincir baştan sona otomatik.
+  for (let i = 0; i < 3; i++) window.jeGiveManager(i);
   const before = window.jeProbe();
-  const r = window.jeOffline(4 * 3600);
+  window.jeOffline(4 * 3600);
   const after = window.jeProbe();
-  return { gained: after.cash - before.cash, expect: before.income * 4 * 3600, after };
+  return { müdürsüz, gained: after.cash - before.cash,
+           expect: before.income * 4 * 3600, after };
 });
 console.log('4h idle', JSON.stringify({
-  gained: Math.round(off.gained), expected: Math.round(off.expect),
-  ok: Math.abs(off.gained - off.expect) < off.expect * 0.02,
+  müdürsüz: Math.round(off.müdürsüz),
+  müdürlü: Math.round(off.gained), expected: Math.round(off.expect),
+  ok: off.müdürsüz === 0 && Math.abs(off.gained - off.expect) < off.expect * 0.02,
   neck: off.after.neck }));
 
 // number formatting across the range

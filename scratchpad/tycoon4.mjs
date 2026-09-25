@@ -16,6 +16,10 @@ const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
 pg.on('console', m => { if (m.type()==='error' && !m.text().includes('404')) errs.push('CONSOLE: '+m.text()); });
 await pg.goto('http://localhost:8123/', { waitUntil:'load' });
 await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 20000 });
+// Ölçüm kusursuz bir taşıyıcı varsayıyor: işçi oyuna girdikten sonra
+// bu bayrak olmadan sahte oyuncu hiçbir şey taşımıyor ve testler ölü bir
+// fabrikayı ölçüyor — seviye 1, kasa sıfır, ve yine 'geçti' diyorlar.
+await pg.evaluate(() => window.jeAutoCarry(true));
 await pg.waitForTimeout(600);
 
 // first launch: daily should be showing

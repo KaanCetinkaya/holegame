@@ -536,6 +536,13 @@ const G = Object.assign({
   lvl: [1, 1, 1, 1],
   mgr: [false, false, false, false],
   buf: [0, 0, 0],            // one buffer between each pair
+  // İstasyonun önündeki çıkış yığını: ürettiği ama henüz banda konmamış mal.
+  //
+  // Zincirin ortasına giren şey bu. Eskiden istasyon doğrudan bir sonrakinin
+  // tamponuna basıyordu ve oyuncunun elinde yapacak hiçbir şey yoktu —
+  // fabrika kendini izletiyordu. Artık mal önce yere yığılıyor ve bandın
+  // üstüne ya işçi taşıyor ya da o istasyonun müdürü.
+  pile: [0, 0, 0],
   muted: false,
   seen: Date.now(),
   boostUntil: 0,
@@ -553,6 +560,7 @@ if (!G.res || typeof G.res !== 'object') G.res = {};
 while (G.lvl.length < STATIONS.length) G.lvl.push(0);
 while (G.mgr.length < STATIONS.length) G.mgr.push(false);
 while (G.buf.length < STATIONS.length - 1) G.buf.push(0);
+while (G.pile.length < STATIONS.length - 1) G.pile.push(0);
 
 // Prestige points, and the whole late game.
 //
@@ -663,6 +671,25 @@ function chain() {
   return { flow, neck, income: flow * unitPrice() };
 }
 
+// Zincirin **kendi kendine** dönen hâli: müdürü olmayan ilk istasyonda
+// kopuyor, çünkü onun malını yerden alacak kimse yok.
+//
+// Çevrimdışı kazanç bunu kullanmak zorunda. Kullanmazsa oyun kendi kendini
+// deliyor: açıkken taşımak gerekiyor, kapalıyken gerekmiyor — yani en verimli
+// oynama biçimi uygulamayı kapatmak oluyor. Ölçüldü: müdürsüz bir fabrika
+// dört saatte 144.000 kazanıyordu ve o dört saatte tek bir külçe bile
+// taşınmamıştı.
+function autoChain() {
+  let flow = Infinity, neck = 0;
+  for (let i = 0; i < STATIONS.length; i++) {
+    // i istasyonu ancak kendinden önceki bütün bağlar otomatikse besleniyor.
+    if (i > 0 && !G.mgr[i - 1]) return { flow: 0, neck: i - 1, income: 0 };
+    const r = rateOf(i);
+    if (r < flow) { flow = r; neck = i; }
+  }
+  return { flow, neck, income: flow * unitPrice() };
+}
+
 // How much station i may stockpile before the one after it.
 //
 // Storage is measured in SECONDS of what the next station can consume, not
@@ -676,6 +703,20 @@ function chain() {
 // Six seconds is enough to show a backlog building when a station falls
 // behind, which is all the buffer is for.
 const roomOf = i => Math.max(BUFFER_MAX, rateOf(i + 1) * 6);
+// Yığının tavanı. Tampondan geniş: yerde biriken mal, oyuncuya "buraya
+// gelmen gerek" diyen şey ve dolduğu anda istasyon duruyor — darboğazın
+// gözle görülür hâli.
+const pileMax = i => Math.max(BUFFER_MAX, rateOf(i) * 14);
+
+// Kusursuz taşıyıcı — yalnızca ölçüm için, oyunda kapalı.
+//
+// Denge simülasyonları (scratchpad/tycoon*.mjs) sahte bir oyuncuyla saatlerce
+// oynayıp eğrinin nereye gittiğini ölçüyor. İşçi girince o simülasyonlar
+// **ölü bir fabrikayı** ölçmeye başladı: taşıyan kimse yok, hiçbir şey akmıyor,
+// seviye 1'de kalıyor — ve testler bunu fark etmeden geçiyordu. Bu bayrak
+// "oyuncu taşımaya yetişiyor" varsayımını kuruyor, yani eski ölçümlerin
+// ölçtüğü şeyi.
+let AUTO_CARRY = false;
 
 // One step of the factory. Stations pull from the buffer behind them, so a
 // starved station simply does less — no special case for it.
@@ -689,13 +730,28 @@ function runFactory(dt) {
   const h = dt / steps;
   let earned = 0;
   for (let n = 0; n < steps; n++) {
+    // Yığından banda akış.
+    //
+    // Müdürü olan istasyon malını kendi banda koyuyor; olmayanınki yerde
+    // bekliyor ve oraya işçinin gitmesi gerekiyor. Müdürün anlamı zaten
+    // buydu — "bu istasyon artık kendi kendine dönüyor" — ve taşıma da o
+    // tanımın içine oturuyor.
+    for (let i = 0; i < LAST; i++) {
+      if (!(G.mgr[i] || AUTO_CARRY) || G.pile[i] <= 0) continue;
+      const yer = Math.max(0, roomOf(i) - G.buf[i]);
+      const gecen = Math.min(G.pile[i], yer, rateOf(i) * h * 2);
+      G.pile[i] -= gecen;
+      G.buf[i] += gecen;
+    }
     for (let i = LAST; i >= 0; i--) {
       let made = rateOf(i) * h;
       if (i > 0) made = Math.min(made, G.buf[i - 1]);        // limited by supply
-      if (i < LAST) made = Math.min(made, Math.max(0, roomOf(i) - G.buf[i]));
+      // Üretim artık tampona değil yığına gidiyor; yığının da bir tavanı
+      // var, yoksa taşınmayan bir istasyon sonsuza kadar üretip duruyor.
+      if (i < LAST) made = Math.min(made, Math.max(0, pileMax(i) - G.pile[i]));
       if (made <= 0) continue;
       if (i > 0) G.buf[i - 1] -= made;
-      if (i < LAST) G.buf[i] += made;
+      if (i < LAST) G.pile[i] += made;
       // No branch multiplier here: rateOf() already carries it, and applying
       // it again squared the bonus — the readout and the bank disagreed from
       // the first prestige onwards.
@@ -719,8 +775,16 @@ function runFactory(dt) {
 function offlineCatchUp() {
   const gone = Math.min(offlineCap(), Math.max(0, (Date.now() - G.seen) / 1000));
   if (gone < 60) return null;
-  const ch = chain();
+  // Yokken yalnızca otomatik zincir dönüyor: müdürü olmayan bir istasyonun
+  // malını yerden alacak kimse yok.
+  const ch = autoChain();
   const got = ch.flow * unitPrice() * gone;
+  // Elle çalışan bağın gerisinde mal yerde birikiyor — döndüğünde oyuncuyu
+  // bekleyen iş bu. Tavanına kadar, yoksa bir gecelik yokluk sınırsız mal
+  // yaratırdı.
+  for (let i = 0; i < G.pile.length; i++) {
+    if (!G.mgr[i]) G.pile[i] = Math.min(pileMax(i), G.pile[i] + rateOf(i) * gone);
+  }
   for (let i = 0; i < G.buf.length; i++) G.buf[i] = i < ch.neck ? roomOf(i) : 0;
   G.cash += got;
   G.totalEarned += got;
@@ -1124,6 +1188,125 @@ function takeCrate(kind) {
   return m;
 }
 function dropCrate(m) { scene.remove(m); m.visible = false; cratePool.push(m); }
+
+// ---------------------------------------------------------------------
+// İşçi
+// ---------------------------------------------------------------------
+// Fabrikanın eksiği elde yapılacak bir şey yoktu: oyuncu bir darboğaz
+// buluyor, bir düğmeye basıyor ve izlemeye dönüyordu. Ölçülen tarafı
+// PAZAR.md'de — bir karakterin malı taşıdığı "arcade idle" hattı, bu türde
+// en iyi elde tutmayı veriyor (D1 ~%50, ilk gün 25 dakika). Aradaki tek
+// yapısal fark bu figür.
+//
+// Müdürü olmayan istasyonun malını işçi taşıyor. Müdür alındığında o
+// istasyon kendi kendine akıyor — yani oyun elle başlıyor, para biriktikçe
+// kendiliğinden dönen bir fabrikaya dönüşüyor. Idle oyunun yayı zaten bu.
+const WORKER_SPEED = 7.2;
+const CARRY_BASE = 6;
+const REACH = 2.6;
+const carryMax = () => CARRY_BASE + resLvl('mgr') * 2;
+
+const worker = new THREE.Group();
+{
+  const gövde = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.28, 0.5, 4, 10), MAT('#f2b23c', 0.6, 0.1));
+  gövde.position.y = 0.72;
+  gövde.castShadow = true;
+  worker.add(gövde);
+  const kafa = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 10), MAT('#e8c9a0', 0.8, 0));
+  kafa.position.y = 1.28;
+  worker.add(kafa);
+  // Baret: tepeden bakan bir kamerada figürü zeminden ayıran şey bu.
+  const baret = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+    MAT('#ffd23f', 0.5, 0.1));
+  baret.position.y = 1.34;
+  worker.add(baret);
+}
+worker.position.set(2.4, 0, BAY_Z[0]);
+scene.add(worker);
+
+// Sırttaki yığın. Taşınan mal görünmezse taşımak bir şey ifade etmiyor.
+const CARRY_POOL = [];
+const carried = [];
+function setCarryVisual(n, kind) {
+  while (carried.length > n) { const m = carried.pop(); worker.remove(m); CARRY_POOL.push(m); }
+  while (carried.length < n) {
+    const m = CARRY_POOL.pop() || new THREE.Mesh(CRATE_SHAPE[0], CRATE_MAT[0]);
+    m.geometry = CRATE_SHAPE[kind];
+    m.material = CRATE_MAT[kind];
+    m.castShadow = true;
+    worker.add(m);
+    carried.push(m);
+  }
+  carried.forEach((m, i) => m.position.set(0, 1.6 + i * 0.26, -0.1));
+}
+
+// Elde ne var: hangi istasyondan alındığı ve kaç tane.
+let carryKind = -1, carryN = 0;
+
+// Sürükleyerek yürütme. Fabrikada başka dokunmatik girdi yok, o yüzden
+// ekranın herhangi bir yeri sürüklenebilir — arayüz düğmeleri kendi
+// tıklamalarını zaten yutuyor.
+let dragOn = false, dragX = 0, dragY = 0, moveX = 0, moveZ = 0;
+const canvasEl = renderer.domElement;
+canvasEl.style.touchAction = 'none';
+canvasEl.addEventListener('pointerdown', e => {
+  dragOn = true; dragX = e.clientX; dragY = e.clientY;
+  canvasEl.setPointerCapture(e.pointerId);
+});
+canvasEl.addEventListener('pointermove', e => {
+  if (!dragOn) return;
+  const dx = e.clientX - dragX, dy = e.clientY - dragY;
+  const uz = Math.hypot(dx, dy);
+  if (uz < 6) { moveX = moveZ = 0; return; }
+  // Kamera köşeden bakıyor: ekranda sağa gitmek dünyada sağ-ileri demek.
+  // Yön ekran eksenlerinden dünyaya çevriliyor, yoksa parmak bir yere
+  // gidiyor işçi başka yere.
+  const k = Math.min(1, uz / 70) / uz;
+  const sx = dx * k, sy = dy * k;
+  moveX = sx * 0.707 - sy * 0.707;
+  moveZ = sx * 0.707 + sy * 0.707;
+});
+const dragBitir = () => { dragOn = false; moveX = moveZ = 0; };
+canvasEl.addEventListener('pointerup', dragBitir);
+canvasEl.addEventListener('pointercancel', dragBitir);
+
+// İşçinin bir adımı: yürü, sonra bulunduğu bölmede al ya da bırak.
+function stepWorker(dt) {
+  if (moveX || moveZ) {
+    worker.position.x = Math.max(-7, Math.min(7, worker.position.x + moveX * WORKER_SPEED * dt));
+    worker.position.z = Math.max(BAY_Z[LAST] - 3, Math.min(BAY_Z[0] + 3,
+      worker.position.z + moveZ * WORKER_SPEED * dt));
+    worker.rotation.y = Math.atan2(moveX, moveZ);
+  }
+  // Hangi bölmedeyiz?
+  let bay = -1;
+  for (let i = 0; i < STATIONS.length; i++) {
+    if (Math.abs(worker.position.z - BAY_Z[i]) < REACH) { bay = i; break; }
+  }
+  if (bay < 0) return;
+
+  // Elimiz boşsa ve buradaki yığında mal varsa al.
+  if (carryN === 0 && bay < LAST && G.pile[bay] >= 1) {
+    const al = Math.min(carryMax(), Math.floor(G.pile[bay]));
+    G.pile[bay] -= al;
+    carryN = al; carryKind = bay;
+    setCarryVisual(Math.min(6, al), bay);
+    ping(520, 0.07);
+    return;
+  }
+  // Elimizde bir önceki istasyonun malı varsa ve buraya aitse bırak.
+  if (carryN > 0 && bay === carryKind + 1) {
+    const yer = Math.max(0, roomOf(carryKind) - G.buf[carryKind]);
+    const bırak = Math.min(carryN, yer);
+    if (bırak <= 0) return;
+    G.buf[carryKind] += bırak;
+    carryN -= bırak;
+    if (carryN <= 0) { carryKind = -1; setCarryVisual(0, 0); }
+    else setCarryVisual(Math.min(6, carryN), carryKind);
+    ping(300, 0.07);
+  }
+}
 
 fit();
 
@@ -1587,6 +1770,7 @@ function tick(now) {
 
   const earned = runFactory(dt);
   floatAcc += earned;
+  stepWorker(dt);
 
   const ch = chain();
 
@@ -1747,12 +1931,49 @@ window.jeProbe = () => {
     product: product().name, tier: productTier(), price: unitPrice(),
     boost: +boostLeft().toFixed(0), miles: [0, 1, 2, 3].map(milestonesHit),
     lvl: [...G.lvl], mgr: [...G.mgr], buf: G.buf.map(b => +b.toFixed(2)),
+    // İşçi ve yığınlar: zincirin elle işleyen halkası dışarıdan okunabilsin.
+    pile: G.pile.map(b => +b.toFixed(2)),
+    carry: carryN, carryKind,
+    wz: +worker.position.z.toFixed(2), wx: +worker.position.x.toFixed(2),
     flow: +ch.flow.toFixed(3), neck: STATIONS[ch.neck].name,
     income: +ch.income.toFixed(2),
     crates: belts.reduce((a, b) => a + b.crates.length, 0),
   };
 };
 window.jeGive = n => { G.cash += n; refreshPanel(); };
+// İşçiyi bir bölmeye koy ve bir süre çalıştır.
+//
+// Sürükleme olayını taklit etmek yerine konum doğrudan veriliyor: ölçülen
+// şey taşımanın kendisi, parmağın yolu değil — ve olay taklidi zamanlamaya
+// bağlı olurdu.
+window.jeWalk = bay => {
+  worker.position.z = (bay >= 0 && bay < BAY_Z.length) ? BAY_Z[bay] : BAY_Z[0] + 12;
+  worker.position.x = 2.4;
+  return +worker.position.z.toFixed(2);
+};
+// Fabrikayı ve işçiyi birlikte ilerlet. jeRun yalnızca fabrikayı çeviriyor;
+// taşıma tick'in içinde olduğu için onunla ölçülemiyordu.
+window.jeStep = sec => {
+  const h = Math.min(0.25, sec);
+  let t = 0;
+  while (t < sec) { const d = Math.min(h, sec - t); runFactory(d); stepWorker(d); t += d; }
+  return window.jeProbe();
+};
+window.jeGiveManager = i => { G.mgr[i] = true; refreshPanel(); return G.mgr[i]; };
+// Ölçüm için kusursuz taşıyıcı. Oyunda kapalı, yalnızca buradan açılıyor.
+window.jeAutoCarry = on => { AUTO_CARRY = !!on; return AUTO_CARRY; };
+// Sayfayı yeniden yüklemeden zinciri boşalt. `jeReset` location.reload()
+// çağırıyor, yani tek bir testin içinde iki kez kullanılamıyor.
+window.jeSoftReset = () => {
+  G.cash = 0;
+  G.buf = G.buf.map(() => 0);
+  G.pile = G.pile.map(() => 0);
+  G.mgr = G.mgr.map(() => false);
+  carryN = 0; carryKind = -1; setCarryVisual(0, 0);
+  worker.position.set(2.4, 0, BAY_Z[0] + 12);
+  refreshPanel();
+  return window.jeProbe();
+};
 window.jeRun = sec => runFactory(sec);
 // Goes through showWelcome like the real return does, so the probe exercises
 // the same path the player takes — including the pending amount the rewarded

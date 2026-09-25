@@ -11,6 +11,44 @@ dokular oyun açılırken kodla üretiliyor.
 Tarayıcıda denemek için `tycoon/index.html`'e çift tıkla. Paketlenmiş sürüm
 için `node build-www.mjs` → `www-tycoon/`.
 
+## İşçi
+
+Fabrikanın eksiği elde yapılacak bir şey yoktu: oyuncu darboğazı buluyor, bir
+düğmeye basıyor ve izlemeye dönüyordu. `PAZAR.md`'de ölçülen **arcade idle**
+hattı (My Little Universe, Homa) bu türde en iyi elde tutmayı veriyor — D1
+~%50, ilk gün 25 dakika — ve aradaki tek yapısal fark malı taşıyan bir figür.
+
+Zincirin ortası ikiye bölündü. İstasyon malını artık doğrudan bir sonrakinin
+tamponuna basmıyor, **yere** basıyor (`G.pile`). Oradan banda ya işçi taşıyor
+ya da o istasyonun müdürü.
+
+Bu, müdürün zaten söylediği şeyi sahneye taşıyor: "bu istasyon artık kendi
+kendine dönüyor". Oyun elle başlıyor, para biriktikçe kendiliğinden dönen bir
+fabrikaya dönüşüyor — idle oyunun yayı bu.
+
+Ekranın herhangi bir yerinden sürükleyerek yürütülüyor; fabrikada başka
+dokunmatik girdi yok. Yön ekran eksenlerinden dünyaya çevriliyor, çünkü
+kamera köşeden bakıyor.
+
+### Çevrimdışı da elle çalışan bağda kopuyor
+
+Yokken yalnızca **otomatik** zincir dönüyor (`autoChain`). Bu satır olmadan
+oyun kendi kendini deliyordu: açıkken taşımak gerekiyor, kapalıyken
+gerekmiyor — yani en verimli oynama biçimi uygulamayı kapatmak oluyordu.
+Ölçüldü: müdürsüz bir fabrika dört saatte 144.000 kazanıyordu ve o dört
+saatte tek bir külçe taşınmamıştı.
+
+Elle çalışan bağın gerisinde mal yerde birikiyor (tavanına kadar) — döndüğünde
+seni bekleyen iş o.
+
+### Denge testleri kusursuz taşıyıcı varsayıyor
+
+`window.jeAutoCarry(true)` — oyunda kapalı, yalnızca ölçüm için. İşçi girince
+denge simülasyonları **ölü bir fabrikayı** ölçmeye başladı: taşıyan kimse yok,
+hiçbir şey akmıyor, seviye 1'de kalıyor ve testler bunu fark etmeden
+geçiyordu. Bayrak "oyuncu taşımaya yetişiyor" varsayımını kuruyor, yani eski
+ölçümlerin ölçtüğü şeyi.
+
 ## Zincir
 
     DÖKÜM ──külçe──▶ PRES ──panel──▶ MONTAJ ──araba──▶ SEVKİYAT ──▶ para
@@ -38,6 +76,8 @@ almıyor.
 
 Denge, hep darboğazı satın alan sahte bir oyuncu simüle edilerek ölçüldü
 (`scratchpad/tycoon*.mjs`). Her sayı ölçümle geldi, tahminle değil.
+
+    node scratchpad/tyworker.mjs   # işçi: alıyor, bırakıyor, müdürle gerekmiyor
 
 **1. deneme.** Üretim hızı zincir boyunca düşüyor, maliyetler 15'ten
 30.000'e çıkıyordu. Oynanamazdı: Sevkiyat daha 1. seviyeden darboğazdı ve
