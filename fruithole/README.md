@@ -3545,8 +3545,14 @@ olarak iniyor ve ekranda 1500-1850 parçalık bir şey oluyor. Elle 44×60 çizm
 de mümkündü ama üç resimde insanın sabrı bitiyor, ve büyütme görüntüyü
 bozmuyor — rakiplerin tahtası da parçaları blok blok diziyor.
 
-Bölümler: 3, 13, 23… Şu an üç resim var (Mushroom, Balloon, Ice Cream) ve
-liste büyüdükçe döngü uzuyor.
+Bölümler: 3, 13, 23… Şu an sekiz resim var — Mushroom, Balloon, Ice Cream,
+Strawberry, Watermelon, Pineapple, Cherries, Flower — yani 73. bölüme kadar
+hiçbiri tekrar etmiyor. Liste büyüdükçe döngü uzuyor ve yeni bir resim eklemek
+otuz satır metin.
+
+Onda bir bölüm şimdilik bilerek: resim tahtası oynanış olarak süpürme, ve
+arada ızgara düzenleri olmasa tahtanın "başka bir şey" olması sönerdi. Oranın
+doğrusu telefonda oynanarak bulunur, burada değil.
 
 ### Palet dört renk
 

@@ -17,8 +17,17 @@ await pg.waitForSelector('#dailyBtn',{state:'visible',timeout:20000}).catch(()=>
 await pg.evaluate(() => { const d=document.getElementById('dailyBtn'); if(d) d.click(); });
 await pg.waitForSelector('#playBtn',{state:'visible',timeout:20000});
 
+// Resim bölümlerinde dev yok ve bilerek yok: tahta bir çizim ve ortasına
+// konan bir dev meyve resimden olmayan bir şey. Buradaki kuralların hepsi
+// (her tahtada dev var, deliğin ona büyüyecek kadar tarlası var) ızgara
+// tahtası içindi; resim tahtasında sıfıra bölünüyor ve "tarlanın -%46'sını
+// süpür" gibi anlamsız sayılar çıkıyor.
+const resimler = new Set(
+  (await pg.evaluate(() => window.fruitHolePictures())).levels);
+
 let bad = 0;
 for (let lvl = 1; lvl <= 15; lvl++) {
+  if (resimler.has(lvl)) continue;
   const r = await pg.evaluate(n => {
     window.fruitHoleProbe(n);
     const m = window.fruitHoleMix();
