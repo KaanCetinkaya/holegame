@@ -424,6 +424,21 @@
   .upg .buy.owned { background: rgba(126,231,135,.3); color: #eaffef; box-shadow: none; }
 
   #pause { background: rgba(40,22,8,.8); backdrop-filter: blur(4px); }
+  /* Her ekranın üstünde duruyor: kayıp menüdeyken de oluyor ve oyuncunun
+     tek ipucu bu satır. */
+  #glBar {
+    position: fixed; left: 12px; right: 12px; bottom: 96px; z-index: 60;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-radius: 14px;
+    background: rgba(24,16,8,.92); color: #ffe9c9;
+    font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.4);
+  }
+  #glBar[hidden] { display: none; }
+  #glBarText { flex: 1; }
+  #glBarBtn {
+    border: 0; border-radius: 10px; padding: 9px 14px;
+    background: #f4b942; color: #2a1a06; font-weight: 700; font-size: 14px;
+  }
 
   /* size badge pinned under the hole, like the other hole games */
   #sizeTag { position: fixed; left: 0; top: 0; display: none; z-index: 6; pointer-events: none;
@@ -875,6 +890,16 @@
   <div id="hint">Drag anywhere to steer the hole and swallow the fruit</div>
   <div id="joyBase"></div>
   <div id="joyKnob"></div>
+
+  <!-- Grafik bağlamı kaybolduğunda, oyunun hangi ekranında olursa olsun.
+       Eskiden bu yazının tek kopyası duraklama panelinin içindeydi ve kayıp
+       menüde olduğunda hiç görünmüyordu: oyuncu Play'e basıyor, bomboş bir
+       tahta geliyor, ekranda bunu söyleyen hiçbir şey olmuyordu. Telefonda
+       görülen ekran tam olarak buydu. -->
+  <div id="glBar" hidden>
+    <span id="glBarText">Graphics restarting…</span>
+    <button id="glBarBtn">Retry</button>
+  </div>
 
   <div id="pause" class="screen">
     <h1>Paused</h1>
@@ -3766,6 +3791,24 @@ function refreshGlNotice() {
     btn.disabled = glLost;
     btn.style.opacity = glLost ? '.45' : '';
   }
+  const bar = document.getElementById('glBar');
+  const barText = document.getElementById('glBarText');
+  const barBtn = document.getElementById('glBarBtn');
+  if (bar) bar.hidden = !glLost;
+  const bitti = _glTries >= GL_TRY_MAX;
+  if (barText) {
+    barText.textContent = bitti
+      ? 'Graphics could not restart.'
+      : 'Graphics restarting…';
+  }
+  // Denemeler tükendiğinde düğme "Restart" oluyor ve sayfayı yeniden
+  // yüklüyor.
+  //
+  // Ağır bir çare ama tek kesin olanı: yeniden yükleme bağlamı sıfırdan
+  // kuruyor. Kaybedilen tek şey o anki bölüm — ilerleme, para ve yıldızlar
+  // `localStorage`'da. Oyuncu zaten bomboş bir tahtaya bakıyor, yani
+  // kaybedecek bir şeyi yok; alternatif uygulamayı kendi eliyle kapatması.
+  if (barBtn) barBtn.textContent = bitti ? 'Restart' : 'Retry';
 }
 
 // Bağlamı geri almayı dene, birkaç kez.
@@ -3774,11 +3817,65 @@ function refreshGlNotice() {
 // zorlamıyor. forceContextRestore() isteyen taraf oluyor. Sonsuz denemiyor:
 // dördüncüden sonra cihaz gerçekten veremiyordur ve her deneme bir GPU
 // ayırma girişimi, yani ısrar durumu kötüleştirebilir.
+// Kaç kez denendiği. Dördü bitince vazgeçilmiyor artık — uygulama öne
+// geldiğinde sayaç sıfırlanıyor, çünkü asıl sorun deneme sayısı değildi.
+const GL_TRY_MAX = 4;
+
+function gorunur() {
+  return typeof document === 'undefined' || document.visibilityState !== 'hidden';
+}
+
+// Bağlamı geri almayı dene.
+//
+// Eskiden dört deneme, 1.5 saniye arayla, ve sonra susuluyordu. Telefondan
+// gelen kayıt bunun neden hiç işe yaramadığını gösterdi:
+//
+//   bölüm 5 · 0 parça · 31 geo · 15 doku · 24 çizim · GERİ GELMEDİ
+//
+// Sıfır parça, yani kayıp tahta kurulurken değil **menüdeyken** oldu; ve
+// menüde otururken bağlamı düşüren şey tahtanın ağırlığı olamaz. Olan şu:
+// uygulama arka plana düştü (ekran kilidi, başka bir uygulama, bir reklam),
+// Android WebView'in GPU yüzeyini geri aldı. Altı saniyelik dört deneme de
+// uygulama **arka plandayken** yapıldı, yani hepsi boşa gitti, ve oyuncu geri
+// döndüğünde deneyecek kimse kalmamıştı.
+//
+// Bu aynı zamanda kaybın neden 46-53. bölümlerde değil de 5'te görüldüğünü
+// açıklıyor: bölümle hiç ilgisi yok. Tarayıcıda hiç üretilememesinin sebebi
+// de bu.
+//
+// Arka plandayken hiç denenmiyor: her deneme bir GPU ayırma girişimi ve
+// yüzey yokken kesin başarısız. Denemeler öne gelince başlıyor.
 function glRetry() {
-  if (!glLost || _glTries >= 4) return;
+  if (!glLost) return;
+  if (!gorunur()) { clearTimeout(_glTimer); return; }
+  if (_glTries >= GL_TRY_MAX) { refreshGlNotice(); return; }
   _glTries++;
   try { renderer.forceContextRestore(); } catch (e) {}
+  refreshGlNotice();
+  clearTimeout(_glTimer);
   _glTimer = setTimeout(glRetry, 1500);
+}
+
+// Uygulama öne geldiğinde baştan dene. Kaybın düzelebileceği tek an bu.
+function glOnVisible() {
+  if (!glLost || !gorunur()) return;
+  _glTries = 0;
+  clearTimeout(_glTimer);
+  glRetry();
+}
+document.addEventListener('visibilitychange', glOnVisible);
+window.addEventListener('focus', glOnVisible);
+window.addEventListener('pageshow', glOnVisible);
+// Capacitor'ün kendi olayı: WebView öne geldiğinde `visibilitychange`
+// gelmeyebiliyor, `resume` geliyor.
+document.addEventListener('resume', glOnVisible, false);
+{
+  const btn = document.getElementById('glBarBtn');
+  if (btn) btn.addEventListener('click', () => {
+    if (_glTries >= GL_TRY_MAX) { location.reload(); return; }
+    _glTries = 0;
+    glRetry();
+  });
 }
 
 renderer.domElement.addEventListener('webglcontextlost', (e) => {
@@ -3793,7 +3890,9 @@ renderer.domElement.addEventListener('webglcontextlost', (e) => {
   refreshGlNotice();
   _glTries = 0;
   clearTimeout(_glTimer);
-  _glTimer = setTimeout(glRetry, 700);
+  // Arka plandaysak beklemek dışında yapılacak bir şey yok; `glOnVisible`
+  // devralacak.
+  if (gorunur()) _glTimer = setTimeout(glRetry, 700);
 }, false);
 renderer.domElement.addEventListener('webglcontextrestored', () => {
   glLost = false;
@@ -12427,6 +12526,42 @@ window.fruitHoleGiveTime = (s) => {
   updateTimeUI();
   return timeLeft;
 };
+// Bağlam kaybının durumu. Ölçülecek şey gözle görülen bir şey değil:
+// denemenin **yapılıp yapılmadığı**.
+window.fruitHoleGl = () => ({
+  lost: glLost,
+  tries: _glTries,
+  logged: _glLostN,
+  visible: gorunur(),
+  barVisible: !!(document.getElementById('glBar')
+    && !document.getElementById('glBar').hidden),
+});
+window.fruitHoleLoseGl = () => {
+  const cv = renderer.domElement;
+  const gl = cv.getContext('webgl2') || cv.getContext('webgl');
+  const ext = gl && gl.getExtension('WEBGL_lose_context');
+  if (ext) ext.loseContext();
+  return !!ext;
+};
+window.fruitHoleRestoreGl = () => {
+  const cv = renderer.domElement;
+  const gl = cv.getContext('webgl2') || cv.getContext('webgl');
+  const ext = gl && gl.getExtension('WEBGL_lose_context');
+  if (ext) ext.restoreContext();
+  return !!ext;
+};
+// `document.visibilityState` yazılamıyor; test uygulamanın arka plana
+// düşmesini ancak bunu değiştirerek taklit edebiliyor.
+window.fruitHoleGlFake = (alan, deger) => {
+  if (alan === 'hidden') {
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true, get: () => (deger ? 'hidden' : 'visible'),
+    });
+  }
+  return document.visibilityState;
+};
+window.fruitHoleGlSetTries = (n) => { _glTries = n; return _glTries; };
+window.fruitHoleGlRefresh = () => { refreshGlNotice(); };
 window.fruitHoleForceBoss = (v) => { forceBoss = v; };
 window.fruitHoleStartDaily = () => startDailyRun();
 window.fruitHoleStartLevel = () => startLevel();

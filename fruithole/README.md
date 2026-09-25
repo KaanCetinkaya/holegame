@@ -3635,3 +3635,52 @@ ekranda birebir aynı görünüyor:
 
 Bugüne kadar hangisi olduğu bilinmeden bakıldı. Artık yakalanmayan her hata ve
 her reddedilen söz de aynı deftere, mesajı ve satırıyla yazılıyor.
+
+### Beyaz ekranın sebebi: arka plan, tahta değil
+
+Defter ilk kaydını verdi ve iki teorimi birden çürüttü:
+
+```
+bölüm 5 · 0 parça · 31 geo · 15 doku · 24 çizim · GERİ GELMEDİ
+```
+
+* **"GERİ GELMEDİ"** yalnızca GL kaydı için yazılıyor, yani bu bir bağlam
+  kaybı. "Belki koddaki bir hata" değil.
+* **"0 parça"** — kayıp olduğunda tahtada hiç meyve yoktu, yani **menüdeydi**.
+  Menüde otururken bağlamı düşüren şey tahtanın ağırlığı olamaz. Bellek
+  teorisi de, "en ağır tahtalar" teorisi de burada bitiyor.
+* **31 geometri, 15 doku** — tertemiz. Sızıntı geri gelmemiş.
+
+Geriye tek açıklama kalıyor: uygulama arka plana düştü (ekran kilidi, başka
+bir uygulama, bir reklam) ve Android WebView'in GPU yüzeyini geri aldı.
+
+Ve neden hiç geri gelmediği de aynı yerden çıkıyor. Eski kod dört deneme
+yapıyordu, 1.5 saniye arayla — yani **altı saniye içinde**, ve o altı saniyenin
+tamamı uygulama arka plandayken geçiyordu. Yüzey yokken `forceContextRestore`
+kesin başarısız. Oyuncu geri döndüğünde deneyecek kimse kalmamıştı.
+
+Bu aynı zamanda kaybın neden 46-53. bölümlerde değil de 5'te görüldüğünü
+açıklıyor: **bölümle hiç ilgisi yok.** Tarayıcıda hiç üretilememesinin sebebi
+de bu — tarayıcı sekmesi arka plana atılınca bağlamı kaybetmiyor.
+
+Şimdi:
+
+* Arka plandayken **hiç denenmiyor**. Her deneme bir GPU ayırma girişimi ve
+  yüzey yokken boşa gidiyor.
+* Uygulama öne gelince (`visibilitychange`, `focus`, `pageshow`, Capacitor'ün
+  `resume`'u) sayaç sıfırlanıp yeniden deneniyor.
+* Uyarı artık her ekranda görünüyor. Eskiden tek kopyası duraklama panelinin
+  içindeydi ve kayıp menüdeyken hiç görünmüyordu: oyuncu Play'e basıyor,
+  bomboş bir tahta geliyor, ekranda bunu söyleyen hiçbir şey olmuyordu.
+  Telefonda görülen ekran tam olarak buydu.
+* Denemeler tükenirse yazı değişiyor ve düğme **Restart** oluyor: sayfayı
+  yeniden yüklüyor. Ağır bir çare ama tek kesin olanı — yeniden yükleme
+  bağlamı sıfırdan kuruyor. Kaybedilen tek şey o anki bölüm; ilerleme, para ve
+  yıldızlar `localStorage`'da. Oyuncu zaten bomboş bir tahtaya bakıyor, yani
+  kaybedecek bir şeyi yok; alternatif uygulamayı kendi eliyle kapatması.
+
+`scratchpad/holeglback.mjs` bunu ölçüyor. Bağlamın gerçekten geri gelmesi
+konteynerde ölçülemiyor — GPU yok ve SwiftShader `restoreContext()` çağrısına
+`webglcontextrestored` ile cevap vermiyor (üç saniye beklendi, olay hiç
+gelmedi). O yüzden test "geri geldi mi" demiyor, **"denenmesi gereken anda
+denendi mi"** diyor. Hatanın olduğu yer zaten oydu.
