@@ -3809,3 +3809,24 @@ davranış.
 Bu, o yöne bir daha bakılmaması için yazıldı. Bir sonraki adım tahmin değil,
 defterin bir sonraki kaydı: artık kuruluştan kaç ms geçtiğini, oyunun hangi
 hâlde olduğunu ve reklamın açık olup olmadığını da yazıyor.
+
+### İlk bulmaca öğretiyor, sınamıyor
+
+18. bölüm telefonda ilk kez oynandı ve oyuncu 161 meyvenin 102'sini yedikten
+sonra sıkıştı. Sistem doğru çalıştı — tahta gerçekten bir soru sormuştu ve
+cevap yanlıştı — ama kuralı ilk karşılaştığı tahtada, üç dakikasını
+harcadıktan sonra öğrenmiş oldu.
+
+Bir mekaniğin ilk örneği onu **göstermeli**. 18. bölümün kapıları artık bandın
+izin verdiği kadar geniş: kapan yok, hangi sırayla gidilirse gidilsin bitiyor.
+Oyuncu duvarları, kapıları, şeritleri ve deliğin büyüdüğünü görüyor ama bunun
+bedelini ödemiyor. Sınav 28'den itibaren.
+
+Önce paylı bir hesap denendi (`PUZZLE_MARGIN` 0.22 yerine 0.9) ve yetmedi:
+altı sıradan beşi yürüyor, biri düşüyordu. "Her sıra yürüsün" demek "en geniş
+delik her kapıdan geçsin" demek, o da kapının bandın tamamı olması demek —
+arada bir pay yok.
+
+`holepuzzle.mjs` ikisini ayrı ölçüyor: ilk bölümde **bütün** sıraların
+yürüdüğünü, sonrakilerde tembel sıranın düştüğünü. Kapan ve sıkışma ölçümleri
+de 18'den 28'e taşındı — olmaması gereken bir şeyi orada aramak yanlış olurdu.

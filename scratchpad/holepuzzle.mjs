@@ -165,7 +165,21 @@ for (const lv of SEVIYELER) {
     }
     return true;
   };
-  if (!yurur(tembel)) sorulu++;
+  // İlk bulmaca bölümü bilerek soru sormuyor: bir mekaniğin ilk örneği onu
+  // öğretmeli, sınamamalı. Sayıma girmiyor ama ayrı bir kontrolü var —
+  // **hangi sırayla** gidilirse gidilsin bitmeli.
+  const ilk = lv === SEVIYELER[0];
+  if (ilk) {
+    const perms = [];
+    (function gez(kalan, acc) {
+      if (!kalan.length) { perms.push(acc); return; }
+      kalan.forEach((v, i) => gez(kalan.filter((_, j) => j !== i), acc.concat(v)));
+    })(p.rooms.map((_, i) => i), []);
+    const duzen = perms.filter(pp => yurur(pp)).length;
+    check(duzen === perms.length,
+      'ilk bulmaca: her sıra yürüyor (öğretiyor, sınamıyor)',
+      `${duzen}/${perms.length}`);
+  } else if (!yurur(tembel)) sorulu++;
   console.log(`  tembel sıra ${yurur(tembel) ? 'yürüyor (soru zayıf)' : 'düşüyor'}` +
               ` · kurulan sıra ${p.order.join('→')}` +
               ` · kapılar ${p.rooms.map(r => r.gap.toFixed(1)).join('/')}` +
@@ -209,12 +223,16 @@ console.log('\n--- sıkışma ---');
 {
   // Son oda tek yönlü mü?
   //
+  // 28. bölümde ölçülüyor, 18'de değil: ilk bulmaca bilerek kapansız ve her
+  // sırayla bitiyor, çünkü bir mekaniğin ilk örneği onu öğretmeli. Kapanı
+  // orada aramak, olmaması gereken bir şeyi aramak olurdu.
+  //
   // İlk yazışında bu "kapan odayı **önce** ye, tahta ölsün" diye ölçülüyordu
   // ve yanlıştı: o odaya önce girildiğinde delik küçük, tek başına o odanın
   // büyümesi kapıyı doldurmuyor, yani çıkabiliyor. Kapan olduğu an sırasının
   // geldiği an — geri kalan her şey yendikten sonra. Ölçülecek eşitsizlik bu.
   const r = await pg.evaluate(() => {
-    window.fruitHoleProbe(18);
+    window.fruitHoleProbe(28);
     const p0 = window.fruitHolePuzzle();
     const sira = p0.order, son = sira[sira.length - 1];
     let rr = p0.r0;
@@ -248,7 +266,7 @@ console.log('\n--- sıkışma ---');
   // permütasyonlar aritmetikle yürütülüp ilk ölümü "çıkamadım" olan biri
   // seçiliyor, oynanan o.
   const r = await pg.evaluate(() => {
-    window.fruitHoleProbe(18);
+    window.fruitHoleProbe(28);
     const p0 = window.fruitHolePuzzle();
     const N = p0.rooms.length;
     const perms = [];
@@ -286,8 +304,8 @@ console.log('\n--- sıkışma ---');
   }
 }
 
-console.log(`\nsoru soran tahta: ${sorulu}/${toplam}`);
-check(sorulu >= toplam - 1, 'tahtaların hemen hepsi bir soru soruyor');
+console.log(`\nsoru soran tahta: ${sorulu}/${toplam - 1} (ilki hariç)`);
+check(sorulu >= toplam - 2, 'ilk bölüm dışındaki tahtaların hemen hepsi soru soruyor');
 
 if (errs.length) fails.push('sayfa hatası: ' + errs[0]);
 console.log('\n' + (fails.length ? 'hatalar:\n - ' + fails.join('\n - ') : 'hepsi geçti'));

@@ -9357,7 +9357,19 @@ function pushOutOfRocks() {
 // ulaşıyor; koridorda en fazla "son oda hariç her şey yenmiş" hâlinde
 // dolaşıyor, o da ~2.15. 5.6 ekranın üçte birini boş kuma ayırıyordu.
 const PUZZLE_CORR = 4.6;
-const PUZZLE_MARGIN = 0.22;     // kapıya, gereken en dar ölçünün üstüne eklenen pay
+// Kapıya, gereken en dar ölçünün üstüne eklenen pay.
+//
+// İlk bulmaca bölümünde çok daha geniş. Sebebi telefonda görüldü: Kaan 18.
+// bölümde 161 meyvenin 102'sini yedikten sonra sıkıştı — yani kuralı ilk
+// karşılaştığı tahtada, üç dakikasını harcadıktan sonra öğrendi.
+//
+// Bir mekaniğin ilk örneği onu **öğretmeli**, sınamamalı. 18. bölüm artık
+// kapıları bol, kapanı olmayan, hangi sırayla gidilirse gidilsin biten bir
+// tahta: oyuncu duvarları, kapıları ve deliğin büyüdüğünü görüyor, ama bunun
+// bedelini ödemiyor. Sınav 28'den itibaren.
+const PUZZLE_MARGIN = 0.22;
+const PUZZLE_MARGIN_ILK = 0.9;
+const puzzleMargin = () => (level === PUZZLE_FIRST ? PUZZLE_MARGIN_ILK : PUZZLE_MARGIN);
 const PUZZLE_STEP = 0.9;        // duvardaki kaya aralığı — 2*ROCK_R'den küçük, yani duvar dolu
 const PUZZLE_CLEAR = 1.15;      // duvar çizgisine bu kadar yakın meyve alınıyor
 const PUZZLE_4ROOMS = 28;       // dördüncü oda bu bölümden itibaren
@@ -9443,14 +9455,26 @@ function puzzleFeasible(g, limit, r0, at = -1, left = null) {
 // gerçekten kapan mı. Üçü birden tutmayan aday atılıyor.
 function puzzlePlan(g, r0, maxGap) {
   const N = g.length;
+  const ilkBulmaca = level === PUZZLE_FIRST;
+  const pay = puzzleMargin();
   const minGap = 2 * (r0 + 0.30 + ROCK_R);
+  // İlk bulmacada kapılar bandın izin verdiği kadar geniş: hangi sırayla
+  // gidilirse gidilsin bitiyor. Paylı bir hesap denendi ve yetmedi — altı
+  // sıradan beşi yürüyordu, biri düşüyordu — çünkü "her sıra" demek "en geniş
+  // delik her kapıdan geçsin" demek, ve o da kapının bandın tamamı olması
+  // demek. Tahtanın işi burada soru sormak değil, duvarı ve kapıyı göstermek.
+  if (ilkBulmaca) {
+    const limit = g.map(() => maxGap / 2 - ROCK_R);
+    const perm = g.map((_, i) => i);
+    return { perm, limit };
+  }
   const kur = (perm) => {
     const limit = new Array(N);
     let r = r0;
     for (let k = 0; k < N; k++) {
       const i = perm[k];
       const gerek = k < N - 1 ? Math.min(HOLE_MAX, r + g[i]) : r;
-      const gap = Math.max(minGap, Math.min(maxGap, 2 * (gerek + PUZZLE_MARGIN + ROCK_R)));
+      const gap = Math.max(minGap, Math.min(maxGap, 2 * (gerek + pay + ROCK_R)));
       limit[i] = gap / 2 - ROCK_R;
       r = Math.min(HOLE_MAX, r + g[i]);
     }
