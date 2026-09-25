@@ -3943,10 +3943,42 @@ function gorunur() {
 //
 // Arka plandayken hiç denenmiyor: her deneme bir GPU ayırma girişimi ve
 // yüzey yokken kesin başarısız. Denemeler öne gelince başlıyor.
+// Denemeler tükendiğinde sayfa kendiliğinden yenileniyor.
+//
+// Telefondan gelen ikinci kayıt bunu gerektirdi:
+//
+//   GL bölüm 7 · 0 parça · 90 geo · 16 doku · 62 çizim · GERİ GELMEDİ
+//
+// Uyarı çubuğu çıktı, denemeler uygulama öndeyken yapıldı — yani bir önceki
+// düzeltme işini gördü — ve bağlam yine gelmedi. Yani bu cihazda
+// `forceContextRestore()` çalışmıyor, ve ne kadar beklense değişmeyecek.
+//
+// Yenileme bağlamı sıfırdan kuruyor ve kesin çalışıyor. Kaybedilen tek şey o
+// anki bölüm; ilerleme, para ve yıldızlar `localStorage`'da. Karşılığı ise
+// oyuncunun bomboş bir tahtaya bakıp uygulamayı kendi eliyle kapatması — yani
+// zaten aynı şeyin daha kötü hâli, üstüne bir de oyuncunun kendi eliyle.
+//
+// Bir kez: `_glReloaded` bayrağı yenilemenin döngüye girmesini engelliyor, ve
+// yalnızca uygulama öndeyken — arka planda yenilemek, geri dönen oyuncuyu
+// menüde karşılamak demek olurdu.
+let _glReloaded = false;
+function glGiveUp() {
+  if (_glReloaded || !glLost || !gorunur()) return;
+  _glReloaded = true;
+  try { location.reload(); } catch (e) { }
+}
+
 function glRetry() {
   if (!glLost) return;
   if (!gorunur()) { clearTimeout(_glTimer); return; }
-  if (_glTries >= GL_TRY_MAX) { refreshGlNotice(); return; }
+  if (_glTries >= GL_TRY_MAX) {
+    refreshGlNotice();
+    clearTimeout(_glTimer);
+    // Bir buçuk saniye: oyuncu ne olduğunu okuyacak kadar görsün, ama
+    // bomboş bir tahtaya bakarak beklemesin.
+    _glTimer = setTimeout(glGiveUp, 1500);
+    return;
+  }
   _glTries++;
   try { renderer.forceContextRestore(); } catch (e) {}
   refreshGlNotice();
@@ -3970,7 +4002,7 @@ document.addEventListener('resume', glOnVisible, false);
 {
   const btn = document.getElementById('glBarBtn');
   if (btn) btn.addEventListener('click', () => {
-    if (_glTries >= GL_TRY_MAX) { location.reload(); return; }
+    if (_glTries >= GL_TRY_MAX) { _glReloaded = false; glGiveUp(); return; }
     _glTries = 0;
     glRetry();
   });
@@ -9299,7 +9331,13 @@ function pushOutOfRocks() {
 // geniş olamaz. Üç oda 8-27. bölümlerde, dörde 28'de çıkıyor — orada tahta
 // 34 sıraya ulaşmış oluyor ve dördüncü kapı sığıyor.
 // ---------------------------------------------------------------------
-const PUZZLE_CORR = 5.6;        // koridorun serbest genişliği
+// Koridorun serbest genişliği.
+//
+// 5.6'ydı: deliğin **tavandaki** hâline (yarıçap ~2.6) göre ölçülmüştü. Ama
+// delik o boyuta ancak her şeyi yedikten sonra, yani son odanın **içinde**
+// ulaşıyor; koridorda en fazla "son oda hariç her şey yenmiş" hâlinde
+// dolaşıyor, o da ~2.15. 5.6 ekranın üçte birini boş kuma ayırıyordu.
+const PUZZLE_CORR = 4.6;
 const PUZZLE_MARGIN = 0.22;     // kapıya, gereken en dar ölçünün üstüne eklenen pay
 const PUZZLE_STEP = 0.9;        // duvardaki kaya aralığı — 2*ROCK_R'den küçük, yani duvar dolu
 const PUZZLE_CLEAR = 1.15;      // duvar çizgisine bu kadar yakın meyve alınıyor
@@ -9310,10 +9348,21 @@ const PUZZLE_4ROOMS = 28;       // dördüncü oda bu bölümden itibaren
 // yarıya da kocaman boşluklar bırakıyor — 38. bölümde bir oda sıfır meyveyle,
 // 18. bölüm toplam 71 meyveyle çıktı. Sıfır meyveli oda soru sormuyor (kapısının
 // genişliğinin bir anlamı kalmıyor), 71 meyveli tahta da bölüm olmaya yetmiyor.
-const PUZZLE_MIN_ROOM = 30;
+// Otuzdu ve odalar boş görünüyordu: üç odalı bir tahta 111 meyveyle çıkıyordu,
+// oysa resim tahtaları 1500. Oda sayısı bulmacayı değiştirmiyor — büyüme
+// meyve sayısına göre ölçekleniyor, yani toplam büyüme aynı kalıyor — ama
+// içinde yapılacak iş olmayan bir oda soru sormuyor, sadece geçiliyor.
+const PUZZLE_MIN_ROOM = 55;
 
 let puzzleRooms = [];           // { z0, z1, cz, g, limit, gap, fruit }
 let puzzleOrder = [];           // tahtanın kurulduğu sıra — testin okuduğu şey
+// Kapı şeritleri ve iki rengi. Bildirimleri burada, öteki bulmaca durumunun
+// yanında: `buildPuzzle` bunları kendi başında sıfırlıyor ve bir `let`i
+// kullanıldığı yerin altında bırakmak bu dosyada dört kez oyunu hiç açılmaz
+// hâle getirdi.
+const GATE_OK = new THREE.MeshBasicMaterial({ color: '#6fe08a', transparent: true, opacity: 0.85 });
+const GATE_NO = new THREE.MeshBasicMaterial({ color: '#f2545b', transparent: true, opacity: 0.85 });
+let puzzleGateMeshes = [];
 let puzzleWallX = 0;
 let puzzleTries = 0, puzzleTriesLv = 0, puzzleDead = false;
 
@@ -9457,6 +9506,10 @@ function segDist(px, pz, x0, z0, x1, z1) {
 function buildPuzzle() {
   rocks = [];
   puzzleRooms = [];
+  // Önceki bölümün şeritleri: `fieldGroup.clear()` onları sahneden çıkarıyor
+  // ama geometrilerini bırakmıyor, ve bulmaca başına üç-dört tane.
+  for (const g of puzzleGateMeshes) g.mesh.geometry.dispose();
+  puzzleGateMeshes = [];
   const N = level >= PUZZLE_4ROOMS ? 4 : 3;
   puzzleWallX = fieldHalfX - PUZZLE_CORR - ROCK_R;
   const derin = (fieldHalfZ * 2) / N;
@@ -9559,6 +9612,43 @@ function buildPuzzle() {
   for (let i = 1; i < puzzleRooms.length; i++) {
     const z = puzzleRooms[i].z0;
     puzzleRockLine(-fieldHalfX - tasma, z, puzzleWallX, z);
+  }
+
+  puzzleGates();
+}
+
+// Kapının eşiğine, sığıp sığmadığını söyleyen bir şerit.
+//
+// Kural ekranda hiçbir yerde yazmıyordu. Oyuncunun gördüğü şey duvarlar ve
+// farklı genişlikte açıklıklar; "şu an bu kapıdan geçebiliyor muyum" sorusunu
+// ancak kapıya gidip deneyerek öğreniyordu — ve deneyerek öğrenmek burada
+// bedava değil, çünkü öğrenmek için yenen her meyve deliği biraz daha
+// büyütüyor. Yani oyuncuyu cezalandıran bir öğrenme yolu.
+//
+// Şerit iki işi birden yapıyor: kapının nerede olduğunu gösteriyor (kayaların
+// arasındaki boşluk yukarıdan kolay seçilmiyor) ve **şu anki** deliğin oradan
+// geçip geçemediğini söylüyor. Renk her karede yeniden hesaplanıyor, çünkü
+// cevap delik büyüdükçe değişiyor — ve kapının kırmızıya döndüğü an, oyuncunun
+// o odayı kaybettiği an.
+function puzzleGates() {
+  puzzleGateMeshes = [];
+  for (const rm of puzzleRooms) {
+    // Şeridin boyu kapının **geçilebilir** genişliği: iki kayanın arası eksi
+    // kayaların yarıçapları. Kapının kendi ölçüsünü çizmek, deliğin
+    // sığmadığı yerde sığıyormuş gibi gösterirdi.
+    const boy = Math.max(0.2, rm.gap - ROCK_R * 2);
+    const g = new THREE.Mesh(new THREE.PlaneGeometry(0.34, boy), GATE_OK);
+    g.rotation.x = -Math.PI / 2;
+    g.position.set(puzzleWallX, 0.035, rm.cz);
+    fieldGroup.add(g);
+    puzzleGateMeshes.push({ mesh: g, rm });
+  }
+}
+
+// Her karede: hangi kapılar hâlâ açık?
+function stepPuzzleGates() {
+  for (const g of puzzleGateMeshes) {
+    g.mesh.material = holeRadius <= g.rm.limit ? GATE_OK : GATE_NO;
   }
 }
 
@@ -10374,7 +10464,17 @@ let camLook = null;
 // tall screen. Height then follows from the aspect ratio.
 function fitCamera() {
   const aspect = innerWidth / innerHeight;
-  const halfH = VIEW_HALF_X;
+  // Bulmacada kamera geri çekiliyor.
+  //
+  // Sıradan bir tahtada kamera deliği takip ediyor ve tarlanın küçük bir
+  // kısmını gösteriyor — orada bakılacak şey deliğin önü. Bulmacada bakılacak
+  // şey **tahtanın tamamı**: hangi kapı ne kadar geniş, hangi odada ne kadar
+  // meyve var. Oyuncu bunu görmeden sıraya karar veremez.
+  //
+  // İlk hâlinde görülmüyordu: delik koridorda doğuyor, koridor tahtanın sağ
+  // ucunda, ve odalar ekranın solunda kalıyordu. Ekranda görünen tek şey boş
+  // kum ve bir kaya duvarıydı — yani bulmaca ekranda hiç yoktu.
+  const halfH = (!dailyRun && isPuzzleLevel(level)) ? fieldHalfX + 0.5 : VIEW_HALF_X;
   const halfV = halfH / aspect;
   camera.left = -halfH; camera.right = halfH;
   camera.top = halfV; camera.bottom = -halfV;
@@ -13493,9 +13593,12 @@ function tick(now) {
       timeLeft -= Math.min(0.25, elapsed);
       if (timeLeft <= 0) { timeLeft = 0; updateTimeUI(); onTimeUp(); }
       else updateTimeUI();
-    } else if (!puzzleDead && puzzleStuck()) {
-      puzzleDead = true;
-      onStuck();
+    } else {
+      stepPuzzleGates();
+      if (!puzzleDead && puzzleStuck()) {
+        puzzleDead = true;
+        onStuck();
+      }
     }
 
     if (joyX || joyY) {
@@ -13606,7 +13709,13 @@ function tick(now) {
     // Takip hedefi normalde delik. `camLook` yalnızca klip çekilirken doluyor
     // ve o zaman bile aynı yumuşatmadan geçiyor — kamera oraya sıçramıyor,
     // kayıyor, ve bırakıldığında deliğe aynı şekilde geri kayıyor.
-    const hedefX = camLook ? camLook.x : holeX;
+    // Bulmacada kamera yatayda kıpırdamıyor: tahtanın ortasında duruyor ve
+    // koridor da odalar da hep ekranda kalıyor. Deliği takip etseydi oyuncu
+    // koridordayken odaları, odadayken kapıları göremezdi — yani soruyu
+    // görmeden cevap vermesi istenirdi. Derinlikte takip sürüyor, çünkü odalar
+    // z ekseninde dizili ve tahta ekrandan uzun.
+    const bulmacaKam = !dailyRun && isPuzzleLevel(level);
+    const hedefX = camLook ? camLook.x : (bulmacaKam ? 0 : holeX);
     const hedefZ = camLook ? camLook.z : holeZ;
     camX += (hedefX - camX) * follow;
     camZ += (hedefZ - camZ) * follow;

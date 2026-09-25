@@ -3679,8 +3679,8 @@ de bu — tarayıcı sekmesi arka plana atılınca bağlamı kaybetmiyor.
   içindeydi ve kayıp menüdeyken hiç görünmüyordu: oyuncu Play'e basıyor,
   bomboş bir tahta geliyor, ekranda bunu söyleyen hiçbir şey olmuyordu.
   Telefonda görülen ekran tam olarak buydu.
-* Denemeler tükenirse yazı değişiyor ve düğme **Restart** oluyor: sayfayı
-  yeniden yüklüyor. Ağır bir çare ama tek kesin olanı — yeniden yükleme
+* Denemeler tükenirse sayfa **kendiliğinden** yenileniyor (bir buçuk saniye
+  sonra; oyuncu ne olduğunu okuyacak kadar görsün diye). Düğme de duruyor. Ağır bir çare ama tek kesin olanı — yeniden yükleme
   bağlamı sıfırdan kuruyor. Kaybedilen tek şey o anki bölüm; ilerleme, para ve
   yıldızlar `localStorage`'da. Oyuncu zaten bomboş bir tahtaya bakıyor, yani
   kaybedecek bir şeyi yok; alternatif uygulamayı kendi eliyle kapatması.
@@ -3690,3 +3690,29 @@ konteynerde ölçülemiyor — GPU yok ve SwiftShader `restoreContext()` çağr�
 `webglcontextrestored` ile cevap vermiyor (üç saniye beklendi, olay hiç
 gelmedi). O yüzden test "geri geldi mi" demiyor, **"denenmesi gereken anda
 denendi mi"** diyor. Hatanın olduğu yer zaten oydu.
+
+### İkinci kayıt: cihaz bağlamı geri vermiyor
+
+Düzeltmeden sonra ikinci bir kayıt geldi:
+
+```
+GL 09-25 17:43  bölüm 7 · 0 parça · 90 geo · 16 doku · 62 çizim · GERİ GELMEDİ
+GL 09-25 14:03  bölüm 5 · 0 parça · 31 geo · 15 doku · 24 çizim · GERİ GELMEDİ
+```
+
+(Saatler UTC — telefonun saatiyle 17:03 ve 20:43.)
+
+Bu sefer uyarı çubuğu ekranda çıktı ve denemeler uygulama öndeyken yapıldı,
+yani bir önceki düzeltme işini gördü. Bağlam yine gelmedi. Sonuç net: **bu
+cihazda `forceContextRestore()` çalışmıyor** ve ne kadar beklenirse beklensin
+değişmeyecek.
+
+Geriye kurtarmak değil yeniden kurmak kalıyor, ve sayfayı yenilemek bunu kesin
+yapıyor. Kaybedilen tek şey o anki bölüm; ilerleme, para ve yıldızlar
+`localStorage`'da. Karşılığı ise oyuncunun bomboş bir tahtaya bakıp uygulamayı
+kendi eliyle kapatması — yani zaten aynı şeyin daha kötüsü.
+
+İki kaydın ortak yanı hâlâ duruyor ve hâlâ açıklanmadı: **ikisinde de 0
+parça**, yani ikisi de tahta kurulu değilken oldu. Geometri ve doku sayıları
+(31/15 ve 90/16) hiçbir şeyin birikmediğini söylüyor. Yani kaybın sebebi
+oyunun kendi yükü değil; dışarıdan geliyor.

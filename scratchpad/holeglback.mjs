@@ -114,6 +114,37 @@ console.log(`  "${r.t}"`);
 check(/could not/i.test(r.t), 'vazgeçildiği yazıyor', r.t);
 check(r.btn === 'Restart', 'düğme Restart oluyor', r.btn);
 
+// --- 5. vazgeçince sayfa kendiliğinden yenileniyor ---
+//
+// Telefondan gelen ikinci kayıt bunu gerektirdi: uyarı çıktı, denemeler
+// öndeyken yapıldı, bağlam yine gelmedi. Bu cihazda `forceContextRestore()`
+// çalışmıyor ve beklemek bir şeyi değiştirmiyor — geriye yeniden kurmak
+// kalıyor.
+//
+// `location.reload` yeniden tanımlanamıyor, o yüzden çağrı yakalanmıyor:
+// sayfaya bir işaret konuyor ve yenilemeden sonra o işaretin **yok olduğu**
+// görülüyor. Yani ölçülen şey niyet değil, gerçekten olan şey.
+console.log('\n5) vazgeçince sayfa yeniliyor');
+{
+  await pg.evaluate(() => {
+    window.__isaret = 1;
+    window.fruitHoleGlSetTries(0);
+    window.fruitHoleGlFake('hidden', false);
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  // Dört deneme 1.5 saniye arayla, sonra 1.5 saniye daha.
+  await pg.waitForTimeout(10000);
+  await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function',
+                           { timeout: 30000 }).catch(() => {});
+  const d = await pg.evaluate(() => ({
+    isaret: typeof window.__isaret,
+    lost: window.fruitHoleGl ? window.fruitHoleGl().lost : null,
+  }));
+  console.log(`  işaret ${d.isaret} · kayıp ${d.lost}`);
+  check(d.isaret === 'undefined', 'sayfa gerçekten yenilendi', d.isaret);
+  check(d.lost === false, 'yenilemeden sonra bağlam sağlam', String(d.lost));
+}
+
 if (errs.length) fails.push('sayfa hatası: ' + errs[0]);
 console.log('\n' + (fails.length ? 'hatalar:\n - ' + fails.join('\n - ') : 'hepsi geçti'));
 await br.close(); srv.close();
