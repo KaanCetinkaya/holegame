@@ -42,10 +42,21 @@ const check = (ok, what) => {
 
 // --- her desen bir kere ---
 const seen = new Map();
+// Resim bölümleri bu sayımın dışında.
+//
+// Alt ve üst sınır, ızgara düzenlerinin tahtayı ne kadar doldurduğunu
+// ölçüyor: seyrek kalan bir düzen bölümü boş gösteriyor, aşırı dolan bir
+// düzen ise telefonda çizilemiyordu. Resim tahtası ikisini de başka
+// kurallarla çözüyor — parçası boncuk, çizimi yığın, ve maliyeti
+// `holepicture.mjs` çizim çağrısıyla üçgenden ölçüyor. 1848 parçalık bir
+// mantar burada "600'ü aştı" diye düşerdi ve düşmesi hiçbir şey anlatmazdı.
+const resimler = new Set(
+  (await pg.evaluate(() => window.fruitHolePictures())).levels);
 let lo = 1e9, hi = 0;
 for (let n = 1; n <= 40; n++) {
   const p = await pg.evaluate(l => window.fruitHoleProbe(l), n);
   if (!seen.has(p.pattern)) seen.set(p.pattern, { first: n, fruit: p.fruit });
+  if (resimler.has(n)) continue;
   lo = Math.min(lo, p.fruit); hi = Math.max(hi, p.fruit);
 }
 console.log(`\n${seen.size} desen, 40 bölümde ${lo}-${hi} meyve\n`);
@@ -54,8 +65,8 @@ for (const [name, v] of seen) console.log(`  ${String(name).padEnd(10)} bölüm 
 console.log('');
 const DESEN = (await pg.evaluate(() => window.fruitHoleThemeTable())).order.length;
 check(seen.size === DESEN, `${DESEN} desen var (${seen.size})`);
-check(lo >= 80, `en seyrek bölüm 80+ meyve (${lo})`);
-check(hi <= 600, `en dolu bölüm 600'ü aşmıyor (${hi})`);
+check(lo >= 80, `en seyrek ızgara bölümü 80+ meyve (${lo})`);
+check(hi <= 600, `en dolu ızgara bölümü 600'ü aşmıyor (${hi})`);
 
 // --- eşya sayısı ---
 // Metinde "elli iki nesne" yazıyordu; sayıyı elle takip etmek yerine

@@ -3518,3 +3518,69 @@ yani istedikleri şey bu.
 bırakmıyor. Üç bin parçalık bir yığının matrisi 192 KB ve bölüm başına bir
 tane — bırakılmasaydı bu tam olarak düzeltmeye çalıştığımız sızıntının aynısı
 olurdu. `buildField` her kuruluşta öncekileri `dispose()` ediyor.
+
+## Resim tahtaları
+
+Play'de bu türün önde gidenlerinin tahtası **tanınabilir bir şey**: mısır
+koçanı, oyuncak ayı, Eyfel Kulesi, su parkı, ananas. Bizimki yirmi dört
+düzendi ve hepsi bir fonksiyon — `blob`, `sin`, kutupsal açı. Fonksiyon soyut
+şekil veriyor, soyut şekiller de birbirine benziyor. Oyuncunun gördüğü şey
+"hep aynı tahta, rengi değişmiş" ve bu doğru bir gözlem.
+
+Eksik olan düzen sayısı değil, **çözünürlük**. Izgara on üç sütun; on üç
+sütunla ayı çizilemez. Yoğunluğun önündeki duvar çizim çağrısıydı, ve o duvar
+yığınlarla kalktı (yukarı bak). Şimdi çizilebilir.
+
+Bir resim, kodda harf harf bir harita:
+
+```
+'......RRRRRRRRRR......',
+'....RRRRRRRRRRRRRR....',
+'..RRRRRAARRRRRRRRRRR..',
+```
+
+`R` çilek, `A` elma, `B` muz, `M` karpuz, `.` boş. Oyun haritayı
+`PICTURE_SCALE` kadar büyütüyor: elle 22×30 çizmek yetiyor, tahtaya 44×60
+olarak iniyor ve ekranda 1500-1850 parçalık bir şey oluyor. Elle 44×60 çizmek
+de mümkündü ama üç resimde insanın sabrı bitiyor, ve büyütme görüntüyü
+bozmuyor — rakiplerin tahtası da parçaları blok blok diziyor.
+
+Bölümler: 3, 13, 23… Şu an üç resim var (Mushroom, Balloon, Ice Cream) ve
+liste büyüdükçe döngü uzuyor.
+
+### Palet dört renk
+
+Oyunun dört meyvesi var: kırmızı, krem, sarı, karpuz. Siyah yok, yeşil yok.
+Resimler buna göre seçiliyor ve bu bir kısıt değil bir eleme: ilk denemede bir
+uğur böceği çizildi, siyahsız uğur böceği olmadığı için tahtada çiçek gibi
+durdu. Yerine sıcak hava balonu geldi — kırmızı, beyaz ve sarı şeritli, yani
+paletin tam da olduğu şey.
+
+Haritalar elle sayılmıyor: dairenin ve elipsin denklemi bir betikte yazılıp
+harfler oradan üretildi, sonra sonuç dosyaya **düz metin olarak** kondu. Böyle
+hem satır uzunlukları tutuyor hem de resim kodda gözle görünüyor.
+
+### Parça meyve değil, boncuk
+
+İlk ölçüm: sıradan meyve geometrisiyle 1848 parçalık bir tahta **1.7 milyon
+üçgen** çiziyordu — parça başına 920 üçgen, ekranda birkaç piksel kaplayan bir
+şey için. Çizim çağrısı ona inmişti ama sorun yer değiştirmişti.
+
+Bu boyutta parçanın dokusu zaten görünmüyor; görünen tek şey rengi. Sekiz
+dilimli bir boncuk 84 üçgen:
+
+```
+1848 parça · 9 çizim çağrısı · 148.906 üçgen
+```
+
+### Resim ekrana sığmak zorunda
+
+Kamera tahtanın tamamını değil, sabit bir genişliği gösteriyor (`VIEW_HALF_X`,
+5.4 birim), oysa tahta 13.65 birim geniş. Resim tahtaya göre ölçeklenince
+kenarları ekranın dışında kalıyordu — dondurmanın külahı ekranı taşıyordu ve
+tahta resim olmaktan çıkıyordu.
+
+Artık tersi: adım görünen genişlikten hesaplanıyor ve **tahta resme
+uyduruluyor**. `fieldHalfX` ve `fieldHalfZ` resmin ölçüsünden çıkıyor, kenarda
+yarım birimlik toprak kalıyor. `scratchpad/holepicture.mjs` bunu tahtaya inen
+parçaların gerçek sınırlarından ölçüyor, tasarlanan sayıdan değil.

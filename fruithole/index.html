@@ -2530,9 +2530,14 @@ function refreshLevelTag() {
   // yazılıyordu; artık yalnızca bölüm değişince yazılıyor.
   const ord = missionKind
     ? `${MISSION_ICON[missionKind]} ${plural(missionNoun()).toUpperCase()} · ` : '';
+  // Resim bölümünde düzenin adı yanlış: tahtayı desen kurmuyor, harita
+  // kuruyor. Mantar tahtasının üstünde "Orbits" yazıyordu — oyuna baktığında
+  // gördüğün şeyin adı olmayan bir ad, yani bilgi değil gürültü.
+  const resim = !dailyRun && isPictureLevel(level) ? pictureFor(level) : null;
   patternTagEl.textContent = loop + ord +
     (isBossLevel(level) ? 'BOSS · ' : '') +
-    (p ? `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}` : '') + best;
+    (resim ? `${th ? th.icon + ' ' : ''}🎨 ${resim.name}`
+           : p ? `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}` : '') + best;
 }
 
 // ---------------------------------------------------------------------
@@ -2986,9 +2991,13 @@ function renderLevels() {
     // Sipariş bölümü listede de işaretli: oyuncu neyin geldiğini görüyor, ve
     // on bölümde bir gelen bir şeyin beklenmesi bir sebep.
     const ord = missionKindFor(n);
+    // Resim bölümü de işaretli: on bölümde bir gelen ve tahtası tamamen başka
+    // olan bir şeyin beklenmesi bir sebep. Görevle çakışmıyor — biri 3'te,
+    // öteki 5 ve 8'de.
+    const pic = isPictureLevel(n);
     const b = document.createElement('button');
     b.className = 'lvBtn' + (n === level ? ' now' : locked ? ' locked' : '') + (boss ? ' boss' : '');
-    b.innerHTML = `<span class="n">${boss ? '👑' : ord ? MISSION_ICON[ord] : ''}${n}</span>` +
+    b.innerHTML = `<span class="n">${boss ? '👑' : ord ? MISSION_ICON[ord] : pic ? '🎨' : ''}${n}</span>` +
       `<span class="s">${locked
         ? (ICONS.lock ? `<span class="icoImg" style="background-image:url(${ICONS.lock});width:17px;height:17px;margin:0 auto"></span>` : '🔒')
         : '★'.repeat(got) + '☆'.repeat(3 - got)}</span>`;
@@ -8347,6 +8356,263 @@ function materialiseFruit() {
   }
 }
 
+// ---------------------------------------------------------------------
+// Resim tahtaları
+//
+// Play'de bu türün önde gidenlerinin tahtası **tanınabilir bir şey**: mısır
+// koçanı, oyuncak ayı, Eyfel Kulesi, ananas. Bizimki yirmi dört düzenden
+// ibaretti ve hepsi bir fonksiyon — `blob`, `sin`, kutupsal açı. Fonksiyon
+// soyut şekil veriyor, ve soyut şekiller birbirine benziyor: oyuncunun
+// gördüğü şey "hep aynı tahta, rengi değişmiş".
+//
+// Sebep düzen sayısı değil, **çözünürlük**. Izgara on üç sütun ve on üç
+// sütunla ayı çizilemez. Yoğunluğun önündeki duvar çizim çağrısıydı; yığınlar
+// onu kaldırdı (yukarı bak), yani artık çizilebilir.
+//
+// Bir resim, harf harf bir harita. Oyun onu `PICTURE_SCALE` kadar büyütüyor:
+// elle 22×32 çizmek yeterli, tahtaya 44×64 olarak iniyor ve ekranda iki bin
+// parçalık bir şey oluyor. Elle 44×64 çizmek de mümkündü ama dört resimde
+// insanın sabrı bitiyor, ve büyütme görüntüyü bozmuyor — rakiplerin tahtası
+// da parçaları blok blok diziyor.
+//
+// Palet dört meyveyle sınırlı: kırmızı, krem, sarı, karpuz. Resimler buna
+// göre seçildi — mantar (kırmızı şapka, beyaz benek), uğur böceği, dondurma.
+// Yeşil yok, o yüzden yaprak yok.
+// ---------------------------------------------------------------------
+// Kameranın gösterdiği yarı genişlik. Eskiden `fitCamera`nın içinde bir yerel
+// değişkendi; resim tahtası onu okumak zorunda, çünkü resim **görünen** alana
+// sığmalı. Tahtanın tamamına yayıldığında kenarları ekran dışında kalıyordu:
+// dondurmanın külahı ekranı taşıyordu ve resim resim gibi durmuyordu.
+const VIEW_HALF_X = 5.4;
+const PICTURE_SCALE = 2;
+const PIC_CHAR = { R: 'berry', A: 'lychee', B: 'banana', M: 'melon' };
+
+// Resim tahtasının parçası, meyvenin kendisi değil.
+//
+// Ölçüldü: sıradan meyve geometrisiyle 1848 parçalık bir tahta **1.7 milyon
+// üçgen** çiziyor — parça başına 920 üçgen, ekranda birkaç piksel kaplayan bir
+// şey için. Çizim çağrısı on bire inmişti ama üçgen sayısı yedi katına
+// çıkmıştı, yani sorun yer değiştirmişti.
+//
+// Bu boyutta parçanın dokusu zaten görünmüyor; görünen tek şey rengi. Sekiz
+// dilimli bir boncuk 84 üçgen ve resmin okunmasına hiçbir şey kaybettirmiyor —
+// rakiplerin tahtası da boncuk boncuk.
+const PIC_GEO = new THREE.SphereGeometry(1, 8, 6);
+const PIC_MAT = Object.fromEntries(TYPES.map(t =>
+  [t.id, new THREE.MeshStandardMaterial({ color: t.uiBase || t.base, roughness: 0.4 })]));
+
+const PICTURES = [
+  { name: 'Mushroom', art: [
+    '......RRRRRRRRRR......',
+    '....RRRRRRRRRRRRRR....',
+    '...RRRRRRRRRRRRRRRR...',
+    '..RRRRRAARRRRRRRRRRR..',
+    '..RRRRAAAARRRRAARRRR..',
+    '.RRRRRAAAARRRAAAARRRR.',
+    '.RRRRRRAARRRRAAAARRRR.',
+    'RRRRRRRRRRRRRRAARRRRRR',
+    'RRRRRRRRRRRRRRRRRRRRRR',
+    'RRRRRAARRRRRRRRRRAARRR',
+    'RRRRAAAARRRRRRRRAAAARR',
+    'RRRRAAAARRRRRRRRAAAARR',
+    'RRRRRAARRRRRRRRRRAARRR',
+    'RRRRRRRRRRRRRRRRRRRRRR',
+    '.RRRRRRRRRAARRRRRRRRR.',
+    '.RRRRRRRRAAAARRRRRRRR.',
+    '..RRRRRRRAAAARRRRRRR..',
+    '...RRRRRRRAARRRRRRR...',
+    '....RRRRRRRRRRRRRR....',
+    '......AAAAAAAAAA......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '......AAAAAAAAAA......',
+    '......AAAAAAAAAA......',
+    '.....AAAAAAAAAAAA.....',
+    '....AAAAAAAAAAAAAA....',
+  ] },
+  { name: 'Balloon', art: [
+    '.......ABBBRRRA.......',
+    '.....AAABBBRRRAAA.....',
+    '....RAAABBBRRRAAAB....',
+    '...RRAAABBBRRRAAABB...',
+    '..RRRAAABBBRRRAAABBB..',
+    '..RRRAAABBBRRRAAABBB..',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '.BRRRAAABBBRRRAAABBBR.',
+    'BBRRRAAABBBRRRAAABBBRR',
+    'BBRRRAAABBBRRRAAABBBRR',
+    'BBRRRAAABBBRRRAAABBBRR',
+    'BBRRRAAABBBRRRAAABBBRR',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '..RRRAAABBBRRRAAABBB..',
+    '..RRRAAABBBRRRAAABBB..',
+    '...RRAAABBBRRRAAABB...',
+    '....RAAABBBRRRAAAB....',
+    '.....AAABBBRRRAAA.....',
+    '.......ABBBRRRA.......',
+    '.......A......A.......',
+    '.......A......A.......',
+    '.......A......A.......',
+    '........BBBBBB........',
+    '........BBBBBB........',
+    '........BBBBBB........',
+    '........BBBBBB........',
+  ] },
+  { name: 'Ice Cream', art: [
+    '..........RR..........',
+    '......RRRRRRRRRR......',
+    '.....RRRRRRRRRRRR.....',
+    '....RRRRRRRRRRRRRR....',
+    '....RRRRRRRRRRRRRR....',
+    '....RRRRRRRRRRRRRR....',
+    '....RRRRRAAAARRRRR....',
+    '.....AAAAAAAAAAAA.....',
+    '...AAAAAAAAAAAAAAAA...',
+    '..AAAAAAAAAAAAAAAAAA..',
+    '..AAAAAAAAAAAAAAAAAA..',
+    '...AABBBBBBBBBBBBAA...',
+    '...BBBBBBBBBBBBBBBB...',
+    '..BBBBBBBBBBBBBBBBBB..',
+    '..BBBBBBBBBBBBBBBBBB..',
+    '...BBBBBBBBBBBBBBBB...',
+    '..AABAAABAAABAAABAAA..',
+    '...BAAABAAABAAABAAA...',
+    '...AAABAAABAAABAAAB...',
+    '....ABAAABAAABAAAB....',
+    '.....AAABAAABAAAB.....',
+    '.....AABAAABAAABA.....',
+    '......BAAABAAABA......',
+    '.......AABAAABA.......',
+    '.......ABAAABAA.......',
+    '........AAABAA........',
+    '.........ABAA.........',
+    '.........BAAA.........',
+    '..........AA..........',
+    '..........AB..........',
+  ] },
+  { name: 'Strawberry', art: [
+    '.........MMMM.........',
+    '......M.M.MM.M.M......',
+    '....MMMMMMMMMMMMMM....',
+    '......MMMMMMMMMM......',
+    '.RRRRRRRRRRRRRRRRRRRR.',
+    '.RRRRRRRRRRRRRRRRRRRR.',
+    '.RARRRRRRRRRRARRRRRRR.',
+    '.RRRRRARRRRRRRRRRARRR.',
+    '.RRRRRRRRRARRRRRRRRRR.',
+    '.RRARRRRRRRRRRARRRRRR.',
+    '.RRRRRRARRRRRRRRRRARR.',
+    '.RRRRRRRRRRARRRRRRRRR.',
+    '.RRRARRRRRRRRRRARRRRR.',
+    '..RRRRRRARRRRRRRRRRA..',
+    '..RRRRRRRRRRARRRRRRR..',
+    '..RRRARRRRRRRRRRARRR..',
+    '..RRRRRRRARRRRRRRRRR..',
+    '..ARRRRRRRRRRARRRRRR..',
+    '...RRRARRRRRRRRRRAR...',
+    '...RRRRRRRARRRRRRRR...',
+    '...ARRRRRRRRRRARRRR...',
+    '....RRRARRRRRRRRRR....',
+    '....RRRRRRRARRRRRR....',
+    '.....RRRRRRRRRRAR.....',
+    '.....RRRARRRRRRRR.....',
+    '......RRRRRRARRR......',
+    '......RRRRRRRRRR......',
+    '.......RRARRRRR.......',
+    '........RRRRRR........',
+    '..........RR..........',
+  ] },
+  { name: 'Watermelon', art: [
+    '......................',
+    'MMRRRRRRRRRRRRRRRRRRMM',
+    'MMRRRRRRRRRRRRRRRRRRMM',
+    'MMRRRRRRRRRRRRRRRRRRMM',
+    'MMRRRRARRRRRRRRRRRRRMM',
+    '.MRRRRRRRRRRRRRRRARRM.',
+    '.MRRRRRRRARRRRRRRRRRM.',
+    '.MRRRRRRRRRRRRRRRRRRM.',
+    '.MRRRRRRRRRRARRRRRRRM.',
+    '.MRRARRRRRRRRRRRRRRRM.',
+    '.MMRRRRRRRRRRRRARRRMM.',
+    '.MMRRRRARRRRRRRRRRRMM.',
+    '..MRRRRRRRRRRRRRRRAM..',
+    '..MRRRRRRRARRRRRRRRM..',
+    '..MMRRRRRRRRRRRRRRMM..',
+    '..MMRRRRRRRRRARRRRMM..',
+    '...MRARRRRRRRRRRRRM...',
+    '...MMRRRRRRRRRRRAMM...',
+    '....MRRRARRRRRRRRM....',
+    '....MMRRRRRRRRRRMM....',
+    '.....MMRRRRARRRMM.....',
+    '.....MMMRRRRRRMMM.....',
+    '......MMMMRRMMMM......',
+    '.......MMMMMMMM.......',
+    '........MMMMMM........',
+    '......................',
+  ] },
+];
+
+function isPictureLevel(n) { return n >= 3 && n % 10 === 3; }
+function pictureFor(n) {
+  return PICTURES[Math.floor((n - 3) / 10) % PICTURES.length];
+}
+
+// Resmin kaç sıralık bir tahta istediği.
+//
+// Tahtanın genişliği sabit (on üç hücre), yani adım resmin genişliğinden
+// çıkıyor; derinlik de resmin yüksekliğinden. Tahta resme uyduruluyor,
+// resim tahtaya değil — tersi olsaydı kare bir resim uzun bir tahtanın
+// üstünde yarım kalırdı ve geri kalanı boş toprak olurdu.
+function pictureAdim(pic) {
+  return (VIEW_HALF_X * 2 * 0.94) / (pic.art[0].length * PICTURE_SCALE);
+}
+function pictureRows(pic) {
+  const h = pic.art.length * PICTURE_SCALE;
+  return Math.max(12, Math.round((h * pictureAdim(pic) + 1.2) / CELL));
+}
+
+function rowsForLevel(n) {
+  if (!dailyRun && isPictureLevel(n)) return pictureRows(pictureFor(n));
+  return Math.min(22 + Math.floor((n - 1) / 2) * 2, 34);
+}
+
+function buildPicture(pic) {
+  const w = pic.art[0].length * PICTURE_SCALE;
+  const h = pic.art.length * PICTURE_SCALE;
+  // Tek bir adım, iki eksende de: ayrı adımlar resmi eziyor.
+  const adim = pictureAdim(pic);
+  // Tahta resme uyduruluyor. Kenarda yarım birimlik toprak kalıyor, o kadar —
+  // yoksa kamera kısıtı resmin bir ucunu ekranın dışında bırakıyor ve tahta
+  // "resim" olmaktan çıkıyor.
+  fieldHalfX = (w * adim) / 2 + 0.6;
+  fieldHalfZ = (h * adim) / 2 + 0.6;
+  fitGround();
+  const x0 = -(w - 1) * adim * 0.5;
+  const z0 = -(h - 1) * adim * 0.5;
+  const yaricap = adim * 0.46;
+  for (let sz = 0; sz < h; sz++) {
+    const satir = pic.art[Math.floor(sz / PICTURE_SCALE)];
+    for (let sx = 0; sx < w; sx++) {
+      const ch = satir[Math.floor(sx / PICTURE_SCALE)];
+      const type = PIC_CHAR[ch];
+      if (!type) continue;
+      const x = x0 + sx * adim, z = z0 + sz * adim;
+      const vis = { geo: PIC_GEO, mat: PIC_MAT[type],
+                    sx: yaricap, sy: yaricap, baseY: yaricap };
+      fruits.push({ mesh: null, vis, jit: 1, rotY: 0,
+                    x, z, r: yaricap, type, big: false, prop: null,
+                    eaten: false, baseY: vis.baseY, nudge: 0 });
+    }
+  }
+}
+
 function buildField() {
   // Önceki bölümün yığınları. `fieldGroup.clear()` onları sahneden çıkarıyor
   // ama GPU'daki matris tamponunu bırakmıyor — 3000 parçalık bir yığın 192 KB
@@ -8385,7 +8651,11 @@ function buildField() {
   const bak = currentPattern.polar
     ? (a, b) => (twist ? twist.polar(a, b) : [a, b])
     : (a, b) => (twist ? twist.grid(a, b) : [a, b]);
-  for (const cell of currentPattern.polar ? polarCells() : gridCells()) {
+  // Resim bölümünde ızgara hiç çalışmıyor: tahtanın şeklini desen değil
+  // harita söylüyor.
+  const resim = !dailyRun && isPictureLevel(level) ? pictureFor(level) : null;
+  if (resim) buildPicture(resim);
+  for (const cell of resim ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
       const { x, z } = cell;
       const [a, b] = bak(cell.a, cell.b);
       if (currentPattern.empty && currentPattern.empty(a, b)) continue;
@@ -8516,6 +8786,12 @@ function buildField() {
   const bulmaca = !dailyRun && isPuzzleLevel(level);
   if (bulmaca) {
     buildPuzzle();
+  } else if (resim) {
+    // Resim tahtasında rastgele kaya, dev, bomba ve kolos yok: hepsi resmin
+    // üstüne konmuş, resimden olmayan şeyler. Tahtanın tamamı bir çizim ve
+    // ortasındaki kaya onu bozuyor.
+    puzzleRooms = [];
+    rocks = [];
   } else {
     puzzleRooms = [];
     placeRocks();
@@ -8529,7 +8805,7 @@ function buildField() {
   // and without the colossus so the two can be compared with nothing else
   // moving. Null in normal play.
   const wantBoss = forceBoss == null ? (!dailyRun && isBossLevel(level)) : forceBoss;
-  if (wantBoss && !bulmaca) placeColossus();
+  if (wantBoss && !bulmaca && !resim) placeColossus();
 
   // Kolosun ezdiği parçaları listeden düşür.
   //
@@ -9806,7 +10082,7 @@ let camLook = null;
 // tall screen. Height then follows from the aspect ratio.
 function fitCamera() {
   const aspect = innerWidth / innerHeight;
-  const halfH = 5.4;   // fixed view width; the field runs past it and the camera travels
+  const halfH = VIEW_HALF_X;
   const halfV = halfH / aspect;
   camera.left = -halfH; camera.right = halfH;
   camera.top = halfV; camera.bottom = -halfV;
@@ -10058,7 +10334,29 @@ function pickOrderType() {
   return sec;
 }
 
+// Resim tahtasının saati.
+//
+// `sweepSeconds()` alanı ölçüyor: tarlanın kaç birim kare olduğunu ve deliğin
+// genişledikçe hızlanan süpürme şeridini. Resim tahtasında o model yanlış
+// cevap veriyor — tahta daha **küçük** (resme göre kırpılıyor) ama parça sayısı
+// beş kat, ve delik her parçanın üstünden gerçekten geçmek zorunda.
+//
+// Ölçüldü (`scratchpad/holepicture.mjs`, en yakın parçayı kovalayan bot —
+// yeni oyuncu aşağı yukarı böyle oynuyor):
+//
+//   bölüm  3  1848 parça   bot 99s   verilen saat 70s   KAYBEDİYOR
+//   bölüm 13  1704 parça   bot 82s   verilen saat 57s   KAYBEDİYOR
+//   bölüm 23  1496 parça   bot 69s   verilen saat 57s   KAYBEDİYOR
+//
+// Yani model 3.2-3.7 kat eksik veriyordu. 5.0 katsayısı botun turunun üstüne
+// yaklaşık üçte bir pay bırakıyor — oyunun geri kalanında hedeflenen aralık da
+// bu ("temiz bir koşuda saatin üçte biri harcanmadan kalır").
+const PICTURE_SLACK = 5.0;
+
 function levelTime() {
+  if (!dailyRun && isPictureLevel(level)) {
+    return Math.round(sweepSeconds() * PICTURE_SLACK * ease()) + upg('time') * 5;
+  }
   // Bulmacada saat yok. Sayı yine de bir sayı olmak zorunda — `timeFull` ve
   // bitiş ekranı okuyor — ama geri saymıyor: ana döngü bulmacada saate hiç
   // dokunmuyor ve üst satır '∞' yazıyor. Düşünecek adam acele ettirilmez.
@@ -10364,7 +10662,7 @@ function startLevel() {
   // Deneme sayacı bölüme bağlı: aynı bulmacayı yeniden denemek yıldız
   // düşürüyor, başka bir bölüme geçmek sayacı sıfırlıyor.
   if (puzzleTriesLv !== level) { puzzleTries = 0; puzzleTriesLv = level; }
-  rows = Math.min(22 + Math.floor((level - 1) / 2) * 2, 34);
+  rows = rowsForLevel(level);
   buildField();
   startRun();
 }
@@ -11990,6 +12288,50 @@ window.fruitHoleShapeSig = (patternName, twistId) => {
            sig: (h >>> 0).toString(16) };
 };
 
+// Resim haritalarının kendisi: harfleri tanınıyor mu, satırları eşit mi,
+// tahtanın ne kadarını dolduruyor. Elle çizilen bir şeyin tek kontrolü bu —
+// bir satırı bir karakter eksik yazmak, resmi sessizce kaydırıyor.
+window.fruitHolePictures = () => ({
+  levels: PICTURES.map((_, i) => 3 + i * 10),
+  scale: PICTURE_SCALE,
+  list: PICTURES.map(p => {
+    const w = p.art[0].length;
+    let bilinmeyen = 0, dolu = 0;
+    for (const satir of p.art) {
+      for (const ch of satir) {
+        if (ch === '.') continue;
+        if (PIC_CHAR[ch]) dolu++; else bilinmeyen++;
+      }
+    }
+    return { name: p.name, w, h: p.art.length, dolu, bilinmeyen,
+             esitSatir: p.art.every(r => r.length === w) };
+  }),
+});
+// Tahtaya inen resmin gerçekte kapladığı yer. Kameranın gösterdiği yarı
+// genişlikle karşılaştırılmak için: resim ondan genişse kenarları ekranın
+// dışında kalıyor.
+window.fruitHolePictureBounds = () => {
+  let minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9;
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    minX = Math.min(minX, f.x); maxX = Math.max(maxX, f.x);
+    minZ = Math.min(minZ, f.z); maxZ = Math.max(maxZ, f.z);
+  }
+  return {
+    genisYari: +((maxX - minX) / 2).toFixed(3),
+    derinYari: +((maxZ - minZ) / 2).toFixed(3),
+    viewHalfX: VIEW_HALF_X,
+  };
+};
+// Saati elle koy. Bir tahtanın **gerçekte** kaç saniye istediğini ölçmenin
+// tek yolu: bol saatle süpürtüp süre tutmak. Ondan sonra saat ayarlanıyor,
+// önce değil.
+window.fruitHoleGiveTime = (s) => {
+  timeLeft = s;
+  timeFull = Math.max(timeFull, s);
+  updateTimeUI();
+  return timeLeft;
+};
 window.fruitHoleForceBoss = (v) => { forceBoss = v; };
 window.fruitHoleStartDaily = () => startDailyRun();
 window.fruitHoleStartLevel = () => startLevel();
@@ -12707,7 +13049,7 @@ window.fruitHoleTopDown = (n, aspect, tilt = 0) => {
 
 window.fruitHoleProbe = (n) => {
   level = n; sizeStage = n;
-  rows = Math.min(22 + Math.floor((n - 1) / 2) * 2, 34);
+  rows = rowsForLevel(n);
   buildField();
   landNow();
   resetHole();
