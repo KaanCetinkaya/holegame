@@ -3716,3 +3716,35 @@ kendi eliyle kapatması — yani zaten aynı şeyin daha kötüsü.
 parça**, yani ikisi de tahta kurulu değilken oldu. Geometri ve doku sayıları
 (31/15 ve 90/16) hiçbir şeyin birikmediğini söylüyor. Yani kaybın sebebi
 oyunun kendi yükü değil; dışarıdan geliyor.
+
+### Bulmaca ekranda görünmüyordu
+
+İlk telefon denemesinden önce iki şey daha düzeltildi. İkisi de "oyun doğru
+çalışıyor ama oyuncu göremiyor" türünden, ve ikisi de yalnızca ekran görüntüsü
+alınınca fark edildi.
+
+**Kapının sığıp sığmadığı ekranda hiçbir yerde yazmıyordu.** Oyuncunun gördüğü
+şey duvarlar ve farklı genişlikte açıklıklardı; "şu an buradan geçebiliyor
+muyum" sorusunu ancak kapıya gidip deneyerek öğrenebiliyordu — ve burada
+deneyerek öğrenmek bedava değil, çünkü öğrenmek için yenen her meyve deliği
+biraz daha büyütüyor. Yani oyuncuyu cezalandıran bir öğrenme yolu.
+
+Artık her kapının eşiğinde bir şerit var: yeşilse geçiyorsun, kırmızıysa o oda
+kapandı. Renk her karede yeniden hesaplanıyor, çünkü cevap delik büyüdükçe
+değişiyor — ve kapının kırmızıya döndüğü an, o odanın kaybedildiği an.
+
+**Tahtanın kendisi ekrana sığmıyordu.** Delik koridorda doğuyor, koridor
+tahtanın sağ ucunda, ve odalar ekranın solunda kalıyordu: ilk karede görünen
+tek şey boş kum ve bir kaya duvarıydı. Yani oyuncudan, soruyu görmeden cevap
+vermesi isteniyordu.
+
+Bulmacada kamera geri çekiliyor (`fieldHalfX + 0.5`) ve yatayda tahtanın
+ortasına kilitleniyor. Derinlikte takip sürüyor, çünkü odalar z ekseninde
+dizili ve tahta ekrandan uzun. Sıradan bir bölümde kamera deliği takip etmeye
+devam ediyor — orada bakılacak şey deliğin önü, burada tahtanın tamamı.
+
+Koridor da 5.6'dan 4.6'ya indi: genişliği deliğin **tavandaki** hâline göre
+ölçülmüştü, oysa delik o boyuta ancak her şeyi yedikten sonra, son odanın
+içinde ulaşıyor. Ekranın üçte biri boş kuma gidiyordu. Oda başına en az meyve
+de 30'dan 55'e çıktı — üç odalı bir tahta 111 meyveyle çıkıyordu ve odalar
+odadan çok koridor gibi duruyordu.
