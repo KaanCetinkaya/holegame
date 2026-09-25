@@ -2440,6 +2440,11 @@ function buildMenuDiorama() {
   // pixels. One level in nineteen is voxel — the menu showing them is the
   // game introducing itself as something it mostly is not.
   setVoxelField(false);
+  // Yığınlar da bırakılıyor. `clear()` onları sahneden çıkarıyor ama GPU'daki
+  // matris tamponunu bırakmıyor; bir sonraki `buildField` zaten bırakacaktı,
+  // ama menüde oturup oyuna hiç dönmeyen bir oyuncuda o an hiç gelmiyor.
+  for (const m of fruitInst) m.dispose();
+  fruitInst.length = 0;
   fieldGroup.clear();
   fieldGroup.rotation.y = 0;
   fruits = [];
@@ -4149,7 +4154,10 @@ function fruitVisual(type, radius, whole = false) {
       mat: vox ? VOX_MAT : WHOLE_MAT[type],
       sx: radius, sy: radius, baseY: radius * WHOLE_Y[type], upright: true,
     };
-    if (type === 'lychee') v.make = makeWholeApple;
+    // Saplı elma tek parça değil: gövde, sap ve yaprak. Yığına girebilmesi
+    // için şablonunun kimliği gerekiyor — aynı anahtarlı olanlar tek bir
+    // şablondan üretiliyor.
+    if (type === 'lychee') { v.make = makeWholeApple; v.key = 'apple' + (vox ? 'V' : ''); }
     return v;
   }
   const geo = vox ? VOX_GEO[type] : GEO[type];
@@ -6260,6 +6268,8 @@ function propVisual(id, radius) {
   const p = PROPS[id];
   return {
     make: () => p.g.clone(),
+    tmpl: p.g,
+    key: 'prop:' + id,
     sx: radius, sy: radius, baseY: 0, uniform: true,
     currency: p.currency, upright: !!p.upright,
   };
@@ -7237,6 +7247,12 @@ const spawnZ = () => fieldHalfZ * 0.55;
 const fieldGroup = new THREE.Group();
 scene.add(fieldGroup);
 let fruits = [];
+// Tahtanın yığınları. Bildirimi burada, `fruits`in yanında duruyor ve bunun
+// bir sebebi var: menü sahnesi de onları bırakıyor ve menü bu dosyada çok
+// daha yukarıda. Bir `const`u kullanıldığı yerin altında bırakmak bu dosyada
+// üç kez oyunu hiç açılmaz hâle getirdi (README, "Açılmayan oyun").
+const fruitInst = [];
+const _fm = new THREE.Matrix4(), _fq = new THREE.Quaternion(), _fs = new THREE.Vector3();
 let eatenCount = 0;
 let levelGoal = 0;   // fruit that must be eaten to finish the level
 // Siparişin durumu yukarıda, `isOrderLevel`in yanında duruyor: üst satırı
@@ -8170,8 +8186,6 @@ PATTERNS.sort((a, b) => LEVEL_ORDER.indexOf(a.name) - LEVEL_ORDER.indexOf(b.name
 //
 // Çok parçalı olanlar (bütün elma sapıyla, nesneler, devler, bombalar) hâlâ
 // gerçek nesne: sayıları az ve her biri bir `Group`.
-const fruitInst = [];
-const _fm = new THREE.Matrix4(), _fq = new THREE.Quaternion(), _fs = new THREE.Vector3();
 
 // Yığındaki bir parçanın `mesh` gibi davranan tutamağı.
 //
@@ -8180,7 +8194,7 @@ const _fm = new THREE.Matrix4(), _fq = new THREE.Quaternion(), _fs = new THREE.V
 // ve hepsi doğru şeyi okuyor. Yığına geçerken o kırk yeri tek tek matris
 // aritmetiğine çevirmek, kırk yeni hata yeri açmak demekti. Tutamak
 // değerleri tutuyor, `fruitFlush` onları matrise yazıyor.
-function instHandle(inst, idx, f) {
+function instHandle(parts, idx, f) {
   const v = f.vis;
   return {
     position: new THREE.Vector3(f.x, f.baseY, f.z),
@@ -8191,24 +8205,31 @@ function instHandle(inst, idx, f) {
     // Gölge yığının tamamına ait, tek parçaya değil. Tahtanın gölgesini
     // kapatan iki yardımcı (mağaza görseli ve klip) zaten hepsini birden
     // kapatıyor, yani istedikleri şey bu.
-    get castShadow() { return inst.castShadow; },
-    set castShadow(v2) { inst.castShadow = v2; },
+    get castShadow() { return parts[0].inst.castShadow; },
+    set castShadow(v2) { for (const p of parts) p.inst.castShadow = v2; },
     receiveShadow: true,
-    _inst: inst, _idx: idx,
+    _parts: parts, _idx: idx,
   };
 }
 
 // Tutamaktaki değerleri yığının matrisine yaz. Hareket eden her yerde
 // çağrılıyor: düşüş, sarsıntı, yutulma.
+const _fp = new THREE.Matrix4();
 function fruitFlush(f) {
   const h = f && f.mesh;
-  if (!h || !h._inst) return;
+  if (!h || !h._parts) return;
   if (h.visible === false) _fs.set(0, 0, 0);
   else _fs.copy(h.scale);
   _fq.setFromEuler(h.rotation);
   _fm.compose(h.position, _fq, _fs);
-  h._inst.setMatrixAt(h._idx, _fm);
-  h._inst.instanceMatrix.needsUpdate = true;
+  for (const p of h._parts) {
+    // Çok parçalı olanlarda (nesneler, saplı elma) her alt parçanın kendi
+    // yerel dönüşümü var ve kendi yığınında duruyor: kopyanın matrisi
+    // parçanınkiyle çarpılıyor. Tek parçalılarda o çarpan birim.
+    if (p.local) { _fp.multiplyMatrices(_fm, p.local); p.inst.setMatrixAt(h._idx, _fp); }
+    else p.inst.setMatrixAt(h._idx, _fm);
+    p.inst.instanceMatrix.needsUpdate = true;
+  }
 }
 
 // Bir parçayı tahtadan al. Kaya, dev ve kolos üçü de bunu yapıyor ve üçü de
@@ -8220,28 +8241,95 @@ function unbuildFruit(f) {
   f.eaten = true;
 }
 
-function materialiseFruit() {
-  const gruplar = new Map();
-  for (const f of fruits) {
-    // Zaten nesnesi olan (bomba, dev, kolos) ya da çok parçalı olan atlanıyor.
-    if (f.mesh || !f.vis || f.vis.make) continue;
-    const k = f.vis.geo.uuid + '|' + f.vis.mat.uuid;
-    let g = gruplar.get(k);
-    if (!g) { g = { geo: f.vis.geo, mat: f.vis.mat, list: [] }; gruplar.set(k, g); }
-    g.list.push(f);
+// Bir yığın kur ve sahneye koy.
+function yeniYigin(geo, mat, n) {
+  const inst = new THREE.InstancedMesh(geo, mat, n);
+  inst.castShadow = true;
+  inst.receiveShadow = true;
+  inst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  // Kırpma kapalı: yığının sınır küresi kendiliğinden hesaplanmıyor ve
+  // hesaplanmadığında kırpma bütün yığını ekran dışı sanıp tahtanın yarısını
+  // yok edebiliyor. Tahta zaten kameranın önünde duran tek şey.
+  inst.frustumCulled = false;
+  fieldGroup.add(inst);
+  fruitInst.push(inst);
+  return inst;
+}
+
+// Kayalar da yığın.
+//
+// Bir kaya üç taştan oluşuyor (`ROCK_GEO` bir Group), yani elli yedi kayalık
+// bir bulmaca duvarı 171 nesne demekti — bulmaca tahtasının çizim çağrısının
+// neredeyse tamamı buydu. Kayalar hiç kıpırdamıyor, o yüzden tutamağa da
+// ihtiyaçları yok: matris bir kez yazılıyor.
+function materialiseRocks() {
+  if (!rocks.length) return;
+  ROCK_GEO.updateMatrixWorld(true);
+  const parcalar = [];
+  ROCK_GEO.traverse(o => { if (o.isMesh) parcalar.push(o); });
+  const m = new THREE.Matrix4(), dis = new THREE.Matrix4();
+  const v = new THREE.Vector3(), q = new THREE.Quaternion();
+  const e = new THREE.Euler(), sc = new THREE.Vector3();
+  for (const o of parcalar) {
+    const inst = yeniYigin(o.geometry, o.material, rocks.length);
+    rocks.forEach((r, i) => {
+      e.set(0, r.rotY || 0, 0);
+      q.setFromEuler(e);
+      v.set(r.x, 0, r.z);
+      sc.set(r.r, r.r, r.r);
+      dis.compose(v, q, sc);
+      m.multiplyMatrices(dis, o.matrixWorld);
+      inst.setMatrixAt(i, m);
+    });
+    inst.instanceMatrix.needsUpdate = true;
   }
-  for (const g of gruplar.values()) {
-    const inst = new THREE.InstancedMesh(g.geo, g.mat, g.list.length);
-    inst.castShadow = true;
-    inst.receiveShadow = true;
-    inst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    // Kırpma kapalı: yığının sınır küresi kendiliğinden hesaplanmıyor ve
-    // hesaplanmadığında kırpma bütün yığını ekran dışı sanıp tahtanın
-    // yarısını yok edebiliyor. Tahta zaten kameranın önünde duran tek şey.
-    inst.frustumCulled = false;
-    fieldGroup.add(inst);
-    fruitInst.push(inst);
-    g.list.forEach((f, i) => { f.mesh = instHandle(inst, i, f); fruitFlush(f); });
+}
+
+function materialiseFruit() {
+  materialiseRocks();
+  // Tek parçalılar: geometri + malzeme aynıysa aynı yığın.
+  const tek = new Map();
+  // Çok parçalılar: nesneler ve saplı elma. Şablonun her alt parçası kendi
+  // yığınını alıyor; kopyanın matrisi parçanın yerel matrisiyle çarpılıyor.
+  //
+  // Bunlar en son eklenmişti ve hepsi gerçek nesne olarak kalıyordu: 44.
+  // bölümde tahtada 356 tekil nesne vardı ve çizim çağrısının neredeyse
+  // tamamı onlardı. İri meyve de buraya giriyor — iri elma sapıyla birlikte
+  // üç parça ve tahtanın %28'i iri.
+  const cok = new Map();
+  for (const f of fruits) {
+    // Zaten nesnesi olan (bomba, dev, kolos) atlanıyor.
+    if (f.mesh || !f.vis) continue;
+    const v = f.vis;
+    if (v.make) {
+      if (!v.key) continue;                    // şablonu adlandırılmamış: gerçek nesne kalsın
+      let g = cok.get(v.key);
+      if (!g) { g = { vis: v, list: [] }; cok.set(v.key, g); }
+      g.list.push(f);
+    } else {
+      const k = v.geo.uuid + '|' + v.mat.uuid;
+      let g = tek.get(k);
+      if (!g) { g = { geo: v.geo, mat: v.mat, list: [] }; tek.set(k, g); }
+      g.list.push(f);
+    }
+  }
+  for (const g of tek.values()) {
+    const inst = yeniYigin(g.geo, g.mat, g.list.length);
+    g.list.forEach((f, i) => { f.mesh = instHandle([{ inst, local: null }], i, f); fruitFlush(f); });
+  }
+  for (const g of cok.values()) {
+    // Şablon bir kez kuruluyor. `tmpl` varsa (nesneler) şablon zaten elde;
+    // yoksa (saplı elma) bir tane üretiliyor ve sahneye hiç konmuyor.
+    const tmpl = g.vis.tmpl || g.vis.make();
+    tmpl.updateMatrixWorld(true);
+    const parcalar = [];
+    tmpl.traverse(o => { if (o.isMesh) parcalar.push(o); });
+    if (!parcalar.length) continue;
+    const parts = parcalar.map(o => ({
+      inst: yeniYigin(o.geometry, o.material, g.list.length),
+      local: o.matrixWorld.clone(),
+    }));
+    g.list.forEach((f, i) => { f.mesh = instHandle(parts, i, f); fruitFlush(f); });
   }
   // Geriye kalanlar gerçek nesne istiyor.
   for (const f of fruits) {
@@ -8608,15 +8696,8 @@ function placeRocks() {
       if (Math.hypot(f.x - x, f.z - z) > ROCK_R + NORMAL_R * 1.3) continue;
       unbuildFruit(f);
     }
-    const mesh = ROCK_GEO.clone();
     const jit = 0.9 + rnd() * 0.25;
-    mesh.scale.set(ROCK_R * jit, ROCK_R * jit, ROCK_R * jit);
-    mesh.position.set(x, 0, z);
-    mesh.rotation.y = rnd() * Math.PI * 2;
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    fieldGroup.add(mesh);
-    rocks.push({ x, z, r: ROCK_R * jit, mesh });
+    rocks.push({ x, z, r: ROCK_R * jit, rotY: rnd() * Math.PI * 2 });
   }
 }
 
@@ -8802,14 +8883,7 @@ function tembelGecer(g, limit, r0, perm) {
 }
 
 function puzzleRock(x, z) {
-  const mesh = ROCK_GEO.clone();
-  mesh.scale.set(ROCK_R, ROCK_R, ROCK_R);
-  mesh.position.set(x, 0, z);
-  mesh.rotation.y = rnd() * Math.PI * 2;
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  fieldGroup.add(mesh);
-  rocks.push({ x, z, r: ROCK_R, mesh });
+  rocks.push({ x, z, r: ROCK_R, rotY: rnd() * Math.PI * 2 });
 }
 
 function puzzleRockLine(x0, z0, x1, z1) {

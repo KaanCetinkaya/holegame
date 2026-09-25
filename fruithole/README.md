@@ -3458,10 +3458,31 @@ yani bir tahta sekiz-on yığın, **meyve sayısı ne olursa olsun**.
 
 ```
  blm | meyve | çizim | önce
-   1 |   334 |    87 |  806
-  24 |   521 |   322 | 1299
-  53 |   499 |   239 | 1031
+   1 |   292 |    65 |  806
+  18 |   116 |   119 |  282     (bulmaca: yarısı kaya)
+  24 |   579 |   130 | 1299
+  53 |   520 |   103 | 1031
 ```
+
+Geriye kalan elli kadar tekil nesne devler, kolos, bombalar ve tahtanın
+kendisi (zemin, su, delik) — sayıları bölümden bağımsız.
+
+### Çok parçalı olanlar da yığın
+
+İlk geçişte yalnızca tek geometrili meyveler yığına girdi ve sayı 322'de
+takıldı. Sebebi ölçüldü: 44. bölümde tahtada **356 tekil nesne** kalmıştı.
+Üçü de `Group`:
+
+* **Nesneler** (`propVisual`) — gövde, kol, tekerlek…
+* **Saplı elma** — gövde, sap, yaprak. Ve iri meyve bütün çiziliyor, tahtanın
+  %28'i iri, yani bu az bir şey değil.
+* **Kayalar** — bir kaya üç taş. Elli yedi kayalık bir bulmaca duvarı 171
+  nesne demekti; bulmaca tahtasının çizim çağrısının neredeyse tamamı buydu.
+
+Şablonun her alt parçası kendi yığınını alıyor ve kopyanın matrisi parçanın
+yerel matrisiyle çarpılıyor. Şablon bir kez kuruluyor, sahneye hiç konmuyor.
+
+Kayaların tutamağı yok: hiç kıpırdamıyorlar, matris bir kez yazılıyor.
 
 ### Tarla önce veri, sonra nesne
 
