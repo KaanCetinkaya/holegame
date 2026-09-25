@@ -3788,3 +3788,24 @@ bölüm 28 · 272      bölüm 56 · 272      bölüm 80 · 348
 Temalar ilerledikçe yeni nesneler tanıtılıyor, hepsi bir kez görülünce sayı
 sabitleniyor. Yani bu bir önbellek, ve 348 küçük geometri hiçbir şeyi
 zorlamıyor.
+
+### Ayak izi: sebep bellek değil
+
+Bağlam kaybının sebebi olarak bugüne kadar iki kez belleğe bakıldı — önce
+geometri sızıntısına, sonra en ağır tahtaların yüküne. İkisi de yanlıştı.
+Ölçüldü:
+
+```
+geometri   348 (80. bölümde sabitleniyor, hepsi küçük)
+doku       sahnede 12 · GPU'da 23 · toplam 3.9 MB
+           (7 × 256², 3 × 128², 1 × 64², 1 × 512²)
+```
+
+Dört megabayt doku ve üç yüz küçük geometri hiçbir cihazda bağlam düşürmez.
+Yani kaybın kaynağı oyunun kendi ayak izi değil — dışarıdan geliyor: WebView'in
+yüzeyinin geri alınması, uygulamanın arka plana düşmesi, ya da cihaza özgü bir
+davranış.
+
+Bu, o yöne bir daha bakılmaması için yazıldı. Bir sonraki adım tahmin değil,
+defterin bir sonraki kaydı: artık kuruluştan kaç ms geçtiğini, oyunun hangi
+hâlde olduğunu ve reklamın açık olup olmadığını da yazıyor.
