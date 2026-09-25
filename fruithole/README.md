@@ -3584,3 +3584,23 @@ Artık tersi: adım görünen genişlikten hesaplanıyor ve **tahta resme
 uyduruluyor**. `fieldHalfX` ve `fieldHalfZ` resmin ölçüsünden çıkıyor, kenarda
 yarım birimlik toprak kalıyor. `scratchpad/holepicture.mjs` bunu tahtaya inen
 parçaların gerçek sınırlarından ölçüyor, tasarlanan sayıdan değil.
+
+### Dördüncü kez: açılmayan oyun
+
+Resim bloğu ilk yazıldığında kullanıldığı yerin yanında, dosyanın ortasında
+duruyordu. Oyun **13. bölümde hiç açılmadı**:
+
+```
+ReferenceError: Cannot access 'PICTURES' before initialization
+```
+
+`refreshLevelTag` sayfa açılırken bir kez çalışıyor ve kayıtlı bölüm bir resim
+bölümüyse `PICTURES`i okuyor — o satır henüz çalışmamış oluyor. Kaydı 3, 13
+ya da 23'te olan her oyuncuda oyun beyaz ekranda kalırdı, ve bu kendi
+makinemde hiç görünmezdi çünkü ben hep menüden başlıyorum.
+
+Aynı tuzağa bu dosyada dördüncü kez düşüldü (öncekiler: tur etiketi, siparişin
+durumu, deliğin hızı). Blok artık `TYPE_BY_ID`nin hemen altında.
+
+`holeboot.mjs` bunu yakalayan test: kayıtlı bölümü elle kurup oyunu gerçek
+saatle açıyor ve yalnızca menüye varılıyorsa geçiyor.

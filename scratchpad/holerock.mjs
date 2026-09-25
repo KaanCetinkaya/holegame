@@ -58,8 +58,16 @@ for (const n of [1, 5, 8, 9, 13, 19, 24, 40]) {
 }
 
 const tavan = satir[0].agizTavani;
-const erken = satir.filter(r => r.n < 9);
-const gec = satir.filter(r => r.n >= 9);
+// Resim bölümleri bu sayımın dışında: tahtalarında bilerek kaya yok.
+//
+// Rastgele bir kaya resmin ortasına düşen, resimden olmayan bir şey — mantarın
+// şapkasında taş. Buradaki kurallar (her tahtada kaya var, kaya doğuş noktasını
+// kapatmıyor, iki kayanın arası ağızdan geniş) ızgara tahtası içindi ve resim
+// tahtasında hepsi sıfıra bakıyor, yani anlamsız düşüyorlardı.
+const resimler = new Set(
+  (await pg.evaluate(() => window.fruitHolePictures())).levels);
+const erken = satir.filter(r => r.n < 9 && !resimler.has(r.n));
+const gec = satir.filter(r => r.n >= 9 && !resimler.has(r.n));
 check(erken.every(r => r.sayi === 0), 'dokuzuncu bölümden önce kaya yok',
   `en çok ${Math.max(...erken.map(r => r.sayi))}`);
 check(gec.every(r => r.sayi > 0), '9. bölümden sonra her tahtada kaya var',

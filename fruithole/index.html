@@ -1201,6 +1201,242 @@ function dotFill(t) {
 }
 const TYPE_BY_ID = Object.fromEntries(TYPES.map(t => [t.id, t]));
 
+// Aşağıdaki resim bloğu bilerek **burada**, dosyanın başında.
+//
+// Sonradan, kullanıldığı yerin yanında duruyordu ve oyun 13. bölümde hiç
+// açılmıyordu: `refreshLevelTag` sayfa açılırken bir kez çalışıyor, o an
+// kayıtlı bölüm bir resim bölümüyse `PICTURES` okunuyor ve o satır henüz
+// çalışmamış oluyor — "Cannot access 'PICTURES' before initialization".
+// Bu dosyada aynı tuzağa dördüncü kez düşülüyor (README, "Açılmayan oyun").
+
+// ---------------------------------------------------------------------
+// Resim tahtaları
+//
+// Play'de bu türün önde gidenlerinin tahtası **tanınabilir bir şey**: mısır
+// koçanı, oyuncak ayı, Eyfel Kulesi, ananas. Bizimki yirmi dört düzenden
+// ibaretti ve hepsi bir fonksiyon — `blob`, `sin`, kutupsal açı. Fonksiyon
+// soyut şekil veriyor, ve soyut şekiller birbirine benziyor: oyuncunun
+// gördüğü şey "hep aynı tahta, rengi değişmiş".
+//
+// Sebep düzen sayısı değil, **çözünürlük**. Izgara on üç sütun ve on üç
+// sütunla ayı çizilemez. Yoğunluğun önündeki duvar çizim çağrısıydı; yığınlar
+// onu kaldırdı (yukarı bak), yani artık çizilebilir.
+//
+// Bir resim, harf harf bir harita. Oyun onu `PICTURE_SCALE` kadar büyütüyor:
+// elle 22×32 çizmek yeterli, tahtaya 44×64 olarak iniyor ve ekranda iki bin
+// parçalık bir şey oluyor. Elle 44×64 çizmek de mümkündü ama dört resimde
+// insanın sabrı bitiyor, ve büyütme görüntüyü bozmuyor — rakiplerin tahtası
+// da parçaları blok blok diziyor.
+//
+// Palet dört meyveyle sınırlı: kırmızı, krem, sarı, karpuz. Resimler buna
+// göre seçildi — mantar (kırmızı şapka, beyaz benek), uğur böceği, dondurma.
+// Yeşil yok, o yüzden yaprak yok.
+// ---------------------------------------------------------------------
+// Kameranın gösterdiği yarı genişlik. Eskiden `fitCamera`nın içinde bir yerel
+// değişkendi; resim tahtası onu okumak zorunda, çünkü resim **görünen** alana
+// sığmalı. Tahtanın tamamına yayıldığında kenarları ekran dışında kalıyordu:
+// dondurmanın külahı ekranı taşıyordu ve resim resim gibi durmuyordu.
+const VIEW_HALF_X = 5.4;
+const PICTURE_SCALE = 2;
+const PIC_CHAR = { R: 'berry', A: 'lychee', B: 'banana', M: 'melon' };
+
+// Resim tahtasının parçası, meyvenin kendisi değil.
+//
+// Ölçüldü: sıradan meyve geometrisiyle 1848 parçalık bir tahta **1.7 milyon
+// üçgen** çiziyor — parça başına 920 üçgen, ekranda birkaç piksel kaplayan bir
+// şey için. Çizim çağrısı on bire inmişti ama üçgen sayısı yedi katına
+// çıkmıştı, yani sorun yer değiştirmişti.
+//
+// Bu boyutta parçanın dokusu zaten görünmüyor; görünen tek şey rengi. Sekiz
+// dilimli bir boncuk 84 üçgen ve resmin okunmasına hiçbir şey kaybettirmiyor —
+// rakiplerin tahtası da boncuk boncuk.
+const PIC_GEO = new THREE.SphereGeometry(1, 8, 6);
+const PIC_MAT = Object.fromEntries(TYPES.map(t =>
+  [t.id, new THREE.MeshStandardMaterial({ color: t.uiBase || t.base, roughness: 0.4 })]));
+
+const PICTURES = [
+  { name: 'Mushroom', art: [
+    '......RRRRRRRRRR......',
+    '....RRRRRRRRRRRRRR....',
+    '...RRRRRRRRRRRRRRRR...',
+    '..RRRRRAARRRRRRRRRRR..',
+    '..RRRRAAAARRRRAARRRR..',
+    '.RRRRRAAAARRRAAAARRRR.',
+    '.RRRRRRAARRRRAAAARRRR.',
+    'RRRRRRRRRRRRRRAARRRRRR',
+    'RRRRRRRRRRRRRRRRRRRRRR',
+    'RRRRRAARRRRRRRRRRAARRR',
+    'RRRRAAAARRRRRRRRAAAARR',
+    'RRRRAAAARRRRRRRRAAAARR',
+    'RRRRRAARRRRRRRRRRAARRR',
+    'RRRRRRRRRRRRRRRRRRRRRR',
+    '.RRRRRRRRRAARRRRRRRRR.',
+    '.RRRRRRRRAAAARRRRRRRR.',
+    '..RRRRRRRAAAARRRRRRR..',
+    '...RRRRRRRAARRRRRRR...',
+    '....RRRRRRRRRRRRRR....',
+    '......AAAAAAAAAA......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '.......AAAAAAAA.......',
+    '......AAAAAAAAAA......',
+    '......AAAAAAAAAA......',
+    '.....AAAAAAAAAAAA.....',
+    '....AAAAAAAAAAAAAA....',
+  ] },
+  { name: 'Balloon', art: [
+    '.......ABBBRRRA.......',
+    '.....AAABBBRRRAAA.....',
+    '....RAAABBBRRRAAAB....',
+    '...RRAAABBBRRRAAABB...',
+    '..RRRAAABBBRRRAAABBB..',
+    '..RRRAAABBBRRRAAABBB..',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '.BRRRAAABBBRRRAAABBBR.',
+    'BBRRRAAABBBRRRAAABBBRR',
+    'BBRRRAAABBBRRRAAABBBRR',
+    'BBRRRAAABBBRRRAAABBBRR',
+    'BBRRRAAABBBRRRAAABBBRR',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '.BRRRAAABBBRRRAAABBBR.',
+    '..RRRAAABBBRRRAAABBB..',
+    '..RRRAAABBBRRRAAABBB..',
+    '...RRAAABBBRRRAAABB...',
+    '....RAAABBBRRRAAAB....',
+    '.....AAABBBRRRAAA.....',
+    '.......ABBBRRRA.......',
+    '.......A......A.......',
+    '.......A......A.......',
+    '.......A......A.......',
+    '........BBBBBB........',
+    '........BBBBBB........',
+    '........BBBBBB........',
+    '........BBBBBB........',
+  ] },
+  { name: 'Ice Cream', art: [
+    '..........RR..........',
+    '......RRRRRRRRRR......',
+    '.....RRRRRRRRRRRR.....',
+    '....RRRRRRRRRRRRRR....',
+    '....RRRRRRRRRRRRRR....',
+    '....RRRRRRRRRRRRRR....',
+    '....RRRRRAAAARRRRR....',
+    '.....AAAAAAAAAAAA.....',
+    '...AAAAAAAAAAAAAAAA...',
+    '..AAAAAAAAAAAAAAAAAA..',
+    '..AAAAAAAAAAAAAAAAAA..',
+    '...AABBBBBBBBBBBBAA...',
+    '...BBBBBBBBBBBBBBBB...',
+    '..BBBBBBBBBBBBBBBBBB..',
+    '..BBBBBBBBBBBBBBBBBB..',
+    '...BBBBBBBBBBBBBBBB...',
+    '..AABAAABAAABAAABAAA..',
+    '...BAAABAAABAAABAAA...',
+    '...AAABAAABAAABAAAB...',
+    '....ABAAABAAABAAAB....',
+    '.....AAABAAABAAAB.....',
+    '.....AABAAABAAABA.....',
+    '......BAAABAAABA......',
+    '.......AABAAABA.......',
+    '.......ABAAABAA.......',
+    '........AAABAA........',
+    '.........ABAA.........',
+    '.........BAAA.........',
+    '..........AA..........',
+    '..........AB..........',
+  ] },
+  { name: 'Strawberry', art: [
+    '.........MMMM.........',
+    '......M.M.MM.M.M......',
+    '....MMMMMMMMMMMMMM....',
+    '......MMMMMMMMMM......',
+    '.RRRRRRRRRRRRRRRRRRRR.',
+    '.RRRRRRRRRRRRRRRRRRRR.',
+    '.RARRRRRRRRRRARRRRRRR.',
+    '.RRRRRARRRRRRRRRRARRR.',
+    '.RRRRRRRRRARRRRRRRRRR.',
+    '.RRARRRRRRRRRRARRRRRR.',
+    '.RRRRRRARRRRRRRRRRARR.',
+    '.RRRRRRRRRRARRRRRRRRR.',
+    '.RRRARRRRRRRRRRARRRRR.',
+    '..RRRRRRARRRRRRRRRRA..',
+    '..RRRRRRRRRRARRRRRRR..',
+    '..RRRARRRRRRRRRRARRR..',
+    '..RRRRRRRARRRRRRRRRR..',
+    '..ARRRRRRRRRRARRRRRR..',
+    '...RRRARRRRRRRRRRAR...',
+    '...RRRRRRRARRRRRRRR...',
+    '...ARRRRRRRRRRARRRR...',
+    '....RRRARRRRRRRRRR....',
+    '....RRRRRRRARRRRRR....',
+    '.....RRRRRRRRRRAR.....',
+    '.....RRRARRRRRRRR.....',
+    '......RRRRRRARRR......',
+    '......RRRRRRRRRR......',
+    '.......RRARRRRR.......',
+    '........RRRRRR........',
+    '..........RR..........',
+  ] },
+  { name: 'Watermelon', art: [
+    '......................',
+    'MMRRRRRRRRRRRRRRRRRRMM',
+    'MMRRRRRRRRRRRRRRRRRRMM',
+    'MMRRRRRRRRRRRRRRRRRRMM',
+    'MMRRRRARRRRRRRRRRRRRMM',
+    '.MRRRRRRRRRRRRRRRARRM.',
+    '.MRRRRRRRARRRRRRRRRRM.',
+    '.MRRRRRRRRRRRRRRRRRRM.',
+    '.MRRRRRRRRRRARRRRRRRM.',
+    '.MRRARRRRRRRRRRRRRRRM.',
+    '.MMRRRRRRRRRRRRARRRMM.',
+    '.MMRRRRARRRRRRRRRRRMM.',
+    '..MRRRRRRRRRRRRRRRAM..',
+    '..MRRRRRRRARRRRRRRRM..',
+    '..MMRRRRRRRRRRRRRRMM..',
+    '..MMRRRRRRRRRARRRRMM..',
+    '...MRARRRRRRRRRRRRM...',
+    '...MMRRRRRRRRRRRAMM...',
+    '....MRRRARRRRRRRRM....',
+    '....MMRRRRRRRRRRMM....',
+    '.....MMRRRRARRRMM.....',
+    '.....MMMRRRRRRMMM.....',
+    '......MMMMRRMMMM......',
+    '.......MMMMMMMM.......',
+    '........MMMMMM........',
+    '......................',
+  ] },
+];
+
+function isPictureLevel(n) { return n >= 3 && n % 10 === 3; }
+function pictureFor(n) {
+  return PICTURES[Math.floor((n - 3) / 10) % PICTURES.length];
+}
+
+// Resmin kaç sıralık bir tahta istediği.
+//
+// Tahtanın genişliği sabit (on üç hücre), yani adım resmin genişliğinden
+// çıkıyor; derinlik de resmin yüksekliğinden. Tahta resme uyduruluyor,
+// resim tahtaya değil — tersi olsaydı kare bir resim uzun bir tahtanın
+// üstünde yarım kalırdı ve geri kalanı boş toprak olurdu.
+function pictureAdim(pic) {
+  return (VIEW_HALF_X * 2 * 0.94) / (pic.art[0].length * PICTURE_SCALE);
+}
+function pictureRows(pic) {
+  const h = pic.art.length * PICTURE_SCALE;
+  return Math.max(12, Math.round((h * pictureAdim(pic) + 1.2) / CELL));
+}
+
+function rowsForLevel(n) {
+  if (!dailyRun && isPictureLevel(n)) return pictureRows(pictureFor(n));
+  return Math.min(22 + Math.floor((n - 1) / 2) * 2, 34);
+}
+
+
 // The price on a shop button: the number, and the same coloured dot the
 // wallet uses for that fruit.
 //
@@ -8354,233 +8590,6 @@ function materialiseFruit() {
     fieldGroup.add(mesh);
     f.mesh = mesh;
   }
-}
-
-// ---------------------------------------------------------------------
-// Resim tahtaları
-//
-// Play'de bu türün önde gidenlerinin tahtası **tanınabilir bir şey**: mısır
-// koçanı, oyuncak ayı, Eyfel Kulesi, ananas. Bizimki yirmi dört düzenden
-// ibaretti ve hepsi bir fonksiyon — `blob`, `sin`, kutupsal açı. Fonksiyon
-// soyut şekil veriyor, ve soyut şekiller birbirine benziyor: oyuncunun
-// gördüğü şey "hep aynı tahta, rengi değişmiş".
-//
-// Sebep düzen sayısı değil, **çözünürlük**. Izgara on üç sütun ve on üç
-// sütunla ayı çizilemez. Yoğunluğun önündeki duvar çizim çağrısıydı; yığınlar
-// onu kaldırdı (yukarı bak), yani artık çizilebilir.
-//
-// Bir resim, harf harf bir harita. Oyun onu `PICTURE_SCALE` kadar büyütüyor:
-// elle 22×32 çizmek yeterli, tahtaya 44×64 olarak iniyor ve ekranda iki bin
-// parçalık bir şey oluyor. Elle 44×64 çizmek de mümkündü ama dört resimde
-// insanın sabrı bitiyor, ve büyütme görüntüyü bozmuyor — rakiplerin tahtası
-// da parçaları blok blok diziyor.
-//
-// Palet dört meyveyle sınırlı: kırmızı, krem, sarı, karpuz. Resimler buna
-// göre seçildi — mantar (kırmızı şapka, beyaz benek), uğur böceği, dondurma.
-// Yeşil yok, o yüzden yaprak yok.
-// ---------------------------------------------------------------------
-// Kameranın gösterdiği yarı genişlik. Eskiden `fitCamera`nın içinde bir yerel
-// değişkendi; resim tahtası onu okumak zorunda, çünkü resim **görünen** alana
-// sığmalı. Tahtanın tamamına yayıldığında kenarları ekran dışında kalıyordu:
-// dondurmanın külahı ekranı taşıyordu ve resim resim gibi durmuyordu.
-const VIEW_HALF_X = 5.4;
-const PICTURE_SCALE = 2;
-const PIC_CHAR = { R: 'berry', A: 'lychee', B: 'banana', M: 'melon' };
-
-// Resim tahtasının parçası, meyvenin kendisi değil.
-//
-// Ölçüldü: sıradan meyve geometrisiyle 1848 parçalık bir tahta **1.7 milyon
-// üçgen** çiziyor — parça başına 920 üçgen, ekranda birkaç piksel kaplayan bir
-// şey için. Çizim çağrısı on bire inmişti ama üçgen sayısı yedi katına
-// çıkmıştı, yani sorun yer değiştirmişti.
-//
-// Bu boyutta parçanın dokusu zaten görünmüyor; görünen tek şey rengi. Sekiz
-// dilimli bir boncuk 84 üçgen ve resmin okunmasına hiçbir şey kaybettirmiyor —
-// rakiplerin tahtası da boncuk boncuk.
-const PIC_GEO = new THREE.SphereGeometry(1, 8, 6);
-const PIC_MAT = Object.fromEntries(TYPES.map(t =>
-  [t.id, new THREE.MeshStandardMaterial({ color: t.uiBase || t.base, roughness: 0.4 })]));
-
-const PICTURES = [
-  { name: 'Mushroom', art: [
-    '......RRRRRRRRRR......',
-    '....RRRRRRRRRRRRRR....',
-    '...RRRRRRRRRRRRRRRR...',
-    '..RRRRRAARRRRRRRRRRR..',
-    '..RRRRAAAARRRRAARRRR..',
-    '.RRRRRAAAARRRAAAARRRR.',
-    '.RRRRRRAARRRRAAAARRRR.',
-    'RRRRRRRRRRRRRRAARRRRRR',
-    'RRRRRRRRRRRRRRRRRRRRRR',
-    'RRRRRAARRRRRRRRRRAARRR',
-    'RRRRAAAARRRRRRRRAAAARR',
-    'RRRRAAAARRRRRRRRAAAARR',
-    'RRRRRAARRRRRRRRRRAARRR',
-    'RRRRRRRRRRRRRRRRRRRRRR',
-    '.RRRRRRRRRAARRRRRRRRR.',
-    '.RRRRRRRRAAAARRRRRRRR.',
-    '..RRRRRRRAAAARRRRRRR..',
-    '...RRRRRRRAARRRRRRR...',
-    '....RRRRRRRRRRRRRR....',
-    '......AAAAAAAAAA......',
-    '.......AAAAAAAA.......',
-    '.......AAAAAAAA.......',
-    '.......AAAAAAAA.......',
-    '.......AAAAAAAA.......',
-    '.......AAAAAAAA.......',
-    '.......AAAAAAAA.......',
-    '......AAAAAAAAAA......',
-    '......AAAAAAAAAA......',
-    '.....AAAAAAAAAAAA.....',
-    '....AAAAAAAAAAAAAA....',
-  ] },
-  { name: 'Balloon', art: [
-    '.......ABBBRRRA.......',
-    '.....AAABBBRRRAAA.....',
-    '....RAAABBBRRRAAAB....',
-    '...RRAAABBBRRRAAABB...',
-    '..RRRAAABBBRRRAAABBB..',
-    '..RRRAAABBBRRRAAABBB..',
-    '.BRRRAAABBBRRRAAABBBR.',
-    '.BRRRAAABBBRRRAAABBBR.',
-    '.BRRRAAABBBRRRAAABBBR.',
-    'BBRRRAAABBBRRRAAABBBRR',
-    'BBRRRAAABBBRRRAAABBBRR',
-    'BBRRRAAABBBRRRAAABBBRR',
-    'BBRRRAAABBBRRRAAABBBRR',
-    '.BRRRAAABBBRRRAAABBBR.',
-    '.BRRRAAABBBRRRAAABBBR.',
-    '.BRRRAAABBBRRRAAABBBR.',
-    '..RRRAAABBBRRRAAABBB..',
-    '..RRRAAABBBRRRAAABBB..',
-    '...RRAAABBBRRRAAABB...',
-    '....RAAABBBRRRAAAB....',
-    '.....AAABBBRRRAAA.....',
-    '.......ABBBRRRA.......',
-    '.......A......A.......',
-    '.......A......A.......',
-    '.......A......A.......',
-    '........BBBBBB........',
-    '........BBBBBB........',
-    '........BBBBBB........',
-    '........BBBBBB........',
-  ] },
-  { name: 'Ice Cream', art: [
-    '..........RR..........',
-    '......RRRRRRRRRR......',
-    '.....RRRRRRRRRRRR.....',
-    '....RRRRRRRRRRRRRR....',
-    '....RRRRRRRRRRRRRR....',
-    '....RRRRRRRRRRRRRR....',
-    '....RRRRRAAAARRRRR....',
-    '.....AAAAAAAAAAAA.....',
-    '...AAAAAAAAAAAAAAAA...',
-    '..AAAAAAAAAAAAAAAAAA..',
-    '..AAAAAAAAAAAAAAAAAA..',
-    '...AABBBBBBBBBBBBAA...',
-    '...BBBBBBBBBBBBBBBB...',
-    '..BBBBBBBBBBBBBBBBBB..',
-    '..BBBBBBBBBBBBBBBBBB..',
-    '...BBBBBBBBBBBBBBBB...',
-    '..AABAAABAAABAAABAAA..',
-    '...BAAABAAABAAABAAA...',
-    '...AAABAAABAAABAAAB...',
-    '....ABAAABAAABAAAB....',
-    '.....AAABAAABAAAB.....',
-    '.....AABAAABAAABA.....',
-    '......BAAABAAABA......',
-    '.......AABAAABA.......',
-    '.......ABAAABAA.......',
-    '........AAABAA........',
-    '.........ABAA.........',
-    '.........BAAA.........',
-    '..........AA..........',
-    '..........AB..........',
-  ] },
-  { name: 'Strawberry', art: [
-    '.........MMMM.........',
-    '......M.M.MM.M.M......',
-    '....MMMMMMMMMMMMMM....',
-    '......MMMMMMMMMM......',
-    '.RRRRRRRRRRRRRRRRRRRR.',
-    '.RRRRRRRRRRRRRRRRRRRR.',
-    '.RARRRRRRRRRRARRRRRRR.',
-    '.RRRRRARRRRRRRRRRARRR.',
-    '.RRRRRRRRRARRRRRRRRRR.',
-    '.RRARRRRRRRRRRARRRRRR.',
-    '.RRRRRRARRRRRRRRRRARR.',
-    '.RRRRRRRRRRARRRRRRRRR.',
-    '.RRRARRRRRRRRRRARRRRR.',
-    '..RRRRRRARRRRRRRRRRA..',
-    '..RRRRRRRRRRARRRRRRR..',
-    '..RRRARRRRRRRRRRARRR..',
-    '..RRRRRRRARRRRRRRRRR..',
-    '..ARRRRRRRRRRARRRRRR..',
-    '...RRRARRRRRRRRRRAR...',
-    '...RRRRRRRARRRRRRRR...',
-    '...ARRRRRRRRRRARRRR...',
-    '....RRRARRRRRRRRRR....',
-    '....RRRRRRRARRRRRR....',
-    '.....RRRRRRRRRRAR.....',
-    '.....RRRARRRRRRRR.....',
-    '......RRRRRRARRR......',
-    '......RRRRRRRRRR......',
-    '.......RRARRRRR.......',
-    '........RRRRRR........',
-    '..........RR..........',
-  ] },
-  { name: 'Watermelon', art: [
-    '......................',
-    'MMRRRRRRRRRRRRRRRRRRMM',
-    'MMRRRRRRRRRRRRRRRRRRMM',
-    'MMRRRRRRRRRRRRRRRRRRMM',
-    'MMRRRRARRRRRRRRRRRRRMM',
-    '.MRRRRRRRRRRRRRRRARRM.',
-    '.MRRRRRRRARRRRRRRRRRM.',
-    '.MRRRRRRRRRRRRRRRRRRM.',
-    '.MRRRRRRRRRRARRRRRRRM.',
-    '.MRRARRRRRRRRRRRRRRRM.',
-    '.MMRRRRRRRRRRRRARRRMM.',
-    '.MMRRRRARRRRRRRRRRRMM.',
-    '..MRRRRRRRRRRRRRRRAM..',
-    '..MRRRRRRRARRRRRRRRM..',
-    '..MMRRRRRRRRRRRRRRMM..',
-    '..MMRRRRRRRRRARRRRMM..',
-    '...MRARRRRRRRRRRRRM...',
-    '...MMRRRRRRRRRRRAMM...',
-    '....MRRRARRRRRRRRM....',
-    '....MMRRRRRRRRRRMM....',
-    '.....MMRRRRARRRMM.....',
-    '.....MMMRRRRRRMMM.....',
-    '......MMMMRRMMMM......',
-    '.......MMMMMMMM.......',
-    '........MMMMMM........',
-    '......................',
-  ] },
-];
-
-function isPictureLevel(n) { return n >= 3 && n % 10 === 3; }
-function pictureFor(n) {
-  return PICTURES[Math.floor((n - 3) / 10) % PICTURES.length];
-}
-
-// Resmin kaç sıralık bir tahta istediği.
-//
-// Tahtanın genişliği sabit (on üç hücre), yani adım resmin genişliğinden
-// çıkıyor; derinlik de resmin yüksekliğinden. Tahta resme uyduruluyor,
-// resim tahtaya değil — tersi olsaydı kare bir resim uzun bir tahtanın
-// üstünde yarım kalırdı ve geri kalanı boş toprak olurdu.
-function pictureAdim(pic) {
-  return (VIEW_HALF_X * 2 * 0.94) / (pic.art[0].length * PICTURE_SCALE);
-}
-function pictureRows(pic) {
-  const h = pic.art.length * PICTURE_SCALE;
-  return Math.max(12, Math.round((h * pictureAdim(pic) + 1.2) / CELL));
-}
-
-function rowsForLevel(n) {
-  if (!dailyRun && isPictureLevel(n)) return pictureRows(pictureFor(n));
-  return Math.min(22 + Math.floor((n - 1) / 2) * 2, 34);
 }
 
 function buildPicture(pic) {
