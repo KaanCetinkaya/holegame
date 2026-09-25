@@ -3,6 +3,27 @@
 Play Console → **Kontrol paneli → Üretim → Üretime başvur**. Düğme, 12
 testçiyle kesintisiz 14 gün dolmadan aktifleşmiyor.
 
+## 12 Eylül'deki cevap: ret değil, sayaç
+
+Konsoldaki kırmızı kutu "üretim kanalına erişebilmeniz için oyununuzun daha
+fazla test edilmesi gerekiyor" diyor ve bu bir kalite reddi gibi okunuyor.
+Değil. Altındaki listede ilk iki madde üstü çizili:
+
+```
+✓ Kapalı test sürümü yayınlayın
+✓ En az 12 test kullanıcısının kapalı testinize kaydolmasını sağlayın
+○ İnceleme tarihinden itibaren en az 12 test kullanıcısıyla 14 gün daha
+  kapalı test yapın
+  "An itibarıyla 12 test kullanıcısı kesintisiz olarak 12 gündür kayıtlı"
+```
+
+İnceleme tarihi 12 Eylül 22:41 ve o tarih sayacı **sıfırlamış**. 25 Eylül
+itibarıyla 12/14 gün — yani iki gün kalmış.
+
+Buradaki kelime **kesintisiz**. Bir testçi çıkarsa sayaç baştan başlıyor. Bu
+yüzden sayaç dolana kadar test kullanıcıları sayfasında hiçbir şey
+değiştirilmiyor; kaydetmek testi yeniden incelemeye yolluyor.
+
 Google kapalı testle ilgili birkaç soru soruyor ve bunları **başvuru
 formunun içinde**, sayaç dolduktan sonra yanıtlıyorsun. Aşağıdakiler
 kopyalanmaya hazır. **`[…]` ile işaretli yerleri sen doldurmalısın** —

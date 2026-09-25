@@ -3429,3 +3429,71 @@ sıra düşüyor — yani tahta gerçekten bir soru soruyor.
   girildiğinde delik küçük ve tek başına o odanın büyümesi kapıyı doldurmuyor,
   yani çıkabiliyor. Oda ancak **sırası gelince** kapan oluyor; ölçülecek
   eşitsizlik o.
+
+## Tarla tek tek nesne değil, yığın
+
+Her meyve kendi `THREE.Mesh`'iydi. Ölçüldü (`scratchpad/holeinstance.mjs`):
+
+```
+ blm | meyve | çizim | meyve başına çizim
+   1 |   310 |   806 | 2.60
+  24 |   537 |  1299 | 2.42
+  53 |   451 |  1031 | 2.29
+```
+
+Kare hızı bu konteynerde ölçülemiyor — GPU yok, SwiftShader'la çiziliyor ve
+zamanlama yük altında anlamsız. Ama çizim çağrısı belirlenimci ve o sayı iki
+ayrı sorunun **aynı** sebebiydi:
+
+* **Beyaz ekran.** Bağlam kaybı en ağır tahtalarda geliyordu. Geometri
+  sızıntısı kapatıldığında da geçmemişti; kalan şey tahtanın kendi ağırlığı.
+* **"Hep aynı tahta."** Rakiplerin tahtası tanınabilir bir şey — mısır
+  koçanı, oyuncak ayı, Eyfel Kulesi — çünkü binlerce minik parçadan kurulu.
+  Bizim ızgaramız on üç sütun, ve on üç sütunla resim çizilemez. Yoğunluğa
+  çıkmanın önündeki duvar buydu.
+
+Aynı geometri ve aynı malzemeden olan her şey artık tek bir `InstancedMesh`.
+Meyvenin dört tipi, iri ve normal boyu, voxel tahtada başka geometrisi var —
+yani bir tahta sekiz-on yığın, **meyve sayısı ne olursa olsun**.
+
+```
+ blm | meyve | çizim | önce
+   1 |   334 |    87 |  806
+  24 |   521 |   322 | 1299
+  53 |   499 |   239 | 1031
+```
+
+### Tarla önce veri, sonra nesne
+
+Izgara döngüsü artık hiçbir şey çizmiyor; kayıt yazıyor. Nesneler en sonda,
+`materialiseFruit` ile bir kez kuruluyor.
+
+Erteleme yalnızca yığınlama için değil. Tahtadan parça alan üç yer var — kaya,
+dev, kolos — ve üçü de kurulmuş nesneyi sahneden çıkarıp `visible = false`
+yapıyordu. Artık kurulmamış olanı çıkarmak diye bir iş yok: `unbuildFruit` bir
+bayrak çeviriyor, o kadar.
+
+### Kırk yeri matrise çevirmemek
+
+Dosyada `f.mesh.position.y`, `f.mesh.scale.x`, `f.mesh.rotation.y`,
+`f.mesh.userData.ox` okuyan kırktan fazla yer var ve hepsi doğru şeyi okuyor.
+Yığına geçerken o kırk yeri tek tek matris aritmetiğine çevirmek, kırk yeni
+hata yeri açmak demekti.
+
+Onun yerine yığındaki her parçaya `mesh` gibi davranan bir **tutamak**
+veriliyor: konumu, ölçeği, dönüşü ve `userData`'sı olan sade bir nesne.
+`fruitFlush(f)` o değerleri yığının matrisine yazıyor ve yalnızca hareket eden
+üç yerde çağrılıyor — düşüş, sarsıntı, yutulma. Duran bir meyve için hiç
+çalışmıyor.
+
+`castShadow` istisna: gölge yığının tamamına ait, tek parçaya değil. Tutamakta
+alıcı/atıcı olarak yığına bağlanmış durumda — tahtanın gölgesini kapatan iki
+yardımcı (mağaza görseli ve tanıtım klibi) zaten hepsini birden kapatıyor,
+yani istedikleri şey bu.
+
+### Yığın da bırakılmak zorunda
+
+`fieldGroup.clear()` yığını sahneden çıkarıyor ama GPU'daki matris tamponunu
+bırakmıyor. Üç bin parçalık bir yığının matrisi 192 KB ve bölüm başına bir
+tane — bırakılmasaydı bu tam olarak düzeltmeye çalıştığımız sızıntının aynısı
+olurdu. `buildField` her kuruluşta öncekileri `dispose()` ediyor.

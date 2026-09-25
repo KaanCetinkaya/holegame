@@ -230,34 +230,60 @@ console.log('\n--- sıkışma ---');
         `${r.cikis.toFixed(2)} > ${r.limit.toFixed(2)}`);
 }
 {
-  // Ve asıl soru: oyun bunu **fark ediyor mu**? Tembel sırayla oynanıyor ve
-  // aritmetiğin "burada biter" dediği adımda oyunun da "sıkıştın" demesi
-  // bekleniyor. Aritmetik ile oyunun ayrışması, oyuncunun bitmiş bir tahtada
-  // dolaşıp durması demek.
+  // Ve asıl soru: oyun bunu **fark ediyor mu**?
+  //
+  // Oynatılacak sıra rastgele seçilemiyor, çünkü bir sıranın iki ayrı ölme
+  // şekli var ve oyun ikisine aynı şeyi demiyor:
+  //
+  //   * **Giremedin.** Delik o kapıya sığmıyor. Ama başka odalara hâlâ
+  //     sığıyor olabilirsin, yani tahta bitmemiştir — yalnızca **bu sıra**
+  //     bitmiştir. Oyun buna sıkıştın demiyor ve dememeli: demek, hâlâ yolu
+  //     olan bir oyuncunun bölümünü elinden almak olurdu.
+  //   * **Çıkamıyorsun.** Odayı yedin, kapıdan geçemiyorsun ve dışarıda meyve
+  //     kaldı. Bu geri dönüşsüz ve kanıtlanabilir. Oyunun göreceği hâl bu.
+  //
+  // İlk yazışında tembel sıra oynanıyordu ve tembel sıra çoğu tahtada
+  // birinci şekilde ölüyor — test "oyun görmedi" diye düşüyordu, oysa oyun
+  // doğru olanı yapıyordu. O yüzden sıra artık **aranıyor**: bütün
+  // permütasyonlar aritmetikle yürütülüp ilk ölümü "çıkamadım" olan biri
+  // seçiliyor, oynanan o.
   const r = await pg.evaluate(() => {
     window.fruitHoleProbe(18);
     const p0 = window.fruitHolePuzzle();
-    const tembel = p0.rooms.map((_, i) => p0.rooms.length - 1 - i);
-    let rr = p0.r0, beklenen = null, oyun = null;
-    for (let k = 0; k < tembel.length; k++) {
-      const i = tembel[k];
-      if (rr > p0.rooms[i].limit) { if (beklenen === null) beklenen = k; break; }
-      window.fruitHolePuzzlePut(i, null);
-      const s = window.fruitHolePuzzleEat(i);
-      rr = s.r;
-      const cikamaz = rr > p0.rooms[i].limit;
-      const kalanBaska = window.fruitHolePuzzle().rooms
-        .some((rm, j) => j !== i && rm.kalan > 0);
-      if (cikamaz && kalanBaska && beklenen === null) beklenen = k;
-      if (s.stuck && oyun === null) oyun = k;
-      if (s.stuck) break;
+    const N = p0.rooms.length;
+    const perms = [];
+    (function gez(kalan, acc) {
+      if (!kalan.length) { perms.push(acc); return; }
+      kalan.forEach((v, i) => gez(kalan.filter((_, j) => j !== i), acc.concat(v)));
+    })(p0.rooms.map((_, i) => i), []);
+    // Aritmetikle yürüt: ilk ölümü "çıkamadım" olan sıra.
+    let sira = null, beklenen = null;
+    for (const perm of perms) {
+      let rr = p0.r0, adim = null, tur = null;
+      for (let k = 0; k < N; k++) {
+        const rm = p0.rooms[perm[k]];
+        if (rr > rm.limit) { tur = 'giremedi'; adim = k; break; }
+        rr = Math.min(p0.holeMax, rr + rm.g);
+        if (k < N - 1 && rr > rm.limit) { tur = 'cikamadi'; adim = k; break; }
+      }
+      if (tur === 'cikamadi') { sira = perm; beklenen = adim; break; }
+    }
+    if (!sira) return { sira: null };
+    // Ve şimdi gerçekten oyna.
+    let oyun = null;
+    for (let k = 0; k < N; k++) {
+      window.fruitHolePuzzlePut(sira[k], null);
+      const s = window.fruitHolePuzzleEat(sira[k]);
+      if (s.stuck) { oyun = k; break; }
       window.fruitHolePuzzlePut(-1, null);
     }
-    return { beklenen, oyun, sira: tembel };
+    return { sira, beklenen, oyun };
   });
-  check(r.beklenen !== null, 'tembel sıra gerçekten ölüyor', `adım ${r.beklenen}`);
-  check(r.oyun === r.beklenen, 'oyun sıkışmayı tam o adımda görüyor',
-        `beklenen ${r.beklenen} · oyun ${r.oyun}`);
+  check(r.sira !== null, 'kapana düşüren bir sıra var');
+  if (r.sira) {
+    check(r.oyun === r.beklenen, 'oyun sıkışmayı tam o adımda görüyor',
+          `sıra ${r.sira.join('→')} · beklenen ${r.beklenen} · oyun ${r.oyun}`);
+  }
 }
 
 console.log(`\nsoru soran tahta: ${sorulu}/${toplam}`);

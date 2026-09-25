@@ -8147,7 +8147,125 @@ for (const p of PATTERNS) {
 }
 PATTERNS.sort((a, b) => LEVEL_ORDER.indexOf(a.name) - LEVEL_ORDER.indexOf(b.name));
 
+// ---------------------------------------------------------------------
+// Tarla tek tek nesne değil, yığın
+//
+// Ölçüldü (`scratchpad/holeinstance.mjs`): her meyve kendi `THREE.Mesh`'iydi
+// ve meyve başına 2.2-2.6 çizim çağrısına mal oluyordu — 24. bölüm 537 meyve
+// için 1299 çağrı. Kare hızı bu konteynerde ölçülemiyor (GPU yok) ama çizim
+// çağrısı ölçülebiliyor ve belirlenimci.
+//
+// Bu sayı iki şeyi birden tıkıyordu:
+//
+//   * **Beyaz ekran.** Bağlam kaybı en ağır tahtalarda geliyordu ve her meyve
+//     ayrı bir nesne demek, ayrı bir tekdüze blok, ayrı bir gölge çizimi.
+//   * **Tahtanın hep aynı görünmesi.** Rakiplerin tahtası tanınabilir bir şey
+//     (mısır koçanı, oyuncak ayı, Eyfel) çünkü binlerce minik parçadan
+//     kurulu. Bizim ızgaramız 13 sütun ve 13 sütunla resim çizilemez. Yoğunluk
+//     çizim çağrısına takılıyordu.
+//
+// Aynı geometri + aynı malzemeden olan her şey tek bir `InstancedMesh`.
+// Meyvenin dört tipi var, iri ve normal boyu var, voxel tahtada başka
+// geometri — yani bir tahta sekiz-on yığın, meyve sayısı ne olursa olsun.
+//
+// Çok parçalı olanlar (bütün elma sapıyla, nesneler, devler, bombalar) hâlâ
+// gerçek nesne: sayıları az ve her biri bir `Group`.
+const fruitInst = [];
+const _fm = new THREE.Matrix4(), _fq = new THREE.Quaternion(), _fs = new THREE.Vector3();
+
+// Yığındaki bir parçanın `mesh` gibi davranan tutamağı.
+//
+// Neden taklit: dosyada `f.mesh.position.y`, `f.mesh.scale.x`,
+// `f.mesh.rotation.y`, `f.mesh.userData.ox` okuyan kırk küreden fazla yer var
+// ve hepsi doğru şeyi okuyor. Yığına geçerken o kırk yeri tek tek matris
+// aritmetiğine çevirmek, kırk yeni hata yeri açmak demekti. Tutamak
+// değerleri tutuyor, `fruitFlush` onları matrise yazıyor.
+function instHandle(inst, idx, f) {
+  const v = f.vis;
+  return {
+    position: new THREE.Vector3(f.x, f.baseY, f.z),
+    scale: new THREE.Vector3(v.sx * f.jit, v.sy * f.jit, v.sx * f.jit),
+    rotation: new THREE.Euler(0, f.rotY, 0),
+    userData: { ox: f.x, oz: f.z },
+    visible: true,
+    // Gölge yığının tamamına ait, tek parçaya değil. Tahtanın gölgesini
+    // kapatan iki yardımcı (mağaza görseli ve klip) zaten hepsini birden
+    // kapatıyor, yani istedikleri şey bu.
+    get castShadow() { return inst.castShadow; },
+    set castShadow(v2) { inst.castShadow = v2; },
+    receiveShadow: true,
+    _inst: inst, _idx: idx,
+  };
+}
+
+// Tutamaktaki değerleri yığının matrisine yaz. Hareket eden her yerde
+// çağrılıyor: düşüş, sarsıntı, yutulma.
+function fruitFlush(f) {
+  const h = f && f.mesh;
+  if (!h || !h._inst) return;
+  if (h.visible === false) _fs.set(0, 0, 0);
+  else _fs.copy(h.scale);
+  _fq.setFromEuler(h.rotation);
+  _fm.compose(h.position, _fq, _fs);
+  h._inst.setMatrixAt(h._idx, _fm);
+  h._inst.instanceMatrix.needsUpdate = true;
+}
+
+// Bir parçayı tahtadan al. Kaya, dev ve kolos üçü de bunu yapıyor ve üçü de
+// nesne kurulmadan **önce** çalışıyor, yani ortada sahneden çıkarılacak bir
+// şey yok. `if (f.mesh)` sorusu bombalar için duruyor: onlar kendi gerçek
+// nesnelerini erken kuruyor.
+function unbuildFruit(f) {
+  if (f.mesh) { fieldGroup.remove(f.mesh); f.mesh.visible = false; }
+  f.eaten = true;
+}
+
+function materialiseFruit() {
+  const gruplar = new Map();
+  for (const f of fruits) {
+    // Zaten nesnesi olan (bomba, dev, kolos) ya da çok parçalı olan atlanıyor.
+    if (f.mesh || !f.vis || f.vis.make) continue;
+    const k = f.vis.geo.uuid + '|' + f.vis.mat.uuid;
+    let g = gruplar.get(k);
+    if (!g) { g = { geo: f.vis.geo, mat: f.vis.mat, list: [] }; gruplar.set(k, g); }
+    g.list.push(f);
+  }
+  for (const g of gruplar.values()) {
+    const inst = new THREE.InstancedMesh(g.geo, g.mat, g.list.length);
+    inst.castShadow = true;
+    inst.receiveShadow = true;
+    inst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    // Kırpma kapalı: yığının sınır küresi kendiliğinden hesaplanmıyor ve
+    // hesaplanmadığında kırpma bütün yığını ekran dışı sanıp tahtanın
+    // yarısını yok edebiliyor. Tahta zaten kameranın önünde duran tek şey.
+    inst.frustumCulled = false;
+    fieldGroup.add(inst);
+    fruitInst.push(inst);
+    g.list.forEach((f, i) => { f.mesh = instHandle(inst, i, f); fruitFlush(f); });
+  }
+  // Geriye kalanlar gerçek nesne istiyor.
+  for (const f of fruits) {
+    if (f.mesh || !f.vis) continue;
+    const v = f.vis;
+    const mesh = v.make ? v.make() : new THREE.Mesh(v.geo, v.mat);
+    mesh.scale.set(v.sx * f.jit, v.sy * f.jit, v.sx * f.jit);
+    mesh.position.set(f.x, f.baseY, f.z);
+    mesh.userData.ox = f.x; mesh.userData.oz = f.z;
+    mesh.rotation.y = f.rotY;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    fieldGroup.add(mesh);
+    f.mesh = mesh;
+  }
+}
+
 function buildField() {
+  // Önceki bölümün yığınları. `fieldGroup.clear()` onları sahneden çıkarıyor
+  // ama GPU'daki matris tamponunu bırakmıyor — 3000 parçalık bir yığın 192 KB
+  // ve bölüm başına bir tane, yani bırakılmazsa bu tam olarak düzeltmeye
+  // çalıştığımız sızıntının aynısı olurdu.
+  for (const m of fruitInst) m.dispose();
+  fruitInst.length = 0;
   for (const f of flecks) { scene.remove(f.m); FLECK_POOL.push(f.m); }
   flecks.length = 0;
   rimPulse = 0;
@@ -8277,23 +8395,21 @@ function buildField() {
         // identical object and the field reads as a printed grid rather than
         // fruit that was dropped there.
         const jit = 0.96 + rnd() * 0.08;
-        const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
         const y = vis.baseY * jit + k * vis.sy * 2.05;
-        mesh.scale.set(vis.sx * jit, vis.sy * jit, vis.sx * jit);
-        mesh.position.set(x, y, z);
-        mesh.userData.ox = x; mesh.userData.oz = z;
-        // Spin only about the upright axis. Leaning them was meant to look
-        // casual, but a tilted disc seen from above sits off its own centre
-        // and the rows come out wavy — the whole grid reads as crooked.
-        mesh.rotation.y = vis.upright ? 0 : rnd() * Math.PI * 2;
-        // Casts onto the ground, but never receives. In a tower each piece
-        // sits square in the shadow of the one above it, leaving a lit sliver
-        // down one side — every ball then looks shoved off its own centre and
-        // the stack reads as toppling. Fruit lit only by the sky is cleaner.
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        fieldGroup.add(mesh);
-        fruits.push({ mesh, x, z, r: radius, type, big, prop, eaten: false, baseY: y, nudge: 0 });
+        // Burada hiçbir şey çizilmiyor: meyve önce **veri**, çizilecek nesne
+        // en sonda `materialiseFruit` ile kuruluyor. Sebebi orada yazılı —
+        // özetle, aynı geometriden dört yüz tane koymak dört yüz çizim çağrısı
+        // demekti, oysa hepsi tek bir yığın olabiliyor.
+        //
+        // Ertelemenin ikinci faydası: tahtadan parça alan üç yer var (kaya,
+        // dev, kolos) ve hepsi kurulmuş nesneyi sahneden çıkarıyordu. Artık
+        // kurulmamış olanı çıkarmak diye bir iş yok.
+        //
+        // Dönüş yalnızca dik eksende. Yana yatırmak rahat dursun diye
+        // konmuştu, ama yukarıdan bakılan yatık bir disk kendi merkezinden
+        // kayıyor ve sıralar eğri çıkıyor — bütün ızgara çarpık okunuyor.
+        fruits.push({ mesh: null, vis, jit, rotY: vis.upright ? 0 : rnd() * Math.PI * 2,
+                      x, z, r: radius, type, big, prop, eaten: false, baseY: y, nudge: 0 });
       }
   }
   // Kayalar **devlerden önce**.
@@ -8340,6 +8456,9 @@ function buildField() {
   // `holebomb.mjs` "hedef = canlı parça − bomba" eşitliğini kontrol edince
   // patron bölümünde tutmadı.
   fruits = fruits.filter(f => !f.eaten);
+
+  // Tahtadan alınacak her şey alındı; çizilecek olanlar ancak şimdi kuruluyor.
+  materialiseFruit();
 
   // A level ends when every fruit on the field has been eaten.
   //
@@ -8417,6 +8536,7 @@ function armDrop() {
     f.dropAt = d * 0.035;
     if (f.dropAt > far) far = f.dropAt;
     f.mesh.position.y = f.baseY + DROP_HEIGHT;
+    fruitFlush(f);
   }
   dropStart = performance.now();
   dropSpan = far + DROP_FALL + 0.12;
@@ -8427,7 +8547,7 @@ const dropping = () => (performance.now() - dropStart) / 1000 < dropSpan;
 // Put the board down at once. The measuring probes build a level and read it
 // in the same breath, with no frames in between to fall through.
 function landNow() {
-  for (const f of fruits) f.mesh.position.y = f.baseY;
+  for (const f of fruits) { f.mesh.position.y = f.baseY; fruitFlush(f); }
   dropSpan = 0;
 }
 
@@ -8443,12 +8563,13 @@ function stepDrop(now) {
   for (const f of fruits) {
     if (f.eaten) continue;
     const p = (t - f.dropAt) / DROP_FALL;
-    if (p >= 1) { f.mesh.position.y = f.baseY; continue; }
-    if (p <= 0) { f.mesh.position.y = f.baseY + DROP_HEIGHT; continue; }
+    if (p >= 1) { f.mesh.position.y = f.baseY; fruitFlush(f); continue; }
+    if (p <= 0) { f.mesh.position.y = f.baseY + DROP_HEIGHT; fruitFlush(f); continue; }
     // accelerate all the way down, then one small bounce off the ground
     const fall = p * p;
     const bounce = Math.sin(p * Math.PI) * 0.06 * (1 - p);
     f.mesh.position.y = f.baseY + DROP_HEIGHT * (1 - fall) + bounce * DROP_HEIGHT;
+    fruitFlush(f);
   }
   return true;
 }
@@ -8485,9 +8606,7 @@ function placeRocks() {
     for (const f of fruits) {
       if (f.eaten || f.giant) continue;
       if (Math.hypot(f.x - x, f.z - z) > ROCK_R + NORMAL_R * 1.3) continue;
-      fieldGroup.remove(f.mesh);
-      f.eaten = true;
-      f.mesh.visible = false;
+      unbuildFruit(f);
     }
     const mesh = ROCK_GEO.clone();
     const jit = 0.9 + rnd() * 0.25;
@@ -8736,9 +8855,7 @@ function buildPuzzle() {
     const koridorda = f.x > puzzleWallX - ROCK_R - 0.3;
     const duvarda = cizgiler.some(c => segDist(f.x, f.z, c[0], c[1], c[2], c[3]) < ROCK_R + PUZZLE_CLEAR);
     if (!koridorda && !duvarda) continue;
-    fieldGroup.remove(f.mesh);
-    f.mesh.visible = false;
-    f.eaten = true;
+    unbuildFruit(f);
   }
 
   // 2. Boş kalan odalar dolduruluyor.
@@ -8905,8 +9022,10 @@ function placeBombs() {
     // yalnızca biri bombaysa geri kalanı hâlâ yenebilir olmalı. Bomba
     // parçanın kendi yüksekliğinde duruyor — zemine konsaydı kulenin içinde
     // kaybolurdu.
-    const y = f.mesh ? f.mesh.position.y : 0;
-    fieldGroup.remove(f.mesh);
+    // Yükseklik tutamaktan değil kaydından okunuyor: bu satır nesneler
+    // kurulmadan önce çalışıyor, yani `f.mesh` henüz yok.
+    const y = f.baseY;
+    if (f.mesh) fieldGroup.remove(f.mesh);
     const mesh = BOMB_GEO.clone();
     mesh.scale.set(BOMB_R, BOMB_R, BOMB_R);
     mesh.position.set(f.x, y, f.z);
@@ -8934,9 +9053,7 @@ function placeColossus() {
     if (f.eaten) continue;
     if (Math.hypot(f.x - cx, f.z - cz) > CLEAR) continue;
     type = f.type;
-    fieldGroup.remove(f.mesh);
-    f.eaten = true;
-    f.mesh.visible = false;
+    unbuildFruit(f);
   }
   const vis = fruitVisual(type, COLOSSUS_R, true);
   const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
@@ -9024,9 +9141,7 @@ function placeGiants() {
       for (const f of fruits) {                     // clear its footprint
         if (f.eaten) continue;
         if (Math.hypot(f.x - gx, f.z - gz) > CLEAR) continue;
-        fieldGroup.remove(f.mesh);
-        f.eaten = true;                             // dropped before the level starts
-        f.mesh.visible = false;
+        unbuildFruit(f);                            // dropped before the level starts
       }
       // Whole, like the pattern's own big fruit. Giants went through this
       // path rather than the grid's, so they stayed slices while everything
@@ -10939,8 +11054,14 @@ function eatFruit(f, now) {
     mesh.rotation.z = startRotZ + spin * 0.6 * e;
     const k = 1 - Math.max(0, (p - 0.45)) / 0.55;
     mesh.scale.set(startScale.x * k, startScale.y * k, startScale.z * k);
+    fruitFlush(f);
     if (p < 1) requestAnimationFrame(step);
     else {
+      // Yığındaki bir parça sahneden çıkarılamaz — yığın tek bir nesne. Onun
+      // yerine matrisi sıfırlanıyor, ki bu zaten `visible = false`un yığın
+      // karşılığı.
+      mesh.visible = false;
+      fruitFlush(f);
       fieldGroup.remove(mesh);
       // Sipariş bölümünde tarlanın tamamı değil, hedef meyve bitiriyor.
       if (missionKind ? missionEaten >= missionGoal : eatenCount >= levelGoal) onCleared();
@@ -11962,6 +12083,8 @@ window.fruitHoleMusic = () => ({
 window.fruitHolePropSheet = (only) => {
   buildField();
   landNow();
+  for (const m of fruitInst) { fieldGroup.remove(m); m.dispose(); }
+  fruitInst.length = 0;
   for (const f of fruits) fieldGroup.remove(f.mesh);
   fruits = [];
   const ids = only && only.length ? only : Object.keys(PROPS);
@@ -12682,6 +12805,7 @@ function tick(now) {
     if (f.eaten || f.nudge <= 0) continue;
     f.nudge = Math.max(0, f.nudge - dt);
     f.mesh.position.y = f.baseY + Math.sin(f.nudge * 60) * 0.09 * (f.nudge / 0.28);
+    fruitFlush(f);
   }
 
   stepFlecks(dt);
