@@ -63,7 +63,11 @@ console.log(devMi ? 'dev sürümü sunuluyor (yan yana kurulur)'
 
 const size = statSync(apk).size;
 const mb = (size / 1048576).toFixed(1);
-const fileName = `${appName}.apk`;
+// dev ve release aynı adla inseydi telefonun İndirilenler klasöründe
+// `fruithole.apk` ve `fruithole (1).apk` diye yan yana dururlardı ve
+// hangisinin hangisi olduğu ancak kurulum ekranındaki ada bakarak
+// anlaşılırdı. Kaan tam da orada eskisini kurmaya başladı.
+const fileName = devMi ? `${appName}-dev.apk` : `${appName}.apk`;
 const port = Number(process.env.PORT) || 8787;
 
 // Yerel ağdaki IPv4 adresleri. Birden fazla çıkabiliyor (Wi-Fi, ethernet,
