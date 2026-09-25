@@ -41,8 +41,20 @@ await pg.evaluate(() => window.fruitHoleSeedField && window.fruitHoleSeedField(7
 
 const fails = [];
 let tToplam = 0, tIri = 0;
+// Resim bölümleri bu ölçünün dışında.
+//
+// Ölçülen şey tahtanın "halı gibi" okunması: tek boy meyveden ibaret bir
+// ızgara doku oluyor ve bakılacak bir yer bırakmıyor, yani oyuncu nerede
+// süpürdüğünü bilemiyor. Resim tahtasında her parça **bilerek** aynı boyda —
+// boncukların eşitliği resmi okutan şey — ve bakılacak yer resmin kendisi.
+// Kural oraya uygulanınca "iri payı %0, halı" diyor ve tam tersini söylemiş
+// oluyor.
+const resimler = new Set(
+  (await pg.evaluate(() => window.fruitHolePictures())).levels);
+
 console.log(' bölüm  desen           toplam  sıradan  büyük  dev   iri payı');
 for (let n = 1; n <= 24; n++) {
+  if (resimler.has(n)) continue;
   const d = await pg.evaluate(lv => {
     const p = window.fruitHoleProbe(lv);
     return { ad: p.pattern, ...window.fruitHoleMix() };
@@ -63,7 +75,7 @@ for (let n = 1; n <= 24; n++) {
     `   %${(d.iriPay * 100).toFixed(1).padStart(5)}  ${d.ortKat.toFixed(1)} kat${bayrak}`);
   if (d.iriPay < EN_AZ && !kuleDesen) fails.push(`${n}. bölüm (${d.ad}): iri payı %${(d.iriPay * 100).toFixed(1)}`);
 }
-console.log(`\n24 bölümün ortalaması: %${(tIri / tToplam * 100).toFixed(1)} iri`);
+console.log(`\nızgara bölümlerinin ortalaması: %${(tIri / tToplam * 100).toFixed(1)} iri`);
 console.log(fails.length
   ? `\niri payı %${EN_AZ * 100} altında kalan desenler:\n - ` + fails.join('\n - ')
   : '\nhepsi geçti');
