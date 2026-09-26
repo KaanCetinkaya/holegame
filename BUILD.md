@@ -279,14 +279,21 @@ söylemiyor. İkisi farklı iş için:
 | `.apk` (release) | mağaza imzasıyla elle kurmak | `npm run apk:fruithole` |
 | `.apk` (dev) | telefondakinin **yanına** kurmak | `npm run dev:fruithole` |
 
-Telefona kurmak için üretilen dosya ağa şu komutla açılıyor:
+`dev:` derlemenin sonunda sunucuyu **kendisi açıyor**: adres
+(`http://192.168.x.x:8787`) derleme biter bitmez ekrana düşüyor, ayrıca
+komut yazmak gerekmiyor. Telefon ve bilgisayar aynı Wi-Fi'da olmak zorunda;
+Ctrl+C ile kapanıyor.
+
+> Önce ayrıydı ve `dev:fruithole` dosyayı üretip "HAZIR: ...app-debug.apk"
+> yazıp çıkıyordu. Yol ekranda duruyor ama telefona nasıl gideceği
+> durmuyor, ve akıştaki iki komuttan ikincisi her seferinde unutuluyordu.
+
+`aab:` ve `apk:` sunucuyu açmıyor — onların dosyası Play Console'a
+sürükleniyor, telefona inmiyor. Onlar için ayrı komut duruyor:
 
 ```
 npm run send:fruithole
 ```
-
-Ekrana bir adres yazıyor (`http://192.168.x.x:8787`); telefon ve bilgisayar
-aynı Wi-Fi'da olmak zorunda.
 
 Telefonda Chrome **"Dosya güvenli bir şekilde indirilemiyor"** diyorsa
 **Sakla**'ya bas. Dosyayla ilgisi yok: Chrome, adres `https` olmadığı için

@@ -444,7 +444,11 @@ console.log('='.repeat(60));
 // ve `mark-uploaded.mjs` onu şart koşuyor: derlenmemiş bir paketi yüklemiş
 // olamazsın. Kayıt komutunun yanlışlıkla iki kez çalıştırılması da böyle
 // duruyor — ikinci seferde sıradaki kod henüz derlenmemiş oluyor.
-if (!wantApk && existsSync(out)) {
+// `wantDev` de dışarıda: dev derlemesi hata ayıklama imzasıyla çıkıyor ve
+// mağazaya hiç gitmiyor, ama `built`e yazılınca `mark-uploaded.mjs` o sürüm
+// kodunun paketlendiğini sanıyordu — hiç `bundleRelease` çalışmamışken
+// "yüklendi" kaydı açılabiliyordu.
+if (!wantApk && !wantDev && existsSync(out)) {
   try {
     const fresh = JSON.parse(readFileSync(versionFile, 'utf8'));
     fresh[appName].built = version.versionCode;
@@ -460,10 +464,17 @@ if (!wantApk && existsSync(out)) {
 // sürüklemek gerekiyor, o da her seferinde bu uzun yolu elle Gezgin'e
 // yazmak ya da kopyalamak demekti. Derlemenin son adımı zaten bu, o yüzden
 // burada yapılıyor. Açılmazsa bir şey bozulmuyor — yol yukarıda duruyor.
-if (existsSync(out)) {
+//
+// Dev derlemesinde açılmıyor: o .apk'yı kimse sürüklemiyor, telefon onu
+// Wi-Fi üstünden indiriyor. Gezgin penceresi bir işe yaramadan önüne
+// açılıyordu.
+if (!wantDev && existsSync(out)) {
   const dir = dirname(out);
   try {
-    if (isWin) spawnSync('explorer', [dir], { shell: true });
+    // `shell: true` değil: Node 22 kabuk açıkken argüman geçirmeyi
+    // uyarıyor (DEP0190) ve uyarı "HAZIR" satırının hemen altına düşüp
+    // derleme bozulmuş gibi duruyordu. explorer.exe zaten PATH'te.
+    if (isWin) spawnSync('explorer.exe', [dir]);
     else if (process.platform === 'darwin') spawnSync('open', [dir]);
     else spawnSync('xdg-open', [dir]);
   } catch (e) { /* klasör açılamadıysa yol zaten yazıldı */ }
