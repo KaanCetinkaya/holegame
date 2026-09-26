@@ -8986,11 +8986,14 @@ function ribbonStrand(nokta, type, r = RIBBON_R) {
 // var ve tahtanın "bakılacak yeri" o oluyor. Sadece boncuktan ibaret bir
 // tahta, düzenli de olsa, yine tek bir dokuya dönüyor.
 function ribbonLandmarks(noktalar) {
-  for (const [x, z, type] of noktalar) {
-    if (Math.abs(x) > fieldHalfX - 1 || Math.abs(z) > fieldHalfZ - 1) continue;
-    const vis = fruitVisual(type, BIG_R, true);
+  for (const nk of noktalar) {
+    const [x, z, type] = nk;
+    const dev = nk[3] === 'dev';
+    const r = dev ? GIANT_R : BIG_R;
+    if (Math.abs(x) > fieldHalfX - r || Math.abs(z) > fieldHalfZ - r) continue;
+    const vis = fruitVisual(type, r, true);
     fruits.push({ mesh: null, vis, jit: 1, rotY: rnd() * Math.PI * 2,
-                  x, z, r: BIG_R, type, big: true, prop: null,
+                  x, z, r, type, big: true, giant: dev, prop: null,
                   eaten: false, baseY: vis.baseY, nudge: 0 });
   }
 }
@@ -9097,7 +9100,7 @@ function buildRibbon(kind) {
       const boy = RIBBON_R + (1 - Math.min(1, (k - 1) / Math.max(1, tur - 1))) * 0.16;
       ribbonStrand(t => [Math.cos(t * TAU) * rr, Math.sin(t * TAU) * rr], renk(k), boy);
     }
-    isaret.push([0, 0, renk(0)]);
+    isaret.push([0, 0, renk(0), 'dev']);
     for (let k = 2; k <= tur; k += 3) isaret.push([0, k * RIBBON_GAP, renk(k)]);
   } else if (kind === 'serpentine') {
     // Yılan: uçlarda dönen tek bir kesintisiz şerit.
@@ -9140,11 +9143,13 @@ function buildRibbon(kind) {
       const cz = -mZ + 2.4 + (k + rnd() * 0.4) * ((mZ * 2 - 4.8) / say);
       const rr = 1.9 + rnd() * 1.2;
       ribbonStrand(t => [cx + Math.cos(t * TAU) * rr, cz + Math.sin(t * TAU) * rr], renk(k));
-      // Ortadaki üçlü: halkanın çevrelediği şey.
-      const ic = renk(k + 1);
-      isaret.push([cx, cz + 0.55, ic]);
-      isaret.push([cx - 0.78, cz - 0.62, ic]);
-      isaret.push([cx + 0.78, cz - 0.62, ic]);
+      // Halkanın çevrelediği şey: tek, iri, dik duran bir meyve.
+      //
+      // Önce üç normal iri meyve konmuştu ve yetmedi — halkanın ortası dolu
+      // görünüyordu ama "bir şeyin etrafı" gibi durmuyordu. Rakibin
+      // tahtasında ortadaki nesne çevresindekilerin dört-beş katı ve bakılacak
+      // yer o. Dev meyve boncuğun 4.5 katı.
+      isaret.push([cx, cz, renk(k + 1), 'dev']);
     }
   } else {
     // Ağ: merkezden çıkan ışınlar, üstlerinden geçen halkalar.
@@ -9168,7 +9173,7 @@ function buildRibbon(kind) {
       ribbonStrand(t => [Math.cos(t * TAU) * rr, Math.sin(t * TAU) * rr],
                    renk(k + 2));
     }
-    isaret.push([0, 0, renk(2)]);
+    isaret.push([0, 0, renk(2), 'dev']);
     for (let k = 0; k < kol; k += 4) {
       const a = (k / kol) * TAU;
       isaret.push([Math.cos(a) * enBuyuk * 0.45, Math.sin(a) * enBuyuk * 0.45, renk(k + 1)]);

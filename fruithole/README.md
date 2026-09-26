@@ -3956,3 +3956,18 @@ kadar oluyor ve yukarıdan bakınca seçilmiyor — basamağın basamak olması 
 
 Doğuştan piramide giden tek sıra meyve var: nereye gideceğini söyleyen şey.
 İki yanda da birer halka, tahtanın geri kalanı tamamen boş kalmasın diye.
+
+### Halkanın ortasındaki şey
+
+Bir rakip karesi daha: süt kutularından bir sarmal ve tam ortasında iri, dik
+duran bir kahve makinesi. Halkanın işi bir şeyi çevrelemek ve **çevrelediği
+şey görünür olmalı**.
+
+Bizim halkalarımızın ortasına önce üç normal iri meyve konmuştu ve yetmedi:
+orta dolu görünüyordu ama "bir şeyin etrafı" gibi durmuyordu. Ortadaki nesne,
+çevresindekilerin dört-beş katı olmalı. Artık **dev meyve** duruyor — boncuk
+0.30, dev 1.34, yani 4.5 katı.
+
+Dev aynı zamanda bir hedef: delik onu ancak tahtanın yarısını süpürdükten
+sonra yutabiliyor (`f.r <= holeRadius * 0.92`), yani halkanın ortasındaki şey
+hem bakılacak yer hem de beklenecek şey.
