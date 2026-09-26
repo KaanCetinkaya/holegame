@@ -3877,3 +3877,36 @@ Izgara için yazılmış üç kural buraya uygulanmıyor ve sebebi her testte ya
 şerit tahtasında kaya yok (şeridi keserdi), dev yok (aynı sebep), ve iri meyve
 payı düşük olduğu için "halı" sayılmıyor (şeridi okutan şey boncukların
 eşitliği).
+
+## Izgara tahtası da düzene girdi
+
+Şerit tahtaları onda bir bölümde; kalan dokuzu hâlâ ızgaraydı ve telefondan
+gelen cümle onlar içindi: *"cisimler hâlâ düzensiz diziliyor."* 24. bölümün
+ekran görüntüsünde karpuz, muz, elma ve çilek hücre hücre birbirine karışmış,
+aralarına varil ve kasa serpilmiş, her yerde tek tük yüksek sütunlar duruyordu.
+
+Dört sebep vardı ve dördü de mekânsal olmayan rastgelelikti.
+
+**Renk bölgeleri çok küçüktü.** `blob`un ikinci oktavı (2.7 katı frekans)
+bölgelerin kenarını didikliyor, ortaya üç-dört hücrelik benekler çıkıyordu —
+uzaktan bakınca karışık renkli kum. Artık tek oktav ve yarı ölçek: bölgeler
+iki kat büyük, kenarları hâlâ dalgalı. Rakiplerin tahtasında renk alan alan
+duruyor ve göz o zaman bir şekil görüyor, doku değil.
+
+**Rastgele kuleler.** Hücrelerin %7'si, hiçbir şekle bağlı olmadan, üç-altı
+katlı bir sütuna dönüyordu: yukarıdan bakınca tahtanın her yerine serpilmiş
+dikitler. Kaldırıldı. Desenin kendi kuleleri (`stack`) duruyor — onlar şeklin
+parçası — ve blob kümesi de duruyor, çünkü o mekânsal: bir köşede duvar gibi
+bir kütle oluşturuyor, serpinti değil.
+
+**İri meyve serpiliyordu.** `scatter` saf rastgeleydi, yani boy farkı düzen
+değil gürültü üretiyordu. Mekânsal bir eşik onları öbek öbek topluyor: bir
+yerde iri meyve tarlası, başka yerde küçükler.
+
+**Nesneler de serpiliyordu.** Altı hücreden biri, tahtanın her yerine eşit
+dağılmış varil, kasa, dirgen. Ekranda bunun adı kalabalık. Aynı sayıda nesne,
+birkaç noktada toplanınca "şurada bir şey var" oluyor.
+
+Ortak ders: **rastgeleliğin mekânsal olması gerekiyor.** Hücre başına atılan
+zar düzensizlik üretiyor; aynı zar bir gürültü alanından okunduğunda desen
+üretiyor.

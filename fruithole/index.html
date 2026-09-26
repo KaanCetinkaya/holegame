@@ -8013,10 +8013,20 @@ function blob(r, c, scale, seed) {
          noiseAt(c * scale * 2.7, r * scale * 2.7, seed + 19) * 0.28;
 }
 
+// Renk bölgeleri.
+//
+// Eskiden `blob` ile seçiliyordu ve `blob`un ikinci oktavı (2.7 katı frekans)
+// bölgelerin kenarını didikliyordu: ortaya üç-dört hücrelik benekler çıkıyor,
+// tahta uzaktan bakınca karışık renkli bir kum gibi duruyordu. Telefondan
+// gelen cümle tam da buydu — "cisimler hâlâ düzensiz diziliyor".
+//
+// Rakiplerin tahtasında renk **alan alan** duruyor: bir bölge karpuz, ötekisi
+// muz. Göz o zaman bir şekil görüyor, doku değil.
+//
+// Tek oktav ve yarı ölçek: bölgeler iki katı büyük ve kenarları hâlâ dalgalı,
+// yani düz şeritlere de dönmüyor.
 function typeFromNoise(r, c, scale, seed) {
-  // value noise bunches around the middle, so stretch the useful band
-  // across all four types instead of leaving the outer two rare
-  const n = (blob(r, c, scale, seed) - 0.26) / 0.48;
+  const n = (noiseAt(c * scale * 0.45, r * scale * 0.45, seed) - 0.2) / 0.6;
   return ID[Math.min(3, Math.max(0, Math.floor(n * 4)))];
 }
 
@@ -9193,8 +9203,14 @@ function buildField() {
       const desenKat = currentPattern.stack
         ? Math.max(1, currentPattern.stack(a, b)) : 1;
       const BIG_MAX_STACK = 4;
+      // İri meyve serpilmiyor, kümeleniyor.
+      //
+      // `scatter` saf rastgeleydi: iri parçalar tahtanın her yerine tek tek
+      // dağılıyor ve boy farkı düzen değil gürültü oluyordu. Mekânsal bir
+      // eşik, onları öbek öbek topluyor — bir yerde iri meyve tarlası, başka
+      // yerde küçükler.
       const big = (currentPattern.big ? currentPattern.big(a, b) : false)
-        || (desenKat <= BIG_MAX_STACK && scatter(BIG_FLOOR));
+        || (desenKat <= BIG_MAX_STACK && blob(a, b, 0.16, 777) > 0.62);
       const radius = big ? BIG_R : NORMAL_R;
       // Every so often a cell holds an object instead of a fruit. It pays
       // into one of the four counters all the same, so nothing downstream
@@ -9209,7 +9225,13 @@ function buildField() {
       // one in six the beach balls were punching holes straight through the
       // steps that are the whole point of the shape.
       const propRate = currentPattern.props ?? 0.17;
-      const prop = !big && themePool.length && rnd() < propRate ? pick(themePool) : null;
+      // Nesneler de öbek öbek. Eskiden altı hücreden biri, tahtanın her
+      // yerine eşit serpiliyordu: varil, kasa, dirgen — hepsi tek tek, her
+      // yerde. Ekranda bunun adı kalabalık. Aynı sayıda nesne, birkaç
+      // noktada toplanınca "şurada bir kümes var" oluyor.
+      const propYer = blob(a, b, 0.2, 313) > 0.58;
+      const prop = !big && themePool.length && propYer && rnd() < propRate * 2.2
+        ? pick(themePool) : null;
       // Giants are built whole; everything else stays a slice.
       const vis = prop ? propVisual(prop, radius * 1.45)
                        : fruitVisual(currentPattern.type(a, b), radius, big);
@@ -9224,8 +9246,15 @@ function buildField() {
       // the hole passes under them.
       // Props stand alone. Stacked they interlock into an unreadable pile,
       // and their whole reason for being on the board is being recognisable.
+      // Rastgele kule kaldırıldı.
+      //
+      // Hücrelerin %7'si, hiçbir şekle bağlı olmadan, üç-altı katlı bir
+      // sütuna dönüyordu. Yukarıdan bakınca bunlar tahtanın her yerine
+      // serpilmiş dikitler oluyor ve tahtayı düzensiz gösteren şeylerin
+      // başında geliyorlar. Desenin **kendi** kuleleri (`stack`) duruyor:
+      // onlar şeklin parçası. Aşağıdaki blob kümesi de duruyor: o mekânsal,
+      // yani bir köşede duvar gibi bir kütle oluşturuyor, serpinti değil.
       let height = prop ? 1 : desenKat;
-      if (!prop && rnd() < 0.07) height = Math.max(height, 3 + Math.floor(rnd() * 3));
       // Kule kümesi: birkaç hücrede bir arada, on iki katı bulan sütunlar.
       //
       // Tahtadaki en yüksek şey beş katlıydı ve yukarıdan bakınca hepsi aynı
