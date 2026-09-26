@@ -3848,7 +3848,20 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'hi
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// Ton eşlemesi ve ortam haritası denendi ve **geri alındı.**
+//
+// İkisi de teoride doğruydu: `MeshStandardMaterial`in yarısı yansıma ve
+// sahnede yansıyacak bir şey yok, ACES de parlak yerleri kesmek yerine
+// büküyor. Ekranda olan başka bir şey oldu — bütün palet soldu. Kum krem
+// rengine, sarı araba açık sarıya, kırmızı meyve pembeye döndü. Oyunun
+// rengi şeker rengi ve ACES tam olarak onu alıyor.
+//
+// Ders: parlaklık eksik olan şey değildi. Rakibin nesneleri parladığı için
+// değil, **yuvarlatılmış ve pahlı** oldukları için iyi duruyor — bizimkiler
+// kutu. Kaan da öyle dedi: "parlak olmak zorunda değil, daha gerçekçi
+// olsun." Çözüm ışıkta değil geometride, ve aşağıda `bevelBox` orada.
 app.prepend(renderer.domElement);
+
 
 // The board goes white and the interface stays.
 //
@@ -4167,9 +4180,11 @@ scene.add(sun.target);
 // fruit. Sphere UVs put the canvas top row at the north pole, which is
 // where the top-facing detail is drawn.
 // ---------------------------------------------------------------------
-function newCanvas(size) {
+// Genişlik ve yükseklik ayrı verilebiliyor. Bütün dokular kare ve öyle
+// kalıyor; ortam haritası ise eşdikdörtgen, yani 2:1 olmak zorunda.
+function newCanvas(size, h = size) {
   const c = document.createElement('canvas');
-  c.width = c.height = size;
+  c.width = size; c.height = h;
   return [c, c.getContext('2d')];
 }
 function finishTexture(canvas) {
@@ -4809,6 +4824,46 @@ function fruitVisual(type, radius, whole = false) {
 const PROP_MAT = (color, rough = 0.38) =>
   new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0.03 });
 
+// Köşeleri yuvarlatılmış, pahlı kutu.
+//
+// Oyunun nesneleri `BoxGeometry` ile kuruluyordu ve Kaan rakibin arabasını
+// yan yana koyunca fark tek kelimeyle söylenebilir hâle geldi: onlarınki
+// **yuvarlatılmış**, bizimki kutu. Keskin köşeli bir kutu bu ışıkta tek bir
+// düz renk oluyor; pahlı kenar ışığı yakalıyor ve nesneye hacim veriyor.
+//
+// Önce parlaklık denendi (ton eşlemesi + ortam haritası) ve yanlış cevaptı:
+// bütün palet soldu. Eksik olan şey parlaklık değil **kenar**dı.
+//
+// Şekil XY düzleminde çiziliyor ve Z boyunca uzatılıyor, yani kutunun eni X,
+// yüksekliği Y, uzunluğu Z — `BoxGeometry(w, h, d)` ile aynı sıra, böylece
+// çağıran taraf hiçbir şeyi ters çevirmek zorunda kalmıyor.
+//
+// Pah kalınlığı derinliğin dörtte birini geçemiyor: ince bir levhada (araba
+// camı gibi) pah levhanın kendisinden kalın olunca geometri içine dönüyor.
+function bevelBox(w, h, d, r = 0.1) {
+  const yari = Math.min(r, w / 2 - 0.01, h / 2 - 0.01);
+  const sh = new THREE.Shape();
+  const x = w / 2 - yari, y = h / 2 - yari;
+  sh.moveTo(-x, -h / 2);
+  sh.lineTo(x, -h / 2);
+  sh.quadraticCurveTo(w / 2, -h / 2, w / 2, -y);
+  sh.lineTo(w / 2, y);
+  sh.quadraticCurveTo(w / 2, h / 2, x, h / 2);
+  sh.lineTo(-x, h / 2);
+  sh.quadraticCurveTo(-w / 2, h / 2, -w / 2, y);
+  sh.lineTo(-w / 2, -y);
+  sh.quadraticCurveTo(-w / 2, -h / 2, -x, -h / 2);
+  const pah = Math.min(yari * 0.7, d * 0.24);
+  const g = new THREE.ExtrudeGeometry(sh, {
+    depth: d - pah * 2, bevelEnabled: true, bevelThickness: pah,
+    bevelSize: pah, bevelSegments: 2, curveSegments: 5,
+  });
+  // Uzatma z = -pah ile z = d - pah arasında çıkıyor; merkeze alınıyor ki
+  // `put` ile verilen konum kutunun ortası olsun, BoxGeometry'deki gibi.
+  g.translate(0, 0, -(d / 2 - pah));
+  return g;
+}
+
 function propTemplates() {
   const T = {};
   // NOTE: this *sets* the rotation, it does not add to it. A rotation put on
@@ -4909,8 +4964,8 @@ function propTemplates() {
   {
     const g = new THREE.Group();
     const body = PROP_MAT('#ff6b3d');
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.42, 1.7), body), 0, 0.42, 0);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.4, 0.8), PROP_MAT('#7fd6ff', 0.22)),
+    put(g, new THREE.Mesh(bevelBox(0.96, 0.42, 1.7), body), 0, 0.42, 0);
+    put(g, new THREE.Mesh(bevelBox(0.78, 0.4, 0.8), PROP_MAT('#7fd6ff', 0.22)),
         0, 0.78, -0.12);
     const tyre = new THREE.CylinderGeometry(0.26, 0.26, 0.2, 12);
     const rubber = PROP_MAT('#33323a', 0.7);
@@ -5523,18 +5578,18 @@ function propTemplates() {
     const boya = PROP_MAT('#d63b4e', 0.3);
     const ic = PROP_MAT('#2b2118', 0.6);
     const lastik = PROP_MAT('#1e2026', 0.7);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.36, 2.1), boya), 0, 0.36, 0);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.3, 1.0), boya), 0, 0.62, 0.5);
+    put(g, new THREE.Mesh(bevelBox(0.92, 0.36, 2.1), boya), 0, 0.36, 0);
+    put(g, new THREE.Mesh(bevelBox(0.86, 0.3, 1.0), boya), 0, 0.62, 0.5);
     // Açık kabin: gövdenin üstünde koyu bir oyuk.
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.22, 0.95), ic), 0, 0.6, -0.34);
+    put(g, new THREE.Mesh(bevelBox(0.78, 0.22, 0.95), ic), 0, 0.6, -0.34);
     for (const sx of [-0.19, 0.19]) {
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.32), ic), sx, 0.69, -0.44);
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.34, 0.1), ic), sx, 0.82, -0.66);
+      put(g, new THREE.Mesh(bevelBox(0.3, 0.1, 0.32), ic), sx, 0.69, -0.44);
+      put(g, new THREE.Mesh(bevelBox(0.3, 0.34, 0.1), ic), sx, 0.82, -0.66);
     }
     put(g, new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.03, 6, 12), ic),
         -0.19, 0.74, -0.12, 0.9, 0, 0);
     // Ön cam: yatık, ince, camgöbeği.
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.34, 0.05),
+    put(g, new THREE.Mesh(bevelBox(0.8, 0.34, 0.05),
                           PROP_MAT('#bfe6ee', 0.15)), 0, 0.84, 0.06, -0.42, 0, 0);
     for (const sx of [-0.5, 0.5]) for (const sz of [-0.66, 0.72])
       put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.17, 12), lastik),
@@ -5559,20 +5614,20 @@ function propTemplates() {
     const sari = PROP_MAT('#f5c518', 0.3);
     const cam = PROP_MAT('#2a3038', 0.2);
     const lastik = PROP_MAT('#1e2026', 0.7);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.4, 2.2), sari), 0, 0.38, 0);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.42, 1.15), sari), 0, 0.76, -0.1);
+    put(g, new THREE.Mesh(bevelBox(0.96, 0.4, 2.2), sari), 0, 0.38, 0);
+    put(g, new THREE.Mesh(bevelBox(0.88, 0.42, 1.15), sari), 0, 0.76, -0.1);
     // Camlar: kabinin dört yüzü değil, yalnızca yukarıdan görüneni — tavan
     // penceresi yok, ama ön ve arka cam yatık durdukları için tepeden
     // görünüyorlar.
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.36, 0.06), cam), 0, 0.8, 0.48, -0.5, 0, 0);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.34, 0.06), cam), 0, 0.8, -0.68, 0.5, 0, 0);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.34, 1.0), cam), 0, 0.82, -0.1);
+    put(g, new THREE.Mesh(bevelBox(0.82, 0.36, 0.06), cam), 0, 0.8, 0.48, -0.5, 0, 0);
+    put(g, new THREE.Mesh(bevelBox(0.82, 0.34, 0.06), cam), 0, 0.8, -0.68, 0.5, 0, 0);
+    put(g, new THREE.Mesh(bevelBox(0.9, 0.34, 1.0), cam), 0, 0.82, -0.1);
     // Tavandaki levha.
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.16, 0.2), PROP_MAT('#fffbe8', 0.25)),
+    put(g, new THREE.Mesh(bevelBox(0.42, 0.16, 0.2), PROP_MAT('#fffbe8', 0.25)),
         0, 1.03, -0.1);
     // Dama şeridi: yanlarda, kapı boyunca.
     for (const sx of [-0.49, 0.49]) for (let i = 0; i < 5; i++)
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, 0.2),
+      put(g, new THREE.Mesh(bevelBox(0.03, 0.12, 0.2),
                             PROP_MAT(i % 2 ? '#20232a' : '#f2f2ee', 0.35)),
           sx, 0.42, -0.5 + i * 0.22);
     for (const sx of [-0.52, 0.52]) for (const sz of [-0.72, 0.76])
@@ -5723,48 +5778,51 @@ function propTemplates() {
 
   // Spor araba.
   //
-  // Üç deneme sonunda oyunun **kendi** çalışan arabasına bakıldı (`sedan`) ve
-  // fark ölçülebilirdi: sedan 1.5 x 3.1, benimki 1.24 x 2.4'tü. Yani sorun
-  // şeklin kendisi değil, ölçeğiydi — aynı ekranda daha küçük bir gövdeye
-  // daha çok ayrıntı konunca hepsi birbirine giriyor ve yukarıdan lapa
-  // görünüyor.
+  // Dört deneme. Sırasıyla: kutu, daha ince kutu, beş kademeli kutu, ve
+  // sedanın ölçüleriyle kutu. Dördü de kutuydu ve Kaan rakibin arabasını yan
+  // yana koyduğunda eksik olan şey tek kelimeyle söylenebildi: **yuvarlak
+  // değildi.**
   //
-  // İkinci fark cam: sedanın camları **açık mavi**, benimki siyaha yakındı.
-  // Yukarıdan bir arabayı araba yapan şey camın gövdeden ayrılması; koyu cam
-  // gövdedeki bir delik gibi okunuyor.
+  // Gövde artık `bevelBox` ile: köşeleri yuvarlatılmış, kenarları pahlı.
+  // Keskin köşeli bir kutu bu ışıkta tek düz renk oluyor; pahlı kenar ışığı
+  // yakalıyor ve nesne yassı bir boyadan hacimli bir şeye dönüyor.
   //
-  // Üçüncüsü ayrıntı sayısı. Hava girişi, kaput çizgisi, beş kademe — hepsi
-  // yandan bakınca doğru, yukarıdan bakınca gürültü. Kaldırıldılar; spor
-  // arabayı ayıran iki işaret kaldı: burna doğru **daralan** gövde ve arkada
-  // gövdeden geniş duran kanat.
+  // Ölçüler sedanınkinden (1.5 x 3.1) alındı ve gövde ondan **geniş**
+  // başlayıp ondan **dar** bitiyor: spor arabayı yukarıdan ayıran şey
+  // daralma, ve bir de arkadaki kanat.
   {
     const g = new THREE.Group();
-    const boya = PROP_MAT('#e8a020', 0.24);
+    const boya = PROP_MAT('#e05a2b', 0.3);
     const cam = PROP_MAT('#9fd8f5', 0.15);
     const koyu = PROP_MAT('#2b2f36', 0.4);
     const lastik = PROP_MAT('#26262c', 0.75);
-    // Gövde üç kademe: arka 1.6, orta 1.4, burun 0.95. Sedanın eni 1.5, yani
-    // bu ondan geniş başlayıp ondan dar bitiyor — daralma işte o.
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 1.5), boya), 0, 0.42, -0.85);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.38, 1.0), boya), 0, 0.41, 0.4);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.3, 0.85), boya), 0, 0.37, 1.25);
-    // Kabin: alçak, geride, ve camları açık mavi.
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.12, 0.34, 1.0), boya), 0, 0.78, -0.7);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.3, 0.1), cam), 0, 0.78, -0.2);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.26, 0.1), cam), 0, 0.78, -1.2);
-    for (const sx of [-0.57, 0.57])
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.24, 0.84), cam), sx, 0.78, -0.7);
+    // Gövde üç kademe, hepsi pahlı.
+    put(g, new THREE.Mesh(bevelBox(1.62, 0.42, 1.55, 0.22), boya), 0, 0.42, -0.82);
+    put(g, new THREE.Mesh(bevelBox(1.42, 0.4, 1.05, 0.2), boya), 0, 0.41, 0.42);
+    put(g, new THREE.Mesh(bevelBox(1.0, 0.32, 0.9, 0.18), boya), 0, 0.37, 1.28);
+    // Kabin: alçak, geride, camları açık mavi. Bunlar da pahlı, çünkü
+    // yanlarındaki gövde pahlıyken keskin bir cam yapıştırılmış duruyor.
+    put(g, new THREE.Mesh(bevelBox(1.14, 0.36, 1.04, 0.18), boya), 0, 0.78, -0.68);
+    put(g, new THREE.Mesh(bevelBox(1.0, 0.3, 0.12, 0.05), cam), 0, 0.78, -0.16);
+    put(g, new THREE.Mesh(bevelBox(1.0, 0.26, 0.12, 0.05), cam), 0, 0.78, -1.2);
+    for (const sx of [-0.58, 0.58])
+      put(g, new THREE.Mesh(bevelBox(0.12, 0.24, 0.86, 0.05), cam), sx, 0.78, -0.68);
     // Arka kanat: gövdeden geride, havada, ve gövdeden geniş.
     for (const sx of [-0.62, 0.62])
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.3, 0.12), koyu), sx, 0.72, -1.62);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.86, 0.08, 0.4), koyu), 0, 0.9, -1.66);
+      put(g, new THREE.Mesh(bevelBox(0.12, 0.3, 0.14, 0.05), koyu), sx, 0.72, -1.62);
+    put(g, new THREE.Mesh(bevelBox(1.86, 0.1, 0.42, 0.06), koyu), 0, 0.9, -1.66);
     // Farlar.
-    for (const sx of [-0.28, 0.28])
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.12, 0.08), PROP_MAT('#fff3c4', 0.3)),
-          sx, 0.44, 1.66);
-    const tyre = new THREE.CylinderGeometry(0.36, 0.36, 0.26, 14);
-    for (const sx of [-0.86, 0.86]) for (const sz of [-0.95, 0.85])
+    for (const sx of [-0.3, 0.3])
+      put(g, new THREE.Mesh(bevelBox(0.3, 0.14, 0.12, 0.05), PROP_MAT('#fff3c4', 0.3)),
+          sx, 0.44, 1.7);
+    const tyre = new THREE.CylinderGeometry(0.36, 0.36, 0.28, 16);
+    for (const sx of [-0.86, 0.86]) for (const sz of [-0.95, 0.88]) {
       put(g, new THREE.Mesh(tyre, lastik), sx, 0.36, sz, 0, 0, Math.PI / 2);
+      // Jant: rakibin arabasında da lastiğin göbeği gövdenin rengindeydi ve
+      // yukarıdan tekerleği tekerlek yapan ayrıntı o.
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.3, 14), boya),
+          sx, 0.36, sz, 0, 0, Math.PI / 2);
+    }
     T.supercar = { g, h: 1.0, currency: 'banana', only: 'giant' };
   }
 
@@ -6534,25 +6592,25 @@ function propTemplates() {
   {
     const g = new THREE.Group();
     const paint = PROP_MAT('#2f7de0', 0.28);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.46, 3.1), paint), 0, 0.5, 0);
-    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.32, 0.5, 1.5), paint);
+    put(g, new THREE.Mesh(bevelBox(1.5, 0.46, 3.1), paint), 0, 0.5, 0);
+    const cabin = new THREE.Mesh(bevelBox(1.32, 0.5, 1.5), paint);
     put(g, cabin, 0, 0.96, -0.1);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.42, 0.1), PROP_MAT('#9fd8f5', 0.15)),
+    put(g, new THREE.Mesh(bevelBox(1.2, 0.42, 0.1), PROP_MAT('#9fd8f5', 0.15)),
         0, 0.96, 0.66);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.42, 0.1), PROP_MAT('#9fd8f5', 0.15)),
+    put(g, new THREE.Mesh(bevelBox(1.2, 0.42, 0.1), PROP_MAT('#9fd8f5', 0.15)),
         0, 0.96, -0.86);
     for (const sx of [-0.67, 0.67])
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.36, 1.3), PROP_MAT('#9fd8f5', 0.15)),
+      put(g, new THREE.Mesh(bevelBox(0.1, 0.36, 1.3), PROP_MAT('#9fd8f5', 0.15)),
           sx, 0.96, -0.1);
     const tyre = new THREE.CylinderGeometry(0.34, 0.34, 0.24, 14);
     const rubber = PROP_MAT('#26262c', 0.75);
     for (const sx of [-0.78, 0.78]) for (const sz of [-1.02, 1.02])
       put(g, new THREE.Mesh(tyre, rubber), sx, 0.34, sz, 0, 0, Math.PI / 2);
     for (const sx of [-0.48, 0.48])
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.08), PROP_MAT('#fff3c4', 0.3)),
+      put(g, new THREE.Mesh(bevelBox(0.34, 0.16, 0.08), PROP_MAT('#fff3c4', 0.3)),
           sx, 0.56, 1.56);
     for (const sx of [-0.48, 0.48])
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.08), PROP_MAT('#e0392b', 0.35)),
+      put(g, new THREE.Mesh(bevelBox(0.34, 0.16, 0.08), PROP_MAT('#e0392b', 0.35)),
           sx, 0.56, -1.56);
     T.sedan = { g, h: 1.24, currency: 'lychee', only: 'giant' };
   }
@@ -6561,13 +6619,13 @@ function propTemplates() {
   {
     const g = new THREE.Group();
     const paint = PROP_MAT('#d9483a', 0.28);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 3.0), paint), 0, 0.52, 0);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.56, 1.1), paint), 0, 1.03, 0.6);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.44, 0.1), PROP_MAT('#9fd8f5', 0.15)),
+    put(g, new THREE.Mesh(bevelBox(1.5, 0.5, 3.0), paint), 0, 0.52, 0);
+    put(g, new THREE.Mesh(bevelBox(1.3, 0.56, 1.1), paint), 0, 1.03, 0.6);
+    put(g, new THREE.Mesh(bevelBox(1.18, 0.44, 0.1), PROP_MAT('#9fd8f5', 0.15)),
         0, 1.03, 1.14);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.34, 0.3, 1.6), PROP_MAT('#a8362a', 0.4)),
+    put(g, new THREE.Mesh(bevelBox(1.34, 0.3, 1.6), PROP_MAT('#a8362a', 0.4)),
         0, 0.9, -0.68);
-    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.26, 1.44), PROP_MAT('#5c1f18', 0.6)),
+    put(g, new THREE.Mesh(bevelBox(1.16, 0.26, 1.44), PROP_MAT('#5c1f18', 0.6)),
         0, 0.94, -0.68);
     const tyre = new THREE.CylinderGeometry(0.36, 0.36, 0.26, 14);
     const rubber = PROP_MAT('#26262c', 0.75);
@@ -9045,6 +9103,7 @@ let currentTheme = THEMES.beach;
 // bu boyutta çamur gibi okunuyor — ışık rigi kurulurken öğrenilmiş şey bu,
 // ve tema başına ışık onu bozmamalı. Tek istisna Orbit: uzayda saçılma yok,
 // dolgu oradaki düşüklüğüyle anlamlı.
+
 function applyLight(theme) {
   const L = theme.light || LIGHT_DEFAULT;
   hemi.color.set(L.sky ?? LIGHT_DEFAULT.sky);

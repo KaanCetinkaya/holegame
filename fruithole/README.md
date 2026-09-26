@@ -2050,6 +2050,56 @@ Diamond'ın hemen ardından geliyor, yani aynı yer arka arkaya iki bölümde
 sertleşmesine yalnızca Orbit'te izin veriyor, çünkü bu boyutta sert ışık her
 küreyi yarı gölgede bırakıp çamura çeviriyor.
 
+## "Grafikler kötü" — parlaklık mı, kenar mı?
+
+Kaan rakibin arabasını bizimkinin yanına koydu: onlarınki yuvarlak,
+gölgeli, hacimli; bizimki kutu. Sorunun ne olduğu belliydi, hangi sebepten
+olduğu değil.
+
+### Önce yanlış cevap: parlaklık
+
+İlk tahmin ışıktı, ve teoride sağlamdı. Oyunun bütün malzemesi
+`MeshStandardMaterial` ve o malzemenin yarısı yansıma; sahnede yansıyacak bir
+şey (ortam haritası) olmayınca o yarı sıfır kalıyor. Ton eşlemesi de yoktu,
+yani doğrusal değerler doğrudan ekrana yazılıyor ve parlak yerler kesiliyordu.
+
+İkisi de eklendi: temanın kendi gök ve yer renginden üretilen bir ortam
+haritası, artı ACES ton eşlemesi.
+
+**Ekranda olan şey başka bir şey oldu: bütün palet soldu.** Kum krem rengine,
+sarı araba açık sarıya, kırmızı meyve pembeye döndü. ACES parlak yerleri
+yumuşatırken doygunluğu da alıyor ve bu oyunun rengi şeker rengi — alınacak
+doygunluğu yok.
+
+Geri alındı. Kaan'ın cevabı da aynı yeri gösteriyordu: *"parlak olmak zorunda
+değil, grafikler daha gerçekçi olsun."*
+
+### Doğru cevap: kenar
+
+Eksik olan şey parlaklık değil **pah**tı. Keskin köşeli bir kutu bu ışıkta
+tek bir düz renk oluyor: köşede ışığın değişeceği bir yüzey yok. Pahlı bir
+kenar ince bir şerit hâlinde ışığı yakalıyor ve nesne yassı bir boyadan
+hacimli bir şeye dönüyor.
+
+`bevelBox(w, h, d, r)` eklendi: yuvarlatılmış dikdörtgen bir şekil, pahlı
+uzatma. Parametre sırası `BoxGeometry` ile aynı, yani çağıran taraf hiçbir
+şeyi ters çevirmiyor ve dönüşüm tek satırlık bir değiştirme oluyor.
+
+İki ayrıntı ölçüyle yerleşti:
+
+* Pah kalınlığı derinliğin dörtte birini geçemiyor. Araba camı gibi ince bir
+  levhada pah levhanın kendisinden kalın olunca geometri içine dönüyor.
+* Köşe yarıçapı ene ve boya göre kırpılıyor, yoksa 0.03 enindeki bir çubuk
+  (ukulelenin teli) bozuluyor.
+
+Beş araç dönüştürüldü (spor araba, sedan, taksi, üstü açık, kamyonet, oyuncak
+araba) — 27 kutu. Şerit tahtalarının üçgen sayısı değişmedi (91 bin), çünkü
+araçlar dev nesne ve tahtada bir-iki tane oluyorlar.
+
+Kalan nesneler hâlâ kutu. `bevelBox` orada duruyor ve dönüşüm tek satır, ama
+her nesnenin üçgen bedeli var: bir kutu 12 üçgen, pahlı hâli birkaç yüz.
+Önce ekranda en çok görünenler dönüştürüldü.
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
