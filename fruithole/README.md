@@ -1863,7 +1863,62 @@ birer tane alınarak verildi.
 
 Aloha bir kalıp: yeni bir yer = yeni zemin + beş-altı kendine ait eşya +
 kendi ışığı + iki düzen. Kalıbın işlediği burada ölçüldü, ve şehirler aynı
-yoldan gelecek.
+yoldan geliyor.
+
+## Hollywood: bir şehri yukarıdan anlatmak
+
+Kaan'ın listesi LA ile başlıyor, sonra New York ve Dubai.
+
+Şehir, bu kamera için zor bir konu. Bir şehri tanıtan her şey — gökdelen,
+tabela, köprü, siluet — **yandan** bakıldığında görünüyor, oyun ise tam
+tepeden bakıyor. LA'nin şansı, en tanınan işaretinin zaten yerde olması:
+kaldırıma gömülü yıldızlar.
+
+Zemin bu yüzden Walk of Fame: sıcak beton grisi, terrazzo kırıntısı, derzler,
+ve karo başına iki pembe yıldız. Yıldızlar bilerek seyrek — sık olunca zemin
+meyveyle yarışıyor, oysa bakılacak yer tahtanın kendisi.
+
+Açık bir zemin seçilmesinin ayrı bir sebebi var: Aloha'nın kara kumu yeni
+gelmişti ve iki koyu yer arka arkaya çıkınca oyuncu için ikisi de "karanlık
+bölüm" oluyor.
+
+### Kaldırımın dışı yol
+
+İlk yazışta Hollywood, Drive-In'in asfaltını paylaşıyordu — aynı malzeme,
+aynı iş. `holetheme.mjs` düşürdü: her yerin kendi dışı olmalı. Kural haklı
+çıktı, çünkü ikisi aynı şeyi anlatmıyor. Otoparkın dışı otopark; kaldırımın
+dışı **yol**, ve aradaki fark tam olarak o kesikli sarı çizgi. Paylaşsalardı
+iki şehir de aynı boşluğa bakıyor olurdu.
+
+Çizgi karo kenarında kesilmiyor ve kesikler karo genişliğine tam bölünüyor:
+bölünmeseydi her karonun başında çizgi kayar, yol boyunca bir ek yeri
+görünürdü.
+
+### Yassı olmaları tesadüf değil
+
+Beş nesne: klaket, film makarası, kaykay, stüdyo ışığı, üstü açık araba.
+Hepsi yassı, ve bu şehrin şansı — Hollywood'un eşyaları zaten yassı, yani
+yukarıdan bakan kamera için doğru nesneler.
+
+İki tanesi ölçüyle düzeltildi:
+
+* **Stüdyo ışığı** ilk hâlinde uzun ayaklı ve dar kanatlıydı; yukarıdan
+  siluetin tamamı ayaklardı ve nesne bir yıldız işaretine benziyordu. Ayaklar
+  kısaltıldı, lambanın ağzı büyütüldü, kanatlar genişletilip yatırıldı — şimdi
+  daireyi çevreliyorlar.
+* **Üstü açık araba** zaten üç arabası olan bir oyuna dördüncü araba
+  eklemiyor. Drive-In'in üçü de kapalı, yani yukarıdan renkli birer kutu.
+  Bunu ayıran şey içinin görünmesi: iki koltuk, direksiyon, baş dayanağı.
+
+### Düzenler
+
+Hollywood'un iki düzeni **Checkers** (kareler şehir bloğu, ve kaldırımın
+derzleri onunla aynı yöne gidiyor) ve **Star** — adı zaten söylüyor,
+kaldırımdaki yıldızın tahta boyunda hâli. Drive-In ve Snow Day birer düzene
+düştü; testin izin verdiği fark bu.
+
+İlk denemede **Blocks** alınacaktı ama o `voxel: true` — küp meyveli düzen,
+ve küp meyve Gadget Shop'un dili. Şehir bloğu olurdu ama yanlış şehir.
 
 ## Bildirim
 

@@ -5407,6 +5407,141 @@ function propTemplates() {
     T.hibiscus = { g, h: 0.7, currency: 'berry' };
   }
 
+  // --- los angeles ---------------------------------------------------
+  //
+  // Şehri anlatan şey zemin (kaldırım + yıldızlar); buradakiler o kaldırımın
+  // **üstünde** duranlar. Hepsi yassı, ve bu tesadüf değil: yukarıdan bakan
+  // bir kamerada Hollywood'un eşyaları — klaket, film makarası, kaykay —
+  // zaten yassı. Şehrin şansı bu.
+
+  // Klaket.
+  {
+    const g = new THREE.Group();
+    const koyu = PROP_MAT('#22242b', 0.45);
+    const ak = PROP_MAT('#f2f2ee', 0.4);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.14, 1.25), koyu), 0, 0.07, 0.25);
+    // Tahtadaki yazı satırları: yukarıdan görünen tek doku.
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.05, 0.07), ak), 0, 0.15, -0.05 + i * 0.3);
+    // Menteşeli üst çubuk, hafif açık: kapalı dursaydı yukarıdan düz bir
+    // dikdörtgen olurdu ve klaketi klaket yapan şey o çizgi.
+    const cubuk = new THREE.Group();
+    put(cubuk, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.15, 0.3), koyu), 0, 0, 0);
+    for (let i = 0; i < 4; i++) {
+      const s = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.17, 0.32), ak);
+      s.rotation.y = 0.38;
+      put(cubuk, s, -0.56 + i * 0.37, 0.01, 0);
+    }
+    cubuk.position.set(0, 0.26, -0.5);
+    cubuk.rotation.x = -0.3;
+    g.add(cubuk);
+    T.clapper = { g, h: 0.5, currency: 'lychee', only: 'giant' };
+  }
+
+  // Film makarası.
+  //
+  // Yukarıdan bakan kamera için oyundaki en kolay nesnelerden: daire, göbek,
+  // ve delikler. Delikler olmadan bir tekerlek; delikler onu makara yapıyor.
+  {
+    const g = new THREE.Group();
+    const metal = PROP_MAT('#5b6068', 0.35);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.82, 0.16, 20), metal), 0, 0.3, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.3, 20),
+                          PROP_MAT('#2b2d33', 0.6)), 0, 0.16, 0);
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.24, 10),
+                            PROP_MAT('#2b2d33', 0.6)),
+          Math.cos(a) * 0.48, 0.32, Math.sin(a) * 0.48);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.24, 12),
+                          PROP_MAT('#c9922f', 0.3)), 0, 0.36, 0);
+    // Kenardan sarkan film şeridi: makaranın dolu olduğunu söyleyen şey.
+    const serit = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.04, 0.9), PROP_MAT('#3a2d24', 0.5));
+    put(g, serit, 0.72, 0.06, 0.5, 0, -0.5, 0);
+    T.filmreel = { g, h: 0.5, currency: 'melon', only: 'giant' };
+  }
+
+  // Kaykay.
+  {
+    const g = new THREE.Group();
+    const tahta = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), PROP_MAT('#e0534f', 0.4));
+    tahta.scale.set(0.42, 0.07, 1.25);
+    put(g, tahta, 0, 0.26, 0);
+    // Uçları kalkık: düz bir tahta yukarıdan bir tabure altlığı.
+    for (const sz of [-1.12, 1.12]) {
+      const uc = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), PROP_MAT('#e0534f', 0.4));
+      uc.scale.set(0.38, 0.07, 0.3);
+      put(g, uc, 0, 0.34, sz, sz > 0 ? -0.5 : 0.5, 0, 0);
+    }
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.9), PROP_MAT('#f6e7c8', 0.4)),
+        0, 0.3, 0);
+    for (const sx of [-0.3, 0.3]) for (const sz of [-0.66, 0.66])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.13, 10),
+                            PROP_MAT('#f2d64a', 0.35)), sx, 0.16, sz, 0, 0, Math.PI / 2);
+    T.skateboard = { g, h: 0.42, currency: 'banana', only: 'giant' };
+  }
+
+  // Stüdyo ışığı.
+  //
+  // Yukarıdan görünen şey lambanın **ağzı**: parlak bir daire, ve etrafında
+  // dört kanat. Üç ayak siluetten taşıyor, yoksa tahtada duran şey bir konserve.
+  {
+    const g = new THREE.Group();
+    const govde = PROP_MAT('#2f333b', 0.4);
+    // Ayaklar kısa ve içeride. İlk hâlleri uzun ve açıktı: yukarıdan bakınca
+    // siluetin tamamı ayaklardı ve nesne bir yıldız işaretine benziyordu.
+    // Bakılacak şey lambanın ağzı, ayaklar yalnızca onu yerden kaldırıyor.
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.8, 6), govde),
+          Math.cos(a) * 0.2, 0.36, Math.sin(a) * 0.2, Math.cos(a) * 0.32, 0, -Math.sin(a) * 0.32);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.5, 8), govde), 0, 0.85, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.52, 0.6, 16), govde), 0, 1.35, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.64, 0.64, 0.1, 16),
+                          PROP_MAT('#ffe98a', 0.16)), 0, 1.67, 0);
+    // Kanatlar (barndoors): ağzın kenarından dışa açılan dört levha. Geniş ve
+    // yatık, yani yukarıdan bakınca daireyi çevreliyorlar — dar ve dik
+    // olduklarında dört ince çubuk gibi duruyorlardı.
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2;
+      const k = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.6, 0.06), govde);
+      put(g, k, Math.cos(a) * 0.78, 1.78, Math.sin(a) * 0.78, 0.85, -a, 0);
+    }
+    T.spotlight = { g, h: 2.3, currency: 'lychee', only: 'giant' };
+  }
+
+  // Üstü açık araba.
+  //
+  // Drive-In'de zaten üç araba var ve hepsi kapalı: yukarıdan renkli birer
+  // kutu. Bunu onlardan ayıran şey **içinin görünmesi** — iki koltuk, direksiyon
+  // ve bir de arkadaki baş dayanağı. Üstü açık bir araba yukarıdan bakınca
+  // başka bir nesne.
+  {
+    const g = new THREE.Group();
+    const boya = PROP_MAT('#d63b4e', 0.3);
+    const ic = PROP_MAT('#2b2118', 0.6);
+    const lastik = PROP_MAT('#1e2026', 0.7);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.36, 2.1), boya), 0, 0.36, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.3, 1.0), boya), 0, 0.62, 0.5);
+    // Açık kabin: gövdenin üstünde koyu bir oyuk.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.22, 0.95), ic), 0, 0.6, -0.34);
+    for (const sx of [-0.19, 0.19]) {
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.32), ic), sx, 0.69, -0.44);
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.34, 0.1), ic), sx, 0.82, -0.66);
+    }
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.03, 6, 12), ic),
+        -0.19, 0.74, -0.12, 0.9, 0, 0);
+    // Ön cam: yatık, ince, camgöbeği.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.34, 0.05),
+                          PROP_MAT('#bfe6ee', 0.15)), 0, 0.84, 0.06, -0.42, 0, 0);
+    for (const sx of [-0.5, 0.5]) for (const sz of [-0.66, 0.72])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.17, 12), lastik),
+          sx, 0.26, sz, 0, 0, Math.PI / 2);
+    T.convertible = { g, h: 1.0, currency: 'berry', only: 'giant' };
+  }
+
   // --- world cup -----------------------------------------------------
 
   // Football. The panels are separate flattened discs stuck to the surface
@@ -7235,6 +7370,65 @@ function blackSandTexture() {
   return tex;
 }
 
+// Los Angeles'ın kaldırımı: Walk of Fame.
+//
+// Bir şehri yukarıdan bakan bir kamerada anlatmanın en kısa yolu zemini —
+// gökdelen, tabela, siluet, hiçbiri bu açıdan görünmüyor. LA'nin şansı şu ki
+// en tanınan işareti zaten **yerde**: kaldırıma gömülü pembe yıldızlar.
+//
+// Zemin bilerek açık. Aloha'nın kara kumu yeni geldi ve iki koyu yer arka
+// arkaya çıkınca oyuncu için ikisi "karanlık bölüm" oluyor. Beton grisi
+// sıcak tarafından (`#cfc3b4`): kumdan daha gri, mermerden daha mat, ve
+// derzleri var — kumun olmayan tek şey o.
+//
+// Yıldızlar seyrek: karo başına iki tane. Sık olunca zemin meyveyle
+// yarışıyordu; oyunun bakılacak yeri tahtanın kendisi, zemin yalnızca
+// nerede olduğunu söylemeli.
+function sidewalkTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#cfc3b4';
+  ctx.fillRect(0, 0, S, S);
+  // Terrazzo kırıntısı: betonu düz bir renk olmaktan çıkaran şey.
+  for (let i = 0; i < 2200; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.08;
+    const r5 = Math.random();
+    ctx.fillStyle = r5 < 0.4 ? '#b3a595' : r5 < 0.8 ? '#e4dbcd' : '#8f8375';
+    const x = Math.random() * S, y = Math.random() * S, r = 0.8 + Math.random() * 2;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  // Derzler. Karonun kenarından geçiyorlar, yani döşendiğinde kaldırım
+  // kesintisiz bir ızgara oluyor — ortada dursalardı her karo ayrı bir
+  // levha gibi görünürdü.
+  ctx.globalAlpha = 0.5;
+  ctx.strokeStyle = '#9d9081';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, 0.5); ctx.lineTo(S, 0.5);
+  ctx.moveTo(0.5, 0); ctx.lineTo(0.5, S);
+  ctx.moveTo(0, S / 2); ctx.lineTo(S, S / 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  // İki yıldız, pirinç kenarlı.
+  const yildiz = (cx, cy, R, renk) => {
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+      const r = i % 2 ? R * 0.42 : R;
+      const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = renk; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = '#c9922f'; ctx.stroke();
+  };
+  yildiz(S * 0.27, S * 0.26, 30, '#c25d72');
+  yildiz(S * 0.72, S * 0.74, 30, '#c25d72');
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(7, 7);
+  return tex;
+}
+
 // A mown pitch. The stripes are the whole trick — plain green is a felt mat,
 // and the alternating bands are what makes it read as a football ground from
 // the first frame, before you have seen a single ball.
@@ -7588,7 +7782,7 @@ const GROUND_TEX = {};
 // boş ve yalnızca oynanmış temaları içeriyor. "Bu temanın zemini tanımlı mı"
 // sorusu ona sorulduğunda cevap her zaman "hayır" çıkıyor.
 const GROUND_MAKERS = { sand: groundTexture, blacksand: blackSandTexture,
-  grass: grassTexture,
+  sidewalk: sidewalkTexture, grass: grassTexture,
   wood: woodTexture, snow: snowTexture, marble: marbleTexture,
   deck: deckTexture, bar: barTexture, asphalt: asphaltTexture,
   tiles: tileTexture, soil: soilTexture, cobbles: cobbleTexture };
@@ -7790,6 +7984,31 @@ function darkAsphaltTexture() {
   return tex;
 }
 
+// Bulvar: aynı asfalt, ama üstünde kesikli şerit çizgisi.
+//
+// Çizgi karonun ortasından yatay geçiyor ve kenarlarda kesilmiyor, yani
+// döşendiğinde kesintisiz bir yol oluyor. Kesikler eşit aralıklı ve karo
+// genişliğine tam bölünüyor — bölünmeseydi her karonun başında çizgi
+// kayardı ve yol boyunca bir kesik izi görünürdü.
+function boulevardTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#22252b'; ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2600; i++) {
+    ctx.globalAlpha = 0.04 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? '#15181d' : '#3a3f48';
+    const x = Math.random() * S, y = Math.random() * S, r = 0.6 + Math.random() * 2.2;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 0.85;
+  ctx.fillStyle = '#d9b64a';
+  for (let i = 0; i < 4; i++) ctx.fillRect(i * (S / 4) + 8, S / 2 - 3, S / 8, 6);
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(14, 14);
+  return tex;
+}
+
 // Zeminler gibi tembel: bir tema ilk kez oynandığında üretiliyor.
 const SURROUND_TEX = {};
 const SURROUND_MAKERS = {
@@ -7803,6 +8022,13 @@ const SURROUND_MAKERS = {
   parlour: () => speckTexture('#4a382a', '#33261c', '#63503c', 16),
   bankstone: darkStoneTexture,
   tarmac: darkAsphaltTexture,
+  // Kaldırımın dışı bulvar: asfalt, ve üstünde şerit çizgisi.
+  //
+  // Önce Drive-In'in asfaltı paylaşılacaktı — aynı malzeme, aynı iş. Ama
+  // `holetheme.mjs` her yerin kendi dışını istiyor ve haklı: otoparkın dışı
+  // otopark, kaldırımın dışı **yol**, ve ikisinin arasındaki fark tam olarak
+  // o sarı çizgi. Paylaşılsaydı iki şehir de aynı boşluğa bakıyor olurdu.
+  boulevard: boulevardTexture,
   // Pazarın dışı yine kaldırım, ama gölgede kalan yan sokak: aynı taş,
   // biraz koyusu. İlk değer mağaza zemini kadar karanlıktı ve gündüz
   // kurulan bir pazarın etrafını geceye çeviriyordu — tahtanın dışı
@@ -7901,6 +8127,31 @@ const THEMES = {
     // — kara kum ışığı geri vermiyor. Dolgu bu yüzden biraz daha yüksek,
     // yoksa meyvenin alt yarısı zeminin koyusuna karışıyor.
     light: { sky: '#ffffff', bounce: '#4d4a40', hemi: 1.5, amb: '#fff1dc', ambI: 0.55, sun: '#fff6e4', sunI: 0.78 },
+  },
+  // Los Angeles. Şehirlerin ilki, ve kalıbı Aloha'dan alıyor: yeni zemin +
+  // kendine ait eşyalar + kendi ışığı + ilk turda iki düzen.
+  //
+  // Bir şehri yukarıdan bakan bir kamerada anlatmak kolay değil — gökdelen,
+  // tabela, siluet, hiçbiri bu açıdan görünmüyor. LA'nin şansı en tanınan
+  // işaretinin zaten **yerde** olması: kaldırıma gömülü yıldızlar.
+  //
+  // Kaldırımın dışı yol: Drive-In'in asfaltı. Kendi dokusunu yazmak aynı
+  // şeyin ikinci kopyası olurdu, ve ikisinin anlattığı yer de aynı — şehrin
+  // tahtanın bittiği yerde devam eden kısmı.
+  la: {
+    name: 'Hollywood', icon: '🎬',
+    ground: 'sidewalk', surround: '#2b2e35', ripples: false,
+    edge: '#e8e2d4', surf: null,
+    beyond: 'boulevard',
+    props: ['clapper', 'filmreel', 'skateboard', 'spotlight', 'convertible',
+            // Palmiye burada da: LA'nin bulvarları palmiyeli ve nesne zaten
+            // elimizde. Gözlük ve trafik konisi de şehre ait.
+            'palm', 'shades', 'cone', 'donut', 'lolly'],
+    hero: ['convertible', 'palm'],
+    // Öğleden sonra, hafif puslu: gökyüzü beyaz değil kırık beyaz, ve
+    // aşağıdan betonun soluk grisi geliyor. Anahtar ışık sıcak ama
+    // Harvest'ın altın saati kadar değil — orası akşam, burası gün ortası.
+    light: { sky: '#fdf6ea', bounce: '#b3a795', hemi: 1.42, amb: '#fff6e6', ambI: 0.46, sun: '#fff2d8', sunI: 0.74 },
   },
   pitch: {
     name: 'Match Day', icon: '⚽',
@@ -8860,7 +9111,9 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.4, 12) > 0.74,
   },
   {
-    name: 'Star', icon: '⭐', theme: 'snow',
+    // Hollywood'un iki düzeninden biri, ve adı zaten söylüyor: kaldırımdaki
+    // yıldızın tahta boyunda hâli. Snow Day'den alındı, orada Walls kaldı.
+    name: 'Star', icon: '⭐', theme: 'la',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const d = Math.hypot(nx, ny * 0.95);
@@ -9014,7 +9267,10 @@ const PATTERNS = [
     // Dama. Üçe üç bloklar, biri dolu biri boş — tahtadaki en parçalı düzen.
     // Her blok ayrı bir ada, yani zinciri sürdürmek rotayı önceden kurmayı
     // gerektiriyor: yanlış sıra, iki blok arası boşlukta zinciri kırıyor.
-    name: 'Checkers', icon: '🏁', theme: 'drivein',
+    // İkinci Hollywood düzeni: kareler şehir bloğu oluyor, ve kaldırım
+    // zemininin derzleri onunla aynı yöne gidiyor. Drive-In'den alındı,
+    // orada Ring kaldı.
+    name: 'Checkers', icon: '🏁', theme: 'la',
     props: 0.06,
     empty: (r, c) => checkerAt(r, c) === null,
     // Blok başına tek meyve. Karışık renk, kareleri tekrar tek bir dokuya
