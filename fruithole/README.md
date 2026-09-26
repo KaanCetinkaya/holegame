@@ -3965,9 +3965,22 @@ duran bir kahve makinesi. Halkanın işi bir şeyi çevrelemek ve **çevrelediğ
 
 Bizim halkalarımızın ortasına önce üç normal iri meyve konmuştu ve yetmedi:
 orta dolu görünüyordu ama "bir şeyin etrafı" gibi durmuyordu. Ortadaki nesne,
-çevresindekilerin dört-beş katı olmalı. Artık **dev meyve** duruyor — boncuk
-0.30, dev 1.34, yani 4.5 katı.
+çevresindekilerin dört-beş katı olmalı.
 
-Dev aynı zamanda bir hedef: delik onu ancak tahtanın yarısını süpürdükten
-sonra yutabiliyor (`f.r <= holeRadius * 0.92`), yani halkanın ortasındaki şey
-hem bakılacak yer hem de beklenecek şey.
+Sonra dev meyve kondu ve o da tam olmadı: dev meyve de iri ama yine meyve —
+yirmi boncuğun ortasındaki yirmi birinci meyve, göz için aynı şeyin büyüğü.
+Rakibin karesinde ortada duran şey bir kahve makinesiydi, yani **başka
+türden** bir şey.
+
+Artık temanın kendi eşyaları duruyor: kar tahtasında penguen, fincan, eldiven,
+iglo; sahilde kova; uzayda roket. Boyut dev meyvenin boyutu (1.34, boncuğun
+4.5 katı) ama cinsi başka, ve "burada bir şey var" diyen şey o fark.
+
+İki yan kazanç:
+
+* **Koleksiyon.** Nesneler zaten sayılıyordu ("41/63 buldun") ama tahtaya
+  serpiştirilmiş küçük şeylerdi. Şimdi halkanın ortasında duran, gidip alınan
+  şeyler.
+* **Hedef.** Delik onları ancak tahtanın yarısını süpürdükten sonra yutabiliyor
+  (`f.r <= holeRadius * 0.92`), yani halkanın ortasındaki şey hem bakılacak yer
+  hem beklenecek şey.

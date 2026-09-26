@@ -8986,14 +8986,30 @@ function ribbonStrand(nokta, type, r = RIBBON_R) {
 // var ve tahtanın "bakılacak yeri" o oluyor. Sadece boncuktan ibaret bir
 // tahta, düzenli de olsa, yine tek bir dokuya dönüyor.
 function ribbonLandmarks(noktalar) {
+  // Halkanın ortasına konacak nesneler: temanın kendi eşyalarından, ve
+  // yalnızca dev boyda durabilenlerden.
+  //
+  // Meyve değil nesne, çünkü rakibin karesinde halkanın ortasında duran şey
+  // bir kahve makinesiydi — çevresindekilerden **başka türden** bir şey. Dev
+  // bir meyve de iri ama yine meyve: yirmi boncuğun ortasındaki yirmi birinci
+  // meyve, göz için aynı şeyin büyüğü. Bir teneke, bir kova, bir roket ise
+  // "burada bir şey var" diyor.
+  //
+  // Temanın havuzu boşsa dev meyveye düşülüyor: sahilde kova, uzayda roket
+  // varken ortada meyve durması da tuhaf olurdu ama hiçbir şey durmaması
+  // daha kötü.
+  const nesneHavuz = (currentTheme.props || GIANT_PROPS)
+    .filter(id => GIANT_PROPS.includes(id));
   for (const nk of noktalar) {
     const [x, z, type] = nk;
     const dev = nk[3] === 'dev';
     const r = dev ? GIANT_R : BIG_R;
     if (Math.abs(x) > fieldHalfX - r || Math.abs(z) > fieldHalfZ - r) continue;
-    const vis = fruitVisual(type, r, true);
+    const nesne = dev && nesneHavuz.length ? pick(nesneHavuz) : null;
+    const vis = nesne ? propVisual(nesne, r * 1.45) : fruitVisual(type, r, true);
     fruits.push({ mesh: null, vis, jit: 1, rotY: rnd() * Math.PI * 2,
-                  x, z, r, type, big: true, giant: dev, prop: null,
+                  x, z, r, type: nesne ? vis.currency : type,
+                  big: true, giant: dev, prop: nesne,
                   eaten: false, baseY: vis.baseY, nudge: 0 });
   }
 }
