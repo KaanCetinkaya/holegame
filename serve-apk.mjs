@@ -70,13 +70,30 @@ const mb = (size / 1048576).toFixed(1);
 const fileName = devMi ? `${appName}-dev.apk` : `${appName}.apk`;
 const port = Number(process.env.PORT) || 8787;
 
-// Yerel ağdaki IPv4 adresleri. Birden fazla çıkabiliyor (Wi-Fi, ethernet,
-// sanal makine adaptörleri); hangisinin doğru olduğunu bilemeyiz, hepsini
-// yazıp telefonda çalışanı denemesini istiyoruz.
-const addresses = Object.values(networkInterfaces())
-  .flat()
-  .filter(n => n && n.family === 'IPv4' && !n.internal)
-  .map(n => n.address);
+// Yerel ağdaki IPv4 adresleri. Birden fazla çıkabiliyor ve hangisinin doğru
+// olduğunu buradan bilemiyoruz — ama hangisinin **yanlış** olduğunu büyük
+// ölçüde bilebiliyoruz, ve önceki sürüm onu da söylemiyordu: adresler
+// çıplak bir liste hâlinde alt alta yazılıyordu.
+//
+// "ERR_ADDRESS_UNREACHABLE" alan bir telefonun iki sebebi var ve ikisi de
+// bu listede görünüyor: ya sanal makine adaptörünün adresi seçilmiş (Docker,
+// WSL, VirtualBox — bilgisayarda duruyor ama ev ağına çıkmıyor), ya da
+// bilgisayar hem kabloya hem Wi-Fi'ya bağlı ve telefonun olduğu ağ
+// diğerinde. Kartın adı ikisini de ayırt ettiriyor.
+const AGLAR = Object.entries(networkInterfaces())
+  .flatMap(([ad, list]) => (list || [])
+    .filter(n => n && n.family === 'IPv4' && !n.internal)
+    .map(n => ({ ad, adres: n.address })));
+
+// Sanal kartlar sona. Adları Windows'ta "vEthernet (WSL)", "VirtualBox Host-Only
+// Network", "Docker Desktop" gibi geçiyor; 192.168.56.x ve 172.x de klasik
+// sanal aralıklar.
+const SANAL = /vethernet|virtualbox|vmware|docker|hyper-?v|loopback|tailscale|zerotier|radmin|tap-|utun/i;
+const sanalMi = n => SANAL.test(n.ad)
+  || n.adres.startsWith('192.168.56.')
+  || n.adres.startsWith('172.');
+const ADAY = [...AGLAR.filter(n => !sanalMi(n)), ...AGLAR.filter(sanalMi)];
+const addresses = ADAY.map(n => n.adres);
 
 const page = `<!doctype html>
 <html lang="tr"><head>
@@ -114,6 +131,14 @@ const page = `<!doctype html>
 const server = createServer((req, res) => {
   const path = (req.url || '/').split('?')[0];
 
+  // Her istek yazılıyor, sadece indirme değil.
+  //
+  // "Bu siteye ulaşılamıyor" ekranında tek bilinmeyen şu: telefon buraya
+  // ulaşıp bir cevap mı alamadı, yoksa hiç ulaşamadı mı. İkisi bambaşka iki
+  // sorun (biri sunucu, diğeri adres/güvenlik duvarı) ve terminal ikisinde
+  // de sessiz kalıyordu.
+  console.log(`  istek geldi <- ${req.socket.remoteAddress}  ${path}`);
+
   if (path === `/${fileName}`) {
     res.writeHead(200, {
       'Content-Type': 'application/vnd.android.package-archive',
@@ -140,14 +165,23 @@ server.listen(port, '0.0.0.0', () => {
   console.log(`${app.label} — ${mb} MB`);
   console.log('='.repeat(60));
   console.log('\nTelefonun tarayıcısına bu adresi yaz:\n');
-  if (addresses.length) {
-    for (const a of addresses) console.log(`    http://${a}:${port}`);
-    if (addresses.length > 1) console.log('\n  (birden fazla adres var, çalışanı bulana kadar dene)');
+  if (ADAY.length) {
+    for (const n of ADAY) {
+      const not = sanalMi(n) ? '  (sanal kart — büyük ihtimalle çalışmaz)' : '';
+      console.log(`    http://${n.adres}:${port}${not}`);
+      console.log(`        ${n.ad}`);
+    }
+    if (ADAY.length > 1) console.log('\n  İlk sıradaki en muhtemel olanı; çalışmazsa sıradakini dene.');
   } else {
     console.log('    Ağ adresi bulunamadı — Wi-Fi bağlı mı?');
   }
   console.log('\nTelefon ve bilgisayar aynı Wi-Fi\'da olmalı.');
-  console.log('Windows ilk seferde güvenlik duvarı izni sorabilir: "İzin ver" de.');
+  console.log('\nTelefon "Bu siteye ulaşılamıyor" diyorsa:');
+  console.log('  1. Aşağıda "istek geldi" satırı çıkıyor mu bak. Çıkmıyorsa telefon');
+  console.log('     buraya hiç ulaşamıyor, yani sorun adreste ya da güvenlik duvarında.');
+  console.log('  2. Listedeki diğer adresi dene.');
+  console.log('  3. Windows güvenlik duvarı: PowerShell\'i yönetici olarak açıp');
+  console.log(`     netsh advfirewall firewall add rule name="holegame ${port}" dir=in action=allow protocol=TCP localport=${port}`);
   console.log('\nBitince Ctrl+C ile kapat.\n');
 });
 
