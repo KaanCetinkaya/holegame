@@ -9012,18 +9012,30 @@ function buildRibbon(kind) {
       const r0 = RIBBON_GAP * (k + 0.6), r1 = RIBBON_GAP * (k + 1.6);
       ribbonStrand(t => {
         const a = t * TAU, rr = r0 + (r1 - r0) * t;
-        return [cx + Math.cos(a) * rr, cz + Math.sin(a) * rr * 0.92];
+        return [cx + Math.cos(a) * rr, cz + Math.sin(a) * rr];
       }, renk(k));
       if (k % 2 === 1) isaret.push([cx + r0, cz, renk(k + 2)]);
     }
   } else if (kind === 'rings') {
+    // İç içe tam daireler, ve içe doğru parçalar büyüyor.
+    //
+    // Rakibin tahtasında olan şey bu: dışta küçük boncuklardan bir halka,
+    // içinde daha iri meyveler, ortada en irileri. Hepsi aynı boyda olsaydı
+    // halkalar birbirinden ayrılmaz, tek bir hedef dokusu olurdu — boy farkı
+    // burada süs değil, hangi halkanın ne olduğunu söyleyen şey.
+    //
+    // Daireler de tam daire. Eskiden z ekseninde 0.92 ile eziliyorlardı
+    // (kamera eğik diye) ama ekranda bunun karşılığı "daire değil elips" ve
+    // eşit aralıklı boncuklar eşit aralıklı durmuyordu.
     const tur = Math.floor(Math.hypot(mX, mZ) / RIBBON_GAP);
     for (let k = 1; k <= tur; k++) {
       const rr = k * RIBBON_GAP;
-      ribbonStrand(t => [Math.cos(t * TAU) * rr, Math.sin(t * TAU) * rr * 0.92], renk(k));
+      // Dıştan içe: 0.30 → 0.46
+      const boy = RIBBON_R + (1 - Math.min(1, (k - 1) / Math.max(1, tur - 1))) * 0.16;
+      ribbonStrand(t => [Math.cos(t * TAU) * rr, Math.sin(t * TAU) * rr], renk(k), boy);
     }
     isaret.push([0, 0, renk(0)]);
-    for (let k = 2; k <= tur; k += 3) isaret.push([0, k * RIBBON_GAP * 0.92, renk(k)]);
+    for (let k = 2; k <= tur; k += 3) isaret.push([0, k * RIBBON_GAP, renk(k)]);
   } else if (kind === 'serpentine') {
     // Yılan: uçlarda dönen tek bir kesintisiz şerit.
     //
@@ -9056,13 +9068,20 @@ function buildRibbon(kind) {
     // Halka sayısı: beş birimde bir yerine üçte bir. Yedi halka otuz birimlik
     // tahtaya dağılınca ekranda aynı anda ancak ikisi kalıyordu ve tahta boş
     // görünüyordu.
+    // Her halka bir "gül": dışta küçük boncuklardan çember, ortasında iri
+    // meyveler. Rakibin ekran görüntüsündeki düzen bu — halkanın işi bir
+    // şeyi **çevrelemek**, tek başına durmak değil.
     const say = Math.max(6, Math.round((mZ * 2) / 3));
     for (let k = 0; k < say; k++) {
       const cx = (rnd() * 2 - 1) * (mX - 3.2);
       const cz = -mZ + 2.4 + (k + rnd() * 0.4) * ((mZ * 2 - 4.8) / say);
-      const rr = 1.6 + rnd() * 1.4;
+      const rr = 1.9 + rnd() * 1.2;
       ribbonStrand(t => [cx + Math.cos(t * TAU) * rr, cz + Math.sin(t * TAU) * rr], renk(k));
-      isaret.push([cx, cz, renk(k + 1)]);
+      // Ortadaki üçlü: halkanın çevrelediği şey.
+      const ic = renk(k + 1);
+      isaret.push([cx, cz + 0.55, ic]);
+      isaret.push([cx - 0.78, cz - 0.62, ic]);
+      isaret.push([cx + 0.78, cz - 0.62, ic]);
     }
   } else {
     // Ağ: merkezden çıkan ışınlar, üstlerinden geçen halkalar.
@@ -9077,19 +9096,19 @@ function buildRibbon(kind) {
       const a = (k / kol) * TAU;
       ribbonStrand(t => {
         const rr = 1.6 + t * (enBuyuk - 1.6);
-        return [Math.cos(a) * rr, Math.sin(a) * rr * 0.92];
+        return [Math.cos(a) * rr, Math.sin(a) * rr];
       }, renk(k));
     }
     const halka = Math.max(2, Math.floor(enBuyuk / (RIBBON_GAP * 2)));
     for (let k = 1; k <= halka; k++) {
       const rr = (k / (halka + 0.2)) * enBuyuk;
-      ribbonStrand(t => [Math.cos(t * TAU) * rr, Math.sin(t * TAU) * rr * 0.92],
+      ribbonStrand(t => [Math.cos(t * TAU) * rr, Math.sin(t * TAU) * rr],
                    renk(k + 2));
     }
     isaret.push([0, 0, renk(2)]);
     for (let k = 0; k < kol; k += 4) {
       const a = (k / kol) * TAU;
-      isaret.push([Math.cos(a) * enBuyuk * 0.45, Math.sin(a) * enBuyuk * 0.42, renk(k + 1)]);
+      isaret.push([Math.cos(a) * enBuyuk * 0.45, Math.sin(a) * enBuyuk * 0.45, renk(k + 1)]);
     }
   }
 

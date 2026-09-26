@@ -3910,3 +3910,23 @@ birkaç noktada toplanınca "şurada bir şey var" oluyor.
 Ortak ders: **rastgeleliğin mekânsal olması gerekiyor.** Hücre başına atılan
 zar düzensizlik üretiyor; aynı zar bir gürültü alanından okunduğunda desen
 üretiyor.
+
+### Daire tam daire olmalı
+
+Kaan bir rakip ekran görüntüsü attı ve tek cümlesi "bak aşağıdaki gibi circle
+yapmıyor" oldu. Karede küçük meyvelerden kusursuz bir çember, içinde daha iri
+armutlar, ortada elmalar vardı.
+
+Üç fark bulundu:
+
+**Dairelerimiz daire değildi.** Kamera eğik diye z ekseninde 0.92 ile
+eziliyorlardı. Ekrandaki karşılığı elips, ve eğri boyunca eşit aralıklı dizilen
+boncuklar elipste eşit aralıklı durmuyor — yanlarda sıkışıp uçlarda açılıyor.
+Çarpan kaldırıldı.
+
+**Her şey aynı boydaydı.** Rakipte dıştan içe parçalar büyüyor ve halkaları
+birbirinden ayıran şey bu. Artık iç içe halkalarda boncuk 0.30'dan 0.46'ya
+çıkıyor: boy farkı süs değil, hangi halkanın ne olduğunu söyleyen şey.
+
+**Halkalarımız boştu.** Rakipte halkanın işi bir şeyi **çevrelemek**. Dağınık
+halkaların ortasına artık üç iri meyve konuyor.
