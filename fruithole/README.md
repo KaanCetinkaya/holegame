@@ -3984,3 +3984,35 @@ iglo; sahilde kova; uzayda roket. Boyut dev meyvenin boyutu (1.34, boncuğun
 * **Hedef.** Delik onları ancak tahtanın yarısını süpürdükten sonra yutabiliyor
   (`f.r <= holeRadius * 0.92`), yani halkanın ortasındaki şey hem bakılacak yer
   hem beklenecek şey.
+
+#### "Görünüşleri bi tuhaf"
+
+Nesne konduktan sonra tahta ilk bakışta doğru ama yakından yanlış duruyordu.
+Üç ayrı sebep vardı ve üçü de ölçüden:
+
+**Halka nesneden küçüktü.** Yarıçap 1.9 ile 3.1 arasında rastgele seçiliyordu,
+dev nesnenin görsel yarıçapı ise 1.94. Dar halkalarda nesne boncukların
+üstüne taşıyordu: ekranda çalı halkayı yutmuş, kutup ayısı komşu halkanın
+içine girmiş görünüyordu. Yarıçap artık elle seçilmiyor, nesneden çıkıyor —
+`GIANT_R * 1.45 + RIBBON_R + 0.3`. Aynı hesap ağ tahtasının ortası için de
+geçerli: ışınlar merkezden 1.6'da başlıyordu, yani ilk boncukları ortadaki
+nesnenin içinden çıkıyordu.
+
+**Halkalar rastgele yerleşiyordu.** Merkez x rastgele olunca iki halkanın
+çakışmaması için satır aralığı bir çapa eşit tutulmak zorundaydı, ve halkalar
+büyüyünce tahta yarı yarıya boşaldı (56. bölümde 277 parçadan 146'ya). Artık
+ızgara: enine kaç halka sığıyorsa o kadar sütun, boyuna o kadar satır, her
+halka kendi hücresinde küçük bir sapmayla. Komşu satırlar yan yana kaydığı
+için aralık çaptan küçük olabiliyor — 305 parça.
+
+**Her halkaya ayrı nesne düşüyordu.** On halka, on ayrı nesne, ve nesneler çok
+parçalı: her parça bir çizim çağrısı, tek kopyanın yığını da kimseyle
+paylaşılmıyor. 56. bölüm 66 çizim çağrısına çıkmıştı. Havuzdan artık **en çok
+üç** tane seçiliyor ve bütün tahta o üçünü paylaşıyor: 32 çağrı. Gözle ilgili
+tarafı da var — on ayrı nesne tahtayı hurdalığa çeviriyor, üçü tekrar edince
+düzen oluyor.
+
+Bir de iri meyveler şeritlerin **üstüne** biniyordu: halkanın yarıçapı neyse
+iri meyve de oraya konuyordu, yani bir sıra boncuğu eziyordu. Hepsi şeritler
+arasına alındı (`+ RIBBON_GAP * 0.5`); şeritler arası 1.9, iri meyve 1.44
+eninde, tam ortaya sığıyor.

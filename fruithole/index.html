@@ -8998,8 +8998,20 @@ function ribbonLandmarks(noktalar) {
   // Temanın havuzu boşsa dev meyveye düşülüyor: sahilde kova, uzayda roket
   // varken ortada meyve durması da tuhaf olurdu ama hiçbir şey durmaması
   // daha kötü.
-  const nesneHavuz = (currentTheme.props || GIANT_PROPS)
+  //
+  // Havuzdan **en çok üç** tane seçiliyor ve tahtadaki bütün halkalar o üçünü
+  // paylaşıyor. İki sebep: on halkaya on ayrı nesne koyunca 56. bölüm 66 çizim
+  // çağrısına çıkıyordu (nesneler çok parçalı, her parça bir çağrı ve tek
+  // kopyanın yığını kimseyle paylaşılmıyor) — üç nesneyle 19'a iniyor. İkincisi
+  // gözle ilgili: on ayrı nesne tahtayı hurdalığa çeviriyor, üçü tekrar edince
+  // düzen oluyor.
+  const havuz = (currentTheme.props || GIANT_PROPS)
     .filter(id => GIANT_PROPS.includes(id));
+  const nesneHavuz = [];
+  const kalan = havuz.slice();
+  while (nesneHavuz.length < 3 && kalan.length) {
+    nesneHavuz.push(kalan.splice(Math.floor(rnd() * kalan.length), 1)[0]);
+  }
   for (const nk of noktalar) {
     const [x, z, type] = nk;
     const dev = nk[3] === 'dev';
@@ -9096,7 +9108,8 @@ function buildRibbon(kind) {
         const a = t * TAU, rr = r0 + (r1 - r0) * t;
         return [cx + Math.cos(a) * rr, cz + Math.sin(a) * rr];
       }, renk(k));
-      if (k % 2 === 1) isaret.push([cx + r0, cz, renk(k + 2)]);
+      // Sarmalın üstüne değil, iki turun arasına.
+      if (k % 2 === 1) isaret.push([cx + r0 + RIBBON_GAP * 0.5, cz, renk(k + 2)]);
     }
   } else if (kind === 'rings') {
     // İç içe tam daireler, ve içe doğru parçalar büyüyor.
@@ -9117,7 +9130,14 @@ function buildRibbon(kind) {
       ribbonStrand(t => [Math.cos(t * TAU) * rr, Math.sin(t * TAU) * rr], renk(k), boy);
     }
     isaret.push([0, 0, renk(0), 'dev']);
-    for (let k = 2; k <= tur; k += 3) isaret.push([0, k * RIBBON_GAP, renk(k)]);
+    // İri meyveler halkaların **arasına**. Önce halkanın yarıçapına
+    // konuyorlardı, yani boncuk dizisinin tam üstüne: ekranda iri bir meyve
+    // bir sıra boncuğu eziyor gibi duruyordu — "görünüşleri bir tuhaf"
+    // denen şey buydu. Şeritler arası 1.9, iri meyve 1.44 eninde, yani tam
+    // ortaya sığıyor.
+    for (let k = 2; k < tur; k += 3) {
+      isaret.push([0, (k + 0.5) * RIBBON_GAP, renk(k)]);
+    }
   } else if (kind === 'serpentine') {
     // Yılan: uçlarda dönen tek bir kesintisiz şerit.
     //
@@ -9133,7 +9153,10 @@ function buildRibbon(kind) {
         const x = (soldan ? -1 : 1) * (mX - 0.8) * (1 - 2 * t);
         return [x, z];
       }, renk(k));
-      if (k % 3 === 1) isaret.push([soldan ? mX - 1.4 : -(mX - 1.4), z, renk(k + 1)]);
+      // Satırın üstüne değil, iki satır arasına.
+      if (k % 3 === 1) {
+        isaret.push([soldan ? mX - 1.4 : -(mX - 1.4), z + RIBBON_GAP * 0.5, renk(k + 1)]);
+      }
     }
   } else if (kind === 'chevron') {
     const satir = Math.floor((mZ * 2) / RIBBON_GAP) - 1;
@@ -9143,7 +9166,8 @@ function buildRibbon(kind) {
         const x = (t * 2 - 1) * (mX - 0.6);
         return [x, z + Math.abs(x) * 0.45 - 1.2];
       }, renk(k));
-      if (k % 4 === 2) isaret.push([0, z - 1.2, renk(k)]);
+      // Zikzagın tepesi z - 1.2'de; işaret iki sıra arasına gidiyor.
+      if (k % 4 === 2) isaret.push([0, z - 1.2 + RIBBON_GAP * 0.5, renk(k)]);
     }
   } else if (kind === 'loops') {
     // Dağınık halkalar: her biri tek renk, aralarında geniş boşluk.
@@ -9153,11 +9177,34 @@ function buildRibbon(kind) {
     // Her halka bir "gül": dışta küçük boncuklardan çember, ortasında iri
     // meyveler. Rakibin ekran görüntüsündeki düzen bu — halkanın işi bir
     // şeyi **çevrelemek**, tek başına durmak değil.
-    const say = Math.max(6, Math.round((mZ * 2) / 3));
-    for (let k = 0; k < say; k++) {
-      const cx = (rnd() * 2 - 1) * (mX - 3.2);
-      const cz = -mZ + 2.4 + (k + rnd() * 0.4) * ((mZ * 2 - 4.8) / say);
-      const rr = 1.9 + rnd() * 1.2;
+    // Halkanın yarıçapı ortadaki nesneden çıkıyor, elle seçilmiyor.
+    //
+    // Önce 1.9 ile 3.1 arasında rastgeleydi ve dev nesne 1.94 görsel
+    // yarıçapında: dar halkalarda nesne boncukların **üstüne** taşıyordu.
+    // Ekranda çalı halkayı yutmuş, kutup ayısı komşu halkanın içine girmiş
+    // görünüyordu — "görünüşleri bi tuhaf" denen şey buydu. Alt sınır artık
+    // nesnenin görseli + boncuk + parmak payı.
+    const halkaEnAz = GIANT_R * 1.45 + RIBBON_R + 0.3;
+    // Yerleşim rastgele değil ızgara: kaç halka enine sığıyorsa o kadar sütun,
+    // boyuna sığıyorsa o kadar satır, her halka kendi hücresinde küçük bir
+    // sapmayla. Rastgele x ile satır aralığı bir çapa eşit tutulmak zorundaydı
+    // — yoksa iki halka çakışıyordu — ve tahta yarı yarıya boşalıyordu (56.
+    // bölümde 146 parça). Izgarada komşu satırlar yan yana kaydığı için
+    // aralık çaptan küçük olabiliyor.
+    const hucre = halkaEnAz * 2 + 0.7;
+    const kol = Math.max(1, Math.floor((mX * 2) / hucre));
+    const sat = Math.max(3, Math.round((mZ * 2) / hucre));
+    const genX = (mX * 2) / kol, genZ = (mZ * 2) / sat;
+    let k = -1;
+    for (let s = 0; s < sat; s++) for (let c = 0; c < kol; c++) {
+      k++;
+      // Hücre dar kalırsa halka hücreden taşsın, nesne halkadan değil:
+      // alt sınır her hâlükârda nesnenin sığdığı yarıçap.
+      const rr = Math.max(halkaEnAz,
+                          Math.min(halkaEnAz + rnd() * 0.85,
+                                   Math.min(genX, genZ) * 0.5 - 0.25));
+      const cx = -mX + (c + 0.5) * genX + (rnd() * 2 - 1) * Math.max(0, genX * 0.5 - rr - 0.2);
+      const cz = -mZ + (s + 0.5) * genZ + (rnd() * 2 - 1) * Math.max(0, genZ * 0.5 - rr - 0.2);
       ribbonStrand(t => [cx + Math.cos(t * TAU) * rr, cz + Math.sin(t * TAU) * rr], renk(k));
       // Halkanın çevrelediği şey: tek, iri, dik duran bir meyve.
       //
@@ -9178,8 +9225,11 @@ function buildRibbon(kind) {
     const kol = 14;
     for (let k = 0; k < kol; k++) {
       const a = (k / kol) * TAU;
+      // Işınlar merkezden 1.6'da başlıyordu; ortadaki dev nesnenin görseli
+      // 1.94, yani ışınların ilk boncukları nesnenin içinden çıkıyordu.
+      const ic = GIANT_R * 1.45 + RIBBON_R + 0.3;
       ribbonStrand(t => {
-        const rr = 1.6 + t * (enBuyuk - 1.6);
+        const rr = ic + t * (enBuyuk - ic);
         return [Math.cos(a) * rr, Math.sin(a) * rr];
       }, renk(k));
     }
@@ -9190,8 +9240,9 @@ function buildRibbon(kind) {
                    renk(k + 2));
     }
     isaret.push([0, 0, renk(2), 'dev']);
+    // İşaretler iki ışının **ortasındaki** kamaya, ışının üstüne değil.
     for (let k = 0; k < kol; k += 4) {
-      const a = (k / kol) * TAU;
+      const a = ((k + 0.5) / kol) * TAU;
       isaret.push([Math.cos(a) * enBuyuk * 0.45, Math.sin(a) * enBuyuk * 0.45, renk(k + 1)]);
     }
   }
