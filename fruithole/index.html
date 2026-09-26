@@ -11051,7 +11051,28 @@ const ORDER_TARGET = 25;    // seçim bu tur süresini arıyor (saniye)
 // o bota %59-64 kullandırıyor (iki yıldız sınırının hemen altı) ve bottan
 // yavaş oynayan birine hâlâ yetiyor. Bot kusursuz dönüyor ve hiç duraksamıyor;
 // insanın payı o aradaki fark.
-const ORDER_SLACK = 2.0;
+// Ölçüldü (bota sınırsız saat verilip bölümü bitirmesi için **gerçekten**
+// gereken süre okundu; model ve gerek aynı koşudan, çünkü tahta her koşuda
+// başka kuruluyor):
+//
+//   blm | modelin saati | gereken | oran
+//     5 |      52       |  20.0   | 2.60
+//    45 |      51       |  31.4   | 1.62
+//    85 |      48       |  40.3   | 1.19
+//   125 |      35       |  23.2   | 1.51
+//   165 |      40       |  18.9   | 2.12
+//   205 |      34       |  38.4   | 0.89   <- kusursuz bot bile yetişmiyor
+//
+// Yani 2.0 kusursuz bir bota bile yetmiyordu, insana hiç yetmiyor. İki
+// sebebi var ve ikisi de yukarıdaki tabloda duruyor: modelin gerçeğe oranı
+// 0.7 ile 1.6 arasında oynuyor (tur tahmini bu kadar kesin değil), ve geç
+// turlarda saat ayrıca %28 kısılıyordu — sıkı bir modelin üstüne inen
+// ikinci bir sıkıştırma.
+//
+// 3.0, en kötü tahtada (205) bota saatin %54'ünü kullandırıyor, en iyisinde
+// %24. Bandın üst ucu eskiden hedeflenen yer; alt ucu bilerek geniş, çünkü
+// bot kusursuz dönüyor, hiç duraksamıyor ve yanlış meyveye gitmiyor.
+const ORDER_SLACK = 3.0;
 const ORDER_FLOOR = 30;     // küçük tarlada bile bölüm bölüm olsun
 // Rush: saat kısa başlıyor ve her meyve ona ekliyor.
 //
@@ -11250,7 +11271,16 @@ function levelTime() {
     : missionKind === 'mines'
     ? Math.round(sweepSeconds() * 2.6) + MINE_ALLOW * BOMB_COST
     : Math.round(sweepSeconds() * 2.6);
-  const squeeze = 1 - Math.min(0.28, tier() * 0.07);   // later cycles are tighter
+  // Geç turlar daha sıkı — ama sipariş bölümü hariç.
+  //
+  // Sıkıştırma süpürme saatinin payını yiyor: `sweepSeconds() * 2.6` kaba bir
+  // üst sınır ve içinde yer var. Siparişin saati o tür bir sayı değil, o
+  // tahtadaki hedef meyvelerin turu — zaten o tahtaya özel ve zaten sıkı.
+  // Üstüne %28 binince kusursuz bot bile yetişemez oldu (205. bölüm: 34
+  // saniyelik saat, 38.4 saniyelik iş).
+  const squeeze = missionKind === 'order'
+    ? 1
+    : 1 - Math.min(0.28, tier() * 0.07);
   return Math.round(base * squeeze * ease()) + upg('time') * 5;
 }
 
