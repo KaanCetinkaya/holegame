@@ -5147,6 +5147,112 @@ function propTemplates() {
     T.flamingo = { g, h: 1.9, currency: 'berry', only: 'giant' };
   }
 
+  // Palmiye.
+  //
+  // Rakibin kumsal karesinde tahtanın üstünde duran şey buydu ve bizde yoktu:
+  // şezlong, şemsiye, flamingo hep **yerde** duran şeyler, oysa kumsalı
+  // kumsal yapan şey yukarıda.
+  //
+  // Yukarıdan bakan bir kamera gövdeyi görmüyor; gördüğü şey yaprakların
+  // yıldızı. O yüzden bütün ölçü tacın: yedi yaprak ±1'e yayılıyor ve
+  // **aşağı sarkıyor**. Düz dursalardı yukarıdan tek bir yeşil daire olurdu
+  // ve palmiye bir çalıdan ayrılmazdı.
+  {
+    const g = new THREE.Group();
+    const kabuk = PROP_MAT('#9a6b3c', 0.62);
+    const yaprak = PROP_MAT('#3fa94d', 0.46);
+    // Gövde dilim dilim ve hafif eğri: tek bir silindir düz bir çubuk olurdu,
+    // palmiyenin gövdesi halkalı ve yana yatar.
+    for (let i = 0; i < 10; i++) {
+      const t = i / 9;
+      put(g, new THREE.Mesh(
+        new THREE.CylinderGeometry(0.115 - t * 0.03, 0.135 - t * 0.03, 0.26, 8), kabuk),
+        t * t * 0.2, 0.13 + i * 0.22, 0, 0, 0, t * 0.09);
+    }
+    // Yaprak: yassılaştırılmış koni. Geometri tabanı orijine gelecek şekilde
+    // kaydırılıyor, yani döndürülünce merkezden **dışarı** uzuyor.
+    //
+    // Dönüş sırası önemli: THREE 'XYZ' sırasını Rx·Ry·Rz diye uyguluyor,
+    // yani `rz` önce işliyor. Yaprak önce yatırılıp sarkıtılıyor (-π/2 - 0.3),
+    // sonra `ry` ile taç çevresine dağıtılıyor. Tersi olsaydı kendi ekseni
+    // etrafında dönen bir koni elde edilirdi — hiç kıpırdamayan bir yaprak.
+    // İki sıra: uzunlar dışa, kısalar aralarına. Tek sıra yedi ince koni
+    // yukarıdan bir yıldız işareti gibi duruyordu — yaprak değil, çizgi.
+    // Aradaki kısalar boşlukları kapatınca taç doluyor ve siluet yapraklı
+    // bir şeye dönüşüyor.
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 9) * Math.PI * 2;
+      const geo = new THREE.ConeGeometry(0.3, 1.15, 6).translate(0, 0.58, 0);
+      const y = new THREE.Mesh(geo, yaprak);
+      y.scale.set(1, 1, 0.34);
+      put(g, y, 0.2, 2.34, 0, 0, a, -Math.PI / 2 - 0.34);
+    }
+    for (let i = 0; i < 9; i++) {
+      const a = ((i + 0.5) / 9) * Math.PI * 2;
+      const geo = new THREE.ConeGeometry(0.24, 0.78, 6).translate(0, 0.39, 0);
+      const y = new THREE.Mesh(geo, yaprak);
+      y.scale.set(1, 1, 0.34);
+      put(g, y, 0.2, 2.4, 0, 0, a, -Math.PI / 2 - 0.6);
+    }
+    // Tacın altındaki üç ceviz: palmiyeyi palmiye yapan ikinci işaret.
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2 + 0.4;
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), PROP_MAT('#6b4324', 0.75)),
+          0.2 + Math.cos(a) * 0.22, 2.16, Math.sin(a) * 0.22);
+    }
+    T.palm = { g, h: 2.6, currency: 'melon', only: 'giant' };
+  }
+
+  // Hindistan cevizi.
+  //
+  // Tek prop ki hem iri hem küçük durabiliyor: küre olduğu için hücreye
+  // sığdırılınca da küre kalıyor. Şezlong küçültülünce renkli bir yumruya
+  // dönüyordu, bunun kaybedecek ayrıntısı yok.
+  {
+    const g = new THREE.Group();
+    const kil = PROP_MAT('#7d4f2c', 0.82);
+    const k = new THREE.Mesh(new THREE.SphereGeometry(0.8, 14, 10), kil);
+    k.scale.set(1, 0.92, 1);
+    put(g, k, 0, 0.74, 0);
+    // Üstündeki üç göz. Cevizi cevizden başka bir kahverengi küreden ayıran
+    // tek şey bu ve yukarıdan bakan kameranın gördüğü tek yüz de o.
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), PROP_MAT('#4a2b16', 0.9)),
+          Math.cos(a) * 0.26, 1.46, Math.sin(a) * 0.26);
+    }
+    T.coconut = { g, h: 1.5, currency: 'lychee' };
+  }
+
+  // Sörf tahtası, kuma dikili.
+  //
+  // Yatık dursaydı yukarıdan renkli bir tahta parçası olurdu. Kuma dikili ve
+  // arkaya yatık duruyor: siluet tam boy görünüyor, ve kumsalda dikili bir
+  // sörf tahtası "burada tatil var" diyen tek nesne.
+  {
+    const g = new THREE.Group();
+    const kol = new THREE.Group();
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), PROP_MAT('#fff6e8', 0.34));
+    govde.scale.set(0.42, 1.35, 0.1);
+    kol.add(govde);
+    // Burun: elipsoidin iki ucu da yuvarlak, sörf tahtasının burnu sivri.
+    const burun = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.75, 12), PROP_MAT('#fff6e8', 0.34));
+    burun.scale.set(1, 1, 0.24);
+    burun.position.set(0, 1.62, 0);
+    kol.add(burun);
+    // Boydan boya şerit ve üstünde ikinci bir ince çizgi: tahtanın deseni.
+    for (const [renk, en, z] of [['#ff4d5e', 0.14, 0.055], ['#ffd23f', 0.05, 0.062]]) {
+      const s = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), PROP_MAT(renk, 0.34));
+      s.scale.set(en, 1.24, 0.03);
+      s.position.set(0, 0, z);
+      kol.add(s);
+    }
+    kol.position.set(0, 1.35, 0);
+    kol.rotation.set(-0.26, 0, 0);
+    g.add(kol);
+    T.surfboard = { g, h: 2.6, currency: 'banana', only: 'giant' };
+  }
+
   // --- world cup -----------------------------------------------------
 
   // Football. The panels are separate flattened discs stuck to the surface
@@ -7567,7 +7673,12 @@ const THEMES = {
     ground: 'sand', surround: '#22c9cd', ripples: true,
     edge: '#bff3f5', surf: '#ecfeff',
     props: ['starfish', 'shell', 'shades', 'flipflop', 'bucket', 'cone',
-            'parasol', 'swimring', 'lounger', 'flamingo', 'ball', 'lolly', 'crab'],
+            'parasol', 'swimring', 'lounger', 'flamingo', 'ball', 'lolly', 'crab',
+            // Aloha tarafı: havuzdaki her şey yerde duran şeylerdi, kumsalı
+            // kumsal yapan üçü eksikti.
+            'palm', 'coconut', 'surfboard'],
+    // Devler seçilirken önce bunlara bakılıyor: sebebi `placeGiants`'ta.
+    hero: ['palm', 'surfboard'],
     // Öğle güneşi ve kumun geri yansıttığı sıcaklık. Oyunun varsayılanı
     // buydu ve burada doğru.
     light: { sky: '#ffffff', bounce: '#f0b877', hemi: 1.5, amb: '#fff4de', ambI: 0.45, sun: '#fff8e8', sunI: 0.72 },
@@ -10255,7 +10366,22 @@ function placeGiants() {
     // scale the silhouette is the strongest thing on the board, which is
     // exactly what a landmark you steer towards should be.
     const giantPool = (currentTheme.props || GIANT_PROPS).filter(id => GIANT_PROPS.includes(id));
-    const prop = giantPool.length && rnd() < 0.42 ? pick(giantPool) : null;
+    // Temanın imzası: dev seçilirken havuzun tamamı yerine önce buna bakılıyor.
+    //
+    // Kumsal teması on altı nesnelik bir havuz ve palmiye onlardan biri, yani
+    // bir tahtada çıkma ihtimali on altıda bir. Ölçüldü: yirmi dört kumsal
+    // tahtasında palmiye **bir** kez çıktı, sörf tahtası bir kez. Oysa
+    // kumsalı kumsal yapan şey tam olarak onlar — şezlong ve deniz yıldızı
+    // kumsalın içindeki ayrıntılar, palmiye kumsalın kendisi.
+    //
+    // Rakibin karesinde de böyle: palmiye tahtada tek tük değil, tahtanın
+    // boyunca tekrar eden şey. Yarısından biraz fazlası imzadan geliyor,
+    // gerisi havuzdan — yani her kumsal tahtasında palmiye var ama tahta
+    // yalnızca palmiyeden ibaret değil.
+    const imza = (currentTheme.hero || []).filter(id => GIANT_PROPS.includes(id));
+    const prop = giantPool.length && rnd() < 0.42
+      ? (imza.length && rnd() < 0.55 ? pick(imza) : pick(giantPool))
+      : null;
     const offsets = huddle
       ? [[0, -giantR * 1.02], [-giantR * 0.9, giantR * 0.55], [giantR * 0.9, giantR * 0.55]]
       : [[0, 0]];

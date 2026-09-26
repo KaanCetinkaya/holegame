@@ -1757,6 +1757,51 @@ kararmış siluet, arkadan vuran ışık onları yutuyor.
 piksel okuyup zeminin gerçekten ekranın kendi zemini olduğunu doğruluyor —
 saydamlığı geri koyup çalıştırınca test düşüyor (`fark 30`, eşik 26).
 
+## Kumsalı kumsal yapan şey
+
+Kaan bir rakip karesi attı: kumsal tahtası, ve tahtanın boyunca tekrar eden
+palmiyeler, hindistan cevizi öbekleri, kuma dikili sörf tahtaları. "Bizde de
+böyle bir beach konseptli bölüm olsun, aloha Hawaii tarzı."
+
+Tema zaten vardı: kum, deniz, dalga şeridi, on üç nesne. Eksik olan şey
+nesnelerin **nerede durduğuydu** — şezlong, şemsiye, deniz yıldızı, terlik,
+kova, hepsi yerde duran şeyler. Kumsalı kumsal yapan şey yukarıda.
+
+Üç nesne eklendi ve üçü de yukarıdan bakan bir kameraya göre çizildi:
+
+* **Palmiye.** Bütün ölçü tacın, çünkü kamera gövdeyi görmüyor. Yedi ince
+  koniyle denendi ve yukarıdan bir yıldız işareti gibi durdu — yaprak değil,
+  çizgi. Şimdi iki sıra: dokuz uzun yaprak dışa ve aşağı, dokuz kısa
+  aralarına. Gövde on kısa dilimden ve hafif eğri; tek silindir düz bir çubuk
+  oluyordu.
+* **Hindistan cevizi.** Hem iri hem küçük durabilen tek nesne: küre olduğu
+  için hücreye sığdırılınca da küre kalıyor. Şezlong küçülünce renkli bir
+  yumruya dönüyor, bunun kaybedecek ayrıntısı yok. Üstündeki üç göz onu
+  başka bir kahverengi küreden ayıran tek şey.
+* **Sörf tahtası.** Kuma dikili ve arkaya yatık. Yatık dursaydı yukarıdan
+  renkli bir tahta parçası olurdu.
+
+### Ve bir de: çıkmaları lazım
+
+Eklemek yetmedi. Kumsal havuzu on altı nesne ve dev seçilirken havuzdan
+rastgele çekiliyor, yani palmiyenin bir tahtada çıkma ihtimali on altıda bir.
+Ölçüldü — yirmi dört kumsal tahtasında palmiye **bir** kez çıktı, sörf
+tahtası bir kez. Yani oyuncunun kumsalda palmiye görmesi bir tesadüf.
+
+Temaya bir **imza** alanı eklendi (`hero`): dev bir nesne seçilirken önce ona
+bakılıyor, yarısından biraz fazlası oradan geliyor. Kumsalın imzası palmiye
+ve sörf tahtası.
+
+```
+            önce   sonra
+palmiye       1      6      (24 kumsal tahtasında)
+sörf tahtası  1      8
+```
+
+Gerisi hâlâ havuzdan: her kumsal tahtasında palmiye var ama tahta yalnızca
+palmiyeden ibaret değil. Ayrım şurada — şezlong ve deniz yıldızı kumsalın
+**içindeki** ayrıntılar, palmiye kumsalın kendisi.
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi

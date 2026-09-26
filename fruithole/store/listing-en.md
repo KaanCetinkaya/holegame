@@ -95,11 +95,11 @@ field are giants — twice the width of your opening, sometimes three huddled
 together, and never a slice: the whole fruit, stalk and leaf. Sweep, grow into
 one, and it pays for the whole trip.
 
-🧺 EIGHTY-THREE THINGS TO FIND
-Scattered through the crop is whatever belongs where you are. A bucket and
-spade on the beach. Gold bars on the bank floor. A rocket in orbit. A tractor
-out on the farm — and standing beside it, a cow; a crab on the sand, a polar
-bear in the snow. Every one you swallow is kept, and the Collection screen
+🧺 EIGHTY-SIX THINGS TO FIND
+Scattered through the crop is whatever belongs where you are. A palm, a
+coconut and a surfboard planted in the sand. Gold bars on the bank floor. A
+rocket in orbit. A tractor out on the farm — and standing beside it, a cow; a
+crab on the sand, a polar bear in the snow. Every one you swallow is kept, and the Collection screen
 holds them all: the ones you have in colour, the rest as silhouettes.
 
 💣 NOT EVERYTHING IS FRUIT
