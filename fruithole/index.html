@@ -5253,6 +5253,160 @@ function propTemplates() {
     T.surfboard = { g, h: 2.6, currency: 'banana', only: 'giant' };
   }
 
+  // --- hawaii --------------------------------------------------------
+  //
+  // Kumsal temasının eşyaları "yaz" diyor; buradakiler bir **yer** diyor.
+  // Ayrım önemli, çünkü kumsal zaten vardı ve ikinci bir kumsal yapmanın
+  // anlamı yok. Şemsiye her sahilde var, tiki yalnızca burada.
+
+  // Tiki: oyulmuş totem.
+  //
+  // Yukarıdan bakan kamera için en zor nesne, çünkü dikdörtgen bir direk ve
+  // yukarıdan kare görünüyor. Kareyi kıran üç şey var: tabandaki geniş
+  // kaide, yanlardan taşan kaşlar, ve dışarı uzanan dil. Onlar olmadan
+  // tahtada duran şey bir kütük.
+  {
+    const g = new THREE.Group();
+    const ahsap = PROP_MAT('#7a4f2e', 0.72);
+    const koyu = PROP_MAT('#4a2d18', 0.8);
+    const boya = PROP_MAT('#e8d9b8', 0.6);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.72, 0.2, 10), koyu), 0, 0.1, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.86, 1.9, 0.72), ahsap), 0, 1.15, 0);
+    // Kaşlar: yanlardan taşıyor, yani siluet artık kare değil.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.22, 0.3), koyu), 0, 1.72, 0.3);
+    for (const sx of [-0.22, 0.22])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), boya), sx, 1.52, 0.36);
+    // Ağız ve dil.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.2, 0.22), koyu), 0, 1.0, 0.36);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.12, 0.4), PROP_MAT('#c4553f', 0.6)),
+        0, 0.94, 0.54);
+    // Gövdedeki oyma bantlar: yukarıdan da görünen tek doku.
+    for (const y of [0.45, 0.68])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.1, 0.78), koyu), 0, y, 0);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.58, 0.42, 4), koyu), 0, 2.3, 0, 0, Math.PI / 4, 0);
+    T.tiki = { g, h: 2.5, currency: 'melon', only: 'giant' };
+  }
+
+  // Lei: çiçek kolyesi.
+  //
+  // Halka biçiminde olduğu için yukarıdan tam görünüyor ve rengi tek parça
+  // değil — on iki çiçek sırayla üç renkten. Düz bir simit olsaydı şişme
+  // simitten ayrılmazdı; ayıran şey kenarının **boncuklu** olması.
+  {
+    const g = new THREE.Group();
+    const renkler = ['#ff5d8f', '#ffd23f', '#fff4e6'];
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      const cicek = new THREE.Group();
+      const renk = PROP_MAT(renkler[i % 3], 0.4);
+      // Her çiçek beş yaprak: tek küre koyunca kolye bir tespihe benziyordu.
+      for (let k = 0; k < 5; k++) {
+        const ya = (k / 5) * Math.PI * 2;
+        const y = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), renk);
+        y.scale.set(1, 0.5, 1);
+        cicek.add(y);
+        y.position.set(Math.cos(ya) * 0.13, 0, Math.sin(ya) * 0.13);
+      }
+      const goz = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), PROP_MAT('#ffb03a', 0.5));
+      goz.position.set(0, 0.05, 0);
+      cicek.add(goz);
+      put(g, cicek, Math.cos(a) * 0.74, 0.14, Math.sin(a) * 0.74);
+    }
+    T.lei = { g, h: 0.3, currency: 'berry', only: 'giant' };
+  }
+
+  // Ukulele.
+  //
+  // Yassı olduğu için yukarıdan en iyi okunan nesnelerden biri: sekiz
+  // biçimli gövde, uzun sap, ve deliği. Sapsız bir gövde yukarıdan bir
+  // fıstık şekli, sapı olan bir gövde çalgı.
+  {
+    const g = new THREE.Group();
+    const govdeMat = PROP_MAT('#c9813c', 0.4);
+    const kol = new THREE.Group();
+    for (const [z, s] of [[-0.3, 0.52], [0.34, 0.66]]) {
+      const yarim = new THREE.Mesh(new THREE.CylinderGeometry(s, s, 0.26, 16), govdeMat);
+      yarim.position.set(0, 0, z);
+      kol.add(yarim);
+    }
+    // Ses deliği: gövdeden koyu bir daire.
+    const delik = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.3, 14),
+                                 PROP_MAT('#3a2414', 0.8));
+    delik.position.set(0, 0.02, -0.02);
+    kol.add(delik);
+    const sap = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.2, 1.15), PROP_MAT('#8a5a2b', 0.5));
+    sap.position.set(0, 0, -1.2);
+    kol.add(sap);
+    const bas = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.18, 0.4), PROP_MAT('#5e3a1c', 0.5));
+    bas.position.set(0, 0, -1.92);
+    kol.add(bas);
+    for (let i = 0; i < 4; i++) {
+      const tel = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 2.2), PROP_MAT('#f2ead6', 0.3));
+      tel.position.set(-0.09 + i * 0.06, 0.16, -0.75);
+      kol.add(tel);
+    }
+    kol.rotation.y = 0.35;
+    put(g, kol, 0, 0.15, 0);
+    T.ukulele = { g, h: 0.3, currency: 'banana', only: 'giant' };
+  }
+
+  // Ananas.
+  //
+  // Hindistan cevizi gibi hem iri hem küçük durabiliyor: küçültülünce
+  // kaybettiği tek şey kabuk deseni, ve sarı gövde + yeşil taç ikilisi
+  // tek başına ananas demeye yetiyor.
+  {
+    const g = new THREE.Group();
+    const kabuk = PROP_MAT('#e7a92b', 0.55);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.62, 14, 12), kabuk);
+    govde.scale.set(1, 1.25, 1);
+    put(g, govde, 0, 0.78, 0);
+    // Kabuktaki baklava desen: üç sıra, her sırada altı çıkıntı.
+    for (let s = 0; s < 3; s++) {
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + s * 0.5;
+        const r = 0.58 - s * 0.03;
+        const y = 0.5 + s * 0.3;
+        const b = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 5), PROP_MAT('#c98c1c', 0.6));
+        b.scale.set(1, 0.8, 1);
+        put(g, b, Math.cos(a) * r, y, Math.sin(a) * r);
+      }
+    }
+    // Taç: altı yaprak, yukarı ve dışa.
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      const geo = new THREE.ConeGeometry(0.11, 0.7, 5).translate(0, 0.35, 0);
+      const y = new THREE.Mesh(geo, PROP_MAT('#4f9e3d', 0.5));
+      y.scale.set(1, 1, 0.5);
+      put(g, y, Math.cos(a) * 0.12, 1.5, Math.sin(a) * 0.12, 0, a, -0.42);
+    }
+    T.pineapple = { g, h: 2.2, currency: 'banana' };
+  }
+
+  // Amber çiçeği (hibiscus).
+  //
+  // Oyundaki en düz nesne ve yukarıdan bakan bir kamera için en kolayı: beş
+  // yaprak, ortada bir göbek, göbekten çıkan bir ercik. Hücreye sığdırılınca
+  // da tam olarak aynı şey görünüyor, o yüzden küçük havuzda da var.
+  {
+    const g = new THREE.Group();
+    const yaprakMat = PROP_MAT('#ef4b6b', 0.42);
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      const y = new THREE.Mesh(new THREE.SphereGeometry(0.46, 10, 8), yaprakMat);
+      y.scale.set(1, 0.24, 1.15);
+      put(g, y, Math.cos(a) * 0.46, 0.13, Math.sin(a) * 0.46, 0, -a, 0);
+    }
+    const gobek = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), PROP_MAT('#ffd23f', 0.45));
+    gobek.scale.set(1, 0.55, 1);
+    put(g, gobek, 0, 0.17, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.5, 8),
+                          PROP_MAT('#ffe9a8', 0.4)), 0, 0.42, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), PROP_MAT('#ffb03a', 0.4)),
+        0, 0.66, 0);
+    T.hibiscus = { g, h: 0.7, currency: 'berry' };
+  }
+
   // --- world cup -----------------------------------------------------
 
   // Football. The panels are separate flattened discs stuck to the surface
@@ -7040,6 +7194,47 @@ function groundTexture() {
   return tex;
 }
 
+// Kara kum: Hawaii'nin volkanik sahili.
+//
+// Kumsal teması zaten vardı ve ikinci bir kumsal yapmanın anlamı yoktu —
+// aynı zemin, aynı deniz, yalnızca başka eşyalar. Ayıran şey zemin olmalı,
+// çünkü tahtanın en büyük yüzeyi o.
+//
+// Kara kum bunu tek başına yapıyor ve uydurma değil: Hawaii'nin sahilleri
+// gerçekten lav bazaltından. Turkuaz denizin içindeki kara ada, açık kumlu
+// kumsalın yanında bambaşka bir yer.
+//
+// Siyah değil koyu gri-kahve (`#3b352f`). Gerçek siyah iki şeyi bozuyordu:
+// deliğin ağzı zeminden ayırt edilemiyordu (oyunun sürdüğü tek şey o) ve
+// koyu meyveler — böğürtlen, çikolatalı şeyler — zemine yapışıyordu.
+//
+// Serpilen şey üç türlü: sönük kül, sıcak kahve, ve arada bir zeytin yeşili
+// bir tutam ot. Ot olmadan yüzey asfalta benziyor; lav sahilinde ot biter.
+function blackSandTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#3b352f';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2600; i++) {
+    ctx.globalAlpha = 0.04 + Math.random() * 0.07;
+    const r6 = Math.random();
+    ctx.fillStyle = r6 < 0.45 ? '#57503f' : r6 < 0.85 ? '#6d6153' : '#2a2620';
+    const x = Math.random() * S, y = Math.random() * S, r = 1 + Math.random() * 2.4;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  for (let i = 0; i < 90; i++) {
+    ctx.globalAlpha = 0.16 + Math.random() * 0.2;
+    ctx.fillStyle = Math.random() < 0.5 ? '#5f7a3a' : '#7d9a4a';
+    const x = Math.random() * S, y = Math.random() * S;
+    for (let k = 0; k < 4; k++)
+      ctx.fillRect(x + k - 2, y - Math.random() * 4, 1.1, 3 + Math.random() * 3);
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(14, 14);
+  return tex;
+}
+
 // A mown pitch. The stripes are the whole trick — plain green is a felt mat,
 // and the alternating bands are what makes it read as a football ground from
 // the first frame, before you have seen a single ball.
@@ -7392,7 +7587,8 @@ const GROUND_TEX = {};
 // Dağıtıcı kendi adıyla duruyor, çünkü `GROUND_TEX` **önbellek** — açılışta
 // boş ve yalnızca oynanmış temaları içeriyor. "Bu temanın zemini tanımlı mı"
 // sorusu ona sorulduğunda cevap her zaman "hayır" çıkıyor.
-const GROUND_MAKERS = { sand: groundTexture, grass: grassTexture,
+const GROUND_MAKERS = { sand: groundTexture, blacksand: blackSandTexture,
+  grass: grassTexture,
   wood: woodTexture, snow: snowTexture, marble: marbleTexture,
   deck: deckTexture, bar: barTexture, asphalt: asphaltTexture,
   tiles: tileTexture, soil: soilTexture, cobbles: cobbleTexture };
@@ -7682,6 +7878,29 @@ const THEMES = {
     // Öğle güneşi ve kumun geri yansıttığı sıcaklık. Oyunun varsayılanı
     // buydu ve burada doğru.
     light: { sky: '#ffffff', bounce: '#f0b877', hemi: 1.5, amb: '#fff4de', ambI: 0.45, sun: '#fff8e8', sunI: 0.72 },
+  },
+  // Hawaii. Kumsalın ikizi değil, ayrı bir **yer**.
+  //
+  // İkinci bir kumsal yapmanın anlamı yoktu: aynı zemin, aynı deniz, yalnızca
+  // başka eşyalar. Ayıran şey zemin, çünkü tahtanın en büyük yüzeyi o — kara
+  // kum. Uydurma da değil, Hawaii'nin sahilleri gerçekten lav bazaltından, ve
+  // turkuaz denizin içindeki kara ada açık kumun yanında bambaşka bir yer.
+  //
+  // Eşyalar da "yaz" değil "burası" diyor: şemsiye her sahilde var, tiki
+  // yalnızca burada. Palmiye, ceviz ve sörf tahtası ikisinde de — onlar iki
+  // yerin ortak dili.
+  hawaii: {
+    name: 'Aloha', icon: '🌺',
+    ground: 'blacksand', surround: '#12b3b8', ripples: true,
+    edge: '#cfe9ea', surf: '#eafdff',
+    props: ['palm', 'coconut', 'surfboard', 'tiki', 'lei', 'ukulele',
+            'pineapple', 'hibiscus', 'shell', 'starfish', 'crab', 'parasol'],
+    // İmza: tahtayı Hawaii yapan iki şey. Palmiye kumsalda da var, tiki yok.
+    hero: ['tiki', 'palm'],
+    // Tropik öğle: gökyüzü açık, ve aşağıdan gelen şey kumun sıcaklığı değil
+    // — kara kum ışığı geri vermiyor. Dolgu bu yüzden biraz daha yüksek,
+    // yoksa meyvenin alt yarısı zeminin koyusuna karışıyor.
+    light: { sky: '#ffffff', bounce: '#4d4a40', hemi: 1.5, amb: '#fff1dc', ambI: 0.55, sun: '#fff6e4', sunI: 0.78 },
   },
   pitch: {
     name: 'Match Day', icon: '⚽',
@@ -8807,7 +9026,10 @@ const PATTERNS = [
       return !!k && k.t > 0.9 && (k.br + k.bc) % 4 === 0; },
   },
   {
-    name: 'Bubbles', icon: '🫧', theme: 'home',
+    // Aloha'nın iki düzeninden biri. Yuvarlak adacıklar gel-git havuzu
+    // oluyor: kara kumun üstündeki su birikintileri. Indoors üç düzende
+    // birden kullanılıyordu, ikisi yetiyor.
+    name: 'Bubbles', icon: '🫧', theme: 'hawaii',
     // Six round islands on open ground. Each one is a single fruit, which is
     // what makes them read as separate things rather than one lumpy mass —
     // and it changes how the level is played: you clear a circle, cross open
@@ -8845,7 +9067,15 @@ const PATTERNS = [
     // düzeni buradan geliyor. Tek düzenle kalsaydı yeni tema ilk turda
     // yalnızca 19. bölümde görünürdü — öteki temaların hepsi ikişer yerde
     // çıkıyor. Sarmal, sürülmüş toprakta ekin dairesi oluyor.
-    name: 'Whirl', icon: '🍥', polar: true, theme: 'farm',
+    // Aloha'nın ikinci düzeni. Sarmal, kara kumda dönen bir su girdabı —
+    // sürülmüş toprakta ekin dairesiydi, ve Harvest da üç düzende birden
+    // kullanılıyordu.
+    //
+    // Yeni tema ilk turda **iki** yerde çıkmak zorunda: öteki on bir tema
+    // ikişer düzende ve `holetheme.mjs` aradaki farkın birden büyük
+    // olmasına izin vermiyor. Tek düzenle kalsaydı Aloha'yı ilk turda
+    // yalnızca bir kez gören oyuncu onu bir bölümün süsü sanardı.
+    name: 'Whirl', icon: '🍥', polar: true, theme: 'hawaii',
     // Three arms winding outward. A slot is on an arm when its angle is
     // close to where the arm has turned to by that radius, which is what
     // makes the arm a curve rather than a straight spoke.

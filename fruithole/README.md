@@ -1802,6 +1802,69 @@ Gerisi hâlâ havuzdan: her kumsal tahtasında palmiye var ama tahta yalnızca
 palmiyeden ibaret değil. Ayrım şurada — şezlong ve deniz yıldızı kumsalın
 **içindeki** ayrıntılar, palmiye kumsalın kendisi.
 
+## Aloha: ikinci bir kumsal değil
+
+Kaan devam etti: "Hawaii konseptli olsun, bundan sonra diğer şehirlerin
+bölümlerini de ekleyelim."
+
+İlk tuzak, kumsal temasına birkaç Hawaii eşyası daha atıp adını değiştirmek
+olurdu. Aynı zemin, aynı deniz, yalnızca başka eşyalar — oyuncunun gördüğü
+şey iki ayrı yer değil, aynı yerin iki dolabı.
+
+Ayıran şey **zemin** olmalı, çünkü tahtanın en büyük yüzeyi o. Aloha'nın
+zemini kara kum, ve uydurma değil: Hawaii'nin sahilleri gerçekten lav
+bazaltından. Turkuaz denizin içindeki kara ada, açık kumlu kumsalın yanında
+bambaşka bir yer.
+
+Siyah değil koyu gri-kahve (`#3b352f`). Gerçek siyah iki şeyi bozuyordu:
+deliğin ağzı zeminden ayırt edilemiyordu — oyunun sürdüğü tek şey o — ve
+koyu meyveler zemine yapışıyordu. Serpilen şey de üç türlü: sönük kül, sıcak
+kahve, ve arada bir zeytin yeşili bir tutam ot. Ot olmadan yüzey asfalta
+benziyor; lav sahilinde ot biter.
+
+Dolgu ışığı öteki yerlerden yüksek (`ambI 0.55`). Sebebi zemin: kara kum
+ışığı geri vermiyor, ve varsayılan dolguyla meyvenin alt yarısı zeminin
+koyusuna karışıyordu.
+
+### Eşyalar "yaz" değil "burası" demeli
+
+Şemsiye her sahilde var, tiki yalnızca burada. Aloha'nın kendi beşlisi:
+
+* **Tiki** — yukarıdan bakan kamera için oyundaki en zor nesne, çünkü
+  dikdörtgen bir direk ve yukarıdan kare görünüyor. Kareyi kıran üç şey:
+  tabandaki geniş kaide, yanlardan taşan kaşlar, dışarı uzanan dil. Onlarsız
+  tahtada duran şey bir kütük.
+* **Lei** — halka olduğu için yukarıdan tam görünüyor. Düz bir simit olsaydı
+  şişme simitten ayrılmazdı; ayıran şey kenarının boncuklu olması: on iki
+  çiçek, her biri beş yapraklı, sırayla üç renk.
+* **Ukulele** — yassı olduğu için en iyi okunanlardan. Sapsız gövde yukarıdan
+  bir fıstık şekli; sapı olan gövde çalgı.
+* **Ananas** — hindistan cevizi gibi hem iri hem küçük durabiliyor.
+  Küçülünce kaybettiği tek şey kabuk deseni, ve sarı gövde + yeşil taç
+  ikilisi tek başına ananas demeye yetiyor.
+* **Amber çiçeği** — oyundaki en düz nesne ve yukarıdan en kolayı: beş
+  yaprak, göbek, ercik. Hücreye sığdırılınca da aynı şey görünüyor.
+
+Palmiye, hindistan cevizi ve sörf tahtası iki temada da var: onlar iki yerin
+ortak dili. Aloha'nın imzası (`hero`) tiki ve palmiye.
+
+### İlk turda iki düzen
+
+`holetheme.mjs` iki şey şart koşuyor ve ikisi de yeni tema eklemenin
+bedelini söylüyor: her tema ilk turda görünmeli, ve temalar arasındaki düzen
+sayısı farkı biri geçmemeli. Yirmi dört düzen on iki temaya ikişer
+dağılıyordu; Aloha'ya iki düzen, üçer düzeni olan Indoors ve Harvest'tan
+birer tane alınarak verildi.
+
+**Bubbles** gel-git havuzu oluyor (kara kumun üstündeki su birikintileri),
+**Whirl** ise su girdabı — sürülmüş toprakta ekin dairesiydi.
+
+### Sıradaki: şehirler
+
+Aloha bir kalıp: yeni bir yer = yeni zemin + beş-altı kendine ait eşya +
+kendi ışığı + iki düzen. Kalıbın işlediği burada ölçüldü, ve şehirler aynı
+yoldan gelecek.
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
