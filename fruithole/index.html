@@ -1276,6 +1276,21 @@ const PIC_CHAR = { R: 'berry', A: 'lychee', B: 'banana', M: 'melon' };
 // dilimli bir boncuk 84 üçgen ve resmin okunmasına hiçbir şey kaybettirmiyor —
 // rakiplerin tahtası da boncuk boncuk.
 const PIC_GEO = new THREE.SphereGeometry(1, 8, 6);
+
+// Şerit tahtasının boncuğu ayrı, ve çok daha yuvarlak.
+//
+// Yukarıdaki hesap resim tahtası için doğruydu: 1848 parça, her biri ekranda
+// birkaç piksel, sekiz dilim yeter. Şerit tahtası aynı boncuğu kullanınca aynı
+// hesap yanlış oldu — orada 300 parça var ve her biri ekranda 20-25 piksel.
+// O boyutta sekiz dilim siluetten okunuyor: boncuklar top değil sekizgen
+// görünüyordu ("çözünürlükleri mi düştü").
+//
+// Enine ve boyuna dilim ayrı ayrı seçildi. Kamera tepeden bakıyor, yani
+// siluet **ekvator**: görünen köşeleri enine dilimler veriyor, boyuna
+// dilimler sadece gölgeyi yumuşatıyor. 18×12 ile 18×8 ekranda ayırt
+// edilmiyor ama biri 396 diğeri 252 üçgen — tahta başına 136 bine karşı
+// 89 bin.
+const BEAD_GEO = new THREE.SphereGeometry(1, 18, 8);
 const PIC_MAT = Object.fromEntries(TYPES.map(t =>
   [t.id, new THREE.MeshStandardMaterial({ color: t.uiBase || t.base, roughness: 0.4 })]));
 
@@ -8965,7 +8980,7 @@ function materialiseFruit() {
 function ribbonStrand(nokta, type, r = RIBBON_R) {
   const ORNEK = 900;
   let onceX = null, onceZ = null, biriken = 0;
-  const vis = { geo: PIC_GEO, mat: PIC_MAT[type], sx: r, sy: r, baseY: r };
+  const vis = { geo: BEAD_GEO, mat: PIC_MAT[type], sx: r, sy: r, baseY: r };
   for (let i = 0; i <= ORNEK; i++) {
     const [x, z] = nokta(i / ORNEK);
     if (onceX !== null) biriken += Math.hypot(x - onceX, z - onceZ);
@@ -9033,7 +9048,7 @@ function ribbonLandmarks(noktalar) {
 // parçalar birbirine değiyor ama içine girmiyor — ızgaranın kullandığı
 // ölçünün aynısı.
 function ribbonStack(x, z, type, r, kat) {
-  const vis = { geo: PIC_GEO, mat: PIC_MAT[type], sx: r, sy: r, baseY: r };
+  const vis = { geo: BEAD_GEO, mat: PIC_MAT[type], sx: r, sy: r, baseY: r };
   for (let k = 0; k < kat; k++) {
     fruits.push({ mesh: null, vis, jit: 1, rotY: 0,
                   x, z, r, type, big: false, prop: null,

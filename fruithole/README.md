@@ -4012,6 +4012,24 @@ paylaşılmıyor. 56. bölüm 66 çizim çağrısına çıkmıştı. Havuzdan ar
 tarafı da var — on ayrı nesne tahtayı hurdalığa çeviriyor, üçü tekrar edince
 düzen oluyor.
 
+#### Boncuk sekizgen görünüyordu
+
+Şerit tahtası resim tahtasının boncuğunu ödünç almıştı ve o boncuk sekiz
+dilimli. Resimde doğruydu: 1848 parça, her biri ekranda birkaç piksel, dokusu
+zaten görünmüyor. Şeritte 300 parça var ve her biri ekranda 20-25 piksel — o
+boyutta sekiz dilim siluetten okunuyor, boncuklar top değil sekizgen
+duruyordu. Kaan'ın sorusu "çözünürlükleri mi düştü bunların" idi ve düşen şey
+çözünürlük değil dilim sayısıydı.
+
+Şeridin boncuğu artık ayrı (`BEAD_GEO`), resmin boncuğu olduğu gibi kaldı.
+
+Enine ve boyuna dilim ayrı seçildi, çünkü kamera tepeden bakıyor: siluet
+ekvator, yani görünen köşeleri **enine** dilimler veriyor, boyuna dilimler
+sadece gölgeyi yumuşatıyor. 18×12 ile 18×8 ekranda ayırt edilmiyor ama biri
+396 diğeri 252 üçgen — tahta başına 136 bine karşı 89 bin. Eskisi 30 bindi;
+yuvarlak boncuğun bedeli bu ve resim tahtasının zaten çizdiği 149 binin
+altında.
+
 Bir de iri meyveler şeritlerin **üstüne** biniyordu: halkanın yarıçapı neyse
 iri meyve de oraya konuyordu, yani bir sıra boncuğu eziyordu. Hepsi şeritler
 arasına alındı (`+ RIBBON_GAP * 0.5`); şeritler arası 1.9, iri meyve 1.44
