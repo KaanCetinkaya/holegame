@@ -62,7 +62,8 @@ rolling wave, a chequerboard. Three lay the field in rings around you.
 
 And each one is somewhere. A beach with the sea running up the sand. A black
 volcanic shore with palms, a tiki and a surfboard stood in it. A Hollywood
-pavement with stars set into it and the boulevard running past. A mown
+pavement with stars set into it and the boulevard running past. A New York
+crossing with the rooftops beyond the kerb. A mown
 football pitch. Fresh snow. A marble bank floor veined with gold. A station
 deck with nothing but the dark past its edge. A lacquered bar top. A ploughed
 field. A cobbled market square. The ground changes, and so does what is on it.
@@ -97,10 +98,10 @@ field are giants — twice the width of your opening, sometimes three huddled
 together, and never a slice: the whole fruit, stalk and leaf. Sweep, grow into
 one, and it pays for the whole trip.
 
-🧺 NINETY-SIX THINGS TO FIND
+🧺 ONE HUNDRED AND ONE THINGS TO FIND
 Scattered through the crop is whatever belongs where you are. A carved tiki, a
 lei and a ukulele on the black sand. A clapperboard and a film reel on the
-Hollywood pavement. Gold bars on the bank floor. A rocket in
+Hollywood pavement. A yellow cab, a hydrant and a pretzel on the crossing. Gold bars on the bank floor. A rocket in
 orbit. A tractor out on the farm — and standing beside it, a cow; a crab on
 the sand, a polar bear in the snow. Every one you swallow is kept, and the Collection screen
 holds them all: the ones you have in colour, the rest as silhouettes.

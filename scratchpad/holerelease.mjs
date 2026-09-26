@@ -96,10 +96,22 @@ const BIRLER = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', '
   'Seventeen', 'Eighteen', 'Nineteen'];
 const ONLAR = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy',
   'Eighty', 'Ninety'];
+// Yüz ve üstü de yazılıyor.
+//
+// Tablo doksan dokuzda bitiyordu ve eşya sayısı yüzü geçince `ONLAR[10]`
+// `undefined` verdi: test "undefined-one" arayıp kendi düşmesini bir mağaza
+// metni hatası diye bildirdi. Aynı şey yetmiş üçte bir kez daha olmuştu —
+// o zaman tablo uzatılmıştı, yani çözüm bir sonraki sınıra kadar dayandı.
+// Bu sefer sınır yok: yüzler özyinelemeyle yazılıyor.
 function kelime(n) {
   if (n < 20) return BIRLER[n];
-  const o = ONLAR[Math.floor(n / 10)], b = n % 10;
-  return b ? `${o}-${BIRLER[b].toLowerCase()}` : o;
+  if (n < 100) {
+    const o = ONLAR[Math.floor(n / 10)], b = n % 10;
+    return b ? `${o}-${BIRLER[b].toLowerCase()}` : o;
+  }
+  const yuz = `${BIRLER[Math.floor(n / 100)]} hundred`;
+  const kalan = n % 100;
+  return kalan ? `${yuz} and ${kelime(kalan).toLowerCase()}` : yuz;
 }
 // Metinde geçen sayı doğru mu, ve komşu sayılardan hiçbiri kalmamış mı?
 function sayiKontrol(n, ne, aralik = 12) {

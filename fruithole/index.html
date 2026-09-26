@@ -5542,6 +5542,154 @@ function propTemplates() {
     T.convertible = { g, h: 1.0, currency: 'berry', only: 'giant' };
   }
 
+  // --- new york ------------------------------------------------------
+  //
+  // Şehirlerin ikincisi ve Hollywood'un tersi: orada zemin kaldırımdı ve yol
+  // dışarıda kalıyordu, burada tahta caddenin kendisi. Eşyalar da caddede
+  // duranlar — taksi, musluk, sosisli arabası.
+
+  // Sarı taksi.
+  //
+  // Kaan'ın istediği nesne ve temanın imzası. Oyunda dört araba oldu, yani
+  // onu öteki üçünden ayıran şey ne olursa olsun **yukarıdan** görünmeli:
+  // rengi (tek sarı araba), tavanındaki ışıklı levha, ve kapılardaki dama
+  // şeridi. Üçü de tepeden bakan bir kameranın gördüğü yerlerde.
+  {
+    const g = new THREE.Group();
+    const sari = PROP_MAT('#f5c518', 0.3);
+    const cam = PROP_MAT('#2a3038', 0.2);
+    const lastik = PROP_MAT('#1e2026', 0.7);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.4, 2.2), sari), 0, 0.38, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.42, 1.15), sari), 0, 0.76, -0.1);
+    // Camlar: kabinin dört yüzü değil, yalnızca yukarıdan görüneni — tavan
+    // penceresi yok, ama ön ve arka cam yatık durdukları için tepeden
+    // görünüyorlar.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.36, 0.06), cam), 0, 0.8, 0.48, -0.5, 0, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.34, 0.06), cam), 0, 0.8, -0.68, 0.5, 0, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.34, 1.0), cam), 0, 0.82, -0.1);
+    // Tavandaki levha.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.16, 0.2), PROP_MAT('#fffbe8', 0.25)),
+        0, 1.03, -0.1);
+    // Dama şeridi: yanlarda, kapı boyunca.
+    for (const sx of [-0.49, 0.49]) for (let i = 0; i < 5; i++)
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, 0.2),
+                            PROP_MAT(i % 2 ? '#20232a' : '#f2f2ee', 0.35)),
+          sx, 0.42, -0.5 + i * 0.22);
+    for (const sx of [-0.52, 0.52]) for (const sz of [-0.72, 0.76])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.18, 12), lastik),
+          sx, 0.27, sz, 0, 0, Math.PI / 2);
+    T.taxi = { g, h: 1.15, currency: 'banana', only: 'giant' };
+  }
+
+  // Yangın musluğu.
+  //
+  // Yukarıdan bir kırmızı daire, ve onu daireden ayıran şey iki yandaki
+  // çıkış ağzı ile tepesindeki altıgen kapak. Onlarsız tahtada duran şey
+  // kırmızı bir sütun.
+  {
+    const g = new THREE.Group();
+    const kirmizi = PROP_MAT('#cf3b32', 0.4);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.7, 0.16, 12), kirmizi), 0, 0.08, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 1.0, 12), kirmizi), 0, 0.62, 0);
+    for (const sx of [-0.55, 0.55])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.34, 10), kirmizi),
+          sx, 0.78, 0, 0, 0, Math.PI / 2);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.3, 10), kirmizi), 0, 0.78, 0.5,
+        Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.44, 12, 8), kirmizi), 0, 1.14, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 0.22, 6),
+                          PROP_MAT('#8e2b24', 0.5)), 0, 1.4, 0);
+    T.hydrant = { g, h: 1.5, currency: 'berry', only: 'giant' };
+  }
+
+  // Sosisli.
+  //
+  // Yassı ve renkli: yukarıdan açık ekmek, içinde sosis, üstünde hardal
+  // zikzağı. Hardal olmadan bej bir kütük.
+  {
+    const g = new THREE.Group();
+    const ekmekMat = PROP_MAT('#e0b371', 0.5);
+    for (const sx of [-0.3, 0.3]) {
+      const yarim = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 1.1, 4, 10), ekmekMat);
+      put(g, yarim, sx, 0.28, 0, Math.PI / 2, 0, 0);
+    }
+    const sosis = new THREE.Mesh(new THREE.CapsuleGeometry(0.25, 1.25, 4, 10),
+                                 PROP_MAT('#b4503a', 0.45));
+    put(g, sosis, 0, 0.42, 0, Math.PI / 2, 0, 0);
+    for (let i = 0; i < 7; i++) {
+      const z = -0.66 + i * 0.22;
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.07, 0.09),
+                            PROP_MAT('#f2c73c', 0.35)),
+          0, 0.62, z, 0, i % 2 ? 0.6 : -0.6, 0);
+    }
+    T.hotdog = { g, h: 0.7, currency: 'melon', only: 'giant' };
+  }
+
+  // Tuzlu simit (pretzel).
+  //
+  // Yukarıdan bakan kamera için oyundaki en iyi okunan nesnelerden: düğüm
+  // şekli baştan yassı ve başka hiçbir şeye benzemiyor. Üç halkadan ve iki
+  // koldan kuruluyor, üstüne de tuz.
+  {
+    const g = new THREE.Group();
+    const hamur = PROP_MAT('#a86a2c', 0.55);
+    const halka = (x, z, r) => put(g,
+      new THREE.Mesh(new THREE.TorusGeometry(r, 0.15, 8, 18), hamur), x, 0.16, z,
+      Math.PI / 2, 0, 0);
+    halka(-0.36, -0.12, 0.34);
+    halka(0.36, -0.12, 0.34);
+    halka(0, 0.4, 0.38);
+    // Yukarı çıkan iki kol: düğümün üst kıvrımı.
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.6, 8), hamur),
+          sx * 0.5, 0.16, -0.5, 0, 0, sx * 0.7);
+    // Tuz taneleri sabit yerlerde, `rnd()` ile değil.
+    //
+    // Şablonlar dosya yüklenirken bir kez kuruluyor ve `rnd()` çok daha
+    // aşağıda tanımlanıyor: burada çağrılınca oyun hiç açılmıyor
+    // ("Cannot access '_seeded' before initialization"). Bu, bu dosyada
+    // beşinci kez aynı tuzak. Zaten şablonun rastgele olmasına gerek de yok —
+    // şablon bir kere kuruluyor, tahtadaki bütün simitler onun kopyası.
+    const tuz = [[-0.52, 0.1], [-0.2, -0.3], [0.16, 0.34], [0.48, -0.06],
+                 [-0.34, 0.46], [0.3, -0.42], [0, 0.6], [-0.62, -0.28],
+                 [0.62, 0.3], [0.08, -0.08], [-0.08, 0.2], [0.4, 0.5]];
+    for (const [tx, tz] of tuz)
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), PROP_MAT('#f6f1e4', 0.4)),
+          tx, 0.3, tz);
+    T.pretzel = { g, h: 0.4, currency: 'lychee' };
+  }
+
+  // Metro girişi tabelası.
+  //
+  // Direk + yuvarlak levha. Yukarıdan görünen şey levhanın yüzü, o yüzden
+  // levha yere **paralel değil** hafif yatık: tam dik olsaydı tepeden ince
+  // bir çizgi olurdu ve tabela diye bir şey kalmazdı.
+  {
+    const g = new THREE.Group();
+    const direk = PROP_MAT('#2b2f36', 0.5);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.5, 8), direk), 0, 0.75, 0);
+    const levha = new THREE.Group();
+    const yuz = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.58, 0.1, 18),
+                               PROP_MAT('#2f9e52', 0.35));
+    levha.add(yuz);
+    const halka = new THREE.Mesh(new THREE.TorusGeometry(0.54, 0.06, 8, 20),
+                                 PROP_MAT('#f2f2ee', 0.3));
+    halka.rotation.x = Math.PI / 2;
+    halka.position.y = 0.06;
+    levha.add(halka);
+    // Ortadaki çubuk: harf yerine geçen tek işaret. Gerçek bir harf bu
+    // boyutta okunmuyor, ama yeşil dairenin ortasındaki beyaz şey tabelanın
+    // tabela olduğunu söylüyor.
+    const harf = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.5),
+                                PROP_MAT('#f2f2ee', 0.3));
+    harf.position.y = 0.07;
+    levha.add(harf);
+    levha.position.set(0, 1.62, 0);
+    levha.rotation.x = 0.5;
+    g.add(levha);
+    T.subwaysign = { g, h: 1.9, currency: 'melon', only: 'giant' };
+  }
+
   // --- world cup -----------------------------------------------------
 
   // Football. The panels are separate flattened discs stuck to the surface
@@ -7429,6 +7577,57 @@ function sidewalkTexture() {
   return tex;
 }
 
+// New York'un zemini: caddenin kendisi.
+//
+// Hollywood'da zemin kaldırımdı ve yol dışarıda kalıyordu. Burada tam tersi,
+// çünkü New York'un yukarıdan bakınca tanınan şeyi caddesi: kalın beyaz yaya
+// geçidi bantları ve rögar kapakları. İkisi de yerde, ikisi de tepeden
+// bakan bir kameranın gördüğü şeyler.
+//
+// Geçit karonun tamamını kaplamıyor, yalnızca bir şeridini. Her yeri
+// bantlasaydık tahta bir barkoda dönerdi ve meyve sıralarıyla yarışırdı;
+// böyle tahtada yer yer geçit var, arası düz asfalt.
+//
+// Asfalt Drive-In'inkinden **açık**. İkisi de asfalt ve ikisi de koyu olsaydı
+// iki yer aynı görünürdü; buradaki caddenin aydınlığı, oradaki otoparkın
+// akşamı.
+function crosswalkTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#4a4e55';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2400; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? '#3a3e45' : '#616670';
+    const x = Math.random() * S, y = Math.random() * S, r = 0.7 + Math.random() * 2.2;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  // Geçit: dört kalın bant, karonun üst şeridinde. Kenarda kesilmiyorlar,
+  // yani döşendiğinde bantlar boydan boya geçiyor.
+  ctx.globalAlpha = 0.72;
+  ctx.fillStyle = '#e8e6df';
+  for (let i = 0; i < 4; i++) ctx.fillRect(i * (S / 4) + 10, 0, S / 9, S * 0.28);
+  // Rögar kapağı: koyu daire, göbekli.
+  ctx.globalAlpha = 1;
+  const rx = S * 0.68, ry = S * 0.66;
+  ctx.beginPath(); ctx.arc(rx, ry, 26, 0, Math.PI * 2);
+  ctx.fillStyle = '#3b3f46'; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = '#2b2f35'; ctx.stroke();
+  ctx.globalAlpha = 0.55;
+  ctx.strokeStyle = '#5c616a';
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(rx - Math.cos(a) * 20, ry - Math.sin(a) * 20);
+    ctx.lineTo(rx + Math.cos(a) * 20, ry + Math.sin(a) * 20);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(5, 5);
+  return tex;
+}
+
 // A mown pitch. The stripes are the whole trick — plain green is a felt mat,
 // and the alternating bands are what makes it read as a football ground from
 // the first frame, before you have seen a single ball.
@@ -7782,7 +7981,7 @@ const GROUND_TEX = {};
 // boş ve yalnızca oynanmış temaları içeriyor. "Bu temanın zemini tanımlı mı"
 // sorusu ona sorulduğunda cevap her zaman "hayır" çıkıyor.
 const GROUND_MAKERS = { sand: groundTexture, blacksand: blackSandTexture,
-  sidewalk: sidewalkTexture, grass: grassTexture,
+  sidewalk: sidewalkTexture, crosswalk: crosswalkTexture, grass: grassTexture,
   wood: woodTexture, snow: snowTexture, marble: marbleTexture,
   deck: deckTexture, bar: barTexture, asphalt: asphaltTexture,
   tiles: tileTexture, soil: soilTexture, cobbles: cobbleTexture };
@@ -7984,6 +8183,44 @@ function darkAsphaltTexture() {
   return tex;
 }
 
+// Çatılar. Tahtanın dışı, şehirde, başka bir şey: sokak biter binalar başlar.
+//
+// Karo dört bloğa bölünmüş ve blokların arası dar bir ara sokak. Her bloğun
+// üstünde bir-iki su deposu ve bir havalandırma kutusu — New York'u yukarıdan
+// tanıtan şey tam olarak o depolar.
+//
+// Düz koyu bir şerit de olurdu ve öteki yerlerde öyle; ama şehirde tahtanın
+// bittiği yer bir kenar değil, bir **sınır**: burada sokak, ötesinde bina.
+function rooftopTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#191c22';
+  ctx.fillRect(0, 0, S, S);
+  const blok = (x, y, w, h, renk) => {
+    ctx.fillStyle = renk;
+    ctx.fillRect(x, y, w, h);
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = '#0f1116';
+    ctx.fillRect(x, y + h - 4, w, 4);
+    ctx.globalAlpha = 1;
+  };
+  const renkler = ['#2c313a', '#343a44', '#262b33', '#3a414c'];
+  let i = 0;
+  for (const [x, y, w, h] of [[6, 6, 110, 110], [128, 6, 122, 74],
+                              [6, 128, 74, 122], [92, 92, 158, 158]]) {
+    blok(x, y, w, h, renkler[i++ % 4]);
+    // Su deposu: koyu daire, ve yanında havalandırma kutusu.
+    ctx.fillStyle = '#4a3a2c';
+    ctx.beginPath(); ctx.arc(x + w * 0.3, y + h * 0.32, Math.min(w, h) * 0.13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#1d2128';
+    ctx.fillRect(x + w * 0.58, y + h * 0.58, w * 0.22, h * 0.16);
+  }
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(9, 9);
+  return tex;
+}
+
 // Bulvar: aynı asfalt, ama üstünde kesikli şerit çizgisi.
 //
 // Çizgi karonun ortasından yatay geçiyor ve kenarlarda kesilmiyor, yani
@@ -8029,6 +8266,13 @@ const SURROUND_MAKERS = {
   // otopark, kaldırımın dışı **yol**, ve ikisinin arasındaki fark tam olarak
   // o sarı çizgi. Paylaşılsaydı iki şehir de aynı boşluğa bakıyor olurdu.
   boulevard: boulevardTexture,
+  // Caddenin dışı çatılar.
+  //
+  // Öteki yerlerin dışı hep aynı şeyin devamı: otoparkın dışı otopark, kumun
+  // dışı deniz. Şehirde tahtanın bittiği yerde **başka bir şey** başlıyor —
+  // sokak biter, binalar başlar. Yukarıdan bakan bir kameranın New York'u
+  // tanıdığı yer de burası: koyu çatılar, üstlerinde su depoları.
+  rooftops: rooftopTexture,
   // Pazarın dışı yine kaldırım, ama gölgede kalan yan sokak: aynı taş,
   // biraz koyusu. İlk değer mağaza zemini kadar karanlıktı ve gündüz
   // kurulan bir pazarın etrafını geceye çeviriyordu — tahtanın dışı
@@ -8152,6 +8396,27 @@ const THEMES = {
     // aşağıdan betonun soluk grisi geliyor. Anahtar ışık sıcak ama
     // Harvest'ın altın saati kadar değil — orası akşam, burası gün ortası.
     light: { sky: '#fdf6ea', bounce: '#b3a795', hemi: 1.42, amb: '#fff6e6', ambI: 0.46, sun: '#fff2d8', sunI: 0.74 },
+  },
+  // New York. Hollywood'un tersi: orada zemin kaldırımdı ve yol dışarıda
+  // kalıyordu, burada tahta caddenin kendisi ve dışarıda kalan şey binalar.
+  //
+  // İki şehir aynı malzemeden (asfalt, beton, boya) yapılmış olduğu halde
+  // ayrılıyorlar, çünkü ayrım renk değil **hangi yüzeyde durduğun**.
+  ny: {
+    name: 'Manhattan', icon: '🚕',
+    ground: 'crosswalk', surround: '#191c22', ripples: false,
+    edge: '#8d929c', surf: null,
+    beyond: 'rooftops',
+    props: ['taxi', 'hydrant', 'hotdog', 'pretzel', 'subwaysign',
+            // Şehrin ortak eşyaları: koni her yolda var, kahve ve simit
+            // caddede satılıyor, çöp kutusu da öyle.
+            'cone', 'donut', 'mug', 'crate'],
+    hero: ['taxi', 'hydrant'],
+    // Binaların arasındaki gün ışığı: gökyüzü açık ve nötr, aşağıdan gelen
+    // şey asfaltın grisi. Sıcak hiçbir yerden gelmiyor — öteki on üç yerin
+    // hepsinde bir tarafta sarı var, burada yok, ve şehri şehir yapan
+    // serinlik o.
+    light: { sky: '#eef3fb', bounce: '#5a5f68', hemi: 1.38, amb: '#f0f4fa', ambI: 0.44, sun: '#fbfdff', sunI: 0.72 },
   },
   pitch: {
     name: 'Match Day', icon: '⚽',
@@ -8992,7 +9257,9 @@ const PATTERNS = [
     big: () => false,
   },
   {
-    name: 'Pillars', icon: '🏛️', theme: 'space',
+    // Manhattan'ın iki düzeninden biri: sütunlar caddenin iki yanındaki bina
+    // sırası oluyor. Orbit'ten alındı, orada Heart kaldı.
+    name: 'Pillars', icon: '🏛️', theme: 'ny',
     // The two inner lines stand a head taller than the outer ones, so the
     // board has a middle. Even heights everywhere and it is wallpaper.
     //
@@ -9061,7 +9328,9 @@ const PATTERNS = [
     big: (r, c) => blockType(r, c, 4, 3, 55) === 'melon' && r % 3 === 1 && c % 4 === 2,
   },
   {
-    name: 'Stairs', icon: '📶', theme: 'cocktail',
+    // İkinci düzen: basamaklar yangın merdiveni oluyor. Happy Hour'dan
+    // alındı, orada Bloom kaldı.
+    name: 'Stairs', icon: '📶', theme: 'ny',
     // the mass descends across the board in broad steps
     empty: (r, c) => {
       const stepH = 3;

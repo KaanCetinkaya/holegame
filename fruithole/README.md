@@ -1920,6 +1920,67 @@ düştü; testin izin verdiği fark bu.
 İlk denemede **Blocks** alınacaktı ama o `voxel: true` — küp meyveli düzen,
 ve küp meyve Gadget Shop'un dili. Şehir bloğu olurdu ama yanlış şehir.
 
+## Manhattan: caddenin kendisi
+
+Kaan'ın tek şartı vardı: "sarı taksi olsun."
+
+Hollywood'da zemin kaldırımdı ve yol tahtanın dışında kalıyordu. Burada tam
+tersi: tahta caddenin kendisi, dışarıda kalan şey binalar. İki şehir de aynı
+malzemeden — asfalt, beton, boya — ama ayrılıyorlar, çünkü ayrım renk değil
+**hangi yüzeyde durduğun**.
+
+Zemin: kalın beyaz yaya geçidi bantları ve rögar kapakları. İkisi de yerde,
+yani tepeden bakan kameranın gördüğü şeyler. Geçit karonun tamamını
+kaplamıyor, yalnızca bir şeridini — her yeri bantlasaydık tahta bir barkoda
+dönerdi ve meyve sıralarıyla yarışırdı.
+
+Asfalt Drive-In'inkinden açık. İkisi de asfalt ve ikisi de koyu olsaydı iki
+yer aynı görünürdü; buradaki caddenin aydınlığı, oradaki otoparkın akşamı.
+
+### Tahtanın dışı, ilk kez, başka bir şey
+
+Öteki on üç yerin dışı hep aynı şeyin devamı: otoparkın dışı otopark, kumun
+dışı deniz, tarlanın dışı çayır. Şehirde sokak **bitiyor** ve binalar
+başlıyor. Çatı dokusu bunu söylüyor: koyu bloklar, aralarında ara sokak, ve
+her bloğun üstünde bir su deposu — New York'u yukarıdan tanıtan şey tam
+olarak o depolar.
+
+### Işığında sarı yok
+
+Öteki on üç yerin hepsinde bir tarafta sarı var: güneş, ampul, amber, altın
+saat. Manhattan'da yok — gökyüzü nötr, aşağıdan gelen şey asfaltın grisi.
+Şehri şehir yapan serinlik o, ve tek bir sayıyla (`bounce: #5a5f68`) geliyor.
+
+### Beş nesne, ve beşinci kez aynı tuzak
+
+Taksi, yangın musluğu, sosisli, tuzlu simit, metro tabelası.
+
+Taksi oyunun dördüncü arabası, yani onu ötekilerden ayıran her şey
+**yukarıdan** görünmeli: rengi (tek sarı araba), tavanındaki levha, kapıdaki
+dama şeridi. Metro tabelasının levhası yere paralel değil hafif yatık — tam
+dik olsaydı tepeden ince bir çizgi olurdu ve tabela diye bir şey kalmazdı.
+
+Simidin tuz taneleri önce `rnd()` ile serpiliyordu ve oyun hiç açılmadı:
+*"Cannot access '_seeded' before initialization"*. Şablonlar dosya
+yüklenirken kuruluyor, `rnd()` çok daha aşağıda tanımlanıyor. Bu dosyada
+**beşinci kez** aynı tuzak, ve her seferinde aynı belirti: beyaz ekran, hiç
+açılmayan oyun. `scratchpad/holeboot.mjs` yine yakaladı.
+
+Zaten rastgeleliğe gerek de yoktu: şablon bir kere kuruluyor ve tahtadaki
+bütün simitler onun kopyası.
+
+### Düzenler
+
+**Pillars** (sütunlar caddenin iki yanındaki bina sırası) ve **Stairs**
+(basamaklar yangın merdiveni). Orbit ve Happy Hour birer düzene düştü.
+
+### Sayı yazıya çevrilirken yüzü geçti
+
+Eşya sayısı 101 oldu ve `holerelease.mjs` "undefined-one" aramaya başladı:
+sayı-kelime tablosu doksan dokuzda bitiyordu. Aynı şey yetmiş üçte de
+olmuştu ve o zaman tablo uzatılmıştı — yani çözüm bir sonraki sınıra kadar
+dayandı. Bu sefer sınır kaldırıldı, yüzler özyinelemeyle yazılıyor.
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
