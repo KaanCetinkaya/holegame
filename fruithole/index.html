@@ -11102,13 +11102,29 @@ const GIANT_SLACK = 4.0;
 // tavan 2.75). Sabit, çünkü model bölüm başında kuruluyor ve deliğin o an
 // nerede olacağını bilmiyor; doğru sayı ortalama olan.
 const ORDER_MERGE = 2.2;
+
+// Bir durakta biriken **her fazladan parça** için eklenen yol.
+//
+// Birleştirme "yan yana duranları bir geçişte alırsın" diyordu ve bu, meyve
+// tipleri tahtaya serpilirken doğruydu: aynı hücrede aynı tipten iki-üç şey
+// oluyordu, üstü kalanı deliğin ağzı örtüyordu. Tipler gürültü alanından
+// seçilmeye başlayınca (düzensiz diziliş düzeltilirken) aynı tip **öbek
+// öbek** durur oldu ve birleştirme öbeği tek durağa indirdi: 45. bölümde 108
+// muz yedi durak sayıldı, tur 17 saniye çıktı, saat 33 saniye verildi ve
+// tahta gerçekte 108 parçalık bir süpürme. Bölüm geçilmiyordu.
+//
+// Öbeğin içi bedava değil: delik parçaların üstünden gerçekten geçmek
+// zorunda. Izgara hücresi 1.05 ve deliğin bölüm ortasındaki ağzı iki sıra
+// kadar, yani parça başına kabaca yarım birim.
+const ORDER_INNER = 0.5;
 function mergeStops(list) {
-  const out = [], gorulen = new Set();
+  const out = [], nerede = new Map();
   for (const f of list) {
     const k = Math.round(f.x / ORDER_MERGE) + ',' + Math.round(f.z / ORDER_MERGE);
-    if (gorulen.has(k)) continue;
-    gorulen.add(k);
-    out.push({ x: f.x, z: f.z });
+    const at = nerede.get(k);
+    if (at !== undefined) { out[at].n++; continue; }
+    nerede.set(k, out.length);
+    out.push({ x: f.x, z: f.z, n: 1 });
   }
   return out;
 }
@@ -11124,6 +11140,8 @@ function tourSeconds(stops) {
       if (d < ed) { ed = d; en = i; }
     }
     yol += Math.sqrt(ed);
+    // Durağa varmak bir şey, durağın içindekileri toplamak başka şey.
+    yol += ((kalan[en].n || 1) - 1) * ORDER_INNER;
     x = kalan[en].x; z = kalan[en].z;
     kalan.splice(en, 1);
   }
