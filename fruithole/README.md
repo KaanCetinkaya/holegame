@@ -2056,6 +2056,68 @@ Nesneler sayılmıyor: "bütün muzları ye" diyen bir görevde sulama kabı muz
 değil, ve oyuncu ona bakıp muz saymaz. Günlük koşuda sipariş yok, sebebi
 yukarıdaki tur çevirmesiyle aynı.
 
+### Birleştirme öbeği yuttu
+
+Kaan 45. bölümü geçemedi: 105 muzun 62'sini alabildi ve saat bitti. Model o
+tahtada **108 muzu yedi durak** sayıyordu.
+
+Bir üstteki düzeltme — yan yana duranlar tek durak — meyve tipleri tahtaya
+serpilirken doğruydu: bir hücrede aynı tipten iki-üç şey oluyordu, üstü
+kalanı deliğin ağzı örtüyordu. Dizilişin düzensizliği giderilirken tipler
+gürültü alanından okunmaya başladı ve aynı tip **öbek öbek** durur oldu.
+Birleştirme öbeğin tamamını tek durağa indirdi: 17 saniyelik tur, 33
+saniyelik saat, ve gerçekte 108 parçalık bir süpürme.
+
+Durak artık kaç parça yuttuğunu taşıyor ve tur, ilkinden sonraki her parça
+için yarım birim ödüyor (ızgara hücresi 1.05, deliğin ağzı bölüm ortasında
+iki sıra kadar).
+
+Yan etkisi: hedef meyveyi seçen kural (turu 25 saniyeye en yakın tür) artık
+bir öbeğin gerçek bedelini görüyor ve tahtadaki en sıkışık türü seçmiyor.
+
+### Katsayı 2.0 değil 3.0
+
+Öbek düzeltmesinden sonra 85. bölüm kaybetmekten geçmeye döndü ama 205 hâlâ
+bitmiyordu. Ölçüm için bota **sınırsız saat** verildi ve bölümü bitirmesi
+için gerçekten gereken süre okundu. Model ile gerek aynı koşudan, çünkü tahta
+her koşuda yeniden kuruluyor:
+
+```
+ blm | verilen saat | gereken | oran
+   5 |      52      |  20.0   | 2.60
+  45 |      51      |  31.4   | 1.62
+  85 |      48      |  40.3   | 1.19
+ 125 |      35      |  23.2   | 1.51
+ 165 |      40      |  18.9   | 2.12
+ 205 |      34      |  38.4   | 0.89   <- kusursuz bot bile yetişmiyor
+```
+
+İki şey üst üste biniyordu. Tur modelinin gerçeğe oranı 0.7 ile 1.6 arasında
+oynuyor, yani 2.0 katsayı bu salınıma bile yer bırakmıyor — köşeyi kaçıran,
+büyümek için sapan bir insana hiç bırakmıyor. Üstüne geç turlarda saat ayrıca
+%28 kısılıyordu.
+
+Katsayı 3.0 oldu ve geç tur kısıtlaması sipariş bölümüne uygulanmıyor: o
+kısıtlama `sweepSeconds() * 2.6`'nın —kaba bir üst sınırın— yağını almak için
+var, siparişin saati ise o tahtadaki hedef meyvelerin ölçülmüş turu ve
+alınacak yağı yok.
+
+Sonuç:
+
+```
+ blm | verilen saat | gereken | oran
+   5 |      74      |  20.2   | 3.66
+  45 |      74      |  18.1   | 4.09
+  85 |      91      |  39.3   | 2.32
+ 125 |      76      |  17.7   | 4.29
+ 165 |      79      |  41.2   | 1.92
+ 205 |      70      |  28.3   | 2.47
+```
+
+En kötü tahtada bot saatin %52'sini kullanıyor, en iyisinde %23. Sipariş
+bölümü yine de sıradan bir bölümden sıkı: aynı tahtanın görevsiz saati
+124-152 saniye, siparişinki 64-74.
+
 ### Üçüncü tip: ⏱ Rush
 
 İlk iki görev **ne yiyeceğini** değiştiriyor. Üçüncüsü **ne kadar
