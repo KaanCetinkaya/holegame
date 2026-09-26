@@ -1,5 +1,39 @@
 node_modules/
+# IDE'nin kendi ayarları. Kaan'ın makinesinde IntelliJ projeyi açınca
+# oluşuyor ve `git add -A` onları sessizce topluyor: sürüm kaydını tutan tek
+# satırlık bir commit, beş bin satırlık bir IDE ayar yığınıyla geldi.
+.idea/
 /android/
 /ios/
 .DS_Store
 *.log
+/android-fruithole/
+/android-slicer/
+/android-tycoon/
+www-fruithole/three.module.js
+www-slicer/three.module.js
+www-tycoon/three.module.js
+
+# build-www.mjs'in ürettiği sayfalar.
+#
+# Bunlar takipliyken her derleme depoyu kirletiyordu ve bir sonraki `git pull`
+# "your local changes would be overwritten" diyip duruyordu — yani derleyen
+# herkes, derlediği için, güncelleme alamaz hale geliyordu. Kimse de bu
+# dosyaları depodan okumuyor: `cap sync` onları native projeye kopyalıyor ve
+# paylaşmak için kullanılan tek dosyalık sürümü ayrı bir betik (
+# fruithole/build-standalone.py) üretiyor.
+#
+# www/three.module.js ve www/rapier.es.js takipli kalıyor: onlar üretilmiyor,
+# elle konmuş kütüphaneler ve derleme onları öbür klasörlere kopyalıyor.
+www/index.html
+www-fruithole/index.html
+www-slicer/index.html
+www-tycoon/index.html
+keystore.properties
+
+# Tanıtım klipleri: make-clips.mjs üretiyor, her çalıştırmada baştan.
+# Mağaza ekran görüntüleri (store/*.png) depoda duruyor çünkü Play Console'a
+# yüklenen tam olarak onlar ve değişirlerse diff'i görmek gerekiyor. Video
+# öyle değil: her üretimde dosyanın tamamı değişiyor ve bir megabaytın
+# üstünde, yani depoda tutmak geçmişi her seferinde şişirirdi.
+fruithole/store/clips/
