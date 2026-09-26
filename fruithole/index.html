@@ -7134,6 +7134,76 @@ function propTemplates() {
     T.basket = { g, h: 0.74, currency: 'berry' };
   }
 
+  // Meyve sepeti: dolu olanı.
+  //
+  // Rakibin karesinde tahtanın bakılacak yeri hasır sepetlerdi ve bizde
+  // sepet **vardı** — yukarıdaki `basket`. Fark ölçülebilir: onun ağzı 0.42
+  // ve içi boş. Boş bir sepet yukarıdan bir halka; sepeti sepet yapan şey
+  // içindekiler.
+  //
+  // Ağız 0.92, yani iki katından geniş, ve meyve kenardan **taşıyor**. Tam
+  // dolu olsaydı düz bir daire olurdu; taşan tepe onu bir kap yapıyor.
+  //
+  // Renkler oyunun kendi dört meyvesinden okunuyor (`TYPES`), elle
+  // yazılmıyor: bir gün beşinci meyve gelirse sepet de onu taşısın.
+  {
+    const g = new THREE.Group();
+    const hasir = PROP_MAT('#c8913f', 0.92);
+    const koyu = PROP_MAT('#9c6b26', 0.9);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.72, 0.62, 20, 1, true), hasir),
+        0, 0.31, 0);
+    // Örgü halkaları: yukarıdan görünen tek doku, o yüzden kalın.
+    for (let i = 0; i < 4; i++)
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.9 - i * 0.05, 0.05, 6, 22), koyu),
+          0, 0.1 + i * 0.16, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CircleGeometry(0.72, 18), koyu), 0, 0.03, 0, -Math.PI / 2, 0, 0);
+    // Ağzın kalın kenarı: meyve yığınıyla hasır arasındaki sınır.
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.07, 8, 24), hasir),
+        0, 0.62, 0, Math.PI / 2, 0, 0);
+    const renk = TYPES.map(t => PROP_MAT(t.uiBase || t.base, 0.42));
+    let n = 0;
+    const koy = (x, z, y, r) =>
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), renk[n++ % renk.length]), x, y, z);
+    // Üç kat: dış halka, iç halka, tepe. Tek kat düz bir mozaik olurdu.
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      koy(Math.cos(a) * 0.6, Math.sin(a) * 0.6, 0.66, 0.26);
+    }
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 + 0.4;
+      koy(Math.cos(a) * 0.32, Math.sin(a) * 0.32, 0.8, 0.26);
+    }
+    koy(0, 0, 0.94, 0.26);
+    T.fruitbasket = { g, h: 1.2, currency: 'berry', only: 'giant' };
+  }
+
+  // Meyve kasası: plastik, kare, ve yine dolu.
+  //
+  // Sepetin yanında ikinci bir kap, ve kasıtlı olarak **kare**: rakibin
+  // karesinde de yuvarlak sepetlerin arasında köşeli kasalar duruyor, ve
+  // yukarıdan bakan bir kamerada iki kap ancak şekilleri farklıysa iki kap.
+  // İkisi de yuvarlak olsaydı biri ötekinin küçüğü gibi okunurdu.
+  {
+    const g = new THREE.Group();
+    const plastik = PROP_MAT('#3fa8c4', 0.35);
+    const koyu = PROP_MAT('#2b7d94', 0.4);
+    // Dört duvar ve taban. Kutu yerine dört levha, çünkü kasanın içi
+    // görünmeli — kapalı bir kutu yukarıdan renkli bir kare.
+    for (const [x, z, w, d] of [[0, 0.62, 1.3, 0.08], [0, -0.62, 1.3, 0.08],
+                                [0.62, 0, 0.08, 1.3], [-0.62, 0, 0.08, 1.3]])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, d), plastik), x, 0.27, z);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.07, 1.3), koyu), 0, 0.05, 0);
+    // Kenar payandaları: köşelerde, kasayı düz bir çerçeveden ayıran şey.
+    for (const sx of [-0.62, 0.62]) for (const sz of [-0.62, 0.62])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.56, 0.14), koyu), sx, 0.28, sz);
+    const renk = TYPES.map(t => PROP_MAT(t.uiBase || t.base, 0.42));
+    let n = 1;
+    for (const x of [-0.34, 0, 0.34]) for (const z of [-0.34, 0, 0.34])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), renk[n++ % renk.length]),
+          x, 0.5, z);
+    T.punnet = { g, h: 0.8, currency: 'lychee', only: 'giant' };
+  }
+
   // Ekmek. Uzun bir somun, üstünde çapraz kesikler: kesikler olmadan
   // yukarıdan bakınca bu bir tomruk.
   {
@@ -8883,7 +8953,9 @@ const THEMES = {
     ground: 'soil', surround: '#3f6b2e', ripples: false,
     edge: '#7fae4c', surf: null,
     props: ['haybale', 'chicken', 'eggs', 'churn', 'wateringcan', 'pitchfork',
-            'crate', 'tractor', 'wheelbarrow', 'scarecrow', 'cow'],
+            'crate', 'tractor', 'wheelbarrow', 'scarecrow', 'cow',
+            // Hasat toplanınca kasaya giriyor: aynı kaplar burada da.
+            'fruitbasket', 'punnet'],
     // Savrulan saman tozu: biçilmiş bir tarlanın üstündeki şey. Düşüyor
     // ama yavaş, ve yanlamasına sürükleniyor.
     air: { n: 70, size: 8, colour: '#f7e7b8', opacity: 0.6, fall: 0.7, drift: 1.5, top: 7 },
@@ -8900,7 +8972,12 @@ const THEMES = {
     ground: 'cobbles', surround: '#5b544a', ripples: false,
     // Kenar: kaldırım taşı. Tahtanın bittiği yeri bir kenar taşı söylüyor.
     edge: '#cbbfa8', surf: null,
-    props: ['scales', 'basket', 'bread', 'cheese', 'jar', 'sack', 'crate', 'awning'],
+    props: ['scales', 'basket', 'bread', 'cheese', 'jar', 'sack', 'crate', 'awning',
+            // Dolu kaplar: pazarın bakılacak yeri.
+            'fruitbasket', 'punnet'],
+    // Pazarın imzası dolu sepet. Boş sepet zaten havuzda ve küçük; tahtanın
+    // ortasında duran şey dolu olanı olmalı.
+    hero: ['fruitbasket', 'punnet'],
     // Sabah pazarının havası: tenteden sızan ışıkta duran toz, ve hafifçe
     // yanlamasına sürüklenen. Kalabalık değil — tozu göstermek değil, yerin
     // durmadığını söylemek amaç.

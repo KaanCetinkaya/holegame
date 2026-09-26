@@ -99,11 +99,12 @@ field are giants — twice the width of your opening, sometimes three huddled
 together, and never a slice: the whole fruit, stalk and leaf. Sweep, grow into
 one, and it pays for the whole trip.
 
-🧺 ONE HUNDRED AND SIX THINGS TO FIND
+🧺 ONE HUNDRED AND EIGHT THINGS TO FIND
 Scattered through the crop is whatever belongs where you are. A carved tiki, a
 lei and a ukulele on the black sand. A clapperboard and a film reel on the
 Hollywood pavement. A yellow cab, a hydrant and a pretzel on the crossing. A
-tower, a tiger and a camel out on the gold coast. Gold bars on the bank floor. A rocket in
+tower, a tiger and a camel out on the gold coast. A wicker basket brimming
+with fruit on the market square. Gold bars on the bank floor. A rocket in
 orbit. A tractor out on the farm — and standing beside it, a cow; a crab on
 the sand, a polar bear in the snow. Every one you swallow is kept, and the Collection screen
 holds them all: the ones you have in colour, the rest as silhouettes.
