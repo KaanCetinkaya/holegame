@@ -5690,6 +5690,224 @@ function propTemplates() {
     T.subwaysign = { g, h: 1.9, currency: 'melon', only: 'giant' };
   }
 
+  // --- dubai ---------------------------------------------------------
+  //
+  // Şehirlerin üçüncüsü, ve tek gökdelenlisi. Gökdelen bu kamera için zor bir
+  // nesne — yükseklik yukarıdan görünmüyor, görünen şey **taban planı**. O
+  // yüzden kule üç kollu: tepeden bakınca bir yıldız, bir kutu değil.
+
+  // Gökdelen.
+  {
+    const g = new THREE.Group();
+    const cam = PROP_MAT('#7fc2d8', 0.18);
+    const cerceve = PROP_MAT('#cdd8de', 0.3);
+    // Üç kol, yukarı çıktıkça kısalıyor: kulenin daralması bu. Tek bir koni
+    // de daralırdı ama tepeden bir daire olurdu ve her kuleye benzerdi.
+    for (let kat = 0; kat < 7; kat++) {
+      const t = kat / 6;
+      const boy = 0.52 - t * 0.3;
+      const yuk = 0.3 + kat * 0.42;
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2;
+        const kol = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.44, boy * 2), cam);
+        put(g, kol, Math.cos(a) * boy * 0.9, yuk, Math.sin(a) * boy * 0.9, 0, -a, 0);
+      }
+      // Her katın üstünde ince bir bant: camın yatay bölünmesi, ve kuleyi
+      // düz bir prizma olmaktan çıkaran şey.
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(boy * 1.15, boy * 1.15, 0.06, 12), cerceve),
+          0, yuk + 0.21, 0);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.12, 1.1, 8), cerceve), 0, 3.6, 0);
+    T.tower = { g, h: 4.1, currency: 'lychee', only: 'giant' };
+  }
+
+  // Spor araba.
+  //
+  // Üç deneme sonunda oyunun **kendi** çalışan arabasına bakıldı (`sedan`) ve
+  // fark ölçülebilirdi: sedan 1.5 x 3.1, benimki 1.24 x 2.4'tü. Yani sorun
+  // şeklin kendisi değil, ölçeğiydi — aynı ekranda daha küçük bir gövdeye
+  // daha çok ayrıntı konunca hepsi birbirine giriyor ve yukarıdan lapa
+  // görünüyor.
+  //
+  // İkinci fark cam: sedanın camları **açık mavi**, benimki siyaha yakındı.
+  // Yukarıdan bir arabayı araba yapan şey camın gövdeden ayrılması; koyu cam
+  // gövdedeki bir delik gibi okunuyor.
+  //
+  // Üçüncüsü ayrıntı sayısı. Hava girişi, kaput çizgisi, beş kademe — hepsi
+  // yandan bakınca doğru, yukarıdan bakınca gürültü. Kaldırıldılar; spor
+  // arabayı ayıran iki işaret kaldı: burna doğru **daralan** gövde ve arkada
+  // gövdeden geniş duran kanat.
+  {
+    const g = new THREE.Group();
+    const boya = PROP_MAT('#e8a020', 0.24);
+    const cam = PROP_MAT('#9fd8f5', 0.15);
+    const koyu = PROP_MAT('#2b2f36', 0.4);
+    const lastik = PROP_MAT('#26262c', 0.75);
+    // Gövde üç kademe: arka 1.6, orta 1.4, burun 0.95. Sedanın eni 1.5, yani
+    // bu ondan geniş başlayıp ondan dar bitiyor — daralma işte o.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 1.5), boya), 0, 0.42, -0.85);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.38, 1.0), boya), 0, 0.41, 0.4);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.3, 0.85), boya), 0, 0.37, 1.25);
+    // Kabin: alçak, geride, ve camları açık mavi.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.12, 0.34, 1.0), boya), 0, 0.78, -0.7);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.3, 0.1), cam), 0, 0.78, -0.2);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.26, 0.1), cam), 0, 0.78, -1.2);
+    for (const sx of [-0.57, 0.57])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.24, 0.84), cam), sx, 0.78, -0.7);
+    // Arka kanat: gövdeden geride, havada, ve gövdeden geniş.
+    for (const sx of [-0.62, 0.62])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.3, 0.12), koyu), sx, 0.72, -1.62);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(1.86, 0.08, 0.4), koyu), 0, 0.9, -1.66);
+    // Farlar.
+    for (const sx of [-0.28, 0.28])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.12, 0.08), PROP_MAT('#fff3c4', 0.3)),
+          sx, 0.44, 1.66);
+    const tyre = new THREE.CylinderGeometry(0.36, 0.36, 0.26, 14);
+    for (const sx of [-0.86, 0.86]) for (const sz of [-0.95, 0.85])
+      put(g, new THREE.Mesh(tyre, lastik), sx, 0.36, sz, 0, 0, Math.PI / 2);
+    T.supercar = { g, h: 1.0, currency: 'banana', only: 'giant' };
+  }
+
+  // Şahin, kanatları açık.
+  //
+  // İlk hâli ekranda bir kâğıt uçaktı ve sebebi ölçülebilir: kanatlar koniydi
+  // ve koni kendi ekseni etrafında çevrilince iki kanat simetrik durmuyordu —
+  // biri öne, öteki yana bakıyordu. Üstelik koninin ucu sivri, kuş kanadının
+  // ucu **geniş**.
+  //
+  // Artık kanat yassılaştırılmış bir küre ve yalnızca Y ekseninde
+  // döndürülüyor. Tek eksen demek simetri garanti demek, ve yukarıdan bakan
+  // bir kamerada kuşu kuş yapan şey iki kanadın birbirinin aynası olması.
+  {
+    const g = new THREE.Group();
+    const tuy = PROP_MAT('#7a6144', 0.6);
+    const acik = PROP_MAT('#c2ab8a', 0.6);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.42, 8),
+                          PROP_MAT('#4a3a28', 0.7)), 0, 0.21, -0.1);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), tuy);
+    govde.scale.set(1, 0.9, 1.5);
+    put(g, govde, 0, 0.56, 0);
+    // Kanatlar: yassı elipsoit, hafif geriye süpürülmüş. Dış uçta ikinci,
+    // daha koyu bir dilim var — kanadın ucundaki uzun tüyler, ve siluetin
+    // sınırını çizen şey. Gövdeye bitişik duruyor, kopuk değil.
+    for (const sx of [-1, 1]) {
+      const ic = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), acik);
+      ic.scale.set(0.62, 0.05, 0.34);
+      put(g, ic, sx * 0.62, 0.6, -0.04, 0, sx * 0.3, 0);
+      const dis = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), tuy);
+      dis.scale.set(0.5, 0.045, 0.22);
+      put(g, dis, sx * 1.5, 0.59, -0.26, 0, sx * 0.55, 0);
+    }
+    // Kuyruk: yelpaze. Arkadan bakınca kısa, yukarıdan bakınca kuşun
+    // uzunluğunun üçte biri.
+    const kuyruk = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), acik);
+    kuyruk.scale.set(0.3, 0.045, 0.46);
+    put(g, kuyruk, 0, 0.58, -0.78);
+    // Baş ve gaga. Gaga aşağı kıvrık: şahini güvercinden ayıran şey.
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), PROP_MAT('#d9cbb0', 0.6)),
+        0, 0.72, 0.44);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.22, 6), PROP_MAT('#2f2a22', 0.4)),
+        0, 0.7, 0.62, 1.2, 0, 0);
+    for (const sx of [-0.09, 0.09])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), PROP_MAT('#2f2a22', 0.4)),
+          sx, 0.83, 0.54);
+    T.falcon = { g, h: 1.0, currency: 'melon', only: 'giant' };
+  }
+
+  // Deve.
+  //
+  // Üç deneme, üçü de yukarıdan karışık. Dördüncüde oyunun kendi çalışan
+  // dört ayaklısına bakıldı (`cow`) ve oranları kopyalandı:
+  //
+  //   gövde     yassı ve **derli toplu** (0.72 x 0.66 x 1.05), uzun-ince değil
+  //   işaret    gövdenin üstüne yapışık yassı lekeler
+  //   kafa      önde ve alçak, gövde siluetinin dışında
+  //   bacaklar  kısa (0.56) ve gövdeye yakın (±0.26)
+  //
+  // Benim devemde bacaklar 0.86 boyunda ve ±0.4'te, ayakları ±0.6'daydı:
+  // siluetin yarısı bacaktı ve tahtada duran şey bir tabureye benziyordu.
+  // İneğin kuralı şu — bu kamerada bacak hayvanı anlatmıyor, **gövdenin
+  // üstündeki işaret** anlatıyor. İnekte leke, devede hörgüç.
+  {
+    const g = new THREE.Group();
+    const post = PROP_MAT('#d2ab72', 0.7);
+    const koyu = PROP_MAT('#a07c46', 0.74);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 12), post);
+    govde.scale.set(0.76, 0.62, 1.1);
+    put(g, govde, 0, 0.58, 0.05);
+    // Hörgüç: gövdenin üstüne yapışık, koyu, ve tek. İneğin lekesiyle aynı
+    // iş — yukarıdan görünen tek işaret.
+    const horguc = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), koyu);
+    horguc.scale.set(0.82, 0.95, 0.78);
+    put(g, horguc, 0, 0.88, 0.06);
+    // Boyun kısa ve kalın, kafa önde ve alçak — ineğinki gibi.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 0.5, 8), post),
+        0, 0.72, -0.5, -0.8, 0, 0);
+    const kafa = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), post);
+    kafa.scale.set(0.82, 0.82, 1.05);
+    put(g, kafa, 0, 0.6, -0.86);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), koyu), 0, 0.54, -1.06);
+    for (const s2 of [-1, 1]) {
+      const kl = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), post);
+      kl.scale.set(1, 0.4, 0.6);
+      put(g, kl, s2 * 0.22, 0.7, -0.8);
+      for (const z of [-0.36, 0.44])
+        put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.075, 0.56, 8), post),
+            s2 * 0.26, 0.28, z);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.03, 0.4, 6), koyu),
+        0, 0.56, 0.7, -0.9, 0, 0);
+    T.camel = { g, h: 1.2, currency: 'banana', only: 'giant' };
+  }
+
+  // Kaplan.
+  //
+  // İlk hâli ekranda turuncu bir **yay**dı: gövde dar ve uzundu, çizgiler
+  // gövdeden genişti ve yanlardan dolanıyordu, bacaklar altta kaldığı için
+  // görünmüyordu. Dolanan bir çizgi dizisi yukarıdan sarmal okunuyor.
+  //
+  // Çizgi bu kamerada kaplanın tek işareti ve tek yerde durmalı: **sırtta**.
+  // Gövdeden dar tutuluyor, yani yanlara sarkmıyor; ve bacaklar gövdenin
+  // dışına açılıyor, yani siluet dört ayaklı bir şeyin silueti.
+  {
+    const g = new THREE.Group();
+    const post = PROP_MAT('#e08b2c', 0.62);
+    const ak = PROP_MAT('#f6ead8', 0.6);
+    const kara = PROP_MAT('#2a2018', 0.7);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.48, 14, 10), post);
+    govde.scale.set(1.08, 0.72, 1.55);
+    put(g, govde, 0, 0.46, -0.1);
+    // Çizgiler: gövdeden dar (0.62 < 1.04) ve sırtın üstünde. Yanlara
+    // taşmadıkları için yukarıdan bant, yandan hiçbir şey.
+    for (let i = 0; i < 5; i++) {
+      const z = -0.66 + i * 0.3;
+      const en = 0.62 - Math.abs(i - 2) * 0.06;
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(en, 0.06, 0.09), kara),
+          0, 0.79, z, 0, i % 2 ? 0.22 : -0.22, 0);
+    }
+    // Baş: gövdeden ayrı bir daire, iki kulak ve beyaz burun.
+    const bas = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), post);
+    bas.scale.set(1.1, 0.85, 1);
+    put(g, bas, 0, 0.62, 0.82);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), ak), 0, 0.64, 1.02);
+    for (const sx of [-0.2, 0.2]) {
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 6), kara), sx, 0.78, 0.94);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.07, 10), post),
+          sx * 1.3, 0.8, 0.66);
+    }
+    // Bacaklar gövdenin dışına: yukarıdan dört pati görünüyor.
+    for (const sx of [-0.44, 0.44]) for (const sz of [-0.62, 0.36]) {
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.11, 0.42, 8), post),
+          sx, 0.22, sz, 0, 0, sx > 0 ? -0.16 : 0.16);
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.155, 8, 6), post), sx * 1.15, 0.12, sz);
+    }
+    // Kuyruk: gövdeden geriye, ucu koyu.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.055, 0.8, 6), post),
+        0, 0.44, -0.95, 1.35, 0, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), kara), 0, 0.33, -1.32);
+    T.tiger = { g, h: 1.1, currency: 'berry', only: 'giant' };
+  }
+
   // --- world cup -----------------------------------------------------
 
   // Football. The panels are separate flattened discs stuck to the surface
@@ -7628,6 +7846,63 @@ function crosswalkTexture() {
   return tex;
 }
 
+// Dubai'nin zemini: cilalı meydan, altın geometrik desen.
+//
+// Üçüncü şehir ve üçüncü kez aynı soru: bu kamera bu şehrin nesini görür?
+// Hollywood'da kaldırımdı, New York'ta caddeydi. Dubai'de gökdelen var ama
+// gökdelen yandan bir şey; yukarıdan görünen, altlarındaki meydan — açık
+// taş, ve üstünde altın yaldızlı yıldız deseni.
+//
+// Mermerden ayrı bir doku, çünkü mermerin işareti **damar**: rastgele,
+// kıvrımlı, doğal. Buradaki desen tam tersi — ölçülü, tekrar eden, elle
+// çizilmiş. İkisi de açık ve cilalı ama biri taşın kendisi, öteki taşın
+// üstüne yapılan şey.
+function plazaTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#efe4d2';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 1600; i++) {
+    ctx.globalAlpha = 0.03 + Math.random() * 0.05;
+    ctx.fillStyle = Math.random() < 0.5 ? '#d9cbb4' : '#fff8ec';
+    const x = Math.random() * S, y = Math.random() * S, r = 0.8 + Math.random() * 2;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  // Sekiz köşeli yıldız: desenin kendisi iki karenin üst üste binmesi, yani
+  // iki kare çizip döndürmek yetiyor.
+  const yildiz = (cx, cy, r) => {
+    ctx.beginPath();
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2 - Math.PI / 16;
+      const rr = i % 2 ? r * 0.56 : r;
+      const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.closePath();
+  };
+  // Desen karonun dört köşesinde ve ortasında: döşendiğinde köşedekiler
+  // birleşip komşu karoyla tam bir yıldız oluyor, yani ek yeri görünmüyor.
+  ctx.globalAlpha = 0.5;
+  ctx.strokeStyle = '#c2992f';
+  ctx.lineWidth = 3;
+  for (const [x, y] of [[0, 0], [S, 0], [0, S], [S, S], [S / 2, S / 2]]) {
+    yildiz(x, y, 46); ctx.stroke();
+    yildiz(x, y, 26); ctx.stroke();
+  }
+  // Karo derzleri: cilalı taş levhalar hâlinde döşenir.
+  ctx.globalAlpha = 0.3;
+  ctx.strokeStyle = '#bcae97';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, 0.5); ctx.lineTo(S, 0.5);
+  ctx.moveTo(0.5, 0); ctx.lineTo(0.5, S);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(6, 6);
+  return tex;
+}
+
 // A mown pitch. The stripes are the whole trick — plain green is a felt mat,
 // and the alternating bands are what makes it read as a football ground from
 // the first frame, before you have seen a single ball.
@@ -7981,7 +8256,8 @@ const GROUND_TEX = {};
 // boş ve yalnızca oynanmış temaları içeriyor. "Bu temanın zemini tanımlı mı"
 // sorusu ona sorulduğunda cevap her zaman "hayır" çıkıyor.
 const GROUND_MAKERS = { sand: groundTexture, blacksand: blackSandTexture,
-  sidewalk: sidewalkTexture, crosswalk: crosswalkTexture, grass: grassTexture,
+  sidewalk: sidewalkTexture, crosswalk: crosswalkTexture,
+  plaza: plazaTexture, grass: grassTexture,
   wood: woodTexture, snow: snowTexture, marble: marbleTexture,
   deck: deckTexture, bar: barTexture, asphalt: asphaltTexture,
   tiles: tileTexture, soil: soilTexture, cobbles: cobbleTexture };
@@ -8183,6 +8459,38 @@ function darkAsphaltTexture() {
   return tex;
 }
 
+// Kumul. Meydanın dışı çöl: şehrin bittiği yerde başka bir şehir değil kum.
+//
+// Sırtlar tek yöne gidiyor ve karo kenarında devam ediyor, yani döşendiğinde
+// kumulun sırtı kesintisiz. Tahtadaki taştan koyu, çünkü tahtanın dışı
+// tahtadan koyu olmalı — çölün kendi rengi açık olsa da.
+function dunesTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#8a6b46';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 6; i++) {
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = i % 2 ? '#7a5d3c' : '#9c7b52';
+    ctx.beginPath();
+    ctx.moveTo(0, (i * S) / 6);
+    for (let x = 0; x <= S; x += 8)
+      ctx.lineTo(x, (i * S) / 6 + Math.sin((x / S) * Math.PI * 2) * 7);
+    ctx.lineTo(S, (i * S) / 6 + S / 12); ctx.lineTo(0, (i * S) / 6 + S / 12);
+    ctx.closePath(); ctx.fill();
+  }
+  for (let i = 0; i < 1800; i++) {
+    ctx.globalAlpha = 0.04 + Math.random() * 0.06;
+    ctx.fillStyle = Math.random() < 0.5 ? '#6b5233' : '#ad8b5e';
+    const x = Math.random() * S, y = Math.random() * S, r = 0.7 + Math.random() * 2;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(10, 10);
+  return tex;
+}
+
 // Çatılar. Tahtanın dışı, şehirde, başka bir şey: sokak biter binalar başlar.
 //
 // Karo dört bloğa bölünmüş ve blokların arası dar bir ara sokak. Her bloğun
@@ -8273,6 +8581,10 @@ const SURROUND_MAKERS = {
   // sokak biter, binalar başlar. Yukarıdan bakan bir kameranın New York'u
   // tanıdığı yer de burası: koyu çatılar, üstlerinde su depoları.
   rooftops: rooftopTexture,
+  // Meydanın dışı çöl. Şehrin bittiği yerde başka bir şehir değil, kum
+  // başlıyor — Dubai'yi öteki iki şehirden ayıran şey bu, ve tahtanın
+  // kenarında görünüyor. Kumul sırtları tek yöne gidiyor, rüzgârın yönü.
+  dunes: dunesTexture,
   // Pazarın dışı yine kaldırım, ama gölgede kalan yan sokak: aynı taş,
   // biraz koyusu. İlk değer mağaza zemini kadar karanlıktı ve gündüz
   // kurulan bir pazarın etrafını geceye çeviriyordu — tahtanın dışı
@@ -8417,6 +8729,29 @@ const THEMES = {
     // hepsinde bir tarafta sarı var, burada yok, ve şehri şehir yapan
     // serinlik o.
     light: { sky: '#eef3fb', bounce: '#5a5f68', hemi: 1.38, amb: '#f0f4fa', ambI: 0.44, sun: '#fbfdff', sunI: 0.72 },
+  },
+  // Dubai. Şehirlerin üçüncüsü, ve üçü de aynı soruya başka cevap veriyor:
+  // bu kamera bu şehrin **nesini** görür?
+  //
+  // Hollywood'da kaldırımdı, New York'ta caddeydi. Burada gökdelen var ama
+  // gökdelen yandan bir şey; yukarıdan görünen, altındaki meydan — cilalı
+  // açık taş ve üstünde altın yaldızlı yıldız deseni. Kule tahtanın üstünde
+  // duruyor, zemin değil.
+  //
+  // Meydanın dışı ilk kez başka bir **şehir** değil: kum. Manhattan'ın dışı
+  // binalardı, yani şehir devam ediyordu; burada şehir bitiyor.
+  dubai: {
+    name: 'Gold Coast', icon: '🏙️',
+    ground: 'plaza', surround: '#8a6b46', ripples: false,
+    edge: '#e4cf9a', surf: null,
+    beyond: 'dunes',
+    props: ['tower', 'supercar', 'falcon', 'camel', 'tiger',
+            // Meydanda duran ortak eşyalar.
+            'palm', 'shades', 'goldbars', 'moneybag'],
+    hero: ['tower', 'supercar'],
+    // Çöl öğlesi: oyundaki en parlak ve en sarı ışık. Aşağıdan gelen şey de
+    // sıcak, çünkü açık taş güneşi geri veriyor — kara kumun tam tersi.
+    light: { sky: '#fff8e4', bounce: '#d9b878', hemi: 1.55, amb: '#fff2d4', ambI: 0.5, sun: '#fff0c4', sunI: 0.78 },
   },
   pitch: {
     name: 'Match Day', icon: '⚽',
@@ -9447,7 +9782,9 @@ const PATTERNS = [
     },
   },
   {
-    name: 'Diamond', icon: '💎', theme: 'home',
+    // Gold Coast'un iki düzeninden biri. Indoors'tan alındı, orada Ladder
+    // kaldı.
+    name: 'Diamond', icon: '💎', theme: 'dubai',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       return Math.abs(nx) + Math.abs(ny) * 0.9 > 0.9 + wob;
@@ -9480,7 +9817,11 @@ const PATTERNS = [
       (r === Math.round((rows - 1) * 0.12) || r === Math.round((rows - 1) * 0.88)),
   },
   {
-    name: 'Spiral', icon: '🌀', theme: 'money',
+    // Gold Coast'un ikinci düzeni. Önce Hourglass alınmıştı ve test
+    // düşürdü: Hourglass listede Diamond'ın hemen ardından geliyor, yani
+    // aynı yer arka arkaya iki bölümde çıkıyordu. Spiral arada bir düzen
+    // var. Payday'de Hourglass kaldı.
+    name: 'Spiral', icon: '🌀', theme: 'dubai',
     // an arm curling out from the middle
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);

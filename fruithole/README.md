@@ -1981,6 +1981,75 @@ sayı-kelime tablosu doksan dokuzda bitiyordu. Aynı şey yetmiş üçte de
 olmuştu ve o zaman tablo uzatılmıştı — yani çözüm bir sonraki sınıra kadar
 dayandı. Bu sefer sınır kaldırıldı, yüzler özyinelemeyle yazılıyor.
 
+## Gold Coast: gökdelen, vahşi hayvan, spor araba
+
+Kaan'ın şartı: "gökdelenleri ve vahşi hayvanları spor arabaları unutma."
+
+Üçüncü şehir, ve üçü de aynı soruya başka cevap veriyor: bu kamera bu şehrin
+**nesini** görür? Hollywood'da kaldırım, New York'ta cadde, burada meydan —
+gökdelen var ama gökdelen yandan bir şey, yukarıdan görünen altındaki taş.
+Zemin cilalı açık taş, üstünde altın yaldızlı sekiz köşeli yıldız deseni.
+
+Mermerden ayrı bir doku, çünkü mermerin işareti **damar**: rastgele,
+kıvrımlı, doğal. Buradaki desen tam tersi — ölçülü, tekrar eden, elle
+çizilmiş.
+
+Meydanın dışı ilk kez başka bir şehir değil: kum. Manhattan'ın dışı
+binalardı, yani şehir devam ediyordu; burada şehir bitiyor.
+
+### "O görüntü ne aq"
+
+Beş nesnenin dördü ilk çizilişte kötüydü ve Kaan hepsini gördü: spor araba
+sarı bir kutu, kaplan turuncu bir yay, deve kahverengi bir fıstık, şahin
+kâğıt uçak.
+
+Dördünün de hatası aynıydı ve ders tek cümleyle yazılabilir: **parçalar
+yandan bakılarak yerleştirilmişti.**
+
+* **Şahin.** Kanatlar koniydi ve koni kendi ekseni etrafında çevrilince iki
+  kanat simetrik durmuyordu — biri öne, öteki yana bakıyordu. Artık kanat
+  yassı bir elipsoit ve yalnızca Y ekseninde dönüyor: tek eksen, garanti
+  simetri.
+* **Kaplan.** Çizgiler gövdeden genişti ve yanlardan dolanıyordu; dolanan
+  çizgi dizisi yukarıdan sarmal okunuyor. Çizgi artık gövdeden dar ve
+  yalnızca sırtta.
+* **Spor araba ve deve.** Bunlarda üç deneme de yetmedi, ve dördüncüde
+  doğru şey yapıldı: **oyunun kendi çalışan nesnesine bakıldı.**
+
+### Çalışanı ölç, uydurma
+
+`sedan` ekranda iyi duruyor ve farkı ölçülebilirdi: sedan 1.5 x 3.1, benim
+spor arabam 1.24 x 2.4. Aynı ekranda daha küçük bir gövdeye daha çok ayrıntı
+(hava girişi, kaput çizgisi, beş kademe) konunca hepsi birbirine giriyor.
+İkinci fark cam: sedanın camları açık mavi, benimki siyaha yakındı — koyu cam
+yukarıdan gövdedeki bir delik gibi okunuyor.
+
+`cow` da öyle. Oranları şunlar:
+
+```
+gövde     yassı ve derli toplu (0.72 x 0.66 x 1.05), uzun-ince değil
+işaret    gövdenin üstüne yapışık yassı lekeler
+kafa      önde ve alçak, gövde siluetinin dışında
+bacaklar  kısa (0.56) ve gövdeye yakın (±0.26)
+```
+
+Benim devemde bacaklar 0.86 boyunda, ±0.4'te, ayakları ±0.6'daydı: siluetin
+yarısı bacaktı ve ekranda tabure duruyordu. İneğin söylediği kural şu — bu
+kamerada hayvanı bacak anlatmıyor, **gövdenin üstündeki işaret** anlatıyor.
+İnekte leke, devede hörgüç.
+
+Genel kural, üç şehrin sonunda: yeni bir nesne çizilirken önce oyunun aynı
+türden **çalışan** nesnesi açılıp ölçüleri okunuyor. Sıfırdan uydurulan her
+nesne küçük ve fazla ayrıntılı çıktı.
+
+### Düzenler
+
+**Diamond** ve **Spiral**. Önce Hourglass alınmıştı ve test düşürdü: listede
+Diamond'ın hemen ardından geliyor, yani aynı yer arka arkaya iki bölümde
+çıkıyordu. Çöl güneşi de fazla sertti — `holetheme.mjs` anahtar ışığın
+sertleşmesine yalnızca Orbit'te izin veriyor, çünkü bu boyutta sert ışık her
+küreyi yarı gölgede bırakıp çamura çeviriyor.
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
