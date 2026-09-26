@@ -3930,3 +3930,29 @@ birbirinden ayıran şey bu. Artık iç içe halkalarda boncuk 0.30'dan 0.46'ya
 
 **Halkalarımız boştu.** Rakipte halkanın işi bir şeyi **çevrelemek**. Dağınık
 halkaların ortasına artık üç iri meyve konuyor.
+
+### Piramit
+
+Bir rakip ekran görüntüsü daha geldi: tek bir meyveden (çilek), sıkı dizilmiş,
+ortaya doğru katlanan basamaklı bir blok — ve etrafı bomboş.
+
+Üç özelliği var ve üçü de kasıtlı:
+
+* **Tek meyve.** Karışık renkli bir yığın piramit değil, yığın olur. Tek renk
+  olunca göz katları görüyor.
+* **Sıkı dizili.** Şerit tahtalarının aksine parçalar birbirine değiyor;
+  aradaki boşluk burada şekli bozuyor.
+* **Etrafı boş.** Piramit tahtanın ortasında tek başına duruyor. Tahtanın
+  geri kalanını doldurmak, piramidi de doku yapardı.
+
+Ölçüler ekrandan geliyor, tahtadan değil. İlk denemede piramit tahtanın enini
+kaplıyordu (13×17 hücre) ve ekranda basamak değil düz bir halı olarak
+okunuyordu: şekli görmek için onu bütün olarak görmek gerekiyor, ve kamera
+10.8 birim gösteriyor. Şimdi 9×11.
+
+Basamaklar da iki hücre eninde. Tek hücre olduğunda kat farkı bir sıra boncuk
+kadar oluyor ve yukarıdan bakınca seçilmiyor — basamağın basamak olması için
+üstünde durulabilecek kadar geniş olması lazım.
+
+Doğuştan piramide giden tek sıra meyve var: nereye gideceğini söyleyen şey.
+İki yanda da birer halka, tahtanın geri kalanı tamamen boş kalmasın diye.

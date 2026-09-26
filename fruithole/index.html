@@ -1571,7 +1571,7 @@ const RIBBON_STEP = 0.68;
 // çıkıyor.
 const RIBBON_GAP = 1.9;
 
-const RIBBONS = ['spiral', 'rings', 'serpentine', 'chevron', 'loops', 'spokes'];
+const RIBBONS = ['spiral', 'rings', 'pyramid', 'serpentine', 'chevron', 'loops', 'spokes'];
 function ribbonForLevel(n) {
   return RIBBONS[Math.floor((n - RIBBON_AT) / RIBBON_EVERY) % RIBBONS.length];
 }
@@ -8995,6 +8995,21 @@ function ribbonLandmarks(noktalar) {
   }
 }
 
+// Üst üste yığılmış bir sütun.
+//
+// Izgara tahtasında kule desenin işi; burada piramidin **katları** o.
+// Yükseklik adımı meyvenin kendi boyundan (`sy * 2.05`) geliyor, yani
+// parçalar birbirine değiyor ama içine girmiyor — ızgaranın kullandığı
+// ölçünün aynısı.
+function ribbonStack(x, z, type, r, kat) {
+  const vis = { geo: PIC_GEO, mat: PIC_MAT[type], sx: r, sy: r, baseY: r };
+  for (let k = 0; k < kat; k++) {
+    fruits.push({ mesh: null, vis, jit: 1, rotY: 0,
+                  x, z, r, type, big: false, prop: null,
+                  eaten: false, baseY: r + k * r * 2.05, nudge: 0 });
+  }
+}
+
 function buildRibbon(kind) {
   const tipler = TYPES.map(t => t.id);
   const renk = i => tipler[i % tipler.length];
@@ -9002,7 +9017,55 @@ function buildRibbon(kind) {
   const isaret = [];
   const TAU = Math.PI * 2;
 
-  if (kind === 'spiral') {
+  if (kind === 'pyramid') {
+    // Basamaklı piramit: tek renk, sıkı dizilmiş, ortaya doğru katlanan.
+    //
+    // Rakibin tahtasındaki şey bu ve üç özelliği var, üçü de kasıtlı:
+    //
+    //   * **Tek meyve.** Karışık renkli bir yığın piramit değil, yığın olur.
+    //     Tek renk olunca göz katları görüyor.
+    //   * **Sıkı dizili.** Şerit tahtalarının aksine parçalar birbirine
+    //     değiyor; aradaki boşluk burada şekli bozuyor.
+    //   * **Etrafı bomboş.** Piramit tahtanın ortasında tek başına duruyor.
+    //     Tahtanın geri kalanını doldurmak, piramidi de doku yapardı.
+    //
+    // Delik ona doğru giderken yol boyunca tek sıra meyve var: nereye
+    // gideceğini söyleyen şey.
+    // Ölçüler ekrandan geliyor, tahtadan değil.
+    //
+    // İlk denemede piramit tahtanın enini kaplıyordu (13×17 hücre) ve ekranda
+    // basamak değil düz bir halı olarak okunuyordu: şekli görmek için onu
+    // bütün olarak görmek gerekiyor, ve kamera 10.8 birim gösteriyor.
+    //
+    // Basamaklar da iki hücre eninde. Tek hücre olduğunda kat farkı bir sıra
+    // boncuk kadar oluyor ve yukarıdan bakınca seçilmiyor — basamağın
+    // basamak olması için üstünde durulabilecek kadar geniş olması lazım.
+    const type = tipler[Math.floor(rnd() * tipler.length)];
+    const ADIM = 0.9, R = 0.44;
+    const en = 9, boy = 11;
+    const kat = 5;
+    const czOrta = -mZ * 0.22;
+    for (let i = 0; i < en; i++) {
+      for (let j = 0; j < boy; j++) {
+        // Kenardan kaç hücre içerideyiz — basamak sayısı bundan.
+        const ic = Math.min(Math.min(i, en - 1 - i), Math.min(j, boy - 1 - j));
+        const yukseklik = Math.max(1, Math.min(kat, 1 + Math.floor(ic / 2) * 1));
+        ribbonStack((i - (en - 1) / 2) * ADIM,
+                    czOrta + (j - (boy - 1) / 2) * ADIM,
+                    type, R, yukseklik);
+      }
+    }
+    // Doğuştan piramide giden tek sıra.
+    const bas = mZ * 0.55, son = czOrta + (boy / 2) * ADIM + 1.1;
+    ribbonStrand(t => [0, bas + (son - bas) * t], renk(1), 0.34);
+    // Ve iki yanda birer halka: tahtanın geri kalanı tamamen boş kalmasın.
+    for (const yan of [-1, 1]) {
+      const cx = yan * (mX - 2.4), cz = mZ * 0.1;
+      ribbonStrand(u => [cx + Math.cos(u * TAU) * 1.8, cz + Math.sin(u * TAU) * 1.8],
+                   renk(2));
+      isaret.push([cx, cz, renk(3)]);
+    }
+  } else if (kind === 'spiral') {
     // Doğuş noktasında başlayıp tahtayı dolduran tek bir sarmal. Renk her
     // turda değişiyor, yani sarmal halka halka okunuyor.
     const cz = 0, cx = 0;
