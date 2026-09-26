@@ -5752,28 +5752,42 @@ function propTemplates() {
   // yüzden kule üç kollu: tepeden bakınca bir yıldız, bir kutu değil.
 
   // Gökdelen.
+  //
+  // Bu kamera için zor bir nesne: yükseklik yukarıdan görünmüyor, görünen şey
+  // **taban planı**. O yüzden kule üç kollu — tepeden bakınca bir yıldız, bir
+  // kutu değil.
+  //
+  // Kollar artık pahlı (`bevelBox`). Keskin köşeli hâlinde kule yukarıdan üç
+  // düz renk lekesiydi; pahlı kenar her katın sınırını çiziyor ve kule kat
+  // kat okunuyor. Cam da öyle: bir gökdelenin yüzü düz bir levha değil,
+  // bölünmüş bir ızgara.
   {
     const g = new THREE.Group();
-    const cam = PROP_MAT('#7fc2d8', 0.18);
-    const cerceve = PROP_MAT('#cdd8de', 0.3);
-    // Üç kol, yukarı çıktıkça kısalıyor: kulenin daralması bu. Tek bir koni
-    // de daralırdı ama tepeden bir daire olurdu ve her kuleye benzerdi.
-    for (let kat = 0; kat < 7; kat++) {
-      const t = kat / 6;
-      const boy = 0.52 - t * 0.3;
-      const yuk = 0.3 + kat * 0.42;
+    const cam = PROP_MAT('#6fb6d4', 0.16);
+    const camKoyu = PROP_MAT('#4e93b2', 0.18);
+    const cerceve = PROP_MAT('#dbe6ec', 0.3);
+    for (let kat = 0; kat < 8; kat++) {
+      const t = kat / 7;
+      const boy = 0.56 - t * 0.34;
+      const yuk = 0.28 + kat * 0.4;
       for (let i = 0; i < 3; i++) {
         const a = (i / 3) * Math.PI * 2;
-        const kol = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.44, boy * 2), cam);
+        // Kolun iki rengi: dış yüzü açık, iç yüzü koyu. Tek renk olduğunda
+        // üç kol yukarıdan tek bir yıldız lekesi oluyordu.
+        const kol = new THREE.Mesh(bevelBox(0.46, 0.34, boy * 2, 0.1),
+                                   kat % 2 ? cam : camKoyu);
         put(g, kol, Math.cos(a) * boy * 0.9, yuk, Math.sin(a) * boy * 0.9, 0, -a, 0);
       }
-      // Her katın üstünde ince bir bant: camın yatay bölünmesi, ve kuleyi
-      // düz bir prizma olmaktan çıkaran şey.
-      put(g, new THREE.Mesh(new THREE.CylinderGeometry(boy * 1.15, boy * 1.15, 0.06, 12), cerceve),
-          0, yuk + 0.21, 0);
+      // Her katın üstünde çepeçevre bir bant.
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(boy * 1.18, boy * 1.18, 0.07, 16),
+                            cerceve), 0, yuk + 0.2, 0);
     }
-    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.12, 1.1, 8), cerceve), 0, 3.6, 0);
-    T.tower = { g, h: 4.1, currency: 'lychee', only: 'giant' };
+    // Tepe tacı ve anten.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.26, 0.5, 12), cerceve), 0, 3.42, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.06, 0.9, 8), cerceve), 0, 4.0, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), PROP_MAT('#ff5d4d', 0.3)),
+        0, 4.45, 0);
+    T.tower = { g, h: 4.6, currency: 'lychee', only: 'giant' };
   }
 
   // Spor araba.
@@ -5828,141 +5842,179 @@ function propTemplates() {
 
   // Şahin, kanatları açık.
   //
-  // İlk hâli ekranda bir kâğıt uçaktı ve sebebi ölçülebilir: kanatlar koniydi
-  // ve koni kendi ekseni etrafında çevrilince iki kanat simetrik durmuyordu —
-  // biri öne, öteki yana bakıyordu. Üstelik koninin ucu sivri, kuş kanadının
-  // ucu **geniş**.
+  // Kanatlar önce koniydi ve koni kendi ekseni etrafında çevrilince iki kanat
+  // simetrik durmuyordu — ekranda kâğıt uçak vardı. Artık yassı elipsoit ve
+  // yalnızca Y ekseninde dönüyor: tek eksen, garanti simetri.
   //
-  // Artık kanat yassılaştırılmış bir küre ve yalnızca Y ekseninde
-  // döndürülüyor. Tek eksen demek simetri garanti demek, ve yukarıdan bakan
-  // bir kamerada kuşu kuş yapan şey iki kanadın birbirinin aynası olması.
+  // Her kanat iki blok değil **üç tüy**: kuş kanadının yukarıdan görünen
+  // dokusu tüylerin arasındaki çizgiler, ve tek parça bir kanat yukarıdan
+  // kürek gibi duruyordu.
+  //
+  // Başındaki şey avcı başlığı (burka). Körfez'de şahin avcı kuşudur ve
+  // başlığı deri, renkli, püsküllü — tahtada gördüğün tek kırmızı nokta o, ve
+  // şahini yırtıcı kuştan **birinin** şahini yapan şey.
   {
     const g = new THREE.Group();
     const tuy = PROP_MAT('#7a6144', 0.6);
     const acik = PROP_MAT('#c2ab8a', 0.6);
-    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.42, 8),
+    const koyu = PROP_MAT('#5b4730', 0.62);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.42, 10),
                           PROP_MAT('#4a3a28', 0.7)), 0, 0.21, -0.1);
-    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), tuy);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.3, 18, 14), tuy);
     govde.scale.set(1, 0.9, 1.5);
     put(g, govde, 0, 0.56, 0);
-    // Kanatlar: yassı elipsoit, hafif geriye süpürülmüş. Dış uçta ikinci,
-    // daha koyu bir dilim var — kanadın ucundaki uzun tüyler, ve siluetin
-    // sınırını çizen şey. Gövdeye bitişik duruyor, kopuk değil.
+    // Göğsün açık, benekli tarafı: şahinin yukarıdan görünen yüzü bu.
+    const gogus = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), acik);
+    gogus.scale.set(0.9, 0.3, 1.3);
+    put(g, gogus, 0, 0.74, 0.08);
+    for (const [bx, bz] of [[-0.09, 0.2], [0.1, 0.02], [-0.06, -0.14], [0.08, 0.3]])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), koyu), bx, 0.8, bz);
+    // Kanat: üç tüy, dıştaki en uzun ve en koyu.
     for (const sx of [-1, 1]) {
-      const ic = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), acik);
-      ic.scale.set(0.62, 0.05, 0.34);
-      put(g, ic, sx * 0.62, 0.6, -0.04, 0, sx * 0.3, 0);
-      const dis = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), tuy);
-      dis.scale.set(0.5, 0.045, 0.22);
-      put(g, dis, sx * 1.5, 0.59, -0.26, 0, sx * 0.55, 0);
+      const tuyler = [[0.58, 0.3, 0.55, -0.02, acik],
+                      [0.52, 0.24, 1.08, -0.2, tuy],
+                      [0.4, 0.18, 1.5, -0.4, koyu]];
+      for (const [uz, en, mx, mz, mat] of tuyler) {
+        const t = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), mat);
+        t.scale.set(uz, 0.045, en);
+        put(g, t, sx * mx, 0.6, mz, 0, sx * 0.34, 0);
+      }
     }
-    // Kuyruk: yelpaze. Arkadan bakınca kısa, yukarıdan bakınca kuşun
-    // uzunluğunun üçte biri.
-    const kuyruk = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), acik);
-    kuyruk.scale.set(0.3, 0.045, 0.46);
-    put(g, kuyruk, 0, 0.58, -0.78);
-    // Baş ve gaga. Gaga aşağı kıvrık: şahini güvercinden ayıran şey.
-    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), PROP_MAT('#d9cbb0', 0.6)),
+    const kuyruk = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), acik);
+    kuyruk.scale.set(0.3, 0.045, 0.48);
+    put(g, kuyruk, 0, 0.58, -0.8);
+    for (const sx of [-0.12, 0, 0.12])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.05, 0.42), koyu), sx, 0.6, -0.82);
+    // Baş ve başlık.
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 12), PROP_MAT('#d9cbb0', 0.6)),
         0, 0.72, 0.44);
-    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.22, 6), PROP_MAT('#2f2a22', 0.4)),
-        0, 0.7, 0.62, 1.2, 0, 0);
-    for (const sx of [-0.09, 0.09])
-      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), PROP_MAT('#2f2a22', 0.4)),
-          sx, 0.83, 0.54);
-    T.falcon = { g, h: 1.0, currency: 'melon', only: 'giant' };
+    const baslik = new THREE.Mesh(new THREE.SphereGeometry(0.19, 14, 12),
+                                  PROP_MAT('#b8402f', 0.5));
+    baslik.scale.set(1, 1, 0.9);
+    put(g, baslik, 0, 0.78, 0.42);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.025, 6, 14),
+                          PROP_MAT('#e8c04a', 0.4)), 0, 0.72, 0.42, 0.4, 0, 0);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.16, 8), PROP_MAT('#e8c04a', 0.4)),
+        0, 0.96, 0.4);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.22, 8), PROP_MAT('#2f2a22', 0.4)),
+        0, 0.68, 0.62, 1.2, 0, 0);
+    T.falcon = { g, h: 1.05, currency: 'melon', only: 'giant' };
   }
 
   // Deve.
   //
-  // Üç deneme, üçü de yukarıdan karışık. Dördüncüde oyunun kendi çalışan
-  // dört ayaklısına bakıldı (`cow`) ve oranları kopyalandı:
+  // Oranlar oyunun kendi çalışan dört ayaklısından (`cow`) alındı: gövde
+  // derli toplu, kafa önde ve alçak, bacaklar kısa ve gövdeye yakın. Kendi
+  // uydurduğum uzun bacaklı hâli yukarıdan tabure gibi duruyordu.
   //
-  //   gövde     yassı ve **derli toplu** (0.72 x 0.66 x 1.05), uzun-ince değil
-  //   işaret    gövdenin üstüne yapışık yassı lekeler
-  //   kafa      önde ve alçak, gövde siluetinin dışında
-  //   bacaklar  kısa (0.56) ve gövdeye yakın (±0.26)
-  //
-  // Benim devemde bacaklar 0.86 boyunda ve ±0.4'te, ayakları ±0.6'daydı:
-  // siluetin yarısı bacaktı ve tahtada duran şey bir tabureye benziyordu.
-  // İneğin kuralı şu — bu kamerada bacak hayvanı anlatmıyor, **gövdenin
-  // üstündeki işaret** anlatıyor. İnekte leke, devede hörgüç.
+  // İneğin söylediği kural şu: bu kamerada hayvanı bacak anlatmıyor,
+  // **gövdenin üstündeki işaret** anlatıyor. İnekte leke, devede hörgüç — ve
+  // hörgücün üstünde, Körfez'in süslü semeri. Semer tek başına deveyi öteki
+  // her şeyden ayırıyor, çünkü tahtadaki tek dokuma desen o.
   {
     const g = new THREE.Group();
     const post = PROP_MAT('#d2ab72', 0.7);
     const koyu = PROP_MAT('#a07c46', 0.74);
-    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 12), post);
+    const kilim = PROP_MAT('#c2452f', 0.62);
+    const sirma = PROP_MAT('#e8c04a', 0.45);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.5, 20, 14), post);
     govde.scale.set(0.76, 0.62, 1.1);
     put(g, govde, 0, 0.58, 0.05);
-    // Hörgüç: gövdenin üstüne yapışık, koyu, ve tek. İneğin lekesiyle aynı
-    // iş — yukarıdan görünen tek işaret.
-    const horguc = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), koyu);
+    const horguc = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 12), koyu);
     horguc.scale.set(0.82, 0.95, 0.78);
     put(g, horguc, 0, 0.88, 0.06);
-    // Boyun kısa ve kalın, kafa önde ve alçak — ineğinki gibi.
-    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 0.5, 8), post),
+    // Semer: hörgücü saran kırmızı örtü, kenarında sırma şerit ve püskül.
+    const ortu = new THREE.Mesh(new THREE.SphereGeometry(0.33, 16, 12), kilim);
+    ortu.scale.set(0.9, 0.62, 0.86);
+    put(g, ortu, 0, 0.82, 0.06);
+    for (const z of [-0.2, 0.32])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.022, 6, 16), sirma),
+          0, 0.88, z, Math.PI / 2, 0, 0);
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), sirma),
+          Math.cos(a) * 0.3, 0.7, 0.06 + Math.sin(a) * 0.28);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 0.5, 10), post),
         0, 0.72, -0.5, -0.8, 0, 0);
-    const kafa = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), post);
+    const kafa = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), post);
     kafa.scale.set(0.82, 0.82, 1.05);
     put(g, kafa, 0, 0.6, -0.86);
-    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), koyu), 0, 0.54, -1.06);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 10), koyu), 0, 0.54, -1.06);
+    for (const sx of [-0.07, 0.07])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), PROP_MAT('#3a2c1c', 0.6)),
+          sx, 0.5, -1.16);
     for (const s2 of [-1, 1]) {
-      const kl = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), post);
+      const kl = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), post);
       kl.scale.set(1, 0.4, 0.6);
       put(g, kl, s2 * 0.22, 0.7, -0.8);
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), PROP_MAT('#3a2c1c', 0.6)),
+          s2 * 0.11, 0.7, -0.98);
       for (const z of [-0.36, 0.44])
-        put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.075, 0.56, 8), post),
+        put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.075, 0.56, 10), post),
             s2 * 0.26, 0.28, z);
     }
-    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.03, 0.4, 6), koyu),
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.03, 0.4, 8), koyu),
         0, 0.56, 0.7, -0.9, 0, 0);
     T.camel = { g, h: 1.2, currency: 'banana', only: 'giant' };
   }
 
   // Kaplan.
   //
-  // İlk hâli ekranda turuncu bir **yay**dı: gövde dar ve uzundu, çizgiler
-  // gövdeden genişti ve yanlardan dolanıyordu, bacaklar altta kaldığı için
-  // görünmüyordu. Dolanan bir çizgi dizisi yukarıdan sarmal okunuyor.
-  //
   // Çizgi bu kamerada kaplanın tek işareti ve tek yerde durmalı: **sırtta**.
-  // Gövdeden dar tutuluyor, yani yanlara sarkmıyor; ve bacaklar gövdenin
-  // dışına açılıyor, yani siluet dört ayaklı bir şeyin silueti.
+  // Gövdeden dar tutuluyor, yani yanlara sarkmıyor — sarksaydı yukarıdan
+  // sarmal okunurdu, ilk denemede öyle olmuştu.
+  //
+  // Beş kalın bant yerine yedi ince bant: kalın bant yukarıdan gövdeyi
+  // bölüyor, ince bant desen oluyor. Boyları da değişiyor (ortada uzun,
+  // uçlarda kısa), çünkü eşit uzunlukta yedi çubuk merdiven gibi duruyor.
+  //
+  // Göğüs lekesi ve kulak içi: gövde tek tonken yukarıdan turuncu bir yumru,
+  // üç ton olunca hayvan.
   {
     const g = new THREE.Group();
     const post = PROP_MAT('#e08b2c', 0.62);
     const ak = PROP_MAT('#f6ead8', 0.6);
     const kara = PROP_MAT('#2a2018', 0.7);
-    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.48, 14, 10), post);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.48, 20, 14), post);
     govde.scale.set(1.08, 0.72, 1.55);
     put(g, govde, 0, 0.46, -0.1);
-    // Çizgiler: gövdeden dar (0.62 < 1.04) ve sırtın üstünde. Yanlara
-    // taşmadıkları için yukarıdan bant, yandan hiçbir şey.
-    for (let i = 0; i < 5; i++) {
-      const z = -0.66 + i * 0.3;
-      const en = 0.62 - Math.abs(i - 2) * 0.06;
-      put(g, new THREE.Mesh(new THREE.BoxGeometry(en, 0.06, 0.09), kara),
-          0, 0.79, z, 0, i % 2 ? 0.22 : -0.22, 0);
+    // Göğüs ve karnın açık tonu: gövdenin üstüne yapışık yassı bir leke.
+    const gogus = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 10), ak);
+    gogus.scale.set(0.9, 0.3, 1.5);
+    put(g, gogus, 0, 0.66, 0.16);
+    for (let i = 0; i < 7; i++) {
+      const z = -0.78 + i * 0.24;
+      const en = 0.68 - Math.abs(i - 3) * 0.075;
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(en, 0.055, 0.075), kara),
+          0, 0.8, z, 0, i % 2 ? 0.26 : -0.26, 0);
     }
-    // Baş: gövdeden ayrı bir daire, iki kulak ve beyaz burun.
-    const bas = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), post);
+    const bas = new THREE.Mesh(new THREE.SphereGeometry(0.32, 18, 14), post);
     bas.scale.set(1.1, 0.85, 1);
     put(g, bas, 0, 0.62, 0.82);
-    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), ak), 0, 0.64, 1.02);
-    for (const sx of [-0.2, 0.2]) {
-      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 6), kara), sx, 0.78, 0.94);
-      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.07, 10), post),
-          sx * 1.3, 0.8, 0.66);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 10), ak), 0, 0.64, 1.02);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), kara), 0, 0.74, 1.14);
+    for (const sx of [-0.2, 0.2])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), kara), sx, 0.79, 0.94);
+    // Kulak: dış halka postun rengi, içi koyu. İçi olmadan iki düz disk.
+    for (const sx of [-0.24, 0.24]) {
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.07, 12), post),
+          sx * 1.25, 0.8, 0.64);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.09, 10), kara),
+          sx * 1.25, 0.82, 0.64);
     }
-    // Bacaklar gövdenin dışına: yukarıdan dört pati görünüyor.
     for (const sx of [-0.44, 0.44]) for (const sz of [-0.62, 0.36]) {
-      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.11, 0.42, 8), post),
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.11, 0.42, 10), post),
           sx, 0.22, sz, 0, 0, sx > 0 ? -0.16 : 0.16);
-      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.155, 8, 6), post), sx * 1.15, 0.12, sz);
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.155, 12, 8), post), sx * 1.15, 0.12, sz);
     }
-    // Kuyruk: gövdeden geriye, ucu koyu.
-    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.055, 0.8, 6), post),
+    // Kuyruk: üç halkalı, ucu koyu.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.055, 0.8, 8), post),
         0, 0.44, -0.95, 1.35, 0, 0);
-    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), kara), 0, 0.33, -1.32);
+    for (const [y, z] of [[0.42, -1.02], [0.38, -1.18]])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.062, 0.07, 10), kara),
+          0, y, z, 1.35, 0, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.078, 10, 8), kara), 0, 0.33, -1.32);
     T.tiger = { g, h: 1.1, currency: 'berry', only: 'giant' };
   }
 
