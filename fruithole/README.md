@@ -2205,6 +2205,85 @@ anlatıyor:
 Hilal (Crescent) düzeni buraya geçti — Türk bayrağının şekli, ve yeni yerin
 ilk turda görünmesi için bir düzen gerekiyordu. Copacabana'da Wave kaldı.
 
+## Dokuz yer birden: dört durak, beş ülke
+
+Kaan "hepsini sormadan bitir" dedi. Sıradaki dördü listeden — Resif,
+Kolezyum, Lunapark, Mars — ve beş ülke: İskoçya, Hollanda, Meksika,
+Hindistan, Mısır. Oyun on dokuz yerden **yirmi sekize** çıktı.
+
+Her birinde aynı soru: bu kamera bu yerin nesini görür? Cevap her seferinde
+zeminde, ve asıl iş orada.
+
+### Zeminler
+
+* **Resif** — zemin kum değil **canlı**: mercan kolonileri, aralarında açık
+  kum. Koloni düz daire değil, üst üste binmiş beş yuvarlak; düz daire
+  olsaydı benek olurdu.
+* **Arena** — dövülmüş kum, üstünde iki şey: tırmık izleri ve arenanın
+  çizili halkası. İkisi de yerde.
+* **Lunapark** — damalı asfalt ve ampul sıraları. Oyunun ikinci gecesi, ama
+  Tokyo'nun tersi: orada ışık uzaktaki tabeladan geliyordu, burada ampuller
+  zeminin üstünde.
+* **Mars** — kızıl regolit, kaya, ve üstünden bir şeyin geçtiğini söyleyen
+  palet izi. Orbit istasyonun **güvertesiydi** — metal, perçinli, yapılmış;
+  burası yüzey. İkisi de uzay ama biri iç mekân.
+* **Tartan** — kilimle aynı aileden ama kurgusu başka: kilim motif, tartan
+  **ızgara**. İki yönde aynı şerit dizisi geçiyor ve ikincisi yarı saydam,
+  yani kesişimde renkler gerçekten karışıyor. Bütün doku tek bir diziden
+  çıkıyor, o yüzden kod da bir dizi.
+* **Lale tarlası** — havadan tanınan birkaç manzaradan biri, ve tanınma
+  sebebi tam olarak yukarıdan bakılması: yerden bakan tarla görür, yukarıdan
+  bakan renk şeritleri görür. Şeritlerin arasına toprak karığı konmasaydı
+  tarla değil gradyan olurdu.
+* **Talavera** — her karo aynı, ama köşe motifi çeyrek çeyrek çizildiği için
+  dört karo birleşince beşinci bir çiçek kuruluyor.
+* **Rangoli** — kilim dokunuyor, mozaik döşeniyor; rangoli **çiziliyor**:
+  renkli toz, eşiğin önüne, her sabah yeniden. Ve tek amacı yukarıdan bakana
+  görünmek. Bu kamera için üçüncü kusursuz zemin.
+* **Hiyeroglif** — kumdan ayıran şey **oyma**. Düz bir taş zemin çölden
+  ayırt edilmiyor; kazınmış sıralar onu yapılmış bir yer yapıyor.
+
+### Kırk beş nesne
+
+Her yere beş. Hepsinde aynı kural işledi — yukarıdan görünen ne varsa o
+anlatır:
+
+* **Deniz kaplumbağası** yüzgeçlerinden tanınıyor, kabuğundan değil: kabuk
+  yukarıdan bir taş, yüzgeçler siluetin yarısı.
+* **Ahtapot** sekiz kolunun yıldızı.
+* **Sütun** başlığından: gövde yukarıdan bir daire, başlık ondan geniş.
+* **Atlıkarınca atı** altın yelesi ve içinden geçen direğinden.
+* **Keşif aracı** güneş panelinden — gövde bir kutu, panel gövdeden geniş.
+* **Bayrağın** bezi sert ve yatay, çünkü Mars'ta rüzgâr bezi taşımaz;
+  gerçeğinde de üstten bir çubukla geriliyor.
+* **Kuzey ineği** kâkülünden, **yel değirmeni** dört kanadından,
+  **piñata** yedi konisinden, **fil** sırtındaki süslü örtüsünden,
+  **sfenks** nemes başlığından.
+
+### Bir ad, iki nesne
+
+Roma tolgasını `helmet` diye yazdım ve oyunun **uzay kaskı** o addaydı: ikinci
+yazım onu sessizce ezdi, Orbit'in kaskı oyundan kalktı. Hiçbir şey patlamadı,
+hiçbir şey görünmedi — `holetheme.mjs`'nin "her tema yalnızca var olan
+nesneleri istiyor" kuralı yakaladı. Roma tolgasının adı artık `galea`.
+
+### Otuz dört düzen, yirmi sekiz yer
+
+Dokuz yeni yerin her biri ilk turda görünmek zorunda, yani dokuz düzen el
+değiştirdi. Seçimler sebepli:
+
+```
+Lens     → Resif        Star     → Meksika (piñata yıldızı)
+Ring     → Kolezyum     Whirl    → Hindistan (rangolinin sarmalı)
+Cogs     → Lunapark     Pyramid  → Mısır
+Dial     → Mars         Lattice  → İskoçya (tartan zaten ızgara)
+Comb     → Hollanda (tarak dişleri = tarla şeritleri)
+```
+
+Dağılım 6 yer iki düzenli, 22 yer tek düzenli (34 = 6x2 + 22x1) — testin
+izin verdiği en geniş aralık. Sondan başa dönerken bile aynı yer arka arkaya
+çıkmıyor.
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
