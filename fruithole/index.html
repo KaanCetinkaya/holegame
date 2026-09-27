@@ -184,6 +184,29 @@
   @media (max-width: 385px) {
     #goalTag { top: 58px; font-size: 13px; padding: 5px 9px; }
   }
+  /* Hedef kartları. Üstte, ortada, yan yana: oyuncunun bölüm boyunca
+     bakacağı tek şey bu ve göz onu tahtadan koparmadan okuyabilmeli.
+     Sağ üstteki tek rozet (goalTag) kart varken gizleniyor — iki ayrı
+     sayaç iki ayrı hedef demek. */
+  #cardRow { position: absolute; left: 50%; transform: translateX(-50%);
+    top: 146px; display: none; gap: 7px; pointer-events: none; }
+  #cardRow.show { display: flex; }
+  #cardRow .card { display: flex; align-items: center; gap: 5px;
+    background: #fff8ec; color: #5b2d8e; font-weight: 800; font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    border-radius: 13px; padding: 5px 10px;
+    border: 3px solid #6b4fc0; box-shadow: 0 4px 0 rgba(0,0,0,.22); }
+  #cardRow .card.done { background: #d8ffd0; color: #1d6a28; border-color: #3c9a46; }
+  /* Meyvenin kendisi: küçük bir daire, tahtadaki rengiyle. Emoji
+     kullanılmıyor — oyundaki çilek ile emojinin çileği aynı kırmızı değil
+     ve oyuncu ikisini eşleştiremiyor. */
+  #cardRow .dot { width: 15px; height: 15px; border-radius: 50%;
+    border: 2px solid rgba(0,0,0,.28); }
+  @media (max-width: 385px) {
+    #cardRow { top: 136px; gap: 5px; }
+    #cardRow .card { font-size: 13px; padding: 4px 8px; }
+    #cardRow .dot { width: 13px; height: 13px; }
+  }
 
   #wallet { position: absolute; left: 12px; top: 82px; display: flex; gap: 4px; }
   .card { width: 36px; border-radius: 11px; background: linear-gradient(180deg,#7a5fd0,#5b3fb0);
@@ -880,6 +903,7 @@
     </div>
     <button id="pauseBtn">❚❚</button>
     <div id="goalTag"><span id="goalIco">🍇</span><span id="goalN">0/0</span></div>
+    <div id="cardRow"></div>
     <div id="wallet"></div>
     <div id="patternTag"></div>
   </div>
@@ -1243,6 +1267,22 @@ function missionRule() {
 // `let` ile duran bir değişkeni o an okumak oyunu hiç açtırmıyor. Aynı tuzağa
 // tur etiketinde de düşülmüştü.
 let missionKind = null, orderType = null, missionGoal = 0, missionEaten = 0;
+// Hedef kartları.
+//
+// Bölüm artık "tarlayı süpür" demiyor, "**şunlardan şu kadar topla**" diyor.
+// Raftaki en büyük delik oyunu (All in Hole, 24M indirme) bunu yapıyor ve
+// bizim tarafta yalnızca sipariş görevinde vardı — yani onda bir bölümde.
+// Sipariş zaten tek kartlık bir hedef; bu onun genelleştirilmiş hâli.
+//
+// Neden önemli: süpürme bölümü oyuncuya bir **liste** veriyor, kart bir
+// **hedef** veriyor. Aradaki fark, tahtanın geri kalanının artık iş değil
+// **araç** olması — kartın istediği karpuzu yutacak kadar büyümek için
+// yoldaki çileği yiyorsun.
+//
+// Yalnızca sıradan ızgara tahtalarında var. Resim, şerit ve bulmaca
+// tahtalarının kendi kuralı var ve o kural tahtanın kendisinden geliyor:
+// bir mantar resmini yarım bırakmak resmi bozuyor.
+let cards = [];                 // [{ type, need, got }]
 // Against GIANT_R of 1.34 and a hole that tops out at 2.75. Measured rather
 // than guessed at — see scratchpad/holeboss.mjs for what fraction of the
 // field this actually costs.
@@ -2069,6 +2109,7 @@ const timeTagEl = document.getElementById('timeTag');
 const goalTagEl = document.getElementById('goalTag');
 const goalIcoEl = document.getElementById('goalIco');
 const goalNEl = document.getElementById('goalN');
+const cardRowEl = document.getElementById('cardRow');
 const timeNEl = document.getElementById('timeN');
 const patternTagEl = document.getElementById('patternTag');
 const hintEl = document.getElementById('hint');
@@ -17248,6 +17289,14 @@ function buildField() {
     missionKind = missionGoal ? kind : null;
     if (!missionKind) orderType = null;
   }
+  // Hedef kartları: görevi olmayan sıradan **ızgara** tahtalarında.
+  //
+  // Görev bölümlerinin kendi hedefi zaten var ve ikisi üst üste binerdi:
+  // "bütün muzları ye" diyen bir bölümün üstüne "on elma topla" koymak iki
+  // ayrı bitiş şartı demek. Resim, şerit ve bulmaca tahtaları da dışarıda —
+  // onların kuralı tahtanın kendisinden geliyor.
+  cards = [];
+  if (!dailyRun && !missionKind && !resim && !serit && !bulmaca) cards = pickCards();
   armDrop();
   _buildAt = performance.now();
 }
@@ -18814,6 +18863,27 @@ const ORDER_TARGET = 25;    // seçim bu tur süresini arıyor (saniye)
 // bot kusursuz dönüyor, hiç duraksamıyor ve yanlış meyveye gitmiyor.
 const ORDER_SLACK = 3.0;
 const ORDER_FLOOR = 30;     // küçük tarlada bile bölüm bölüm olsun
+// Hedef kartlarının payı, ve bu sayı **henüz botla doğrulanmadı.**
+//
+// Ötekilerin hepsi doğrulandı: süpürmenin 2.6'sı, siparişin 3.0'ı, resmin
+// 5.0'ı. Bunu doğrulayacak bot (`scratchpad/holecard.mjs`) bu konteynerde
+// bitmiyor — sahte saatin her adımı SwiftShader'da gerçek bir çizim ve bir
+// çizim ~70 ms sürüyor: tek bir bölüm on üç dakikada bitmedi.
+//
+// O yüzden sayı ölçülmedi, **yönü seçildi**. İki hata arasındaki fark
+// simetrik değil:
+//
+//   * Saat bol olursa bölüm kolay geçiyor; yıldız yine de ayırıyor, çünkü
+//     yıldızı kalan süre veriyor.
+//   * Saat dar olursa bölüm **geçilemiyor**. Bu oyunun en kötü hatası tam
+//     buydu (45. bölüm, sipariş saati) ve Kaan'ı doğrudan yaktı.
+//
+// Yani seçim bilerek bol tarafa: 2.8, siparişin 3.0'ına yakın. Sipariş tek
+// renk istiyor ve 3.0 alıyor; kart iki-üç renk istiyor ama oyuncu onları
+// **iç içe** topluyor, yani gerçek yol `cardTourSeconds`in topladığından
+// kısa. Doğru sayı Kaan'ın oynamasından gelecek — dar gelirse yukarı,
+// her bölüm üç yıldız veriyorsa aşağı.
+const CARD_SLACK = 2.8;
 // Rush: saat kısa başlıyor ve her meyve ona ekliyor.
 //
 // Öteki iki görev "neyi yiyeceğini" değiştiriyor; bu, "ne kadar durabileceğini"
@@ -18950,6 +19020,72 @@ function giantTourSeconds() {
   return tourSeconds(mergeStops(fruits.filter(f => !f.eaten && f.giant)));
 }
 
+// --- hedef kartları -------------------------------------------------
+//
+// Kaç kart: ilk bölümlerde bir, sonra iki, sonra üç. Üç kartla başlayan bir
+// oyuncu üst satırda üç sayı okumak zorunda kalıyor ve ilk bölümün işi
+// kontrolü öğrenmek. `holefirst.mjs` aynı sebeple birinci bölüme fazladan
+// saat verdiriyor.
+function cardCount() { return level < 4 ? 1 : level < 10 ? 2 : 3; }
+// Kartın tahtadaki o meyvenin kaçta kaçını istediği.
+//
+// Tamamını isteseydi kart bir süpürme emri olurdu, yalnızca rengi seçilmiş
+// hâli. Üçte ikisi, tahtayı gezmeyi gerektiriyor ama son üç çileği aramaya
+// zorlamıyor — kaybedilen zamanın çoğu o son üçte geçiyor.
+const CARD_SHARE = 0.62;
+// Bir kartın altına düşemeyeceği sayı. Beş muzluk bir kart bölümü bir
+// anda bitiriyor ve tahtanın geri kalanı anlamsız kalıyor.
+const CARD_MIN = 10;
+
+function pickCards() {
+  const say = new Map();
+  for (const f of fruits) {
+    // Nesne ve bomba sayılmıyor: kart "muz topla" diyorsa sulama kabı muz
+    // değil, ve bomba yenince sayaca hiç girmiyor — sayılsaydı hedef
+    // ulaşılamaz olurdu. Sipariş görevi bu ikisini de bir kez öğrendi.
+    if (f.prop || f.bomb) continue;
+    say.set(f.type, (say.get(f.type) || 0) + 1);
+  }
+  // Yeterince bulunan türler, çoktan aza.
+  const havuz = [...say.entries()]
+    .filter(([, n]) => Math.round(n * CARD_SHARE) >= CARD_MIN)
+    .sort((a, b) => b[1] - a[1]);
+  if (!havuz.length) return [];
+  // En bol dört türden rastgele seçiliyor, en bol olanlar sırayla değil:
+  // sırayla alınsaydı aynı desende kart hep aynı renk olurdu ve tahta
+  // ezberlenirdi. Seçim `rnd()` ile, yani günlük koşuda herkese aynı.
+  const ilk = havuz.slice(0, 4);
+  const sec = [];
+  const kalan = ilk.slice();
+  while (sec.length < cardCount() && kalan.length) {
+    sec.push(kalan.splice(Math.floor(rnd() * kalan.length), 1)[0]);
+  }
+  return sec.map(([type, n]) => ({
+    type, need: Math.max(CARD_MIN, Math.round(n * CARD_SHARE)), got: 0,
+  }));
+}
+
+// Kartların saati.
+//
+// Süpürme saati burada yanlış cevap veriyor: tahtanın tamamını ölçüyor, oysa
+// kartlar tahtanın yarısını bile istemiyor. Verilirse her bölüm üç yıldızla
+// biter ve ödüllü "+15 saniye" reklamının bir anlamı kalmaz — o hata bir kez
+// yapıldı ve README'de duruyor.
+//
+// Model siparişinkinin aynısı: o türün duraklarının turu (`tourSeconds`),
+// istenen paya göre kısaltılmış. Kör noktası bilinerek bırakıldı — oyuncu
+// kartları sırayla değil iç içe topluyor, yani gerçek yol bu toplamdan kısa;
+// `CARD_SLACK` o payı da taşıyor.
+function cardTourSeconds() {
+  let sn = 0;
+  for (const k of cards) {
+    const say = fruits.filter(f => !f.eaten && !f.prop && !f.bomb && f.type === k.type).length;
+    if (!say) continue;
+    sn += tourSeconds(orderStops(k.type)) * Math.min(1, k.need / say);
+  }
+  return sn;
+}
+
 function pickOrderType() {
   let sec = null, enIyi = Infinity;
   for (const t of TYPES) {
@@ -19010,6 +19146,12 @@ function levelTime() {
     // kaybetme şartı değil — zaten var olan saat.
     : missionKind === 'mines'
     ? Math.round(sweepSeconds() * 2.6) + MINE_ALLOW * BOMB_COST
+    // Hedef kartı olan bölümün saati tarlanın tamamından değil, **kartların
+    // istediği turdan** çıkıyor. Süpürme saati verilseydi kartlar tahtanın
+    // yarısını bile istemediği için her bölüm üç yıldızla biterdi; o hata
+    // bir kez yapıldı ve README'de duruyor ("42-82% spare everywhere").
+    : cards.length
+    ? Math.max(ORDER_FLOOR, Math.round(cardTourSeconds() * CARD_SLACK))
     : Math.round(sweepSeconds() * 2.6);
   // Geç turlar daha sıkı — ama sipariş bölümü hariç.
   //
@@ -19018,7 +19160,10 @@ function levelTime() {
   // tahtadaki hedef meyvelerin turu — zaten o tahtaya özel ve zaten sıkı.
   // Üstüne %28 binince kusursuz bot bile yetişemez oldu (205. bölüm: 34
   // saniyelik saat, 38.4 saniyelik iş).
-  const squeeze = missionKind === 'order'
+  // Sıkıştırma kart bölümünde de yok, ve sebebi siparişinkiyle aynı: kartın
+  // saati zaten o tahtaya özel bir tur ölçümü, kaba bir üst sınır değil.
+  // İçinde yenecek pay yok.
+  const squeeze = (missionKind === 'order' || cards.length)
     ? 1
     : 1 - Math.min(0.28, tier() * 0.07);
   return Math.round(base * squeeze * ease()) + upg('time') * 5;
@@ -19074,9 +19219,33 @@ let lastProgPct = -1, lastStarCount = -1;
 // ötekinin unutulacağı yer. Desen satırı artık yalnızca **ne** olduğunu
 // söylüyor (görevin adı, tur, düzen), rozet **kaçta kaç** olduğunu.
 let lastGoalText = '';
+// Kart satırı. Her kartın rengi oyundaki meyvenin kendi rengi — emoji değil,
+// çünkü oyundaki çilek ile emojinin çileği aynı kırmızı değil ve oyuncu
+// ikisini eşleştiremiyor. Karpuz için arayüz rengi ayrı tutuluyor (`uiBase`):
+// içi çilek gibi kırmızı ve iki kırmızı nokta ayırt edilemiyor.
+let lastCardText = '';
+function refreshCards() {
+  if (!cardRowEl) return;
+  const goster = state === 'playing' && cards.length > 0;
+  cardRowEl.classList.toggle('show', goster);
+  if (!goster) { lastCardText = ''; return; }
+  const metin = cards.map(k => `${Math.min(k.got, k.need)}/${k.need}`).join(' ');
+  if (metin === lastCardText) return;
+  lastCardText = metin;
+  cardRowEl.innerHTML = cards.map(k => {
+    const t = TYPE_BY_ID[k.type];
+    const renk = t.uiBase || t.base;
+    const bitti = k.got >= k.need ? ' done' : '';
+    return `<div class="card${bitti}"><span class="dot" style="background:${renk}"></span>` +
+           `<span>${Math.min(k.got, k.need)}/${k.need}</span></div>`;
+  }).join('');
+}
+
 function refreshGoalTag(yapilan, hedef) {
   if (!goalTagEl) return;
-  const goster = state === 'playing' && hedef > 0;
+  // Kart varken sağ üstteki tek rozet gizleniyor: iki ayrı sayaç iki ayrı
+  // hedef demek, oysa bölümün tek hedefi kartlar.
+  const goster = state === 'playing' && hedef > 0 && !cards.length;
   goalTagEl.classList.toggle('show', goster);
   if (!goster) return;
   const ico = missionKind ? MISSION_ICON[missionKind] : '🍇';
@@ -19088,12 +19257,29 @@ function refreshGoalTag(yapilan, hedef) {
   goalTagEl.classList.toggle('done', yapilan >= hedef);
 }
 
+// Bölümün bitip bitmediği tek yerden soruluyor.
+//
+// Üç ayrı bitiş şartı var (kart, görev, süpürme) ve bu satır dosyada iki
+// yerde okunuyor: yutma anında ve ilerleme çubuğunda. İkisi ayrı yazılsaydı
+// biri güncellenip öteki unutulurdu — sipariş görevi eklenirken tam bu
+// olmuştu ve bölüm 187/189'da kilitlenmişti.
+function levelDone() {
+  if (cards.length) return cards.every(k => k.got >= k.need);
+  if (missionKind) return missionEaten >= missionGoal;
+  return eatenCount >= levelGoal;
+}
+
 function updateProgressUI() {
   // Çubuk neyi bitirdiğini gösteriyor: sipariş bölümünde tarlanın tamamını
   // değil, hedef meyveyi. Yoksa oyuncu çubuğa bakıp yarıdayım sanırdı ve
   // bölüm habersiz biterdi.
-  const yapilan = missionKind ? missionEaten : eatenCount;
-  const hedef = missionKind ? missionGoal : levelGoal;
+  // Çubuk neyin bittiğini gösteriyor. Kart varken o, kartların toplamı:
+  // tahtanın tamamı değil. Yoksa oyuncu çubuğa bakıp yarıdayım sanır ve
+  // bölüm habersiz biterdi — sipariş görevinde yaşanan tam buydu.
+  const kartHedef = cards.reduce((a, k) => a + k.need, 0);
+  const kartYapilan = cards.reduce((a, k) => a + Math.min(k.got, k.need), 0);
+  const yapilan = cards.length ? kartYapilan : missionKind ? missionEaten : eatenCount;
+  const hedef = cards.length ? kartHedef : missionKind ? missionGoal : levelGoal;
   const pct = hedef ? Math.min(100, Math.round((yapilan / hedef) * 100)) : 0;
   if (pct !== lastProgPct) {
     progFillEl.style.width = pct + '%'; lastProgPct = pct;
@@ -19102,6 +19288,7 @@ function updateProgressUI() {
   // genişlik, rozet bir sayı. 480 parçalık bir tahtada yüzde beş yemede bir
   // değişiyor, yani çubuğa bağlanan bir sayı dört yemede bir donuk kalırdı.
   refreshGoalTag(yapilan, hedef);
+  refreshCards();
   if (state !== 'playing') return;
   const s = liveStars();
   if (s !== lastStarCount) {
@@ -19719,11 +19906,21 @@ function onTimeUp() {
   fillStats();
   // Kaç kaldığı, bölümün ne istediğine göre: siparişte kalan meyve tarlanın
   // tamamı değil, hedef meyve.
-  const left = missionKind
-    ? Math.max(0, missionGoal - missionEaten)
-    : Math.max(0, levelGoal - eatenCount);
-  const ne = missionKind ? `${missionNouns(left).toLowerCase()} left` : 'fruit left';
-  showOverlay("Time's Up! ⏱", `${left} ${ne}`, 'Retry', startLevel, !revivedThisLevel);
+  // Kart bölümünde kalan, tarlanın tamamı değil **kartların eksiği**, ve
+  // hangi meyveden kaç tane eksik olduğu tek tek yazılıyor: oyuncunun
+  // yeniden denerken bilmesi gereken şey bu.
+  let mesaj;
+  if (cards.length) {
+    const eksik = cards.filter(k => k.got < k.need)
+      .map(k => `${k.need - k.got} ${TYPE_BY_ID[k.type].label.toLowerCase()}`);
+    mesaj = eksik.length ? `${eksik.join(', ')} left` : 'so close';
+  } else {
+    const left = missionKind
+      ? Math.max(0, missionGoal - missionEaten)
+      : Math.max(0, levelGoal - eatenCount);
+    mesaj = `${left} ${missionKind ? `${missionNouns(left).toLowerCase()} left` : 'fruit left'}`;
+  }
+  showOverlay("Time's Up! ⏱", mesaj, 'Retry', startLevel, !revivedThisLevel);
 }
 
 // Bulmacanın kaybı: tahta artık bitirilemez.
@@ -20006,6 +20203,15 @@ function eatFruit(f, now) {
     timeLeft = Math.max(timeLeft, Math.min(RUSH_CAP, timeLeft + RUSH_BONUS));
     updateTimeUI();
   }
+  // Hedef kartı: kartın istediği türden bir meyve yendiyse o kart ilerliyor.
+  //
+  // `f.prop` dışarıda: nesne olarak çizilen bir dev, tipi ne olursa olsun
+  // kartta sayılmıyor — oyuncu tahtaya bakıp traktörü muz saymaz. Bomba
+  // zaten yukarıda dönüyor, buraya hiç gelmiyor.
+  if (cards.length && !f.prop) {
+    const k = cards.find(c => c.type === f.type && c.got < c.need);
+    if (k) k.got++;
+  }
   if (f.prop) markFound(f.prop);
   // chaining eats pays a multiplier, so sweeping a same-type patch in one
   // pass is worth more than picking fruit off one at a time
@@ -20070,8 +20276,9 @@ function eatFruit(f, now) {
       mesh.visible = false;
       fruitFlush(f);
       fieldGroup.remove(mesh);
-      // Sipariş bölümünde tarlanın tamamı değil, hedef meyve bitiriyor.
-      if (missionKind ? missionEaten >= missionGoal : eatenCount >= levelGoal) onCleared();
+      // Bölümü ne bitiriyor: kartlar doluysa kartlar, görev varsa görev,
+      // ikisi de yoksa tarlanın tamamı.
+      if (levelDone()) onCleared();
     }
   })(performance.now());
 }
@@ -20778,6 +20985,21 @@ window.fruitHoleGamesState = () => ({
 // The boss level's colossus: whether there is one, how wide, how far from
 // where the hole opens, and — the number that decides whether it is a boss
 // at all — how much of the field has to go in before it can be taken.
+// Hedef kartları: ne istiyorlar, tahtada o türden kaç tane var, ve saat.
+window.fruitHoleCards = () => ({
+  cards: cards.map(k => {
+    const say = fruits.filter(f => !f.eaten && !f.prop && !f.bomb && f.type === k.type).length;
+    return { type: k.type, need: k.need, got: k.got, tahtada: say };
+  }),
+  // Kartların istediği toplam iş, tahtadaki yenebilir parçaya oranla.
+  pay: (() => {
+    const canli = fruits.filter(f => !f.eaten && !f.bomb).length;
+    const ister = cards.reduce((a, k) => a + k.need, 0);
+    return canli ? +(ister / canli).toFixed(3) : 0;
+  })(),
+  tur: +cardTourSeconds().toFixed(1),
+  saat: levelTime(),
+});
 window.fruitHoleBoss = () => {
   const live = fruits.filter(f => !f.eaten);
   const cs = live.filter(f => f.colossus);
@@ -21648,6 +21870,22 @@ window.fruitHoleOrder = (typeId) => {
 };
 
 // Hedef meyveye doğru sür: sipariş bölümünü otomatik oynatmak için.
+// Kartın istediği en yakın meyve. `fruitHoleOrderNearest`in kart karşılığı:
+// otomatik oyuncu hedefe gidiyor, yutamıyorsa büyümek için en yakın parçaya
+// sapıyor — gerçek oyuncunun yaptığı da bu.
+window.fruitHoleCardNearest = () => {
+  if (!cards.length) return null;
+  const ister = new Set(cards.filter(k => k.got < k.need).map(k => k.type));
+  if (!ister.size) return null;
+  let en = null, ed = Infinity;
+  for (const f of fruits) {
+    if (f.eaten || f.bomb || f.prop || !ister.has(f.type)) continue;
+    const d = (f.x - holeX) ** 2 + (f.z - holeZ) ** 2;
+    if (d < ed) { ed = d; en = f; }
+  }
+  return en ? { x: +en.x.toFixed(2), z: +en.z.toFixed(2), r: +en.r.toFixed(2),
+                eatable: en.r <= holeRadius * 0.92, dist: +Math.sqrt(ed).toFixed(2) } : null;
+};
 window.fruitHoleOrderNearest = () => {
   if (!missionKind) return null;
   let en = null, ed = Infinity;

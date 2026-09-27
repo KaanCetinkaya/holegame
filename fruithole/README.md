@@ -2436,6 +2436,80 @@ biri geçemez, yani 34'ün 34'e bölünmesinden başka dağılım kalmadı.
 
 Yeni bir yer eklemek artık önce yeni bir **düzen** yazmayı gerektiriyor.
 
+## Hedef kartları
+
+Oyunun en büyük oynanış değişikliği. Bölüm artık "tarlayı süpür" demiyor,
+**"şunlardan şu kadar topla"** diyor.
+
+### Nereden geldi
+
+Kaan sordu: rakip delik oyunlarında işleyiş nasıl? İki ayrı cevap çıktı.
+
+**Hole.io**'da bölüm yok — maç var. İki dakika, bir şehir, ve puan "yüzde
+kaçını yuttun". İlerleme maçın içinde.
+
+**All in Hole** (Homa, 2023; 24M indirme, ~$131M IAP) bölümlü, ve işleyişi
+şu: üstte **hedef kartları** var, tahtadaki her şeyi değil kartta yazan
+nesneleri topluyorsun. İlk yüz bölümde 190 farklı hedef nesnesi kullanmışlar.
+Üstüne beş can, bonus bölümler ve Royal Match'ten alınmış bir meta.
+
+Bizde kart yalnızca **sipariş görevinde** vardı, yani onda bir bölümde.
+İlk yüz bölümün 81'i "tarlayı süpür" diyordu.
+
+### Neden kart
+
+Süpürme bölümü oyuncuya bir **liste** veriyor, kart bir **hedef** veriyor.
+Aradaki fark, tahtanın geri kalanının artık iş değil **araç** olması: kartın
+istediği karpuzu yutacak kadar büyümek için yoldaki çileği yiyorsun. Boyut
+kapısı zaten oyunun kuralıydı; kart ona bir sebep veriyor.
+
+Sipariş görevi zaten tek kartlık bir hedefti. Bu onun genelleştirilmiş hâli
+— ve makinenin çoğu hazırdı: `tourSeconds`, `orderStops`, ilerleme çubuğu.
+
+### Nerede var, nerede yok
+
+Yalnızca **görevi olmayan ızgara tahtalarında**. Resim, şerit ve bulmaca
+tahtalarının kendi kuralı var ve o kural tahtanın kendisinden geliyor: bir
+mantar resmini yarım bırakmak resmi bozuyor. Görev bölümlerinin de kendi
+hedefi var; ikisi üst üste binseydi bölümün iki ayrı bitiş şartı olurdu.
+
+Kart sayısı bölümle açılıyor: 4'e kadar bir, 10'a kadar iki, sonra üç. Üç
+kartla başlayan oyuncu üst satırda üç sayı okumak zorunda, oysa ilk bölümün
+işi kontrolü öğretmek.
+
+Kart tahtadaki o meyvenin **üçte ikisini** istiyor (0.62). Tamamını isteseydi
+kart bir süpürme emri olurdu, yalnızca rengi seçilmiş hâli; üçte iki tahtayı
+gezdiriyor ama son üç çileği aratmıyor — kaybedilen zamanın çoğu o son üçte
+geçiyor.
+
+### Saat yeniden türetildi
+
+Bu değişikliğin en tehlikeli tarafı. Kartlar tahtanın yarısını bile
+istemiyor; süpürme saati verilseydi her bölüm üç yıldızla biterdi ve ödüllü
+"+15 saniye" reklamının bir anlamı kalmazdı. O hata bu oyunda bir kez yapıldı
+ve README'de duruyor: *"42-82% spare everywhere"*.
+
+Kartın saati siparişinkiyle aynı modelden: o türün duraklarının turu
+(`tourSeconds`), istenen paya göre kısaltılmış. Modelin bilinen kör noktası
+var — oyuncu kartları sırayla değil **iç içe** topluyor, yani gerçek yol bu
+toplamdan kısa — ve payı `CARD_SLACK` taşıyor. Geç turların %28 sıkıştırması
+kart bölümünde uygulanmıyor, sipariş bölümündeki sebeple: kartın saati zaten
+o tahtaya özel bir tur ölçümü, kaba bir üst sınır değil.
+
+### Arayüz
+
+Kartlar üstte, ortada, yan yana. Her kartın noktası oyundaki meyvenin **kendi
+rengi** — emoji değil, çünkü oyundaki çilek ile emojinin çileği aynı kırmızı
+değil ve oyuncu ikisini eşleştiremiyor. Karpuzun arayüz rengi ayrı tutuluyor
+(`uiBase`): içi çilek gibi kırmızı ve iki kırmızı nokta ayırt edilemiyor —
+bu kural sayaçlar için zaten yazılmıştı.
+
+Sağ üstteki tek rozet kart varken gizleniyor: iki ayrı sayaç iki ayrı hedef
+demek.
+
+Saat bitince ekran kalanı tek tek yazıyor ("12 strawberry, 4 banana left"),
+çünkü oyuncunun yeniden denerken bilmesi gereken şey bu.
+
 ## Tarihsel yerler
 
 Kaan'ın isteği: tarihsel şeyler. Sıra: 🏰 Şato, 🤠 Vahşi Batı,

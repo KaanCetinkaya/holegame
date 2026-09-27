@@ -38,11 +38,21 @@ const check = (ok, ad, not = '') => {
   if (!ok) fails.push(ad + (not ? ' — ' + not : ''));
 };
 
+// Üst satırda iki ayrı gösterge var ve bir bölümde **yalnızca biri** açık:
+//
+//   * hedef kartları (`#cardRow`) — sıradan ızgara bölümlerinde,
+//   * tek rozet (`#goalTag`) — görev bölümlerinde.
+//
+// İkisi birden açık olsaydı oyuncu iki ayrı hedef okurdu. Kart geldiğinde bu
+// test yalnızca rozete bakıyordu ve "4. bölümde rozet yok" diye düştü —
+// doğru gözlem, yanlış sonuç: orada artık kart var.
 const oku = () => ({
   gorunur: getComputedStyle(document.getElementById('goalTag')).display !== 'none',
   ico: document.getElementById('goalIco').textContent,
   n: document.getElementById('goalN').textContent,
   desen: document.getElementById('patternTag').textContent,
+  kartlar: [...document.querySelectorAll('#cardRow .card')].map(e => e.textContent.trim()),
+  kartGorunur: getComputedStyle(document.getElementById('cardRow')).display !== 'none',
 });
 
 async function bolum(pg, lvl) {
@@ -65,13 +75,28 @@ pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8306/', { waitUntil: 'domcontentloaded' });
 await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
 
-// 4 sıradan, 5 sipariş, 15 devler, 25 hız, 35 mayın.
-console.log('bölüm  rozet     desen satırı');
-for (const [lvl, bekIco] of [[4, '🍇'], [5, '📋'], [15, '🍉'], [25, '⏱'], [35, '💣']]) {
+// 4 kart (sıradan ızgara), 5 sipariş, 15 devler, 25 hız, 35 mayın.
+console.log('bölüm  gösterge              desen satırı');
+for (const [lvl, bekIco] of [[4, null], [5, '📋'], [15, '🍉'], [25, '⏱'], [35, '💣']]) {
   const r = await bolum(pg, lvl);
-  console.log(`  ${String(lvl).padStart(2)}   ${r.oyunda.ico} ${r.oyunda.n.padEnd(9)} ${r.oyunda.desen}`);
+  const kart = bekIco === null;
+  console.log(`  ${String(lvl).padStart(2)}   ` +
+    `${(kart ? 'kart ' + r.oyunda.kartlar.join(' ') : r.oyunda.ico + ' ' + r.oyunda.n).padEnd(21)} ` +
+    r.oyunda.desen);
+  if (kart) {
+    // Kart bölümü: kart satırı açık, tek rozet kapalı.
+    check(r.oyunda.kartGorunur, `${lvl}: kart satırı oyunda görünüyor`);
+    check(!r.oyunda.gorunur, `${lvl}: kart varken tek rozet gizli`);
+    check(!r.menude.kartGorunur, `${lvl}: kart satırı menüde görünmüyor`);
+    check(r.oyunda.kartlar.length > 0 && r.oyunda.kartlar.every(t => /^\d+\/\d+$/.test(t)),
+      `${lvl}: her kart a/b biçiminde`, r.oyunda.kartlar.join(' '));
+    check(r.oyunda.kartlar.every(t => Number(t.split('/')[1]) > 0),
+      `${lvl}: hiçbir kartın hedefi sıfır değil`, r.oyunda.kartlar.join(' '));
+    continue;
+  }
   check(r.oyunda.gorunur, `${lvl}: rozet oyunda görünüyor`);
   check(!r.menude.gorunur, `${lvl}: rozet menüde görünmüyor`);
+  check(!r.oyunda.kartGorunur, `${lvl}: görev bölümünde kart yok`);
   check(r.oyunda.ico === bekIco, `${lvl}: simge doğru`, `${r.oyunda.ico} (beklenen ${bekIco})`);
   // Sayı "a/b" biçiminde ve hedef sıfırdan büyük.
   const m = /^(\d+)\/(\d+)$/.exec(r.oyunda.n);

@@ -48,8 +48,14 @@ Console.
 You are the hole in the middle of a fruit field — and the clock is running! 🕳️🍇
 
 Drag anywhere to steer the hole and swallow every fruit it touches. The more
-you eat, the bigger you get: berries first, then whole melons. Clear the field
-before time runs out, take the stars, move on.
+you eat, the bigger you get: berries first, then whole melons.
+
+📋 THE ORDER AT THE TOP
+Every level asks for something specific — twenty strawberries, forty bananas,
+thirty watermelons. That is what finishes it, not the whole field. Everything
+else on the board is how you get there: eat it to grow wide enough for what
+the order actually wants, because a melon will not go down a hole the size of
+a berry.
 
 ⭐ EARN STARS
 Finishing isn't enough — how fast you finish is what counts. The more time left
