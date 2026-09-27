@@ -132,21 +132,29 @@ const ONLY = arg('only', null);
 // Seçilenlerin temaları birbirinden farklı: altısı da kumsal olsa altı klip
 // tek klip gibi izlenirdi.
 const CLIPS = [
-  { id: 'farm',   pattern: 'Cross',   note: 'Harvest · sürülmüş tarla, yeni tema — 482 meyve, en yoğunu' },
-  { id: 'shop',   pattern: 'Blocks',  note: 'Gadget Shop · voxel tahta — 479' },
-  { id: 'drive',  pattern: 'Ring',    note: 'Drive-In · arabalı sinema — 479' },
-  { id: 'bar',    pattern: 'Stairs',  note: 'Happy Hour · bar tezgâhı — 427' },
-  { id: 'space',  pattern: 'Heart',   note: 'Orbit · istasyon güvertesi — 420' },
-  // Patron bölümü: her onuncu bölüm, tahtanın ucunda devasa bir meyve.
-  // Düzen değil olay seçiliyor, o yüzden numara burada doğrudan veriliyor.
-  { id: 'boss',   level: 10,          note: 'patron bölümü — 385 meyve, 9 dev' },
-  // Kumsal en parlak zemin ve ikonun görünümü; yoğunluğu orta ama oyunun
-  // kendini tanıttığı kare bu.
-  { id: 'beach',  pattern: 'Pyramid', note: 'Beach · birinci bölüm — 277' },
-  // Gadget Shop'un fayans zemini üstünde halka halka dizilmiş tahta. Voxel
-  // olan Blocks'la aynı tema ama bambaşka görünüyor: orada her şey kutu,
-  // burada sıradan meyveler eş merkezli çemberler kuruyor.
-  { id: 'orbits', pattern: 'Orbits',  note: 'Gadget Shop · fayans zemin, halka düzen — 279' },
+  // Liste 28 yer / 34 düzen için yeniden yazıldı. Eskisi beş yerin beşini
+  // de kaybetmişti: `Ring` arabalı sinemadan arenaya, `Stairs` bardan New
+  // York'a, `Pyramid` kumsaldan Mısır'a geçmişti, ve dosya yine aynı adla
+  // video üretiyordu — `beach.mp4`'te kumsal yoktu. Düzen adıyla istemek
+  // numarayı çözdü ama **temayı** çözmüyor; tema da taşınabiliyor.
+  //
+  // Seçim iki ölçüye göre: tahtanın kalabalığı (boş zemin izleyiciyi
+  // kaydırtıyor, ölçüldü) ve zeminin kendisi. Yeni yerlerin yarısında
+  // bakılacak şey zemin — kilim, mozaik, tartan, neon — ve tanıtımda satan
+  // şey zaten "burası neresi" sorusu.
+  { id: 'bazaar',  pattern: 'Crescent', note: 'Grand Bazaar · kilim zemin, hilal düzen — 426 meyve' },
+  { id: 'newyork', pattern: 'Stairs',   note: 'Manhattan · yaya geçidi, rögar — 464' },
+  { id: 'arena',   pattern: 'Ring',     note: 'The Arena · dövülmüş arena kumu — 480' },
+  { id: 'dubai',   pattern: 'Diamond',  note: 'Gold Coast · altın yıldızlı meydan — 318' },
+  { id: 'tartan',  pattern: 'Lattice',  note: 'Highlands · tartan zemin — 254' },
+  // Tokyo ve Rio seyrek tahtalar, ve bilerek: ikisinde de bakılacak şey
+  // zemin. Neon ıslak asfalt ve Copacabana dalgası tek karede "neresi"
+  // sorusunu cevaplıyor, kalabalık bir tahta ise onları örterdi.
+  { id: 'tokyo',   pattern: 'Chevrons', note: 'Neon Night · ıslak asfalt, neon yansıma — 205' },
+  { id: 'rio',     pattern: 'Wave',     note: 'Copacabana · siyah beyaz dalga mozaiği — 163' },
+  { id: 'egypt',   pattern: 'Pyramid',  note: 'Valley of Kings · hiyeroglif oyulmuş taş — 284' },
+  // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
+  { id: 'boss',    level: 10,           note: 'patron bölümü — tahtanın ucunda devasa meyve' },
 ];
 
 
