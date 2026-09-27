@@ -6412,6 +6412,110 @@ function propTemplates() {
     T.macarons = { g, h: 0.95, currency: 'berry', only: 'giant' };
   }
 
+  // --- istanbul ------------------------------------------------------
+  //
+  // Zemin zaten kilim, yani bu temada eşyaların işi tahtayı anlatmak değil
+  // **çarşıyı** anlatmak. Hepsi tezgâhta durabilecek şeyler.
+
+  // Simit.
+  {
+    const g = new THREE.Group();
+    const hamur = PROP_MAT('#c9822f', 0.6);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.24, 12, 26), hamur), 0, 0.24, 0,
+        Math.PI / 2, 0, 0);
+    // Burgu: simidi bir simitten (donut) ayıran şey, ve yukarıdan görünen
+    // tek doku.
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2;
+      const b = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.07, 6, 10, Math.PI * 1.2),
+                               PROP_MAT('#b06f22', 0.62));
+      put(g, b, Math.cos(a) * 0.62, 0.24, Math.sin(a) * 0.62, Math.PI / 2, -a + 0.5, 0);
+    }
+    // Susam.
+    const susam = PROP_MAT('#f2e2b8', 0.5);
+    for (let i = 0; i < 30; i++) {
+      const a = (i / 30) * Math.PI * 2 * 3.7;
+      const rr = 0.62 + (i % 3 - 1) * 0.16;
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), susam),
+          Math.cos(a) * rr, 0.44 - Math.abs(i % 3 - 1) * 0.1, Math.sin(a) * rr);
+    }
+    T.simit = { g, h: 0.5, currency: 'banana' };
+  }
+
+  // Çay: ince belli bardak, tabağı ve kaşığı.
+  {
+    const g = new THREE.Group();
+    const cam = PROP_MAT('#f2f6f8', 0.12);
+    const cay = PROP_MAT('#a8321a', 0.3);
+    const porselen = PROP_MAT('#f6f2e8', 0.35);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.07, 22), porselen), 0, 0.04, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.05, 8, 24), PROP_MAT('#c8962f', 0.4)),
+        0, 0.08, 0, Math.PI / 2, 0, 0);
+    // İnce bel: iki koni sırt sırta. Düz bir bardak çay bardağı değil.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 0.3, 18), cam), 0, 0.22, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.2, 0.4, 18), cam), 0, 0.57, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 0.04, 18), cay), 0, 0.7, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.6), PROP_MAT('#c8c2b4', 0.3)),
+        0.3, 0.1, 0.18, 0, 0.5, 0);
+    T.tea = { g, h: 0.8, currency: 'berry', only: 'giant' };
+  }
+
+  // Nazar boncuğu.
+  {
+    const g = new THREE.Group();
+    const halkalar = [[0.78, '#1f5fa8'], [0.54, '#f6f2e8'], [0.34, '#2f7fd0'], [0.16, '#12182a']];
+    let y = 0.1;
+    for (const [r2, renk] of halkalar) {
+      const d = new THREE.Mesh(new THREE.CylinderGeometry(r2, r2, 0.16, 24),
+                               PROP_MAT(renk, 0.2));
+      put(g, d, 0, y, 0);
+      y += 0.03;
+    }
+    // Kenarındaki delik ve ip: boncuğu bir düğmeden ayıran şey.
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.035, 6, 12), PROP_MAT('#c8962f', 0.35)),
+        0, 0.16, 0.82);
+    T.evileye = { g, h: 0.3, currency: 'lychee' };
+  }
+
+  // Lokum tepsisi.
+  {
+    const g = new THREE.Group();
+    const bakir = PROP_MAT('#b5742a', 0.3);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.86, 0.1, 24), bakir), 0, 0.05, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.07, 8, 26), bakir), 0, 0.1, 0,
+        Math.PI / 2, 0, 0);
+    // Lokumlar: pudra şekerli küpler, üç renk. Kare oldukları için
+    // yukarıdan tepsinin yuvarlağının içinde bir ızgara okunuyor.
+    const renk = ['#e88aa8', '#f2e2b8', '#a8d8a0'];
+    let n = 0;
+    for (const x of [-0.42, 0, 0.42]) for (const z of [-0.42, 0, 0.42]) {
+      if (Math.hypot(x, z) > 0.72) continue;
+      put(g, new THREE.Mesh(bevelBox(0.34, 0.3, 0.34, 0.07), PROP_MAT(renk[n++ % 3], 0.6)),
+          x, 0.26, z);
+    }
+    T.lokum = { g, h: 0.45, currency: 'melon', only: 'giant' };
+  }
+
+  // Bakır cezve.
+  {
+    const g = new THREE.Group();
+    const bakir = PROP_MAT('#bd7a2e', 0.28);
+    const koyu = PROP_MAT('#8a5520', 0.35);
+    // Gövde aşağı doğru genişliyor: cezvenin biçimi bu, ve yukarıdan
+    // bakınca ağzının dar olması onu bir kovadan ayırıyor.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.52, 0.66, 18), bakir), 0, 0.33, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.05, 8, 18), koyu), 0, 0.66, 0,
+        Math.PI / 2, 0, 0);
+    // Ağız: bir yandan dışarı taşan üçgen.
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.3, 6), bakir), 0, 0.66, 0.4,
+        -1.1, 0, 0);
+    // Sap: uzun ve düz, yukarıdan siluetin dışına çıkan tek parça.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8),
+                          PROP_MAT('#6b4a22', 0.6)), 0, 0.6, -0.9, Math.PI / 2 - 0.2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), koyu), 0, 0.5, -1.4);
+    T.cezve = { g, h: 0.8, currency: 'lychee', only: 'giant' };
+  }
+
   // --- world cup -----------------------------------------------------
 
   // Football. The panels are separate flattened discs stuck to the surface
@@ -8589,6 +8693,70 @@ function gravelTexture() {
   return tex;
 }
 
+// İstanbul'un zemini: kilim.
+//
+// Bu kamera için oyundaki en iyi zemin, ve sebebi basit — kilim zaten
+// yukarıdan bakılmak için dokunuyor. Copacabana'nın dalgası bile desenini
+// havadan gösteriyordu ama kilim bir adım ötesi: bütün deseni **yüzeyin
+// kendisi**, üstünde duran hiçbir şeye ihtiyacı yok.
+//
+// Desen üç katmanlı ve üçü de geleneksel: ortada eli belinde motifleri
+// (baklava içinde çengeller), çevresinde su yolu bordürü, aralarında ince
+// çizgiler. Renkler de kök boya: kırmızı, lacivert, ekru, altın.
+//
+// Karo kenarında bordür yarım kalıyor ve komşu karoyla tamamlanıyor, yani
+// döşendiğinde tahta tek bir büyük kilim oluyor — her hücrede ayrı bir halı
+// değil.
+function kilimTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  const kirmizi = '#9e2b25', lacivert = '#1f3a63', ekru = '#e8dcc0', altin = '#c8962f';
+  ctx.fillStyle = kirmizi;
+  ctx.fillRect(0, 0, S, S);
+  // Bordür: karonun dört kenarında, yarısı dışarıda.
+  ctx.fillStyle = lacivert;
+  ctx.fillRect(0, 0, S, 26); ctx.fillRect(0, S - 26, S, 26);
+  ctx.fillRect(0, 0, 26, S); ctx.fillRect(S - 26, 0, 26, S);
+  // Su yolu: bordürün içinde zikzak.
+  ctx.strokeStyle = ekru; ctx.lineWidth = 4;
+  for (const [x0, y0, yatay] of [[0, 13, 1], [0, S - 13, 1], [13, 0, 0], [S - 13, 0, 0]]) {
+    ctx.beginPath();
+    for (let t = 0; t <= S; t += 16) {
+      const o = (t / 16) % 2 ? 7 : -7;
+      if (yatay) t ? ctx.lineTo(t, y0 + o) : ctx.moveTo(t, y0 + o);
+      else t ? ctx.lineTo(x0 + o, t) : ctx.moveTo(x0 + o, t);
+    }
+    ctx.stroke();
+  }
+  // Ortadaki göbek: baklava, içinde çengeller.
+  const baklava = (cx, cy, r, renk, dolu) => {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r * 0.72, cy);
+    ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r * 0.72, cy);
+    ctx.closePath();
+    if (dolu) { ctx.fillStyle = renk; ctx.fill(); }
+    else { ctx.strokeStyle = renk; ctx.lineWidth = 5; ctx.stroke(); }
+  };
+  baklava(S / 2, S / 2, 68, lacivert, true);
+  baklava(S / 2, S / 2, 46, ekru, false);
+  baklava(S / 2, S / 2, 24, altin, true);
+  // Çengeller: göbeğin dört yanında.
+  ctx.strokeStyle = altin; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const x = S / 2 + dx * 52, y = S / 2 + dy * 52;
+    ctx.beginPath();
+    ctx.moveTo(x, y); ctx.lineTo(x + dx * 16, y);
+    ctx.lineTo(x + dx * 16, y + dy * 16);
+    ctx.stroke();
+  }
+  // Köşelerdeki küçük baklavalar.
+  for (const [x, y] of [[48, 48], [S - 48, 48], [48, S - 48], [S - 48, S - 48]])
+    baklava(x, y, 16, ekru, true);
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 3);
+  return tex;
+}
+
 // A mown pitch. The stripes are the whole trick — plain green is a felt mat,
 // and the alternating bands are what makes it read as a football ground from
 // the first frame, before you have seen a single ball.
@@ -8944,6 +9112,7 @@ const GROUND_TEX = {};
 const GROUND_MAKERS = { sand: groundTexture, blacksand: blackSandTexture,
   sidewalk: sidewalkTexture, crosswalk: crosswalkTexture,
   plaza: plazaTexture, mosaic: mosaicTexture, neonstreet: neonStreetTexture,
+  kilim: kilimTexture,
   gravel: gravelTexture, grass: grassTexture,
   wood: woodTexture, snow: snowTexture, marble: marbleTexture,
   deck: deckTexture, bar: barTexture, asphalt: asphaltTexture,
@@ -9297,6 +9466,8 @@ const SURROUND_MAKERS = {
   // sokak biter, binalar başlar. Yukarıdan bakan bir kameranın New York'u
   // tanıdığı yer de burası: koyu çatılar, üstlerinde su depoları.
   rooftops: rooftopTexture,
+  // Kilimin dışı çarşının taşı: kubbeden süzülen ışıkta kalan gölge.
+  bazaar: () => speckTexture('#3a2c22', '#281e17', '#55412f', 14),
   // Rio'nun dışı deniz: mozaik kaldırım biter, Atlantik başlar. Kumsalın
   // turkuazı değil, açık denizin koyu maviyesi.
   atlantic: () => speckTexture('#14567a', '#0e4260', '#2a769c', 16),
@@ -9530,6 +9701,26 @@ const THEMES = {
     // Gri-mavi bir Paris öğlesi: gökyüzü serin, sıcaklık yalnızca yerden —
     // çakılın beji.
     light: { sky: '#eef2fb', bounce: '#b5a888', hemi: 1.4, amb: '#f8f4ea', ambI: 0.46, sun: '#fff4e0', sunI: 0.72 },
+  },
+  // İstanbul. Zemini oyunun bu kameraya en uygun yüzeyi: kilim.
+  //
+  // Copacabana'nın mozaiği bile desenini havadan gösteriyordu; kilim bir adım
+  // ötesi, çünkü bütün deseni **yüzeyin kendisi** — üstünde duran hiçbir şeye
+  // ihtiyacı yok. Zaten yukarıdan bakılmak için dokunuyor.
+  //
+  // Dışı çarşının taşı: kubbeden süzülen ışıkta kalan gölge.
+  istanbul: {
+    name: 'Grand Bazaar', icon: '🧿',
+    ground: 'kilim', surround: '#3a2c22', ripples: false,
+    edge: '#c8962f', surf: null,
+    beyond: 'bazaar',
+    props: ['simit', 'tea', 'evileye', 'lokum', 'cezve',
+            'scales', 'basket', 'jar', 'crate'],
+    hero: ['cezve', 'lokum'],
+    // Çarşının içi: üstten süzülen sıcak ışık, aşağıdan kilimin kırmızısı.
+    // Dolgu yüksek, çünkü kubbenin altında sert gölge olmaz — ışık her
+    // yerden gelir.
+    light: { sky: '#ffeccd', bounce: '#8a4a3a', hemi: 1.35, amb: '#ffe8c8', ambI: 0.55, sun: '#ffd9a0', sunI: 0.62 },
   },
   pitch: {
     name: 'Match Day', icon: '⚽',
@@ -10785,7 +10976,9 @@ const PATTERNS = [
   // ---------------------------------------------------------------------
   {
     // Hilal: bir daireden, kaydırılmış ikinci bir daire çıkarılıyor.
-    name: 'Crescent', icon: '🌙', theme: 'rio',
+    // Hilal İstanbul'a geçti: Türk bayrağının şekli, ve yeni yerin ilk
+    // turda görünmesi için bir düzen lazımdı. Copacabana'da Wave kaldı.
+    name: 'Crescent', icon: '🌙', theme: 'istanbul',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       const d = Math.hypot(nx, ny * 0.95);

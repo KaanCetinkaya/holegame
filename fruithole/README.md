@@ -2170,6 +2170,41 @@ Yüzleri yazmaya başladığımız anda kaçınılmazdı, çünkü her yüzlü s
 onluk sayıyı kendi içinde taşıyor. Tarama artık "and" ile başlayan parçayı
 atlıyor: "and" ile gelen bir sayı, daha büyük bir sayının kuyruğudur.
 
+## Grand Bazaar: kilim
+
+Yeni yer sırası Kaan'ın listesinden: önce İstanbul.
+
+Zemini oyunun bu kameraya en uygun yüzeyi. Copacabana'nın mozaiği bile
+desenini havadan gösteriyordu; kilim bir adım ötesi, çünkü bütün deseni
+**yüzeyin kendisi** — üstünde duran hiçbir şeye ihtiyacı yok. Zaten yukarıdan
+bakılmak için dokunuyor.
+
+Desen üç katmanlı ve üçü de geleneksel: ortada baklava içinde çengeller,
+çevresinde su yolu bordürü, köşelerde küçük baklavalar. Renkler kök boya —
+kırmızı, lacivert, ekru, altın. Bordür karo kenarında yarım kalıp komşu
+karoyla tamamlanıyor, yani tahta tek bir büyük kilim oluyor; yarım kalmasaydı
+her hücrede ayrı bir halı görünürdü.
+
+Dışı çarşının taşı, kubbeden süzülen ışıkta kalan gölge. Işığında dolgu
+yüksek: kubbenin altında sert gölge olmaz, ışık her yerden gelir.
+
+Eşyalar tahtayı değil **çarşıyı** anlatıyor, çünkü tahtayı zemin zaten
+anlatıyor:
+
+* **Simit** — donuttan ayıran şey burgusu, ve yukarıdan görünen tek doku o.
+  On altı yarım simit halkası, üstünde otuz susam.
+* **Çay** — ince bel iki koninin sırt sırta durmasından. Düz bir bardak çay
+  bardağı değil.
+* **Nazar boncuğu** — dört iç içe disk. Kenarındaki delik ve ip onu bir
+  düğmeden ayırıyor.
+* **Lokum tepsisi** — lokumlar küp, tepsi yuvarlak: yukarıdan dairenin içinde
+  bir ızgara okunuyor.
+* **Cezve** — gövde aşağı doğru genişliyor ve ağzı dar; sapı da siluetin
+  dışına çıkan tek parça.
+
+Hilal (Crescent) düzeni buraya geçti — Türk bayrağının şekli, ve yeni yerin
+ilk turda görünmesi için bir düzen gerekiyordu. Copacabana'da Wave kaldı.
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
