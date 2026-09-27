@@ -10231,6 +10231,161 @@ function hieroglyphTexture() {
   return tex;
 }
 
+// Beş ligin ve bir kupanın sahaları.
+//
+// Hepsi çim, ve hepsi birbirinden **biçme deseniyle** ayrılıyor. Sebebi bu
+// kamera: bir stadı tanıtan her şey — tribün, çatı, tabela, kalabalık —
+// yandan bakılınca görünüyor, yukarıdan görünen tek şey sahanın kendisi ve
+// üstündeki desen. Bahçıvanın makinesiyle çizdiği şey, tam da bu açıdan
+// bakılmak için çiziliyor.
+//
+// `mownTexture` zaten var ve Match Day onu kullanıyor: düz enine bantlar.
+// Aşağıdakiler o fikrin beş çeşitlemesi, ve hiçbiri öteki dördüyle
+// karıştırılmıyor.
+function pitchBase(ctx, S, koyu, acik) {
+  ctx.fillStyle = koyu;
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2200; i++) {
+    ctx.globalAlpha = 0.04 + Math.random() * 0.06;
+    ctx.fillStyle = Math.random() < 0.5 ? acik : koyu;
+    const x = Math.random() * S, y = Math.random() * S;
+    ctx.fillRect(x, y, 1.2, 2 + Math.random() * 3);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// İngiltere: dama biçim. Bahçıvanın iki yönde geçmesiyle çıkıyor ve
+// İngiliz sahasının imzası bu.
+function pitchCheckTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  pitchBase(ctx, S, '#2f7a34', '#3f9440');
+  ctx.globalAlpha = 0.22;
+  for (let x = 0; x < 4; x++) for (let y = 0; y < 4; y++) {
+    if ((x + y) % 2) continue;
+    ctx.fillStyle = '#7ad46a';
+    ctx.fillRect(x * 64, y * 64, 64, 64);
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 4);
+  return tex;
+}
+
+// İspanya: çapraz bantlar, ve çimin rengi güneşten açılmış.
+function pitchDiagTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  pitchBase(ctx, S, '#4f9a3f', '#66b84f');
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = '#8fdc70';
+  // Bant genişliği 256'yı tam bölüyor, yani karo kenarında desen kaymıyor.
+  for (let i = -8; i < 16; i++) {
+    ctx.save();
+    ctx.translate(i * 32, 0);
+    ctx.rotate(-0.6);
+    ctx.fillRect(0, -S, 16, S * 3);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 4);
+  return tex;
+}
+
+// İtalya: iç içe yaylar. Bahçıvan orta noktadan dönerek geçmiş.
+function pitchArcTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  pitchBase(ctx, S, '#276b33', '#358a3c');
+  ctx.globalAlpha = 0.2;
+  ctx.strokeStyle = '#6fc85e';
+  for (let r = 16; r < 200; r += 32) {
+    ctx.lineWidth = 16;
+    ctx.beginPath(); ctx.arc(S / 2, S / 2, r, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 3);
+  return tex;
+}
+
+// Almanya: baklava — iki yönde çapraz geçiş.
+function pitchDiamondTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  pitchBase(ctx, S, '#2b8040', '#3a9a4c');
+  ctx.globalAlpha = 0.16;
+  ctx.fillStyle = '#7fd46e';
+  for (const yon of [-0.7, 0.7]) {
+    for (let i = -8; i < 16; i++) {
+      ctx.save();
+      ctx.translate(i * 32, 0);
+      ctx.rotate(yon);
+      ctx.fillRect(0, -S, 14, S * 3);
+      ctx.restore();
+    }
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 4);
+  return tex;
+}
+
+// Fransa: dikey bantlar, ve üstünde tebeşir çizgisi. Tek bant deseni
+// ötekilerle karışırdı; ayıran şey çizgi.
+function pitchVertTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  pitchBase(ctx, S, '#35864a', '#46a05a');
+  ctx.globalAlpha = 0.2;
+  for (let i = 0; i < 8; i++) {
+    if (i % 2) continue;
+    ctx.fillStyle = '#7fd486';
+    ctx.fillRect(i * 32, 0, 32, S);
+  }
+  ctx.globalAlpha = 0.6;
+  ctx.strokeStyle = '#f2f6f0'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(0, S / 2); ctx.lineTo(S, S / 2); ctx.stroke();
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 4);
+  return tex;
+}
+
+// Kupa gecesi: koyu çim, üstüne biçilmiş yıldız, ve ışık havuzları.
+//
+// Tek gece sahası. Beş ligin hepsi gündüz; bu, projektörün altında oynanan
+// maç — ve farkı zeminin kendisi söylüyor, çünkü tribün bu açıdan görünmüyor.
+function pitchStarTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  pitchBase(ctx, S, '#1c4a2c', '#275f36');
+  // Projektör havuzları: köşelerden gelen yumuşak aydınlık.
+  for (const [x, y] of [[0, 0], [S, 0], [0, S], [S, S]]) {
+    const gr = ctx.createRadialGradient(x, y, 10, x, y, 150);
+    gr.addColorStop(0, 'rgba(210,255,220,0.30)');
+    gr.addColorStop(1, 'rgba(210,255,220,0)');
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, S, S);
+  }
+  // Biçilmiş yıldız.
+  ctx.globalAlpha = 0.22;
+  ctx.fillStyle = '#7fd48e';
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    const r = i % 2 ? 34 : 86;
+    const x = S / 2 + Math.cos(a) * r, y = S / 2 + Math.sin(a) * r;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 3);
+  return tex;
+}
+
 // A mown pitch. The stripes are the whole trick — plain green is a felt mat,
 // and the alternating bands are what makes it read as a football ground from
 // the first frame, before you have seen a single ball.
@@ -10589,6 +10744,9 @@ const GROUND_MAKERS = { sand: groundTexture, blacksand: blackSandTexture,
   kilim: kilimTexture, reef: reefTexture, arena: arenaTexture,
   tartan: tartanTexture, tulipfield: tulipFieldTexture, talavera: talaveraTexture,
   rangoli: rangoliTexture, hieroglyph: hieroglyphTexture,
+  pitchcheck: pitchCheckTexture, pitchdiag: pitchDiagTexture,
+  pitcharc: pitchArcTexture, pitchdiamond: pitchDiamondTexture,
+  pitchvert: pitchVertTexture, pitchstar: pitchStarTexture,
   fair: fairTexture, mars: marsTexture,
   gravel: gravelTexture, grass: grassTexture,
   wood: woodTexture, snow: snowTexture, marble: marbleTexture,
@@ -10943,6 +11101,15 @@ const SURROUND_MAKERS = {
   // sokak biter, binalar başlar. Yukarıdan bakan bir kameranın New York'u
   // tanıdığı yer de burası: koyu çatılar, üstlerinde su depoları.
   rooftops: rooftopTexture,
+  // Sahaların dışı tribün. Beşi de aynı iş — koyu bir kütlenin içinde
+  // noktalar — ama rengi o ligin tribününün rengi, ve tahtanın kenarında
+  // görünen tek ipucu o.
+  terrace: () => speckTexture('#2b2f3a', '#1e2029', '#4a5062', 15),
+  tribuna: () => speckTexture('#5a3a2a', '#42291d', '#7a5340', 15),
+  curva: () => speckTexture('#2a3a52', '#1c2838', '#3f5570', 15),
+  sudkurve: () => speckTexture('#4a3a12', '#33280c', '#6b551f', 15),
+  virage: () => speckTexture('#26304a', '#1a2234', '#3a4868', 15),
+  nightstand: () => speckTexture('#14161f', '#0d0f16', '#262b3a', 16),
   // Tartanın dışı fundalık: İskoç yaylasının mor otu.
   heather: () => mownTexture('#4a3a5a', '#54446a', '#6a5480', 18),
   // Lale tarlasının dışı kanal suyu: Hollanda'da tarlaları ayıran şey.
