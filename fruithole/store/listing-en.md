@@ -56,9 +56,10 @@ Finishing isn't enough — how fast you finish is what counts. The more time lef
 on the clock, the more stars, and your best on every level is kept.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
-Twenty-four hand-built layouts: a stepped pyramid taken down terrace by terrace,
+Thirty-four hand-built layouts: a stepped pyramid taken down terrace by terrace,
 four towers, hollow rings, a heart, an island, a staircase, winding walls, a
-rolling wave, a chequerboard. Three lay the field in rings around you.
+rolling wave, a chequerboard, a crescent, a maze you thread, a cogwheel. Five
+lay the field in rings around you.
 
 And each one is somewhere. A beach with the sea running up the sand. A black
 volcanic shore with palms, a tiki and a surfboard stood in it. A Hollywood
