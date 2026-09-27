@@ -52,19 +52,23 @@ const seen = new Map();
 // mantar burada "600'ü aştı" diye düşerdi ve düşmesi hiçbir şey anlatmazdı.
 const resimler = new Set(
   (await pg.evaluate(() => window.fruitHolePictures())).levels);
+// Kaç bölüm taranacağı oyundan geliyor: **düzen sayısı kadar**, yani bir
+// tur. Sabit 40 yazıyordu ve dört düzen eklenince test "44 desen var (40)"
+// diye düştü — ölçtüğü şey değil, kendi penceresi eksikti. Elle yazılmış
+// her sayı bu dosyada böyle eskiyor.
+const TUR = (await pg.evaluate(() => window.fruitHoleThemeTable())).order.length;
 let lo = 1e9, hi = 0;
-for (let n = 1; n <= 40; n++) {
+for (let n = 1; n <= TUR; n++) {
   const p = await pg.evaluate(l => window.fruitHoleProbe(l), n);
   if (!seen.has(p.pattern)) seen.set(p.pattern, { first: n, fruit: p.fruit });
   if (resimler.has(n)) continue;
   lo = Math.min(lo, p.fruit); hi = Math.max(hi, p.fruit);
 }
-console.log(`\n${seen.size} desen, 40 bölümde ${lo}-${hi} meyve\n`);
+console.log(`\n${seen.size} desen, ${TUR} bölümde ${lo}-${hi} meyve\n`);
 for (const [name, v] of seen) console.log(`  ${String(name).padEnd(10)} bölüm ${String(v.first).padStart(2)}  ${v.fruit} meyve`);
 
 console.log('');
-const DESEN = (await pg.evaluate(() => window.fruitHoleThemeTable())).order.length;
-check(seen.size === DESEN, `${DESEN} desen var (${seen.size})`);
+check(seen.size === TUR, `${TUR} desen var (${seen.size})`);
 check(lo >= 80, `en seyrek ızgara bölümü 80+ meyve (${lo})`);
 check(hi <= 600, `en dolu ızgara bölümü 600'ü aşmıyor (${hi})`);
 

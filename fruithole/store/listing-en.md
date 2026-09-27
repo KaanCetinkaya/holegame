@@ -56,10 +56,11 @@ Finishing isn't enough — how fast you finish is what counts. The more time lef
 on the clock, the more stars, and your best on every level is kept.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
-Forty hand-built layouts: a stepped pyramid taken down terrace by terrace,
-a castle keep with four corner towers, a horseshoe, an anchor, a gate, a
-ball court, a three-toed footprint, a heart, a staircase, winding walls, a
-rolling wave, a crescent, a maze you thread, a cogwheel. Five
+Forty-four hand-built layouts: a stepped pyramid taken down terrace by
+terrace, a castle keep with four corner towers, a horseshoe, an anchor, a
+gate, a ball court, a three-toed footprint, an onion dome, a condor with its
+wings out, a boomerang, giraffe patches, a heart, a staircase, winding walls,
+a rolling wave, a crescent, a maze you thread, a cogwheel. Five
 lay the field in rings around you.
 
 And each one is somewhere. A beach with the sea running up the sand. A black
@@ -73,7 +74,10 @@ floor. Raked arena sand. A fairground at night. The red dust of Mars, with
 a track running across it. Tartan, tulip fields, painted talavera tiles, a
 rangoli drawn in coloured powder, hieroglyphs cut into stone. Six pitches mown six different
 ways, one for each of the great leagues and one under floodlights. A mown
-football pitch. A castle bailey with a battlement wall past its edge, cracked
+football pitch. Dry savanna grass with acacia shade beyond it, a fanned
+cobble square under a red brick wall, the straight lines of the Nazca pampa,
+red sand and spinifex out in the outback. A castle bailey with a battlement
+wall past its edge, cracked
 frontier hardpan under a red mesa, a pirate deck with the dark harbour around
 it, a palace court of grey flags under green roof tiles, volcanic ash with lava
 running past it, jungle-taken stone with the rainforest closed over it. Fresh
@@ -111,7 +115,7 @@ field are giants — twice the width of your opening, sometimes three huddled
 together, and never a slice: the whole fruit, stalk and leaf. Sweep, grow into
 one, and it pays for the whole trip.
 
-🧺 TWO HUNDRED AND THIRTY-NINE THINGS TO FIND
+🧺 TWO HUNDRED AND SIXTY THINGS TO FIND
 Scattered through the crop is whatever belongs where you are. A carved tiki, a
 lei and a ukulele on the black sand. A clapperboard and a film reel on the
 Hollywood pavement. A yellow cab, a hydrant and a pretzel on the crossing. A
@@ -120,7 +124,10 @@ with fruit on the market square. A samba drum on the Copacabana mosaic, a
 paper lantern on a neon street, an iron tower over the gravel gardens, a
 copper pot and a tray of lokum on the carpet. A sea turtle over the coral, a
 Roman helmet in the arena, a carousel horse at the fair, a rover on Mars, a
-windmill over the tulips, a piñata, an elephant, a sphinx. A great helm and a
+windmill over the tulips, a piñata, an elephant, a sphinx. A giraffe and a
+zebra under the acacia, a nesting doll and a samovar on the square, a llama
+and a set of panpipes on the pampa, a kangaroo and a koala in the outback.
+A great helm and a
 sword in the stone in the castle bailey, a covered wagon and a steer skull out
 on the frontier, a ship's wheel and a parrot on the pirate deck, a guardian
 lion and a paifang in the palace court, a stegosaurus and a fern in the ash,

@@ -2634,6 +2634,71 @@ Bu turda ikisi de düştü ve ikisi de haklıydı — 34 düzen 40 oldu, 203 eş
 235 buldum: dört eksik, çünkü altı lig kupası tek bir yardımcıdan
 üretiliyor ve o satırlar öyle yazılmıyor. Doğru sayı testin okuduğu sayı.
 
+## Dört ülke daha
+
+Kaan "ülkelere Hindistan falan da ekle" dedi. Hindistan zaten vardı —
+🪔 **Rangoli**, fil, baharat tepsisi, çay semaveri, tabla ve kandille.
+Olmayanlar eklendi: 🦒 **Savanna**, 🪆 **Red Square**, 🦅 **Nazca**,
+🦘 **Outback**.
+
+### Zürafa deseni: üç deneme
+
+Savanna'nın düzeni (**Patches**) ötekilerin hiçbirine benzemiyor. Kırk üç
+düzenin hepsi ya boş tahtaya şekil çiziyor ya dolu tahtadan şekil kesiyor;
+bu ikisi de değil — tahta dolu kalıyor ve yalnızca **derzleniyor**.
+
+İlk iki deneme başarısız oldu, ikisi de aynı sebepten. Gürültünün bir seviye
+eğrisi kâğıt üstünde kapalı eğrilerden oluşuyor, yani eşiğin yakınındaki ince
+şeridi boşaltınca kapalı parçalar kalmalı. Ama `blob` ikinci bir yüksek
+frekanslı katman taşıyor ve o katman hücre çözünürlüğünde eğriyi paramparça
+ediyor: tahtada leke değil **serpinti** çıktı. Ölçeği büyütmek de kurtarmadı,
+çünkü sorun büyüklük değil kenarın sürekli olmaması.
+
+Üçüncüsü Voronoi (`patchAt`), ve o tanımı gereği veriyor: her hücrenin bir
+merkezi var, her nokta en yakın merkeze ait, iki merkezin ortası kenar.
+İki en yakın merkez arasındaki fark küçükse sınırdasın. Merkezler düzgün
+ızgaradan sapmalı, yoksa desen petek oluyor.
+
+Kenar genişliği 0.62'yken tahta 606 parçaydı — ızgara sınırı 600. 0.9 oldu:
+457, ve derzler de artık görünüyor.
+
+### Soğan kubbe, kondor, bumerang
+
+- **Onion** (Kızıl Meydan): tambur, üstünde şişip sivrilen kubbe, tepede haç.
+  Kubbeyi yarım küreden ayıran şey **bel** — aşağıda daralıp tekrar
+  genişlemesi. İlk ölçüde kubbe tamburdan yalnızca 1.5 kat genişti ve dar
+  tahtada ince duruyordu; tambur daraltıldı, kubbe şişirildi. Burgular renkle
+  yazılıyor, çünkü gerçek kubbe de böyle boyanıyor.
+- **Condor** (Nazca): iki uzun kanat, kısa gövde, yelpaze kuyruk. Geoglifin
+  kendisi zaten yukarıdan bakılmak için çizilmiş — bu oyunun kamerası da
+  orada. Kanatlar 0.15 kalınlıkta ince kalıyordu, 0.18 oldu ve uçları
+  tahtanın kenarına kadar uzatıldı.
+- **Boomerang** (Outback): iki kol ve geniş bir açı. Açı dar olsaydı tahtada
+  duran şey bir **V** olurdu; bumerangı bumerang yapan şey kollarının
+  açıklığı.
+
+### Birbirine benzemesi gereken ama benzememesi gereken şeyler
+
+Dört yerin üçü, zaten var olan bir yere tehlikeli biçimde yakın. Ayıran şey
+her seferinde **tek bir ayrıntı** oldu:
+
+| Yeni | Yakın olduğu | Ayıran şey |
+|---|---|---|
+| Savanna otu | Match Day çimeni | Ot tutam tutam, arasından toprak görünüyor |
+| Kızıl Meydan parkesi | Yasak Şehir avlusu | Kare taş değil, **yay yay** dizilmiş taş |
+| Kremlin suru | Şato suru | Mazgalın tepesi düz değil **çatallı** |
+| Outback kumu | Vahşi Batı toprağı | Orada çıplak ve çatlak, burada her yerde ot |
+| Okaliptüs | Akasya | Tacın yönü: biri sarkıyor, öteki düz disk |
+| Nazca çizgileri | Vahşi Batı araba izi | Geoglif **dosdoğru**, iz eğri |
+
+### Ve bir sayı daha eskidi
+
+`holerelease.mjs` desenleri sayarken ilk **40** bölümü tarıyordu. Kırk dört
+düzen olunca "44 desen var (40)" diye düştü — ölçtüğü şey değil, kendi
+penceresi eksikti. Pencere artık oyundan okunuyor: bir tur kaç bölümse o
+kadar. Aynı dosyada mağaza sayıları zaten oyundan okunuyordu; sayı elle
+yazıldığı her yerde eskiyor.
+
 ## Yamuk tahta
 
 Kaan "bir kaç bölüm yamuk duruyor" dedi. Hangileri belli değildi, ve otuz

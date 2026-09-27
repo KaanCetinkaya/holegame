@@ -8551,6 +8551,501 @@ function propTemplates() {
     T.cacao = { g, h: 1.5, currency: 'banana' };
   }
 
+  // --- savan ---------------------------------------------------------
+
+  // Zürafa: yukarıdan görünen şey boyun ve lekeler. Boyun **yatay**
+  // uzanmıyor, ama o kadar uzun ki tepeden bakınca gövdeden ayrı bir parça
+  // olarak okunuyor — ve lekeler onu bir direkten ayırıyor.
+  {
+    const g = new THREE.Group();
+    const post = PROP_MAT('#d9a94e', 0.62);
+    const leke = PROP_MAT('#8a5a22', 0.62);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 12), post);
+    govde.scale.set(0.85, 0.9, 1.4);
+    put(g, govde, 0, 1.15, -0.2);
+    // Dört uzun bacak.
+    for (const [sx, sz] of [[-1, 0.28], [1, 0.28], [-1, -0.6], [1, -0.6]])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.15, 8), post),
+          sx * 0.26, 0.58, sz);
+    // Boyun: öne ve yukarı.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 1.25, 10), post),
+        0, 1.75, 0.34, 0.42, 0, 0);
+    const kafa = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 10), post);
+    kafa.scale.set(0.9, 0.8, 1.5);
+    put(g, kafa, 0, 2.3, 0.82);
+    // Ossicone: zürafayı attan ayıran iki küçük boynuz.
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 0.16, 6), leke),
+          sx * 0.07, 2.45, 0.66);
+    // Lekeler: gövdede ve boyunda, köşeli.
+    for (const [dx, dy, dz] of [[-0.24, 1.42, 0.1], [0.26, 1.44, -0.16], [-0.1, 1.44, -0.5],
+                                [0.22, 1.3, 0.3], [-0.28, 1.2, -0.4], [0.05, 1.9, 0.5],
+                                [-0.12, 2.06, 0.62], [0.14, 1.72, 0.3]])
+      put(g, new THREE.Mesh(bevelBox(0.2, 0.05, 0.2, 0.02), leke), dx, dy, dz, 0, 0.5, 0);
+    T.giraffe = { g, h: 2.6, currency: 'melon', only: 'giant' };
+  }
+
+  // Zebra: çizgiler **enine**, yani üstten görünen şey onlar.
+  {
+    const g = new THREE.Group();
+    const beyaz = PROP_MAT('#eceff2', 0.55);
+    const siyah = PROP_MAT('#25282c', 0.55);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 12), beyaz);
+    govde.scale.set(0.85, 0.85, 1.5);
+    put(g, govde, 0, 0.66, -0.05);
+    for (const [sx, sz] of [[-1, 0.4], [1, 0.4], [-1, -0.45], [1, -0.45]])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.6, 8), beyaz),
+          sx * 0.24, 0.3, sz);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 0.62, 10), beyaz),
+        0, 0.95, 0.56, 0.7, 0, 0);
+    const kafa = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 10), beyaz);
+    kafa.scale.set(0.9, 0.85, 1.5);
+    put(g, kafa, 0, 1.2, 0.82);
+    // Çizgiler: sırtın üstünde enine bantlar.
+    for (let i = 0; i < 7; i++)
+      put(g, new THREE.Mesh(bevelBox(0.74, 0.05, 0.1, 0.02), siyah),
+          0, 0.98 - Math.abs(i - 3) * 0.02, 0.5 - i * 0.2);
+    // Yele: boyun boyunca dik bir sırt.
+    for (let i = 0; i < 4; i++)
+      put(g, new THREE.Mesh(bevelBox(0.07, 0.14, 0.12, 0.02), siyah), 0, 1.12 + i * 0.02, 0.4 + i * 0.12);
+    T.zebra = { g, h: 1.35, currency: 'apple' };
+  }
+
+  // Şemsiye akasya: tacı **düz** ve geniş, yani üstten bir disk.
+  {
+    const g = new THREE.Group();
+    const kabuk = PROP_MAT('#6b5233', 0.68);
+    const yaprak = PROP_MAT('#3f6b34', 0.62);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.3, 1.5, 10), kabuk), 0, 0.75, 0);
+    // Dallar: yukarı ve dışa.
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, 0.8, 8), kabuk),
+          Math.cos(a) * 0.3, 1.6, Math.sin(a) * 0.3, 0, -a, 0.75);
+    }
+    // Taç: basık, katmanlı — akasyayı çam ağacından ayıran şey.
+    for (const [r, y, s] of [[1.15, 1.92, 0.22], [0.86, 2.08, 0.18], [0.5, 2.2, 0.15]]) {
+      const t = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 8), yaprak);
+      t.scale.set(1, s, 1);
+      put(g, t, 0, y, 0);
+    }
+    T.acacia = { g, h: 2.3, currency: 'melon', only: 'giant' };
+  }
+
+  // Safari aracı: açık üstü, ve üstünde bir tente.
+  {
+    const g = new THREE.Group();
+    const haki = PROP_MAT('#7d7a4a', 0.55);
+    const koyu = PROP_MAT('#4a4830', 0.6);
+    const lastik = PROP_MAT('#26282a', 0.65);
+    put(g, new THREE.Mesh(bevelBox(0.9, 0.34, 1.9, 0.08), haki), 0, 0.42, 0);
+    // Kaput ve ön cam.
+    put(g, new THREE.Mesh(bevelBox(0.86, 0.2, 0.5, 0.06), haki), 0, 0.66, 0.66);
+    put(g, new THREE.Mesh(bevelBox(0.8, 0.3, 0.05, 0.02), PROP_MAT('#9cc4d2', 0.2)),
+        0, 0.82, 0.38, -0.25, 0, 0);
+    // Tente: üstten aracı tanıtan parça, ve zebra deseninde.
+    put(g, new THREE.Mesh(bevelBox(0.96, 0.08, 1.1, 0.03), PROP_MAT('#ece7d4', 0.5)),
+        0, 1.15, -0.25);
+    for (let i = 0; i < 4; i++)
+      put(g, new THREE.Mesh(bevelBox(0.96, 0.05, 0.1, 0.02), koyu), 0, 1.2, -0.65 + i * 0.26);
+    for (const [sx, sz] of [[-1, -0.6], [1, -0.6], [-1, 0.1], [1, 0.1]])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.66, 6), koyu),
+          sx * 0.42, 0.82, sz);
+    for (const [sx, sz] of [[-1, 0.62], [1, 0.62], [-1, -0.62], [1, -0.62]])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.16, 14), lastik),
+          sx * 0.5, 0.28, sz, 0, 0, Math.PI / 2);
+    T.safarijeep = { g, h: 1.3, currency: 'melon', only: 'giant' };
+  }
+
+  // Su kabağı davul: gövdesi geniş, derisi gergin, yanında tokmak.
+  {
+    const g = new THREE.Group();
+    const ahsap = PROP_MAT('#7a4a26', 0.62);
+    const deri = PROP_MAT('#e4d6b4', 0.55);
+    const govde = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.3, 0.7, 16), ahsap);
+    put(g, govde, 0, 0.35, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.07, 18), deri), 0, 0.72, 0);
+    // Gergi ipleri: davulu bir kovadan ayıran şey.
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 5),
+                            PROP_MAT('#c8b48a', 0.5)),
+          Math.cos(a) * 0.4, 0.4, Math.sin(a) * 0.4, 0, -a, 0.18);
+    }
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.04, 6, 18), PROP_MAT('#5c3a1c', 0.6)),
+        0, 0.7, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 6), ahsap),
+        0.62, 0.06, 0.2, 0, 0.6, Math.PI / 2);
+    T.djembe = { g, h: 0.8, currency: 'banana' };
+  }
+
+  // Maske: uzun, yassı, ve gözleriyle ağzı üstten görünüyor.
+  {
+    const g = new THREE.Group();
+    const ahsap = PROP_MAT('#6b4020', 0.62);
+    const acik = PROP_MAT('#c8a468', 0.55);
+    const yuz = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 14), ahsap);
+    yuz.scale.set(0.8, 0.35, 1.5);
+    put(g, yuz, 0, 0.24, 0);
+    for (const sx of [-1, 1]) {
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), acik), sx * 0.14, 0.4, 0.26)
+        .scale.set(1, 0.4, 1.4);
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), PROP_MAT('#1c140c', 0.5)),
+          sx * 0.14, 0.45, 0.26);
+    }
+    put(g, new THREE.Mesh(bevelBox(0.09, 0.08, 0.4, 0.02), acik), 0, 0.42, 0.06);
+    put(g, new THREE.Mesh(bevelBox(0.26, 0.06, 0.12, 0.02), acik), 0, 0.4, -0.34);
+    // Kenar oymaları: maskeyi bir taştan ayıran şey.
+    for (let i = 0; i < 6; i++)
+      for (const sx of [-1, 1])
+        put(g, new THREE.Mesh(bevelBox(0.05, 0.05, 0.12, 0.01), acik),
+            sx * 0.3, 0.36, -0.5 + i * 0.2);
+    T.tribalmask = { g, h: 0.5, currency: 'lychee' };
+  }
+
+  // --- kızıl meydan --------------------------------------------------
+
+  // Matruşka: yan yana üç boy, yani yukarıdan üç daire. Tek bir bebek
+  // yukarıdan bir yumurtadan ayırt edilemezdi; matruşkayı matruşka yapan
+  // şey **takım** olması.
+  {
+    const g = new THREE.Group();
+    const bebek = (x, s, govdeRenk, esarpRenk) => {
+      const govde = new THREE.Mesh(new THREE.SphereGeometry(0.3 * s, 16, 14),
+                                   PROP_MAT(govdeRenk, 0.4));
+      govde.scale.set(1, 1.5, 1);
+      put(g, govde, x, 0.42 * s, 0);
+      // Eşarp: yukarıdan yüzü çerçeveleyen halka.
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.22 * s, 0.07 * s, 8, 16),
+                            PROP_MAT(esarpRenk, 0.4)),
+          x, 0.66 * s, -0.04 * s, Math.PI / 2.6, 0, 0);
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.17 * s, 14, 12),
+                            PROP_MAT('#f2ddc4', 0.5)), x, 0.7 * s, 0.06 * s);
+      // Önlük: gövdenin ortasında açık bir oval.
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.16 * s, 12, 10),
+                            PROP_MAT('#f4e8d0', 0.45)), x, 0.38 * s, 0.24 * s)
+        .scale.set(1, 1.4, 0.35);
+    };
+    bebek(-0.46, 1, '#c22b26', '#e8c33c');
+    bebek(0.2, 0.72, '#2f6fb8', '#e8e0c8');
+    bebek(0.62, 0.5, '#2f8a52', '#e8c33c');
+    T.matryoshka = { g, h: 1.1, currency: 'apple' };
+  }
+
+  // Semaver: gövde, musluk ve tepesindeki demlik.
+  {
+    const g = new THREE.Group();
+    const pirinc = PROP_MAT('#c89a3c', 0.26);
+    const koyu = PROP_MAT('#8a6a24', 0.34);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.42, 0.24, 16), koyu), 0, 0.12, 0);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.42, 18, 14), pirinc);
+    govde.scale.set(1, 1.25, 1);
+    put(g, govde, 0, 0.72, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.22, 14), pirinc), 0, 1.24, 0);
+    // Demlik: tepede, ve semaveri bir vazodan ayıran parça.
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 12), koyu), 0, 1.46, 0)
+      .scale.set(1.1, 0.8, 1.1);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.16, 8), koyu), 0.22, 1.46, 0, 0, 0, -1.1);
+    // Musluk ve iki kulp: üstten siluetin dışına çıkan üç parça.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.3, 8), koyu),
+        0, 0.5, 0.42, 1.1, 0, 0);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.04, 6, 14, Math.PI), koyu),
+          sx * 0.44, 0.84, 0, 0, Math.PI / 2, sx > 0 ? 0 : Math.PI);
+    T.samovar = { g, h: 1.6, currency: 'banana' };
+  }
+
+  // Balalayka: **üçgen** gövde, yani yukarıdan başka hiçbir şeye benzemiyor.
+  {
+    const g = new THREE.Group();
+    const ahsap = PROP_MAT('#c9a468', 0.5);
+    const koyu = PROP_MAT('#6b4a28', 0.6);
+    const sh = new THREE.Shape();
+    sh.moveTo(0, 0.62); sh.lineTo(0.52, -0.5); sh.lineTo(-0.52, -0.5); sh.closePath();
+    const govde = new THREE.Mesh(new THREE.ExtrudeGeometry(sh, {
+      depth: 0.16, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05,
+      bevelSegments: 2, curveSegments: 3,
+    }), ahsap);
+    put(g, govde, 0, 0.12, -0.1, -Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.04, 16), koyu), 0, 0.3, -0.2);
+    // Sap ve burgular.
+    put(g, new THREE.Mesh(bevelBox(0.14, 0.09, 1.1, 0.03), koyu), 0, 0.26, 0.9);
+    put(g, new THREE.Mesh(bevelBox(0.2, 0.09, 0.26, 0.03), ahsap), 0, 0.26, 1.54);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.14, 6), ahsap),
+          sx * 0.12, 0.34, 1.54);
+    // Üç tel.
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(bevelBox(0.015, 0.015, 1.7, 0.005),
+                            PROP_MAT('#e8e4d8', 0.3)), (i - 1) * 0.06, 0.34, 0.62);
+    T.balalaika = { g, h: 0.45, currency: 'lychee' };
+  }
+
+  // Kulaklıklı kalpak: yukarıdan kürk bir daire ve iki sarkan kulak.
+  {
+    const g = new THREE.Group();
+    const kurk = PROP_MAT('#6b5440', 0.75);
+    const kaba = PROP_MAT('#4f3e2e', 0.8);
+    const tepe = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 12), kurk);
+    tepe.scale.set(1, 0.75, 1);
+    put(g, tepe, 0, 0.3, 0);
+    // Ön siperlik ve iki kulak.
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 10), kaba), 0, 0.2, 0.34)
+      .scale.set(1.2, 0.55, 0.6);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), kaba), sx * 0.38, 0.18, -0.06)
+        .scale.set(0.7, 0.9, 1.1);
+    // Kırmızı yıldız: kalpağı bir kürk yığınından ayıran işaret.
+    const sh = new THREE.Shape();
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+      const r = i % 2 ? 0.05 : 0.12;
+      const x = Math.cos(a) * r, y = Math.sin(a) * r;
+      if (i === 0) sh.moveTo(x, y); else sh.lineTo(x, y);
+    }
+    sh.closePath();
+    put(g, new THREE.Mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.04, bevelEnabled: false }),
+                          PROP_MAT('#c22b26', 0.35)), 0, 0.36, 0.38, -1.1, 0, 0);
+    T.ushanka = { g, h: 0.5, currency: 'berry' };
+  }
+
+  // Soğan kubbe: burmalı, ve tepesinde haç.
+  {
+    const g = new THREE.Group();
+    const altin = PROP_MAT('#d8a83c', 0.28);
+    const mavi = PROP_MAT('#2f5fae', 0.35);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.52, 0.8, 16), PROP_MAT('#e4e0d4', 0.5)),
+        0, 0.4, 0);
+    // Kubbe: alttan şişip yukarı sivrilen bir küre dilimi.
+    const kubbe = new THREE.Mesh(new THREE.SphereGeometry(0.56, 20, 16), mavi);
+    kubbe.scale.set(1, 1.25, 1);
+    put(g, kubbe, 0, 1.24, 0);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.6, 16), mavi), 0, 1.9, 0);
+    // Burgular: kubbeyi bir toptan ayıran şey, ve üstten görünüyorlar.
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.035, 5, 14, Math.PI * 0.85),
+                            altin), 0, 1.24, 0, 0, a, Math.PI / 2);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 6), altin), 0, 2.32, 0);
+    put(g, new THREE.Mesh(bevelBox(0.24, 0.05, 0.05, 0.02), altin), 0, 2.36, 0);
+    T.oniondome = { g, h: 2.5, currency: 'melon', only: 'giant' };
+  }
+
+  // --- nazca -----------------------------------------------------------
+
+  // Lama: uzun boyun, dik kulaklar, ve sırtında dokuma heybe.
+  {
+    const g = new THREE.Group();
+    const post = PROP_MAT('#e0d2b4', 0.7);
+    const koyu = PROP_MAT('#9a8260', 0.72);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 12), post);
+    govde.scale.set(0.85, 0.9, 1.35);
+    put(g, govde, 0, 0.78, -0.1);
+    for (const [sx, sz] of [[-1, 0.3], [1, 0.3], [-1, -0.45], [1, -0.45]])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.085, 0.72, 8), post),
+          sx * 0.22, 0.36, sz);
+    // Boyun: dik ve uzun.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 0.8, 10), post),
+        0, 1.2, 0.3, 0.3, 0, 0);
+    const kafa = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 10), post);
+    kafa.scale.set(0.9, 0.85, 1.3);
+    put(g, kafa, 0, 1.58, 0.44);
+    // Kulaklar: uzun ve muz biçimli — lamayı koyundan ayıran şey.
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.26, 6), post),
+          sx * 0.08, 1.74, 0.38, -0.2, 0, sx * 0.25);
+    // Heybe: sırtta renkli bir dokuma, üstten lamayı tanıtan parça.
+    put(g, new THREE.Mesh(bevelBox(0.6, 0.08, 0.5, 0.03), PROP_MAT('#c2452c', 0.5)),
+        0, 1.14, -0.14);
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(bevelBox(0.6, 0.05, 0.07, 0.02),
+                            i % 2 ? PROP_MAT('#e8c33c', 0.45) : PROP_MAT('#2f6fb8', 0.45)),
+          0, 1.19, -0.3 + i * 0.16);
+    T.llama = { g, h: 1.85, currency: 'melon', only: 'giant' };
+  }
+
+  // Panflüt: yan yana boruların **boyu** azalıyor, yani üstten bir merdiven.
+  {
+    const g = new THREE.Group();
+    const kamis = PROP_MAT('#c9a45e', 0.6);
+    for (let i = 0; i < 8; i++) {
+      const uz = 0.9 - i * 0.09;
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, uz, 10), kamis),
+          -0.35 + i * 0.1, 0.06, -uz / 2 + 0.45, Math.PI / 2, 0, 0);
+    }
+    // Bağ ipleri: enine iki şerit.
+    for (const z of [0.3, 0.06])
+      put(g, new THREE.Mesh(bevelBox(0.92, 0.04, 0.06, 0.02), PROP_MAT('#8a5a2c', 0.62)),
+          0.05, 0.12, z);
+    T.panpipes = { g, h: 0.14, currency: 'berry' };
+  }
+
+  // Chullo: kulaklıklı örgü şapka, tepesinde püskül.
+  {
+    const g = new THREE.Group();
+    const kirmizi = PROP_MAT('#b8332a', 0.62);
+    const sari = PROP_MAT('#e0b23c', 0.6);
+    const tepe = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+                                kirmizi);
+    tepe.scale.set(1, 1.15, 1);
+    put(g, tepe, 0, 0.2, 0);
+    // Örgü bantları: üstten şapkayı bir kaseden ayıran şey.
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.34 - i * 0.05, 0.03, 6, 18),
+                            i % 2 ? sari : PROP_MAT('#2f6fb8', 0.6)),
+          0, 0.22 + i * 0.09, 0, Math.PI / 2, 0, 0);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(bevelBox(0.14, 0.3, 0.12, 0.04), kirmizi), sx * 0.3, 0.12, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), sari), 0, 0.56, 0);
+    T.chullo = { g, h: 0.66, currency: 'lychee' };
+  }
+
+  // Dokuma topu: üst üste sarılmış renkli kumaş.
+  {
+    const g = new THREE.Group();
+    const renk = ['#b8332a', '#e0b23c', '#2f6fb8', '#2f8a52', '#e8e0c8'];
+    for (let i = 0; i < 5; i++)
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.4 - i * 0.03, 0.4 - i * 0.03, 0.14, 18),
+                            PROP_MAT(renk[i], 0.55)), 0, 0.08 + i * 0.14, 0);
+    // Sarkan uç: yığını bir kule olmaktan çıkarıyor.
+    put(g, new THREE.Mesh(bevelBox(0.3, 0.05, 0.5, 0.02), PROP_MAT('#b8332a', 0.55)),
+        0.24, 0.06, 0.34, 0, 0.5, 0);
+    T.textileroll = { g, h: 0.8, currency: 'apple' };
+  }
+
+  // Sınır taşı: pampada çizgilerin ucuna dikilmiş kaba bir taş.
+  {
+    const g = new THREE.Group();
+    const tas = PROP_MAT('#8f8878', 0.72);
+    put(g, new THREE.Mesh(new THREE.DodecahedronGeometry(0.5, 0), tas), 0, 0.4, 0)
+      .scale.set(0.8, 1.35, 0.7);
+    for (const [dx, dz] of [[-0.48, 0.2], [0.42, -0.26], [0.3, 0.4]])
+      put(g, new THREE.Mesh(new THREE.DodecahedronGeometry(0.2, 0), tas), dx, 0.12, dz)
+        .scale.set(1, 0.6, 1);
+    // Oyma: taşın yüzünde bir spiral, çizgilerin işareti.
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2.4, r = 0.06 + (i / 12) * 0.2;
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), PROP_MAT('#5f5a4c', 0.7)),
+          Math.cos(a) * r, 0.7, 0.28 + Math.sin(a) * r * 0.5);
+    }
+    T.markerstone = { g, h: 1.1, currency: 'banana' };
+  }
+
+  // --- outback ---------------------------------------------------------
+
+  // Kanguru: yukarıdan görünen şey **kuyruk** ve iki arka ayak.
+  {
+    const g = new THREE.Group();
+    const post = PROP_MAT('#a8703c', 0.66);
+    const acik = PROP_MAT('#c99a62', 0.64);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12), post);
+    govde.scale.set(0.85, 1.3, 0.95);
+    put(g, govde, 0, 0.72, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), post), 0, 1.24, 0.14)
+      .scale.set(0.9, 0.9, 1.3);
+    // Uzun kulaklar.
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), post), sx * 0.11, 1.44, 0.02)
+        .scale.set(0.6, 1.8, 0.5);
+    // Arka ayaklar: uzun ve öne bakan, siluetin tabanı.
+    for (const sx of [-1, 1]) {
+      put(g, new THREE.Mesh(bevelBox(0.2, 0.16, 0.7, 0.05), post), sx * 0.2, 0.1, 0.22);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.5, 8), post),
+          sx * 0.2, 0.42, -0.02, 0.5, 0, 0);
+    }
+    // Kuyruk: gövdeden uzun, ve arkaya doğru kalınlaşarak iniyor.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.17, 1.1, 10), post),
+        0, 0.44, -0.62, -1.2, 0, 0);
+    // Kısa ön patiler.
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.3, 6), acik),
+          sx * 0.2, 0.86, 0.26, 0.9, 0, 0);
+    T.kangaroo = { g, h: 1.55, currency: 'melon', only: 'giant' };
+  }
+
+  // Koala: yuvarlak, ve kulakları gövdeden geniş.
+  {
+    const g = new THREE.Group();
+    const gri = PROP_MAT('#9aa2a8', 0.68);
+    const acik = PROP_MAT('#d6dade', 0.62);
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 12), gri);
+    govde.scale.set(1, 1.1, 0.95);
+    put(g, govde, 0, 0.5, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 12), gri), 0, 0.92, 0.04);
+    // Kulaklar: kocaman ve tüylü — koalayı ayıyı ayıran şey.
+    for (const sx of [-1, 1]) {
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.19, 12, 10), gri), sx * 0.28, 1.0, -0.02)
+        .scale.set(1, 1, 0.5);
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), acik), sx * 0.3, 1.0, 0.04)
+        .scale.set(1, 1, 0.4);
+    }
+    // Burun: büyük, siyah, ve üstten görünüyor.
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), PROP_MAT('#2a2c30', 0.5)),
+        0, 0.92, 0.24).scale.set(0.9, 1.3, 0.8);
+    // Tutunduğu dal.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.9, 8),
+                          PROP_MAT('#7a6a58', 0.7)), 0, 0.2, 0, 0, 0.5, Math.PI / 2);
+    T.koala = { g, h: 1.15, currency: 'berry' };
+  }
+
+  // Okaliptüs: sarkan, ince yapraklar ve beneklı kabuk.
+  {
+    const g = new THREE.Group();
+    const kabuk = PROP_MAT('#cfc7b8', 0.66);
+    const leke = PROP_MAT('#9a8a72', 0.7);
+    const yaprak = PROP_MAT('#6b8a62', 0.6);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.25, 2.0, 10), kabuk), 0, 1.0, 0);
+    for (let i = 0; i < 7; i++)
+      put(g, new THREE.Mesh(bevelBox(0.1, 0.3, 0.06, 0.02), leke),
+          Math.cos(i * 1.9) * 0.18, 0.4 + i * 0.24, Math.sin(i * 1.9) * 0.18);
+    // Taç: sarkan ince kümeler, akasyanın düz diskinden farklı olsun diye
+    // aşağı doğru. İkisi de ağaç ve ikisi de bir savanda duruyor; ayıran
+    // şey tacın yönü.
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 9) * Math.PI * 2, r = 0.5 + (i % 3) * 0.22;
+      const k = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 8), yaprak);
+      k.scale.set(0.8, 1.3, 0.8);
+      put(g, k, Math.cos(a) * r, 2.1 - (i % 3) * 0.22, Math.sin(a) * r);
+    }
+    T.eucalyptus = { g, h: 2.5, currency: 'melon', only: 'giant' };
+  }
+
+  // Yol tabelası: üçgen levha, üstünde kanguru silueti.
+  {
+    const g = new THREE.Group();
+    const direk = PROP_MAT('#8a8f94', 0.45);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.5, 8), direk), 0, 0.75, 0);
+    const sh = new THREE.Shape();
+    sh.moveTo(0, 0.5); sh.lineTo(0.46, -0.32); sh.lineTo(-0.46, -0.32); sh.closePath();
+    put(g, new THREE.Mesh(new THREE.ExtrudeGeometry(sh, {
+      depth: 0.07, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03,
+      bevelSegments: 2, curveSegments: 3,
+    }), PROP_MAT('#e8c024', 0.35)), 0, 1.55, 0.05, -0.35, 0, 0);
+    // Siluet: üç leke yeter, çünkü tabelayı tabela yapan şey sarı üçgen.
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), PROP_MAT('#26282c', 0.5)),
+        0, 1.5, 0.14).scale.set(0.8, 1.3, 0.4);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), PROP_MAT('#26282c', 0.5)),
+        0.08, 1.66, 0.14).scale.set(0.8, 1, 0.4);
+    put(g, new THREE.Mesh(bevelBox(0.22, 0.05, 0.04, 0.01), PROP_MAT('#26282c', 0.5)),
+        -0.1, 1.42, 0.14, 0, 0, 0.5);
+    T.roadsign = { g, h: 1.9, currency: 'apple' };
+  }
+
+  // Kamp güğümü: telli kulpu ve üstünde tutam duman kararmış dibi.
+  {
+    const g = new THREE.Group();
+    const teneke = PROP_MAT('#b6bcc2', 0.4);
+    const is = PROP_MAT('#3a3c40', 0.7);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.3, 0.52, 16), teneke), 0, 0.26, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.31, 0.14, 16), is), 0, 0.07, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.06, 18), teneke), 0, 0.55, 0);
+    // Kulp: yukarıdan görünen tek eğri.
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.025, 6, 16, Math.PI), teneke),
+        0, 0.56, 0, 0, 0, 0);
+    T.billycan = { g, h: 0.9, currency: 'lychee' };
+  }
+
   // --- ligler --------------------------------------------------------
   //
   // Beş lig ve bir kupa gecesi. Hiçbirinde gerçek kulüp adı, arması ya da
@@ -12031,6 +12526,177 @@ function junglestoneTexture() {
   return tex;
 }
 
+// Savan: kurumuş sarı ot, aralarında çıplak toprak ve hayvan yolları.
+//
+// Match Day'in çimeni biçilmiş ve tek düze; bu ot **tutam tutam**, ve
+// aralarından toprak görünüyor. İkisini ayıran şey renk değil o boşluk.
+function savannaTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#a8894a';
+  ctx.fillRect(0, 0, S, S);
+  // Çıplak toprak lekeleri.
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = '#8a6b3c';
+  for (let i = 0; i < 30; i++) {
+    ctx.beginPath();
+    ctx.ellipse(Math.random() * S, Math.random() * S, 10 + Math.random() * 22,
+                7 + Math.random() * 14, Math.random() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Ot tutamları: kısa, yukarı doğru çizgiler, üç tonda.
+  for (const [renk, n, uz] of [['#8f7436', 900, 7], ['#c2a35c', 1100, 6], ['#dcc074', 700, 5]]) {
+    ctx.strokeStyle = renk; ctx.lineWidth = 1.4;
+    for (let i = 0; i < n; i++) {
+      ctx.globalAlpha = 0.25 + Math.random() * 0.35;
+      const x = Math.random() * S, y = Math.random() * S;
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * 1.1;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(a) * uz, y + Math.sin(a) * uz);
+      ctx.stroke();
+    }
+  }
+  // Hayvan yolu: çapraz geçen aşınmış bir şerit.
+  ctx.globalAlpha = 0.25;
+  ctx.strokeStyle = '#7d5f30'; ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.moveTo(0, 200);
+  ctx.bezierCurveTo(S * 0.35, 150, S * 0.6, 110, S, 56);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 4);
+  return tex;
+}
+
+// Kızıl Meydan: yelpaze dizilmiş parke taşı, aralarında kırmızı tuğla şerit.
+//
+// Yasak Şehir'in avlusu da döşeme ve Tikal'inki de; üçünü ayıran şey
+// **dizilim**. Orada kare taşlar, burada yay yay dizilmiş küçük taşlar, ve
+// yay yukarıdan hemen görünüyor.
+function redsquareTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#6e6660';
+  ctx.fillRect(0, 0, S, S);
+  // Yelpazeler: dört merkez, her birinden çıkan yaylar.
+  ctx.lineWidth = 5;
+  for (const [cx, cy] of [[64, 64], [192, 64], [64, 192], [192, 192]]) {
+    for (let k = 1; k <= 5; k++) {
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = k % 2 ? '#7d746c' : '#5e5750';
+      ctx.beginPath();
+      ctx.arc(cx, cy, k * 11, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  // Taş beneği.
+  for (let i = 0; i < 2000; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.07;
+    ctx.fillStyle = Math.random() < 0.5 ? '#5c554f' : '#867d74';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 2.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Tuğla şeritler: yelpazelerin arasından geçen çizgiler.
+  ctx.globalAlpha = 0.8;
+  ctx.fillStyle = '#8f3a2c';
+  for (const p of [0, 128]) {
+    ctx.fillRect(p + 120, 0, 16, S);
+    ctx.fillRect(0, p + 120, S, 16);
+  }
+  ctx.globalAlpha = 0.3;
+  ctx.strokeStyle = '#5e2418'; ctx.lineWidth = 2;
+  for (let i = 0; i < S; i += 16) {
+    ctx.beginPath(); ctx.moveTo(120, i); ctx.lineTo(136, i); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(i, 120); ctx.lineTo(i, 136); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 3);
+  return tex;
+}
+
+// Nazca pampası: açık, taşlı çöl, ve üstünde **düz** çizgiler.
+//
+// Çizgi düz olmak zorunda: bu yerin tek özelliği, yerdeki hatların
+// kilometrelerce dosdoğru gitmesi. Kıvrılan bir çizgi yol olur, geoglif
+// olmaz. Vahşi Batı'nın araba izi tam o yüzden eğri.
+function pampaTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#b09274';
+  ctx.fillRect(0, 0, S, S);
+  // Çakıl: koyu taş beneği, üstündeki açık çizgiyi görünür kılan şey.
+  for (let i = 0; i < 2600; i++) {
+    ctx.globalAlpha = 0.06 + Math.random() * 0.1;
+    ctx.fillStyle = Math.random() < 0.5 ? '#8a6e52' : '#6e5842';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 2.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Çizgiler: çakıl kaldırılınca altından çıkan açık zemin. Kenarda
+  // başlayıp kenarda bitiyorlar ki doku tekrar ederken hat sürsün.
+  ctx.globalAlpha = 0.75;
+  ctx.strokeStyle = '#d8c0a2';
+  for (const [x0, y0, x1, y1, w] of [
+    [0, 40, S, 96, 7], [0, 210, S, 150, 5], [70, 0, 150, S, 6],
+    [200, 0, 168, S, 4], [0, 0, S, S, 3]]) {
+    ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 3);
+  return tex;
+}
+
+// Outback: kızıl kum, tutam tutam spinifex, ve dağılmış çakıl.
+//
+// Vahşi Batı'nın hardpan'i de kızıl ve ikisi de çöl; ayıran şey **bitki**.
+// Orada toprak çıplak ve çatlıyor, burada her yerde otlar var ve kum
+// onların arasından görünüyor.
+function redcentreTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#b4522a';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2200; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? '#98411f' : '#cf6d3c';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Spinifex: dışa doğru açılan ince otlardan kirpi gibi tutamlar.
+  ctx.strokeStyle = '#8a8a3c'; ctx.lineWidth = 1.3;
+  for (let t = 0; t < 22; t++) {
+    const cx = Math.random() * S, cy = Math.random() * S, r = 7 + Math.random() * 7;
+    ctx.globalAlpha = 0.3 + Math.random() * 0.3;
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2 + Math.random() * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      ctx.stroke();
+    }
+  }
+  // Çakıl taşları.
+  ctx.globalAlpha = 0.3;
+  for (let i = 0; i < 60; i++) {
+    ctx.fillStyle = i % 2 ? '#7d4a30' : '#d8a074';
+    ctx.beginPath();
+    ctx.ellipse(Math.random() * S, Math.random() * S, 2 + Math.random() * 3,
+                1.5 + Math.random() * 2, Math.random() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 4);
+  return tex;
+}
+
 function hieroglyphTexture() {
   const S = 256, [c, ctx] = newCanvas(S);
   ctx.fillStyle = '#d8c08a';
@@ -12588,7 +13254,8 @@ const GROUND_MAKERS = { sand: groundTexture, blacksand: blackSandTexture,
   tartan: tartanTexture, tulipfield: tulipFieldTexture, talavera: talaveraTexture,
   rangoli: rangoliTexture, hieroglyph: hieroglyphTexture, bailey: baileyTexture,
   hardpan: hardpanTexture, shipdeck: shipdeckTexture,
-  courtstone: courtstoneTexture, ashfield: ashfieldTexture,
+  courtstone: courtstoneTexture, ashfield: ashfieldTexture, savanna: savannaTexture,
+  redsquare: redsquareTexture, pampa: pampaTexture, redcentre: redcentreTexture,
   junglestone: junglestoneTexture,
   pitchcheck: pitchCheckTexture, pitchdiag: pitchDiagTexture,
   pitcharc: pitchArcTexture, pitchdiamond: pitchDiamondTexture,
@@ -12973,6 +13640,147 @@ function rainforestTexture() {
   return tex;
 }
 
+// Savanın dışı akasya korusu: dağınık, yassı taçlar ve aralarında ot.
+// Tikal'in ormanı kapalı ve karanlık; bu **açık** — aradaki fark bir yerin
+// orman mı savan mı olduğunu söyleyen şey.
+function acaciawoodTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#6d5a2e'; ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 1200; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? '#5a4a24' : '#83703c';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Ağaç taçları: yassı elipsler, altlarında gölge. Seyrek — savanın dışı
+  // da savan, ormanla arasındaki fark sıklık.
+  for (const [x, y, r] of [[40, 52, 30], [160, 36, 24], [96, 148, 34],
+                           [216, 130, 26], [52, 218, 22], [190, 220, 30]]) {
+    ctx.globalAlpha = 0.45;
+    ctx.fillStyle = '#2a3a1c';
+    ctx.beginPath(); ctx.ellipse(x + 6, y + 8, r, r * 0.42, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = '#3f6b34';
+    ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.42, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = '#4f8340';
+    ctx.beginPath(); ctx.ellipse(x - r * 0.2, y - 4, r * 0.55, r * 0.22, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(5, 5);
+  return tex;
+}
+
+// Meydanın dışı sur: kırmızı tuğla, ve üstünde kırlangıç kuyruğu mazgallar.
+//
+// Şatonun surundan ayrılması gerekiyordu: orası gri taş ve mazgalı düz bir
+// diş, burası tuğla ve dişin tepesi **çatallı**. İkisi de duvar, ve ikisini
+// ayıran şey tam o ayrıntı.
+function kremlinwallTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#8a3628'; ctx.fillRect(0, 0, S, S);
+  // Tuğla sıraları, şaşırtmalı.
+  ctx.globalAlpha = 0.45;
+  ctx.strokeStyle = '#642318'; ctx.lineWidth = 2;
+  for (let y = 0; y <= S; y += 16) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(S, y); ctx.stroke();
+  }
+  for (let y = 0; y < S; y += 16) {
+    const off = (y / 16) % 2 ? 16 : 0;
+    for (let x = off; x < S; x += 32) {
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 16); ctx.stroke();
+    }
+  }
+  for (let i = 0; i < 1200; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.07;
+    ctx.fillStyle = Math.random() < 0.5 ? '#73291d' : '#a4493a';
+    ctx.fillRect(Math.random() * S, Math.random() * S, 3 + Math.random() * 6, 2);
+  }
+  // Kırlangıç kuyruğu mazgal: iki uçlu diş, aralarında boşluk.
+  ctx.globalAlpha = 1;
+  for (const y0 of [0, S - 26]) {
+    ctx.fillStyle = '#5a1f14';
+    ctx.fillRect(0, y0, S, 26);
+    ctx.fillStyle = '#9c4032';
+    for (let x = 0; x < S; x += 64) {
+      ctx.beginPath();
+      ctx.moveTo(x + 10, y0 + 26);
+      ctx.lineTo(x + 10, y0 + 8);
+      ctx.lineTo(x + 22, y0 + 16);
+      ctx.lineTo(x + 34, y0 + 8);
+      ctx.lineTo(x + 34, y0 + 26);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(9, 9);
+  return tex;
+}
+
+// Pampanın dışı yüksek plato: koyu, taşlı, ve uzakta sırtlar.
+function altiplanoTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#5c4632'; ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 1600; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? '#493626' : '#775a40';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Sırtlar: yatay dalgalı bantlar, gölgeleriyle.
+  for (let k = 0; k < 4; k++) {
+    const y0 = 32 + k * 60;
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = k % 2 ? '#6e553c' : '#4a3828';
+    ctx.beginPath();
+    ctx.moveTo(0, y0 + 20);
+    for (let x = 0; x <= S; x += 16)
+      ctx.lineTo(x, y0 + Math.sin((x / S) * Math.PI * 2 + k) * 9);
+    ctx.lineTo(S, y0 + 20);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(6, 6);
+  return tex;
+}
+
+// Outback'in dışı çalılık: kuru, gri-yeşil öbekler kızıl kumun üstünde.
+function scrubTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#8a4526'; ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 1400; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.08;
+    ctx.fillStyle = Math.random() < 0.5 ? '#73371d' : '#a25a34';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Çalılar: gölgesiyle birlikte, ve savanın akasyasından küçük — burası
+  // ağaç değil çalı, ve fark boyut.
+  for (let i = 0; i < 40; i++) {
+    const x = Math.random() * S, y = Math.random() * S, r = 6 + Math.random() * 9;
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = '#4a2c18';
+    ctx.beginPath(); ctx.ellipse(x + 3, y + 4, r, r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = i % 3 ? '#6b7a4a' : '#57683c';
+    ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(6, 6);
+  return tex;
+}
+
 function darkStoneTexture() {
   const S = 256, [c, ctx] = newCanvas(S);
   ctx.fillStyle = '#161d1f'; ctx.fillRect(0, 0, S, S);
@@ -13149,6 +13957,10 @@ const SURROUND_MAKERS = {
   rooftile: rooftileTexture,
   lavaflow: lavaflowTexture,
   rainforest: rainforestTexture,
+  acaciawood: acaciawoodTexture,
+  kremlinwall: kremlinwallTexture,
+  altiplano: altiplanoTexture,
+  scrub: scrubTexture,
   tarmac: darkAsphaltTexture,
   // Kaldırımın dışı bulvar: asfalt, ve üstünde şerit çizgisi.
   //
@@ -13570,6 +14382,54 @@ const THEMES = {
     // şato yapan şeylerden biri o gri ışık, ve kısılan tek şey güneş —
     // dolgu yüksek kalıyor, yoksa avlu çamura dönüyor.
     light: { sky: '#dfe6f0', bounce: '#4a5a3c', hemi: 1.46, amb: '#e8eef6', ambI: 0.54, sun: '#f4f6fa', sunI: 0.58 },
+  },
+  redsquare: {
+    name: 'Red Square', icon: '🪆',
+    ground: 'redsquare', surround: '#5a1f14', ripples: false,
+    edge: '#b8544a', surf: null,
+    beyond: 'kremlinwall',
+    props: ['matryoshka', 'samovar', 'balalaika', 'ushanka', 'oniondome',
+            'chest', 'crate', 'jar'],
+    hero: ['oniondome', 'matryoshka'],
+    // Kış öğlesi: ışık soğuk ve alçak, gökyüzü beyaz. Anahtar ışık kısık,
+    // dolgu yüksek — karlı bir gün her şeyi aydınlatır, gölge bırakmaz.
+    light: { sky: '#eef2f8', bounce: '#5a4a46', hemi: 1.5, amb: '#f2f5fa', ambI: 0.56, sun: '#f8f8ff', sunI: 0.56 },
+  },
+  nazca: {
+    name: 'Nazca', icon: '🦅',
+    ground: 'pampa', surround: '#5c4632', ripples: false,
+    edge: '#c9a882', surf: null,
+    beyond: 'altiplano',
+    props: ['llama', 'panpipes', 'chullo', 'textileroll', 'markerstone',
+            'jar', 'sack', 'basket'],
+    hero: ['llama', 'markerstone'],
+    // Yüksek irtifa: hava ince, ışık keskin ama gölge mavi. Anahtar ışık
+    // yükseltilmiyor; ayıran şey dolgunun **rengi**.
+    light: { sky: '#dce8f6', bounce: '#8a7050', hemi: 1.46, amb: '#f0ecdc', ambI: 0.5, sun: '#fff4dc', sunI: 0.76 },
+  },
+  outback: {
+    name: 'Outback', icon: '🦘',
+    ground: 'redcentre', surround: '#8a4526', ripples: false,
+    edge: '#d87a4a', surf: null,
+    beyond: 'scrub',
+    props: ['kangaroo', 'koala', 'eucalyptus', 'roadsign', 'billycan',
+            'crate', 'haybale', 'pine'],
+    hero: ['kangaroo', 'eucalyptus'],
+    // Sert ve kuru bir gün, ama anahtar ışık yine kısık: kızıl kum zaten
+    // ışığı geri veriyor, üstüne sert güneş koymak tahtayı yakıyor.
+    light: { sky: '#ffe8cc', bounce: '#9c4a24', hemi: 1.48, amb: '#fff0dc', ambI: 0.5, sun: '#fff0cc', sunI: 0.76 },
+  },
+  savanna: {
+    name: 'Savanna', icon: '🦒',
+    ground: 'savanna', surround: '#6d5a2e', ripples: false,
+    edge: '#c9a962', surf: null,
+    beyond: 'acaciawood',
+    props: ['giraffe', 'zebra', 'acacia', 'safarijeep', 'djembe',
+            'tribalmask', 'elephant', 'crate'],
+    hero: ['giraffe', 'acacia'],
+    // Geç öğleden sonra: ışık altın ve alçak açılı, gökyüzü tozlu. Anahtar
+    // ışık yine yükseltilmiyor; savanı savan yapan şey güneşin **rengi**.
+    light: { sky: '#ffeccc', bounce: '#8a6f38', hemi: 1.46, amb: '#fff0d4', ambI: 0.5, sun: '#ffdf9a', sunI: 0.74 },
   },
   tikal: {
     name: 'Tikal', icon: '🐆',
@@ -15221,6 +16081,131 @@ const PATTERNS = [
     },
   },
   {
+    // Zürafa deseni: tahtanın tamamı dolu, ve **ince çizgilerle** parçalara
+    // bölünmüş. Öteki otuz dokuz düzen boş bir tahtaya şekil çiziyor ya da
+    // dolu bir tahtadan şekil kesiyor; bu ikisi de değil — dolu kalıyor ve
+    // yalnızca derzleniyor.
+    //
+    // Parçalar `patchAt` ile kuruluyor: gerçek bir hücre yapısı, yani kenar
+    // **sürekli**. Gürültü seviye eğrisiyle iki kez denendi ve ikisinde de
+    // tahtada leke değil serpinti çıktı; sebebi ve çözümü `patchAt`'in
+    // üstünde yazıyor.
+    name: 'Patches', icon: '🦒', theme: 'savanna',
+    empty: (r, c) => patchAt(r, c, 4.2, 307).kenar < 0.9,
+    // Parçalar iki katlı, aralar boş: derz hem görünüyor hem de süpürmenin
+    // yolunu gösteriyor.
+    stack: () => 2,
+    // İki renk. Zürafayı zürafa yapan şey lekenin kendisi değil, lekeyle
+    // arasının **ayrı** olması — renk hücre merkezinden okunuyor, hücrenin
+    // tamamı tek renk.
+    type: (r, c) => {
+      const p = patchAt(r, c, 4.2, 307);
+      return noiseAt(p.ix * 3.1, p.iy * 3.1, 313) > 0.5 ? ID[1 % ID.length] : ID[0];
+    },
+    big: (r, c) => blob(r, c, 0.4, 311) > 0.79,
+  },
+  {
+    // Soğan kubbe: tambur, üstünde şişip sivrilen kubbe, tepesinde haç.
+    // Kubbeyi bir yarım küreden ayıran şey **bel**: aşağıda daralıp tekrar
+    // genişlemesi. Bel olmadan tahtada duran şey bir mantar oluyor.
+    name: 'Onion', icon: '🧅', theme: 'redsquare',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      const ax = Math.abs(nx);
+      // Tambur: altta dikdörtgen gövde.
+      const tambur = ny > 0.24 && ax < 0.36 + wob;
+      // Kubbe: belden yukarı şişip tepede kapanan bir eğri.
+      const t = (0.3 - ny) / 0.95;                   // 0 belde, 1 tepede
+      const en = t < 0 ? 0 : 0.38 + 0.42 * Math.sin(t * Math.PI) - t * t * 0.5;
+      const kubbe = ny <= 0.24 && ny > -0.68 && ax < en + wob;
+      // Haç: tepede ince bir direk ve enine kol.
+      const direk = ny <= -0.62 && ny > -0.9 && ax < 0.06 + wob;
+      const kol = Math.abs(ny + 0.78) < 0.05 + wob && ax < 0.18;
+      return !(tambur || kubbe || direk || kol);
+    },
+    // Kubbe dolgun, tambur alçak: yandan da bir kubbe.
+    stack: (r, c) => {
+      const { ny } = shapeCoords(r, c);
+      if (ny > 0.24) return 2;
+      return ridge(1 - Math.abs(ny + 0.1) / 0.6, 3);
+    },
+    // Burgular: kubbeyi boydan boya geçen şeritler, ve rengi değiştiren
+    // tek şey onlar. Gerçek kubbe de böyle boyanıyor.
+    type: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      if (ny > 0.24) return ID[0];
+      return Math.abs(Math.sin(nx * Math.PI * 4.5)) > 0.5
+        ? ID[2 % ID.length] : ID[3 % ID.length];
+    },
+    big: (r, c) => blob(r, c, 0.42, 401) > 0.79,
+  },
+  {
+    // Kondor: Nazca'daki gibi tek hatlı bir kuş — iki uzun kanat, kısa
+    // gövde, yelpaze kuyruk. Geoglifin kendisi zaten yukarıdan bakılmak
+    // için çizilmiş; bu oyunun kamerası da orada.
+    name: 'Condor', icon: '🦅', theme: 'nazca',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      const ax = Math.abs(nx);
+      const govde = ax < 0.13 + wob && ny > -0.5 && ny < 0.5;
+      // Kanatlar: gövdeden çıkıp hafif yukarı kıvrılan iki kol.
+      const kanat = segDist(ax, ny, 0.08, -0.06, 0.97, -0.32) < 0.18 + wob;
+      // Kuyruk: altta yelpaze.
+      const kuyruk = ny > 0.42 && ny < 0.86 + wob && ax < 0.1 + (ny - 0.42) * 0.9;
+      // Baş ve gaga.
+      const bas = Math.hypot(nx, (ny + 0.6) * 0.9) < 0.15 + wob;
+      const gaga = ny < -0.68 && ny > -0.86 && ax < 0.07 + wob;
+      return !(govde || kanat || kuyruk || bas || gaga);
+    },
+    stack: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      // Gövde kalın, kanat uçları ince: kuşun kesiti.
+      return ridge(1 - Math.min(1, Math.abs(nx) * 0.9 + Math.abs(ny) * 0.3), 3);
+    },
+    // Tüy uçları: kanadın son dilimi başka renk, yani kanadın nerede
+    // bittiği tahtadan okunuyor.
+    type: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      if (Math.abs(nx) > 0.62) return ID[2 % ID.length];
+      if (ny > 0.42) return ID[3 % ID.length];
+      return ID[1 % ID.length];
+    },
+    big: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      return Math.hypot(nx, (ny + 0.6) * 0.9) < 0.1 || blob(r, c, 0.42, 409) > 0.81;
+    },
+  },
+  {
+    // Bumerang: iki kol, aralarında geniş bir açı, ve dıştan içe doğru
+    // incelen bir kavis. Açı dar olsaydı tahtada duran şey bir **V**
+    // olurdu; bumerangı bumerang yapan şey kollarının açıklığı.
+    name: 'Boomerang', icon: '🪃', theme: 'outback',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      const ax = Math.abs(nx);
+      // İki kol: tepeden aşağı ve dışa.
+      const kol = segDist(ax, ny, 0.02, -0.5, 0.88, 0.46) < 0.19 + wob;
+      // Dirsek: kolların birleştiği yer, kalınlaşıyor.
+      const dirsek = Math.hypot(nx, (ny + 0.5) * 0.9) < 0.22 + wob;
+      return !(kol || dirsek);
+    },
+    stack: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      return ridge(1 - Math.abs(segDist(Math.abs(nx), ny, 0.02, -0.5, 0.88, 0.46)) / 0.19, 3);
+    },
+    // Oyma çizgiler: kol boyunca aralıklı başka renk.
+    type: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      const t = Math.abs(nx) + ny * 0.4;
+      return Math.abs(Math.sin(t * Math.PI * 4)) > 0.75
+        ? ID[3 % ID.length] : ID[1 % ID.length];
+    },
+    big: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      return Math.hypot(nx, (ny + 0.5) * 0.9) < 0.13 || blob(r, c, 0.42, 419) > 0.81;
+    },
+  },
+  {
     name: 'Bloom', icon: '🌸', polar: true, theme: 'cocktail',
     // Five petals: a slot survives while its ring is still inside the petal
     // reaching out along that spoke, so the outline scallops.
@@ -15449,9 +16434,10 @@ const LEVEL_ORDER = [
   'Checkers', 'Ribs', 'Piles', 'Blocks', 'Stairs',
   'Ladder', 'Keep', 'Heart', 'Whirl', 'Arrow',
   'Star', 'Horseshoe', 'Orchard', 'Crescent', 'Maze',
-  'Ring', 'Anchor', 'Diamond', 'Comb', 'Hourglass',
-  'Gate', 'Lens', 'Bloom', 'Ballcourt', 'Track',
-  'Cogs', 'Spiral', 'Cross', 'Dial', 'Walls',
+  'Ring', 'Anchor', 'Diamond', 'Comb', 'Onion',
+  'Gate', 'Patches', 'Lens', 'Ballcourt', 'Track',
+  'Bloom', 'Condor', 'Cogs', 'Boomerang', 'Spiral',
+  'Cross', 'Dial', 'Hourglass', 'Walls',
 ];
 // Altı yeni düzenin hiçbiri resim (3, 13, 23, 33), şerit (6, 16, 26, 36) ya
 // da bulmaca (18, 28, 38) bölümüne denk gelmiyor. O üçü tahtayı bölüm
@@ -16601,6 +17587,35 @@ function puzzleRockLine(x0, z0, x1, z1) {
   for (let k = 0; k <= n; k++) {
     puzzleRock(x0 + ((x1 - x0) * k) / n, z0 + ((z1 - z0) * k) / n);
   }
+}
+
+// Tahtayı kapalı parçalara bölen hücre yapısı (Voronoi).
+//
+// Zürafa deseni için, ve ilk iki deneme başarısız oldu: gürültünün bir
+// seviye eğrisi kâğıt üstünde kapalı eğriler veriyor ama `blob` ikinci bir
+// yüksek frekanslı katman taşıyor, ve o katman hücre çözünürlüğünde eğriyi
+// paramparça ediyor — tahtada leke değil serpinti çıkıyordu. Ölçeği
+// büyütmek de kurtarmadı, çünkü sorun büyüklük değil **kenarın sürekli
+// olmaması**.
+//
+// Voronoi bunu tanımı gereği veriyor: her hücrenin bir merkezi var, her
+// nokta en yakın merkeze ait, ve iki merkezin ortasında kalan yer kenar.
+// `kenar` iki en yakın merkez arasındaki farktır — sıfıra yakınsa sınırın
+// üstündesin. Merkezler düzgün ızgaradan sapmalı, yoksa desen petek olur.
+function patchAt(r, c, boy, tohum) {
+  const gx = Math.floor(c / boy), gy = Math.floor(r / boy);
+  let en = 1e9, ikinci = 1e9, ax = 0, ay = 0;
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      const ix = gx + dx, iy = gy + dy;
+      const jx = ix * boy + boy / 2 + (noiseAt(ix * 1.7, iy * 1.7, tohum) - 0.5) * boy * 0.85;
+      const jy = iy * boy + boy / 2 + (noiseAt(ix * 2.3, iy * 2.3, tohum + 7) - 0.5) * boy * 0.85;
+      const d = Math.hypot(c - jx, r - jy);
+      if (d < en) { ikinci = en; en = d; ax = ix; ay = iy; }
+      else if (d < ikinci) ikinci = d;
+    }
+  }
+  return { kenar: ikinci - en, ix: ax, iy: ay };
 }
 
 // Bir noktanın verilen doğru parçasına uzaklığı. İki yerden çağrılıyor ve
