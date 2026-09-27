@@ -41,6 +41,13 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8244/', { waitUntil: 'load' });
 await pg.waitForFunction(() => window.fruitHoleTopDown, { timeout: 25000 });
+// Play'e basmak şart. Menü bir diorama ve dönüyor; oyunu menüden çıkarmadan
+// çekilen her kare tahtayı eğik gösteriyor — `holeshot.mjs`'in başındaki
+// uzun not bunun hikâyesi.
+if (await pg.isVisible('#dailyBtn')) await pg.click('#dailyBtn');
+await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
+await pg.click('#playBtn');
+await pg.waitForTimeout(400);
 await pg.evaluate(() => {
   for (const s of document.querySelectorAll('.screen')) s.classList.remove('show');
   for (const id of ['topbar', 'hint', 'combo', 'boosterBar', 'hud'])

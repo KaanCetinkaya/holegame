@@ -222,24 +222,47 @@ check(kupali.every(r => r.distFromSpawn > 8), 'kupa tahtanın öbür ucunda',
 // beşincisi çakışmaz); final temadan hesaplandığı için o güvence kendi
 // kendine kalkıyordu.
 //
-// Üç bölüm elle yazılı, çünkü ilk çakışma 415'te: 1..120 taraması hiçbirini
-// görmüyor ve "çakışma yok" diye geçerdi. Üçü 2000 bölüm taranarak bulundu.
-console.log('\ngörev + Cup Night çakışması:');
-for (const n of [415, 545, 1125]) {
+// Ölçülen şey bir **örnek** değil, kuralın kendisi: hiçbir bölümde görev
+// ile kolos bir arada olmasın.
+//
+// İlk yazışta üç bölüm numarası (415, 545, 1125) doğrudan dosyaya konmuştu
+// — o gün taranıp bulunmuş üç çakışma. Altı düzen eklenince üçü de başka
+// bir yere düştü, çünkü tema döngüsü düzen sayısına bağlı: yeni bir düzen
+// bütün numaraları kaydırıyor. Test o gün geçiyordu ve bugün ölçtüğü şeyi
+// ölçmez hale geldi.
+//
+// İkinci yazış "çakışan bir bölüm bul" diyordu ve o da düştü: kırk düzenle
+// ilk yedi yüz bölümde çakışma **yok**. Bulunamaması bir hata değil, ama
+// test onu hata sayıyordu.
+//
+// Doğrusu tümel bir kontrol. Bugün boşuna geçiyor, ve öyle olması gerekiyor:
+// yarın desen sırası kayıp bir çakışma doğarsa, kupanın oraya konmadığını
+// bu satır söyleyecek. 45. bölümün geçilememesi tam bu cinsten bir hataydı —
+// saat, tahtanın isteyeceği işi bilmiyordu.
+console.log('\ngörev + kolos: hiçbir bölümde bir arada olmamalı');
+const birlikte = [];
+let gorevli = 0, cupGorev = 0;
+for (let n = 1; n <= 200; n++) {
   const r = await pg.evaluate((lvl) => {
     const p = window.fruitHoleProbe(lvl);
     return { mission: p.mission, theme: window.fruitHoleTheme().theme,
              boss: window.fruitHoleBoss().boss };
   }, n);
-  console.log(`  bölüm ${n}  ${r.theme}  görev: ${r.mission}  kolos: ${r.boss ? 'var' : 'yok'}`);
-  check(r.theme === 'Cup Night' && !!r.mission && !r.boss,
-    `${n}: görevli Cup Night bölümüne kupa konmuyor`,
-    `${r.theme} / ${r.mission} / ${r.boss ? 'kolos var' : 'kolos yok'}`);
+  if (r.mission) gorevli++;
+  if (r.mission && r.theme === 'Cup Night') cupGorev++;
+  if (r.mission && r.boss) birlikte.push(`${n}:${r.mission}/${r.theme}`);
 }
-// Patron bölümünün kolosu **kupa olmamalı**: ikisi ayrı şey, ve tek yönlü bir
-// kontrol "her kolos kupa" haline gelmiş olsa da geçerdi.
-check(bosses.every(r => r.prop === null), 'patron bölümünün kolosu hâlâ meyve',
-  bosses.map(r => r.prop ?? 'meyve').join(' '));
+console.log(`  200 bölümde ${gorevli} görev bölümü, ${cupGorev} tanesi Cup Night`);
+check(!birlikte.length, 'görevli bölümde kolos yok', birlikte.join(' '));
+
+// Patron bölümünün kolosu meyve — **Cup Night olmayanlarda.** Bir patron
+// bölümü Cup Night'a da düşebiliyor (onda bir ile tema döngüsü artık
+// çakışıyor) ve orada kolosun kupa olması doğru: o bölüm hem patron hem
+// final. Ayrım temadan yapılıyor, çünkü kuralı koyan şey tema.
+const meyveli = bosses.filter(r => r.theme !== 'Cup Night');
+check(meyveli.length > 0 && meyveli.every(r => r.prop === null),
+  'Cup Night olmayan patron bölümünün kolosu hâlâ meyve',
+  bosses.map(r => `${r.n}:${r.prop ?? 'meyve'}`).join(' '));
 
 console.log('\nhatalar: ' + (errs.length ? errs.join(' | ') : 'yok'));
 console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');

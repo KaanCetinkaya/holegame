@@ -2436,6 +2436,204 @@ biri geçemez, yani 34'ün 34'e bölünmesinden başka dağılım kalmadı.
 
 Yeni bir yer eklemek artık önce yeni bir **düzen** yazmayı gerektiriyor.
 
+## Tarihsel yerler
+
+Kaan'ın isteği: tarihsel şeyler. Sıra: 🏰 Şato, 🤠 Vahşi Batı,
+🏴‍☠️ Korsan Koyu, 🐉 Yasak Şehir, 🦕 Jura, 🐆 Tikal.
+
+### Önce listeden bir tane çıktı
+
+İlk sırada **Akropolis** vardı ve yazılmadan önce düştü: sütunu (`column`),
+defne tacı (`laurel`), amforası (`amphora`), miğferi (`galea`) ve kalkanı
+(`scutum`) zaten The Arena'da duruyor. İki yer aynı nesnelerle kurulsaydı
+oyuncu ikisini tek yer sanırdı — yeni bir yerin işi yeni bir şey göstermek.
+Valley of Kings (Mısır) da aynı sebeple listede yok. Yerine Tikal geldi.
+
+### Her yer bir düzen istiyor
+
+`holetheme.mjs` şunu ölçüyor: hiçbir yer ötekilerden bir düzen fazla ya da
+eksik görünmesin. Otuz dört düzen otuz dört yere tam bir tane düşüyordu,
+yani yeni bir yer eklemek önce yeni bir **düzen** yazmayı gerektiriyor.
+Bir tarihsel yer şu beşiyle birlikte geliyor: düzen, zemin dokusu, tahtanın
+dışı, en az dört nesne, ve kendi ışığı.
+
+### Şato
+
+Düzen **Keep**: kare sur, dört köşede kule, ortada iç kale, aralarında boş
+hendek. Üç bölge üç ayrı meyve, yani süpürme sırası tahtadan okunuyor —
+önce sur, sonra kuleler, en son iç kale.
+
+İki ölçü düzeltildi, ikisi de resme bakınca:
+
+- **Kuleler duvardan ayırt edilemiyordu.** Merkezleri 0.74'teydi, yani
+  tamamen surun içinde kalıyorlardı. Kuleyi kule yapan şey duvar hattından
+  **çıkması**; merkez 0.88'e alındı ve dördü de dışarı taştı.
+- **İç kale küçücüktü ve tahta 576 parçaydı** (ızgara sınırı 600). Sur
+  inceltildi (0.58-0.9 yerine 0.66-0.88), iç kale genişletildi (0.26 → 0.32):
+  411 parça, ve ortadaki yapı artık bir yapı gibi duruyor.
+
+Sur tahtanın dikdörtgenini takip ediyor, kare değil. Gerçek bir kare, 13
+sütunluk tahtanın enine sığardı ama boyunda ortada küçük kalırdı —
+Piramit'in başına gelen tam bu (bkz. "Yamuk olmayan üç tahta").
+
+Zemin **bailey**: çimen, ortasından geçen aşınmış toprak yol, iki kenarında
+kaldırım taşı. Tek renk bir yeşil Match Day'in sahasından ayırt edilemezdi.
+Dışı **battlement**: koyu taş blok ve mazgal dişleri — tahtanın bittiği yerde
+boş bir zemin değil bir **engel** başlıyor.
+
+Altı nesne (`greathelm`, `kiteshield`, `swordstone`, `catapult`, `torch`,
+`kingcrown`) ve hepsi aynı sınavdan geçti: yukarıdan ne olduğu anlaşılıyor mu.
+O yüzden siluete çıkan parça hep yatay — miğferin tepesi değil siperliği,
+kılıcın ucu değil balçağı, kalkan da dikili değil **yatık** duruyor.
+
+### Vahşi Batı
+
+Düzen **Horseshoe**: bir yay, iki ucu kalın topuk, ve boyunca çivi delikleri.
+Açık uç tahtanın **alt** kenarına, yani deliğin doğduğu yana bakıyor —
+oyuncu nalın içinden giriyor ve süpürme kendiliğinden bir tur oluyor. Açık uç
+yukarı baksaydı tarla oyuncunun arkasında kalır, ilk hamle boş zemine bakmak
+olurdu. (Bloom'un yaprağının yönü de aynı sebeple çevrilmişti.)
+
+Çivi delikleri renkle yazılıyor: yay boyunca düzenli aralıklarla başka bir
+meyve. Nalı bir yaydan ayıran şey onlar ve bu işi tek başına renk yapıyor —
+tahtada iki hücreyi boş bırakmak, yukarıdan delik değil kopukluk okunurdu.
+
+Zemin **hardpan**: kurumuş, çatlamış toprak ve bir kenarında tahta kaldırım.
+Çatlaklar rastgele çizilmiyor, bir ızgaranın hücrelerinden geçiyor: rastgele
+hatlar yukarıdan çizik gibi okunuyordu, oysa kuruyan çamur **kapalı
+parçalara** ayrılıyor ve gözün tanıdığı şey o parçalar. Dışı **mesa**: kızıl,
+katmanlı kaya. Avlunun dışı duvardı; kasabanın dışı hiçbir şey.
+
+**Silah yok ve olmayacak.** Oyun mağazada "Everyone" derecesinde ve bir
+altıpatlar o dereceyi tartışmaya açar. Kaybettiren bir sınır da değil: bir
+kasabayı kasaba yapan şeyler zaten araba, fıçı, at nalı ve tabela. Altısı
+şunlar — `wagon`, `cowskull`, `sheriffstar`, `horseshoe`, `watertower`,
+`goldpan`.
+
+### Korsan Koyu
+
+Düzen **Anchor**: halka, gövde, stok ve iki kol. Çapayı bir haçtan ayıran şey
+stok, bir haçı çapa yapan şey de alttaki kavis — ikisi de eksikse tahtada
+duran şey artı işareti oluyor, ve ilk yazışta tam öyleydi.
+
+İki düzeltme, ikisi de resme bakınca:
+
+- **Kollar yaydı, öbek okunuyordu.** İki dairenin arasındaki bir bant olarak
+  yazılmıştı; 13 sütunluk tahtada bir yayın iki ucu birbirine fazla yakın
+  kalıyor. Parabol (`0.62 - 0.55 · nx²`) o işi tek satırda yapıyor ve
+  ortada alçak, uçlarda yukarı kalkan temiz bir **U** veriyor.
+- **Stok gövdeden ayırt edilemiyordu.** Yarı kalınlığı 0.1'di, yani iki
+  satır. 0.19 oldu.
+
+Zemin **shipdeck**: kalafatlanmış güverte ve pirinç pusula gülü. Güverte tek
+başına Indoors'un parkesinden ayırt edilemezdi. Dışı **harbour**: gece
+denizi — plajın turkuvazından başka bir şey olması gerekiyordu, yoksa koy
+plajın devamı gibi okunurdu.
+
+### Yasak Şehir
+
+Düzen **Gate**: iki direk, iki kiriş, kalkık köşeli saçak. Kapı olduğunu
+söyleyen şey **arasındaki boşluk**. Saçak tahtanın enini aşıyor ve kenarda
+kırpılıyor; gerçek bir paifang da çatısıyla ayaklarından geniş, ve kırpılan
+uç yukarıdan "devam ediyor" diye okunuyor.
+
+Zemin **courtstone**: gri döşeme, dört taşta bir ejderha madalyonu. Madalyon
+seyrek, çünkü her taşta olsaydı zemin meyveyle yarışan bir gürültüye
+dönerdi — kaldırımın işi yeri söylemek, tahtayı okumak değil. Dışı
+**rooftile**: yeşil sırlı kiremit sıraları.
+
+### Jura
+
+Düzen **Track**: üç parmaklı bir ayak izi. Bir yerin tarihsel olduğunu
+söylemenin en kısa yolu, ve yukarıdan bakan biri onu başka bir şey sanmıyor.
+
+Parmaklar doğru parçasından çiziliyor. İlk ölçüde uçları ±0.66'daydı ve iz
+dikey bir öbek gibi duruyordu; ±0.8'e açılıp inceltilince üç parmak ve
+aralarındaki boşluk göründü.
+
+Zemin **ashfield**: volkanik çamur, eğrelti fosilleri, kül lekeleri. Vahşi
+Batı'nın hardpan'iyle aynı fikir değil — orası **çatlıyor**, burası
+**basılıyor**. Dışı **lavaflow**, ve oyunun ışık veren tek dışı: tahtanın
+dışı o yerin ne olduğunu söylüyor, ve burada söylenecek şey "oraya gidilmez".
+Koyu bir taş bunu söylemiyor, akan bir şey söylüyor.
+
+### Tikal
+
+Düzen **Ballcourt**: iki uzun duvar, uçlarında genişleyen alanlar, duvarların
+ortasında birer halka. Yukarıdan bir **I**, ve Maya'dan kalan en tanınır
+plan. Halkalar boş bırakılıyor: duvarın ortasındaki delik sahanın kuralını
+söyleyen şey, doldurulsaydı duvar düz bir bant olurdu.
+
+Zemin **junglestone**: ormanın aldığı taş. Yasak Şehir'in avlusu da taş
+döşeme ve ikisi birbirine benzemek zorunda değil — orası **süpürülmüş**,
+burası bırakılmış, ve farkı söyleyen şey yosun. Dışı **rainforest**: üst üste
+binmiş yaprak katmanları.
+
+Jaguar'ın benekleri **halka** biçiminde ve her yerinde; Dubai'nin kaplanından
+ayıran şey bu, orası çizgili ve çizgiler yalnızca sırtta.
+
+### İki hata, ikisi de testten döndü
+
+- **`segDist` iki kere yazıldı.** Track'in parmakları için bir yardımcı
+  yazıldı ve aynı isimde bir fonksiyon dosyada zaten vardı (bulmaca
+  tahtasının meyve ayıklaması). Sonuç: *"Identifier 'segDist' has already
+  been declared"*, ve oyun hiç açılmadı. Dosyada iki yüzden fazla nesne ve
+  kırk düzen var; bir yardımcının zaten yazılmış olup olmadığına **bakmak**,
+  yazmaktan ucuz. `holeboot.mjs` yakaladı, ve o fonksiyonun yorumu artık iki
+  çağıranı da anlatıyor.
+- **Vahşi Batı'nın güneşi sertti** (0.86). Kural dosyanın en eski
+  derslerinden: anahtar ışık yükseltilmiyor, çünkü sert bir anahtar ışık her
+  küreyi ikiye bölüp meyveyi çamura çeviriyor — bu boyutta gölge ayrıntı
+  değil kir. Çölü çöl yapan şey güneşin **rengi** ve dolgunun düşüklüğü.
+  0.78 oldu; `holetheme.mjs` yakaladı.
+
+### Yeni düzen listenin ortasına giriyor
+
+Sona eklenen düzen turun son bölümü oluyor: Keep önce 35. bölüme düştü, yani
+yeni yer oyuncunun ancak orada göreceği bir şey olurdu. 17'ye alındı.
+
+Araya girmek öteki düzenlerin bölüm numaralarını kaydırıyor, ve resim (3, 13,
+23, 33), şerit (6, 16, 26, 36) ve bulmaca (18, 28, 38) tahtaları bölüm
+**numarasından** seçiliyor — kayan bir düzen onlardan birinin altında kalıp
+ilk turda hiç görünmeyebilir. Ballcourt ilk yazışta 33'e düştü ve tam bunu
+yapıyordu; 34'e alındı.
+
+Yerin kendisi yine de görünüyor: zemin, nesneler ve ışık desenin
+**temasından** geliyor, tahtanın türünden değil. Kaybolan şey yalnızca şekil.
+
+Altısının son yeri: Keep 17, Horseshoe 22, Anchor 27, Gate 31, Ballcourt 34,
+Track 35.
+
+### Elle yazılmış bir bölüm numarası eskiyor
+
+`holeboss.mjs`'in finali sınayan bölümü üç bölüm numarası taşıyordu — 415,
+545, 1125 — ve onlar "görevle finalin çakıştığı yerler" diye taranıp
+bulunmuştu. Altı düzen eklenince üçü de başka bir yere düştü: tema döngüsü
+düzen sayısına bağlı, yani **yeni bir düzen bütün numaraları kaydırıyor.**
+Test o gün geçmişti ve bugün ölçtüğü şeyi ölçmez hale gelmişti.
+
+İkinci yazış "çakışan bir bölüm bul" dedi ve o da düştü: kırk düzenle ilk yedi
+yüz bölümde çakışma **yok**. Bulunamaması bir hata değil, ama test onu hata
+sayıyordu.
+
+Doğrusu tümel bir kontrol oldu: ilk iki yüz bölümde hiçbirinde görev ile kolos
+bir arada değil. Bugün boşuna geçiyor ve öyle olması gerekiyor — yarın sıra
+kayıp bir çakışma doğarsa kupanın oraya konmadığını bu satır söyleyecek.
+
+Bir de gerçek bir değişiklik çıktı: **60. bölüm artık hem patron hem final.**
+Onda bir ile tema döngüsü çakışabiliyor ve orada kolosun kupa olması doğru;
+testin "patronun kolosu meyvedir" satırı Cup Night'ı dışarıda bırakacak
+şekilde düzeltildi.
+
+### Sayılar mağaza metninde elle tutulmuyor
+
+`holerelease.mjs` desen ve eşya sayısını **oyundan** okuyup metinde arıyor,
+ve iki yönlü: doğru sayı yazıyor mu, ve komşu sayılardan hiçbiri kalmamış mı.
+Bu turda ikisi de düştü ve ikisi de haklıydı — 34 düzen 40 oldu, 203 eşya
+239. Eşya sayısını elle saymaya kalkıştım (`T.x = {` satırlarını sayarak) ve
+235 buldum: dört eksik, çünkü altı lig kupası tek bir yardımcıdan
+üretiliyor ve o satırlar öyle yazılmıyor. Doğru sayı testin okuduğu sayı.
+
 ## Yamuk tahta
 
 Kaan "bir kaç bölüm yamuk duruyor" dedi. Hangileri belli değildi, ve otuz
