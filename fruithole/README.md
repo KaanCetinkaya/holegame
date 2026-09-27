@@ -2100,6 +2100,76 @@ Kalan nesneler hâlâ kutu. `bevelBox` orada duruyor ve dönüşüm tek satır, 
 her nesnenin üçgen bedeli var: bir kutu 12 üçgen, pahlı hâli birkaç yüz.
 Önce ekranda en çok görünenler dönüştürüldü.
 
+## Üç şehir daha: Copacabana, Neon Night, Le Jardin
+
+Kaan "büyük şehirleri sormadan bitir" dedi, ve kalıp artık kurulmuştu: yeni
+bir yer = kendi zemini + kendi "tahta dışı" + beş-altı kendine ait nesne +
+kendi ışığı + ilk turda bir düzen.
+
+Üçünde de aynı soru soruldu: **bu kamera bu şehrin nesini görür?**
+
+### Copacabana
+
+Cevap en kolay burada, çünkü dünyanın havadan tanınan en iyi kaldırımı Rio'da:
+siyah beyaz Portekiz taşından dalga. Deseni görmek için yukarıdan bakmak
+gerekiyor — yerden bakan yalnızca taş görür, ve bu oyunun kamerası tam olarak
+o yerde duruyor.
+
+Dalga karo kenarında tam bir periyot tamamlıyor, yoksa her karonun başında
+kırılır ve mozaik yerine fayans görünürdü. Taş da tam siyah değil koyu
+kurşuni: gerçeği de öyle, ve tam siyah olsaydı deliğin ağzı zeminden ayırt
+edilemezdi.
+
+Nesneler: tukan, samba davulu, teleferik kabini, karnaval başlığı,
+cavaquinho. İmzası karnaval başlığı — on dört renkli tüyden bir yelpaze, ve
+tahtadaki en renkli şey.
+
+### Neon Night
+
+Oyunun tek gece teması. Tokyo'yu yukarıdan anlatan şey ne bina ne tabela,
+ikisi de yandan; geriye kalan, yağmurdan sonra caddenin tabelaları
+**yansıtması** — koyu asfaltın üstünde uzun pembe ve camgöbeği lekeler.
+
+Manhattan da asfalt üstünde duruyor ve karışmıyorlar: orası gündüz ve kuru,
+işareti beyaz bant; burası gece ve ıslak, işareti renk.
+
+Işığı ters kurulu. Gökten gelen ışık yok, her şey tabeladan: anahtar ışık
+oyunun en alçağı (0.5) ve pembe, dolgu ise en yükseği (0.6). Sebebi
+oynanabilirlik — gece sahnesinde gölgeye düşen şey tamamen kayboluyor, ve bu
+oyunda kaybolan meyve yenmeyen meyve demek.
+
+Nesneler: torii, ramen kâsesi, maneki neko, otomat, kâğıt fener.
+
+### Le Jardin
+
+Paris'in havadan tanınan yeri bulvarları değil bahçeleri: açık bej çakıl,
+tırmıkla taranmış çizgiler, dışında budanmış parter. Tırmık izi bu kamerada
+dokunun tamamı — düz çakıl kumdan ayırt edilmiyor.
+
+Nesneler: demir kule, kruvasan, kaldırım kafesi masası, sokak lambası,
+makaron kulesi. Kule dört ayaklı ve ayaklar dışa açık, yani yukarıdan siluet
+bir kare değil yıldız; çapraz kafes olmadan dört düz direk olurdu.
+
+### On sekiz yerin bedeli: düzen başına bir tema
+
+Yirmi dört düzen artık on sekiz yere dağılıyor, yani çoğu yer ilk turda bir
+kez çıkıyor. `holetheme.mjs`'nin iki kuralı bunu zorluyor: her tema ilk turda
+görünmeli, ve temalar arasındaki düzen farkı biri geçmemeli.
+
+Alınan düzenler sebepli seçildi: **Wave** Copacabana'ya (adı zaten dalga),
+**Chevrons** Tokyo'ya (kamalar neon şeritleriyle aynı yöne gidiyor),
+**Pyramid** Paris'e (tek kelime: Louvre).
+
+### Testin kendi cevabını eski sanması
+
+Eşya sayısı 123 olunca `holerelease.mjs` düştü: desen sayısının (24)
+komşularını tararken metindeki "One hundred and twenty-three things"
+ifadesinin kuyruğunu — "Twenty-three things" — eski bir desen sayısı sandı.
+
+Yüzleri yazmaya başladığımız anda kaçınılmazdı, çünkü her yüzlü sayı bir
+onluk sayıyı kendi içinde taşıyor. Tarama artık "and" ile başlayan parçayı
+atlıyor: "and" ile gelen bir sayı, daha büyük bir sayının kuyruğudur.
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi

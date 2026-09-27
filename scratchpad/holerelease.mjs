@@ -121,9 +121,25 @@ function sayiKontrol(n, ne, aralik = 12) {
   for (let k = Math.max(1, n - aralik); k <= n + aralik; k++) {
     if (k === n) continue;
     const w = kelime(k);
+    // Doğru sayının **içinde** geçen bir kelime yanlış sayı değil.
+    //
+    // Eşya sayısı 123 olunca metinde "One hundred and twenty-three things"
+    // yazıyor, ve desen sayısının komşularını tararken "Twenty-three things"
+    // ona takıldı: test kendi doğru cevabını eski bir sayı sandı. Yüzleri
+    // yazmaya başladığımız anda kaçınılmaz oldu, çünkü her yüzlü sayı bir
+    // onluk sayıyı kendi içinde taşıyor.
+    if (dogru.toLowerCase().includes(w.toLowerCase())) continue;
     // "Three" gibi kısa bir kelime metnin başka yerinde geçebiliyor; yalnızca
     // aynı cümlede, sayılan şeyin adının yanında geçeni arıyoruz.
-    if (new RegExp(`${w}[ -](hand-built|objects|things)`, 'i').test(listing)) yanlis.push(w);
+    // "and" ile başlayan bir parça, daha büyük bir sayının kuyruğudur.
+    //
+    // Metinde "One hundred and twenty-three things" yazıyor ve desen
+    // sayısının (24) komşuları taranırken "Twenty-three things" buna
+    // takıldı: test, eşya sayısının doğru hâlini eski bir desen sayısı
+    // sandı. Yüzleri yazmaya başladığımız anda kaçınılmazdı, çünkü her
+    // yüzlü sayı bir onluk sayıyı kendi içinde taşıyor.
+    if (new RegExp(`(?<!and )${w}[ -](hand-built|objects|things)`, 'i').test(listing))
+      yanlis.push(w);
   }
   check(yanlis.length === 0,
     `eski ${ne} sayısı metinde kalmamış${yanlis.length ? ' — ' + yanlis.join(' ') : ''}`);
