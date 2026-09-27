@@ -36,6 +36,9 @@ for (let lvl = 1; lvl <= 15; lvl++) {
     window.fruitHoleProbe(n);
     const m = window.fruitHoleMix();
     return { ...window.fruitHoleGiants(), unit: window.fruitHoleGrow().unit,
+      // Tahtada kolos var mı: ölçülen "en geniş dev" o olduğunda bant da
+      // başka.
+      kolos: window.fruitHoleBoss().boss,
       // Tahtanın kendi karışımı: her meyve aynı kadar büyütmüyor.
       carpan: +((m.siradan + m.buyuk * 3 + m.dev * 9) / Math.max(1, m.toplam)).toFixed(3) };
   }, lvl);
@@ -58,11 +61,15 @@ for (let lvl = 1; lvl <= 15; lvl++) {
   // A giant should cost roughly a third of the board on every level — free
   // is not a target, and two thirds is not reachable.
   //
-  // Patron bölümleri hariç. Her onuncu bölümün devasa meyvesi **tasarım
-  // gereği** tarla süpürülene kadar yenemiyor — oyunun en bilinen kuralı ve
-  // mağaza metninde de yazıyor. Tek bantla ölçmek onu hata sayıyordu:
-  // düzeltilmiş ölçümde 10. bölüm %69 çıkıyor, ötekiler %23-32.
-  const patron = lvl % 10 === 0;
+  // Kolos bölümleri hariç. Tahtanın ucundaki devasa parça **tasarım gereği**
+  // tarla süpürülene kadar yenemiyor — oyunun en bilinen kuralı ve mağaza
+  // metninde de yazıyor. Tek bantla ölçmek onu hata sayıyordu: düzeltilmiş
+  // ölçümde 10. bölüm %69 çıkıyor, ötekiler %23-32.
+  //
+  // Koşul "her onuncu bölüm" yazıyordu ve Cup Night final olunca düştü: 9.
+  // bölümde de kolos var, ve orada ölçülen en geniş parça artık kupa. Doğru
+  // soru bölüm numarası değil, **tahtada kolos var mı**.
+  const patron = r.kolos;
   const alt = patron ? 0.5 : 0.15;
   const ust = patron ? 0.92 : 0.5;
   const ok = r.count >= 3 && r.nearestToSpawn >= 3.4 && share > alt && share < ust;

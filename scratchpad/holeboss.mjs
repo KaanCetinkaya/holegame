@@ -43,29 +43,59 @@ const check = (ok, what, saw) => {
 await pg.goto('http://localhost:8211/', { waitUntil: 'load' });
 await pg.waitForFunction(() => window.fruitHoleBoss, { timeout: 25000 });
 
+// Tohum veriliyor, ve bir tane değil üç tane.
+//
+// Bu tablo tohumsuzdu ve ölçtüğü oran her koşuda on puan kayıyordu: 60.
+// bölüm bir koşuda %88, bir başkasında %97 çıktı ve sınır %96'ydı — yani
+// test kodda hiçbir şey değişmeden arada bir düşüyordu. Sebep tarla:
+// meyve sayısı 391 ile 411 arasında değişiyor, kolosun ayağının altındaki
+// yoğunluk da onunla.
+//
+// Tek tohum ölçümü sabitler ama yayılımı da saklar — sınıra ne kadar
+// yakın olduğumuz o yayılımda görünüyor. O yüzden her bölüm üç tohumla
+// kuruluyor ve **en kötüsü** yazılıyor.
+const TOHUM = [1, 4242, 90210];
 console.log('\nbölüm | patron | meyve | kolos R | süre | kolos için | tarlanın %si');
 console.log('------+--------+-------+---------+------+------------+--------------');
 
 const rows = [];
 for (const n of [9, 10, 19, 20, 30, 40, 50, 60]) {
-  const r = await pg.evaluate((lvl) => {
-    const p = window.fruitHoleProbe(lvl);
-    const b = window.fruitHoleBoss();
-    return { ...p, ...b };
-  }, n);
+  const hepsi = [];
+  for (const s of TOHUM) {
+    hepsi.push(await pg.evaluate(([lvl, tohum]) => {
+      window.fruitHoleSeedField(tohum);
+      const p = window.fruitHoleProbe(lvl);
+      const r = { ...p, ...window.fruitHoleBoss(), theme: window.fruitHoleTheme().theme };
+      window.fruitHoleUnseedField();
+      return r;
+    }, [n, s]));
+  }
+  // En kötü koşu: kolos için en çok süpürme isteyeni.
+  const r = hepsi.reduce((a, b) =>
+    (b.pctForColossus ?? -1) > (a.pctForColossus ?? -1) ? b : a);
   rows.push({ n, ...r });
+  const araligi = hepsi.map(h => h.pctForColossus).filter(p => p != null);
   console.log(
     `${String(n).padStart(5)} | ${(r.boss ? 'evet' : 'hayır').padStart(6)} | ` +
     `${String(r.fruit).padStart(5)} | ${String(r.colossusR ?? '-').padStart(7)} | ` +
     `${String(r.seconds).padStart(4)} | ${String(r.eatsForColossus ?? '-').padStart(10)} | ` +
-    `${r.pctForColossus == null ? '-' : r.pctForColossus + '%'}`);
+    `${araligi.length ? `%${Math.min(...araligi)}–%${Math.max(...araligi)}` : '-'}`);
 }
 
-const bosses = rows.filter(r => r.boss);
-const plain = rows.filter(r => !r.boss);
+// Kolos artık iki yerden geliyor: her 10. bölüm (patron) **ve** Cup Night
+// (final). Bu satır "kolos varsa patrondur" diyordu ve final gelince düştü —
+// 9. bölüm Cup Night. Ayıran şey tema, o yüzden bölme de temadan.
+const bosses = rows.filter(r => r.n % 10 === 0);
+const finalRows = rows.filter(r => r.n % 10 !== 0 && r.theme === 'Cup Night');
+const plain = rows.filter(r => r.n % 10 !== 0 && r.theme !== 'Cup Night');
 
-check(bosses.length === 6 && plain.length === 2, 'her 10. bölüm patron, diğerleri değil',
-  `${bosses.length} patron / ${plain.length} normal`);
+// Sayı da kontrol ediliyor: boş bir dizide `every` doğru diyor, yani bölme
+// yanlışsa bu satır sessizce geçerdi.
+check(bosses.length === 6 && bosses.every(r => r.boss), 'her 10. bölüm patron',
+  `${bosses.length} bölüm`);
+check(plain.every(r => !r.boss),
+  'patron ya da final olmayan bölümde kolos yok',
+  `${plain.length} normal, ${finalRows.length} final`);
 check(plain.every(r => r.colossusR == null), 'normal bölümlerde kolos yok');
 check(bosses.every(r => r.colossusR > 1.5), 'kolos her devden geniş',
   `en küçük ${Math.min(...bosses.map(r => r.colossusR))}`);
@@ -142,6 +172,74 @@ for (const n of [10, 20, 30, 40]) {
 const far = await pg.evaluate(() => { window.fruitHoleProbe(20); return window.fruitHoleBoss(); });
 check(far.distFromSpawn > 8, 'kolos deliğin doğduğu uçtan uzakta',
   `${far.distFromSpawn} birim`);
+
+// --- final bölümü ---
+//
+// Kupa gecesi patrona denk gelmiyordu (patron onda bir, Cup Night düzen
+// sırasından 9. bölüme düşüyor) ve o yüzden "final" diye bir şeyi yoktu.
+// Artık o temanın ızgara tahtalarına da kolos konuyor, ve oradaki kolos meyve değil
+// kupanın kendisi.
+//
+// Aranan şey bir bölüm numarası değil: tema, tur ilerledikçe kayıyor
+// (`themeIdForLevel`), yani final bölümleri 9'da bir değil. O yüzden tarama
+// tema **adına** bakıyor — numaraya bakan bir test, tur formülünün her
+// değişiminde olmayan bir hata uydurur.
+console.log('\nfinal bölümleri (Cup Night):');
+console.log('bölüm | tahta   | kolos | eşya    | para   | uzaklık');
+console.log('------+---------+-------+---------+--------+--------');
+const finals = [];
+for (let n = 1; n <= 120; n++) {
+  const r = await pg.evaluate((lvl) => {
+    const p = window.fruitHoleProbe(lvl);
+    return { kind: p.kind, mission: p.mission,
+             theme: window.fruitHoleTheme().theme, ...window.fruitHoleBoss() };
+  }, n);
+  if (r.theme !== 'Cup Night') continue;
+  finals.push({ n, ...r });
+  console.log(`${String(n).padStart(5)} | ${r.kind.padEnd(7)} | ` +
+    `${(r.boss ? 'var' : 'yok').padStart(5)} | ` +
+    `${String(r.prop ?? '-').padEnd(7)} | ${String(r.type ?? '-').padEnd(6)} | ` +
+    `${r.distFromSpawn ?? '-'}`);
+}
+// Bulmaca, resim ve şerit tahtaları kolos almıyor (bkz. `isFinalLevel`) —
+// onlarda kupa yok ve rozet de yok. Tarama o yüzden kolosu olanlara bakıyor,
+// ama "hiçbirinde yok" hâli de bir hata: en az iki gerçek final olmalı.
+const kupali = finals.filter(r => r.boss);
+check(finals.length >= 2, '120 bölümde en az iki Cup Night var', `${finals.length} tane`);
+check(kupali.length >= 2, 'en az iki Cup Night ızgara tahtası (yani gerçek final)',
+  `${kupali.length} / ${finals.length}`);
+check(kupali.every(r => r.prop === 'bigcup'), 'finaldeki kolos kupa',
+  kupali.map(r => r.prop).join(' '));
+check(kupali.every(r => r.distFromSpawn > 8), 'kupa tahtanın öbür ucunda',
+  kupali.map(r => r.distFromSpawn).join(' '));
+
+// Görev bölümüne kupa konmuyor.
+//
+// Saat tahtayı süpürmekten çıkıyor, kolosu açacak kadar **büyümekten**
+// değil: bir görev bölümünde "bütün muzları ye" denip muzlardan biri ancak
+// tarlanın yarısı süpürülünce açılan bir kupaysa, saat o işi hiç saymıyor.
+// Patronda bu güvence bölüm numarasından geliyordu (onda bir ile onuncunun
+// beşincisi çakışmaz); final temadan hesaplandığı için o güvence kendi
+// kendine kalkıyordu.
+//
+// Üç bölüm elle yazılı, çünkü ilk çakışma 415'te: 1..120 taraması hiçbirini
+// görmüyor ve "çakışma yok" diye geçerdi. Üçü 2000 bölüm taranarak bulundu.
+console.log('\ngörev + Cup Night çakışması:');
+for (const n of [415, 545, 1125]) {
+  const r = await pg.evaluate((lvl) => {
+    const p = window.fruitHoleProbe(lvl);
+    return { mission: p.mission, theme: window.fruitHoleTheme().theme,
+             boss: window.fruitHoleBoss().boss };
+  }, n);
+  console.log(`  bölüm ${n}  ${r.theme}  görev: ${r.mission}  kolos: ${r.boss ? 'var' : 'yok'}`);
+  check(r.theme === 'Cup Night' && !!r.mission && !r.boss,
+    `${n}: görevli Cup Night bölümüne kupa konmuyor`,
+    `${r.theme} / ${r.mission} / ${r.boss ? 'kolos var' : 'kolos yok'}`);
+}
+// Patron bölümünün kolosu **kupa olmamalı**: ikisi ayrı şey, ve tek yönlü bir
+// kontrol "her kolos kupa" haline gelmiş olsa da geçerdi.
+check(bosses.every(r => r.prop === null), 'patron bölümünün kolosu hâlâ meyve',
+  bosses.map(r => r.prop ?? 'meyve').join(' '));
 
 console.log('\nhatalar: ' + (errs.length ? errs.join(' | ') : 'yok'));
 console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');

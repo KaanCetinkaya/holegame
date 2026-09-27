@@ -1090,6 +1090,62 @@ const BOSS_EVERY = 10;
 // both run during boot, before a const declared further down has been
 // initialised, and reading one there throws.
 function isBossLevel(n) { return n > 0 && n % BOSS_EVERY === 0; }
+// Kupa gecesi bir **final**: tahtanın ucunda devasa kupa, ve onu yutmadan
+// bölüm bitmiyor.
+//
+// Patron bölümleri onda bir geliyor (10, 20, 30...), Cup Night ise düzen
+// sırasından 9. bölüme düşüyor — yani ikisi hiç çakışmıyordu ve Şampiyonlar
+// gecesinin "final" diye bir şeyi yoktu. Artık kolos oraya da konuyor, ve
+// oradaki kolos meyve değil kupanın kendisi.
+//
+// `isBossLevel` gibi bu da fonksiyon bildirimi ve saf: bölüm listesi boot
+// sırasında bütün bölümler için çağırıyor, yani `currentTheme` gibi oyun
+// içinde kurulan hiçbir şeye bakamaz. Tema, `themeForLevel`in aynısıyla
+// bölüm numarasından hesaplanıyor.
+const FINAL_THEME = 'ucl';
+// `PATTERNS` bu satırdan çok sonra kuruluyor ve bölüm listesi boot sırasında
+// bütün bölümler için buraya uğruyor: doğrudan okumak
+// "Cannot access 'PATTERNS' before initialization" veriyor ve oyun hiç
+// açılmıyor. Bu dosyada **altıncı** kez aynı tuzak, ve altısını da
+// `scratchpad/holeboot.mjs` yakaladı.
+//
+// Bayrak `PATTERNS` kurulduktan hemen sonra açılıyor. O ana kadar final
+// bölümü yok sayılıyor; liste zaten her bölüm değişiminde yeniden çiziliyor,
+// yani oyuncunun gördüğü ilk listede bile işaret yerinde oluyor.
+let _patternsReady = false;
+function themeIdForLevel(n) {
+  const p = patternForLevel(n);
+  const t = Math.floor((n - 1) / PATTERNS.length);
+  if (t === 0) return p.theme || 'mixed';
+  const i = PATTERNS.indexOf(p);
+  return THEME_IDS[((i < 0 ? 0 : i) + t * 3) % THEME_IDS.length];
+}
+// İki şart daha, ve ikisi de ölçülerek eklendi.
+//
+// **Tahta ızgara olmalı.** `buildField`, bulmaca/resim/şerit tahtalarında
+// `placeColossus`u hiç çağırmıyor, çünkü o üçünün tahtası bir meyve tarlası
+// değil. Bu şart olmayınca 48. bölüm — Cup Night ve bir bulmaca tahtası —
+// rozetinde "FINAL" diyordu ama ortada kupa yoktu. `holeboss.mjs` yakaladı.
+//
+// **Görev olmamalı.** Patron bölümü ile görev bölümü tasarım gereği hiç
+// çakışmıyor (biri onda bir, öteki onuncunun beşincisi) ve kolosun saatte bir
+// karşılığı yok: saat tahtayı süpürmekten çıkıyor, kolosu açacak kadar
+// büyümekten değil. Final tema üzerinden hesaplandığı için o güvence kendi
+// kendine kalkıyordu — tarandı, 415'te devler görevi, 545'te rush, 1125'te
+// sipariş görevi kupayla aynı bölüme düşüyor. Oyuncunun oraya varması ihtimal
+// dışı ama 45. bölümün geçilemediği hata tam bu cinstendi: saat, tahtanın
+// isteyeceği işi bilmiyordu.
+//
+// Hepsi fonksiyon bildirimi ama okudukları sabitler bu satırdan sonra
+// kuruluyor; `_patternsReady` kısa devresi onları boot sırasında hiç
+// çağırmıyor, o yüzden güvenli. (`missionKindFor` bulmaca bölümüne de 'puzzle'
+// diyor, yani bulmaca ayrıca yazılmıyor.)
+function isFinalLevel(n) {
+  return _patternsReady && n > 0 && themeIdForLevel(n) === FINAL_THEME
+    && !isPictureLevel(n) && !isRibbonLevel(n) && !missionKindFor(n);
+}
+// Kolos hangi bölümlerde var: patron ya da final.
+function hasColossus(n) { return isBossLevel(n) || isFinalLevel(n); }
 // Sipariş bölümü: tarlayı süpürerek değil, **tek bir meyvenin hepsini**
 // yiyerek bitiyor. Her onuncu bölümün beşincisi — yani 5, 15, 25 — yani
 // patronla hiç çakışmıyor ve iki sipariş arası on bölüm.
@@ -2927,7 +2983,8 @@ function refreshLevelTag() {
     return;
   }
   document.getElementById('levelBadge').innerHTML =
-    (isBossLevel(level) ? '👑 ' : '') + `LEVEL <span id="levelN">${level}</span>`;
+    (isFinalLevel(level) ? '🏆 ' : isBossLevel(level) ? '👑 ' : '') +
+    `LEVEL <span id="levelN">${level}</span>`;
   const best = stars[level] ? '  ' + '★'.repeat(stars[level]) : '';
   // Both halves of what makes this level itself: where you are, and what
   // shape the field is in.
@@ -2953,7 +3010,7 @@ function refreshLevelTag() {
   // gördüğün şeyin adı olmayan bir ad, yani bilgi değil gürültü.
   const resim = !dailyRun && isPictureLevel(level) ? pictureFor(level) : null;
   patternTagEl.textContent = loop + ord +
-    (isBossLevel(level) ? 'BOSS · ' : '') +
+    (isFinalLevel(level) ? 'FINAL · ' : isBossLevel(level) ? 'BOSS · ' : '') +
     (resim ? `${th ? th.icon + ' ' : ''}🎨 ${resim.name}`
            : p ? `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}` : '') + best;
 }
@@ -3405,7 +3462,7 @@ function renderLevels() {
     }
     const got = stars[n] || 0;
     const locked = n > level;
-    const boss = isBossLevel(n);
+    const boss = hasColossus(n);
     // Sipariş bölümü listede de işaretli: oyuncu neyin geldiğini görüyor, ve
     // on bölümde bir gelen bir şeyin beklenmesi bir sebep.
     const ord = missionKindFor(n);
@@ -13650,6 +13707,8 @@ for (const p of PATTERNS) {
   if (!LEVEL_ORDER.includes(p.name)) throw new Error(`LEVEL_ORDER is missing ${p.name}`);
 }
 PATTERNS.sort((a, b) => LEVEL_ORDER.indexOf(a.name) - LEVEL_ORDER.indexOf(b.name));
+// Bundan sonra `themeIdForLevel` güvenle çağrılabilir.
+_patternsReady = true;
 
 // ---------------------------------------------------------------------
 // Tarla tek tek nesne değil, yığın
@@ -14371,7 +14430,7 @@ function buildField() {
   // forceBoss is a test override: it lets the same level be built both with
   // and without the colossus so the two can be compared with nothing else
   // moving. Null in normal play.
-  const wantBoss = forceBoss == null ? (!dailyRun && isBossLevel(level)) : forceBoss;
+  const wantBoss = forceBoss == null ? (!dailyRun && hasColossus(level)) : forceBoss;
   if (wantBoss && !bulmaca && !resim && !serit) placeColossus();
 
   // Kolosun ezdiği parçaları listeden düşür.
@@ -14531,7 +14590,7 @@ function placeRocks() {
     if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + ROCK_R + 3) continue;
     // Kolosun yeri de açık kalmalı: patron meyvesinin önüne kaya koymak,
     // bölümün tek hedefini erişilmez yapabilir.
-    if (isBossLevel(level) && Math.hypot(x - 0, z + fieldHalfZ * 0.55) < COLOSSUS_R + gap * 0.5) continue;
+    if (hasColossus(level) && Math.hypot(x - 0, z + fieldHalfZ * 0.55) < COLOSSUS_R + gap * 0.5) continue;
     if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < gap)) continue;
     // Altındaki meyveleri al. Devlerin yaptığının aynısı: bir kayanın içinden
     // görünen meyve, yutulamayacağı hâlde yutulabilir duruyor.
@@ -15055,7 +15114,19 @@ function placeColossus() {
     type = f.type;
     unbuildFruit(f);
   }
-  const vis = fruitVisual(type, COLOSSUS_R, true);
+  // Finalde kolos meyve değil **kupa**.
+  //
+  // Bölümün tek hedefi tahtanın ucundaki şey ve o şey bir kupaysa bölüm bir
+  // final oluyor: süpür, büyü, kupayı al. Meyve olsaydı Cup Night ötekilerden
+  // yalnızca zeminiyle ayrılırdı.
+  //
+  // Prop biraz daha iri (1.12): kupa dar ve uzun, aynı yarıçapta bir meyvenin
+  // yanında küçük duruyordu — yutma kapısı yine `r`den, yani oynanış
+  // değişmiyor.
+  const kupa = currentTheme === THEMES[FINAL_THEME];
+  const vis = kupa ? propVisual('bigcup', COLOSSUS_R * 1.12)
+                   : fruitVisual(type, COLOSSUS_R, true);
+  if (kupa) type = vis.currency;
   const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
   mesh.scale.set(vis.sx, vis.sy, vis.sx);
   mesh.position.set(cx, vis.baseY, cz);
@@ -15064,7 +15135,7 @@ function placeColossus() {
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   fieldGroup.add(mesh);
-  fruits.push({ mesh, x: cx, z: cz, r: COLOSSUS_R, type, prop: null,
+  fruits.push({ mesh, x: cx, z: cz, r: COLOSSUS_R, type, prop: kupa ? 'bigcup' : null,
                 big: true, giant: true, colossus: true, eaten: false,
                 baseY: vis.baseY, nudge: 0 });
 }
@@ -17939,6 +18010,9 @@ window.fruitHoleBoss = () => {
   return {
     boss: true, count: cs.length,
     colossusR: +c.r.toFixed(2),
+    // Finalde kolos bir meyve değil kupa; testin ikisini ayırabilmesi için.
+    prop: c.prop || null,
+    type: c.type,
     // Kaç parça: tahtanın ortalama gücüne göre.
     eatsForColossus: Math.ceil(birim / Math.max(1, guc / Math.max(1, kalan.length))),
     pctForColossus: Math.round(100 * birim / Math.max(1, guc)),
@@ -18875,6 +18949,11 @@ window.fruitHoleProbe = (n) => {
   return {
     fruit: fruits.length, seconds: levelTime(),
     pattern: currentPattern.name,
+    // Tahtanın türü. Dört tür var ve üçü kolos almıyor; testin bir bölümde
+    // kolos olmamasını hata mı yoksa kural mı sayacağı buna bakıyor.
+    kind: isPictureLevel(n) ? 'resim' : isRibbonLevel(n) ? 'şerit'
+      : isPuzzleLevel(n) ? 'bulmaca' : 'ızgara',
+    mission: missionKindFor(n),
     holeR: holeRadius, holeMax: HOLE_MAX, speed: BASE_MOVE_SPEED,
     fieldW: fieldHalfX * 2, fieldH: fieldHalfZ * 2,
   };

@@ -20,16 +20,28 @@ gösteriyor ama ikisini yan yana koymuyor.
 ```
 New in this update:
 
-- Puzzle levels: rock walls split the board into rooms, each door a different width. The hole never shrinks, so the order you eat in is the puzzle.
-- Picture boards: a whole level drawn in fruit.
-- Ribbon boards: spirals, rings, pyramids and webs, with an object in the middle of each ring.
-- Grid boards no longer look shuffled.
-- Smoother on older phones.
-- Fixed a white screen after the app had been in the background.
+- Twenty-three new places: Hawaii, Manhattan, Dubai, Tokyo, Rio, Istanbul, Egypt and more, each with its own ground, light and objects.
+- Five football leagues, and a cup final: sweep the pitch, then take the giant trophy at the far end.
+- Puzzle levels: rock walls split the board into rooms.
+- New boards drawn in fruit: pictures, spirals, rings and webs.
 - Fixed mission levels that could not be beaten.
+- Fixed a white screen after the app had been in the background.
 ```
 
-İlk taslak 559 karakterdi. Kırpılan yerler: bulmacanın "saat yok" cümlesi
-(deliğin küçülmemesi zaten kuralı söylüyor), resim tahtasının "her onuncu
-bölüm" ayrıntısı (oyuncu sayıyı zaten görüyor) ve görev saatinin "yenilemez"
-gerekçesi.
+Bu not bir kez yeniden yazıldı. İlk hâli 36'dan sonra yapılan işin yarısını
+anlatıyordu — bulmaca, resim, şerit — çünkü o gün iş orada bitmişti. Sonra
+yirmi üç yer, beş lig ve bir final eklendi ve not eskidi: 37 hâlâ
+yüklenmemişti, yani oyuncunun göreceği değişikliklerin çoğu notun dışında
+kalacaktı.
+
+Ders, notu bir sürümün sonunda yazmak değil, **yüklemeden hemen önce**
+okumak: aradaki her commit notu biraz daha eskitiyor.
+
+İlk taslak 559, ikincisi 518 karakterdi. Kırpılan yerler: bulmacanın kapı
+genişliği ve "saat yok" cümlesi (deliğin küçülmemesi zaten kuralı söylüyor),
+şeridin ayrı satırı (resimle tek satırda birleşti), "ızgara tahtaları artık
+karışık durmuyor" ve "eski telefonlarda daha akıcı" — ikisi de bir önceki
+sürümün yanında küçük kalıyor.
+
+Yirmi üç sayısı elle sayılmadı: `THEMES` tablosu bugün 34 yer (artı `mixed`),
+36 yüklenirken 11'di.

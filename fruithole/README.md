@@ -2335,6 +2335,99 @@ Elle altı kez yazmak, altısını da birbirine benzetmenin en kolay yoluydu.
 Kulplar her birinde var ve sebebi tek: yukarıdan bir kupayı bir kadehten
 ayıran şey onlar, ve siluetin dışına çıkan tek parça.
 
+### Kupa gecesi bir final
+
+İlk yazışta Cup Night ötekilerden yalnızca **zeminiyle** ayrılıyordu: aynı
+süpürme, başka bir çim deseni. Oysa adı bir maç değil bir final söylüyor.
+
+Kolos (tahtanın öbür ucundaki, ancak tarlanın yarısı süpürülünce açılan
+devasa parça) yalnızca patron bölümlerindeydi ve patron **onda bir** geliyor;
+Cup Night ise düzen sırasından 9. bölüme düşüyor, yani ikisi hiç
+çakışmıyordu. Şimdi o temanın bölümlerine de kolos konuyor (hepsine değil —
+şartlar aşağıda), ve oradaki kolos meyve değil **kupanın kendisi**: süpür,
+büyü, kupayı al, bölüm bitti.
+
+Prop bir tık iri konuyor (`COLOSSUS_R * 1.12`), çünkü kupa dar ve uzun —
+aynı yarıçapta bir karpuzun yanında küçük duruyordu. Yutma kapısı yine `r`den
+okunuyor, yani görüntü büyüdü, oynanış değişmedi.
+
+Bir de bu kolosun **para birimi** kupanın kendisinden geliyor (`vis.currency`),
+yoksa ekranda kupa yutulup "🍉 +9" yazıyordu.
+
+#### Hangi bölüm final: iki şart daha, ikisi de ölçüyle
+
+**Tahta ızgara olmalı.** `buildField`, bulmaca/resim/şerit tahtalarında
+`placeColossus`u hiç çağırmıyor — o üçünün tahtası bir meyve tarlası değil.
+Bu şart yokken 48. bölüm (Cup Night, bulmaca tahtası) rozetinde "FINAL"
+diyordu ama ortada kupa yoktu.
+
+**Görev olmamalı.** Patron bölümü ile görev bölümü tasarım gereği hiç
+çakışmıyor: biri onda bir, öteki onuncunun beşincisi. Final tema üzerinden
+hesaplandığı için o güvence kendiliğinden kalkıyordu, ve bu tahmin değil:
+iki bin bölüm tarandı, ilk çakışma **415**'te (devler görevi), sonra 545
+(rush) ve 1125 (sipariş).
+
+Neden önemli: saat tahtayı **süpürmekten** çıkıyor, kolosu açacak kadar
+büyümekten değil. "Bütün muzları ye" diyen bir bölümde muzlardan biri ancak
+tarlanın yarısı süpürülünce açılan bir kupaysa, saat o işi hiç saymıyor —
+45. bölümün geçilememesi tam bu cinsten bir hataydı. Oyuncunun 415. bölüme
+varması ihtimal dışı; kural yine de kodda duruyor, çünkü ihtimal dışı olan
+şey bir gün desen sırası değişince ihtimal dahiline giriyor.
+
+Şart `!missionKindFor(n)` diye yazıldı, üç ayrı kontrol olarak değil:
+`missionKindFor` bulmaca bölümüne de 'puzzle' diyor, yani bulmaca ayrıca
+yazılmıyor.
+
+Testi de elle yazılmış üç bölüme bakıyor (415, 545, 1125), çünkü
+`holeboss.mjs`'in 1..120 taraması hiçbirini görmüyor ve "çakışma yok" diye
+geçerdi.
+
+#### Ve altıncı kez aynı tuzak
+
+"Hangi bölüm final" sorusunun cevabı bölüm numarasında değil: tema tur
+ilerledikçe kayıyor, yani numaradan hesaplanması gerekiyor
+(`themeIdForLevel`). İlk yazışta o fonksiyon doğrudan `PATTERNS`'i okudu ve
+oyun **hiç açılmadı**: bölüm listesi boot sırasında bütün bölümler için
+buraya uğruyor, `PATTERNS` ise o satırdan çok sonra kuruluyor —
+*"Cannot access 'PATTERNS' before initialization"*.
+
+Bu dosyada altıncı kez, ve altısını da `scratchpad/holeboot.mjs` yakaladı.
+Çözüm `_patternsReady` bayrağı: `PATTERNS.sort(...)`'un hemen ardından
+açılıyor, o ana kadar final bölümü yok sayılıyor. Liste her bölüm
+değişiminde yeniden çiziliyor, yani oyuncunun gördüğü ilk listede bile 🏆
+yerinde oluyor.
+
+Testi (`holeboss.mjs`) numaraya değil tema **adına** bakıyor ve iki yönlü:
+her Cup Night bölümünde kolos kupa, **ve** her patron bölümünde kolos hâlâ
+meyve. Tek yönlü olsaydı "her kolos kupa" haline gelmiş bir hata da geçerdi.
+
+#### Ve "her onuncu bölüm" diyen iki test
+
+Kolos artık iki yerden geliyor, ama iki test onu hâlâ bölüm numarasından
+tanıyordu:
+
+- `holeboss.mjs`, "kolos varsa patrondur" diyordu ve 9. bölüm final olunca
+  düştü.
+- `giants.mjs`, kolos bölümlerine daha geniş bir bant veriyor (kolos tasarım
+  gereği tarla süpürülene kadar açılmıyor) ve o bandı `lvl % 10 === 0` ile
+  seçiyordu. 9. bölümde ölçtüğü "en geniş dev" artık kupa, yani %78 çıktı ve
+  normal bandın üst sınırı %50.
+
+İkisi de aynı şekilde düzeltildi: sorulan şey bölüm numarası değil, **tahtada
+kolos var mı** (`fruitHoleBoss().boss`).
+
+#### Bir de tohumsuz bir tablo
+
+`holeboss.mjs`'in ilk tablosu tohum vermiyordu ve ölçtüğü oran her koşuda on
+puan kayıyordu: 60. bölüm bir koşuda %88, bir başkasında %97 — ve sınır %96.
+Yani test, kodda hiçbir şey değişmeden arada bir düşüyordu ve düştüğünde
+hiçbir şey anlatmıyordu.
+
+Artık her bölüm üç tohumla kuruluyor ve **en kötüsü** yazılıyor. Tek tohum
+ölçümü sabitlerdi ama yayılımı da saklardı; sınıra ne kadar yakın olduğumuz o
+yayılımda görünüyor — ve görünen şu: 60. bölüm %85–%90 ile sınırın dibinde.
+Bu finalden gelmiyor, eski bir patron dengesi; kayıt burada dursun.
+
 ### Ölçek artık doldu
 
 Otuz dört düzen, otuz dört yer — her yere **tam bir tane**. Bu, testin izin
