@@ -7651,6 +7651,638 @@ function propTemplates() {
     T.papyrus = { g, h: 0.4, currency: 'lychee', only: 'giant' };
   }
 
+  // --- ligler --------------------------------------------------------
+  //
+  // Beş lig ve bir kupa gecesi. Hiçbirinde gerçek kulüp adı, arması ya da
+  // lig logosu yok ve olamaz: hepsi tescilli, oyun da mağazada. Ayıran şey
+  // **renk ve biçim** — onlar serbest. Her ligin kupası başka siluette,
+  // atkısı o ligin tribün renginde, ve yanındaki iki nesne o ülkenin maç
+  // gününden.
+
+  // Kupa yapan yardımcı: kaide + gövde + iki kulp.
+  //
+  // Altı kupa var ve hepsi aynı parçalardan kuruluyor; ayıran şey oranlar.
+  // Elle altı kez yazmak, altısını da birbirine benzetmenin en kolay yoluydu.
+  const kupaYap = (g2, opt) => {
+    const m = opt.mat, koyu = opt.taban;
+    put(g2, new THREE.Mesh(bevelBox(opt.tabanEn, 0.22, opt.tabanEn, 0.06), koyu), 0, 0.11, 0);
+    put(g2, new THREE.Mesh(new THREE.CylinderGeometry(opt.boyunR, opt.boyunR, 0.3, 14), m),
+        0, 0.37, 0);
+    const kase = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 14, 0, Math.PI * 2, 0, Math.PI / 2), m);
+    kase.scale.set(opt.kaseR, opt.kaseY, opt.kaseR);
+    put(g2, kase, 0, opt.kaseAlt, 0, Math.PI, 0, 0);
+    put(g2, new THREE.Mesh(new THREE.TorusGeometry(opt.kaseR * 0.98, 0.05, 8, 22), m),
+        0, opt.kaseAlt, 0, Math.PI / 2, 0, 0);
+    // Kulplar: yukarıdan kupayı bir kadehten ayıran tek şey, ve siluetin
+    // dışına çıkan tek parça.
+    for (const sx of [-1, 1])
+      put(g2, new THREE.Mesh(new THREE.TorusGeometry(opt.kulp, 0.055, 8, 16, Math.PI), m),
+          sx * opt.kaseR * 0.96, opt.kaseAlt - opt.kaseY * 0.45, 0,
+          0, sx > 0 ? -Math.PI / 2 : Math.PI / 2, 0);
+  };
+
+  // --- ingiltere -----------------------------------------------------
+
+  // Lig kupası: uzun, kapaklı, kurdeleli.
+  {
+    const g = new THREE.Group();
+    const gumus = PROP_MAT('#d4d8dc', 0.24);
+    kupaYap(g, { mat: gumus, taban: PROP_MAT('#2b2118', 0.5), tabanEn: 0.86,
+                 boyunR: 0.13, kaseR: 0.52, kaseY: 0.62, kaseAlt: 1.14, kulp: 0.22 });
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.52, 0.12, 18), gumus), 0, 1.18, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2), gumus),
+        0, 1.24, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), gumus), 0, 1.66, 0);
+    // Kurdeleler: kupanın kazanıldığını söyleyen şey, ve yukarıdan görünen
+    // tek renk.
+    for (const [sx, renk] of [[-1, '#c4402f'], [1, '#f2f2ee']])
+      put(g, new THREE.Mesh(bevelBox(0.16, 0.04, 0.72, 0.02), PROP_MAT(renk, 0.5)),
+          sx * 0.56, 0.86, 0.18, 0, sx * 0.4, 0);
+    T.leaguecup = { g, h: 1.8, currency: 'lychee', only: 'giant' };
+  }
+
+  // Atkı: kırmızı beyaz, iki ucu püsküllü.
+  {
+    const g = new THREE.Group();
+    const a = PROP_MAT('#c4402f', 0.7), b = PROP_MAT('#f2f2ee', 0.7);
+    // Yerde serili ve hafif dalgalı: gergin dursaydı yukarıdan bir çubuk
+    // olurdu. Şerit şerit iki renk, atkıyı bir bezden ayıran şey.
+    for (let i = 0; i < 12; i++) {
+      const z = -1.0 + i * 0.18;
+      put(g, new THREE.Mesh(bevelBox(0.5, 0.07, 0.19, 0.03), i % 2 ? b : a),
+          Math.sin(i * 0.5) * 0.12, 0.05, z, 0, Math.sin(i * 0.5) * 0.2, 0);
+    }
+    for (const sz of [-1.12, 1.12]) for (let k = 0; k < 4; k++)
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.16, 5), b),
+          -0.16 + k * 0.11, 0.05, sz, Math.PI / 2, 0, 0);
+    T.scarf = { g, h: 0.14, currency: 'berry', only: 'giant' };
+  }
+
+  // Korner bayrağı.
+  {
+    const g = new THREE.Group();
+    const direk = PROP_MAT('#f2f2ee', 0.4);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.08, 12),
+                          PROP_MAT('#2b2118', 0.5)), 0, 0.04, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 1.5, 8), direk), 0, 0.78, 0);
+    // Bayrak: dikdörtgen ve yatay duruyor, yani yukarıdan görünüyor. Dik
+    // dursaydı tepeden ince bir çizgi olurdu.
+    put(g, new THREE.Mesh(bevelBox(0.54, 0.04, 0.4, 0.02), PROP_MAT('#e8c04a', 0.5)),
+        0.3, 1.38, 0);
+    put(g, new THREE.Mesh(bevelBox(0.5, 0.05, 0.1, 0.02), PROP_MAT('#c4402f', 0.5)),
+        0.3, 1.41, -0.12);
+    T.cornerflag = { g, h: 1.6, currency: 'melon', only: 'giant' };
+  }
+
+  // Tribün çıngırağı: tahta kutu, çevrilen kolu.
+  {
+    const g = new THREE.Group();
+    const ahsap = PROP_MAT('#a8622a', 0.6);
+    const koyu = PROP_MAT('#6b3f18', 0.62);
+    put(g, new THREE.Mesh(bevelBox(0.7, 0.62, 0.5, 0.1), ahsap), 0, 0.64, 0);
+    for (const sx of [-0.38, 0.38])
+      put(g, new THREE.Mesh(bevelBox(0.08, 0.66, 0.54, 0.03), koyu), sx, 0.64, 0);
+    // Dişli ve dil: çıngırağı bir kutudan ayıran şey.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.62, 8), koyu),
+        0, 0.64, 0, 0, 0, Math.PI / 2);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.9, 8), ahsap), 0, 0.28, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10), koyu), 0, -0.1, 0);
+    put(g, new THREE.Mesh(bevelBox(0.12, 0.3, 0.06, 0.02), koyu), 0.42, 1.0, 0, 0, 0, 0.5);
+    T.rattle = { g, h: 1.2, currency: 'banana', only: 'giant' };
+  }
+
+  // Projektör direği.
+  {
+    const g = new THREE.Group();
+    const celik = PROP_MAT('#8c939c', 0.35);
+    const lamba = PROP_MAT('#fff3c4', 0.15);
+    put(g, new THREE.Mesh(bevelBox(0.62, 0.14, 0.62, 0.05), PROP_MAT('#4a4f58', 0.5)), 0, 0.07, 0);
+    // Kafes direk: dört ayak ve çapraz bağlar, yukarıdan kare bir iz.
+    for (const sx of [-0.2, 0.2]) for (const sz of [-0.2, 0.2])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 2.4, 6), celik),
+          sx * 1.0, 1.25, sz * 1.0, sz * 0.06, 0, -sx * 0.06);
+    for (const y of [0.7, 1.4, 2.1])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.02, 5, 4), celik), 0, y, 0,
+          Math.PI / 2, Math.PI / 4, 0);
+    // Lamba panosu: yukarıdan direği direk yapan asıl parça.
+    put(g, new THREE.Mesh(bevelBox(1.1, 0.12, 0.6, 0.05), celik), 0, 2.6, 0.1, -0.3, 0, 0);
+    for (let i = 0; i < 4; i++) for (const sz of [-0.12, 0.12])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.07, 10), lamba),
+          -0.4 + i * 0.27, 2.68, 0.1 + sz, -0.3, 0, 0);
+    T.floodlight = { g, h: 2.8, currency: 'lychee', only: 'giant' };
+  }
+
+  // --- ispanya -------------------------------------------------------
+
+  // Copa: geniş ağızlı, alçak kupa.
+  {
+    const g = new THREE.Group();
+    const altin = PROP_MAT('#e8c04a', 0.24);
+    kupaYap(g, { mat: altin, taban: PROP_MAT('#4a2f1e', 0.5), tabanEn: 0.96,
+                 boyunR: 0.16, kaseR: 0.72, kaseY: 0.42, kaseAlt: 0.9, kulp: 0.3 });
+    // Ağzındaki kabartma bant.
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.66, 0.04, 8, 24),
+                          PROP_MAT('#c49a2a', 0.3)), 0, 0.76, 0, Math.PI / 2, 0, 0);
+    T.copa = { g, h: 1.0, currency: 'melon', only: 'giant' };
+  }
+
+  // Flama: üçgen, sırıkta.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.3, 8),
+                          PROP_MAT('#8a5a2b', 0.55)), 0, 0.65, 0);
+    // Üçgen yere paralel: dik dursa yukarıdan çizgi olurdu.
+    const ucgen = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.9, 3), PROP_MAT('#c4402f', 0.5));
+    put(g, ucgen, 0.4, 1.24, 0, Math.PI / 2, 0, -Math.PI / 2);
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.56, 3), PROP_MAT('#e8c04a', 0.5)),
+        0.28, 1.27, 0, Math.PI / 2, 0, -Math.PI / 2);
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), PROP_MAT('#e8c04a', 0.4)),
+          0.76 + i * 0.05, 1.24, -0.12 + i * 0.12);
+    T.pennant = { g, h: 1.4, currency: 'berry', only: 'giant' };
+  }
+
+  // Devre arası portakalı: yarım kesilmiş, tabakta.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.76, 0.08, 20),
+                          PROP_MAT('#e0dcd0', 0.4)), 0, 0.04, 0);
+    // Dilimler: yukarıdan portakalı bir toptan ayıran şey.
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      const yarim = new THREE.Mesh(
+        new THREE.SphereGeometry(0.28, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2),
+        PROP_MAT('#e8873a', 0.5));
+      put(g, yarim, Math.cos(a) * 0.42, 0.08, Math.sin(a) * 0.42, Math.PI, 0, 0);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.03, 16),
+                            PROP_MAT('#f2b45a', 0.45)),
+          Math.cos(a) * 0.42, 0.1, Math.sin(a) * 0.42);
+      for (let k = 0; k < 6; k++) {
+        const b = (k / 6) * Math.PI * 2;
+        put(g, new THREE.Mesh(bevelBox(0.02, 0.02, 0.22, 0.01), PROP_MAT('#f8e0b8', 0.5)),
+            Math.cos(a) * 0.42 + Math.cos(b) * 0.11, 0.12,
+            Math.sin(a) * 0.42 + Math.sin(b) * 0.11, 0, -b, 0);
+      }
+    }
+    T.orangehalf = { g, h: 0.4, currency: 'banana', only: 'giant' };
+  }
+
+  // Paella tavası.
+  {
+    const g = new THREE.Group();
+    const demir = PROP_MAT('#4a4f58', 0.45);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(1.0, 0.86, 0.18, 26), demir), 0, 0.09, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.94, 0.94, 0.06, 26),
+                          PROP_MAT('#e8b93a', 0.6)), 0, 0.17, 0);
+    // İçindekiler: karides, biber, bezelye. Yukarıdan tavayı tavadan başka
+    // bir şey yapan tek katman.
+    const malzeme = [['#e8785f', 0.36, 0], ['#c4402f', 0.2, 0.62], ['#6aa84f', 0.14, 0.3]];
+    let n = 0;
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2 * 1.8;
+      const r2 = 0.2 + (i % 4) * 0.18;
+      const [renk, sz, uz] = malzeme[n++ % 3];
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(sz, 10, 8), PROP_MAT(renk, 0.5)),
+          Math.cos(a) * r2, 0.22, Math.sin(a) * r2).scale.set(1, 0.6, 1 + uz);
+    }
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.05, 8, 14), demir),
+          sx * 1.06, 0.12, 0, 0, sx > 0 ? -Math.PI / 2 : Math.PI / 2, 0);
+    T.paella = { g, h: 0.4, currency: 'melon', only: 'giant' };
+  }
+
+  // Megafon.
+  {
+    const g = new THREE.Group();
+    const kasa = PROP_MAT('#d3402f', 0.35);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.24, 0.9, 18), kasa),
+        0, 0.4, 0.3, Math.PI / 2 - 0.25, 0, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.05, 8, 20),
+                          PROP_MAT('#f2f2ee', 0.4)), 0, 0.5, 0.72, 0.25, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.3, 12), PROP_MAT('#2b2f36', 0.5)),
+        0, 0.3, -0.24, Math.PI / 2 - 0.25, 0, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.05, 8, 14), PROP_MAT('#2b2f36', 0.5)),
+        0, 0.12, -0.1, 0, Math.PI / 2, 0);
+    T.megaphone = { g, h: 0.8, currency: 'lychee', only: 'giant' };
+  }
+
+  // --- italya --------------------------------------------------------
+
+  // Coppa: ince, uzun kaideli.
+  {
+    const g = new THREE.Group();
+    const gumus = PROP_MAT('#cfd4da', 0.22);
+    kupaYap(g, { mat: gumus, taban: PROP_MAT('#1f3a63', 0.45), tabanEn: 0.8,
+                 boyunR: 0.1, kaseR: 0.42, kaseY: 0.7, kaseAlt: 1.26, kulp: 0.26 });
+    // Uzun boyun iki bilezikli: bu kupayı ötekilerden ayıran oran.
+    for (const y of [0.54, 0.78])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.04, 8, 14), gumus), 0, y, 0,
+          Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.62, 12), gumus), 0, 0.66, 0);
+    T.coppa = { g, h: 1.9, currency: 'berry', only: 'giant' };
+  }
+
+  // Vespa.
+  {
+    const g = new THREE.Group();
+    const boya = PROP_MAT('#7ac0c0', 0.3);
+    const koyu = PROP_MAT('#2b2f36', 0.45);
+    const krom = PROP_MAT('#c9c2b4', 0.25);
+    // Gövde: arkada şişkin, önde dar — vespanın silueti bu.
+    const govde = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 12), boya);
+    govde.scale.set(1, 0.9, 1.15);
+    put(g, govde, 0, 0.52, -0.5);
+    put(g, new THREE.Mesh(bevelBox(0.5, 0.18, 0.9, 0.08), koyu), 0, 0.64, -0.1);
+    // Ön kalkan: vespanın imzası, ve yukarıdan en geniş parça.
+    put(g, new THREE.Mesh(bevelBox(0.66, 0.5, 0.26, 0.1), boya), 0, 0.54, 0.62, 0.3, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.6, 8), krom),
+        0, 0.86, 0.5, -0.4, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.7, 8), krom),
+        0, 1.06, 0.36, 0, 0, Math.PI / 2);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 10), krom), 0, 0.98, 0.6);
+    for (const [sz, r2] of [[-0.86, 0.26], [0.72, 0.26]]) {
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(r2, r2, 0.14, 14), koyu), 0, 0.26, sz,
+          0, 0, Math.PI / 2);
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.16, 10), krom), 0, 0.26, sz,
+          0, 0, Math.PI / 2);
+    }
+    T.vespa = { g, h: 1.2, currency: 'lychee', only: 'giant' };
+  }
+
+  // Espresso fincanı.
+  {
+    const g = new THREE.Group();
+    const porselen = PROP_MAT('#f6f2e8', 0.32);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.66, 0.07, 22), porselen), 0, 0.04, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.32, 0.46, 18), porselen), 0, 0.3, 0);
+    // Krema: fincanı boş bir kaptan ayıran şey, ve yukarıdan görünen tek yüz.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.05, 18),
+                          PROP_MAT('#b5763a', 0.45)), 0, 0.52, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.045, 8, 14), porselen),
+        0.46, 0.34, 0, 0, Math.PI / 2, 0);
+    put(g, new THREE.Mesh(bevelBox(0.05, 0.02, 0.4, 0.01), PROP_MAT('#c9c2b4', 0.3)),
+        -0.4, 0.08, 0.2, 0, 0.6, 0);
+    T.espresso = { g, h: 0.6, currency: 'melon', only: 'giant' };
+  }
+
+  // Sarılı tifo pankartı.
+  {
+    const g = new THREE.Group();
+    const bez = PROP_MAT('#1f3a63', 0.6);
+    // Yarı açılmış: yerde bir dikdörtgen, bir ucu hâlâ rulo. Tamamen açık
+    // olsaydı yukarıdan sadece bir levha olurdu.
+    put(g, new THREE.Mesh(bevelBox(1.6, 0.06, 1.0, 0.03), bez), 0, 0.05, 0.2);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.6, 16), bez),
+        0, 0.2, -0.5, 0, 0, Math.PI / 2);
+    // Üstündeki yazı yerine üç kalın şerit: bu ölçekte harf okunmuyor.
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(bevelBox(1.3, 0.03, 0.16, 0.02), PROP_MAT('#e8c04a', 0.5)),
+          0, 0.09, -0.1 + i * 0.3);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 6),
+                            PROP_MAT('#8a5a2b', 0.55)), sx * 0.86, 0.2, -0.5, 0, 0, Math.PI / 2);
+    T.tifo = { g, h: 0.45, currency: 'banana', only: 'giant' };
+  }
+
+  // Sis fişeği.
+  {
+    const g = new THREE.Group();
+    const govde = PROP_MAT('#2b2f36', 0.5);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.9, 14), govde), 0, 0.45, 0);
+    for (const y of [0.2, 0.7])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.035, 8, 14),
+                            PROP_MAT('#c4402f', 0.45)), 0, y, 0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.12, 14),
+                          PROP_MAT('#c4402f', 0.4)), 0, 0.96, 0);
+    // Duman: yukarı ve yana savrulan küreler. Fişeği bir borudan ayıran şey,
+    // ve tahtadaki tek "hareket".
+    const duman = [[0, 1.2, 0, 0.26], [0.2, 1.5, 0.14, 0.34], [-0.16, 1.78, -0.1, 0.4],
+                   [0.3, 2.02, 0.22, 0.44], [-0.1, 2.26, 0.06, 0.38]];
+    for (const [x, y, z, r2] of duman)
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(r2, 12, 10),
+                            PROP_MAT('#e8785f', 0.85)), x, y, z);
+    T.flare = { g, h: 2.4, currency: 'berry', only: 'giant' };
+  }
+
+  // --- almanya -------------------------------------------------------
+
+  // Kalkan kupa: ötekilerden bambaşka, düz ve yuvarlak.
+  {
+    const g = new THREE.Group();
+    const gumus = PROP_MAT('#d4d8dc', 0.22);
+    const altin = PROP_MAT('#e8c04a', 0.26);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.96, 0.96, 0.12, 26), gumus), 0, 0.44, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.94, 0.07, 8, 28), altin), 0, 0.46, 0,
+        Math.PI / 2, 0, 0);
+    // Göbek kabartması ve ışınlar: yukarıdan kalkanı bir tepsiden ayıran şey.
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2), altin),
+        0, 0.5, 0);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      put(g, new THREE.Mesh(bevelBox(0.5, 0.03, 0.08, 0.02), altin),
+          Math.cos(a) * 0.6, 0.51, Math.sin(a) * 0.6, 0, -a, 0);
+    }
+    // Ayak: kalkanı yerden kaldıran üç kol.
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.4, 8), gumus),
+          Math.cos(a) * 0.4, 0.2, Math.sin(a) * 0.4);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.66, 0.1, 20),
+                          PROP_MAT('#2b2118', 0.5)), 0, 0.05, 0);
+    T.shieldtrophy = { g, h: 0.8, currency: 'lychee', only: 'giant' };
+  }
+
+  // Bira bardağı (maß).
+  {
+    const g = new THREE.Group();
+    const cam = PROP_MAT('#e8f0f4', 0.12);
+    const bira = PROP_MAT('#e0a428', 0.3);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.44, 1.1, 20), cam), 0, 0.55, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.4, 0.9, 20), bira), 0, 0.48, 0);
+    // Köpük: yukarıdan bardağı boş bir camdan ayıran şey.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.18, 20),
+                          PROP_MAT('#f8f2e4', 0.6)), 0, 1.0, 0);
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), PROP_MAT('#f8f2e4', 0.6)),
+          Math.cos(a) * 0.26, 1.12, Math.sin(a) * 0.26);
+    }
+    // Kabartma baklavalar: bira bardağının camındaki desen.
+    for (let k = 0; k < 3; k++) for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 + k * 0.3;
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), cam),
+          Math.cos(a) * 0.46, 0.3 + k * 0.28, Math.sin(a) * 0.46);
+    }
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.07, 8, 16, Math.PI), cam),
+        0.52, 0.6, 0, 0, -Math.PI / 2, 0);
+    T.beerstein = { g, h: 1.2, currency: 'banana', only: 'giant' };
+  }
+
+  // Bratwurst, ekmekte ve hardallı.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 1.0, 4, 12),
+                          PROP_MAT('#e0b371', 0.55)), 0, 0.3, 0, Math.PI / 2, 0, 0);
+    // Sosis ekmeğin **iki ucundan** taşıyor: bratwurstü sosisliden ayıran şey.
+    put(g, new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 1.6, 4, 12),
+                          PROP_MAT('#a8552f', 0.45)), 0, 0.5, 0, Math.PI / 2, 0, 0);
+    for (let i = 0; i < 9; i++)
+      put(g, new THREE.Mesh(bevelBox(0.3, 0.05, 0.07, 0.02), PROP_MAT('#f2c73c', 0.35)),
+          0, 0.68, -0.8 + i * 0.2, 0, i % 2 ? 0.5 : -0.5, 0);
+    T.bratwurst = { g, h: 0.8, currency: 'melon', only: 'giant' };
+  }
+
+  // Tribün davulu.
+  {
+    const g = new THREE.Group();
+    const kasa = PROP_MAT('#e8c04a', 0.35);
+    const deri = PROP_MAT('#f2e6cf', 0.55);
+    const siyah = PROP_MAT('#2b2b30', 0.5);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.88, 0.88, 0.62, 24), kasa), 0, 0.42, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.05, 24), deri), 0, 0.74, 0);
+    for (const y of [0.14, 0.72])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.89, 0.05, 8, 26), siyah), 0, y, 0,
+          Math.PI / 2, 0, 0);
+    // Zikzak gergi: davulu bir varilden ayıran şey.
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      put(g, new THREE.Mesh(bevelBox(0.05, 0.62, 0.05, 0.02), siyah),
+          Math.cos(a) * 0.9, 0.42, Math.sin(a) * 0.9, 0, -a, 0.25);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.0, 8),
+                          PROP_MAT('#b58a52', 0.6)), 0.5, 0.9, 0.5, 0.2, 0.8, 1.2);
+    T.bassdrum = { g, h: 0.9, currency: 'berry', only: 'giant' };
+  }
+
+  // Kaleci eldiveni, çift.
+  {
+    const g = new THREE.Group();
+    for (const [sx, dondur] of [[-0.42, 0.3], [0.44, -0.4]]) {
+      const el = new THREE.Group();
+      const avuc = new THREE.Mesh(new THREE.SphereGeometry(0.4, 14, 10), PROP_MAT('#3fa8c4', 0.5));
+      avuc.scale.set(0.9, 0.34, 1.05);
+      el.add(avuc);
+      // Parmaklar: eldiveni bir yastıktan ayıran şey, ve yukarıdan görünen
+      // tek ayrıntı.
+      for (let i = 0; i < 4; i++) {
+        const p2 = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.3, 4, 8),
+                                  PROP_MAT('#f2e04a', 0.5));
+        p2.position.set(-0.24 + i * 0.16, 0.02, 0.54);
+        p2.rotation.x = Math.PI / 2;
+        el.add(p2);
+      }
+      const bas2 = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.24, 4, 8),
+                                  PROP_MAT('#f2e04a', 0.5));
+      bas2.position.set(0.36, 0.02, 0.18);
+      bas2.rotation.set(Math.PI / 2, 0, -0.9);
+      el.add(bas2);
+      const bilek = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.26, 14),
+                                   PROP_MAT('#2b2f36', 0.5));
+      bilek.position.set(0, 0, -0.42);
+      bilek.rotation.x = Math.PI / 2;
+      el.add(bilek);
+      put(g, el, sx, 0.18, 0, 0, dondur, 0);
+    }
+    T.keepergloves = { g, h: 0.4, currency: 'lychee', only: 'giant' };
+  }
+
+  // --- fransa --------------------------------------------------------
+
+  // Altıgen kaideli kupa.
+  {
+    const g = new THREE.Group();
+    const gumus = PROP_MAT('#d8dce0', 0.22);
+    const mavi = PROP_MAT('#2f4a8a', 0.4);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.74, 0.8, 0.24, 6), mavi), 0, 0.12, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.4, 12), gumus), 0, 0.42, 0);
+    // Kâse de altıgen: tek yuvarlak olmayan kupa, ve Fransa'nın kendi
+    // biçimine (altıgen ülke) göz kırpan yer.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.34, 0.56, 6), gumus), 0, 0.9, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.07, 6), gumus), 0, 1.2, 0);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.05, 8, 14, Math.PI), gumus),
+          sx * 0.56, 0.86, 0, 0, sx > 0 ? -Math.PI / 2 : Math.PI / 2, 0);
+    T.hexcup = { g, h: 1.3, currency: 'melon', only: 'giant' };
+  }
+
+  // Bere.
+  {
+    const g = new THREE.Group();
+    const yun = PROP_MAT('#1f3a63', 0.75);
+    const k = new THREE.Mesh(new THREE.SphereGeometry(0.72, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2), yun);
+    k.scale.set(1, 0.42, 1);
+    put(g, k, 0, 0.16, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.09, 8, 20), PROP_MAT('#16294a', 0.78)),
+        0, 0.12, 0, Math.PI / 2, 0, 0);
+    // Sap: berenin tepesindeki küçük çıkıntı, ve onu bir kaseden ayıran şey.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.12, 8), yun), 0, 0.5, 0);
+    T.beret = { g, h: 0.55, currency: 'berry' };
+  }
+
+  // Üç renkli bayrak, sırıkta ve yatay.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 1.7, 8),
+                          PROP_MAT('#c9c2b4', 0.35)), 0, 0.85, 0);
+    const renk = ['#2f4a8a', '#f2f2ee', '#c4402f'];
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(bevelBox(0.3, 0.04, 0.62, 0.02), PROP_MAT(renk[i], 0.5)),
+          0.22 + i * 0.3, 1.62, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), PROP_MAT('#e8c04a', 0.3)),
+        0, 1.76, 0);
+    T.tricolour = { g, h: 1.8, currency: 'lychee', only: 'giant' };
+  }
+
+  // Konfeti topu: patlamış, yerde renkli bir halka.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.5, 14),
+                          PROP_MAT('#2b2f36', 0.45)), 0, 0.25, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.29, 0.05, 8, 16),
+                          PROP_MAT('#e8c04a', 0.35)), 0, 0.5, 0, Math.PI / 2, 0, 0);
+    // Saçılan kâğıtlar: yukarıdan görünen asıl şey, ve tahtadaki tek dağınık
+    // renk. Yatıp dikiliyorlar, hepsi düz olsaydı bir halı olurdu.
+    const renk = ['#2f4a8a', '#f2f2ee', '#c4402f', '#e8c04a'];
+    for (let i = 0; i < 30; i++) {
+      const a = (i / 30) * Math.PI * 2 * 3.3;
+      const r2 = 0.42 + (i % 5) * 0.2;
+      put(g, new THREE.Mesh(bevelBox(0.16, 0.02, 0.1, 0.01), PROP_MAT(renk[i % 4], 0.55)),
+          Math.cos(a) * r2, 0.02 + (i % 3) * 0.14, Math.sin(a) * r2,
+          (i % 3) * 0.6, -a, (i % 2) * 0.8);
+    }
+    T.confetti = { g, h: 0.6, currency: 'banana', only: 'giant' };
+  }
+
+  // Kaptan bandı.
+  {
+    const g = new THREE.Group();
+    // Halka biçiminde duruyor: yassı bir şerit yukarıdan bir çubuk olurdu.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.56, 0.3, 22, 1, true),
+                          PROP_MAT('#e8c04a', 0.5)), 0, 0.15, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.562, 0.562, 0.1, 22, 1, true),
+                          PROP_MAT('#c4402f', 0.5)), 0, 0.15, 0);
+    for (const y of [0.03, 0.27])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.02, 6, 24),
+                            PROP_MAT('#2f4a8a', 0.5)), 0, y, 0, Math.PI / 2, 0, 0);
+    T.armband = { g, h: 0.3, currency: 'berry' };
+  }
+
+  // --- kupa gecesi ---------------------------------------------------
+
+  // Büyük kupa: oyundaki en iri kupa, kulpları kocaman ve kıvrık.
+  {
+    const g = new THREE.Group();
+    const gumus = PROP_MAT('#dde2e6', 0.2);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.7, 0.26, 20), PROP_MAT('#2b2118', 0.45)),
+        0, 0.13, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.28, 0.4, 14), gumus), 0, 0.46, 0);
+    const kase = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16, 0, Math.PI * 2, 0, Math.PI / 2), gumus);
+    kase.scale.set(0.74, 0.9, 0.74);
+    put(g, kase, 0, 1.56, 0, Math.PI, 0, 0);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.73, 0.07, 8, 24), gumus), 0, 1.56, 0,
+        Math.PI / 2, 0, 0);
+    // Kulplar: gövdeden çok geniş ve aşağı kıvrık — bu kupayı yukarıdan
+    // ötekilerin hepsinden ayıran şey.
+    for (const sx of [-1, 1]) {
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.08, 10, 20, Math.PI * 1.1), gumus),
+          sx * 0.82, 1.1, 0, 0, sx > 0 ? -Math.PI / 2 : Math.PI / 2, -0.4);
+      put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), gumus), sx * 1.14, 1.52, 0);
+    }
+    T.bigcup = { g, h: 2.0, currency: 'lychee', only: 'giant' };
+  }
+
+  // Madalya, kurdelesiyle.
+  {
+    const g = new THREE.Group();
+    const altin = PROP_MAT('#e8c04a', 0.26);
+    // Kurdele halka olarak yerde: yukarıdan madalyayı bir paradan ayıran şey.
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.07, 8, 22), PROP_MAT('#2f4a8a', 0.55)),
+        0, 0.07, -0.34, -0.25, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.1, 24), altin), 0, 0.06, 0.56);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.05, 8, 24), altin), 0, 0.08, 0.56,
+        Math.PI / 2, 0, 0);
+    // Göbekteki yıldız.
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+      put(g, new THREE.Mesh(bevelBox(0.09, 0.03, 0.28, 0.02), PROP_MAT('#c49a2a', 0.3)),
+          Math.cos(a) * 0.12, 0.12, 0.56 + Math.sin(a) * 0.12, 0, -a, 0);
+    }
+    T.medal = { g, h: 0.2, currency: 'melon', only: 'giant' };
+  }
+
+  // Saha kenarı kamerası.
+  {
+    const g = new THREE.Group();
+    const koyu = PROP_MAT('#2b2f36', 0.45);
+    const krom = PROP_MAT('#8c939c', 0.3);
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.2, 6), krom),
+          Math.cos(a) * 0.28, 0.58, Math.sin(a) * 0.28,
+          Math.sin(a) * 0.42, 0, -Math.cos(a) * 0.42);
+    }
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.16, 12), krom), 0, 1.2, 0);
+    put(g, new THREE.Mesh(bevelBox(0.5, 0.42, 0.9, 0.08), koyu), 0, 1.46, 0);
+    // Objektif: kamerayı bir kutudan ayıran şey, ve yukarıdan siluetin
+    // dışına çıkan parça.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.6, 16), koyu),
+        0, 1.46, 0.72, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.06, 16),
+                          PROP_MAT('#6fb8d8', 0.15)), 0, 1.46, 1.0, Math.PI / 2, 0, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), PROP_MAT('#c4402f', 0.4)),
+        0.18, 1.7, 0.3);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.6, 6), krom),
+        0, 1.4, -0.6, Math.PI / 2 - 0.3, 0, 0);
+    T.tvcamera = { g, h: 1.8, currency: 'berry', only: 'giant' };
+  }
+
+  // Yedek kulübesi.
+  {
+    const g = new THREE.Group();
+    const cerceve = PROP_MAT('#8c939c', 0.32);
+    const cam = PROP_MAT('#bfe6ee', 0.15);
+    const koltuk = PROP_MAT('#c4402f', 0.45);
+    // Kavisli çatı: kulübeyi bir kutudan ayıran şey, ve yukarıdan görünen
+    // tek yüzey.
+    const cati = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.8, 0.8, 2.4, 18, 1, true, 0, Math.PI), cam);
+    put(g, cati, 0, 0.66, 0, 0, 0, Math.PI / 2);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.82, 0.08, 18, 1, true, 0, Math.PI), cerceve),
+        0, 0.66, 0, 0, 0, Math.PI / 2);
+    for (const sz of [-1.2, 1.2])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.06, 18, 1, false, 0, Math.PI), cerceve),
+          0, 0.66, sz, 0, 0, Math.PI / 2);
+    // Koltuklar: içeriyi gösteren şey.
+    for (let i = 0; i < 5; i++)
+      put(g, new THREE.Mesh(bevelBox(0.34, 0.3, 0.34, 0.07), koltuk),
+          0.1, 0.2, -0.9 + i * 0.45);
+    T.dugout = { g, h: 1.5, currency: 'banana', only: 'giant' };
+  }
+
+  // Kaide üstünde maç topu.
+  {
+    const g = new THREE.Group();
+    const krom = PROP_MAT('#c9c2b4', 0.28);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.58, 0.16, 20), krom), 0, 0.08, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.5, 14), krom), 0, 0.4, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.26, 0.12, 18), krom), 0, 0.7, 0);
+    const top = new THREE.Mesh(new THREE.SphereGeometry(0.46, 20, 16), PROP_MAT('#f6f2e8', 0.35));
+    put(g, top, 0, 1.2, 0);
+    // Panolar: düz beyaz bir küre top değil, yuvarlak bir şey. Yukarıdan
+    // görünen tek doku bu koyu beşgenler.
+    for (const [x, y, z] of [[0, 0.46, 0], [0.4, 0.16, 0.24], [-0.4, 0.16, 0.24],
+                             [0.4, 0.16, -0.24], [-0.4, 0.16, -0.24], [0, 0.1, 0.45]]) {
+      const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.04, 5),
+                                PROP_MAT('#2b2b30', 0.4));
+      const uz = Math.hypot(x, y, z) || 1;
+      put(g, p2, x * 0.98, 1.2 + y * 0.98, z * 0.98,
+          Math.atan2(Math.hypot(x, z), y) * (z >= 0 ? 1 : -1),
+          Math.atan2(x, z), 0);
+    }
+    T.matchball = { g, h: 1.7, currency: 'melon', only: 'giant' };
+  }
+
   // --- world cup -----------------------------------------------------
 
   // Football. The panels are separate flattened discs stuck to the surface
@@ -11501,6 +12133,88 @@ const THEMES = {
     hero: ['sphinx', 'obelisk'],
     light: { sky: '#fff6e0', bounce: '#c4a878', hemi: 1.52, amb: '#fff2d4', ambI: 0.46, sun: '#fff0c0', sunI: 0.8 },
   },
+  // Beş lig ve bir kupa gecesi.
+  //
+  // Hiçbirinde gerçek kulüp adı, arması ya da lig logosu yok ve olamaz:
+  // hepsi tescilli, oyun da mağazada. Ayıran şey **renk ve biçim** — onlar
+  // serbest.
+  //
+  // Altısı da çim, ve altısını birbirinden ayıran şey biçme deseni. Sebebi
+  // yine kamera: bir stadı tanıtan her şey (tribün, çatı, tabela, kalabalık)
+  // yandan bakılınca görünüyor; yukarıdan görünen tek şey sahanın kendisi ve
+  // üstündeki desen. Bahçıvanın çizdiği o desen, zaten tam bu açıdan
+  // bakılmak için çiziliyor.
+  //
+  // Match Day (düz enine bant) altısının hiçbiri değil: o, futbolun kendisi,
+  // bunlar ligler.
+  england: {
+    name: 'Matchday England', icon: '🦁',
+    ground: 'pitchcheck', surround: '#2b2f3a', ripples: false,
+    edge: '#f2f2ee', surf: null,
+    beyond: 'terrace',
+    props: ['leaguecup', 'scarf', 'cornerflag', 'rattle', 'floodlight',
+            'football', 'boot', 'shirt'],
+    hero: ['leaguecup', 'floodlight'],
+    // Bulutlu ada öğlesi: gökyüzü gri-beyaz, aşağıdan ıslak çimin koyu yeşili.
+    light: { sky: '#eef3f8', bounce: '#3f5c3a', hemi: 1.44, amb: '#f4f8fb', ambI: 0.5, sun: '#fbfdff', sunI: 0.64 },
+  },
+  spain: {
+    name: 'La Liga Sun', icon: '🌞',
+    ground: 'pitchdiag', surround: '#5a3a2a', ripples: false,
+    edge: '#f2ece0', surf: null,
+    beyond: 'tribuna',
+    props: ['copa', 'pennant', 'orangehalf', 'paella', 'megaphone',
+            'football', 'goal', 'marker'],
+    hero: ['copa', 'paella'],
+    // Akşamüstü güneşi: oyundaki en sıcak saha ışığı, ve çim güneşten açık.
+    light: { sky: '#fff4e0', bounce: '#6a8a42', hemi: 1.5, amb: '#fff2dc', ambI: 0.46, sun: '#ffeec0', sunI: 0.8 },
+  },
+  italy: {
+    name: 'Serie Notte', icon: '🛵',
+    ground: 'pitcharc', surround: '#2a3a52', ripples: false,
+    edge: '#dde4ec', surf: null,
+    beyond: 'curva',
+    props: ['coppa', 'vespa', 'espresso', 'tifo', 'flare',
+            'football', 'boot', 'shirt'],
+    hero: ['vespa', 'coppa'],
+    // Serin akşam: gökyüzü maviye çalıyor, çim koyu.
+    light: { sky: '#e4ecfb', bounce: '#33562f', hemi: 1.4, amb: '#eef2fc', ambI: 0.5, sun: '#f6f6ff', sunI: 0.66 },
+  },
+  germany: {
+    name: 'Bundes Wall', icon: '🍺',
+    ground: 'pitchdiamond', surround: '#4a3a12', ripples: false,
+    edge: '#f2e8c0', surf: null,
+    beyond: 'sudkurve',
+    props: ['shieldtrophy', 'beerstein', 'bratwurst', 'bassdrum', 'keepergloves',
+            'football', 'goal', 'marker'],
+    hero: ['shieldtrophy', 'bassdrum'],
+    light: { sky: '#f4f8ff', bounce: '#3f6a3a', hemi: 1.46, amb: '#f8fbff', ambI: 0.48, sun: '#fffbf0', sunI: 0.7 },
+  },
+  france: {
+    name: 'Ligue Bleu', icon: '🥐',
+    ground: 'pitchvert', surround: '#26304a', ripples: false,
+    edge: '#e8eef8', surf: null,
+    beyond: 'virage',
+    props: ['hexcup', 'beret', 'tricolour', 'confetti', 'armband',
+            'football', 'boot', 'shirt'],
+    hero: ['hexcup', 'tricolour'],
+    light: { sky: '#eef2fb', bounce: '#3f6a48', hemi: 1.42, amb: '#f4f8fd', ambI: 0.49, sun: '#fffaf0', sunI: 0.68 },
+  },
+  // Kupa gecesi: oyunun ikinci projektör sahası. Beş ligin hepsi gündüz;
+  // bu, ışıkların altında oynanan maç, ve farkı zeminin kendisi söylüyor —
+  // biçilmiş yıldız ve köşelerden gelen ışık havuzları.
+  ucl: {
+    name: 'Cup Night', icon: '🏆',
+    ground: 'pitchstar', surround: '#14161f', ripples: false,
+    edge: '#8c939c', surf: null,
+    beyond: 'nightstand',
+    props: ['bigcup', 'medal', 'tvcamera', 'dugout', 'matchball',
+            'football', 'goal', 'trophy'],
+    hero: ['bigcup', 'matchball'],
+    // Projektör: anahtar ışık beyaz ve tepeden, dolgu yüksek. Gece sahnesinde
+    // gölgeye düşen meyve kayboluyor, ve kaybolan meyve yenmeyen meyve.
+    light: { sky: '#d8e4ff', bounce: '#22402c', hemi: 1.36, amb: '#e4ecff', ambI: 0.58, sun: '#ffffff', sunI: 0.72 },
+  },
   pitch: {
     name: 'Match Day', icon: '⚽',
     // The white band the beach uses for foam becomes the touchline here, and
@@ -12427,7 +13141,7 @@ const PATTERNS = [
   {
     // İkinci düzen: basamaklar yangın merdiveni oluyor. Happy Hour'dan
     // alındı, orada Bloom kaldı.
-    name: 'Stairs', icon: '📶', theme: 'ny',
+    name: 'Stairs', icon: '📶', theme: 'england',
     // the mass descends across the board in broad steps
     empty: (r, c) => {
       const stepH = 3;
@@ -12583,7 +13297,7 @@ const PATTERNS = [
     // düşürdü: Hourglass listede Diamond'ın hemen ardından geliyor, yani
     // aynı yer arka arkaya iki bölümde çıkıyordu. Spiral arada bir düzen
     // var. Payday'de Hourglass kaldı.
-    name: 'Spiral', icon: '🌀', theme: 'dubai',
+    name: 'Spiral', icon: '🌀', theme: 'spain',
     // an arm curling out from the middle
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
@@ -12601,7 +13315,7 @@ const PATTERNS = [
     // Orbit üç düzende birden kullanılıyordu ve üçü de keyfiydi; halkalı
     // düzenler (Orbits, Whirl, Bloom) o temayı zaten daha iyi taşıyor.
     // Kesişen iki kol, sürülmüş bir tarlanın karıklarının üstünde duruyor.
-    name: 'Cross', icon: '🔀', theme: 'farm',
+    name: 'Cross', icon: '🔀', theme: 'france',
     // two broad bands crossing, leaving four open corners
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
@@ -12679,7 +13393,7 @@ const PATTERNS = [
   // route is a circle and the shape of the level is legible from the first
   // frame instead of only once the camera has travelled.
   {
-    name: 'Orbits', icon: '💫', polar: true, theme: 'tech',
+    name: 'Orbits', icon: '💫', polar: true, theme: 'germany',
     // Solid bands with a clear gap every fourth ring, so it reads as a
     // target: rings of one fruit each, with room to turn between them.
     // Two rings on, two off. A ring is a whole circumference of fruit, so
@@ -12811,7 +13525,7 @@ const PATTERNS = [
   },
   {
     // Kaburga: ortada bir omurga, iki yanında dallar.
-    name: 'Ribs', icon: '🦴', theme: 'snow',
+    name: 'Ribs', icon: '🦴', theme: 'italy',
     empty: (r, c) => {
       const { nx } = shapeCoords(r, c);
       const omurga = Math.abs(nx) < 0.16;
@@ -12844,7 +13558,7 @@ const PATTERNS = [
   },
   {
     // Taç: üstte mazgallı bir sur, altında dolu gövde.
-    name: 'Crown', icon: '👑', theme: 'money',
+    name: 'Crown', icon: '👑', theme: 'ucl',
     empty: (r, c) => {
       const { ny } = shapeCoords(r, c);
       if (ny > 0.15) return false;

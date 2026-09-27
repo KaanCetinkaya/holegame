@@ -2284,6 +2284,59 @@ Dağılım 6 yer iki düzenli, 22 yer tek düzenli (34 = 6x2 + 22x1) — testin
 izin verdiği en geniş aralık. Sondan başa dönerken bile aynı yer arka arkaya
 çıkmıyor.
 
+## Beş lig ve bir kupa gecesi
+
+Kaan'ın isteği: beş büyük lig, içlerinde o liglerin takımları ve lig kupası,
+ayrıca Şampiyonlar Ligi.
+
+### Önce kısıt
+
+Gerçek kulüp adı, arması ve lig logosu **tescilli**, ve oyun mağazada
+yayında. Bunları koymak kaldırma talebiyle biter. Ayıran şey olarak **renk ve
+biçim** kaldı — ikisi de serbest: her ligin kupası başka siluette, atkısı o
+tribünün renginde, yanındaki iki nesne o ülkenin maç gününden.
+
+### Altı saha, altı biçme deseni
+
+Bir stadı tanıtan her şey — tribün, çatı, tabela, kalabalık — **yandan**
+bakılınca görünüyor. Yukarıdan görünen tek şey sahanın kendisi ve üstündeki
+desen. İşin şansı şu: o deseni bahçıvan zaten tam bu açıdan bakılmak için
+çiziyor.
+
+```
+İngiltere  dama            Almanya  baklava (iki yönde çapraz)
+İspanya    çapraz bant     Fransa   dikey bant + tebeşir çizgisi
+İtalya     iç içe yay      Kupa     biçilmiş yıldız + ışık havuzları
+```
+
+Match Day (düz enine bant) altısının hiçbiri değil ve öyle kalıyor: o,
+futbolun kendisi; bunlar ligler.
+
+Kupa gecesi oyunun ikinci projektör sahnesi. Işığı Neon Night'ınkiyle aynı
+mantıkta kuruldu: anahtar ışık beyaz ve tepeden, dolgu yüksek — gece
+sahnesinde gölgeye düşen meyve kayboluyor, ve kaybolan meyve yenmeyen meyve.
+
+### Otuz nesne, ve altı kupa tek fonksiyondan
+
+Kupaların hepsi aynı parçalardan kuruluyor (`kupaYap`): kaide, boyun, kâse,
+iki kulp. Ayıran şey yalnızca oranlar — İngiltere'ninki uzun ve kapaklı,
+İspanya'nınki geniş ve alçak, İtalya'nınki ince boyunlu, Fransa'nınki
+altıgen, Almanya'nınki hiç kupa değil bir **kalkan**, kupa gecesininki
+ötekilerin hepsinden iri ve kulpları kocaman.
+
+Elle altı kez yazmak, altısını da birbirine benzetmenin en kolay yoluydu.
+
+Kulplar her birinde var ve sebebi tek: yukarıdan bir kupayı bir kadehten
+ayıran şey onlar, ve siluetin dışına çıkan tek parça.
+
+### Ölçek artık doldu
+
+Otuz dört düzen, otuz dört yer — her yere **tam bir tane**. Bu, testin izin
+verdiği en uç nokta: her yer ilk turda görünmek zorunda ve aralarındaki fark
+biri geçemez, yani 34'ün 34'e bölünmesinden başka dağılım kalmadı.
+
+Yeni bir yer eklemek artık önce yeni bir **düzen** yazmayı gerektiriyor.
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
