@@ -2296,6 +2296,12 @@ yayında. Bunları koymak kaldırma talebiyle biter. Ayıran şey olarak **renk 
 biçim** kaldı — ikisi de serbest: her ligin kupası başka siluette, atkısı o
 tribünün renginde, yanındaki iki nesne o ülkenin maç gününden.
 
+Ve ilk yazışta tam buraya düşüldü. Kısıtı yazıp hemen altına
+"La Liga Sun", "Serie Notte", "Bundes Wall", "Ligue Bleu" adları konmuştu:
+birincisi doğrudan tescilli bir ad, ötekiler markayı çağrıştıran türevleri.
+Kural şuydu ve ikinci kez yazılıyor — **ülke adı serbest, lig adı değil.**
+Hepsi `Matchday <ülke>` oldu.
+
 ### Altı saha, altı biçme deseni
 
 Bir stadı tanıtan her şey — tribün, çatı, tabela, kalabalık — **yandan**
