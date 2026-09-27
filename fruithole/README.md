@@ -2495,6 +2495,38 @@ ters yazılmıştı. Bir de negatif faz `Math.floor((turn + faz) * 5) % 5`
 ifadesini eksiye düşürdü, `ID[-1]` undefined verdi ve tahta kurulurken
 patladı — `+ 1` ile toplandı.
 
+### Ve asıl yamuk olan şey: benim fotoğraflarım
+
+Kaan bunu üç kez söyledi ve ben üç kez **oyunda** aradım. Dördüncüde doğru
+soruyu sordu: *"attığın o fotolarda bazıları yamuk duruyordu."*
+
+Oyun düz. Ölçüldü: ızgaranın satırı ekranda tam 0.00°, sütunu 90.00°, tahtanın
+dönüşü sıfır (`fruitHoleLean`). Yamuk olan, ona gösterdiğim karelerdi — her
+yeni yer eklenirken çekilen `city-*.png` dizisinin hepsi 10-15 derece yatık.
+
+Sebep: **Play'e basmıyordum.** Menü bir diorama ve dönüyor
+(`fieldGroup.rotation.y += dt * 0.12`). `fruitHoleProbe` + `fruitHoleStartLevel`
+tahtayı kuruyor ama oyunun durumunu değiştirmiyor, yani döngü hâlâ menüde
+olduğunu sanıyor ve kare çekilene kadar geçen yarım saniyede tahtayı
+döndürmeye devam ediyor.
+
+Oyunun kendisinde bu hata yok: `buildField` dönüşü sıfırlıyor ve yanındaki
+yorum tam bunu anlatıyor ("without this the board starts rotated by however
+long you sat on the menu, so the rows run diagonally"). Mağaza görselleri ve
+TikTok klipleri de düz, çünkü `make-shots.mjs` ve `make-clips.mjs`
+`#playBtn`'e basıyor.
+
+Kusur aracın yokluğundaydı: bu kare her seferinde elde, tek kullanımlık bir
+betikle alınıyordu ve her seferinde aynı satır unutuluyordu. Artık
+`scratchpad/holeshot.mjs` var, Play'e basıyor **ve** çekmeden önce açının
+sıfır olduğunu doğrulayıp değilse gürültüyle düşüyor.
+
+İkinci ders: sayfaya dizilen küçültülmüş kareler de yalan söylüyor. Zemin
+çizgileri (yaya geçidi, biçilmiş çim, kum sıraları) yarı boyuta inince kırılıp
+çapraz görünüyor — yani aranan hatanın taklidini üretiyor. Bir kere ben de ona
+kandım ve olmayan bir eğikliği "gördüm". Sayfa nereye bakılacağını söyler;
+karar tam boy karede verilir.
+
 ### Yamuk olmayan üç tahta
 
 Ölçüm önce üç tahtayı daha işaretledi ve üçü de **doğru** çıktı:
