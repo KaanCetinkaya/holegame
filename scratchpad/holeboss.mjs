@@ -129,7 +129,8 @@ for (const n of [10, 20, 30, 40]) {
     window.fruitHoleSeedField(4242);
     window.fruitHoleForceBoss(b);
     const p = window.fruitHoleProbe(lvl);
-    const r = { ...p, ...window.fruitHoleBoss(), live: window.fruitHoleGrow().left };
+    const r = { ...p, ...window.fruitHoleBoss(), ...window.fruitHoleCards(),
+                live: window.fruitHoleGrow().left };
     window.fruitHoleForceBoss(null);
     window.fruitHoleUnseedField();
     return r;
@@ -149,8 +150,35 @@ for (const n of [10, 20, 30, 40]) {
   // kolosun oturduğu yerin yoğunluğu değişiyor), ama sebep kayalar değil:
   // eşitlik en baştan, ölçtüğü şeyden bir tık daha katı bir şey istiyordu.
   // Sorulan soru "kolos bölümü uzatıyor mu", cevabı da bir saniye değil.
-  check(Math.abs(on.seconds - off.seconds) <= 2, `${n}: saat değişmiyor`,
-    `${off.seconds}sn -> ${on.seconds}sn`);
+  //
+  // **Kart bölümlerinde bu soru başka bir soruya dönüşüyor.** Bölümün saati
+  // artık tahtanın süpürülmesinden değil kartların istediğinden çıkıyor, ve
+  // kolos tahtadan meyve alıyor: kartlar kolos yerleştikten **sonra**
+  // seçiliyor, yani başka renkler ve başka sayılar isteyebiliyorlar. Saatin
+  // 88'den 75'e inmesi bir hata değil, "daha az iş var" demek. Mutlak saatte
+  // ±2 saniye aramak, ölçülen şeyin ne olduğunu değiştirmek olurdu.
+  //
+  // Kart bölümünde korunması gereken şey şu: saat kartların işine oranlı
+  // kalsın. Kolos `pickCards`'tan **sonra** yerleştirilse — yani birileri
+  // sırayı değiştirse — kartlar tahtada kalmayan meyveyi isterdi ve o oran
+  // bozulurdu. Ölçülen şey o: aynı bölümün kolosla ve kolossuz hâlinde
+  // saat/iş oranı aynı mı, ve iki hâlde de kartlar ulaşılabilir mi.
+  if (on.cards.length || off.cards.length) {
+    // Tam eşitlik değil: saat tam saniyeye yuvarlanıyor (`Math.round`), ve
+    // kartların turu 20-45 saniye arasında. Yarım saniyelik yuvarlama
+    // farkı oranda 0.01-0.03 oynama demek. Ölçülen 2.79 ile 2.81.
+    const oran = r => (r.tur ? +(r.seconds / r.tur).toFixed(2) : null);
+    check(oran(on) !== null && oran(off) !== null
+      && Math.abs(oran(on) - oran(off)) <= 0.06,
+      `${n}: kart bölümünde saat işe oranlı kalıyor`,
+      `${oran(off)} -> ${oran(on)}`);
+    const ulasilmaz = [...on.cards, ...off.cards].filter(k => k.need > k.tahtada);
+    check(!ulasilmaz.length, `${n}: kolosla da kartlar ulaşılabilir`,
+      ulasilmaz.map(k => `${k.type} ${k.need}>${k.tahtada}`).join(' '));
+  } else {
+    check(Math.abs(on.seconds - off.seconds) <= 2, `${n}: saat değişmiyor`,
+      `${off.seconds}sn -> ${on.seconds}sn`);
+  }
   // Kolos, ayağının altındaki hücreleri temizleyip yerlerine tek parça
   // olarak geçiyor. Yani tahtaya iş eklemiyor, var olan işi tek bir büyük
   // nesnede topluyor — yenecek parça sayısı artmamalı.

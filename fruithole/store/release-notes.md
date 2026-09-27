@@ -15,7 +15,7 @@ gösteriyor ama ikisini yan yana koymuyor.
 
 ---
 
-## 37 (1.13) — 492 karakter
+## 37 (1.13) — 492 karakter (eski hâli)
 
 ```
 New in this update:
@@ -26,6 +26,24 @@ New in this update:
 - New boards drawn in fruit: pictures, spirals, rings and webs.
 - Fixed mission levels that could not be beaten.
 - Fixed a white screen after the app had been in the background.
+```
+
+37 henüz Play'e gönderilmedi (`app-version.json` > `uploaded` 36'da bitiyor),
+yani not yeniden yazıldı — ayrı bir 38 notu değil. Aradaki fark, eskisinin
+yazıldığı günden sonra gelen iki şey: **hedef kartları** (bölümün ne istediğini
+değiştiren en büyük oynanış değişikliği, yani listenin başına geçmesi gereken
+madde) ve dört yer daha.
+
+## 37 (1.13) — 492 karakter
+
+```
+New in this update:
+
+- The level asks for something now: cards at the top say which fruit to collect and how many, instead of sweeping the whole field.
+- Twenty-seven new places, each with its own ground, light and objects.
+- Five football leagues and a cup final: sweep the pitch, then take the giant trophy at the far end.
+- Puzzle levels, picture boards, and new shapes to clear.
+- Fixed mission levels that could not be beaten, and a white screen after the app had been in the background.
 ```
 
 Bu not bir kez yeniden yazıldı. İlk hâli 36'dan sonra yapılan işin yarısını

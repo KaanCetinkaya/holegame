@@ -5221,3 +5221,131 @@ Bir de iri meyveler şeritlerin **üstüne** biniyordu: halkanın yarıçapı ne
 iri meyve de oraya konuyordu, yani bir sıra boncuğu eziyordu. Hepsi şeritler
 arasına alındı (`+ RIBBON_GAP * 0.5`); şeritler arası 1.9, iri meyve 1.44
 eninde, tam ortaya sığıyor.
+
+## Dizilerin geçtiği dört yer
+
+Kaan "ünlü dizilerden bir şey ekleyebilir miyiz" dedi. Kısa cevap: diziden
+değil, **türden**. Uzun cevabı bir kural:
+
+> Bir ödünç parça sorun değil, **tanınır takım** sorun.
+
+Yeşil eşofman tek başına kimseye ait değil. Yeşil eşofman + göğüste numara +
+pembe maskeli muhafız + dev bebek, o dizinin kimliği. Aynı şey yerler için de
+geçerli: oyun parkı bir yer, salıncak bir salıncak. Bir diziyi o dizi yapan
+şey tek parça değil, parçaların bir araya gelişi — ve o bir araya geliş burada
+hiç kurulmuyor. Ülke adları serbest ama lig adları değil; oradaki ayrım da
+buydu (bkz. "Beş lig ve bir kupa gecesi").
+
+Pratikte riskin adı mahkeme değil: şikâyet gelince Google'ın yayındaki
+uygulamayı kaldırması. O yüzden sınır, "dava açılır mı" değil, "bakan biri
+hangi diziyi gördüğünü söyleyebilir mi".
+
+Dört tür, dört yer, dört düzen:
+
+| Yer | Tür | Düzen |
+|---|---|---|
+| 🛝 **Playground** | ölümcül çocuk oyunları | Seksek |
+| 🚲 **Suburb Night** | 80'ler kasaba / doğaüstü | Ev silueti |
+| 🏚️ **Overgrown** | salgın sonrası | Çatlak |
+| 🕯️ **Academy** | gotik yatılı okul | Anahtar |
+
+Yirmi üç nesne geldi (fern yeniden kullanıldı), toplam 260'tan **283**'e;
+düzen sayısı 44'ten **48**'e. Yani her yerin tam bir düzeni var: kırk sekiz
+yer, kırk sekiz düzen.
+
+### Kare ancak kare kadar olunca kare
+
+Seksek ilk yazışta sekiz kareydi ve yukarıdan bakınca tek bir blok
+okunuyordu. Sebep hücre ölçüsü: tahta 13 sütun, 34 satır. Sekiz kare, kare
+başına 2.7 satır demek; aralarındaki derz de yarım satır, yani derz hiç
+çıkmıyor. Kareleri kare yapan şey derz, ve derz ancak bir satırdan **kalın**
+olunca görünüyor.
+
+Beş kare oldu: beş sütun eninde, dört satır boyunda, arasında bir buçuk satır
+boşluk. Ev (yarım daire) ile ilk kare arasına da derz kondu — bitişikken
+ikisi tek kütle oluyordu.
+
+Aynı hesap Anahtar'da da çıktı, ama ters yönde: halka 0.38 yarıçapındaydı ve
+tahta eninde 0.317 kapsıyordu — `holeyamuk.mjs`'in "bir noktaya çöktü"
+sınırının (0.35) altında. Anahtar uzun ve ince bir şey, ama tahtası olmak için
+bir eni olmak zorunda. Halka büyütüldü, dişler uzatıldı: 128 parçadan 287'ye.
+
+Kuleler de yamukluk üretti. Seksek'in kuleleri eve doğru yükseliyordu ve kütle
+tahtanın bir ucuna yığıldı (0.34, sınır 0.35); Anahtar'ın kuleleri halkada en
+yüksekti ve aynı şeyi yaptı (0.32). İkisi de aynı şekilde çözüldü: yükseklik
+**boy boyunca** değil parça parça değişiyor — Seksek'te kare kare, Anahtar'da
+iki uç yüksek arası alçak. Uzun bir tahtada boy boyunca artan bir kule,
+zorunlu olarak yamukluk demek.
+
+### Zemin düzenle yarışmamalı
+
+Oyun parkı zeminine seksek çizilmişti. Doku 3'e 3 tekrar ediyor, yani yerde
+dört seksek varken meyveden bir seksek daha: ne biri ne öteki okunuyordu.
+Boya kaldı ama **başka bir oyunun** boyası oldu — daire, yay, düz çizgiler.
+
+### Kontak sayfası yalan söyleyebiliyor, harita söylemiyor
+
+Ev düzeni render'da tanınmıyordu ve düzeltmeye başlamadan önce bir adım daha
+gerekti: **düzen gerçekten bozuk muydu?**
+
+Değildi. Tahtanın harfli haritası (`window.fruitHoleCellMap`,
+`scratchpad/holemap.mjs`) çatıyı, bacayı, kapı oyuğunu ve iki pencereyi
+yerli yerinde gösterdi. Ekranda delik deşik duran şey düzen değil **devlerin
+ayak izi**: her dev çevresindeki meyveyi siliyor ve bir tahtada üç ile altı
+tane var, kimi zaman üçerli öbekler hâlinde.
+
+Gerçek kusur başkaydı: çatı çok yavaş açılıyordu. Tepedeki sekiz satır tek
+sütun genişliğindeydi — üçgen değil iğne. Üçgenin üçgen okunması için
+tepesinin de bir eni olmalı.
+
+Bu, kontak sayfasının ikinci yanıltması oldu (birincisi: küçültülen kareler
+zemin şeritlerini çapraz gösteriyordu, yani aranan hatanın taklidini
+üretiyordu). Bir şeklin okunup okunmadığına bakmanın yalan söylemeyen yolu
+hücreleri saymak.
+
+### Bölüm sırası araya sıkıştırılmadı, yeniden kuruldu
+
+Yeni düzen eklemenin bilinen yolu sıraya araya serpiştirmek. Ama araya
+eklemek şunu yapıyor: eklenen noktadan sonraki her düzenin numarası kayıyor ve
+kayanların bir kısmı **gizli yuvaların** altına düşüyor — resim (3, 13, 23…),
+şerit (6, 16, 26…) ve bulmaca (18, 28, 38…) bölümleri tahtayı desenden değil
+bölüm numarasından alıyor, yani altlarına düşen düzen ilk turda hiç
+görünmüyor.
+
+Dördü de araya serpildiğinde ilk turda görünürlüğünü kaybeden eski düzen
+sayısı **sekiz** çıktı: dört şekil kazanmak için sekiz şekil kaybetmek.
+
+Yeniden kurmak bedava, çünkü artık her yerin tek düzeni var. "Aynı yer arka
+arkaya iki bölümde çıkmasın" kuralı hangi sırada olursa olsun kendiliğinden
+tutuyor, yani sıra serbest. Serbest olunca da şu yapılabildi: bugün gizli olan
+on iki düzen bulunduğu numarada bırakıldı, dört yeni düzen görünür yuvalara
+yayıldı (11, 22, 32, 44), ve gizliye düşen eski düzen yalnızca **iki** oldu —
+Spiral ile Walls.
+
+### Patron testi kart bölümünde başka bir şey ölçmeye başladı
+
+`holeboss.mjs` yıllardır şunu soruyordu: aynı bölüm, aynı tohum, bir kolosla
+bir de kolossuz — saat değişiyor mu? Cevap ±2 saniye olmalıydı.
+
+Hedef kartları gelince o soru kendiliğinden bozuldu ve bu dört yerden önce de
+bozuktu (kartlar geldiği gün düşmüş, bu çalışmada görüldü). Bölümün saati
+artık tahtanın süpürülmesinden değil **kartların istediğinden** çıkıyor, ve
+kartlar kolos yerleştikten sonra seçiliyor: kolos tahtadan meyve alınca
+kartlar başka renkler ve başka sayılar isteyebiliyor. Saatin 88'den 75'e
+inmesi bir hata değil, "daha az iş var" demek.
+
+Kart bölümünde korunması gereken şey başka: saat kartların işine oranlı
+kalsın. Kolos `pickCards`'tan **sonra** yerleştirilse kartlar tahtada
+kalmayan meyveyi isterdi ve bölüm hiç bitmezdi. Test artık onu ölçüyor —
+saat/iş oranı iki hâlde de aynı mı, ve iki hâlde de kartlar ulaşılabilir mi.
+
+### Mağaza açıklaması Play'e sığmıyor
+
+`holelisting.mjs` uzun süredir şunu söylüyor: tam açıklama 4000 karakter
+sınırının üstünde. Bu çalışmadan önce 6830'du, dört yer eklenince 7344 oldu.
+Yani `listing-en.md` bugün Play Console'a **yapıştırılamıyor** — Play uzun
+metni sessizce kesmiyor, kaydetmiyor.
+
+Kesilmedi, çünkü neyin çıkacağı içerik kararı: metnin yarısını atmak Kaan'ın
+vereceği bir karar, benim değil. Burada durduğu yer bu: sayı ölçüldü,
+yazıldı, ve yükleme gününden önce kesilmesi gerekiyor.

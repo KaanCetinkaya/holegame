@@ -62,12 +62,13 @@ Finishing isn't enough — how fast you finish is what counts. The more time lef
 on the clock, the more stars, and your best on every level is kept.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
-Forty-four hand-built layouts: a stepped pyramid taken down terrace by
+Forty-eight hand-built layouts: a stepped pyramid taken down terrace by
 terrace, a castle keep with four corner towers, a horseshoe, an anchor, a
 gate, a ball court, a three-toed footprint, an onion dome, a condor with its
-wings out, a boomerang, giraffe patches, a heart, a staircase, winding walls,
-a rolling wave, a crescent, a maze you thread, a cogwheel. Five
-lay the field in rings around you.
+wings out, a boomerang, giraffe patches, a hopscotch grid with its home square,
+a house with its door and windows, a branching crack, an iron key, a heart, a
+staircase, winding walls, a rolling wave, a crescent, a maze you thread, a
+cogwheel. Five lay the field in rings around you.
 
 And each one is somewhere. A beach with the sea running up the sand. A black
 volcanic shore with palms, a tiki and a surfboard stood in it. A Hollywood
@@ -82,7 +83,10 @@ rangoli drawn in coloured powder, hieroglyphs cut into stone. Six pitches mown s
 ways, one for each of the great leagues and one under floodlights. A mown
 football pitch. Dry savanna grass with acacia shade beyond it, a fanned
 cobble square under a red brick wall, the straight lines of the Nazca pampa,
-red sand and spinifex out in the outback. A castle bailey with a battlement
+red sand and spinifex out in the outback. A poured rubber playground floor with
+a hopscotch painted on it, a mown suburban lawn at dusk with a hedge past the
+kerb, cracked tarmac with grass coming up through it, a gothic flagstone
+cloister lit by candles. A castle bailey with a battlement
 wall past its edge, cracked
 frontier hardpan under a red mesa, a pirate deck with the dark harbour around
 it, a palace court of grey flags under green roof tiles, volcanic ash with lava
@@ -121,7 +125,7 @@ field are giants — twice the width of your opening, sometimes three huddled
 together, and never a slice: the whole fruit, stalk and leaf. Sweep, grow into
 one, and it pays for the whole trip.
 
-🧺 TWO HUNDRED AND SIXTY THINGS TO FIND
+🧺 TWO HUNDRED AND EIGHTY-THREE THINGS TO FIND
 Scattered through the crop is whatever belongs where you are. A carved tiki, a
 lei and a ukulele on the black sand. A clapperboard and a film reel on the
 Hollywood pavement. A yellow cab, a hydrant and a pretzel on the crossing. A
@@ -137,7 +141,9 @@ A great helm and a
 sword in the stone in the castle bailey, a covered wagon and a steer skull out
 on the frontier, a ship's wheel and a parrot on the pirate deck, a guardian
 lion and a paifang in the palace court, a stegosaurus and a fern in the ash,
-a jaguar and a jade mask in the jungle. A league cup and a
+a jaguar and a jade mask in the jungle. A swing and a slide on the rubber
+floor, a BMX and a mailbox on the lawn at dusk, a rusted car and a moss-taken
+trolley on the cracked road, a candelabra and a gargoyle in the cloister. A league cup and a
 terrace rattle, a paella pan, a scooter, a beer stein, a beret, and the big
 trophy on cup night. Gold bars on the bank floor. A rocket in
 orbit. A tractor out on the farm — and standing beside it, a cow; a crab on
