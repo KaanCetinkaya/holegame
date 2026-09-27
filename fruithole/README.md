@@ -2436,6 +2436,79 @@ biri geçemez, yani 34'ün 34'e bölünmesinden başka dağılım kalmadı.
 
 Yeni bir yer eklemek artık önce yeni bir **düzen** yazmayı gerektiriyor.
 
+## Yamuk tahta
+
+Kaan "bir kaç bölüm yamuk duruyor" dedi. Hangileri belli değildi, ve otuz
+dört tahtayı tek tek açıp bakmak bir cevap değil bir tur: gözle bakınca her
+tahta biraz yamuk görünüyor.
+
+### Önce ölçü, sonra bakış
+
+"Yamuk" iki sayıya çevrildi (`fruitHoleSpread`, `scratchpad/holeyamuk.mjs`):
+
+- **kayma** — parçaların ağırlık merkezi tahtanın merkezinden ne kadar uzak,
+  tahtanın yarı ölçüsüne oranla.
+- **kapsama** — parçaların sığdığı kutu tahtanın kaçta kaçı.
+
+Üç tur (1-34, 35-68, 69-102) tarandı. Sonuç: **tek bir tahta** gerçekten
+yamuktu.
+
+Bir de bakılan bir test yazıldı (`scratchpad/holesheet.mjs`): bütün düzenler
+yukarıdan çekilip ffmpeg ile tek sayfaya diziliyor. Sayı nerede olduğunu
+söylüyor, sayfa neye benzediğini.
+
+### Bloom
+
+29. bölüm: 143 parça, ağırlık merkezi tahtanın yarı boyunun **%59'u** kadar
+kaymış, tahtanın üçte ikisi çıplak zemin. Ekranda görünen şey buydu.
+
+Sebep bir satırdı:
+
+```js
+empty: (ring, turn) => ring > 1.5 + 5 * Math.abs(Math.sin(turn * Math.PI * 5)),
+```
+
+Çiçeğin yarıçapı **beş buçuk halka** — sabit bir sayı. Tahta ise bölümle
+birlikte büyüyor. Üstelik kutupsal desenler tahtanın ortasına değil **deliğin
+etrafına** kuruluyor ve delik tahtanın bir ucunda doğuyor: dışarı kadar
+gitmeyen bir kutupsal desen zorunlu olarak bir uçta öbek kalıyor. Öteki üçü
+(Orbits, Cogs, Dial) hiç sınır koymuyor, o yüzden tahtayı dolduruyorlar.
+
+Üç şey değişti:
+
+1. **Erişim tahtadan okunuyor.** `polarCells` kaç halka sığdığını
+   `polarReach`e yazıyor; Bloom yaprağını ona göre uzatıyor. Aynı ölçek
+   `stack`, `type` ve `big` eşiklerine de taşındı — yoksa şekil büyür ama
+   üstündeki her şey eski boyunda kalır.
+2. **Yaprak inceltildi** (üs 3). Uzayan şekil 143'ten 647 parçaya çıkmıştı ve
+   ızgara için konan 600 sınırını aştı. Uzayan bir şekli sınırın altında
+   tutmanın yolu onu kısaltmak değil inceltmek — üs 2'de 647, 2.4'te 603,
+   3'te 547.
+3. **Faz kaydırıldı** (`BLOOM_FAZ`). Beş yaprak tek sayı, yani çiçek ancak
+   bir eksende simetrik olabiliyor, ve fazsız hâlde o eksen yataydı: kayma
+   0.32. Kaydırınca bir yaprak tam tahtanın öbür ucuna bakıyor, öteki dördü
+   ikişer ikişer eşleşiyor — kayma 0.02.
+
+İlk faz denemesi +0.05'ti ve yaprağı **aşağı**, yani deliğin arkasına
+çevirdi: uzun yaprağın yarısı tahta dışında kaldı, üst çeyrek boş. İşaret
+ters yazılmıştı. Bir de negatif faz `Math.floor((turn + faz) * 5) % 5`
+ifadesini eksiye düşürdü, `ID[-1]` undefined verdi ve tahta kurulurken
+patladı — `+ 1` ile toplandı.
+
+### Yamuk olmayan üç tahta
+
+Ölçüm önce üç tahtayı daha işaretledi ve üçü de **doğru** çıktı:
+
+- **Piramit** yukarıdan bir kare: 13 sütunluk tahtada 13 satır, yani 34
+  satırlık bir tahtada dikeyde 0.35 kapsama. Uzatmak onu piramit olmaktan
+  çıkarırdı.
+- **Mercek** iki dairenin kesişimi; eninde 0.54 olması merceğin kendisi.
+- **Hilal**in kütlesi kalın tarafına yatıyor (0.31); hilali hilal yapan şey o.
+
+Üçü de **ortalanmış** — boş kalan yer kenar payı, yamukluk değil. Sınırlar bu
+yüzden gevşetildi ve gerekçesi testin içinde yazıyor: aranan şey "şekil
+tahtadan küçük mü" değil, "şekil bir uca yığılmış mı".
+
 ## Bildirim
 
 Oyunun tek geri çağırma yolu, ve hiç yoktu. Oyuncu oyunu kapattığı an haberi
@@ -2686,6 +2759,10 @@ Dört türün turu da ölçülüp **hedefe (25 sn) en yakın olanı** seçiliyor
 başına yayılmayı 6 kattan 4 kata indiriyor (6.4-28.2 sn). Kalan iki uç,
 Pillars ve Bloom, tarlanın kendisi küçük olduğu için daha uzun bir tur
 sunamıyor; onlar için 30 saniyelik bir taban var.
+
+(Bloom'un tarlası o zaman 143 parçaydı ve **yamuk olduğu için** küçüktü —
+bkz. "Yamuk tahta". Artık 547. Taban yine duruyor, çünkü Pillars için hâlâ
+gerekli ve bir tabanın gereksiz yere devreye girmesi zarar vermiyor.)
 
 ### Kat sayı kopyalanmadı, ölçüldü
 

@@ -12668,10 +12668,18 @@ function gridCells() {
 // see is the pattern you are standing in the middle of. They keep going past
 // the sides of the board and are clipped there, which leaves arcs running off
 // screen rather than a disc floating on empty ground.
+// Kaç halka sığıyor. Bir desenin "en dışta neresi" diye sorabilmesi için
+// lazım: erişimi sabit bir sayıyla yazan desen, tahta büyüdükçe bir uçta
+// öbek halinde kalıyor (bkz. Bloom, ve `scratchpad/holeyamuk.mjs`).
+//
+// `polarCells` her tahtada çağrılıyor ve bu değer orada kuruluyor, yani
+// deseni çağıran yer ile burası aynı tahtaya bakıyor.
+let polarReach = 8;
 function polarCells() {
   const out = [];
   const cx = SPAWN_X, cz = spawnZ();
   const reach = Math.hypot(fieldHalfX + Math.abs(cx), fieldHalfZ + Math.abs(cz));
+  polarReach = Math.floor(reach / CELL);
   const edgeX = fieldHalfX - CELL * 0.5, edgeZ = fieldHalfZ - CELL * 0.5;
   for (let ring = 1; ring * CELL <= reach; ring++) {
     const rad = ring * CELL;
@@ -12793,6 +12801,17 @@ function stepped(v, size) { return Math.floor(v / size) * size; }
 // really is a wall — so the board reads as something built rather than
 // scattered. `t` is 0 at the outside of the form and 1 at its heart.
 function ridge(t, peak) { return 1 + Math.round(Math.max(0, t) * peak); }
+// Bloom'un yaprak fazı. Beş yaprak tek sayı, yani çiçek ancak bir eksende
+// simetrik olabiliyor ve fazsız hâlde o eksen **yatay** oluyordu: yapraklar
+// 36°, 108°, 180°, 252°, 324°'de: sağ-sol dengesiz, ağırlık merkezi tahtanın
+// yarı eninin üçte biri kadar yana kaymış. Kaydırınca yapraklar 54°, 126°,
+// 198°, 270°, 342°'ye gidiyor: biri tam **tahtanın öbür ucuna** bakıyor ve
+// öteki dördü ikişer ikişer eşleşiyor, yani sağ-sol simetrik.
+//
+// Yön önemli, çünkü delik tahtanın alt ucunda doğuyor: yaprağın yukarı değil
+// aşağı bakması, uzun yaprağın yarısının tahta dışında kalması demek. İlk
+// denemede faz +0.05'ti ve tam bunu yaptı — üst çeyrek boş kaldı.
+const BLOOM_FAZ = -0.05;
 // distance from the middle of the board, 0 at centre and 1 at the corners
 function fromCentre(r, c) {
   const { nx, ny } = shapeCoords(r, c);
@@ -13505,16 +13524,47 @@ const PATTERNS = [
   {
     name: 'Bloom', icon: '🌸', polar: true, theme: 'cocktail',
     // Five petals: a slot survives while its ring is still inside the petal
-    // reaching out along that spoke, so the outline scallops. The reach is
-    // kept near the half-width of the board — a petal longer than that is
-    // simply clipped off at the sides and the flower loses its shape.
-    empty: (ring, turn) => ring > 1.5 + 5 * Math.abs(Math.sin(turn * Math.PI * 5)),
+    // reaching out along that spoke, so the outline scallops.
+    //
+    // Erişim tahtadan okunuyor, sabit bir sayı değil. Eskiden `1.5 + 5`
+    // yazıyordu — yani çiçeğin yarıçapı beş buçuk halka — ve tahta bölümle
+    // birlikte büyüdüğü için 29. bölümde çiçek deliğin dibinde bir öbek
+    // kalıyor, tahtanın üçte ikisi çıplak zemin oluyordu: 143 parça, ve
+    // ağırlık merkezi tahtanın yarı boyunun %59'u kadar kaymış. Ekranda
+    // "yamuk" diye okunan şey buydu; `holeyamuk.mjs` ölçüyor.
+    //
+    // Kutupsal desenler deliğin etrafına kuruluyor ve delik tahtanın bir
+    // ucunda: dışarı kadar gitmeyen bir kutupsal desen **zorunlu olarak**
+    // yamuk. Öteki üçü (Orbits, Cogs, Dial) hiç sınır koymuyor ve o yüzden
+    // tahtayı dolduruyor. Yaprak uçları kenarda kırpılıyor — Orbits'in
+    // halkaları da kırpılıyor, ve asıl görünen şey iç taraftaki tırtıklı
+    // hat: oyuncunun kamerası tahtanın tamamını zaten görmüyor.
+    //
+    // Yaprak inceltildi (üssü 1 değil 3): erişim büyüyünce çiçek 143'ten
+    // 647 parçaya çıktı ve ızgara tahtası için konan 600 sınırının üstüne
+    // geçti. Uzayan bir şekli sınırın altında tutmanın yolu onu kısaltmak
+    // değil, **inceltmek** — yaprak ne kadar uzunsa o kadar dar, ve çiçek
+    // buna benziyor zaten. Üs 2'de 647, 2.4'te 603, 3'te 547 parça çıkıyor;
+    // sınıra pay bırakan tek değer üçüncüsü, çünkü sayı tahtanın boyuyla
+    // birlikte bölümden bölüme oynuyor.
+    empty: (ring, turn) =>
+      ring > 1.5 + (polarReach - 1.5)
+        * Math.abs(Math.sin((turn + BLOOM_FAZ) * Math.PI * 5)) ** 3,
+    // Bu üçünün eşikleri de halka sayısıyla ölçülüyor, sabit sayıyla değil.
+    // `ring > 4` yazsaydı büyüyen çiçekte ikinci renk yaprağın dibinde
+    // başlar, kule beşinci halkadan sonra düzleşir, iri meyve de yaprağın
+    // yalnızca ucunda kalırdı — yani şekil büyür ama üstündeki her şey eski
+    // boyunda kalırdı.
     type: (ring, turn) => {
-      const petal = Math.floor((turn * 5) % 5);
-      return ID[(petal + (ring > 4 ? 1 : 0)) % ID.length];
+      // `+ 1`: faz negatif ve `turn` sıfıra yakınken `%` negatif veriyor,
+      // `ID[-1]` de undefined — meyvenin tipi tanımsız kalıyor ve tahta
+      // kurulurken "Cannot read properties of undefined" ile patlıyor.
+      const petal = Math.floor((turn + BLOOM_FAZ + 1) * 5) % 5;
+      return ID[(petal + (ring > polarReach * 0.5 ? 1 : 0)) % ID.length];
     },
-    stack: (ring) => ridge(Math.min(1, ring / 5), 3),
-    big: (ring, turn) => ring > 3 && Math.abs(Math.sin(turn * Math.PI * 5)) > 0.9,
+    stack: (ring) => ridge(Math.min(1, ring / (polarReach * 0.6)), 3),
+    big: (ring, turn) => ring > polarReach * 0.35
+      && Math.abs(Math.sin((turn + BLOOM_FAZ) * Math.PI * 5)) > 0.9,
   },
   // ---------------------------------------------------------------------
   // On yeni şekil.
@@ -18454,6 +18504,40 @@ window.fruitHoleMix = () => {
     // yüzden oraya bilerek konmuyor. "Halı mı" sorusu ancak bu sayıyla
     // birlikte cevaplanabiliyor.
     ortKat: +(a.length / Math.max(1, new Set(a.map(f => f.x + ',' + f.z)).size)).toFixed(2),
+  };
+};
+// Tahtanın neresi dolu: tarla ortalanmış mı, kaçta kaçına yayılmış?
+//
+// Kaan "bir kaç bölüm yamuk duruyor" dedi ve bunu gözle aramak otuz dört
+// tahtayı tek tek açmak demek. İki sayı yeterli oluyor:
+//
+//   * **kayma** — parçaların ağırlık merkezi tahtanın merkezinden ne kadar
+//     uzakta (tahtanın yarı ölçüsüne oranla). Kutupsal desenler deliğin
+//     etrafına kuruluyor ve delik tahtanın bir ucunda; erişimi kısa olan bir
+//     kutupsal desen o uçta bir öbek halinde kalıyor, tahtanın geri kalanı
+//     çıplak zemin oluyor. Ekranda "yamuk" diye okunan şey bu.
+//   * **kapsama** — parçaların sığdığı kutunun tahtanın kaçta kaçı olduğu.
+//     Kaymanın tek başına göremediği durum: ortalanmış ama küçücük bir tarla.
+window.fruitHoleSpread = () => {
+  const a = fruits.filter(f => !f.eaten);
+  if (!a.length) return null;
+  let sx = 0, sz = 0, minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9;
+  for (const f of a) {
+    sx += f.x; sz += f.z;
+    if (f.x < minX) minX = f.x; if (f.x > maxX) maxX = f.x;
+    if (f.z < minZ) minZ = f.z; if (f.z > maxZ) maxZ = f.z;
+  }
+  const cx = sx / a.length, cz = sz / a.length;
+  return {
+    // Merkez kayması, tahtanın yarı ölçüsüne oranla: 0 ortada, 1 kenarda.
+    kaymaX: +Math.abs(cx / fieldHalfX).toFixed(3),
+    kaymaZ: +Math.abs(cz / fieldHalfZ).toFixed(3),
+    // Kutunun tahtaya oranı.
+    kapsamaX: +((maxX - minX) / (fieldHalfX * 2)).toFixed(3),
+    kapsamaZ: +((maxZ - minZ) / (fieldHalfZ * 2)).toFixed(3),
+    // Deliğin doğduğu yer: kutupsal desenlerin merkezi burası.
+    spawnZ: +(spawnZ() / fieldHalfZ).toFixed(3),
+    polar: !!currentPattern.polar,
   };
 };
 // Bombalar: kaç tane, nerede, ve bölümü bitirme şartına girmiyorlar mı.
