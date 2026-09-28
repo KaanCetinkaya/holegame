@@ -49,8 +49,8 @@ console.log('bölüm başına bomba:');
 const satir = [];
 for (const n of [1, 3, 5, 6, 10, 14, 19, 24, 35]) {
   const d = await pg.evaluate(lv => {
-    window.fruitHoleProbe(lv);
-    return window.fruitHoleBombs();
+    const p = window.fruitHoleProbe(lv);
+    return { kind: p.kind, ...window.fruitHoleBombs() };
   }, n);
   satir.push({ n, ...d });
   console.log(`  ${String(n).padStart(2)}. bölüm — ${String(d.sayi).padStart(2)} bomba / ` +
@@ -61,7 +61,14 @@ for (const n of [1, 3, 5, 6, 10, 14, 19, 24, 35]) {
 const erken = satir.filter(r => r.n < 6);
 // 35 mayın bölümü: tahtası bilerek bomba dolu, sıradan bölümün ölçüsüyle
 // bakılırsa "bomba payı %3'ün altında" kuralını düşürür.
-const gec = satir.filter(r => r.n >= 6 && r.n !== 35);
+//
+// Izgara olmayan tahtalar da dışarıda, ve bu bir eskimeydi: bu satır
+// "6'dan sonra her tahtada bomba var" diyordu ve 6. bölüm bir **şerit**
+// tahtası. Resim, şerit ve bulmaca tahtalarına rastgele hiçbir şey
+// konmuyor — kaya, dev, bomba, kolos, diken — çünkü üçü de tahtayı
+// desenden değil kendi kuralından kuruyor. Test bunu hiç bilmiyordu ve
+// şerit tahtaları eklendiğinde sessizce yanlış olmuştu.
+const gec = satir.filter(r => r.n >= 6 && r.n !== 35 && r.kind === 'ızgara');
 const mayin = satir.find(r => r.n === 35);
 check(erken.every(r => r.sayi === 0), 'ilk beş bölümde bomba yok',
   `en çok ${Math.max(...erken.map(r => r.sayi))}`);

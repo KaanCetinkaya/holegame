@@ -39,11 +39,12 @@ madde) ve dört yer daha.
 ```
 New in this update:
 
-- The level asks for something now: cards at the top say which fruit to collect and how many, instead of sweeping the whole field.
+- Cards at the top now say which fruit to collect and how many, instead of sweeping the whole field.
 - Twenty-seven new places, each with its own ground, light and objects.
-- Five football leagues and a cup final: sweep the pitch, then take the giant trophy at the far end.
+- Five football leagues and a cup final, with a giant trophy at the far end.
 - Puzzle levels, picture boards, and new shapes to clear.
-- Fixed mission levels that could not be beaten, and a white screen after the app had been in the background.
+- Spikes: they do not stop you - running over one costs you a size.
+- Fixed unbeatable mission levels and a white screen after the app had been in the background.
 ```
 
 Bu not bir kez yeniden yazıldı. İlk hâli 36'dan sonra yapılan işin yarısını

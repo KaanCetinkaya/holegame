@@ -5349,3 +5349,116 @@ metni sessizce kesmiyor, kaydetmiyor.
 Kesilmedi, çünkü neyin çıkacağı içerik kararı: metnin yarısını atmak Kaan'ın
 vereceği bir karar, benim değil. Burada durduğu yer bu: sayı ölçüldü,
 yazıldı, ve yükleme gününden önce kesilmesi gerekiyor.
+
+## Diken: üçüncü engel
+
+Kaan "bir engel koyacağız, delik ona çarpınca küçülecek" dedi. Oyunda iki
+engel vardı ve üçü birlikte artık üç ayrı şeyi alıyor:
+
+| | ne yapıyor | ne alıyor |
+|---|---|---|
+| 💣 bomba | yutuluyor | **saatten** — beş saniye |
+| 🪨 kaya | yutulmuyor, geçirmiyor | **yoldan** |
+| ✴️ diken | geçiriyor | **boydan** — bir kademe |
+
+Dikeni kayadan ayıran şey tam olarak **geçirmesi**. `pushOutOfRocks` deliği
+her kayadan dışarı itiyor, yani bir kayaya "çarpmak" diye bir şey yok —
+değdiğin an duruyorsun. Diken itmiyor: üstünden geçiyorsun ve bedelini
+ödüyorsun. İkisi aynı tahtada durabiliyor çünkü biri duvar, öteki tuzak.
+
+### Ceza görünmüyorsa ceza değil
+
+İlk ölçü meyve cinsindendi: "altı meyvelik büyüme geri alınsın". Ölçülünce
+görünmez çıktı — 300 parçalık bir tahtada bir meyve 0.0042 büyütüyor, altı
+meyve 0.025, yani yarıçapın %1'i. Rozet hiç kıpırdamıyor, oyuncu bir şey
+olduğunu anlamıyor.
+
+Bedel artık **bir boy**: `Size 5` rozeti `Size 4`e düşüyor. Rozetin kademesi
+(`SIZE_STEP`) dikenin aldığı şeyle aynı sabitten okunuyor — iki yerde ayrı
+sayı yazsaydı gösterilen şeyle alınan şey birbirinden bağımsız kayardı.
+Rozet küçülürken **kısılıyor**, büyürken şişiyor: tek bir animasyon olsaydı
+dikene çarpmak ekranda kutlama gibi görünürdü.
+
+`BASE_HOLE_R`'nin altına inmiyor. İnseydi en küçük meyve bile yutulamaz
+olurdu ve bölüm sessizce bitirilemez hâle gelirdi — oyun bunu hata olarak
+göstermez, saat dolar ve sebep görünmez. Kayanın kenar payında öğrenilen
+şeyin aynısı.
+
+### Kopyalanan kural, kopyalandığı yerdeki sebebiyle gelmiyor
+
+Diken yazılırken kayanın kenar payı (`rockEdge`) olduğu gibi alınmıştı ve
+sonucu ölçüldü: altı uygun tahtanın **beşinde hiç diken çıkmadı**.
+
+Sebep şu: kaya kenara yaklaşamıyor, çünkü arkasında — kenarla arasında —
+ağzın giremeyeceği bir şerit bırakıyor ve oradaki meyveye hiç ulaşılamıyor.
+Diken hiçbir şeyi kapatmıyor, yani böyle bir şerit üretmiyor. Payı
+kopyalamak dikeni kayalarla aynı dar orta koridora sıkıştırmıştı, üstüne bir
+de kayadan uzak durması gerekiyordu, ve yer kalmamıştı.
+
+Aynı hata bir kez daha çıktı: altındaki meyveleri alan döngü **devleri**
+atlıyor (bir devi silmek tahtanın en büyük hedefini yok etmek olurdu) ve
+atlayınca diken devin gövdesinin içinde kalabiliyordu — 31. bölümde dev
+dikenin 0.5 birim yanındaydı, yani diken hiç görünmüyordu. Doğrusu devi
+silmek değil, dikeni başka yere koymak.
+
+### Sayı satır sayısından değil, tahtanın verebileceğinden
+
+Diken sayısı önce yalnızca satır sayısına bağlıydı ve satır sayısı tahtanın
+**boyu**, doluluğu değil. Ölçüldü: 47. bölüm (Dial) seyrek bir kutupsal
+tahta ve oradaki iki diken, tahtanın geri verebileceği büyümenin %26'sını
+istiyordu — aynı iki diken kalabalık bir tahtada %6. Aynı ceza, tahtaya göre
+dört kat ağırlaşıyordu ve bunu söyleyen hiçbir şey yoktu.
+
+Tavan artık cezanın kendisinden okunuyor (`SPIKE_SHARE`): dikenler, tahtanın
+geri verebileceğinin beşte birinden fazlasını isteyemiyor. Seyrek tahtada bu
+kendiliğinden bir dikene iniyor. Altmış bölümün 31'inde diken var, en kötü
+tahta %20 istiyor.
+
+### Nerede yok
+
+- **Devler görevinde.** O bölümün bitiş şartı "her devi yut" ve devi yutmak
+  bir boy işi: küçülten bir şeyle, küçük kalmanın kaybettirdiği bir bölümü
+  aynı tahtaya koymak oyuncuya kendi cezasıyla bölümü kaybettirmek olurdu.
+  Öteki görevlerde böyle bir bağ yok — mayında saat, siparişte renk.
+- **Resim, şerit ve bulmaca tahtalarında.** Üçü de tahtayı desenden değil
+  kendi kuralından kuruyor; kaya, dev, bomba ve kolos için zaten böyle.
+- **Günlük koşuda.**
+- **Deliğin doğduğu yerde ve kolosun önünde.**
+
+### Anlatılması gereken tek engel
+
+Bomba ile kaya hiç tanıtılmamıştı ve ikisi de kendini anlatıyor: bomba
+patlıyor, kaya geçirmiyor. Diken anlatmıyor — üstünden geçiyorsun, bir şey
+patlamıyor, ve ekranın altındaki sayı bir azalıyor. Bunu ilk kez gören biri
+ne olduğunu anlamıyor.
+
+O yüzden ipucu satırı dikenin ilk çıktığı bölümde (12) bir kez şunu diyor:
+*"SPIKES: they do not stop you — running over one costs you a size"*. Ayrı
+bir ekran açmak oyunu bir kurala durdurmak olurdu; ipucu satırı zaten her
+koşu başında görünüp ilk dokunuşta sönüyor. İkinci kez söylemek, söylenen
+şeyi gürültüye çevirir.
+
+12 bilerek seçildi: görev bölümü değil (5, 15, 25…), resim değil (3, 13…),
+şerit değil (6, 16…), bulmaca değil (18, 28…). Yeni bir şeyin tanıtıldığı
+bölüm, tahtası da kuralı da sıradan olan bir bölüm olmalı. Bomba 6, kaya 9,
+diken 12 — üçü de üçer bölüm arayla.
+
+### Görünürlüğü cihazda bakılmalı
+
+İlk çizimde diken yarıçapı 0.5'ti, gövdesi de uçları da koyuydu ve ekran
+görüntüsünde kumun üstünde bir leke gibi duruyordu: kayanın yarısı kadar, ve
+bir meyveden yalnızca bir tık geniş. Üç şey değişti — yarıçap 0.66 (kayanın
+0.62'sine yakın), uçlar açık ve biraz kendi ışığını veriyor (kırk sekiz yerin
+zemini kırk sekiz renk: içinde kendi karşıtlığını taşıyan bir nesne hepsinde
+duruyor), ve uçlar düz yana değil yukarı açılıyor, yani gölge veriyor.
+
+Yine de konteyner ekran görüntüsünde koyu bir yıldız olarak okunuyor.
+Telefonda bakılması gereken şey bu; gerekirse gövde açılır.
+
+### Bir sayı daha eskidi
+
+`holebomb.mjs` "6. bölümden sonra her tahtada bomba var" diyordu ve 6. bölüm
+bir **şerit** tahtası. Resim, şerit ve bulmaca tahtalarına rastgele hiçbir
+şey konmuyor; test bunu hiç bilmiyordu ve şerit tahtaları eklendiğinde
+sessizce yanlış olmuştu. Bugün diken eklenirken düştü. Artık tahtanın türünü
+oyundan soruyor.

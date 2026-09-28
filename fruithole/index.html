@@ -472,6 +472,13 @@
   #sizeTag.show { display: block; }
   #sizeTag.grow { animation: sizePop .38s ease; }
   @keyframes sizePop { 0%{transform:translate(-50%,0) scale(1)} 45%{transform:translate(-50%,0) scale(1.3)} 100%{transform:translate(-50%,0) scale(1)} }
+  /* Dikene çarpınca: kısılıyor ve bir an kırmızıya dönüyor. Şişen bir rozet
+     kutlama okunuyor ve kaybedilen bir boy kutlanmamalı. */
+  #sizeTag.drop { animation: sizeDrop .42s ease; }
+  @keyframes sizeDrop {
+    0%{transform:translate(-50%,0) scale(1)}
+    35%{transform:translate(-50%,0) scale(.72); background:#d8433c}
+    100%{transform:translate(-50%,0) scale(1)} }
 
   /* boosters */
   #boosterBar { position: fixed; left: 0; right: 0;
@@ -1256,6 +1263,18 @@ function missionRule() {
   }
   if (missionKind === 'puzzle') {
     return 'PUZZLE: no clock. The hole only grows — go through the narrow doors first';
+  }
+  // Dikenin tanıtıldığı bölüm. Bomba ile kaya hiç tanıtılmamıştı ve ikisi de
+  // kendini anlatıyor: bomba patlıyor, kaya geçirmiyor. Diken anlatmıyor —
+  // üstünden geçiyorsun, bir şey patlamıyor, ve ekranın altındaki sayı bir
+  // azalıyor. Bunu ilk kez gören biri ne olduğunu anlamıyor.
+  //
+  // Ayrı bir ekran açmak, oyunu bir kurala durdurmak olurdu; ipucu satırı
+  // zaten her koşu başında görünüp ilk dokunuşta sönüyor. Yalnızca dikenin
+  // ilk çıktığı bölümde — ikinci kez söylemek, söylenen şeyi gürültüye
+  // çevirir.
+  if (level === SPIKE_FROM) {
+    return 'SPIKES: they do not stop you — running over one costs you a size';
   }
   return HINT_DEFAULT;
 }
@@ -2741,6 +2760,15 @@ const sfx = {
   // Bomba: aşağı inen bir patlama. Yenen meyvenin sesi yukarı çıkıyor, bu
   // onun tersi — hangisinin olduğu ekrana bakmadan anlaşılsın diye.
   bomb()      { ensureAudio(); [300, 190, 120].forEach((f, i) => beep(f, 0.16, 'sawtooth', 0.2, i * 0.05)); vibrate([40, 30, 60]); },
+  // Diken: metal bir kırılma, sonra aşağı inen bir kayış.
+  //
+  // Bombadan ayrı olmak zorunda — ikisi de ceza ama aldıkları şey başka, ve
+  // oyuncunun neyi kaybettiğini ekrana bakmadan bilmesi lazım. Bomba boğuk
+  // ve patlıyor; bu ince, kısa ve **kayıyor**, yani bir şeyin küçüldüğünü
+  // söylüyor.
+  spike()     { ensureAudio(); beep(1100, 0.05, 'square', 0.16);
+                [820, 560, 380].forEach((f, i) => beep(f, 0.13, 'triangle', 0.18, 0.05 + i * 0.06));
+                vibrate([25, 20, 45]); },
 };
 
 // ---------------------------------------------------------------------
@@ -2968,6 +2996,7 @@ function buildMenuDiorama() {
   // sıfırlıyor, yani bu satır bir hatayı düzeltmiyor — birinin doğmasını
   // engelliyor.
   rocks = [];
+  spikes = [];
   eatenCount = 0; levelGoal = 0;
   fieldHalfX = 4.6; fieldHalfZ = 4.2;
   fitGround();
@@ -11742,6 +11771,65 @@ const rockGap = () => HOLE_MAX * 2 + ROCK_R * 2 + 1.2;
 // Orta koridor zaten deliğin en çok geçtiği yer, yani engel orada duruyor.
 const rockEdge = () => HOLE_MAX + ROCK_R + 1.2;
 
+// ---------------------------------------------------------------------
+// Diken
+//
+// Üçüncü engel, ve üçü de **başka bir şeyi** alıyor:
+//
+//   bomba → saatten          (yutuluyor, beş saniye)
+//   kaya  → yoldan           (yutulmuyor, geçirmiyor)
+//   diken → **boydan**       (geçiriyor, bir boy küçültüyor)
+//
+// Dikeni kayadan ayıran şey tam olarak geçirmesi. Kaya deliği dışarı itiyor,
+// yani bir kayaya çarpmak diye bir şey yok — değdiğin an duruyorsun. Diken
+// itmiyor: üstünden geçiyorsun ve bedelini ödüyorsun. O yüzden ikisi aynı
+// tahtada durabiliyor ve karıştırılmıyorlar — biri duvar, öteki tuzak.
+//
+// Bedel **bir boy**, yani `Size 5` rozeti `Size 4`e düşüyor. Meyve cinsinden
+// bir sayı (mesela "altı meyvelik büyüme") denendi ve ölçülünce görünmez
+// çıktı: 300 parçalık bir tahtada bir meyve 0.0042 büyütüyor, altı meyve
+// 0.025 — yarıçapın %1'i, rozet hiç kıpırdamıyor. Ceza görülmüyorsa ceza
+// değil. Bir boy da 0.2, yani tahtanın yaklaşık %16'sını yeniden süpürmek —
+// bombanın saatten aldığı payla (120 saniyede 5, yani %4) kıyaslanınca ağır,
+// ama bombanın aksine dikene **çarpmak zorunda değilsin**: yanından
+// geçilebiliyor, ve tahtada bir ya da iki tane var.
+//
+// `BASE_HOLE_R`'nin altına inmiyor. İnseydi bölüm sessizce bitirilemez hâle
+// gelirdi: en küçük meyve bile yutulamaz olur, oyun da bunu hata olarak
+// göstermez — saat dolar ve sebep görünmez. Kayanın kenar payında öğrenilen
+// şeyin aynısı.
+//
+// `fruits` listesine girmiyor, `rocks` gibi kendi listesinde: yutma kontrolü,
+// hedef sayısı, görev sayaçları, mıknatıs ve otomatik oyuncu — hepsi tek tek
+// "diken hariç" diye yazılmak zorunda kalırdı.
+// Kayayla (0.62) aynı ağırlıkta. İlk ölçü 0.5'ti ve ekranda kayanın yarısı
+// kadar duruyordu — bir meyveden yalnızca bir tık geniş, yani tahtadaki
+// dokunun içinde kayboluyordu. Bir engelin **görülmesi**, ne yaptığından
+// önce gelir. Büyütmenin bedeli var: çarpışma yarıçapı da bu, yani dikene
+// çarpmak kolaylaştı. Kabul edildi, çünkü diken zaten kaçınılabilir ve bir
+// tahtada en fazla iki tane var.
+const SPIKE_R = 0.66;
+// Kayadan sonra, ve yine üç bölüm arayla: bomba 6, kaya 9, diken 12.
+// Aynı anda iki yeni fikir öğretmemek, bombayla kayanın arasında zaten
+// verilmiş bir karardı.
+//
+// 12 bilerek seçildi: görev bölümü değil (5, 15, 25…), resim değil (3, 13…),
+// şerit değil (6, 16…), bulmaca değil (18, 28…). Yeni bir şeyin tanıtıldığı
+// bölüm, tahtası da kuralı da sıradan olan bir bölüm olmalı.
+const SPIKE_FROM = 12;
+// Kaç tane: tahtanın boyuna göre, kaya gibi. Kayanın yarısı kadar —
+// kaya yolu kapatıyor ve tahtanın her yerinde olması labirent yapıyor;
+// diken bir bedel, ve iki bedel bir tahta için yeterli.
+const SPIKE_PER_ROW = 0.045;
+// Dikenlerin toplamda isteyebileceği en büyük pay: tahtanın geri
+// verebileceği büyümenin beşte biri. Bu sayı `placeSpikes`'ta bir **tavan**,
+// yani seyrek tahtada diken sayısını kendiliğinden düşürüyor.
+const SPIKE_SHARE = 0.2;
+// Rozetin bir kademesi. `holeSizeStep` de bunu okuyor: iki yerde ayrı sayı
+// yazsaydı, dikenin aldığı şeyle rozetin gösterdiği şey birbirinden
+// bağımsız kayardı.
+const SIZE_STEP = 0.2;
+
 const ROCK_GEO = (() => {
   const g = new THREE.Group();
   const tas = new THREE.MeshStandardMaterial({ color: '#8d9099', roughness: 0.92 });
@@ -11763,6 +11851,58 @@ const ROCK_GEO = (() => {
   const ust = part(new THREE.DodecahedronGeometry(0.38, 0), tas, -0.32, 1.2, -0.22);
   ust.rotation.set(0.2, 1.1, 0.8);
   g.add(ust);
+  return g;
+})();
+
+// Diken: alçak bir göbek ve ondan dışa açılan sivri uçlar.
+//
+// Yukarıdan bakılan bir oyunda siluetin tamamı **üstten** görünen şey, yani
+// dikeni diken yapan uçlar yukarı değil dışarı bakmak zorunda. Yukarı bakan
+// bir koni tepeden daire okunuyor ve tahtadaki her şey zaten daire.
+//
+// Kayadan ayıran şey iki işaret: renk (kaya gri ve mat, diken koyu demir ve
+// parlak) ve **açık uçlar**. Gri bir yıldız, gri bir taşın yanında ikinci bir
+// taş gibi duruyordu; uçların açık renk olması onu tek bakışta ayırıyor.
+//
+// Kaya gibi **yarım genişliği 1** çiziliyor: çarpışma yarıçapı `SPIKE_R` ve
+// ölçek de o. Geometri dar kalsaydı delik görünen dikene değmeden küçülürdü,
+// yani ceza görünmez bir yerden gelirdi.
+const SPIKE_GEO = (() => {
+  const g = new THREE.Group();
+  const demir = new THREE.MeshStandardMaterial({
+    color: '#3a3f4a', roughness: 0.35, metalness: 0.6 });
+  // Uçlar açık **ve** biraz kendi ışığını veriyor.
+  //
+  // İlk hâlinde gövde de uçlar da koyuydu ve ekran görüntüsünde diken kumun
+  // üstünde bir leke gibi duruyordu — kayanın yanında yarısı kadar ve
+  // tanınmıyordu. Tahtanın zemini kırk sekiz yerde kırk sekiz renk: koyu
+  // zeminde koyu bir şey, açık zeminde açık bir şey kayboluyor. İçinde
+  // kendi karşıtlığını taşıyan bir nesne her ikisinde de duruyor.
+  const uc = new THREE.MeshStandardMaterial({
+    color: '#eef2f8', roughness: 0.2, metalness: 0.55,
+    emissive: '#8fa4c0', emissiveIntensity: 0.35 });
+  g.add(part(new THREE.DodecahedronGeometry(0.46, 0), demir, 0, 0.46, 0));
+  // Sekiz uç, dışa ve hafif yukarı. Sekiz, çünkü altıda yıldız çark
+  // okunuyordu ve onda uçlar birbirine değip tek bir disk oluyordu.
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    // Koni kendi ekseninde **dik** doğuyor ve tepesi +Y'ye bakıyor. Yatık
+    // durması için önce X'te çeyrek tur, sonra Y'de açıya çevriliyor; sıra
+    // ZXY, yani eğim açının üstüne biniyor ve uç hep dışarı bakıyor.
+    // Uçlar düz yana değil **yukarı doğru** açılıyor (çeyrek turdan 0.5
+    // radyan eksik). Yere yapışık bir yıldız, neredeyse tepeden bakan bir
+    // kamerada düz bir leke: yüksekliği olan bir şey hem gölge veriyor hem
+    // de ışığı yandan alıyor, ve tahtada duran şey o zaman okunuyor.
+    const yon = (m) => {
+      m.rotation.order = 'ZXY';
+      m.rotation.set(Math.PI / 2 - 0.5, -a + Math.PI / 2, 0);
+      return m;
+    };
+    g.add(yon(part(new THREE.ConeGeometry(0.19, 0.9, 6), demir,
+                   Math.cos(a) * 0.46, 0.58, Math.sin(a) * 0.46)));
+    g.add(yon(part(new THREE.ConeGeometry(0.115, 0.34, 6), uc,
+                   Math.cos(a) * 0.84, 0.76, Math.sin(a) * 0.84)));
+  }
   return g;
 })();
 
@@ -17661,8 +17801,64 @@ function materialiseRocks() {
   }
 }
 
+// Dikenler de yığın, kayalar gibi. Farkı: bir diken **kırılabiliyor**, yani
+// tek bir kopyanın matrisi sonradan yeniden yazılmak zorunda. Yığınlar o
+// yüzden burada saklanıyor — `fieldGroup`'ta bulup aramak, her karede
+// yapılacak bir iş olmasa bile yanlış nesneyi bulmanın kolay yolu.
+let spikeInst = [];
+function materialiseSpikes() {
+  spikeInst = [];
+  if (!spikes.length) return;
+  SPIKE_GEO.updateMatrixWorld(true);
+  const parcalar = [];
+  SPIKE_GEO.traverse(o => { if (o.isMesh) parcalar.push(o); });
+  for (const o of parcalar) {
+    const inst = yeniYigin(o.geometry, o.material, spikes.length);
+    inst.userData.yerel = o.matrixWorld.clone();
+    spikeInst.push(inst);
+    spikes.forEach((s, i) => spikeMatrix(inst, i, s));
+  }
+}
+
+// Bir dikenin tek bir kopyasının matrisini yaz. `olcek` sıfır olduğunda
+// kopya ekrandan kayboluyor — silmek yerine küçültmek, yığındaki öteki
+// dikenlerin indislerini bozmuyor.
+const _spikeM = new THREE.Matrix4(), _spikeD = new THREE.Matrix4();
+const _spikeV = new THREE.Vector3(), _spikeQ = new THREE.Quaternion();
+const _spikeE = new THREE.Euler(), _spikeS = new THREE.Vector3();
+function spikeMatrix(inst, i, s, olcek = 1) {
+  _spikeE.set(0, s.rotY || 0, 0);
+  _spikeQ.setFromEuler(_spikeE);
+  _spikeV.set(s.x, 0, s.z);
+  _spikeS.setScalar(s.r * olcek);
+  _spikeD.compose(_spikeV, _spikeQ, _spikeS);
+  _spikeM.multiplyMatrices(_spikeD, inst.userData.yerel);
+  inst.setMatrixAt(i, _spikeM);
+  inst.instanceMatrix.needsUpdate = true;
+}
+
+// Delik bir boy küçülüyor.
+//
+// Taban `BASE_HOLE_R`: altına inmek bölümü sessizce bitirilemez yapardı
+// (bkz. `SPIKE_FROM`'un üstündeki not). Zaten tabandaysa diken hiçbir şey
+// almıyor — alacak bir şey yok — ama yine de kırılıyor ve sesini çıkarıyor,
+// yoksa oyuncu çarptığını bile anlamaz ve "bu bazen çalışmıyor" der.
+function shrinkHole(s) {
+  holeRadius = Math.max(BASE_HOLE_R, holeRadius - SIZE_STEP);
+  // Diken kırılıyor: ölçek sıfır, yani yığından kayboluyor.
+  for (const inst of spikeInst) spikeMatrix(inst, spikes.indexOf(s), s, 0);
+  burst(s.x, 0.4, s.z, 'berry');
+  sfx.spike();
+  // Rozet kendi kendine de kısılıyor (sayı düştüğü için), ama zaten tabanda
+  // olan bir delikte sayı düşmüyor: animasyon yine de oynatılıyor ki
+  // "bazen çalışmıyor" diye okunmasın.
+  flashSize('drop');
+  updateSizeTag();
+}
+
 function materialiseFruit() {
   materialiseRocks();
+  materialiseSpikes();
   // Tek parçalılar: geometri + malzeme aynıysa aynı yığın.
   const tek = new Map();
   // Çok parçalılar: nesneler ve saplı elma. Şablonun her alt parçası kendi
@@ -18247,11 +18443,15 @@ function buildField() {
     // ortasındaki kaya onu bozuyor.
     puzzleRooms = [];
     rocks = [];
+    spikes = [];
   } else {
     puzzleRooms = [];
     placeRocks();
     placeGiants();
     placeBombs();
+    // Dikenler en sonda: yerini seçerken hem kayaya hem kolosun yoluna
+    // bakması gerekiyor, yani ikisi de yerleşmiş olmalı.
+    placeSpikes();
   }
   // After the giants, so it takes its clearing from a settled board rather
   // than having a giant dropped on top of it afterwards. A daily run is
@@ -18458,6 +18658,105 @@ function pushOutOfRocks() {
     if (d < 0.0001) { holeX = r.x + enAz; continue; }
     holeX = r.x + (dx / d) * enAz;
     holeZ = r.z + (dz / d) * enAz;
+  }
+}
+
+// Tahtadaki dikenler. Kaya gibi kendi listesinde, ve sebebi kayanınkiyle
+// aynı: `fruits`'e girseydi yutma, hedef, görev, mıknatıs ve bot — hepsi
+// "diken hariç" diye yazılmak zorunda kalırdı.
+let spikes = [];
+
+function placeSpikes() {
+  spikes = [];
+  if (dailyRun || level < SPIKE_FROM) return;
+  // Devler bölümünde diken yok.
+  //
+  // O bölümün bitiş şartı "her devi yut" ve devi yutmak bir **boy** işi:
+  // küçülten bir şeyle küçük kalmanın kaybettirdiği bir bölümü aynı tahtaya
+  // koymak, oyuncuya kendi cezasıyla bölümü kaybettirmek olurdu. Öteki
+  // görevlerde böyle bir bağ yok — mayında saat, siparişte renk, rush'ta
+  // yine saat.
+  if (missionKindFor(level) === 'giants') return;
+  // Kaç tane: satır sayısı **ve** tahtanın verebileceği büyüme.
+  //
+  // Önce yalnızca satır sayısıydı ve satır sayısı tahtanın boyu, doluluğu
+  // değil. Ölçüldü: 47. bölüm (Dial) seyrek bir kutupsal tahta ve oradaki
+  // iki diken, tahtanın geri verebileceği büyümenin %26'sını istiyordu —
+  // aynı iki diken kalabalık bir tahtada %6. Yani aynı ceza, tahtaya göre
+  // dört kat ağırlaşıyordu ve bunu söyleyen hiçbir şey yoktu.
+  //
+  // Tavan artık cezanın kendisinden okunuyor: dikenler, tahtanın geri
+  // verebileceğinin `SPIKE_SHARE`'inden fazlasını isteyemiyor. Seyrek
+  // tahtada bu bir dikene, çok seyrekte hiçbirine iniyor.
+  const buyume = fruits.reduce((s, f) =>
+    s + (f.eaten || f.bomb ? 0 : f.giant ? 9 : f.big ? 3 : 1), 0) * growthUnit();
+  const kac = Math.min(Math.round(rows * SPIKE_PER_ROW),
+                       Math.floor((buyume * SPIKE_SHARE) / SIZE_STEP));
+  if (kac < 1) return;
+  // Kenar payı kayanınki **değil**, ve fark dikenin tanımından geliyor.
+  //
+  // Kaya kenara yaklaşamıyor çünkü arkasında, kenarla arasında, ağzın
+  // giremeyeceği bir şerit bırakıyor: oradaki meyveye hiç ulaşılamıyor ve
+  // bölüm sessizce bitirilemez oluyor. Diken hiçbir şeyi kapatmıyor —
+  // üstünden geçiliyor — yani böyle bir şerit üretmiyor.
+  //
+  // İlk yazışta kayanın payı kopyalanmıştı ve sonucu ölçüldü: diken
+  // kayalarla aynı dar orta koridora sıkışıyor, kayadan uzak durma şartını
+  // da sağlaması gerekiyor, ve altı uygun tahtanın **beşinde hiç diken
+  // çıkmıyordu**. Kopyalanan kural, kopyalandığı yerdeki sebebiyle birlikte
+  // gelmemişti.
+  const kenar = SPIKE_R + 0.8;
+  const mX = fieldHalfX - kenar, mZ = fieldHalfZ - kenar;
+  if (mX <= 0 || mZ <= 0) return;
+  for (let deneme = 0; deneme < kac * 40 && spikes.length < kac; deneme++) {
+    const x = (rnd() * 2 - 1) * mX;
+    const z = (rnd() * 2 - 1) * mZ;
+    if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + SPIKE_R + 3) continue;
+    // Kolosun önüne konmuyor: bölümün tek hedefine giden yolda duran bir
+    // bedel, bedel değil vergi olur.
+    if (hasColossus(level) && Math.hypot(x - 0, z + fieldHalfZ * 0.55) < COLOSSUS_R + SPIKE_R + 2) continue;
+    // Kayadan uzak: ikisi yan yana durursa kaya deliği iterken diken de
+    // küçültüyor ve oyuncu neye çarptığını göremiyor. Aradaki boşluk en
+    // geniş ağzın sığacağı kadar, yani ikisi ayrı ayrı karşılaşılıyor.
+    if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + SPIKE_R + HOLE_MAX * 2)) continue;
+    if (spikes.some(s => Math.hypot(s.x - x, s.z - z) < SPIKE_R * 2 + HOLE_MAX * 2)) continue;
+    // Devin dibine konmuyor.
+    //
+    // Altındaki meyveleri alan döngü devleri atlıyor — bir devi silmek
+    // tahtanın en büyük hedefini yok etmek olurdu — ve atlayınca diken devin
+    // gövdesinin içinde kalabiliyordu. Ölçüldü: 31. bölümde dikenin 0.5
+    // birim yanında bir dev vardı, yani diken hiç görünmüyordu. Devi
+    // silmek yerine dikeni başka yere koymak doğru olan.
+    if (fruits.some(f => !f.eaten && f.giant &&
+        Math.hypot(f.x - x, f.z - z) < f.r + SPIKE_R + 0.9)) continue;
+    // Altındaki meyveleri al, kayanın yaptığı gibi. Bir öbeğin içinde duran
+    // diken görünmüyor, ve görünmeyen bir cezanın adı ceza değil şans.
+    for (const f of fruits) {
+      if (f.eaten || f.giant) continue;
+      if (Math.hypot(f.x - x, f.z - z) > SPIKE_R + NORMAL_R * 1.6) continue;
+      unbuildFruit(f);
+    }
+    spikes.push({ x, z, r: SPIKE_R, rotY: rnd() * Math.PI * 2, hit: false });
+  }
+}
+
+// Dikene değildi mi?
+//
+// Hareketten sonra, `pushOutOfRocks`'tan sonra çağrılıyor: kaya deliği önce
+// ittiyse, itilen yerdeki diken sayılmalı. Sınama kayanınkiyle aynı daire
+// daire testi (`holeRadius + s.r`) — yani "ağzın kenarı dikene değdi".
+// Deliğin **ortasına** gelmesini beklemek, geniş bir ağzın dikenin üstünden
+// sessizce geçmesi demekti.
+//
+// Her diken bir kez: değdiği an kırılıyor. Kalıcı olsaydı bir tahtada
+// oyuncu aynı dikene beş kez değip en küçük boya inebilirdi ve bunun adı
+// zorluk değil kilit olurdu.
+function hitSpikes() {
+  for (const s of spikes) {
+    if (s.hit) continue;
+    if (Math.hypot(holeX - s.x, holeZ - s.z) >= holeRadius + s.r) continue;
+    s.hit = true;
+    shrinkHole(s);
   }
 }
 
@@ -18726,6 +19025,7 @@ function segDist(px, pz, x0, z0, x1, z1) {
 
 function buildPuzzle() {
   rocks = [];
+  spikes = [];
   puzzleRooms = [];
   // Önceki bölümün şeritleri: `fieldGroup.clear()` onları sahneden çıkarıyor
   // ama geometrilerini bırakmıyor, ve bulmaca başına üç-dört tane.
@@ -20346,16 +20646,28 @@ const sizeNEl = document.getElementById('sizeN');
 const _proj = new THREE.Vector3();
 let shownSize = 0;
 
-function holeSizeStep() { return 1 + Math.floor((holeRadius - BASE_HOLE_R) / 0.2); }
+function holeSizeStep() { return 1 + Math.floor((holeRadius - BASE_HOLE_R) / SIZE_STEP); }
+
+// Rozetin animasyonunu bir kez oynat. Sınıf önce kaldırılıp bir kare sonra
+// konuyor: arka arkaya iki diken aynı sınıfı zaten duruyor bulur ve tarayıcı
+// animasyonu yeniden başlatmaz — ikincisi sessiz geçerdi. Saatin çakmasında
+// (`flashTime`) öğrenilen şeyin aynısı.
+function flashSize(sinif) {
+  sizeTagEl.classList.remove('grow', 'drop');
+  void sizeTagEl.offsetWidth;
+  sizeTagEl.classList.add(sinif);
+}
 
 function updateSizeTag() {
   const step = holeSizeStep();
   if (step !== shownSize) {
+    // Yön önemli: rozet büyürken şişiyor, küçülürken **kısılıyor**. Tek bir
+    // animasyon olsaydı dikene çarpmak ödül gibi görünürdü — ekranda kutlama
+    // yapan bir rozet, sayının düştüğünü söylemiyor.
+    const kuculdu = step < shownSize;
     shownSize = step;
     sizeNEl.textContent = step;
-    sizeTagEl.classList.remove('grow');
-    void sizeTagEl.offsetWidth;
-    sizeTagEl.classList.add('grow');
+    flashSize(kuculdu ? 'drop' : 'grow');
   }
   // bottom edge of the hole, then a little further down
   _proj.set(holeX, 0, holeZ + holeRadius + 0.35).project(camera);
@@ -22616,6 +22928,43 @@ window.fruitHoleRocks = () => ({
     Math.hypot(r.x - SPAWN_X, r.z - spawnZ()))).toFixed(2) : null,
   agizTavani: HOLE_MAX,
 });
+// Dikenler: kaç tane, nerede, ve tahtadaki her şeyden yeterince uzakta mı.
+//
+// `enYakinMeyve` burada, çünkü dikenin tek gerçek şartı **görünür** olması:
+// bir öbeğin içinde duran diken cezayı görünmez yapıyor ve görünmeyen ceza
+// oyuncuya "bu oyun bazen beni küçültüyor" diye okunuyor.
+window.fruitHoleSpikes = () => ({
+  sayi: spikes.length,
+  yerler: spikes.map(s => ({ x: +s.x.toFixed(2), z: +s.z.toFixed(2),
+                             r: +s.r.toFixed(2), hit: s.hit })),
+  adim: SIZE_STEP,
+  taban: BASE_HOLE_R,
+  ilkBolum: SPIKE_FROM,
+  dogusaEnYakin: spikes.length ? +Math.min(...spikes.map(s =>
+    Math.hypot(s.x - SPAWN_X, s.z - spawnZ()))).toFixed(2) : null,
+  kayayaEnYakin: (spikes.length && rocks.length) ? +Math.min(...spikes.flatMap(s =>
+    rocks.map(r => Math.hypot(s.x - r.x, s.z - r.z) - r.r - s.r))).toFixed(2) : null,
+  kenara: spikes.length ? +Math.min(...spikes.map(s =>
+    Math.min(fieldHalfX - Math.abs(s.x), fieldHalfZ - Math.abs(s.z)))).toFixed(2) : null,
+  // Dikenin çevresindeki en yakın canlı meyve: açıklığın gerçekten açık
+  // olduğunu söyleyen sayı.
+  enYakinMeyve: spikes.length ? +Math.min(...spikes.map(s => Math.min(...fruits
+    .filter(f => !f.eaten)
+    .map(f => Math.hypot(f.x - s.x, f.z - s.z))))).toFixed(2) : null,
+});
+// Deliği bir dikenin üstüne sür ve ne olduğunu söyle. Gerçek parmakla
+// sürmek konteynerde zamanlamaya bağlı olurdu; ölçülen şey kural.
+window.fruitHoleSpikeRun = (i, r) => {
+  const s = spikes[i];
+  if (!s) return null;
+  if (r != null) holeRadius = r;
+  const onceR = holeRadius;
+  holeX = s.x; holeZ = s.z;
+  hitSpikes();
+  return { onceR: +onceR.toFixed(3), sonraR: +holeRadius.toFixed(3),
+           fark: +(onceR - holeRadius).toFixed(3), hit: s.hit,
+           boy: holeSizeStep() };
+};
 
 // Bulmaca tahtasının tamamı: odalar, kapılar, ve tahtanın **kendi** kurduğu
 // sıra. Testin iki ayrı soru sorabilmesi için ikisi de dönüyor — "bu tahta
@@ -22973,6 +23322,12 @@ window.fruitHoleGrow = () => {
     // starts, and how wide the three tiers of fruit are.
     start: +holeRadius.toFixed(3),
     bigR: BIG_R, giantR: giants.length ? Math.max(...giants.map(f => f.r)) : GIANT_R,
+    // Tahtanın **geri verebileceği** büyüme: her canlı parça kendi çarpanıyla
+    // (dev 9×, iri 3×, bomba 0). Dikenin aldığı boyun bu sayının yanında ne
+    // kadar durduğu ölçülebilsin diye — alınan şey geri kazanılamıyorsa
+    // ceza değil kilit olur.
+    kalanBuyume: +(live.reduce((s, f) => s + (f.bomb ? 0 : f.giant ? 9 : f.big ? 3 : 1), 0)
+                   * growthUnit()).toFixed(3),
   };
 };
 
@@ -23203,6 +23558,8 @@ function tick(now) {
       // söylesin, yoksa kenara sıkışmış bir delik kayanın içine geri
       // itilebilir.
       pushOutOfRocks();
+      // Diken kayadan sonra: kaya deliği ittiyse sayılacak yer itilen yer.
+      hitSpikes();
     }
 
     // magnet upgrade: fruit the hole could swallow drifts toward it, so a

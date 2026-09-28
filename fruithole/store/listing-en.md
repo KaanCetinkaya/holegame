@@ -151,9 +151,12 @@ the sand, a polar bear in the snow. Every one you swallow is kept, and the Colle
 holds them all: the ones you have in colour, the rest as silhouettes.
 
 💣 NOT EVERYTHING IS FRUIT
-A bomb goes down as easily as a berry and takes five seconds off the clock, so
-a crowded patch is worth a second look. A rock cannot be swallowed at all — and
-the wider your opening grows, the further out it stops you.
+Three things on the field want something from you, and each wants something
+different. A bomb goes down as easily as a berry and takes five seconds off the
+clock, so a crowded patch is worth a second look. A rock cannot be swallowed at
+all — and the wider your opening grows, the further out it stops you. A spike
+does not stop you at all: you run straight over it, it breaks, and it costs you
+a size. Time, ground, size — pick which one you can spare.
 
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, lime, candy — and gold and chrome, which catch the light in
