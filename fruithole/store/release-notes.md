@@ -89,14 +89,14 @@ durumdaydı; kayıt ona göre düzeltildi.
 
 ---
 
-## 40 (1.13) — 492 karakter
+## 40 (1.13) — 410 karakter
 
 ```
-New in this update:
+New in this update: three new things on the board.
 
-- Catapults. A machine on the board throws a bomb at wherever you are standing. A red ring marks where it lands and closes as it falls, so the only thing it punishes is standing still.
-- It never fires at the spawn or on mission levels, and the bomb costs three seconds, not five - it was thrown at you, not swallowed by you.
-- Rollers. A stone roller runs back and forth across a bare lane. It takes nothing from you at all - it only takes the way through, and it moves.
+- Catapults throw a bomb at wherever you are standing. A red ring marks where it lands and closes as it falls, so the only thing they punish is standing still.
+- Rollers are stone drums running back and forth across a bare lane. They take nothing from you - only the way through.
+- Mud. You can cross it at half speed, or go round. Sometimes round is faster.
 ```
 
 39 yüklendikten sonra yazıldı, yani ayrı bir not: 39'un kutusunda mancınık

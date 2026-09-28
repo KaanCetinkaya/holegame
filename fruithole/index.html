@@ -1287,6 +1287,12 @@ function missionRule() {
   if (level === ROLLER_FROM) {
     return 'ROLLERS: the bare lane is not empty — time your crossing';
   }
+  // Çamur hiçbir şey almıyor ve ekranda hiçbir şey çakmıyor, yani oyuncunun
+  // yavaşladığını fark etmesi gerekiyor. Söylenmezse "oyun bazen ağırlaşıyor"
+  // diye okunur.
+  if (level === MUD_FROM) {
+    return 'MUD: you can cross it, but at half speed — going round may be faster';
+  }
   return HINT_DEFAULT;
 }
 // Görevin durumu: tipi, (siparişte) hedef meyve, kaç tane var, kaçı yendi.
@@ -3015,6 +3021,7 @@ function buildMenuDiorama() {
   spikes = [];
   clearCatapults();
   clearRollers();
+  clearMuds();
   eatenCount = 0; levelGoal = 0;
   fieldHalfX = 4.6; fieldHalfZ = 4.2;
   fitGround();
@@ -12121,6 +12128,67 @@ const ROLLER_GEO = (() => {
   return g;
 })();
 
+// ---------------------------------------------------------------------
+// Çamur
+//
+// Altıncı engel, ve engellerin en yumuşağı: durdurmuyor, almıyor, kırılmıyor.
+// Yalnızca **yavaşlatıyor**.
+//
+// Listeye girme sebebi de o. Beş engel var ve beşi de bir anda oluyor —
+// çarptın, yedin, değdin. Çamur bir an değil bir **süre**: içindeyken her
+// şey uzuyor, ve uzayan şey saatin kendisi. Ne kadar kaybettiğini söyleyen
+// bir sayı yok, ekranda bir şey çakmıyor; yalnızca geç kalıyorsun.
+//
+// İkinci sebep: tahtanın şekline bir şey söylüyor. Kaya "buradan geçme"
+// diyor, çamur "buradan geçebilirsin ama pahalı" diyor — ve bu, oyuncunun
+// ilk kez iki yol arasında **hesap** yapması demek.
+const MUD_FROM = 29;
+const MUD_COUNT = 3;
+// Lekelerin yarıçapı bu aralıkta, her biri ayrı. Hepsi aynı boyda olsaydı
+// tahtaya basılmış bir desen gibi dururdu; farklı olunca yer gibi duruyor.
+const MUD_R_MIN = 1.3, MUD_R_MAX = 2.2;
+// İçindeyken hız çarpanı. Yarıya indirmek ölçülebilir bir fark: aynı yolu
+// iki katı sürede gidiyorsun, ve bu kaçmayı da zorlaştırıyor — mancınığın
+// halkasından çamurun içinde çıkmak, dışında çıkmaktan zor.
+const MUD_SLOW = 0.5;
+// Tahtanın en fazla bu kadarı çamur olabilir. Saat, tahtanın süpürülmesinden
+// hesaplanıyor ve o hesap çamuru bilmiyor; payı büyürse bütün bölümler
+// sessizce zorlaşır. `holemud.mjs` ölçüyor.
+const MUD_SHARE = 0.08;
+
+// Lekenin şekli: düzgün daire değil, kenarı oynayan bir leke.
+//
+// Daire olsaydı tahtaya konmuş bir nesne gibi dururdu; çamur bir nesne değil
+// **yer**. Kenar gürültüsü `noiseAt` ile, yani aynı tohum aynı lekeyi
+// veriyor.
+//
+// Oynama ±%12 ile sınırlı ve sebebi kural: yavaşlatma "merkez lekenin
+// içinde mi" diye ölçülüyor, yani çizilen kenarla kuralın kenarı ayrılırsa
+// oyuncu kenarda yavaşladığını ya da yavaşlamadığını anlayamaz. Yüzde on iki,
+// kimsenin fark etmediği ama lekeyi leke yapan aralık.
+function mudShape(r, tohum) {
+  const N = 26, pts = [];
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2;
+    const rr = r * (0.88 + noiseAt(Math.cos(a) * 1.8, Math.sin(a) * 1.8, tohum) * 0.24);
+    pts.push(new THREE.Vector2(Math.cos(a) * rr, Math.sin(a) * rr));
+  }
+  return new THREE.ShapeGeometry(new THREE.Shape(pts));
+}
+
+// Koyu ve saydam, üstünde açık bir kenar.
+//
+// Kırk sekiz yerin zemini kırk sekiz renk: tek bir renk hepsinde
+// görünmüyor. Koyu dolgu açık zeminde, açık kenar koyu zeminde okunuyor —
+// dikenin uçlarında ve mancınığın halkasında olduğu gibi, nesne kendi
+// karşıtlığını taşıyor.
+const MUD_MAT = new THREE.MeshBasicMaterial({
+  color: '#241a12', transparent: true, opacity: 0.55,
+  depthWrite: false, side: THREE.DoubleSide });
+const MUD_RIM_MAT = new THREE.MeshBasicMaterial({
+  color: '#9a8a6a', transparent: true, opacity: 0.4,
+  depthWrite: false, side: THREE.DoubleSide });
+
 // Fitili yanan koyu bir küre. PROPS'a **girmiyor**: oradaki her şey
 // koleksiyonun bir parçası ve "63 şeyden 41'ini buldun" listesine bir ceza
 // nesnesi koymak, bulunacak bir şeymiş gibi gösterirdi.
@@ -18661,6 +18729,7 @@ function buildField() {
     spikes = [];
     clearCatapults();
     clearRollers();
+    clearMuds();
   } else {
     puzzleRooms = [];
     placeRocks();
@@ -18675,6 +18744,8 @@ function buildField() {
     // Silindir en sonda: şeridinin üstünde katı bir şey olmamalı, yani kaya
     // ve mancınık yerleşmiş olmalı.
     placeRollers();
+    // Çamur silindirden sonra: şeridine girmemesi gerekiyor.
+    placeMuds();
   }
   // After the giants, so it takes its clearing from a settled board rather
   // than having a giant dropped on top of it afterwards. A daily run is
@@ -19193,6 +19264,66 @@ function landShot(c) {
 // Bu bölümde kaç atış tuttu — ölçüm için.
 let shotHits = 0;
 
+// Tahtadaki çamur lekeleri.
+let muds = [];
+
+function clearMuds() {
+  for (const m of muds) if (m.mesh) m.mesh.traverse(o => {
+    if (o.isMesh && o.geometry) o.geometry.dispose();
+  });
+  muds = [];
+}
+
+function placeMuds() {
+  clearMuds();
+  if (dailyRun || level < MUD_FROM) return;
+  if (missionKindFor(level)) return;
+  // Tahtanın kaçta kaçı çamur olabilir: pay aşılırsa duruyor. Sayıyı değil
+  // **alanı** sınırlamak doğru olan — üç büyük leke, beş küçüğünden çok yer
+  // kaplıyor.
+  const tahta = fieldHalfX * 2 * fieldHalfZ * 2;
+  let alan = 0;
+  for (let deneme = 0; deneme < MUD_COUNT * 30 && muds.length < MUD_COUNT; deneme++) {
+    const r = MUD_R_MIN + rnd() * (MUD_R_MAX - MUD_R_MIN);
+    if (alan + Math.PI * r * r > tahta * MUD_SHARE) continue;
+    const x = (rnd() * 2 - 1) * (fieldHalfX - r - 0.4);
+    const z = (rnd() * 2 - 1) * (fieldHalfZ - r - 0.4);
+    // Doğuş yerinde çamur yok: oyuncu tahtaya inip ilk hamlesini yaparken
+    // yavaşlamanın sebebini göremez.
+    if (Math.hypot(x - SPAWN_X, z - spawnZ()) < r + HOLE_MAX + 2) continue;
+    if (muds.some(m => Math.hypot(m.x - x, m.z - z) < m.r + r + 1)) continue;
+    // Silindirin şeridine girmiyor: çıplak şerit "burası boş" diyor ve
+    // üstünde çamur olması o sözü bozar.
+    if (rollers.some(o => Math.abs(o.z - z) < o.r + r + 0.5)) continue;
+    const g = new THREE.Group();
+    const tohum = Math.floor(rnd() * 9999);
+    const kenar = new THREE.Mesh(mudShape(r * 1.06, tohum), MUD_RIM_MAT);
+    kenar.rotation.x = -Math.PI / 2;
+    kenar.position.y = 0.015;
+    g.add(kenar);
+    const ic = new THREE.Mesh(mudShape(r, tohum), MUD_MAT);
+    ic.rotation.x = -Math.PI / 2;
+    ic.position.y = 0.025;
+    g.add(ic);
+    g.position.set(x, 0, z);
+    fieldGroup.add(g);
+    muds.push({ x, z, r, mesh: g });
+    alan += Math.PI * r * r;
+  }
+}
+
+// Delik çamurun içinde mi: hız çarpanı.
+//
+// Merkeze bakılıyor, kenara değil. Kenarla ölçseydik geniş bir ağız aynı
+// lekede daha uzun süre yavaş kalırdı — yani büyümenin cezası olurdu, ve
+// mancınığın isabetinde verilen kararın aynısı burada da geçerli.
+function mudFactor() {
+  for (const m of muds) {
+    if (Math.hypot(holeX - m.x, holeZ - m.z) < m.r) return MUD_SLOW;
+  }
+  return 1;
+}
+
 // Tahtadaki silindirler.
 let rollers = [];
 
@@ -19522,6 +19653,7 @@ function buildPuzzle() {
   spikes = [];
   clearCatapults();
   clearRollers();
+  clearMuds();
   puzzleRooms = [];
   // Önceki bölümün şeritleri: `fieldGroup.clear()` onları sahneden çıkarıyor
   // ama geometrilerini bırakmıyor, ve bulmaca başına üç-dört tane.
@@ -23504,6 +23636,29 @@ window.fruitHoleRollers = () => ({
     Math.abs(o.z - r.z) < o.r + r.r && Math.abs(o.x) < ROLLER_SPAN / 2 + o.r).length, 0),
 });
 window.fruitHoleRollerStep = (dt) => { stepRollers(dt); return rollers.map(r => +r.x.toFixed(2)); };
+// Çamur: kaç leke, ne kadar yer kaplıyorlar, ve delik içindeyken ne oluyor.
+window.fruitHoleMud = () => {
+  const alan = muds.reduce((a, m) => a + Math.PI * m.r * m.r, 0);
+  const tahta = fieldHalfX * 2 * fieldHalfZ * 2;
+  return {
+    sayi: muds.length, ilkBolum: MUD_FROM, yavaslik: MUD_SLOW, payTavani: MUD_SHARE,
+    pay: +(alan / tahta).toFixed(4),
+    yerler: muds.map(m => ({ x: +m.x.toFixed(2), z: +m.z.toFixed(2), r: +m.r.toFixed(2) })),
+    dogusaEnYakin: muds.length ? +Math.min(...muds.map(m =>
+      Math.hypot(m.x - SPAWN_X, m.z - spawnZ()) - m.r)).toFixed(2) : null,
+    // Deliği lekenin ortasına ve dışına koyup çarpanı okumak: kuralın
+    // gerçekten çalıştığını söyleyen tek şey.
+    icinde: muds.length ? (() => {
+      const sx = holeX, sz = holeZ;
+      holeX = muds[0].x; holeZ = muds[0].z;
+      const ic = mudFactor();
+      holeX = muds[0].x + muds[0].r + 2; holeZ = muds[0].z;
+      const dis = mudFactor();
+      holeX = sx; holeZ = sz;
+      return { ic, dis };
+    })() : null,
+  };
+};
 // Deliği bir dikenin üstüne sür ve ne olduğunu söyle. Gerçek parmakla
 // sürmek konteynerde zamanlamaya bağlı olurdu; ölçülen şey kural.
 window.fruitHoleSpikeRun = (i, r) => {
@@ -24099,7 +24254,7 @@ function tick(now) {
     }
 
     if (joyX || joyY) {
-      const speed = BASE_MOVE_SPEED * (1 + upg('speed') * 0.08);
+      const speed = BASE_MOVE_SPEED * (1 + upg('speed') * 0.08) * mudFactor();
       holeX += joyX * speed * dt;
       holeZ += joyY * speed * dt;
       const mX = fieldHalfX - holeRadius * 0.5;

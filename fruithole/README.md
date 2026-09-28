@@ -5623,3 +5623,54 @@ Aynı hesap dikende (12) ve mancınıkta (20) elle yapılmıştı. Üçüncüsü
 yanlış yapıldı, o yüzden artık `holeroller.mjs` ölçüyor: tanıtım bölümü
 sıradan bir ızgara tahtası olmak zorunda. Bomba 6, kaya 9, diken 12,
 mancınık 20, silindir 24.
+
+## Çamur: bir an değil, bir süre
+
+Altıncı engel, ve engellerin en yumuşağı: durdurmuyor, almıyor, kırılmıyor.
+Yalnızca **yavaşlatıyor** — içindeyken hız yarıya iniyor.
+
+Listeye girme sebebi de o. Beş engel vardı ve beşi de bir **an**: çarptın,
+yedin, değdin, vuruldu, sıkıştın. Çamur bir süre. İçindeyken her şey uzuyor
+ve uzayan şey saatin kendisi; ne kadar kaybettiğini söyleyen bir sayı yok,
+ekranda hiçbir şey çakmıyor. Yalnızca geç kalıyorsun.
+
+İkinci sebep tahtanın şekliyle ilgili. Kaya "buradan geçme" diyor, çamur
+"buradan geçebilirsin ama pahalı" diyor — ve bu, oyuncunun ilk kez iki yol
+arasında **hesap** yapması demek.
+
+### Sessiz olması, nasıl bozulacağını da söylüyor
+
+Çamurun tek gerçek riski görünmemesi: bölümün saati tahtanın süpürülmesinden
+hesaplanıyor ve o hesap çamuru bilmiyor. Pay büyüdükçe **bütün bölümler
+sessizce zorlaşıyor** — hiçbir test düşmüyor, hiçbir sayı kıpırdamıyor,
+oyuncu yalnızca yetişemiyor.
+
+O yüzden sınır sayıda değil **alanda**: üç büyük leke, beş küçüğünden çok
+yer kaplıyor. Tahtanın en fazla %8'i çamur olabiliyor (`MUD_SHARE`), ve
+bugünkü en çamurlu tahta %7.1.
+
+### Merkez mi kenar mı, üçüncü kez
+
+Yavaşlatma deliğin **merkezine** bakıyor. Kenarla ölçseydik geniş bir ağız
+aynı lekede daha uzun süre yavaş kalırdı — yani büyümenin cezası olurdu.
+Aynı karar mancınığın isabetinde ve dikenin kırılmasında da verildi; üçünde
+de sebep aynı: bu oyunda büyümek ödül, ve bir kuralın onu cezaya çevirmesi
+kazara olmamalı.
+
+Lekenin çizilen kenarı ±%12 oynuyor ve daha fazlası kasten verilmedi: kural
+"merkez lekenin içinde mi" diye ölçüyor, yani çizilen kenarla kuralın kenarı
+ayrılırsa oyuncu kenarda neden yavaşladığını (ya da neden yavaşlamadığını)
+anlayamaz.
+
+### Engel dizisi
+
+Bomba 6 → kaya 9 → diken 12 → mancınık 20 → silindir 24 → çamur 29.
+
+| | ne yapıyor | ne alıyor |
+|---|---|---|
+| 💣 bomba | yerde bekliyor | saatten, 5 sn |
+| 🪨 kaya | duruyor | yoldan |
+| ✴️ diken | değince kırılıyor | bir boy |
+| 🎯 mancınık | atış yapıyor | saatten, 3 sn |
+| 🛞 silindir | gidip geliyor | zamandan |
+| 🟤 çamur | yerinde duruyor | **hızdan** |
