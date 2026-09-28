@@ -2969,7 +2969,28 @@ function refreshMenuLevel() {
   // there is nothing left to unlock.
   const next = BOOSTERS.find(b => b.unlock > level);
   const banner = document.getElementById('menuBanner');
-  if (next) {
+  // Hiçbir booster açılmadıysa **kilit gösterilmiyor**.
+  //
+  // Ölçüldü (`scratchpad/holefirst.mjs`): yeni oyuncunun gördüğü ilk ekranın
+  // üst yarısında altı kilitli öğe vardı — bir kilit rozeti, "Time booster
+  // unlocks at level 4" yazısı ve dört gri raf yuvası (Lvl 4, 7, 10, 13).
+  // Yani oyunun oyuncuya söylediği ilk şey "bunlar sende yok" idi, dört kez.
+  //
+  // Yerine gidilecek **yer** yazıyor. Bu oyunun en satan tarafı kırk sekiz
+  // ayrı mekân olması ve yeni oyuncunun bunu bilmesinin tek yolu oynayıp
+  // görmek; banner bunu ilk ekranda söylüyor, ve her bölümde değiştiği için
+  // "burası değişiyor" fikrini de öğretiyor.
+  const acilmisVar = BOOSTERS.some(b => boosterUnlocked(b));
+  if (!acilmisVar) {
+    // `_patternsReady` şart: bu fonksiyon modül kurulurken bir kez
+    // çalışıyor ve `themeForLevel` `PATTERNS`'i okuyor — desen tablosu
+    // aşağıda tanımlı, yani o an henüz yok ve oyun hiç açılmıyor. Bu dosyada
+    // tam olarak bu hata **yedinci** kez oldu; `holeboot.mjs` yedisini de
+    // yakaladı. Bayrak da bunun için var.
+    const t = _patternsReady ? themeForLevel() : null;
+    banner.innerHTML = `<span class="bi">${(t && t.icon) || '🗺️'}</span>` +
+      `<span class="bt">${(t && t.name) || 'Forty-eight places'}</span>`;
+  } else if (next) {
     banner.innerHTML = iconHTML('lock', '🔒', 'bi') +
       `<span class="bt">${next.name} booster unlocks at level ${next.unlock}</span>`;
   } else {
@@ -2978,8 +2999,14 @@ function refreshMenuLevel() {
   }
 
   // Shelf: the three boosters, greyed until their level comes round.
+  //
+  // Hiçbiri açılmadıysa raf hiç kurulmuyor: dört gri yuva, oyuncunun ilk
+  // gördüğü şey olmamalı. İlki açılınca raf beliriyor ve o an bir **ödül**
+  // gibi duruyor — kilitliyken sürekli görünmesi o anı çoktan harcıyordu.
   const shelf = document.getElementById('menuShelf');
   shelf.innerHTML = '';
+  shelf.style.display = acilmisVar ? '' : 'none';
+  if (!acilmisVar) return;
   BOOSTERS.forEach(b => {
     const open = boosterUnlocked(b);
     const el = document.createElement('div');
@@ -20407,6 +20434,69 @@ const LEVEL_HEADSTART_CAP = 4;
 const SIZE_UPGRADE_CAP = 3, SIZE_UPGRADE_STEP = 0.03;
 const growthUnit = () =>
   (HOLE_MAX - BASE_HOLE_R) / Math.max(40, fruits.length * GROW_SWEEP);
+// İlk lokmalar daha çok büyütüyor.
+//
+// Ölçüldü (`scratchpad/holefirst.mjs`), ve ölçüm kötüydü: yeni oyuncu on
+// saniyede tahtanın %6'sını yiyor ve delik %4 büyüyor — yani ekranda **hiçbir
+// şey olmuyor.** Yarıçap 0.554'ten 0.629'a çıkıyor, rozet hâlâ "Size 1"
+// diyor, ve bırakma kararının verildiği yer tam orası.
+//
+// Sebep aritmetik: büyüme aralığı tahtanın tamamına bölünüyor
+// (`GROW_SWEEP`), yani 300 parçalık bir tahtada bir meyve yarıçapın
+// 0.0042'si. Rozetin bir kademesi 0.2, yani ilk kademeyi görmek için 48
+// meyve gerekiyor.
+//
+// Çözüm eğriyi öne yüklemek: ilk lokma 5× büyütüyor, çarpan 15. lokmada 1'e
+// iniyor.
+//
+// İki sabit de ölçülerek kondu ve ikisi de bir kez yanlış kondu:
+//
+//   * **45 lokma, 3×.** Onuncu saniyede yarıçap 0.744; rozetin ikinci
+//     kademesi 0.75'te başlıyor. Kıl payı yetmemek, yetmemektir.
+//   * **45 lokma, 4×.** Rozet dönüyordu ama `holebalance.mjs` yan etkiyi
+//     gösterdi: deve yetişmek tahtanın %29'undan **%9'una** inmişti. Devin
+//     "uğruna çalışılan şey" olması oyunun kendi tasarımı ve burada kazara
+//     bozulmuştu. Toplam fazladan büyüme (0.28) sorun değildi, **yayıldığı
+//     aralık** sorundu: kırk beş lokma, bir bölümün ilk üçte biri.
+//
+// 15 lokma ve 5× aynı toplamı veriyor ama hepsini ilk birkaç saniyeye
+// sıkıştırıyor: rozet sekizinci meyvede dönüyor, deve yetişmek yine
+// tahtanın dörtte biri. İstenen şey zaten bu — ilk saniyelerde bir şey
+// olduğunu **görmek**, oyunun geri kalanını ucuzlatmadan.
+//
+// Bütün bölümlerde geçerli, yalnızca ilk bölümde değil: her bölümün ilk on
+// saniyesi aynı soruya bakıyor.
+//
+// Bütün bölümlerde geçerli, yalnızca ilk bölümde değil: her bölümün ilk on
+// saniyesi aynı soruya bakıyor.
+// İlk lokmalar bir **rozet kademesi** kadar fazladan büyütüyor, ve fazlalık
+// meyve cinsinden değil **yarıçap** cinsinden sınırlı.
+//
+// Sınırın birimi üçüncü denemede doğru bulundu:
+//
+//   * **45 lokma, 3×** — onuncu saniyede yarıçap 0.744, rozetin ikinci
+//     kademesi 0.75'te. Kıl payı yetmemek, yetmemektir.
+//   * **45 lokma, 4×** — rozet dönüyordu ama `holebalance.mjs` yan etkiyi
+//     gösterdi: deve yetişmek tahtanın %29'undan %9'una inmişti.
+//   * **15 lokma, 5×** — büyük tahtalarda düzeldi (%20) ama küçüklerde
+//     düzelmedi (%6-8). Sebep: fazlalık `growthUnit` cinsindendi ve o birim
+//     tahtanın parça sayısıyla ters orantılı, yani tahtadan tahtaya on kat
+//     değişiyor. 167 parçalık bir tahtada on beş hızlandırılmış lokma,
+//     büyüme aralığının neredeyse tamamı.
+//
+// Doğrusu fazlalığı yarıçapla sınırlamak: `EARLY_CAP` kadar, tahta ne
+// olursa olsun. Rozetin bir kademesi 0.2, yani oyuncu her bölümde tam bir
+// kademe hediye alıyor — büyük tahtada dokuz meyvede, küçük tahtada dörtte,
+// ve devin bedeli her tahtada aynı miktarda (0.2) ucuzluyor.
+const EARLY_CAP = 0.2;      // toplam fazladan yarıçap: bir rozet kademesi
+const EARLY_MULT = 5;       // lokma başına çarpan, bütçe bitene kadar
+let earlyGiven = 0;
+function earlyExtra(base) {
+  if (earlyGiven >= EARLY_CAP) return 0;
+  const fazla = Math.min(EARLY_CAP - earlyGiven, base * (EARLY_MULT - 1));
+  earlyGiven += fazla;
+  return fazla;
+}
 let holeRadius = BASE_HOLE_R;
 let holeX = SPAWN_X, holeZ = 0;
 // Which build this is, shown in the corner of the menu.
@@ -21292,6 +21382,8 @@ const CARD_SHARE = 0.62;
 // Bir kartın altına düşemeyeceği sayı. Beş muzluk bir kart bölümü bir
 // anda bitiriyor ve tahtanın geri kalanı anlamsız kalıyor.
 const CARD_MIN = 10;
+// İlk üç bölümün kartları. Sebebi `pickCards` içinde yazılı.
+const CARD_OPENING = [38, 44, 50];
 
 function pickCards() {
   const say = new Map();
@@ -21310,6 +21402,20 @@ function pickCards() {
   // En bol dört türden rastgele seçiliyor, en bol olanlar sırayla değil:
   // sırayla alınsaydı aynı desende kart hep aynı renk olurdu ve tahta
   // ezberlenirdi. Seçim `rnd()` ile, yani günlük koşuda herkese aynı.
+  // İlk üç bölümün kartı **sabit**, ve en bol türden.
+  //
+  // Ölçüldü: 1. bölümün kartı koşudan koşuya 14 ile 54 arasında değişiyordu,
+  // yani tahtanın %5'i ile %20'si. Yeni oyuncunun ilk bölümü dört kat
+  // değişen bir zorluk demek — ve o bölüm, oyunun ne olduğunu anlattığı tek
+  // bölüm. Rastgelelik oyunun her yerinde iyi; kendini tanıttığı yerde değil.
+  //
+  // Sayılar küçük ve artan: ilk kazanma hızlı gelsin. En bol tür seçiliyor
+  // çünkü o meyve tahtanın her yerinde — oyuncu nereye giderse gitsin
+  // sayacın ilerlediğini görüyor.
+  if (!dailyRun && level <= CARD_OPENING.length) {
+    const [type, n] = havuz[0];
+    return [{ type, need: Math.min(CARD_OPENING[level - 1], n), got: 0 }];
+  }
   const ilk = havuz.slice(0, 4);
   const sec = [];
   const kalan = ilk.slice();
@@ -21768,6 +21874,7 @@ function startRun() {
   lastWholeSecond = -1;
   streak = 0;
   shotHits = 0;
+  earlyGiven = 0;
   revivedThisLevel = false;
   runStart = performance.now();
   showBanner();
@@ -22504,8 +22611,8 @@ function eatFruit(f, now) {
   if (holeRadius < HOLE_MAX) {
     // 9x and 3x keep the ratios the flat numbers had (0.16 and 0.05 against
     // 0.017), so a giant is still worth about nine ordinary fruit.
-    const grow = growthUnit() * (f.giant ? 9 : f.big ? 3 : 1);
-    holeRadius = Math.min(holeRadius + grow, HOLE_MAX);
+    const base = growthUnit() * (f.giant ? 9 : f.big ? 3 : 1);
+    holeRadius = Math.min(holeRadius + base + earlyExtra(base), HOLE_MAX);
   }
 
   burst(f.x, f.mesh.position.y, f.z, f.type);
@@ -24362,6 +24469,12 @@ window.fruitHoleGrow = () => {
     // starts, and how wide the three tiers of fruit are.
     start: +holeRadius.toFixed(3),
     bigR: BIG_R, giantR: giants.length ? Math.max(...giants.map(f => f.r)) : GIANT_R,
+    // İlk lokmaların fazladan büyümesi: `earlyBoost`'un iki sabiti. Buradan
+    // okunuyor çünkü `holebalance.mjs` "deve yetişmek tahtanın yüzde kaçını
+    // süpürmek" sorusunu doğrusal bir modelle cevaplıyor ve öne yüklenen
+    // eğri o modeli bozuyor — sabitler testte ikinci kez yazılsaydı biri
+    // değişip öteki unuturdu.
+    ilkFazla: EARLY_CAP, ilkCarpan: EARLY_MULT, ilkVerilen: +earlyGiven.toFixed(4),
     // Tahtanın **geri verebileceği** büyüme: her canlı parça kendi çarpanıyla
     // (dev 9×, iri 3×, bomba 0). Dikenin aldığı boyun bu sayının yanında ne
     // kadar durduğu ölçülebilsin diye — alınan şey geri kazanılamıyorsa

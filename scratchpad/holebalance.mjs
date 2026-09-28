@@ -38,11 +38,29 @@ for (let lvl = 1; lvl <= order.length; lvl++) {
     const gr = window.fruitHoleGrow();
     const m = window.fruitHoleMix();
     return { fruit: p.fruit, secs: p.seconds, start: gr.r, unit: gr.unit,
+             ilkFazla: gr.ilkFazla,
              need: g.needR, giantR: g.needR ? +(g.needR*0.92).toFixed(2) : null,
              iri: m.iriPay,
              carpan: +((m.siradan + m.buyuk * 3 + m.dev * 9) / Math.max(1, m.toplam)).toFixed(3) };
   }, lvl);
-  const pct = r.need ? 100 * ((r.need - r.start) / (r.unit * r.carpan)) / r.fruit : null;
+  // Kaç meyve yemek gerekiyor: ilk lokmaların fazladan büyümesi hesaba
+  // katılarak.
+  //
+  // Model eskiden doğrusaldı (her meyve `unit * carpan` büyütür) ve `eatFruit`
+  // öne yüklenen bir eğri kazandığında sessizce yanlış oldu — hata oyuncunun
+  // **lehine** olduğu için hiçbir sınır düşmüyordu, yani test doğru cevabı
+  // vermeyi bırakmıştı ve bunu söylemiyordu. Sabitler oyundan okunuyor
+  // (`fruitHoleGrow`), burada ikinci kez yazılmıyor.
+  const meyveSayisi = (hedef) => {
+    const adim = r.unit * r.carpan;
+    // İlk lokmaların bütçesi (`EARLY_CAP`) yarıçap cinsinden sabit: tahta ne
+    // olursa olsun aynı miktar. Model de öyle — hedeften düşülüyor, gerisi
+    // doğrusal. Eskiden bütçe meyve cinsindendi ve küçük tahtalarda büyüme
+    // aralığının yarısını yiyordu; hem oyun hem model o yüzden değişti.
+    const kalan = Math.max(0, hedef - r.start - (r.ilkFazla || 0));
+    return kalan / adim;
+  };
+  const pct = r.need ? 100 * meyveSayisi(r.need) / r.fruit : null;
   console.log(` ${String(lvl).padStart(3)} | ${order[lvl - 1].padEnd(9)} | ${String(r.fruit).padStart(5)} | ` +
               `${('%' + (r.iri * 100).toFixed(0)).padStart(5)} | ` +
               `${r.start.toFixed(2).padStart(8)} | ${r.unit.toFixed(4)} | ${r.carpan.toFixed(2).padStart(6)} | ` +

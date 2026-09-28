@@ -5789,3 +5789,87 @@ tahtalarında yok; hiçbiri günlük koşuda yok; hiçbiri deliğin doğduğu ye
 yok; ve her birinin tanıtıldığı bölüm sıradan bir ızgara tahtası olmak
 zorunda — bu sonuncusu silindirde yanlış yapıldı ve artık her biri için
 ölçülüyor.
+
+## İlk otuz saniye
+
+TikTok panelindeki *"çoğu izleyici 0:01'de bıraktı"* yıllardır bu depoda
+yazılı ve hiç ölçülmemişti. `scratchpad/holefirst.mjs` yeni bir oyuncunun ilk
+dakikasını açıyor ve üç şey çıktı — üçü de gözle bakınca görünmeyen, sayıyla
+bakınca tartışılmayan cinsten.
+
+### 1. Oyunun söylediği ilk şey "bu sende yok" idi
+
+Açılış ekranının **üst yarısında altı kilitli öğe** vardı: bir kilit rozeti,
+"Time booster unlocks at level 4" yazısı, ve dört gri raf yuvası (Lvl 4, 7,
+10, 13). Yeni oyuncunun gördüğü ilk ekran, oyunun ne olduğunu değil neyin
+olmadığını anlatıyordu.
+
+Artık hiçbir booster açılmamışken raf hiç kurulmuyor ve banner **gidilecek
+yeri** yazıyor — "🐪 Valley of Kings". Bu oyunun en satan tarafı kırk sekiz
+ayrı mekân olması ve yeni oyuncunun bunu bilmesinin tek yolu oynayıp
+görmekti; banner artık ilk ekranda söylüyor, ve her bölümde değiştiği için
+"burası değişiyor" fikrini de öğretiyor. İlk booster açılınca raf beliriyor
+ve o an bir ödül gibi duruyor — kilitliyken sürekli görünmesi o anı çoktan
+harcıyordu.
+
+Bu satırı yazarken bu dosyadaki tuzağa **yedinci** kez düşüldü: banner
+`themeForLevel()` çağırıyor, o da `PATTERNS`'i okuyor, ve `refreshMenuLevel`
+modül kurulurken bir kez çalışıyor — desen tablosu o an henüz yok ve oyun hiç
+açılmıyor. `_patternsReady` bayrağı zaten bunun için vardı.
+
+### 2. İlk on saniyede ekranda hiçbir şey olmuyordu
+
+Ölçüm: yeni oyuncu on saniyede tahtanın **%6'sını** yiyor ve delik **%4**
+büyüyor. Yarıçap 0.554'ten 0.629'a çıkıyor, rozet hâlâ "Size 1" diyor.
+Bırakma kararının verildiği yer tam orası.
+
+Sebep aritmetik: büyüme aralığı tahtanın tamamına bölünüyor (`GROW_SWEEP`),
+yani 300 parçalık bir tahtada bir meyve yarıçapın 0.0042'si. Rozetin bir
+kademesi 0.2 — ilk kademeyi görmek için 48 meyve gerekiyor.
+
+Çözüm: ilk lokmalar fazladan büyütüyor. **Üç kez yanlış ayarlandı** ve
+üçünü de ölçüm yakaladı:
+
+| deneme | rozet dönüyor mu | deve yetişme payı |
+|---|---|---|
+| 45 lokma, 3× | hayır (0.744, kademe 0.75'te) | %25-29 |
+| 45 lokma, 4× | evet | **%9** — dev bedavaya geldi |
+| 15 lokma, 5× | evet | büyük tahtada %20, **küçükte %6** |
+| `EARLY_CAP` 0.2 yarıçap | evet, 5. saniyede | %13-20, her tahtada tutarlı |
+
+Üçüncü denemenin dersi birim seçiminde: fazlalık `growthUnit` cinsindendi ve
+o birim tahtanın parça sayısıyla **ters orantılı**, yani tahtadan tahtaya on
+kat değişiyor. 167 parçalık bir tahtada on beş hızlandırılmış lokma, büyüme
+aralığının neredeyse tamamıydı.
+
+Doğrusu fazlalığı **yarıçapla** sınırlamak: `EARLY_CAP` kadar, tahta ne
+olursa olsun. Oyuncu her bölümde tam bir rozet kademesi hediye alıyor —
+büyük tahtada dokuz meyvede, küçükte dörtte — ve devin bedeli her tahtada
+aynı miktarda ucuzluyor.
+
+`holebalance.mjs`'in modeli de düzeltildi. Doğrusaldı ve öne yüklenen eğri
+onu sessizce yanlış yaptı: hata oyuncunun **lehine** olduğu için hiçbir sınır
+düşmüyordu, yani test doğru cevabı vermeyi bırakmıştı ve bunu söylemiyordu.
+
+### 3. İlk bölümün zorluğu yazı tura idi
+
+Ölçüm: 1. bölümün kartı koşudan koşuya **14 ile 54** arasında değişiyordu,
+yani tahtanın %5'i ile %20'si. Rastgelelik oyunun her yerinde iyi; kendini
+tanıttığı yerde değil.
+
+İlk üç bölümün kartı artık sabit (`CARD_OPENING`, 38/44/50) ve **en bol
+türden**: o meyve tahtanın her yerinde, yani oyuncu nereye giderse gitsin
+sayacın ilerlediğini görüyor. İlk sayı 12 denendi ve bölüm yedi buçuk
+saniyede bitti — oyunun ne olduğunu göremeden. 38 ile 1. bölüm 25 saniyede
+bitiyor.
+
+### Önce ve sonra
+
+| | önce | sonra |
+|---|---|---|
+| açılış ekranında kilitli öğe | 6 | 0 |
+| 5. saniyede rozet | Size 1 | **Size 2** |
+| 10. saniyede büyüme | %4 | **%14** |
+| 30. saniyede rozet | Size 2 | Size 3 |
+| 1. bölümün bitişi | 30 saniyede bitmiyor | **24.6s** |
+| 1. bölümün kartı | 14–54 | **38** |
