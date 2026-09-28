@@ -151,12 +151,17 @@ the sand, a polar bear in the snow. Every one you swallow is kept, and the Colle
 holds them all: the ones you have in colour, the rest as silhouettes.
 
 💣 NOT EVERYTHING IS FRUIT
-Three things on the field want something from you, and each wants something
+Four things on the field want something from you, and each wants something
 different. A bomb goes down as easily as a berry and takes five seconds off the
 clock, so a crowded patch is worth a second look. A rock cannot be swallowed at
 all — and the wider your opening grows, the further out it stops you. A spike
 does not stop you at all: you run straight over it, it breaks, and it costs you
 a size. Time, ground, size — pick which one you can spare.
+
+And then there is the catapult, which does not wait for you to come to it. It
+throws a bomb at wherever you are standing. A red ring marks the ground where
+it will land, and closes as it falls — so the only thing it ever punishes is
+standing still.
 
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, lime, candy — and gold and chrome, which catch the light in

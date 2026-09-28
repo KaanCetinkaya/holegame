@@ -86,3 +86,18 @@ komut.
 Doğrusunun tek kaynağı **Play Console > Sürüm > Uygulama paketi gezgini**.
 Oraya bakıldığında 38 (1.13) bugün 14:11'de kapalı teste yayınlanmış
 durumdaydı; kayıt ona göre düzeltildi.
+
+---
+
+## 40 (1.13) — 357 karakter
+
+```
+New in this update:
+
+- Catapults. A machine on the board throws a bomb at wherever you are standing. A red ring marks where it lands and closes as it falls, so the only thing it punishes is standing still.
+- It never fires at the spawn, never on mission levels, and the bomb costs three seconds rather than five - it was thrown at you, not swallowed by you.
+```
+
+39 yüklendikten sonra yazıldı, yani ayrı bir not: 39'un kutusunda mancınık
+yoktu ve o sürüm testçilere gitti. Aynı notu ikinci kez göndermek, oyuncuya
+zaten oynadığı şeyi yeni diye anlatmak olurdu.

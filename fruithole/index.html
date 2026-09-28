@@ -1276,6 +1276,12 @@ function missionRule() {
   if (level === SPIKE_FROM) {
     return 'SPIKES: they do not stop you — running over one costs you a size';
   }
+  // Mancınığın tanıtıldığı bölüm. Dikenden de çok anlatılması gereken şey,
+  // çünkü ilk kez tahtadaki bir şey oyuncuya **geliyor**: halkanın ne
+  // olduğunu bilmeyen biri onu süs sanıp üstünde durur.
+  if (level === CATAPULT_FROM) {
+    return 'CATAPULTS: a red ring means a bomb is landing there — keep moving';
+  }
   return HINT_DEFAULT;
 }
 // Görevin durumu: tipi, (siparişte) hedef meyve, kaç tane var, kaçı yendi.
@@ -2766,6 +2772,11 @@ const sfx = {
   // oyuncunun neyi kaybettiğini ekrana bakmadan bilmesi lazım. Bomba boğuk
   // ve patlıyor; bu ince, kısa ve **kayıyor**, yani bir şeyin küçüldüğünü
   // söylüyor.
+  // Mancınık kolunu bıraktı: tahta bir tokat, sonra havada yükselen bir ıslık.
+  // Yükselen olması önemli — bomba sesi aşağı iniyor, bu **yukarı** gidiyor,
+  // yani "bir şey atıldı" diyor, "bir şey patladı" demiyor.
+  lob()       { ensureAudio(); beep(190, 0.09, 'square', 0.16);
+                [420, 620, 880].forEach((f, i) => beep(f, 0.1, 'sine', 0.1, 0.06 + i * 0.07)); },
   spike()     { ensureAudio(); beep(1100, 0.05, 'square', 0.16);
                 [820, 560, 380].forEach((f, i) => beep(f, 0.13, 'triangle', 0.18, 0.05 + i * 0.06));
                 vibrate([25, 20, 45]); },
@@ -2997,6 +3008,7 @@ function buildMenuDiorama() {
   // engelliyor.
   rocks = [];
   spikes = [];
+  clearCatapults();
   eatenCount = 0; levelGoal = 0;
   fieldHalfX = 4.6; fieldHalfZ = 4.2;
   fitGround();
@@ -11825,6 +11837,73 @@ const SPIKE_PER_ROW = 0.045;
 // verebileceği büyümenin beşte biri. Bu sayı `placeSpikes`'ta bir **tavan**,
 // yani seyrek tahtada diken sayısını kendiliğinden düşürüyor.
 const SPIKE_SHARE = 0.2;
+
+// ---------------------------------------------------------------------
+// Mancınık
+//
+// Dördüncü engel, ve öteki üçünden ayrılan tek yanı: **seni arıyor.**
+//
+//   bomba  yerde bekliyor      — yutarsan saatten alıyor
+//   kaya   duruyor             — yolunu kapatıyor
+//   diken  değince alıyor      — bir boy
+//   mancınık **atış yapıyor**  — durduğun yere
+//
+// Üçü de oyuncunun gittiği yerde duruyor; bu, oyuncunun **durduğu** yerde
+// patlıyor. Yani ilk kez tahtada, hiçbir şeye çarpmasan bile ceza alabildiğin
+// bir şey var, ve kaçınmanın yolu yön değiştirmek.
+//
+// Attığı şey bombanın kendisi ve bedeli de bombanınki: beş saniye. İkinci bir
+// sayı öğretmeye gerek yok — oyuncu bombanın ne yaptığını 6. bölümden beri
+// biliyor, mancınık yalnızca onu **ayağına getiriyor**.
+//
+// Nişan alıp beklemiyor: hedefi, atış anındaki delik konumu. Yani sürekli
+// hareket eden bir oyuncu neredeyse hiç yemiyor, bir öbeğin üstünde durup
+// süpüren oyuncu yiyor. Cezalandırdığı şey beceriksizlik değil **kamp**.
+const CATAPULT_R = 0.9;
+// Dikenden sonra: bomba 6, kaya 9, diken 12, mancınık 20. Aradaki boşluk
+// ötekilerden büyük, çünkü bu bir engel değil bir **olay** — tahtada duran
+// bir şeyi öğrenmekle, tahtanın sana bir şey atmasını öğrenmek aynı şey değil.
+const CATAPULT_FROM = 20;
+// Tahta başına **bir** tane.
+//
+// Önce satır sayısına bağlanmıştı (kayanın yaptığı gibi) ama mancınık
+// kayadan başka bir şey: kaya bir yerde duruyor ve yalnızca oradan
+// rahatsız ediyor, mancınık tahtanın her yerine atıyor. Yani sayısı
+// tahtanın boyuyla değil, oyuncunun ne sıklıkta kaçmak zorunda kalacağıyla
+// ilgili — ve o zaten `SHOT_EVERY`. İkincisi yalnızca atış sıklığını
+// ikiye katlardı, yani aynı ayarı iki yerden yapmak olurdu.
+const CATAPULT_COUNT = 1;
+// İşaret ekranda ne kadar duruyor: bombanın düşmesine kalan süre.
+//
+// Bu sayı oyunun adaleti. İşaretsiz bir isabet "rastgele ceza" diye okunuyor;
+// haber verilmiş bir isabet oyuncunun kendi hatası. 1.25 saniye, deliğin en
+// yavaş hâliyle bile işaretin dışına çıkmasına yetiyor — ölçüldü,
+// `scratchpad/holecatapult.mjs`.
+const SHOT_WARN = 1.25;
+// İki atış arası, ve bedelle birlikte oyunun asıl ayarı.
+//
+// İkisinin **oranı** bölümün saatinden bağımsız: saat ne olursa olsun, hiç
+// kaçmayan bir oyuncunun kaybettiği pay `SHOT_COST / SHOT_EVERY`. İlk ölçü
+// 4.2 saniyede bir, 5 saniyelik bomba idi — yani %119: mancınık tek başına
+// bölümü bitirebiliyordu, oyuncu tahtayı kusursuz süpürse bile. Bir engelin
+// bölümü kazanılamaz yapması, engel değil duvar demek.
+//
+// 6.5 ve 3 ile pay %46: hiç kaçmayan oyuncu saatinin yarısından azını
+// kaybediyor, ve kaçmak zaten bedava — işaret 1.25 saniye önceden yerde.
+const SHOT_EVERY = 6.5;
+// Patlama yarıçapı, ve işaret halkasının yarıçapı da bu — ekranda görünen
+// daire ile vuran daire aynı olmak zorunda, yoksa oyuncu neye göre kaçtığını
+// bilemez.
+const SHOT_R = 1.5;
+// Yerdeki bombadan **ucuz**, ve bilerek.
+//
+// Önce `BOMB_COST` yazıyordu: aynı bomba, aynı bedel. Ama ikisi aynı şey
+// değil — yerdeki bombayı sen yutuyorsun, bu sana atılıyor. Seçtiğin bir
+// hatanın, sana yapılan bir şeyden pahalı olması doğru olan: oyuncunun kendi
+// kararının ağırlığı, tahtanın ona yaptığı şeyden fazla kalmalı.
+//
+// Üç saniye ayrıca `SHOT_EVERY` ile birlikte ölçülüyor; sebebi orada.
+const SHOT_COST = 3;
 // Rozetin bir kademesi. `holeSizeStep` de bunu okuyor: iki yerde ayrı sayı
 // yazsaydı, dikenin aldığı şeyle rozetin gösterdiği şey birbirinden
 // bağımsız kayardı.
@@ -11903,6 +11982,57 @@ const SPIKE_GEO = (() => {
     g.add(yon(part(new THREE.ConeGeometry(0.115, 0.34, 6), uc,
                    Math.cos(a) * 0.84, 0.76, Math.sin(a) * 0.84)));
   }
+  return g;
+})();
+
+// Mancınık: taban, iki dikme, ve aralarında **kol**.
+//
+// Temanın toplanabilir `catapult` nesnesinden ayrı çiziliyor, aynı şeye
+// benzedikleri hâlde. Sebebi koleksiyon: oradaki her nesne "63 şeyden 41'ini
+// buldun" listesinin bir parçası, ve bir ceza makinesini o listeye koymak
+// onu bulunacak bir şeymiş gibi gösterirdi — bombanın PROPS'a girmeme
+// sebebinin aynısı. Ayrıca bu koyu ve demir; oradaki ahşap ve açık renk,
+// yani yukarıdan bakınca ikisi karışmıyor.
+//
+// Kol ayrı tutuluyor (`userData.kol`): atış anında geri çekilip savruluyor,
+// ve hareket eden tek parça o. Bütün makineyi sallamak, tahtaya çakılı
+// duran bir şeyin çakılı durmadığını söylerdi.
+const CATAPULT_GEO = (() => {
+  const g = new THREE.Group();
+  const demir = new THREE.MeshStandardMaterial({
+    color: '#43484f', roughness: 0.45, metalness: 0.55 });
+  const ahsap = new THREE.MeshStandardMaterial({ color: '#4a3826', roughness: 0.85 });
+  const ip = new THREE.MeshStandardMaterial({ color: '#8a6a3a', roughness: 0.8 });
+  // `g.add()` **grubu** döndürüyor, eklenen parçayı değil: dönüşü ona
+  // zincirlemek bütün makineyi çeviriyor. `ROCK_GEO` bu yüzden parçayı önce
+  // bir değişkene alıyor, burada da öyle.
+  const yatik = (m) => { m.rotation.z = Math.PI / 2; return m; };
+  // Taban: yukarıdan makineyi bir çubuktan ayıran dörtgen.
+  g.add(part(new THREE.BoxGeometry(1.5, 0.22, 1.9), ahsap, 0, 0.11, 0));
+  for (const sx of [-1, 1])
+    for (const sz of [-1, 1])
+      g.add(yatik(part(new THREE.CylinderGeometry(0.2, 0.2, 0.16, 12), demir,
+                       sx * 0.72, 0.1, sz * 0.72)));
+  // Dikmeler ve aralarındaki mil.
+  for (const sx of [-1, 1]) {
+    const d = part(new THREE.BoxGeometry(0.16, 1.1, 0.16), demir, sx * 0.42, 0.72, -0.1);
+    d.rotation.x = -0.18;
+    g.add(d);
+  }
+  g.add(yatik(part(new THREE.CylinderGeometry(0.08, 0.08, 1.0, 10), demir, 0, 1.2, -0.3)));
+  // Gergi: iki dikme arasında, makinenin kurulu olduğunu söyleyen şey.
+  g.add(yatik(part(new THREE.CylinderGeometry(0.05, 0.05, 0.9, 8), ip, 0, 0.98, -0.05)));
+  // Kol: milden öne uzanıyor, ucunda kepçe. Kendi grubunda, çünkü milin
+  // etrafında dönüyor ve dönme merkezi mil olmak zorunda.
+  const kol = new THREE.Group();
+  kol.position.set(0, 1.2, -0.3);
+  const c = part(new THREE.BoxGeometry(0.16, 0.16, 1.5), ahsap, 0, 0, 0.6);
+  kol.add(c);
+  const kepce = part(new THREE.CylinderGeometry(0.3, 0.22, 0.26, 12, 1, true), demir, 0, 0.16, 1.32);
+  kol.add(kepce);
+  kol.rotation.x = -0.55;
+  g.add(kol);
+  g.userData.kol = kol;
   return g;
 })();
 
@@ -18444,6 +18574,7 @@ function buildField() {
     puzzleRooms = [];
     rocks = [];
     spikes = [];
+    clearCatapults();
   } else {
     puzzleRooms = [];
     placeRocks();
@@ -18452,6 +18583,9 @@ function buildField() {
     // Dikenler en sonda: yerini seçerken hem kayaya hem kolosun yoluna
     // bakması gerekiyor, yani ikisi de yerleşmiş olmalı.
     placeSpikes();
+    // Mancınık dikenden de sonra: ikisinin üst üste binmemesi gerekiyor ve
+    // bunu sonra yerleşen kontrol edebiliyor.
+    placeCatapults();
   }
   // After the giants, so it takes its clearing from a settled board rather
   // than having a giant dropped on top of it afterwards. A daily run is
@@ -18649,7 +18783,14 @@ function placeRocks() {
 // bileşen olduğu gibi kalıyor. Sert durdurmak, dokunmatik kontrolde parmağın
 // hâlâ hareket ettiği hâlde ekranda hiçbir şeyin olmaması demekti.
 function pushOutOfRocks() {
-  for (const r of rocks) {
+  itOut(rocks);
+  // Mancınık da katı: yutulmuyor ve deliğin içinden geçmesine izin vermiyor.
+  // Adı hâlâ `pushOutOfRocks`, çünkü kuralın kendisi kayanın kuralı — makine
+  // ikinci bir çarpışma yazmıyor, var olanın içine giriyor.
+  itOut(catapults);
+}
+function itOut(liste) {
+  for (const r of liste) {
     const dx = holeX - r.x, dz = holeZ - r.z;
     const enAz = holeRadius + r.r;
     const d = Math.hypot(dx, dz);
@@ -18759,6 +18900,205 @@ function hitSpikes() {
     shrinkHole(s);
   }
 }
+
+// Tahtadaki mancınıklar. Kaya ve diken gibi kendi listesinde, ve bir de
+// nesnesi var: kayalar yığına giriyor çünkü kıpırdamıyorlar, mancınığın kolu
+// kıpırdıyor.
+let catapults = [];
+
+// Bekleyen atışın işaret halkası her atışta yeniden kuruluyor, yani her
+// birinin kendi geometrisi var. Tarla yeniden kurulurken `fieldGroup.clear()`
+// onları sahneden çıkarıyor ama geometrilerini bırakmıyor — bulmaca
+// kapılarında öğrenilen şeyin aynısı. Dört yerden de buraya çağrılıyor.
+function clearCatapults() {
+  for (const c of catapults) {
+    if (c.isaret) c.isaret.traverse(o => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
+  }
+  catapults = [];
+}
+
+function placeCatapults() {
+  clearCatapults();
+  if (dailyRun || level < CATAPULT_FROM) return;
+  // Görev bölümlerinde yok.
+  //
+  // Görev bölümleri zaten "bu bölüm başka" diyen bölümler ve her birinin
+  // kendi kuralı var; üstüne bir de atış eklemek iki kuralı aynı anda
+  // öğretmek olurdu. Rush'ta saat on iki saniyeden başlıyor, yani beş
+  // saniyelik bir isabet bölümün yarısı; mayında tahta zaten bomba dolu.
+  if (missionKindFor(level)) return;
+  const kac = CATAPULT_COUNT;
+  // Kenar payı **kayanınki**: mancınık katı, yani arkasında kenarla arasında
+  // ağzın giremeyeceği bir şerit bırakıyor. Diken bu payı almıyordu çünkü
+  // geçirgen; burada geçerli.
+  const kenar = HOLE_MAX + CATAPULT_R + 1.2;
+  const mX = fieldHalfX - kenar, mZ = fieldHalfZ - kenar;
+  if (mX <= 0 || mZ <= 0) return;
+  for (let deneme = 0; deneme < kac * 40 && catapults.length < kac; deneme++) {
+    const x = (rnd() * 2 - 1) * mX;
+    const z = (rnd() * 2 - 1) * mZ;
+    if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + CATAPULT_R + 4) continue;
+    if (hasColossus(level) && Math.hypot(x - 0, z + fieldHalfZ * 0.55) < COLOSSUS_R + CATAPULT_R + 2) continue;
+    // Kayadan bir ağız boyu uzak.
+    //
+    // Önce kayanın kaya-kaya kuralı kopyalanmıştı (aradan en geniş ağız
+    // **geçebilsin**: iki ağız boyu artı iki yarıçap) ve sonucu ölçüldü:
+    // altmış bölümün hiçbirinde mancınık çıkmadı. Sebep, kayaların zaten
+    // dar bir orta koridora sıkışmış olması — mancınık da aynı koridorda ve
+    // her kayadan sekiz birim uzak duracak yer kalmıyor.
+    //
+    // Kural gereğinden katıydı: tahtanın kapanmasını engelleyen şey bu değil,
+    // **kenar payı**. Kenar payı her katıyı kenardan bir ağız boyundan fazla
+    // uzakta tutuyor, yani her engelin iki yanında geçilecek bir şerit hep
+    // var. Kaya ile mancınığın arasından geçmek zorunda değilsin,
+    // etrafından dolaşıyorsun. Burada kalan tek şart ikisinin birbirine
+    // yapışıp tek bir kütle gibi okunmaması: bir ağız boyu yetiyor.
+    if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + CATAPULT_R + HOLE_MAX)) continue;
+    if (catapults.some(c => Math.hypot(c.x - x, c.z - z) < CATAPULT_R * 2 + HOLE_MAX * 2 + 1.2)) continue;
+    // Dikenle çakışmasın: ikisi bir arada, oyuncunun neyden ne yediğini
+    // göremediği yer.
+    if (spikes.some(s => Math.hypot(s.x - x, s.z - z) < s.r + CATAPULT_R + HOLE_MAX)) continue;
+    for (const f of fruits) {
+      if (f.eaten || f.giant) continue;
+      if (Math.hypot(f.x - x, f.z - z) > CATAPULT_R + NORMAL_R * 1.4) continue;
+      unbuildFruit(f);
+    }
+    const mesh = CATAPULT_GEO.clone(true);
+    mesh.position.set(x, 0, z);
+    // Tahtanın ortasına bakıyor: kadraja dönük duran bir makine, ne olduğunu
+    // siluetinden söylüyor.
+    mesh.rotation.y = Math.atan2(-x, -z);
+    mesh.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    fieldGroup.add(mesh);
+    // Kol kopyada yeni bir nesne: şablonun `userData`'sı klonla geliyor ama
+    // işaret ettiği grup **şablonunki**. Kopyanın kendi kolunu adıyla bulmak
+    // gerekiyor, yoksa bütün mancınıklar tek bir kolu çeviriyor.
+    const kol = mesh.children[mesh.children.length - 1];
+    catapults.push({
+      x, z, r: CATAPULT_R, mesh, kol,
+      // İlk atış hemen gelmiyor: tahtaya inen oyuncu daha ne olduğunu
+      // görmeden vurulmasın.
+      bekle: SHOT_EVERY * (0.6 + rnd() * 0.6),
+      atis: null, isaret: null,
+    });
+  }
+}
+
+// Atışın yere düşeceği yeri gösteren halka.
+//
+// Bu oyunun en önemli tek parçası olabilir: işaretsiz bir isabet "oyun beni
+// cezalandırdı" diye okunuyor, işaretli bir isabet "kaçmadım" diye. Aynı
+// olay, iki ayrı oyun.
+const SHOT_RING_MAT = new THREE.MeshBasicMaterial({
+  color: '#ff5a48', transparent: true, opacity: 0.85,
+  depthWrite: false, side: THREE.DoubleSide });
+const SHOT_FILL_MAT = new THREE.MeshBasicMaterial({
+  color: '#ff5a48', transparent: true, opacity: 0.18,
+  depthWrite: false, side: THREE.DoubleSide });
+const SHOT_GEO = new THREE.SphereGeometry(0.34, 14, 10);
+const SHOT_MAT = new THREE.MeshStandardMaterial({
+  color: '#2a1416', roughness: 0.4, metalness: 0.3 });
+
+function makeShotMark() {
+  const g = new THREE.Group();
+  // İki parça: dolgu (nereye) ve halka (ne zaman). Halka içeri doğru
+  // küçülüyor; dolgu sabit kalıyor, yani "buraya düşecek" hiç oynamıyor.
+  const dolgu = new THREE.Mesh(new THREE.CircleGeometry(1, 36), SHOT_FILL_MAT);
+  dolgu.rotation.x = -Math.PI / 2;
+  g.add(dolgu);
+  const halka = new THREE.Mesh(new THREE.RingGeometry(0.88, 1, 36), SHOT_RING_MAT);
+  halka.rotation.x = -Math.PI / 2;
+  g.add(halka);
+  const daralan = new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 36), SHOT_RING_MAT);
+  daralan.rotation.x = -Math.PI / 2;
+  g.add(daralan);
+  g.userData.daralan = daralan;
+  // Zeminin biraz üstünde: tam sıfırda zeminle aynı düzlemde kalıp
+  // titriyordu (z-fighting), ve titreyen bir uyarı uyarı değil gürültü.
+  g.position.y = 0.03;
+  return g;
+}
+
+// Mancınıkların bir karesi: bekle, at, düşür.
+function stepCatapults(dt) {
+  for (const c of catapults) {
+    // Kol yavaşça kurulu konuma dönüyor: atıştan sonraki savruluş geri
+    // alınıyor ve makine "yeniden kuruluyor" gibi duruyor.
+    if (c.kol) c.kol.rotation.x += (-0.55 - c.kol.rotation.x) * Math.min(1, dt * 3);
+    if (c.atis) { stepShot(c, dt); continue; }
+    c.bekle -= dt;
+    if (c.bekle > 0) continue;
+    fireCatapult(c);
+  }
+}
+
+function fireCatapult(c) {
+  // Hedef: **şu anki** delik konumu, önden kestirme yok.
+  //
+  // Kestirme denenmedi bile: oyuncunun gideceği yere atmak, kaçmayı
+  // imkânsız yapar ve ekrandaki halka da yalan söylerdi — halka zaten
+  // nereye düşeceğini gösteriyor, onu oyuncunun hareketine bağlamak
+  // gösterdiği şeyi belirsiz kılar.
+  const tx = holeX, tz = holeZ;
+  const mermi = new THREE.Mesh(SHOT_GEO, SHOT_MAT);
+  mermi.castShadow = true;
+  mermi.position.set(c.x, 1.4, c.z);
+  fieldGroup.add(mermi);
+  const isaret = makeShotMark();
+  isaret.position.set(tx, 0.03, tz);
+  isaret.scale.set(SHOT_R, SHOT_R, SHOT_R);
+  fieldGroup.add(isaret);
+  c.atis = { tx, tz, t: 0, mermi, x0: c.x, z0: c.z };
+  c.isaret = isaret;
+  if (c.kol) c.kol.rotation.x = 0.9;      // kol savruldu
+  sfx.lob();
+}
+
+function stepShot(c, dt) {
+  const a = c.atis;
+  a.t += dt;
+  const p = Math.min(1, a.t / SHOT_WARN);
+  // Mermi bir yay çiziyor: yatayda düz, dikeyde sinüs. Düz bir çizgi
+  // mermiyi bir ok yapar, oysa bu **atılıyor**.
+  a.mermi.position.set(
+    a.x0 + (a.tx - a.x0) * p,
+    1.4 + Math.sin(p * Math.PI) * 4.2 - p * 1.4,
+    a.z0 + (a.tz - a.z0) * p);
+  a.mermi.rotation.x += dt * 7;
+  // Halka içeri doğru kapanıyor: kalan süre ekranda okunuyor.
+  const d = c.isaret.userData.daralan;
+  const k = Math.max(0.06, 1 - p);
+  d.scale.set(k, k, 1);
+  if (p < 1) return;
+  landShot(c);
+}
+
+function landShot(c) {
+  const a = c.atis;
+  fieldGroup.remove(a.mermi);
+  fieldGroup.remove(c.isaret);
+  c.isaret.traverse(o => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
+  c.atis = null;
+  c.isaret = null;
+  c.bekle = SHOT_EVERY;
+  burst(a.tx, 0.4, a.tz, 'berry');
+  // İsabet: deliğin **merkezi** dairenin içindeyse. Kenar değmesi değil,
+  // çünkü ekranda duran şey bir daire ve "içinde miyim" sorusunun cevabı
+  // merkeze bakarak veriliyor. Kenarla ölçseydik geniş bir ağız aynı
+  // işaretten daha çok yerdi, yani büyümenin cezası olurdu.
+  if (Math.hypot(holeX - a.tx, holeZ - a.tz) < SHOT_R) {
+    timeLeft = Math.max(0, timeLeft - SHOT_COST);
+    updateTimeUI();
+    flashTime();
+    sfx.bomb();
+    shotHits++;
+  }
+  // Tahtadaki meyveyi patlatmıyor. Patlatsaydı bölümün hedefini elinden
+  // alırdı: kaçılması gereken bir şeyin, kaçınca da bir şey götürmesi.
+}
+
+// Bu bölümde kaç atış tuttu — ölçüm için.
+let shotHits = 0;
 
 // ---------------------------------------------------------------------
 // Bulmaca tahtası
@@ -19026,6 +19366,7 @@ function segDist(px, pz, x0, z0, x1, z1) {
 function buildPuzzle() {
   rocks = [];
   spikes = [];
+  clearCatapults();
   puzzleRooms = [];
   // Önceki bölümün şeritleri: `fieldGroup.clear()` onları sahneden çıkarıyor
   // ama geometrilerini bırakmıyor, ve bulmaca başına üç-dört tane.
@@ -20848,6 +21189,7 @@ function startRun() {
   timeLeft = timeFull = levelTime();
   lastWholeSecond = -1;
   streak = 0;
+  shotHits = 0;
   revivedThisLevel = false;
   runStart = performance.now();
   showBanner();
@@ -22952,6 +23294,44 @@ window.fruitHoleSpikes = () => ({
     .filter(f => !f.eaten)
     .map(f => Math.hypot(f.x - s.x, f.z - s.z))))).toFixed(2) : null,
 });
+// Mancınıklar: nerede duruyorlar, ne zaman atıyorlar, ve bir atış havadaysa
+// nereye düşecek.
+window.fruitHoleCatapults = () => ({
+  sayi: catapults.length,
+  ilkBolum: CATAPULT_FROM,
+  uyari: SHOT_WARN, arasi: SHOT_EVERY, capi: SHOT_R, bedel: SHOT_COST,
+  isabet: shotHits,
+  yerler: catapults.map(c => ({
+    x: +c.x.toFixed(2), z: +c.z.toFixed(2), r: +c.r.toFixed(2),
+    bekle: +c.bekle.toFixed(2),
+    atis: c.atis ? { tx: +c.atis.tx.toFixed(2), tz: +c.atis.tz.toFixed(2),
+                     kalan: +(SHOT_WARN - c.atis.t).toFixed(2) } : null,
+  })),
+  dogusaEnYakin: catapults.length ? +Math.min(...catapults.map(c =>
+    Math.hypot(c.x - SPAWN_X, c.z - spawnZ()))).toFixed(2) : null,
+  katiyaEnYakin: (catapults.length && rocks.length) ? +Math.min(...catapults.flatMap(c =>
+    rocks.map(r => Math.hypot(c.x - r.x, c.z - r.z) - r.r - c.r))).toFixed(2) : null,
+  kenara: catapults.length ? +Math.min(...catapults.map(c =>
+    Math.min(fieldHalfX - Math.abs(c.x), fieldHalfZ - Math.abs(c.z)))).toFixed(2) : null,
+});
+// Bir mancınığı hemen ateşlettir ve saati adım adım ilerlet: gerçek zamanla
+// beklemek konteynerde ölçülemez, kare hızı yok.
+window.fruitHoleCatapultStep = (dt) => { stepCatapults(dt); return shotHits; };
+// Deliğin hızı: yükseltmesiz taban ve bugünkü yükseltmeyle. Mancınığın
+// uyarı süresinin yeterli olup olmadığı tam olarak bu sayıdan çıkıyor —
+// uyarı × hız, patlama yarıçapından büyük olmak zorunda.
+window.fruitHoleSpeed = () => ({
+  taban: BASE_MOVE_SPEED,
+  simdi: BASE_MOVE_SPEED * (1 + upg('speed') * 0.08),
+});
+window.fruitHoleCatapultFire = (i) => {
+  const c = catapults[i];
+  if (!c) return null;
+  c.bekle = 0;
+  c.atis = null;
+  stepCatapults(0.0001);
+  return c.atis ? { tx: +c.atis.tx.toFixed(2), tz: +c.atis.tz.toFixed(2) } : null;
+};
 // Deliği bir dikenin üstüne sür ve ne olduğunu söyle. Gerçek parmakla
 // sürmek konteynerde zamanlamaya bağlı olurdu; ölçülen şey kural.
 window.fruitHoleSpikeRun = (i, r) => {
@@ -23561,6 +23941,12 @@ function tick(now) {
       // Diken kayadan sonra: kaya deliği ittiyse sayılacak yer itilen yer.
       hitSpikes();
     }
+
+    // Mancınıklar joystick bloğunun **dışında**: saatle çalışıyorlar, oyuncu
+    // parmağını kaldırdığında durmuyorlar. İçeride olsalardı durmak
+    // atışları da durdururdu, yani cezalandırdıkları şeyden kaçmanın yolu
+    // tam olarak o şey olurdu.
+    stepCatapults(dt);
 
     // magnet upgrade: fruit the hole could swallow drifts toward it, so a
     // near miss still counts. Oversized fruit is not pulled -- it has to

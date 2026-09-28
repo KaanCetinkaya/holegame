@@ -5462,3 +5462,106 @@ bir **şerit** tahtası. Resim, şerit ve bulmaca tahtalarına rastgele hiçbir
 şey konmuyor; test bunu hiç bilmiyordu ve şerit tahtaları eklendiğinde
 sessizce yanlış olmuştu. Bugün diken eklenirken düştü. Artık tahtanın türünü
 oyundan soruyor.
+
+## Mancınık: tahtanın sana attığı şey
+
+Kaan "bir şey bomba atsın, ondan kaçarak meyveleri yutalım" dedi. Oyunun
+dördüncü engeli, ve öteki üçünden ayrılan tek yanı **aktif** olması:
+
+| | ne yapıyor | ne alıyor |
+|---|---|---|
+| 💣 bomba | yerde bekliyor, yutuluyor | saatten, 5 sn |
+| 🪨 kaya | duruyor, geçirmiyor | yoldan |
+| ✴️ diken | değince kırılıyor | bir boy |
+| 🎯 mancınık | **atış yapıyor** | saatten, 3 sn |
+
+Üçü de oyuncunun gittiği yerde duruyor. Bu, oyuncunun **durduğu** yerde
+patlıyor — yani ilk kez tahtada, hiçbir şeye çarpmasan bile ceza alabildiğin
+bir şey var, ve kaçınmanın yolu yön değiştirmek. Cezalandırdığı şey
+beceriksizlik değil **kamp**: sürekli hareket eden oyuncu neredeyse hiç
+yemiyor, bir öbeğin üstünde durup süpüren yiyor.
+
+### İşaret, bu özelliğin tamamı
+
+Yere düşeceği yer 1.25 saniye önceden kırmızı bir halkayla gösteriliyor.
+Halka içeri doğru kapanıyor, yani kalan süre de ekranda.
+
+Bu tek parça, aynı olayı iki ayrı oyuna çeviriyor: **işaretsiz** bir isabet
+"oyun beni cezalandırdı" diye okunuyor, **işaretli** bir isabet "kaçmadım"
+diye. O yüzden ekranda görünen daire ile vuran daire birebir aynı yarıçapta
+(`SHOT_R`), ve isabet deliğin **merkezine** bakılarak ölçülüyor: kenarla
+ölçseydik geniş bir ağız aynı işaretten daha çok yerdi, yani büyümenin cezası
+olurdu.
+
+Kestirme yok — hedef, atış anındaki delik konumu. Oyuncunun gideceği yere
+atmak kaçmayı imkânsız yapardı ve halka da yalan söylerdi.
+
+1.25 saniyenin yettiği ölçüldü, tahmin edilmedi: yükseltmesiz en yavaş delik
+o sürede **4.25 birim** gidiyor, patlama yarıçapı 1.5. Yani en yavaş oyuncu
+bile işaretin çapının üç katını aşıyor.
+
+### İki sabitin oranı bütün tahtaların cevabı
+
+Hiç kaçmayan bir oyuncunun kaybettiği pay `SHOT_COST / SHOT_EVERY` — ve bu
+oran bölümün saatinden **bağımsız**: saat T ise atış sayısı T/arası, kayıp
+(T/arası)×bedel, T sadeleşiyor.
+
+İlk ölçü 4.2 saniyede bir, 5 saniyelik bombaydı: **%119**. Yani mancınık tek
+başına bölümü bitirebiliyordu, oyuncu tahtayı kusursuz süpürse bile. Bir
+engelin bölümü kazanılamaz yapması, engel değil duvar demek.
+
+6.5 ve 3 ile pay **%46**, ve en kısa saatli tahtada bile 11 atış geliyor:
+hissediliyor ama bölümü belirlemiyor.
+
+Bedelin yerdeki bombadan ucuz olması da bilerek. İkisi aynı şey değil:
+yerdeki bombayı **sen yutuyorsun**, bu sana atılıyor. Seçtiğin bir hatanın,
+sana yapılan bir şeyden pahalı olması doğru olan — oyuncunun kendi kararının
+ağırlığı, tahtanın ona yaptığı şeyden fazla kalmalı.
+
+### Kopyalanan kural, üçüncü kez
+
+Diken yazılırken kayanın kenar payı kopyalanmış ve altı tahtanın beşinde
+diken çıkmamıştı. Mancınıkta aynı şey, bu sefer kaya-kaya mesafesiyle oldu:
+"aradan en geniş ağız geçebilsin" (iki ağız boyu artı iki yarıçap) kuralı
+kopyalandı ve **altmış bölümün hiçbirinde mancınık çıkmadı.**
+
+Sebep yine kuralın gereğinden katı olması. Tahtayı açık tutan şey iki engelin
+arası değil, **kenar payı**: her katı, kenardan bir ağız boyu artı kendi
+yarıçapı kadar uzakta duruyor, yani her engelin iki yanında geçilecek bir
+şerit hep kalıyor. Kaya ile mancınığın arasından geçmek zorunda değilsin,
+etrafından dolaşıyorsun.
+
+Kalan tek şart ikisinin birbirine yapışıp tek bir kütle okunmaması — bir ağız
+boyu yetiyor. Testteki şart da değişti ve doğru olanı ölçüyor: "aralarından
+geçilebiliyor mu" değil, "her engelin iki yanında şerit var mı".
+
+### Bir tane, ve sayı satır sayısına bağlı değil
+
+Kaya ve diken satır sayısına bağlı, çünkü ikisi de durdukları yerde
+rahatsız ediyor: uzun tahta daha çok kaya istiyor. Mancınık tahtanın her
+yerine atıyor, yani sayısı tahtanın boyuyla değil **oyuncunun ne sıklıkta
+kaçmak zorunda kalacağıyla** ilgili — o da zaten `SHOT_EVERY`. İkinci bir
+mancınık aynı ayarı ikinci bir yerden yapmak olurdu.
+
+### Nerede yok
+
+- **Görev bölümlerinde.** Her görevin kendi kuralı var ve üstüne atış
+  koymak iki kuralı aynı anda öğretmek olurdu. Rush'ta saat on iki
+  saniyeden başlıyor, yani bir isabet bölümün dörtte biri; mayında tahta
+  zaten bomba dolu.
+- **Resim, şerit ve bulmaca tahtalarında**, ve günlük koşuda.
+- **Deliğin doğduğu yerde ve kolosun önünde.**
+
+### Küçük tuzaklar
+
+- `g.add()` **grubu** döndürüyor, eklenen parçayı değil. Dönüşü ona
+  zincirlemek (`g.add(part(...)).rotation.z = ...`) bütün makineyi çeviriyor.
+  `ROCK_GEO` bu yüzden parçayı önce bir değişkene alıyor.
+- Klonlanan bir grubun `userData`'sı kopyayla geliyor ama içindeki nesne
+  **şablonunkini** gösteriyor. Mancınığın kolu o yüzden kopyanın kendi
+  çocuklarından bulunuyor; `userData.kol` kullanılsaydı bütün mancınıklar
+  tek bir kolu çevirirdi.
+- İşaret halkası her atışta yeniden kuruluyor, yani her birinin kendi
+  geometrisi var. `fieldGroup.clear()` onları sahneden çıkarıyor ama
+  geometrilerini bırakmıyor — `clearCatapults()` dört çağrı yerinin hepsinde
+  onu yapıyor. Bulmaca kapılarında öğrenilen şeyin aynısı.
