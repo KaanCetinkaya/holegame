@@ -163,6 +163,11 @@ throws a bomb at wherever you are standing. A red ring marks the ground where
 it will land, and closes as it falls — so the only thing it ever punishes is
 standing still.
 
+The roller wants nothing from you at all. It is a stone drum running back and
+forth across a bare lane, and all it takes is the way through. Go in front of
+it, go behind it, or wait — but the fruit on the other side is not going to
+collect itself.
+
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, lime, candy — and gold and chrome, which catch the light in
 a way flat colour cannot. Half open as you climb, half are bought.

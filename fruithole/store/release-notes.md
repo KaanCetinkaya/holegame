@@ -89,13 +89,14 @@ durumdaydı; kayıt ona göre düzeltildi.
 
 ---
 
-## 40 (1.13) — 357 karakter
+## 40 (1.13) — 492 karakter
 
 ```
 New in this update:
 
 - Catapults. A machine on the board throws a bomb at wherever you are standing. A red ring marks where it lands and closes as it falls, so the only thing it punishes is standing still.
-- It never fires at the spawn, never on mission levels, and the bomb costs three seconds rather than five - it was thrown at you, not swallowed by you.
+- It never fires at the spawn or on mission levels, and the bomb costs three seconds, not five - it was thrown at you, not swallowed by you.
+- Rollers. A stone roller runs back and forth across a bare lane. It takes nothing from you at all - it only takes the way through, and it moves.
 ```
 
 39 yüklendikten sonra yazıldı, yani ayrı bir not: 39'un kutusunda mancınık

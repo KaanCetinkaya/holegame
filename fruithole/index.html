@@ -1282,6 +1282,11 @@ function missionRule() {
   if (level === CATAPULT_FROM) {
     return 'CATAPULTS: a red ring means a bomb is landing there — keep moving';
   }
+  // Silindir hiçbir şey almıyor, o yüzden anlatılacak şey ceza değil **yol**:
+  // oyuncunun bilmesi gereken tek şey, boş şeridin boş olmadığı.
+  if (level === ROLLER_FROM) {
+    return 'ROLLERS: the bare lane is not empty — time your crossing';
+  }
   return HINT_DEFAULT;
 }
 // Görevin durumu: tipi, (siparişte) hedef meyve, kaç tane var, kaçı yendi.
@@ -3009,6 +3014,7 @@ function buildMenuDiorama() {
   rocks = [];
   spikes = [];
   clearCatapults();
+  clearRollers();
   eatenCount = 0; levelGoal = 0;
   fieldHalfX = 4.6; fieldHalfZ = 4.2;
   fitGround();
@@ -12036,6 +12042,85 @@ const CATAPULT_GEO = (() => {
   return g;
 })();
 
+// ---------------------------------------------------------------------
+// Silindir
+//
+// Beşinci engel, ve ilk **hareketli** olanı. Öteki dördü bir kaynaktan
+// alıyor — saatten, yoldan, boydan — bu hiçbir şey almıyor: yalnızca orada
+// duruyor, ve durduğu yer değişiyor.
+//
+// Sebebi şu: dört tane "şu kadar götürür" eklemek zorluk değil tekrar olur.
+// Silindirin eklediği şey bir kaynak değil bir **eksen**: zamanlama. Tahtanın
+// neresinin geçilebilir olduğu artık saniyeden saniyeye değişiyor, ve rota
+// seçmek ilk kez bir karar.
+//
+// Şeridi boş: merdane geçtiği yerdeki meyveyi ezmiyor, çünkü orada meyve
+// yok. O çıplak şerit aynı zamanda uyarının kendisi — mancınığın kırmızı
+// halkası ne işe yarıyorsa bu da o: oyuncu tahtaya bakınca nereye
+// girmeyeceğini görüyor.
+//
+// Deliği yutmuyor, itiyor: kayanın kuralı (`itOut`) olduğu gibi geçerli.
+// Merdane yaklaşırken delik kenarından kayıyor, yani "ezildim" diye bir şey
+// yok — sıkıştın, geç kaldın.
+const ROLLER_R = 0.78;
+// Mancınıktan sonra: bomba 6, kaya 9, diken 12, mancınık 20, silindir 24.
+//
+// 26 yazılmıştı ve 26 bir **şerit** tahtası: şerit tahtasına rastgele hiçbir
+// şey konmuyor, yani silindirin tanıtıldığı bölümde silindir olmayacaktı ve
+// ipucu satırı olmayan bir şeyi anlatacaktı. Aynı hesap dikende de yapıldı
+// (12), mancınıkta da (20): tanıtım bölümü sıradan bir ızgara tahtası olmalı.
+const ROLLER_FROM = 24;
+// Şeridin boyu, ve tahtanın eninden çıkıyor.
+//
+// İlk ölçü 8.4'tü ve **hiçbir tahtada silindir çıkmadı**: yarım boy 4.2,
+// tahtanın yarı eni 6.825, yani şeridin ucuyla kenar arasında 2.6 birim
+// kalıyor — en geniş ağız (2.75) oraya sığmıyor ve yerleştirme daha ilk
+// satırda vazgeçiyordu.
+//
+// Şart şu: şeridin ucundaki merdane ile tahtanın kenarı arasında, **en
+// geniş ağzın merkezi** durabilmeli. Yoksa delik merdaneyle kenar arasında
+// sıkışıyor ve `itOut` onu tahtanın dışına itiyor. 6.4 ile aradaki boşluk
+// 2.85; ağız 2.75.
+//
+// Merdane bir duvar değil zaten: tek bir nesne, ve tahtanın geri kalanı
+// hep açık. Oyuncu onun önünden ya da arkasından geçiyor — şeridin boyu
+// yalnızca **ne kadar enini taradığını** söylüyor.
+const ROLLER_SPAN = 6.4;
+// Deliğin taban hızı 3.4; merdane ondan yavaş, yani kaçmak her zaman
+// mümkün. Hızlı olsaydı sıkışmak oyuncunun hatası olmaktan çıkardı.
+const ROLLER_SPEED = 2.6;
+const ROLLER_COUNT = 1;
+
+// Taş merdane: yatık bir silindir, iki ucunda demir bilezik.
+//
+// Yarım genişliği 1: kaya ve mancınıkta olduğu gibi, çarpışma yarıçapı
+// `ROLLER_R` ve ölçek de o. Yatık duruyor çünkü yuvarlanıyor — dik bir
+// silindir yukarıdan daire okunuyor ve tahtadaki her şey zaten daire.
+const ROLLER_GEO = (() => {
+  const g = new THREE.Group();
+  const tas = new THREE.MeshStandardMaterial({ color: '#7c7f86', roughness: 0.9 });
+  const demir = new THREE.MeshStandardMaterial({
+    color: '#3a3e45', roughness: 0.5, metalness: 0.6 });
+  const govde = part(new THREE.CylinderGeometry(1, 1, 2.1, 20), tas, 0, 1, 0);
+  govde.rotation.z = Math.PI / 2;
+  g.add(govde);
+  for (const sx of [-1, 1]) {
+    const b = part(new THREE.TorusGeometry(1.02, 0.11, 8, 22), demir, sx * 0.88, 1, 0);
+    b.rotation.y = Math.PI / 2;
+    g.add(b);
+  }
+  // Yüzeydeki oluklar: yuvarlandığı yukarıdan görünsün diye. Oluksuz bir
+  // silindir dönerken duruyor gibi duruyor.
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    const o = part(new THREE.BoxGeometry(1.7, 0.08, 0.16), demir,
+                   0, 1 + Math.sin(a) * 0.98, Math.cos(a) * 0.98);
+    o.rotation.x = -a;
+    g.add(o);
+  }
+  return g;
+})();
+
 // Fitili yanan koyu bir küre. PROPS'a **girmiyor**: oradaki her şey
 // koleksiyonun bir parçası ve "63 şeyden 41'ini buldun" listesine bir ceza
 // nesnesi koymak, bulunacak bir şeymiş gibi gösterirdi.
@@ -18575,6 +18660,7 @@ function buildField() {
     rocks = [];
     spikes = [];
     clearCatapults();
+    clearRollers();
   } else {
     puzzleRooms = [];
     placeRocks();
@@ -18586,6 +18672,9 @@ function buildField() {
     // Mancınık dikenden de sonra: ikisinin üst üste binmemesi gerekiyor ve
     // bunu sonra yerleşen kontrol edebiliyor.
     placeCatapults();
+    // Silindir en sonda: şeridinin üstünde katı bir şey olmamalı, yani kaya
+    // ve mancınık yerleşmiş olmalı.
+    placeRollers();
   }
   // After the giants, so it takes its clearing from a settled board rather
   // than having a giant dropped on top of it afterwards. A daily run is
@@ -18784,6 +18873,10 @@ function placeRocks() {
 // hâlâ hareket ettiği hâlde ekranda hiçbir şeyin olmaması demekti.
 function pushOutOfRocks() {
   itOut(rocks);
+  // Silindir de katı, ve **hareketli**: onu aynı kurala sokmak deliğin
+  // merdane yaklaşırken kenarından kaymasını veriyor. Ezilmek diye bir şey
+  // yok; sıkışmak var.
+  itOut(rollers);
   // Mancınık da katı: yutulmuyor ve deliğin içinden geçmesine izin vermiyor.
   // Adı hâlâ `pushOutOfRocks`, çünkü kuralın kendisi kayanın kuralı — makine
   // ikinci bir çarpışma yazmıyor, var olanın içine giriyor.
@@ -19100,6 +19193,67 @@ function landShot(c) {
 // Bu bölümde kaç atış tuttu — ölçüm için.
 let shotHits = 0;
 
+// Tahtadaki silindirler.
+let rollers = [];
+
+function clearRollers() { rollers = []; }
+
+function placeRollers() {
+  rollers = [];
+  if (dailyRun || level < ROLLER_FROM) return;
+  // Görev bölümlerinde yok, mancınıkla aynı sebeple: her görevin kendi
+  // kuralı var ve üstüne ikinci bir kural koymak ikisini de öğretilmez
+  // yapıyor.
+  if (missionKindFor(level)) return;
+  // Şerit tahtanın enine uzanıyor ve iki ucunda dolaşacak yer bırakıyor.
+  const yariBoy = ROLLER_SPAN / 2;
+  // Şeridin ucuyla kenar arasında en geniş ağzın merkezi durabilmeli.
+  if (fieldHalfX - yariBoy - ROLLER_R < HOLE_MAX) return;   // tahta dar
+  // Uzunluğuna serbest yer: doğuş ve kolos dışında.
+  const mZ = fieldHalfZ - ROLLER_R - 1.5;
+  for (let deneme = 0; deneme < 60 && rollers.length < ROLLER_COUNT; deneme++) {
+    const z = (rnd() * 2 - 1) * mZ;
+    // Doğuş yerinin şeridi boş kalmalı: oyuncu daha ilk karede merdanenin
+    // altında doğmasın.
+    if (Math.abs(z - spawnZ()) < HOLE_MAX + ROLLER_R + 4) continue;
+    if (hasColossus(level) && Math.abs(z + fieldHalfZ * 0.55) < COLOSSUS_R + ROLLER_R + 2) continue;
+    // Şeridin üstünde katı bir şey olmamalı: merdane kayanın içinden
+    // geçemez, ve geçermiş gibi çizmek oyunun kendi kuralını bozar.
+    const engel = [...rocks, ...catapults].some(o =>
+      Math.abs(o.z - z) < o.r + ROLLER_R + 0.6 && Math.abs(o.x) < yariBoy + o.r);
+    if (engel) continue;
+    // Şeridi aç: merdanenin geçtiği yerde meyve yok. Bu aynı zamanda
+    // uyarının kendisi — çıplak şerit, "buraya bir şey geliyor" diyor.
+    for (const f of fruits) {
+      if (f.eaten) continue;
+      if (Math.abs(f.z - z) > ROLLER_R + NORMAL_R * 1.2) continue;
+      if (Math.abs(f.x) > yariBoy + ROLLER_R) continue;
+      unbuildFruit(f);
+    }
+    const mesh = ROLLER_GEO.clone(true);
+    mesh.scale.setScalar(ROLLER_R);
+    mesh.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    fieldGroup.add(mesh);
+    rollers.push({ x: -yariBoy, z, r: ROLLER_R, mesh,
+                   x0: -yariBoy, x1: yariBoy, yon: 1 });
+  }
+}
+
+// Silindirlerin bir karesi.
+function stepRollers(dt) {
+  for (const r of rollers) {
+    r.x += r.yon * ROLLER_SPEED * dt;
+    // Uca gelince dönüyor. Sınırın **dışına** taşmadan: taşarsa bir kare
+    // boyunca tahtanın dışında duruyor ve dönüşü orada oluyor.
+    if (r.x > r.x1) { r.x = r.x1; r.yon = -1; }
+    else if (r.x < r.x0) { r.x = r.x0; r.yon = 1; }
+    r.mesh.position.set(r.x, 0, r.z);
+    // Yuvarlanma: gittiği yöne göre. Yarıçapı 1 olan bir silindir bir birim
+    // yol için bir radyan dönüyor, ölçek de yarıçap, yani x / r.
+    r.mesh.rotation.x = r.x / ROLLER_R;
+  }
+}
+
 // ---------------------------------------------------------------------
 // Bulmaca tahtası
 //
@@ -19367,6 +19521,7 @@ function buildPuzzle() {
   rocks = [];
   spikes = [];
   clearCatapults();
+  clearRollers();
   puzzleRooms = [];
   // Önceki bölümün şeritleri: `fieldGroup.clear()` onları sahneden çıkarıyor
   // ama geometrilerini bırakmıyor, ve bulmaca başına üç-dört tane.
@@ -23332,6 +23487,23 @@ window.fruitHoleCatapultFire = (i) => {
   stepCatapults(0.0001);
   return c.atis ? { tx: +c.atis.tx.toFixed(2), tz: +c.atis.tz.toFixed(2) } : null;
 };
+// Silindirler: şeridi nerede, ne kadar uzun, ve tahtayı kapatmıyor mu.
+window.fruitHoleRollers = () => ({
+  sayi: rollers.length,
+  ilkBolum: ROLLER_FROM, hiz: ROLLER_SPEED, boy: ROLLER_SPAN,
+  yerler: rollers.map(r => ({ x: +r.x.toFixed(2), z: +r.z.toFixed(2),
+                              r: +r.r.toFixed(2), yon: r.yon })),
+  // Şeridin iki ucunda kalan açıklık: en geniş ağız oradan dolaşabilmeli,
+  // yoksa merdane bir kapı değil bir duvar olur.
+  ucBosluk: rollers.length
+    ? +(fieldHalfX - ROLLER_SPAN / 2 - ROLLER_R).toFixed(2) : null,
+  dogusaEnYakin: rollers.length ? +Math.min(...rollers.map(r =>
+    Math.abs(r.z - spawnZ()))).toFixed(2) : null,
+  // Şeridin üstünde katı bir şey var mı: merdane kayanın içinden geçemez.
+  seritteKati: rollers.reduce((n, r) => n + [...rocks, ...catapults].filter(o =>
+    Math.abs(o.z - r.z) < o.r + r.r && Math.abs(o.x) < ROLLER_SPAN / 2 + o.r).length, 0),
+});
+window.fruitHoleRollerStep = (dt) => { stepRollers(dt); return rollers.map(r => +r.x.toFixed(2)); };
 // Deliği bir dikenin üstüne sür ve ne olduğunu söyle. Gerçek parmakla
 // sürmek konteynerde zamanlamaya bağlı olurdu; ölçülen şey kural.
 window.fruitHoleSpikeRun = (i, r) => {
@@ -23947,6 +24119,11 @@ function tick(now) {
     // atışları da durdururdu, yani cezalandırdıkları şeyden kaçmanın yolu
     // tam olarak o şey olurdu.
     stepCatapults(dt);
+    // Silindir de parmaktan bağımsız: durmak onu durdurmuyor. Hareketten
+    // **önce** ilerliyor ki `pushOutOfRocks` onun yeni yerini görsün, yoksa
+    // delik bir kare boyunca merdanenin içinde kalırdı.
+    stepRollers(dt);
+    pushOutOfRocks();
 
     // magnet upgrade: fruit the hole could swallow drifts toward it, so a
     // near miss still counts. Oversized fruit is not pulled -- it has to

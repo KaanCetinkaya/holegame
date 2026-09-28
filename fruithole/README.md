@@ -5565,3 +5565,61 @@ mancınık aynı ayarı ikinci bir yerden yapmak olurdu.
   geometrisi var. `fieldGroup.clear()` onları sahneden çıkarıyor ama
   geometrilerini bırakmıyor — `clearCatapults()` dört çağrı yerinin hepsinde
   onu yapıyor. Bulmaca kapılarında öğrenilen şeyin aynısı.
+
+## Silindir: hiçbir şey almayan engel
+
+Beşinci engel, ve ilk **hareketli** olanı. Öteki dördü bir kaynaktan alıyor —
+saatten, yoldan, boydan. Bu hiçbir şey almıyor: yalnızca orada duruyor, ve
+durduğu yer değişiyor.
+
+| | ne yapıyor | ne alıyor |
+|---|---|---|
+| 💣 bomba | yerde bekliyor | saatten, 5 sn |
+| 🪨 kaya | duruyor | yoldan |
+| ✴️ diken | değince kırılıyor | bir boy |
+| 🎯 mancınık | atış yapıyor | saatten, 3 sn |
+| 🛞 silindir | **gidip geliyor** | hiçbir şey — yalnızca **zaman** |
+
+Sebebi şu: beşinci bir "şu kadar götürür" eklemek zorluk değil **tekrar**
+olur. Silindirin eklediği şey bir kaynak değil bir eksen: zamanlama. Tahtanın
+neresinin geçilebilir olduğu artık saniyeden saniyeye değişiyor, ve rota
+seçmek ilk kez bir karar.
+
+Deliği yutmuyor, itiyor — kayanın kuralı (`itOut`) olduğu gibi geçerli.
+Merdane yaklaşırken delik kenarından kayıyor, yani "ezildim" diye bir şey
+yok: sıkıştın, geç kaldın.
+
+### Çıplak şerit uyarının kendisi
+
+Merdanenin geçtiği yerde meyve yok — yerleşirken şeridini açıyor. Bu hem
+görüntü meselesi (taş merdanenin içinden çilek görünmesi) hem de tasarım:
+mancınığın kırmızı halkası ne işe yarıyorsa çıplak şerit de o. Oyuncu
+tahtaya bakınca nereye girmeyeceğini görüyor.
+
+### Şeridin boyu tahtanın eninden çıkıyor
+
+İlk ölçü 8.4 birimdi ve **hiçbir tahtada silindir çıkmadı**. Yarım boy 4.2,
+tahtanın yarı eni 6.825: şeridin ucuyla kenar arasında 2.6 birim kalıyor, en
+geniş ağız 2.75, ve yerleştirme daha ilk satırda vazgeçiyordu.
+
+Şart, sıkışmanın tahtayı bozmaması: şeridin ucundaki merdaneyle kenar
+arasında **en geniş ağzın merkezi** durabilmeli. Duramazsa delik merdaneyle
+kenar arasında kalıyor ve `itOut` onu tahtanın dışına itiyor. 6.4 ile aradaki
+boşluk 2.85, ağız 2.75.
+
+Merdane zaten bir duvar değil: tek bir nesne, ve tahtanın geri kalanı hep
+açık. Oyuncu onun önünden ya da arkasından geçiyor; şeridin boyu yalnızca ne
+kadar enini taradığını söylüyor. Hız da deliğinkinden düşük (2.6'ya karşı
+3.4), yani kaçmak her zaman mümkün — hızlı olsaydı sıkışmak oyuncunun hatası
+olmaktan çıkardı.
+
+### Tanıtım bölümü artık ölçülüyor
+
+`ROLLER_FROM` önce 26 yazılmıştı ve 26 bir **şerit** tahtası: şerit
+tahtasına rastgele hiçbir şey konmuyor, yani silindirin tanıtıldığı bölümde
+silindir olmayacaktı ve ipucu satırı olmayan bir şeyi anlatacaktı.
+
+Aynı hesap dikende (12) ve mancınıkta (20) elle yapılmıştı. Üçüncüsünde
+yanlış yapıldı, o yüzden artık `holeroller.mjs` ölçüyor: tanıtım bölümü
+sıradan bir ızgara tahtası olmak zorunda. Bomba 6, kaya 9, diken 12,
+mancınık 20, silindir 24.
