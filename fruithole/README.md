@@ -5731,3 +5731,61 @@ düşürülecek şey `RIVAL_BITE`, sonra hızı.
 
 Bomba 6 → kaya 9 → diken 12 → mancınık 20 → silindir 24 → çamur 29 →
 rakip 31.
+
+## Rüzgâr: doğrultuyu bozan şey
+
+Sekizinci ve son engel. Bir şey almıyor, yol kapatmıyor, tahtayı
+eksiltmiyor — **doğrultunu bozuyor.**
+
+Ötekilerin hepsi "nereye gideceğine" karışıyor: kaya bir yeri kapatıyor,
+çamur pahalı yapıyor, silindir zamanlıyor, rakip eksiltiyor. Rüzgâr "nereye
+gittiğine" karışıyor: parmağın kuzeyi gösteriyor, delik kuzeydoğuya gidiyor.
+Bu oyunda ilk kez sürmek bir **düzeltme** işi.
+
+Şerit tahtanın eni boyunca uzanıyor, derinliği 5.2 birim — en geniş ağzın
+iki katı. İçinden geçmek bir karar, ama içinde yaşamak zorunda değilsin.
+
+### En pahalı yanlış anlama
+
+Rüzgârın bütün hataları "kontroller bozuk" diye okunuyor, ve bir oyuncunun
+verebileceği en kötü karar bu. O yüzden burada üç şey var ve üçü de aynı
+şeyi söylüyor:
+
+- **Şeridin iki kenarı çizili** — nerede başlayıp bittiği.
+- **Sürüklenen çizgiler** — hangi yöne estiği.
+- **İpucu satırı**, tanıtım bölümünde bir kez.
+
+Çizgilerin opaklığı ve kalınlığı ölçülerek arttırıldı: ilk değerlerde (0.32
+opaklık, 0.16 kalınlık) ekran görüntüsünde çizgi meyvenin arasında
+kayboluyordu. Tahtanın kendisi kalabalık ve renkli; üstüne konan bir
+işaretin fark edilmesi için soluk olmaması gerekiyor.
+
+### Hızı, deliğinkinin yarısının altında
+
+1.5'e karşı 3.4. Rüzgâra karşı gidilebiliyor, yalnızca yavaş gidiliyor.
+Hızına yaklaşsaydı şeridin bir yarısı ulaşılmaz olurdu — ve **görünmez bir
+duvar**, duvarların en kötüsü. Test sınırı deliğin %60'ı, yani bir gün
+rüzgâr güçlendirilirse orada durur.
+
+Sürükleme hareket bloğunun **dışında** uygulanıyor: parmağını kaldırmak
+rüzgârı durdurmuyor. Durdursaydı rüzgârdan kaçmanın yolu hiç hareket
+etmemek olurdu, yani bu oyunun tam tersi.
+
+### Sekiz engel, sekiz ayrı şey
+
+| | ne yapıyor | ne alıyor | bölüm |
+|---|---|---|---|
+| 💣 bomba | yerde bekliyor | saatten, 5 sn | 6 |
+| 🪨 kaya | duruyor | yoldan | 9 |
+| ✴️ diken | değince kırılıyor | bir boy | 12 |
+| 🎯 mancınık | atış yapıyor | saatten, 3 sn | 20 |
+| 🛞 silindir | gidip geliyor | zamandan | 24 |
+| 🟤 çamur | yerinde duruyor | hızdan | 29 |
+| 🕳️ rakip | meyve yiyor | **tahtadan** | 31 |
+| 🌬️ rüzgâr | sürüklüyor | **doğrultudan** | 34 |
+
+Sekizinin ortak kuralları: hiçbiri görev, resim, şerit ve bulmaca
+tahtalarında yok; hiçbiri günlük koşuda yok; hiçbiri deliğin doğduğu yerde
+yok; ve her birinin tanıtıldığı bölüm sıradan bir ızgara tahtası olmak
+zorunda — bu sonuncusu silindirde yanlış yapıldı ve artık her biri için
+ölçülüyor.

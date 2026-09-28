@@ -169,6 +169,10 @@ it, go behind it, or wait — but the fruit on the other side is not going to
 collect itself. Mud is the same bargain in slower form: cross it at half
 speed, or go the long way round and find out which was quicker.
 
+Then there are the bands of wind, marked on the ground, where the hole drifts
+sideways whatever your thumb is doing, and you steer into it or come out
+somewhere else.
+
 And on the deeper levels there is a second hole out there, ringed in red,
 working the same field you are. Everything it swallows is something you will
 not. It will never take the last of what your order needs — but it will take

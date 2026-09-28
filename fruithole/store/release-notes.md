@@ -89,15 +89,16 @@ durumdaydı; kayıt ona göre düzeltildi.
 
 ---
 
-## 40 (1.13) — 429 karakter
+## 40 (1.13) — 466 karakter
 
 ```
-New in this update: four new things on the board.
+New in this update: five new things on the board.
 
 - A rival hole. The red one eats the crop too, and everything it takes is something you will not. It never takes the last of what your cards need.
-- Catapults throw a bomb at wherever you are standing. A red ring marks where it lands and closes as it falls.
+- Catapults throw a bomb at wherever you are standing. A red ring marks where it lands.
 - Rollers are stone drums running back and forth across a bare lane.
 - Mud. You can cross it at half speed, or go round.
+- Wind. Inside the marked band you drift, so steer into it.
 ```
 
 39 yüklendikten sonra yazıldı, yani ayrı bir not: 39'un kutusunda mancınık

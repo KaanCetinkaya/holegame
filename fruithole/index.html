@@ -1298,6 +1298,11 @@ function missionRule() {
   if (level === RIVAL_FROM) {
     return 'A RIVAL HOLE: the red one eats the crop too — get there first';
   }
+  // Rüzgâr: oyuncunun sürdüğü yönle deliğin gittiği yön ayrılıyor, ve bu
+  // söylenmezse "kontroller bozuk" diye okunur — en pahalı yanlış anlama.
+  if (level === WIND_FROM) {
+    return 'WIND: inside the marked band you drift — steer into it';
+  }
   return HINT_DEFAULT;
 }
 // Görevin durumu: tipi, (siparişte) hedef meyve, kaç tane var, kaçı yendi.
@@ -3028,6 +3033,7 @@ function buildMenuDiorama() {
   clearRollers();
   clearMuds();
   clearRival();
+  clearWind();
   eatenCount = 0; levelGoal = 0;
   fieldHalfX = 4.6; fieldHalfZ = 4.2;
   fitGround();
@@ -12232,6 +12238,28 @@ const RIVAL_MARGIN = 6;
 // değil.
 const RIVAL_BITE = 0.25;
 
+// ---------------------------------------------------------------------
+// Rüzgâr
+//
+// Sekizinci ve son engel. Bir şey almıyor, yol kapatmıyor, tahtayı
+// eksiltmiyor — **doğrultunu bozuyor.**
+//
+// Ötekilerin hepsi "nereye gideceğine" karışıyor: kaya bir yeri kapatıyor,
+// çamur pahalı yapıyor, silindir zamanlıyor. Rüzgâr "nereye gittiğine"
+// karışıyor: parmağın kuzeyi gösteriyor ve delik kuzeydoğuya gidiyor. Bu
+// oyunda ilk kez sürmek bir **düzeltme** işi.
+//
+// Deliğin hızından belirgin biçimde yavaş (1.5'e karşı 3.4): rüzgâra karşı
+// gidilebiliyor, yalnızca yavaş gidiliyor. Hızına yaklaşsaydı şeridin bir
+// yarısı ulaşılmaz olurdu ve bu bir engel değil bir duvar olurdu.
+const WIND_FROM = 34;
+const WIND_SPEED = 1.5;
+// Şeridin boyu: tahtanın eni boyunca uzanıyor, derinliği bu kadar. Beş
+// birim, en geniş ağzın iki katı — içinden geçmek bir karar, ama içinde
+// yaşamak zorunda değilsin.
+const WIND_BAND = 5.2;
+const WIND_STREAKS = 16;
+
 // Fitili yanan koyu bir küre. PROPS'a **girmiyor**: oradaki her şey
 // koleksiyonun bir parçası ve "63 şeyden 41'ini buldun" listesine bir ceza
 // nesnesi koymak, bulunacak bir şeymiş gibi gösterirdi.
@@ -18774,6 +18802,7 @@ function buildField() {
     clearRollers();
     clearMuds();
     clearRival();
+    clearWind();
   } else {
     puzzleRooms = [];
     placeRocks();
@@ -18792,6 +18821,7 @@ function buildField() {
     placeMuds();
     // Rakip en sonda: tahtadaki her şey yerleşmiş olmalı.
     placeRival();
+    placeWind();
   }
   // After the giants, so it takes its clearing from a settled board rather
   // than having a giant dropped on top of it afterwards. A daily run is
@@ -19318,6 +19348,91 @@ function landShot(c) {
 // Bu bölümde kaç atış tuttu — ölçüm için.
 let shotHits = 0;
 
+// Rüzgâr şeridi. Tek bir nesne, ya var ya yok.
+let wind = null;
+
+function clearWind() {
+  if (wind && wind.mesh) {
+    fieldGroup.remove(wind.mesh);
+    wind.mesh.traverse(o => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
+  }
+  wind = null;
+}
+
+function placeWind() {
+  clearWind();
+  if (dailyRun || level < WIND_FROM) return;
+  if (missionKindFor(level)) return;
+  const yari = WIND_BAND / 2;
+  const mZ = fieldHalfZ - yari - 1;
+  if (mZ <= 0) return;
+  for (let deneme = 0; deneme < 40; deneme++) {
+    const z = (rnd() * 2 - 1) * mZ;
+    // Doğuş yerinde rüzgâr yok: oyuncu tahtaya inip ilk hamlesini yaparken
+    // deliğin kendi kendine kaymasının sebebini göremez.
+    if (Math.abs(z - spawnZ()) < yari + HOLE_MAX + 2) continue;
+    // Silindirin şeridiyle çakışmasın: ikisi bir arada, oyuncunun neyin
+    // onu ittiğini göremediği yer.
+    if (rollers.some(o => Math.abs(o.z - z) < yari + o.r + 1)) continue;
+    const yon = rnd() < 0.5 ? -1 : 1;
+    const g = new THREE.Group();
+    // Şeridin iki kenarı: nerede başlayıp nerede bittiğini söyleyen çizgi.
+    // Çizgisiz bir rüzgâr, oyuncunun neden kaydığını göremediği bir yer.
+    //
+    // Opaklık ve kalınlık ölçülerek arttırıldı: ilk değerlerde (0.32 / 0.16)
+    // ekran görüntüsünde çizgi meyvenin arasında kayboluyordu. Tahtanın
+    // kendisi kalabalık ve renkli; üstüne konan bir işaretin **fark
+    // edilmesi** için soluk olmaması gerekiyor.
+    const kenarMat = new THREE.MeshBasicMaterial({
+      color: '#cfeaff', transparent: true, opacity: 0.55, depthWrite: false });
+    for (const sz of [-yari, yari]) {
+      const c = new THREE.Mesh(new THREE.PlaneGeometry(fieldHalfX * 2, 0.26), kenarMat);
+      c.rotation.x = -Math.PI / 2;
+      c.position.set(0, 0.03, sz);
+      g.add(c);
+    }
+    // Sürüklenen çizgiler: rüzgârın **yönünü** söyleyen tek şey. İki kenar
+    // nerede olduğunu söylüyor, bunlar ne yaptığını.
+    const cizgiMat = new THREE.MeshBasicMaterial({
+      color: '#f2faff', transparent: true, opacity: 0.72, depthWrite: false });
+    const cizgiler = [];
+    for (let i = 0; i < WIND_STREAKS; i++) {
+      const c = new THREE.Mesh(new THREE.PlaneGeometry(1.4 + rnd() * 1.1, 0.12), cizgiMat);
+      c.rotation.x = -Math.PI / 2;
+      c.position.set((rnd() * 2 - 1) * fieldHalfX, 0.04,
+                     (rnd() * 2 - 1) * (yari - 0.3));
+      g.add(c);
+      cizgiler.push(c);
+    }
+    g.position.set(0, 0, z);
+    fieldGroup.add(g);
+    wind = { z, yari, yon, mesh: g, cizgiler };
+    return;
+  }
+}
+
+// Rüzgârın bir karesi: çizgiler sürükleniyor, ve delik şeridin içindeyse o
+// da sürükleniyor.
+//
+// Hareket bloğunun **dışında** uygulanıyor: parmağını kaldırmak rüzgârı
+// durdurmuyor. Durdursaydı rüzgârdan kaçmanın yolu hiç hareket etmemek
+// olurdu, yani bu oyunun tam tersi.
+function stepWind(dt) {
+  if (!wind) return;
+  const yol = WIND_SPEED * dt;
+  for (const c of wind.cizgiler) {
+    c.position.x += wind.yon * yol * 2.4;
+    if (c.position.x > fieldHalfX) c.position.x = -fieldHalfX;
+    else if (c.position.x < -fieldHalfX) c.position.x = fieldHalfX;
+  }
+  if (Math.abs(holeZ - wind.z) > wind.yari) return;
+  holeX += wind.yon * yol;
+  // Kenar kısıtı burada yeniden: rüzgâr deliği tahtanın dışına itebilir.
+  const mX = fieldHalfX - holeRadius * 0.5;
+  holeX = Math.max(-mX, Math.min(mX, holeX));
+  pushOutOfRocks();
+}
+
 // Rakip delik. Tek bir nesne, ya var ya yok.
 let rival = null;
 let rivalAte = 0;
@@ -19829,6 +19944,7 @@ function buildPuzzle() {
   clearRollers();
   clearMuds();
   clearRival();
+  clearWind();
   puzzleRooms = [];
   // Önceki bölümün şeritleri: `fieldGroup.clear()` onları sahneden çıkarıyor
   // ama geometrilerini bırakmıyor, ve bulmaca başına üç-dört tane.
@@ -23828,6 +23944,27 @@ window.fruitHoleRival = () => {
     }),
   };
 };
+// Rüzgâr: şerit nerede, ne kadar güçlü, ve deliği gerçekten sürüklüyor mu.
+window.fruitHoleWind = () => {
+  if (!wind) return { var: false, ilkBolum: WIND_FROM, hiz: WIND_SPEED, delik: BASE_MOVE_SPEED };
+  return {
+    var: true, ilkBolum: WIND_FROM, hiz: WIND_SPEED, delik: BASE_MOVE_SPEED,
+    z: +wind.z.toFixed(2), yari: wind.yari, yon: wind.yon,
+    dogusa: +(Math.abs(wind.z - spawnZ()) - wind.yari).toFixed(2),
+    // Deliği şeridin içine ve dışına koyup bir saniye rüzgâr uygulamak.
+    surukleme: (() => {
+      const sx = holeX, sz = holeZ;
+      holeX = 0; holeZ = wind.z;
+      stepWind(1);
+      const ic = +(holeX - 0).toFixed(3);
+      holeX = 0; holeZ = wind.z + wind.yari + 3;
+      stepWind(1);
+      const dis = +(holeX - 0).toFixed(3);
+      holeX = sx; holeZ = sz;
+      return { ic, dis };
+    })(),
+  };
+};
 window.fruitHoleRivalStep = (dt, kere = 1) => {
   for (let i = 0; i < kere; i++) stepRival(dt);
   return rivalAte;
@@ -24477,6 +24614,7 @@ function tick(now) {
     // Rakip de parmaktan bağımsız: durmak onu durdurmuyor, tam tersine
     // durduğun her saniye tahtayı biraz daha eksiltiyor.
     stepRival(dt);
+    stepWind(dt);
     pushOutOfRocks();
 
     // magnet upgrade: fruit the hole could swallow drifts toward it, so a
