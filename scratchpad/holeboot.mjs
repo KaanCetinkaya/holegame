@@ -99,6 +99,75 @@ for (const sahte of [false, true]) {
   }
 }
 
+// ---------------------------------------------------------------------
+// Açılmak yetmiyor: **oynanırken** de patlamamalı.
+//
+// Yukarıdaki bölüm açıyor ve Play düğmesini arıyor. Bir hata sınıfını hiç
+// göremiyor, ve o sınıf oyunu açılmayan bir oyundan daha kötü yapıyor:
+// tahtanın kurulması değil, tahtanın **yenmesi** patlıyorsa oyun açılıyor,
+// birkaç saniye oynanıyor, ve sonra donuyor.
+//
+// Donmanın sebebi `tick`'in şekli: son satırı `requestAnimationFrame(tick)`,
+// yani kare içinde atılan bir istisna bir sonraki kareyi hiç planlamıyor.
+// Tek bir hatalı yutma, oyunu kalıcı olarak durduruyor.
+//
+// Gerçekten oldu ve aylarca kimse görmedi: on beş nesne `currency: 'apple'`
+// diyordu, `apple` diye bir para birimi yok, ve o nesnelerden birini yutmak
+// oyunu öldürüyordu. Bütün testler tahtayı kuruyor ve **oynamıyordu**;
+// yakalayan şey tanıtım klibi oldu — dokuz saniyelik videoların dördünde
+// tahta hiç kıpırdamıyordu.
+//
+// Burada sahte saatle gerçekten oynanıyor: en yakın meyveye sürülüyor ve
+// yüz kare ilerletiliyor. Hata yutulmuyor, sayılıyor.
+console.log('\n--- oynanırken ---');
+{
+  const ctx = await br.newContext({ viewport: { width: 412, height: 915 } });
+  const pg = await ctx.newPage();
+  await pg.addInitScript(() => {
+    let t = 0; const q = [];
+    window.__kareHata = [];
+    window.requestAnimationFrame = cb => { q.push(cb); return q.length; };
+    window.cancelAnimationFrame = () => {};
+    try { Object.defineProperty(window.performance, 'now', { configurable: true, value: () => t }); }
+    catch (e) { window.performance.now = () => t; }
+    window.__step = ms => { t += ms;
+      for (const cb of q.splice(0, q.length)) {
+        try { cb(t); } catch (e) { window.__kareHata.push(String(e && e.message || e)); } } };
+  });
+  await pg.goto('http://localhost:8276/', { waitUntil: 'load' });
+  await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 40000 });
+  // Bütün ilk tur: kırk sekiz bölüm, kırk sekiz yer. Nesneler temaya göre
+  // değişiyor, yani hatayı bulmak için çok sayıda tahta gerekiyor — biri
+  // yetmiyordu.
+  //
+  // Kare sayısı altmış: konteynerde her kare gerçek bir çizim ve yüz kare ×
+  // altmış bölüm testi on dakikanın üstüne çıkarıyordu. Asıl kök neden zaten
+  // `holetheme.mjs`'de doğrudan ölçülüyor (her nesnenin para birimi); burası
+  // geniş ağ.
+  const bozuk = [];
+  for (let lvl = 1; lvl <= 48; lvl++) {
+    const r = await pg.evaluate(l => {
+      window.__kareHata.length = 0;
+      window.fruitHoleProbe(l);
+      window.fruitHoleStartLevel();
+      for (let i = 0; i < 60; i++) {
+        const w = window.fruitHoleWhere();
+        const n = window.fruitHoleNearest();
+        if (n) { const dx = n.x - w.x, dz = n.z - w.z, d = Math.hypot(dx, dz) || 1;
+                 window.fruitHoleSteer(dx / d, dz / d); }
+        window.__step(1000 / 30);
+        if (window.__kareHata.length) break;
+      }
+      return { hata: window.__kareHata[0] || null, yenen: window.fruitHoleWhere().eaten };
+    }, lvl);
+    if (r.hata) bozuk.push(`${lvl}: ${r.hata}`);
+  }
+  console.log(`  ${bozuk.length ? 'FAIL' : 'OK  '} kırk sekiz bölümün hepsi oynanırken hata atmıyor` +
+    (bozuk.length ? `   ${bozuk.slice(0, 3).join(' · ')}` : ''));
+  for (const b of bozuk) fails.push(`oynanırken patladı — ${b}`);
+  await ctx.close();
+}
+
 console.log('\n' + (fails.length ? 'hatalar:\n - ' + fails.join('\n - ') : 'hepsi geçti'));
 // Hata varsa çıkış kodu da söylesin.
 //

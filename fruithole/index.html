@@ -7890,7 +7890,7 @@ function propTemplates() {
         0, 0.24, 0, 0, 0.7, 0);
     put(g, new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), PROP_MAT('#c9ced6', 0.28)),
         0, 0.28, 0);
-    T.kiteshield = { g, h: 0.36, currency: 'apple' };
+    T.kiteshield = { g, h: 0.36, currency: 'lychee' };
   }
 
   // Taştaki kılıç: yukarıdan görünen şey balçak ve taş, uç değil.
@@ -8023,7 +8023,7 @@ function propTemplates() {
       put(g, new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.06, 8, 14, Math.PI * 0.75),
                             kemik), sx * 0.34, 0.26, -0.18, Math.PI / 2, 0, sx * 0.5);
     }
-    T.cowskull = { g, h: 0.42, currency: 'apple' };
+    T.cowskull = { g, h: 0.42, currency: 'lychee' };
   }
 
   // Şerif yıldızı: beş uçlu, ve düz yatıyor.
@@ -8153,7 +8153,7 @@ function propTemplates() {
       put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.34, 8), koyu),
           Math.cos(a) * 0.76, 0.3, Math.sin(a) * 0.76, 0, -a + Math.PI / 2, Math.PI / 2);
     }
-    T.shipwheel = { g, h: 0.5, currency: 'apple' };
+    T.shipwheel = { g, h: 0.5, currency: 'lychee' };
   }
 
   // Top: kısa, kalın namlu ve iki tekerlekli kızak.
@@ -8293,7 +8293,7 @@ function propTemplates() {
           Math.cos(a) * 0.47, 0.34 + i * 0.045, Math.sin(a) * 0.47);
     }
     put(g, new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), mavi), 0.47, 0.32, 0);
-    T.dragonjar = { g, h: 1.25, currency: 'apple' };
+    T.dragonjar = { g, h: 1.25, currency: 'lychee' };
   }
 
   // Gong: askısında asılı bir daire, yani yukarıdan bir daire artı iki direk.
@@ -8445,7 +8445,7 @@ function propTemplates() {
       y.scale.set(1, 1.35, 1);
       put(g, y, dx, 0.2, dz, 1.2, ry, 0);
     }
-    T.dinoegg = { g, h: 0.4, currency: 'apple' };
+    T.dinoegg = { g, h: 0.4, currency: 'lychee' };
   }
 
   // Eğreltiotu: yapraklar **yatay** açılıyor, yani üstten bir yıldız.
@@ -8530,7 +8530,7 @@ function propTemplates() {
     // Kor damarları: yukarıdan kayayı bir taştan ayıran şey.
     for (const [dx, dz, ry] of [[0.1, 0.2, 0.4], [-0.2, -0.1, -0.8], [0.26, -0.24, 1.2]])
       put(g, new THREE.Mesh(bevelBox(0.44, 0.05, 0.1, 0.02), kor), dx, 0.76, dz, 0, ry, 0);
-    T.lavarock = { g, h: 0.85, currency: 'apple' };
+    T.lavarock = { g, h: 0.85, currency: 'lychee' };
   }
 
   // --- tikal ---------------------------------------------------------
@@ -8592,7 +8592,7 @@ function propTemplates() {
     put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 16), koyu), 0, 0.26, 0);
     for (const sx of [-1, 1])
       put(g, new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), tas), sx * 0.08, 0.31, 0.06);
-    T.calendarstone = { g, h: 0.35, currency: 'apple' };
+    T.calendarstone = { g, h: 0.35, currency: 'lychee' };
   }
 
   // Yeşim maske: geniş, yassı, ve gözleriyle burnu üstten görünüyor.
@@ -8742,7 +8742,7 @@ function propTemplates() {
     // Yele: boyun boyunca dik bir sırt.
     for (let i = 0; i < 4; i++)
       put(g, new THREE.Mesh(bevelBox(0.07, 0.14, 0.12, 0.02), siyah), 0, 1.12 + i * 0.02, 0.4 + i * 0.12);
-    T.zebra = { g, h: 1.35, currency: 'apple' };
+    T.zebra = { g, h: 1.35, currency: 'lychee' };
   }
 
   // Şemsiye akasya: tacı **düz** ve geniş, yani üstten bir disk.
@@ -8863,7 +8863,7 @@ function propTemplates() {
     bebek(-0.46, 1, '#c22b26', '#e8c33c');
     bebek(0.2, 0.72, '#2f6fb8', '#e8e0c8');
     bebek(0.62, 0.5, '#2f8a52', '#e8c33c');
-    T.matryoshka = { g, h: 1.1, currency: 'apple' };
+    T.matryoshka = { g, h: 1.1, currency: 'lychee' };
   }
 
   // Semaver: gövde, musluk ve tepesindeki demlik.
@@ -9045,7 +9045,7 @@ function propTemplates() {
     // Sarkan uç: yığını bir kule olmaktan çıkarıyor.
     put(g, new THREE.Mesh(bevelBox(0.3, 0.05, 0.5, 0.02), PROP_MAT('#b8332a', 0.55)),
         0.24, 0.06, 0.34, 0, 0.5, 0);
-    T.textileroll = { g, h: 0.8, currency: 'apple' };
+    T.textileroll = { g, h: 0.8, currency: 'lychee' };
   }
 
   // Sınır taşı: pampada çizgilerin ucuna dikilmiş kaba bir taş.
@@ -9163,7 +9163,7 @@ function propTemplates() {
         0.08, 1.66, 0.14).scale.set(0.8, 1, 0.4);
     put(g, new THREE.Mesh(bevelBox(0.22, 0.05, 0.04, 0.01), PROP_MAT('#26282c', 0.5)),
         -0.1, 1.42, 0.14, 0, 0, 0.5);
-    T.roadsign = { g, h: 1.9, currency: 'apple' };
+    T.roadsign = { g, h: 1.9, currency: 'lychee' };
   }
 
   // Kamp güğümü: telli kulpu ve üstünde tutam duman kararmış dibi.
@@ -9244,7 +9244,7 @@ function propTemplates() {
       put(g, new THREE.Mesh(bevelBox(0.26, 0.05, 0.05, 0.02), PROP_MAT('#2f5fae', 0.45)),
           0, 0.78 + sz * 0.12, sz * 1.0);
     }
-    T.seesaw = { g, h: 0.9, currency: 'apple' };
+    T.seesaw = { g, h: 0.9, currency: 'lychee' };
   }
 
   // Kum kalesi: kova kalıbı, tepesinde kürek.
@@ -9357,7 +9357,7 @@ function propTemplates() {
           sx * 0.16, 0.6, 0.3, Math.PI / 2, 0, 0);
     put(g, new THREE.Mesh(bevelBox(0.3, 0.05, 0.08, 0.02), PROP_MAT('#2a1a0c', 0.5)),
         0, 0.44, 0.38);
-    T.pumpkin = { g, h: 0.9, currency: 'apple' };
+    T.pumpkin = { g, h: 0.9, currency: 'lychee' };
   }
 
   // Posta kutusu: direk, kutu, ve kalkık bayrak.
@@ -9445,7 +9445,7 @@ function propTemplates() {
     for (const y of [0.4, 0.72])
       put(g, new THREE.Mesh(bevelBox(1.5, 0.16, 0.08, 0.03), serit), 0, y, 0);
     put(g, new THREE.Mesh(bevelBox(1.4, 0.08, 0.08, 0.02), tahta), 0, 0.56, 0, 0, 0, 0.16);
-    T.barricade = { g, h: 0.95, currency: 'apple' };
+    T.barricade = { g, h: 0.95, currency: 'lychee' };
   }
 
   // Varil: devrilmiş değil dik, tepesi açık, gövdesinde iki çember.
@@ -9543,7 +9543,7 @@ function propTemplates() {
     for (const sx of [-1, 1])
       put(g, new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.16, 5), tas),
           sx * 0.09, 1.04, 0.1);
-    T.gargoyle = { g, h: 1.1, currency: 'apple' };
+    T.gargoyle = { g, h: 1.1, currency: 'lychee' };
   }
 
   // Demir kapı: iki sütun arası dikey parmaklıklar, tepesi kemerli.
@@ -21595,7 +21595,7 @@ function refreshCards() {
   if (metin === lastCardText) return;
   lastCardText = metin;
   cardRowEl.innerHTML = cards.map(k => {
-    const t = TYPE_BY_ID[k.type];
+    const t = TYPE_BY_ID[k.type] || TYPES[0];
     const renk = t.uiBase || t.base;
     const bitti = k.got >= k.need ? ' done' : '';
     return `<div class="card${bitti}"><span class="dot" style="background:${renk}"></span>` +
@@ -22359,7 +22359,19 @@ const FLECK_POOL = [];
 const flecks = [];          // live ones
 
 function fleckMaterial(type) {
-  const t = TYPE_BY_ID[type];
+  // Bilinmeyen bir tip oyunu **öldürüyordu**.
+  //
+  // `tick`'in son satırı `requestAnimationFrame(tick)`, yani kare içinde
+  // atılan bir istisna bir sonraki kareyi hiç planlamıyor: oyun donuyor ve
+  // bir daha açılmıyor. On beş nesne `currency: 'apple'` diyordu ve `apple`
+  // diye bir para birimi yok — elma olan `lychee` (etiketi "Apple", kimliği
+  // değil). O nesnelerden birini yutmak `burst`'ü buraya getiriyor, `t`
+  // undefined çıkıyor ve oyun orada bitiyor.
+  //
+  // Kimlikler düzeltildi ve `holeprop.mjs` artık her nesnenin para biriminin
+  // gerçek olduğunu ölçüyor. Bu satır yine de duruyor: bir daha olursa
+  // görüntü yanlış renkte olsun, oyun durmasın.
+  const t = TYPE_BY_ID[type] || TYPES[0];
   if (!fleckMaterial.cache) fleckMaterial.cache = {};
   if (!fleckMaterial.cache[type]) {
     fleckMaterial.cache[type] = new THREE.MeshBasicMaterial({
@@ -23362,6 +23374,21 @@ window.fruitHoleGamesState = () => ({
 // where the hole opens, and — the number that decides whether it is a boss
 // at all — how much of the field has to go in before it can be taken.
 // Hedef kartları: ne istiyorlar, tahtada o türden kaç tane var, ve saat.
+// Her nesnenin para birimi gerçek mi, ve tahtada bilinmeyen tipte parça var mı.
+//
+// İkisi de aynı hatanın iki ucu: `currency: 'apple'` yazan on beş nesne
+// vardı, `apple` diye bir para birimi yok, ve o nesnelerden birini yutmak
+// kare döngüsünü kalıcı olarak durduruyordu.
+window.fruitHoleCurrencies = () => ({
+  gecerli: TYPES.map(t => t.id),
+  // Nesne kimliği -> para birimi, yalnızca geçersiz olanlar.
+  bozukNesne: Object.entries(PROPS)
+    .filter(([, p]) => !TYPE_BY_ID[p.currency])
+    .map(([id, p]) => `${id}:${p.currency}`),
+  // Tahtadaki bilinmeyen tipler.
+  bozukTahta: [...new Set(fruits.filter(f => !f.eaten && !TYPE_BY_ID[f.type])
+    .map(f => `${f.type}${f.prop ? '(' + f.prop + ')' : ''}`))],
+});
 window.fruitHoleCards = () => ({
   cards: cards.map(k => {
     const say = fruits.filter(f => !f.eaten && !f.prop && !f.bomb && f.type === k.type).length;
@@ -23432,6 +23459,11 @@ window.fruitHoleWhere = () => ({
   r: +holeRadius.toFixed(3), eaten: eatenCount, total: fruits.length,
   left: fruits.filter(f => !f.eaten).length,
   timeLeft: +timeLeft.toFixed(1), state,
+  // Tarla hâlâ düşüyor mu: bu kare boyunca saat işlemiyor ve delik parmağa
+  // cevap vermiyor. Klip aracı bunu bilmiyordu ve donmuş bir oyunu dokuz
+  // saniye kaydetti — ekranda duran bir tahta, kaydın tamamı.
+  settling: dropSpan !== 0 && (performance.now() - dropStart) / 1000 < dropSpan,
+  joy: +Math.hypot(joyX, joyY).toFixed(2),
 });
 // Deliğin çevresinde kaç meyve kaldı.
 //

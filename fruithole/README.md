@@ -5873,3 +5873,72 @@ bitiyor.
 | 30. saniyede rozet | Size 2 | Size 3 |
 | 1. bölümün bitişi | 30 saniyede bitmiyor | **24.6s** |
 | 1. bölümün kartı | 14–54 | **38** |
+
+## Bir nesneyi yutmak oyunu öldürüyordu
+
+Tanıtım klibi üretilirken çıktı: dokuz klibin **altısında** tahta hiç
+kıpırdamıyordu. Dokuz saniye boyunca donmuş bir tarla kaydedilmişti ve araç
+hiçbir şey dememişti — kareler çekiliyordu, video çıkıyordu, dosya oradaydı.
+
+### Hata
+
+On beş nesne `currency: 'apple'` diyordu. **`apple` diye bir para birimi
+yok.** Dördü var: `berry`, `lychee`, `banana`, `melon` — ve elma olan
+`lychee`, "Apple" onun etiketi. Birisi kimlik yerine etiketi yazmış, on dört
+kez daha kopyalanmış, ve bugün ben dördünü daha ekledim.
+
+Sonucu şu: o nesnelerden biri yutulduğunda `eatFruit` → `burst` →
+`fleckMaterial` zincirinde `TYPE_BY_ID['apple']` undefined çıkıyor ve istisna
+atılıyor. Ve `tick`'in son satırı `requestAnimationFrame(tick)`:
+
+```js
+function tick(now) {
+  ...
+  requestAnimationFrame(tick);   // ← en son satır
+}
+```
+
+Yani kare içinde atılan bir istisna **bir sonraki kareyi hiç planlamıyor.**
+Oyun donuyor ve bir daha açılmıyor. Tek bir yutma, koşunun sonu.
+
+Nesneler hücrelerin %17'si ve bu on beşi on beş ayrı temada — yani oyuncunun
+bunlardan birine rastlaması an meselesi. Telefonda "oyun dondu" diye
+görünüyor.
+
+### Neden hiçbir test görmedi
+
+Çünkü **testlerin hepsi tahtayı kuruyor, oynamıyor.** `holeboot` bölüm açıyor
+ve Play düğmesini arıyor; `holetheme`, `holecard`, `holeyamuk` tahtayı kurup
+ölçüyor. Yutma yolundan geçen bir test yoktu.
+
+Yakalayan şey bir test değil, **çıktıya bakmak** oldu: klip dosyalarının
+boyutu. Donmuş bir klip 363 KB, çalışan bir klip 4 MB — video sıkıştırması
+değişmeyen kareyi neredeyse bedavaya alıyor.
+
+### Üç yerden birden kapatıldı
+
+1. **Kimlikler düzeltildi** — on beş nesne `lychee` oldu. Yan fayda:
+   o nesneler artık gerçekten para ödüyor; `bumpCurrency('apple', …)` de
+   sessizce hiçbir şey yapmıyordu.
+2. **Aramalar savunmaya alındı** — `fleckMaterial` ve kart satırı bilinmeyen
+   bir kimlikte ilk para birimine düşüyor. Bir daha olursa görüntü yanlış
+   renkte olsun, oyun durmasın.
+3. **Üç yeni ölçüm:**
+   - `holetheme.mjs`: her nesnenin para birimi gerçek bir para birimi mi, ve
+     hiçbir tahtada bilinmeyen tipte parça var mı.
+   - `holeboot.mjs`: altmış bölümün hepsi **oynanırken** hata atmıyor mu —
+     sahte saatle gerçekten sürülüyor ve yutuluyor, ve istisna yutulmuyor
+     sayılıyor.
+   - `make-clips.mjs`: kaydın başındaki ve sonundaki yenen meyve sayısı ile
+     saat. İkisi de kıpırdamadıysa kaydedilen şey bir fotoğraf, ve araç
+     artık hata veriyor.
+
+### Ders
+
+Bu hatanın bir test tarafından yakalanmaması tesadüf değil: testler oyunun
+**kurulumunu** ölçüyordu, **oynanışını** değil. Kurulum ölçmek kolay olduğu
+için oraya yığılmışız.
+
+İkincisi: donmuş bir oyun, açılmayan bir oyundan daha tehlikeli. Açılmayan
+oyun ilk denemede görülüyor; donan oyun oyuncunun elinde, yirminci saniyede,
+ve geriye "bu oyun bozuk" diye bir izlenim bırakıyor.

@@ -69,6 +69,23 @@ console.log('\n1. tablo tutarlı');
   const sahipsiz = T.props.filter(id => !T.themes.some(t => t.props && t.props.includes(id)));
   check(sahipsiz.length === 0, 'her nesnenin bir teması var', sahipsiz.join(' ') || '-');
 
+  // Her nesnenin para birimi gerçek mi?
+  //
+  // On beş nesne `currency: 'apple'` diyordu ve `apple` diye bir para birimi
+  // yok — elma olan `lychee`, "Apple" onun **etiketi**. Kimlik yerine etiket
+  // yazmak, bu tabloda yapılabilecek en sessiz hata gibi duruyor ama değil:
+  // o nesnelerden birini yutmak `burst`'ü bilinmeyen bir tiple çağırıyor,
+  // `tick` istisna atıyor, ve `tick`'in son satırı `requestAnimationFrame`
+  // olduğu için **bir sonraki kare hiç planlanmıyor.** Oyun donuyor ve bir
+  // daha açılmıyor.
+  //
+  // Hiçbir test bakmıyordu, çünkü testlerin çoğu tahtayı kuruyor ve
+  // oynamıyor. Yakalayan şey tanıtım klibi oldu: dokuz saniyelik videoların
+  // dördünde tahta hiç kıpırdamıyordu.
+  const para = await pg.evaluate(() => window.fruitHoleCurrencies());
+  check(para.bozukNesne.length === 0, 'her nesnenin para birimi gerçek bir para birimi',
+    para.bozukNesne.slice(0, 8).join(' ') || para.gecerli.join(', '));
+
   // Tarlanın dışı. Bir temada ne dalga ne de `beyond` varsa kenar düz renge
   // düşüyor — oyunun geri kalanı kodla üretilmiş dokularla doluyken ekranın
   // kenarındaki geniş şerit düz boya oluyor, ve bu tam olarak burada
@@ -145,6 +162,20 @@ console.log('\n3. bölüm sırası');
 }
 
 console.log('\n4. her tema gerçekten çiziliyor');
+// Tahtada bilinmeyen tipte parça: yukarıdaki hatanın tahtadaki yüzü. Nesne
+// tablosu düzgün olsa bile bir yerden bilinmeyen bir tip sızabilir.
+{
+  const bozuk = [];
+  for (let n = 1; n <= 60; n++) {
+    const r = await pg.evaluate(l => {
+      window.fruitHoleProbe(l);
+      return window.fruitHoleCurrencies().bozukTahta;
+    }, n);
+    if (r.length) bozuk.push(`${n}:${r.join(',')}`);
+  }
+  check(bozuk.length === 0, 'hiçbir tahtada bilinmeyen tipte parça yok',
+    bozuk.slice(0, 6).join(' '));
+}
 {
   // Sırayla bütün bölümler açılıyor ve her temanın en az bir kez, kendi
   // zeminiyle ve yalnızca kendi nesneleriyle çizildiği görülüyor.

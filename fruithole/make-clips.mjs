@@ -528,8 +528,11 @@ for (const clip of CLIPS) {
   // ortada yememek gerekiyor.
   const AV_BASLA = total - Math.round(AV_SN * FPS);
   let f = 0, yutuldu = -1, erken = 0, onceki = null;
+  let ilkYenen = null, sonYenen = null, ilkSaat = null, sonSaat = null;
   while (true) {
     const s = await adim(f >= AV_BASLA);
+    if (ilkYenen === null) { ilkYenen = s.eaten; ilkSaat = s.timeLeft; }
+    sonYenen = s.eaten; sonSaat = s.timeLeft;
     await pg.screenshot({
       path: join(bodyDir, String(f).padStart(5, '0') + '.png'),
       animations: 'disabled',
@@ -564,6 +567,28 @@ for (const clip of CLIPS) {
   // Yenen meyve sayısı sıfırsa video boş bir tarla gösteriyor demektir;
   // sessizce bir dosya bırakmaktansa söylemek daha iyi.
   if (son.eaten === 0) console.log('  UYARI: hiç meyve yenmemiş, klibe bakmadan yayınlama.');
+
+  // **Tahta gerçekten kıpırdadı mı?**
+  //
+  // Bu kontrol bir felaketten sonra yazıldı. Oyunda, bir nesnenin yutulması
+  // kare döngüsünü kalıcı olarak durduran bir hata vardı (`currency:
+  // 'apple'`; `tick`'in son satırı `requestAnimationFrame` olduğu için
+  // istisna bir sonraki kareyi hiç planlamıyor). Dokuz klip üretildi,
+  // **altısı donmuş bir tahtayı** dokuz saniye kaydetti, ve araç hiçbir şey
+  // demedi: kareler çekiliyordu, video çıkıyordu, dosya oradaydı.
+  //
+  // İki sayı yeterdi ve ikisi de zaten elde: kaydın başındaki ve sonundaki
+  // yenen meyve sayısı, ve saat. İkisi de kıpırdamadıysa kaydedilen şey bir
+  // fotoğraf.
+  //
+  // Dosya boyutu da söylüyordu (donmuş klip 363 KB, çalışan 4 MB) ama o
+  // dolaylı bir işaret; bu doğrudan.
+  const ilerledi = (sonYenen - ilkYenen) > 0 || (ilkSaat - sonSaat) > 1;
+  if (!ilerledi) {
+    throw new Error(`${clip.id}: kayıt boyunca tahta hiç kıpırdamadı ` +
+      `(yenen ${ilkYenen} -> ${sonYenen}, saat ${ilkSaat} -> ${sonSaat}). ` +
+      `Oyun donmuş: kare döngüsü bir istisnayla durmuş olabilir.`);
+  }
 
   // İki parçayı tek bir kesintisiz numaraya diziyoruz: soğuk açılış 0'dan,
   // gövde onun ardından. ffmpeg'in `-start_number`'ı tek bir aralık okuyor,
