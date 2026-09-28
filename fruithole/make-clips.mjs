@@ -142,19 +142,31 @@ const CLIPS = [
   // kaydırtıyor, ölçüldü) ve zeminin kendisi. Yeni yerlerin yarısında
   // bakılacak şey zemin — kilim, mozaik, tartan, neon — ve tanıtımda satan
   // şey zaten "burası neresi" sorusu.
-  { id: 'bazaar',  pattern: 'Crescent', note: 'Grand Bazaar · kilim zemin, hilal düzen — 426 meyve' },
-  { id: 'newyork', pattern: 'Stairs',   note: 'Manhattan · yaya geçidi, rögar — 464' },
-  { id: 'arena',   pattern: 'Ring',     note: 'The Arena · dövülmüş arena kumu — 480' },
-  { id: 'dubai',   pattern: 'Diamond',  note: 'Gold Coast · altın yıldızlı meydan — 318' },
-  { id: 'tartan',  pattern: 'Lattice',  note: 'Highlands · tartan zemin — 254' },
-  // Tokyo ve Rio seyrek tahtalar, ve bilerek: ikisinde de bakılacak şey
-  // zemin. Neon ıslak asfalt ve Copacabana dalgası tek karede "neresi"
-  // sorusunu cevaplıyor, kalabalık bir tahta ise onları örterdi.
-  { id: 'tokyo',   pattern: 'Chevrons', note: 'Neon Night · ıslak asfalt, neon yansıma — 205' },
-  { id: 'rio',     pattern: 'Wave',     note: 'Copacabana · siyah beyaz dalga mozaiği — 163' },
-  { id: 'egypt',   pattern: 'Pyramid',  note: 'Valley of Kings · hiyeroglif oyulmuş taş — 284' },
+  //
+  // Liste üçüncü kez yazıldı, ve bu sefer sebep **engeller**. Yirminci
+  // bölümden sonra tahtada mancınık, silindir, çamur, rakip delik ve rüzgâr
+  // var — yani orada çekilen bir klipte bir şey **oluyor**. Altındaki
+  // bölümlerde olan tek şey meyve yenmesi, ve ilk üç videonun ölçüsü tam
+  // bunu söylemişti: "1. saniyede ne varsa 9'unda da o vardı, yani
+  // beklenecek hiçbir şey."
+  //
+  // Mancınık bu iş için en iyisi: deliğin **durduğu yere** atıyor, yani
+  // kadraja kendisi giriyor. Kırmızı halka da tek karede anlaşılıyor.
+  //
+  // Bir de birinci bölüm artık klip için uygun değil: kartı sabitlenip
+  // kısaltıldı (`CARD_OPENING`) ve bölüm yirmi beş saniyede bitiyor —
+  // `egypt` klibi dokuz saniye yerine 4.2 saniye çıktı ve ödemesiz kesildi.
+  // Klipler bölümün bitmeyeceği kadar uzun tahtalarda çekiliyor.
+  { id: 'overgrown', pattern: 'Crack',     note: 'Overgrown · çatlamış asfalt + rakip delik, çamur, mancınık' },
+  { id: 'suburb',    pattern: 'House',     note: 'Suburb Night · alacakaranlıkta çim, ev silueti + mancınık' },
+  { id: 'bazaar',    pattern: 'Crescent',  note: 'Grand Bazaar · kilim zemin, hilal düzen' },
+  { id: 'redsquare', pattern: 'Onion',     note: 'Red Square · yelpaze parke, soğan kubbe + rüzgâr' },
+  { id: 'academy',   pattern: 'Key',       note: 'Academy · mumlu taş koridor, anahtar düzen' },
+  { id: 'nazca',     pattern: 'Condor',    note: 'Nazca · pampa çizgileri, kondor düzen' },
+  { id: 'savanna',   pattern: 'Patches',   note: 'Savanna · zürafa deseni, akasya gölgesi' },
+  { id: 'jurassic',  pattern: 'Track',     note: 'Jurassic · volkanik kül, ayak izi düzen' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
-  { id: 'boss',    level: 10,           note: 'patron bölümü — tahtanın ucunda devasa meyve' },
+  { id: 'boss',      level: 30,            note: 'patron bölümü — tahtanın ucunda devasa meyve' },
 ];
 
 
@@ -210,11 +222,32 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
   await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
     { timeout: 25000 });
   const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);
+  // Çözülen bölümün tahtası gerçekten o düzen mi?
+  //
+  // Düzen adıyla istemek bölüm numarasının eskimesini çözmüştü ama ikinci
+  // bir eskime var: resim, şerit ve bulmaca tahtaları tahtayı **desenden
+  // değil bölüm numarasından** alıyor. Bir düzen o yuvalardan birine kayarsa
+  // dosya yine aynı adla video üretiyor — ama `arena.mp4`'te arena düzeni
+  // yok, ekranda bir şerit tahtası var.
+  //
+  // Bu tam olarak oldu: bölüm sırası kırk sekiz düzene göre yeniden
+  // kurulduğunda `Ring` 26'ya (şerit), `Diamond` 28'e (bulmaca) ve
+  // `Lattice` 6'ya (şerit) düştü. Üç klip yanlış şeyi çekiyordu ve bunu
+  // ancak videoyu izleyen biri fark edebilirdi. Artık koşu başlamadan
+  // düşüyor.
+  const tahta = await pg.evaluate(o => o.map((_, i) => {
+    const p = window.fruitHoleProbe(i + 1);
+    return p.kind;
+  }), order);
   await pg.close();
   for (const c of CLIPS) {
     if (!c.pattern) continue;
     const i = order.indexOf(c.pattern);
     if (i < 0) throw new Error(`düzen bulunamadı: ${c.pattern} — oyundakiler: ${order.join(', ')}`);
+    if (tahta[i] !== 'ızgara') {
+      throw new Error(`${c.id}: ${c.pattern} düzeni ${i + 1}. bölümde ve o bölüm bir ` +
+        `${tahta[i]} tahtası — düzen ekrana hiç gelmiyor. Başka bir düzen seç.`);
+    }
     c.level = i + 1;
   }
 }

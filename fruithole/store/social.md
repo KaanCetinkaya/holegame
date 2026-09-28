@@ -605,3 +605,147 @@ Aynı dosyalar, aynı açıklamalar. TikTok'un logosu videoda olmadığı için
 (indirmek yerine bizim mp4'ü yüklüyorsun) diğer platformlar cezalandırmıyor
 — TikTok'tan indirilmiş, filigranlı bir video Reels'te neredeyse hiç
 dağıtılmıyor. Her platforma **dosyayı** yükle.
+
+---
+
+## İkinci parti — engeller geldikten sonra (28 Eylül, gün 47)
+
+### Önce olan biten
+
+24 Eylül'de `beach` atıldı (gün 43) ve **dört gün hiçbir şey atılmadı.**
+Tablodaki kalan satırlar da artık boşa işaret ediyor: `farm`, `shop`,
+`drive`, `bar`, `space`, `orbits` — bunların bir kısmı hâlâ klasörde duruyor
+ama çektikleri bölümler değişti, bir kısmı hiç yeniden üretilmedi.
+
+Gün numarası atlanmıyor, **takvim günü sayılıyor**: bugün 47. Gün 44, 45 ve
+46 kayıp ve öyle kalıyor. Bu kuralı yukarıda kendimiz koyduk ve bozmanın
+bedeli anlatının yalan söylemeye başlaması.
+
+### Klip listesi neden baştan yazıldı
+
+İki sebep, ikisi de ölçüldü:
+
+**1. Klipler yanlış tahtayı çekiyordu.** Bölüm sırası kırk sekiz düzene göre
+yeniden kurulduğunda `Ring` 26'ya (şerit tahtası), `Diamond` 28'e (bulmaca)
+ve `Lattice` 6'ya (şerit) düştü. Resim, şerit ve bulmaca tahtaları tahtayı
+desenden değil **bölüm numarasından** alıyor — yani `arena.mp4` üretiliyordu
+ama içinde arena düzeni yoktu. `make-clips.mjs` artık koşu başlamadan
+düşüyor: çözülen bölüm ızgara tahtası değilse hata veriyor.
+
+**2. Klipte bir şey olması lazım.** İlk üç videonun ölçüsü şunu söylemişti:
+*"1. saniyede ne varsa 9'unda da o vardı, yani beklenecek hiçbir şey."* Yeni
+klipler yirminci bölümden sonrasında çekiliyor, çünkü orada tahtada mancınık,
+silindir, çamur, rakip delik ve rüzgâr var. Mancınık bu iş için en iyisi:
+deliğin **durduğu yere** atıyor, yani kadraja kendisi giriyor, ve kırmızı
+halka tek karede anlaşılıyor.
+
+Bir de birinci bölüm artık klip için uygun değil: kartı sabitlenip kısaltıldı
+ve bölüm yirmi beş saniyede bitiyor. `egypt` klibi dokuz saniye yerine 4.2
+saniye çıktı ve ödemesiz kesildi.
+
+### Sıra
+
+Anlatı deneyi sürüyor — açıklamalar oyunu değil **yapan kişiyi** anlatıyor.
+İlk sıraya rakip delik konuyor: bu türdeki videolarda kimsenin göstermediği
+şey ve tek karede "bu ne" sorusunu doğuruyor.
+
+| tarih | gün | klip | durum |
+|---|---|---|---|
+| 28 Eyl | 47 | overgrown | |
+| 29 Eyl | 48 | suburb | |
+| 30 Eyl | 49 | redsquare | |
+| 1 Eki | 50 | academy | |
+| 2 Eki | 51 | boss | |
+| 3 Eki | 52 | bazaar | |
+| 4 Eki | 53 | savanna | |
+| 5 Eki | 54 | jurassic | |
+| 6 Eki | 55 | nazca | |
+
+### Açıklamalar
+
+Her biri üç parça: gün satırı, o klibin doğruladığı söz, etiketler.
+
+**Klibe bakarak doğrula.** Klip yutulan bir devin üstünde bitiyor ve o devin
+ne olduğu temaya göre değişiyor; tarla her çalıştırmada farklı. Açıklamada
+bir şey söylenip videoda başkası yutulursa söz tutulmamış olur.
+
+**1. overgrown.mp4** — ekran yazısı: `there is another hole out there`
+```
+day 47 of building my own mobile game 🕳️
+
+i added a second hole. it eats the same field you do, and it does not wait for you.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**2. suburb.mp4** — ekran yazısı: `something on this board throws bombs at me`
+```
+day 48 of building my own mobile game 💣
+
+the red ring is where the bomb lands. it only ever punishes standing still.
+
+#indiedev #solodev #gamedev #mobilegame #oddlysatisfying
+```
+
+**3. redsquare.mp4** — ekran yazısı: `the hole drifts here and i cannot stop it`
+```
+day 49 of building my own mobile game 🌬️
+
+inside the marked band your thumb says one thing and the hole does another.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**4. academy.mp4** — ekran yazısı: `48 places in this game. this one is lit by candles`
+```
+day 50 of building my own mobile game 🕯️
+
+every level is a different place. the ground is never the same twice.
+
+#indiedev #solodev #gamedev #mobilegame #cozygames
+```
+
+**5. boss.mp4** — ekran yazısı: `every 10th level ends in one giant`
+```
+day 51 of building my own mobile game 👑
+
+you cannot take it early. the only way to it is to clear the field.
+
+#bossfight #indiedev #solodev #mobilegame #satisfying
+```
+
+**6. bazaar.mp4** — ekran yazısı: `i drew this carpet in code. no image files`
+```
+day 52 of building my own mobile game 🧶
+
+every floor in this game is drawn by maths. there is not one texture file in it.
+
+#indiedev #solodev #gamedev #procedural #satisfying
+```
+
+**7. savanna.mp4** — ekran yazısı: `the board is a giraffe`
+```
+day 53 of building my own mobile game 🦒
+
+48 layouts, and the fruit is arranged into the shape each time. this one took three tries.
+
+#indiedev #solodev #gamedev #mobilegame #oddlysatisfying
+```
+
+**8. jurassic.mp4** — ekran yazısı: `volcanic ash, and a footprint made of fruit`
+```
+day 54 of building my own mobile game 🦕
+
+the layout is a three-toed print. you clear it by walking it.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**9. nazca.mp4** — ekran yazısı: `drawn to be seen from above. so is this game`
+```
+day 55 of building my own mobile game 🦅
+
+the camera in this game looks straight down, which is the only way this layout reads.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
