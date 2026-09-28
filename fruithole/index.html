@@ -1293,6 +1293,11 @@ function missionRule() {
   if (level === MUD_FROM) {
     return 'MUD: you can cross it, but at half speed — going round may be faster';
   }
+  // Rakip: ekranda ikinci bir koyu daire var ve oyuncunun hangisinin kendisi
+  // olduğunu bilmesi gerekiyor. Kenarı kırmızı, ve satır da onu söylüyor.
+  if (level === RIVAL_FROM) {
+    return 'A RIVAL HOLE: the red one eats the crop too — get there first';
+  }
   return HINT_DEFAULT;
 }
 // Görevin durumu: tipi, (siparişte) hedef meyve, kaç tane var, kaçı yendi.
@@ -3022,6 +3027,7 @@ function buildMenuDiorama() {
   clearCatapults();
   clearRollers();
   clearMuds();
+  clearRival();
   eatenCount = 0; levelGoal = 0;
   fieldHalfX = 4.6; fieldHalfZ = 4.2;
   fitGround();
@@ -12189,6 +12195,43 @@ const MUD_RIM_MAT = new THREE.MeshBasicMaterial({
   color: '#9a8a6a', transparent: true, opacity: 0.4,
   depthWrite: false, side: THREE.DoubleSide });
 
+// ---------------------------------------------------------------------
+// Rakip delik
+//
+// Yedinci engel, ve ilk kez rakip: tahtadaki meyveyi **senden önce** yiyor.
+//
+// Öteki altısı tahtanın sana yaptığı şeyler — bir şey alıyorlar ya da yolunu
+// kapatıyorlar. Bu tahtayı **eksiltiyor**. Kaybettiğin şey saat ya da boy
+// değil, toplayacak meyve: geç kaldığın her saniye tahtada daha az şey var.
+// Oyunun ilk yarışı.
+//
+// Büyümüyor, yemiyor seni, sana çarpmıyor. Tek yaptığı şey yemek — ve tam da
+// bu yüzden ona engel olmanın yolu onu kovalamak değil, **hızlı olmak**.
+const RIVAL_FROM = 31;
+// Delikten yavaş. Hızlı olsaydı yarışın sonucu oyuncunun elinde olmazdı.
+const RIVAL_SPEED_MULT = 0.72;
+const RIVAL_R = 0.8;
+// Kartın istediğinden bu kadar fazlası tahtada kalmak zorunda.
+//
+// Bu sayı, rakibin bölümü **bitirilemez yapmamasının** tek güvencesi. Kart
+// "otuz muz topla" diyorsa ve tahtada yirmi muz kaldıysa bölüm kaybedilmiş
+// olur — oyun bunu hata olarak göstermez, saat dolar ve sebep görünmez.
+// Kayanın kenar payından beri her engelde aynı şey soruluyor: bu şey
+// tahtayı bitirilemez yapabilir mi?
+//
+// Pay altı: rakip kartın tam sınırına kadar yemiyor, bir tampon bırakıyor.
+// Sıfır olsaydı oyuncu son muzu tam rakiple aynı anda kovalamak zorunda
+// kalırdı ve bu bir yarış değil bir piyango olurdu.
+const RIVAL_MARGIN = 6;
+// İki ısırık arası. Rakip ağzına gelen her şeyi **aynı anda** yutmuyor.
+//
+// İlk ölçüde yutuyordu: saniyede altı meyve, on saniyede altmış bir. Tahtanın
+// yarısı oyuncunun gözünün önünde yok oluyordu ve bunun adı yarış değil
+// seyretmek. Asimetri şurada durmalı: oyuncu bir geçişte bütün kuleyi
+// alıyor, rakip teker teker — yani oyuncu ondan **iyi**, yalnızca daha hızlı
+// değil.
+const RIVAL_BITE = 0.25;
+
 // Fitili yanan koyu bir küre. PROPS'a **girmiyor**: oradaki her şey
 // koleksiyonun bir parçası ve "63 şeyden 41'ini buldun" listesine bir ceza
 // nesnesi koymak, bulunacak bir şeymiş gibi gösterirdi.
@@ -18730,6 +18773,7 @@ function buildField() {
     clearCatapults();
     clearRollers();
     clearMuds();
+    clearRival();
   } else {
     puzzleRooms = [];
     placeRocks();
@@ -18746,6 +18790,8 @@ function buildField() {
     placeRollers();
     // Çamur silindirden sonra: şeridine girmemesi gerekiyor.
     placeMuds();
+    // Rakip en sonda: tahtadaki her şey yerleşmiş olmalı.
+    placeRival();
   }
   // After the giants, so it takes its clearing from a settled board rather
   // than having a giant dropped on top of it afterwards. A daily run is
@@ -18954,15 +19000,23 @@ function pushOutOfRocks() {
   itOut(catapults);
 }
 function itOut(liste) {
-  for (const r of liste) {
-    const dx = holeX - r.x, dz = holeZ - r.z;
-    const enAz = holeRadius + r.r;
+  const p = { x: holeX, z: holeZ };
+  pushPointOut(p, holeRadius, liste);
+  holeX = p.x; holeZ = p.z;
+}
+// Bir noktayı katıların dışında tut. `itOut` deliği bununla itiyor, rakip
+// delik de kendini: ikisi de aynı kurala tabi olmalı, yoksa rakip kayanın
+// içinden geçer ve ekranda oyunun kendi kuralı bozulur.
+function pushPointOut(p, r, liste) {
+  for (const o of liste) {
+    const dx = p.x - o.x, dz = p.z - o.z;
+    const enAz = r + o.r;
     const d = Math.hypot(dx, dz);
     if (d >= enAz) continue;
     // Tam merkezdeyse yön yok: bir yöne it, yoksa NaN.
-    if (d < 0.0001) { holeX = r.x + enAz; continue; }
-    holeX = r.x + (dx / d) * enAz;
-    holeZ = r.z + (dz / d) * enAz;
+    if (d < 0.0001) { p.x = o.x + enAz; continue; }
+    p.x = o.x + (dx / d) * enAz;
+    p.z = o.z + (dz / d) * enAz;
   }
 }
 
@@ -19263,6 +19317,126 @@ function landShot(c) {
 
 // Bu bölümde kaç atış tuttu — ölçüm için.
 let shotHits = 0;
+
+// Rakip delik. Tek bir nesne, ya var ya yok.
+let rival = null;
+let rivalAte = 0;
+
+function clearRival() {
+  if (rival && rival.mesh) {
+    fieldGroup.remove(rival.mesh);
+    rival.mesh.traverse(o => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
+  }
+  rival = null;
+}
+
+// Rakibin görüntüsü: koyu bir çukur, kenarı **kırmızı**.
+//
+// Oyuncunun deliği altın kenarlı. İkisinin karışması bu oyunda en pahalı
+// karışıklık olurdu — ekranda iki koyu daire var ve oyuncunun hangisinin
+// kendisi olduğunu bir bakışta bilmesi gerekiyor. Renk, konumdan daha hızlı
+// okunuyor.
+function makeRivalMesh() {
+  const g = new THREE.Group();
+  const ic = new THREE.Mesh(new THREE.CircleGeometry(RIVAL_R * 0.86, 40),
+    new THREE.MeshBasicMaterial({ color: '#0a0a0c' }));
+  ic.rotation.x = -Math.PI / 2;
+  ic.position.y = 0.04;
+  g.add(ic);
+  const kenar = new THREE.Mesh(new THREE.RingGeometry(RIVAL_R * 0.86, RIVAL_R, 40),
+    new THREE.MeshBasicMaterial({ color: '#d8352c' }));
+  kenar.rotation.x = -Math.PI / 2;
+  kenar.position.y = 0.05;
+  g.add(kenar);
+  const halka = new THREE.Mesh(new THREE.TorusGeometry(RIVAL_R, 0.06, 8, 36),
+    new THREE.MeshStandardMaterial({ color: '#8e1f18', roughness: 0.5 }));
+  halka.rotation.x = -Math.PI / 2;
+  halka.position.y = 0.06;
+  g.add(halka);
+  return g;
+}
+
+function placeRival() {
+  clearRival();
+  rivalAte = 0;
+  if (dailyRun || level < RIVAL_FROM) return;
+  if (missionKindFor(level)) return;
+  // Tahtanın öbür ucunda doğuyor: oyuncuyla aynı yerde başlarsa ilk saniye
+  // iki delik üst üste duruyor ve hangisinin kendisi olduğu belirsiz.
+  const x = -SPAWN_X, z = -spawnZ();
+  const mesh = makeRivalMesh();
+  mesh.position.set(x, 0, z);
+  fieldGroup.add(mesh);
+  rival = { x, z, r: RIVAL_R, mesh, hedef: null, isirik: RIVAL_BITE };
+}
+
+// Rakip bu meyveyi yiyebilir mi?
+//
+// Yiyemeyeceği şeyler ve sebepleri ayrı ayrı:
+//
+//   * **bomba** — yemesi bir işe yaramaz, ve patlaması oyuncunun cezası.
+//   * **nesne** — koleksiyonun parçası. Oyuncunun bulabileceği bir şeyi
+//     rakibin elinden alması, bulunacak şeyi bulunamaz yapardı.
+//   * **dev ve kolos** — tahtanın hedefleri. Bölümün tek büyük işini
+//     rakibin götürmesi, oyuncuya oynayacak bir şey bırakmaz.
+//   * **kartın son meyveleri** — ve asıl güvence bu. Kart tahtada
+//     kalmayan bir şeyi isterse bölüm sessizce bitirilemez oluyor.
+function rivalCanEat(f) {
+  if (f.eaten || f.bomb || f.prop || f.giant || f.colossus) return false;
+  const k = cards.find(c => c.type === f.type);
+  if (!k) return true;
+  const kalan = Math.max(0, k.need - k.got);
+  let canli = 0;
+  for (const x of fruits) if (!x.eaten && !x.bomb && !x.prop && x.type === f.type) canli++;
+  return canli > kalan + RIVAL_MARGIN;
+}
+
+function stepRival(dt) {
+  if (!rival) return;
+  // Hedefi hâlâ geçerli mi: yendiyse ya da artık yenemiyorsa yenisi
+  // seçiliyor.
+  if (!rival.hedef || !rivalCanEat(rival.hedef)) {
+    let en = Infinity, iyi = null;
+    for (const f of fruits) {
+      if (!rivalCanEat(f)) continue;
+      const d = Math.hypot(f.x - rival.x, f.z - rival.z);
+      if (d < en) { en = d; iyi = f; }
+    }
+    rival.hedef = iyi;
+  }
+  const h = rival.hedef;
+  if (!h) return;                       // yiyecek bir şey kalmadı
+  const dx = h.x - rival.x, dz = h.z - rival.z;
+  const d = Math.hypot(dx, dz) || 1;
+  const hiz = BASE_MOVE_SPEED * RIVAL_SPEED_MULT;
+  rival.x += (dx / d) * hiz * dt;
+  rival.z += (dz / d) * hiz * dt;
+  // Kayalar ve makineler onu da durduruyor.
+  const p = { x: rival.x, z: rival.z };
+  pushPointOut(p, rival.r, rocks);
+  pushPointOut(p, rival.r, catapults);
+  pushPointOut(p, rival.r, rollers);
+  rival.x = p.x; rival.z = p.z;
+  rival.mesh.position.set(rival.x, 0, rival.z);
+  // Teker teker yutuyor, ağzına ne gelirse hepsini birden değil. Hedefi
+  // olsun olmasın, yoluna çıkan en yakın parçayı alıyor: yolda kalan bir
+  // meyveyi atlaması ekranda "yemedi mi?" diye okunurdu.
+  rival.isirik -= dt;
+  if (rival.isirik > 0) return;
+  let en = Infinity, lokma = null;
+  for (const f of fruits) {
+    if (!rivalCanEat(f)) continue;
+    const dd = Math.hypot(f.x - rival.x, f.z - rival.z);
+    if (dd > rival.r || dd >= en) continue;
+    en = dd; lokma = f;
+  }
+  if (!lokma) return;
+  lokma.eaten = true;
+  rivalAte++;
+  rival.isirik = RIVAL_BITE;
+  if (lokma.mesh) { lokma.mesh.visible = false; fruitFlush(lokma); }
+  burst(lokma.x, 0.3, lokma.z, lokma.type);
+}
 
 // Tahtadaki çamur lekeleri.
 let muds = [];
@@ -19654,6 +19828,7 @@ function buildPuzzle() {
   clearCatapults();
   clearRollers();
   clearMuds();
+  clearRival();
   puzzleRooms = [];
   // Önceki bölümün şeritleri: `fieldGroup.clear()` onları sahneden çıkarıyor
   // ama geometrilerini bırakmıyor, ve bulmaca başına üç-dört tane.
@@ -23636,6 +23811,27 @@ window.fruitHoleRollers = () => ({
     Math.abs(o.z - r.z) < o.r + r.r && Math.abs(o.x) < ROLLER_SPAN / 2 + o.r).length, 0),
 });
 window.fruitHoleRollerStep = (dt) => { stepRollers(dt); return rollers.map(r => +r.x.toFixed(2)); };
+// Rakip delik: var mı, nerede, ne yedi, ve kartları açıkta bırakıyor mu.
+window.fruitHoleRival = () => {
+  if (!rival) return { var: false, ilkBolum: RIVAL_FROM, yedi: rivalAte, pay: RIVAL_MARGIN };
+  return {
+    var: true, ilkBolum: RIVAL_FROM, pay: RIVAL_MARGIN,
+    x: +rival.x.toFixed(2), z: +rival.z.toFixed(2), r: rival.r,
+    hiz: +(BASE_MOVE_SPEED * RIVAL_SPEED_MULT).toFixed(2), delik: BASE_MOVE_SPEED,
+    yedi: rivalAte,
+    // Her kart için: tahtada kalan ve daha gereken. Kalan, gerekenden az
+    // olursa bölüm bitirilemez.
+    kartlar: cards.map(k => {
+      let canli = 0;
+      for (const x of fruits) if (!x.eaten && !x.bomb && !x.prop && x.type === k.type) canli++;
+      return { type: k.type, kalan: canli, gereken: Math.max(0, k.need - k.got) };
+    }),
+  };
+};
+window.fruitHoleRivalStep = (dt, kere = 1) => {
+  for (let i = 0; i < kere; i++) stepRival(dt);
+  return rivalAte;
+};
 // Çamur: kaç leke, ne kadar yer kaplıyorlar, ve delik içindeyken ne oluyor.
 window.fruitHoleMud = () => {
   const alan = muds.reduce((a, m) => a + Math.PI * m.r * m.r, 0);
@@ -24278,6 +24474,9 @@ function tick(now) {
     // **önce** ilerliyor ki `pushOutOfRocks` onun yeni yerini görsün, yoksa
     // delik bir kare boyunca merdanenin içinde kalırdı.
     stepRollers(dt);
+    // Rakip de parmaktan bağımsız: durmak onu durdurmuyor, tam tersine
+    // durduğun her saniye tahtayı biraz daha eksiltiyor.
+    stepRival(dt);
     pushOutOfRocks();
 
     // magnet upgrade: fruit the hole could swallow drifts toward it, so a

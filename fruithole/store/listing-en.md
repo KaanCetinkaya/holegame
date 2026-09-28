@@ -166,7 +166,13 @@ standing still.
 The roller wants nothing from you at all. It is a stone drum running back and
 forth across a bare lane, and all it takes is the way through. Go in front of
 it, go behind it, or wait — but the fruit on the other side is not going to
-collect itself.
+collect itself. Mud is the same bargain in slower form: cross it at half
+speed, or go the long way round and find out which was quicker.
+
+And on the deeper levels there is a second hole out there, ringed in red,
+working the same field you are. Everything it swallows is something you will
+not. It will never take the last of what your order needs — but it will take
+everything else, and it does not wait for you.
 
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, lime, candy — and gold and chrome, which catch the light in

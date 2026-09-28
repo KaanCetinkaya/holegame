@@ -5674,3 +5674,60 @@ Bomba 6 → kaya 9 → diken 12 → mancınık 20 → silindir 24 → çamur 29.
 | 🎯 mancınık | atış yapıyor | saatten, 3 sn |
 | 🛞 silindir | gidip geliyor | zamandan |
 | 🟤 çamur | yerinde duruyor | **hızdan** |
+
+## Rakip delik: tahtayı eksilten şey
+
+Yedinci engel, ve ilk kez bir **rakip**: tahtadaki meyveyi senden önce
+yiyor.
+
+Öteki altısı tahtanın sana yaptığı şeyler — bir şey alıyorlar ya da yolunu
+kapatıyorlar. Bu tahtayı eksiltiyor. Kaybettiğin şey saat ya da boy değil,
+**toplayacak meyve**: geç kaldığın her saniye tahtada daha az şey var.
+
+Sana çarpmıyor, seni yemiyor, büyümüyor. Ona engel olmanın yolu onu
+kovalamak değil, hızlı olmak.
+
+### Tek gerçek riski kaybettirmek değil, bitirilemez yapmak
+
+Kart "otuz muz topla" diyorsa ve rakip muzları yiyip tahtada yirmi tane
+bıraktıysa bölüm kaybedilmiştir — ve oyun bunu hata olarak göstermez. Saat
+dolar, sebep görünmez.
+
+Güvence `RIVAL_MARGIN`: rakip, her kart için tahtada **gerekenden altı fazla**
+meyve bırakmak zorunda. Sıfır olsaydı oyuncu son muzu rakiple tam aynı anda
+kovalamak zorunda kalırdı ve bu bir yarış değil piyango olurdu. Ölçüldü:
+iki dakika boyunca oyuncu hiç kıpırdamasa bile her kartta kalan, gerekenden
+tam altı fazla kalıyor.
+
+Rakip ayrıca bombayı, nesneyi, devi ve kolosu hiç yemiyor. Nesne
+koleksiyonun parçası — bulunacak bir şeyi bulunamaz yapmak; dev ve kolos
+tahtanın hedefi — bölümün tek büyük işini oyuncunun elinden almak.
+
+### Kartsız tahtada rakip olamaz
+
+Kartsız bir tahtanın bitiş şartı `eatenCount >= levelGoal` ve `levelGoal`
+tahta kurulurken sayılıyor. Rakibin yediği her meyve o hedefi **ulaşılmaz**
+yapıyor, çünkü yenen sayacı yalnızca oyuncu yerken artıyor.
+
+Bugün her ızgara tahtasının kartı var, yani şart kendiliğinden tutuyor. Ama
+"kendiliğinden tutuyor" bir gün tutmaz: `holerival.mjs` bunu ayrı bir kural
+olarak ölçüyor.
+
+### Asimetri hızda değil, ısırıkta
+
+İlk ölçüde rakip ağzına gelen her şeyi aynı anda yutuyordu: saniyede altı
+meyve, on saniyede altmış bir. Tahtanın yarısı oyuncunun gözünün önünde yok
+oluyordu ve bunun adı yarış değil seyretmek.
+
+Asimetri şurada durmalı: oyuncu bir geçişte bütün kuleyi alıyor, rakip
+teker teker (`RIVAL_BITE`, çeyrek saniyede bir). Yani oyuncu ondan
+**iyi**, yalnızca daha hızlı değil (2.45'e karşı 3.4).
+
+Ayarlanacak sayı burası: rakip iki dakikada 190 meyveye kadar çıkabiliyor,
+yani hiç oynanmayan bir tahtanın yarısı. Oynanışta fazla geliyorsa ilk
+düşürülecek şey `RIVAL_BITE`, sonra hızı.
+
+### Engel dizisi
+
+Bomba 6 → kaya 9 → diken 12 → mancınık 20 → silindir 24 → çamur 29 →
+rakip 31.
