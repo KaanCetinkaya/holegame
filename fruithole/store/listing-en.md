@@ -37,162 +37,109 @@ Drag the hole, swallow the fruit, grow bigger. Relaxing one-finger arcade.
 
 ## Full description (≤ 4000 chars)
 
-3991 characters — and it got there the hard way. This block reached **4544**
-before anyone measured it, which is 544 over a limit Play does not bend:
-the field simply refuses to save. Nine sections were trimmed, none dropped.
-`scratchpad/holelisting.mjs` now counts every block in this file against the
-limit in its own heading, so the next one is caught here and not in the
-Console.
+3991 karakter — ve bu blok ikinci kez sınırın üstüne çıktı.
+
+Birincisinde 4544'e ulaşmıştı ve dokuz bölüm kırpılarak 3991'e indirilmişti.
+Sonra bir yıl boyunca her yeni içerik buraya bir paragraf daha ekledi: yirmi
+üç yer, dört yer daha, beş lig, bir final, ve altı yeni engel. Kimse tek tek
+bakınca fazla görmedi, ama toplam **8626**'ya çıkmıştı — sınırın iki katından
+fazla, yani metin Play Console'a yapıştırılamıyordu.
+
+Bu sefer kırpma başka türlü yapıldı. Birincisinde dokuz bölümün hepsi
+korunmuştu; burada bölümler yine duruyor ama **iki uzun sayım** kısaldı:
+kırk sekiz yerin listesi ve iki yüz seksen üç nesnenin listesi. İkisi birlikte
+metnin %40'ıydı ve ikisi de mağaza sayfasında okunmuyor — okunan şey başlık,
+gerisi göz gezdirilen bir duvar. Onların yerine bir avuç örnek ve bir sayı
+kaldı ("Forty-eight places in all"), çünkü satan şey liste değil sayı.
+
+Sekiz engel de tek paragrafta toplandı: her biri ayrı paragraftayken
+beşincisinde okuyan kişi çoktan kaydırmıştı.
+
+Ders, sayının kendisinde değil: `holelisting.mjs` bu bloğu her koşuda
+ölçüyordu ve aylardır "FAIL" diyordu. Ölçülen ama bakılmayan bir sayı,
+ölçülmemiş sayıdan iyi değil.
 
 ```
 You are the hole in the middle of a fruit field — and the clock is running! 🕳️🍇
 
-Drag anywhere to steer the hole and swallow every fruit it touches. The more
-you eat, the bigger you get: berries first, then whole melons.
+Drag anywhere to steer the hole and swallow what it touches. The more you eat,
+the bigger you get: berries first, then whole melons.
 
 📋 THE ORDER AT THE TOP
 Every level asks for something specific — twenty strawberries, forty bananas,
 thirty watermelons. That is what finishes it, not the whole field. Everything
-else on the board is how you get there: eat it to grow wide enough for what
-the order actually wants, because a melon will not go down a hole the size of
-a berry.
+else is how you get there: a melon will not go down a hole the size of a berry.
 
 ⭐ EARN STARS
-Finishing isn't enough — how fast you finish is what counts. The more time left
-on the clock, the more stars, and your best on every level is kept.
+Finishing isn't enough — how fast you finish is what counts. The more time
+left, the more stars, and your best on every level is kept.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
 Forty-eight hand-built layouts: a stepped pyramid taken down terrace by
-terrace, a castle keep with four corner towers, a horseshoe, an anchor, a
-gate, a ball court, a three-toed footprint, an onion dome, a condor with its
-wings out, a boomerang, giraffe patches, a hopscotch grid with its home square,
-a house with its door and windows, a branching crack, an iron key, a heart, a
-staircase, winding walls, a rolling wave, a crescent, a maze you thread, a
-cogwheel. Five lay the field in rings around you.
+terrace, a castle keep, a condor with its wings out, a hopscotch grid, a house
+with its door and windows, an iron key, a maze you thread, a cogwheel. Five lay
+the field in rings around you.
 
-And each one is somewhere. A beach with the sea running up the sand. A black
-volcanic shore with palms, a tiki and a surfboard stood in it. A Hollywood
-pavement with stars set into it and the boulevard running past. A New York
-crossing with the rooftops beyond the kerb. A gilded plaza with the desert
-past its edge. The black-and-white wave of Copacabana with the Atlantic
-beyond it. A Tokyo street at night, wet and lit by its own signs. Raked
-gravel gardens in Paris. A woven carpet in a covered bazaar. A living coral
-floor. Raked arena sand. A fairground at night. The red dust of Mars, with
-a track running across it. Tartan, tulip fields, painted talavera tiles, a
-rangoli drawn in coloured powder, hieroglyphs cut into stone. Six pitches mown six different
-ways, one for each of the great leagues and one under floodlights. A mown
-football pitch. Dry savanna grass with acacia shade beyond it, a fanned
-cobble square under a red brick wall, the straight lines of the Nazca pampa,
-red sand and spinifex out in the outback. A poured rubber playground floor with
-a hopscotch painted on it, a mown suburban lawn at dusk with a hedge past the
-kerb, cracked tarmac with grass coming up through it, a gothic flagstone
-cloister lit by candles. A castle bailey with a battlement
-wall past its edge, cracked
-frontier hardpan under a red mesa, a pirate deck with the dark harbour around
-it, a palace court of grey flags under green roof tiles, volcanic ash with lava
-running past it, jungle-taken stone with the rainforest closed over it. Fresh
-snow. A marble bank floor veined with gold. A station
-deck with nothing but the dark past its edge. A lacquered bar top. A ploughed
-field. A cobbled market square. The ground changes, and so does what is on it.
+And each one is somewhere. A beach with the sea running up the sand. A Tokyo
+street at night, lit by its own signs. Raked gravel gardens in Paris. The red
+dust of Mars. Six pitches mown six different ways. Dry savanna, the Nazca
+pampa, a candlelit cloister, a pirate deck, a jungle-taken ruin, fresh snow, a
+marble bank floor veined with gold. Forty-eight places in all, and the ground
+is never the same twice.
 
 🔥 CHAIN COMBOS
 Eat fruit back to back and the multiplier climbs. Sweeping a patch in one pass
-pays far better than picking it off piece by piece.
+pays far better than picking it off one at a time.
 
 ⬆️ UPGRADES
-Every fruit you collect is worth something. Make the hole faster, start bigger,
-add seconds, or switch on a magnet that drags fruit in — each track paid for
-with a different fruit.
+Make the hole faster, start bigger, add seconds, or switch on a magnet that
+drags fruit in — each track paid for with a different fruit.
 
 🎁 BOOSTERS
 Four ways out of a tight spot: +15 seconds, a burst of growth, 8 seconds of
 super magnetism, and a twister that clears everything around you.
 
 👑 BOSS LEVELS
-Every tenth level ends in one colossal fruit at the far end of the board, wider
-than any giant. There is no taking it early — the only way to it is to sweep
-the field.
+Every tenth level ends in one colossal fruit at the far end of the board. The
+only way to it is to sweep the field.
 
 📅 DAILY CHALLENGE
-One field a day, the same for every player — built from the date itself, so
-nobody gets an easier board. Upgrades are off, so the score says how well you
-played today, not how long you have played. Plus daily missions, a login reward
-that grows with your streak, and achievements to chase.
+One field a day, the same for every player, built from the date itself, with
+upgrades off. Plus daily missions, a login reward that grows with your streak,
+and achievements.
 
 🗼 STACKS AND GIANTS
-Fruit is piled into towers you take down in one pass. Scattered across every
-field are giants — twice the width of your opening, sometimes three huddled
-together, and never a slice: the whole fruit, stalk and leaf. Sweep, grow into
-one, and it pays for the whole trip.
+Fruit is piled into towers you take down in one pass, and giants are scattered
+through it — twice the width of your opening, and never a slice.
 
 🧺 TWO HUNDRED AND EIGHTY-THREE THINGS TO FIND
-Scattered through the crop is whatever belongs where you are. A carved tiki, a
-lei and a ukulele on the black sand. A clapperboard and a film reel on the
-Hollywood pavement. A yellow cab, a hydrant and a pretzel on the crossing. A
-tower, a tiger and a camel out on the gold coast. A wicker basket brimming
-with fruit on the market square. A samba drum on the Copacabana mosaic, a
-paper lantern on a neon street, an iron tower over the gravel gardens, a
-copper pot and a tray of lokum on the carpet. A sea turtle over the coral, a
-Roman helmet in the arena, a carousel horse at the fair, a rover on Mars, a
-windmill over the tulips, a piñata, an elephant, a sphinx. A giraffe and a
-zebra under the acacia, a nesting doll and a samovar on the square, a llama
-and a set of panpipes on the pampa, a kangaroo and a koala in the outback.
-A great helm and a
-sword in the stone in the castle bailey, a covered wagon and a steer skull out
-on the frontier, a ship's wheel and a parrot on the pirate deck, a guardian
-lion and a paifang in the palace court, a stegosaurus and a fern in the ash,
-a jaguar and a jade mask in the jungle. A swing and a slide on the rubber
-floor, a BMX and a mailbox on the lawn at dusk, a rusted car and a moss-taken
-trolley on the cracked road, a candelabra and a gargoyle in the cloister. A league cup and a
-terrace rattle, a paella pan, a scooter, a beer stein, a beret, and the big
-trophy on cup night. Gold bars on the bank floor. A rocket in
-orbit. A tractor out on the farm — and standing beside it, a cow; a crab on
-the sand, a polar bear in the snow. Every one you swallow is kept, and the Collection screen
-holds them all: the ones you have in colour, the rest as silhouettes.
+Whatever belongs where you are: a ukulele on the black sand, a rover on Mars, a
+kangaroo in the outback, a sword in the stone, a polar bear in the snow. Every
+one you swallow is kept — the Collection screen holds them all, the ones you
+have in colour and the rest as silhouettes.
 
 💣 NOT EVERYTHING IS FRUIT
-Four things on the field want something from you, and each wants something
-different. A bomb goes down as easily as a berry and takes five seconds off the
-clock, so a crowded patch is worth a second look. A rock cannot be swallowed at
-all — and the wider your opening grows, the further out it stops you. A spike
-does not stop you at all: you run straight over it, it breaks, and it costs you
-a size. Time, ground, size — pick which one you can spare.
-
-And then there is the catapult, which does not wait for you to come to it. It
-throws a bomb at wherever you are standing. A red ring marks the ground where
-it will land, and closes as it falls — so the only thing it ever punishes is
-standing still.
-
-The roller wants nothing from you at all. It is a stone drum running back and
-forth across a bare lane, and all it takes is the way through. Go in front of
-it, go behind it, or wait — but the fruit on the other side is not going to
-collect itself. Mud is the same bargain in slower form: cross it at half
-speed, or go the long way round and find out which was quicker.
-
-Then there are the bands of wind, marked on the ground, where the hole drifts
-sideways whatever your thumb is doing, and you steer into it or come out
-somewhere else.
-
-And on the deeper levels there is a second hole out there, ringed in red,
-working the same field you are. Everything it swallows is something you will
-not. It will never take the last of what your order needs — but it will take
-everything else, and it does not wait for you.
+Eight things out there want something, and no two want the same thing. A bomb
+costs five seconds. A rock cannot be swallowed at all, and the wider you grow
+the further out it stops you. A spike breaks under you and costs you a size. A
+catapult throws a bomb at wherever you are standing, marking the ground with a
+ring that closes as it falls. A roller runs back and forth across a bare lane
+and takes only the way through. Mud halves your speed. Wind drifts you sideways
+whatever your thumb is doing. And deeper in, a second hole works the same
+field, ringed in red, and it does not wait for you.
 
 🕳️ TEN HOLE SKINS
 Mint, grape, coral, lime, candy — and gold and chrome, which catch the light in
 a way flat colour cannot. Half open as you climb, half are bought.
 
 📋 MISSION LEVELS
-Every fifth level wants something else. An order level ends when every banana
-is gone — one colour chased instead of the whole crop swept. A giant level ends
-when every giant is swallowed, and you cannot take one until you have grown to
-its size. A rush level opens with twelve seconds on the clock and every fruit
-adds to it. A minefield buries bombs through the crop, and five seconds go with
-each one you take. The four take turns.
+Every fifth level wants something else: clear one colour, swallow every giant,
+race a twelve second clock that every fruit feeds, or pick your way through a
+minefield.
 
 🔁 KEEP GOING
 Past the last layout the fields come back mirrored, in a new order, in themes
-they have never worn, with less time on the clock.
+they have never worn, with less time.
 
 🎁 CHESTS
 Clear a field and a chest drops — the faster you finished, the more it pays. A
