@@ -15,7 +15,7 @@ gösteriyor ama ikisini yan yana koymuyor.
 
 ---
 
-## 37 (1.13) — 492 karakter (eski hâli)
+## 37 (1.13) — 492 karakter (eski hâli, hiç kullanılmadı)
 
 ```
 New in this update:
@@ -34,7 +34,7 @@ yazıldığı günden sonra gelen iki şey: **hedef kartları** (bölümün ne i
 değiştiren en büyük oynanış değişikliği, yani listenin başına geçmesi gereken
 madde) ve dört yer daha.
 
-## 37 (1.13) — 492 karakter
+## 39 (1.13) — 492 karakter
 
 ```
 New in this update:
@@ -64,3 +64,25 @@ sürümün yanında küçük kalıyor.
 
 Yirmi üç sayısı elle sayılmadı: `THEMES` tablosu bugün 34 yer (artı `mixed`),
 36 yüklenirken 11'di.
+
+---
+
+## 37 ve 38 nereye gitti
+
+Bu notun başlığı önce 37'ydi, sonra 39 oldu ve arada yazılmamış iki sürüm
+var. Sebebi burada dursun, çünkü aynı hata `1.10 / versionCode 31` notunda
+da yazılı ve ikinci kez oldu.
+
+37 ve 38 Play'e yüklendi, ama yükledikten sonra `npm run uploaded:fruithole`
+çalıştırılmadı. Depo hâlâ "son yüklenen 36" sanıyordu, yani bir sonraki
+derleme 38'i **ikinci kez** üretti ve Play reddetti: *"38 sürüm kodu daha
+önce kullanıldı."*
+
+İki sürüm kodu yandı ve hangi notun hangi pakete gittiği kayboldu: 37 ile
+38'in "What's new" kutusuna ne yazıldığı artık bilinmiyor. Sürüm kodunu
+Play sayıyor, notu depo tutuyor, ve ikisini birbirine bağlayan tek şey o
+komut.
+
+Doğrusunun tek kaynağı **Play Console > Sürüm > Uygulama paketi gezgini**.
+Oraya bakıldığında 38 (1.13) bugün 14:11'de kapalı teste yayınlanmış
+durumdaydı; kayıt ona göre düzeltildi.
