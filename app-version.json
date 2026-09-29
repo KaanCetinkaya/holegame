@@ -6,7 +6,7 @@
     "uploaded": []
   },
   "fruithole": {
-    "versionCode": 40,
+    "versionCode": 42,
     "versionName": "1.13",
     "uploaded": [
       21,
@@ -27,9 +27,11 @@
       36,
       37,
       38,
-      39
+      39,
+      40,
+      41
     ],
-    "built": 39
+    "built": 41
   },
   "slicer": {
     "versionCode": 1,
