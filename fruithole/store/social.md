@@ -608,7 +608,7 @@ dağıtılmıyor. Her platforma **dosyayı** yükle.
 
 ---
 
-## İkinci parti — engeller geldikten sonra (28 Eylül, gün 47)
+## İkinci parti — engeller geldikten sonra (29 Eylül, gün 48)
 
 ### Önce olan biten
 
@@ -672,15 +672,19 @@ klipler "burası neresi" sorusunu satıyor, engelleri değil.
 
 ### Sıra
 
+28 Eylül'de de atılmadı, yani sessizlik beş güne çıktı: son gönderi 24
+Eylül (gün 43). Tablo bir gün kaydırıldı ve gün numaraları takvimden
+okunuyor — 47 diye bir gönderi olmayacak, çünkü o gün geçti.
+
 | tarih | gün | klip | durum |
 |---|---|---|---|
-| 28 Eyl | 47 | overgrown | |
-| 29 Eyl | 48 | savanna | |
-| 30 Eyl | 49 | redsquare | |
-| 1 Eki | 50 | boss | |
-| 2 Eki | 51 | suburb | |
-| 3 Eki | 52 | bazaar | |
-| 4 Eki | 53 | nazca | |
+| 29 Eyl | 48 | overgrown | |
+| 30 Eyl | 49 | savanna | |
+| 1 Eki | 50 | redsquare | |
+| 2 Eki | 51 | boss | |
+| 3 Eki | 52 | suburb | |
+| 4 Eki | 53 | bazaar | |
+| 5 Eki | 54 | nazca | |
 
 ### Açıklamalar
 
@@ -689,7 +693,7 @@ etiketler. Hepsi klip izlenerek yazıldı.
 
 **1. overgrown.mp4** — ekran yazısı: `48 places in this game. this one was abandoned`
 ```
-day 47 of building my own mobile game 🕳️
+day 48 of building my own mobile game 🕳️
 
 cracked tarmac with grass coming up through it. no two levels stand on the same ground.
 
@@ -698,7 +702,7 @@ cracked tarmac with grass coming up through it. no two levels stand on the same 
 
 **2. savanna.mp4** — ekran yazısı: `the board is a giraffe`
 ```
-day 48 of building my own mobile game 🦒
+day 49 of building my own mobile game 🦒
 
 48 layouts, and the fruit is arranged into a shape every time. this one took three tries to get right.
 
@@ -707,7 +711,7 @@ day 48 of building my own mobile game 🦒
 
 **3. redsquare.mp4** — ekran yazısı: `i drew this floor in code. no image files`
 ```
-day 49 of building my own mobile game 🪆
+day 50 of building my own mobile game 🪆
 
 every floor in this game is maths. there is not one texture file in the whole thing.
 
@@ -716,7 +720,7 @@ every floor in this game is maths. there is not one texture file in the whole th
 
 **4. boss.mp4** — ekran yazısı: `every 10th level ends in one giant`
 ```
-day 50 of building my own mobile game 👑
+day 51 of building my own mobile game 👑
 
 you cannot take it early. the only way to it is to clear the field first.
 
@@ -725,7 +729,7 @@ you cannot take it early. the only way to it is to clear the field first.
 
 **5. suburb.mp4** — ekran yazısı: `a mown lawn at dusk, and a hole in it`
 ```
-day 51 of building my own mobile game 🚲
+day 52 of building my own mobile game 🚲
 
 the grass has mower stripes because a flat green reads as carpet. small things take the longest.
 
@@ -734,7 +738,7 @@ the grass has mower stripes because a flat green reads as carpet. small things t
 
 **6. bazaar.mp4** — ekran yazısı: `the carpet under this one is generated`
 ```
-day 52 of building my own mobile game 🧶
+day 53 of building my own mobile game 🧶
 
 a woven kilim, drawn line by line at run time. the hole does not care, but i do.
 
@@ -743,7 +747,7 @@ a woven kilim, drawn line by line at run time. the hole does not care, but i do.
 
 **7. nazca.mp4** — ekran yazısı: `drawn to be seen from above. so is this game`
 ```
-day 53 of building my own mobile game 🦅
+day 54 of building my own mobile game 🦅
 
 the camera here looks straight down, which is the only way this layout reads at all.
 
