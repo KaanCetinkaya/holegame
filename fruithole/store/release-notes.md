@@ -130,7 +130,38 @@ düştü. Doğru bir cümle — `rivalCanEat` tam olarak bunu garanti ediyor —
 oyuncu daha rakibi görmeden ona bir güvence vermek, olmayan bir korkuya
 cevap vermek. Kalan yer de bir karakter kalmamıştı.
 
-## 40 nereye gitti
+## 42 (1.13) — 486 karakter
+
+```
+New in this update: five new things on the board.
+
+- A rival hole. The red one eats the crop too, and everything it takes is something you will not.
+- Catapults throw a bomb at wherever you stand. A ring marks where it lands.
+- Rollers are stone drums running across a bare lane.
+- Mud. Cross it at half speed, or go round.
+- Wind. In the marked band you drift, so steer into it.
+
+Whatever costs you time or size now says so, where it happened.
+
+Fixed a freeze that could stop the game.
+```
+
+41'in notu hiç kullanılmadı: paket yüklendi ama sürüm yayına alınmadı, yani
+testçilere gitmedi. Kod yandı, not yanmadı — buradaki tek fark, 41'in
+maddelerinin aynen 42'ye geçmesi, çünkü oyuncu ikisinin arasındaki hiçbir
+şeyi görmedi.
+
+Eklenen tek satır **bedel etiketleri**. Kaan 45. bölümü oynadı ve "bir şeye
+dokununca süreden gidiyor ama neye anlayamadım" dedi; artık bomba kendi
+üstünde `−5s`, mancınık `−3s`, diken `−1 SIZE` yazıyor. Tek satırda
+duruyor, çünkü oyuncunun göreceği şey üç ayrı özellik değil tek bir
+değişiklik: "ne oldu" sorusu artık cevaplanıyor.
+
+Yerden kazanmak için üç madde kırpıldı ("wherever you are standing" →
+"wherever you stand", "back and forth across" → "across", donmanın "on some
+levels"ı). İlk hâli 531'di.
+
+## 40 ve 41 nereye gitti
 
 40, yarım kalmış bir merge'in içindeki ağaçtan derlendi ve yüklendi; sonra
 depo `git reset --hard` ile temizlenince "40 yüklendi" kaydı da silindi ve
@@ -142,3 +173,19 @@ Orada `npm run uploaded:fruithole` hiç çalıştırılmamıştı; burada
 çalıştırıldı ama commit edilmedi, ve commit edilmemiş bir kayıt bir
 `reset --hard`'a dayanmıyor. Ders, komutun kendisi değil **komut + commit +
 push**'un tek bir iş olduğu: kayıt diskte değil, uzakta durursa yaşıyor.
+
+41 de yüklendi ve yine testçilere gitmedi, ama bu sefer sebep başka:
+paket Play'e çıktı, sürüm **yayına alınmadı**. Kapalı testin son
+yayınlanan sürümü 40'ta kaldı.
+
+Buradan çıkan ayrım, bu dosyanın bundan sonra ayrı tutması gereken şey:
+**yüklemek ile yayınlamak aynı iş değil.** `uploaded` listesi sürüm
+kodunun harcandığını söylüyor — o kadar. Testçinin telefonunda ne olduğunu
+söylemiyor, ve iki soru tek bir listeden okunamaz.
+
+Bir de yanlış bir teşhis: kitaplık listesinde en yüksek kod 40 görünüyordu
+ve buradan "41 hiç yüklenmemiş" sonucu çıkarıldı. Yanlıştı — Play yükleme
+kutusunda "41 sürüm kodu daha önce kullanıldı" dedi. Kitaplık listesi
+sürüm kodlarının tamamını göstermiyor, yani **bir şeyin yokluğu** o
+listeden okunamaz. Doğrunun tek kaynağı yükleme kutusunun kendisi ve
+uygulama paketi gezgini.
