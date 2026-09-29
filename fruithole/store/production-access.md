@@ -235,6 +235,24 @@ Console'a hiç girilmiyor, yani kaydetme riski de yok.
 Bu, listenin kendisinden daha değerli: asıl istenmeyen şey testçi eklemek
 değil, testçi eklemek için o sayfayı açmak.
 
+Grubun ikinci ve daha büyük işi: **kapalı testin katılma bağlantısı
+listede olmayan birinde çalışmıyor.** Yabancı bağlantıya bastığında "bu
+uygulama sizin için kullanılamıyor" görüyor. Yani e-posta listesiyle
+yürürken hiçbir yere "şuraya tıkla ve test et" yazılamıyor — çağrı ancak
+"bana gmail adresini yolla" olabiliyor. Grup açık katılımlıysa yabancı
+önce gruba katılıyor ve bağlantı çalışır hâle geliyor.
+
+**Sırası önemli ve bugün yapılmıyor.** Listeyi e-postadan gruba çevirmek,
+mevcut on iki kişi grupta değilse onları listeden düşürüyor — ve sayı
+12'nin altına inerse 14 günlük sayaç sıfırdan başlıyor. Üretim başvurusu
+incelemedeyken alınacak bir risk değil. Doğru sıra:
+
+1. Üretim başvurusu sonuçlansın.
+2. Grup kurulsun, **mevcut on iki adres gruba eklensin.**
+3. En son Console'da liste gruba çevrilsin.
+
+Bu sırayla sayı bir an bile düşmüyor.
+
 ### Sonra insan: nereden
 
 Sırayla, en güvenilirden en zayıfa:

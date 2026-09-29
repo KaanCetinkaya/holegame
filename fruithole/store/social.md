@@ -732,25 +732,39 @@ Gittiği iki yer:
 - **Bio.** Bağlantı orada duruyor, çünkü TikTok açıklamadaki bağlantıyı
   tıklanabilir yapmıyor.
 
+**Çağrı bir bağlantı değil, bir DM.** İlk hâli bio'ya kapalı test
+bağlantısını koyuyordu ve o bağlantı yabancıda **çalışmıyor**: kapalı
+testin katılma adresi yalnızca listedeki e-postalarda açılıyor, listede
+olmayan biri "bu uygulama sizin için kullanılamıyor" görüyor. Yani
+bağlantıyı koysak, gelen kişiyi kapalı bir kapıya yollamış olurduk — ve
+tek denemesini orada harcardı.
+
+Bunu çözen şey Google Grubu (bkz. `production-access.md`), ama o bugün
+kurulmuyor: listeyi e-postadan gruba çevirmek mevcut on iki kişiyi
+düşürme riski taşıyor ve düşerlerse 14 günlük sayaç sıfırdan başlıyor.
+Üretim başvurusu incelemedeyken alınacak risk değil.
+
 Sabitlenecek yorum:
 
 ```
-if anyone wants to actually play it: it's on Google Play's closed test
-right now, link in bio. I need people who'll install it and play a few
-levels - tell me what breaks 🙏
+it's on Google Play's closed test right now, so I have to add people by hand - dm me the gmail you use on your phone and I'll put you on the list 🙏
 ```
 
-Bio, bağlantı eklenmiş hâliyle:
+Bio:
 
 ```
 solo dev · building Peelo: Fruit Hole 🕳️
-testers wanted → link below
+want to test it? dm me your gmail
 ```
 
 "new level every week · free on Android" satırı çıktı: oyun henüz
 herkesin indirebileceği yerde değil ve "free on Android" onu ima ediyor.
 Kapalı testteyken bu, bağlantıya tıklayıp mağazada hiçbir şey bulamayan
 biri demek.
+
+Gelen adresler biriktirilip **tek seferde** ekleniyor: her ekleme test
+kullanıcıları sayfasını açmak demek ve o sayfa ne kadar az açılırsa o
+kadar iyi.
 
 ### Açıklamalar
 
