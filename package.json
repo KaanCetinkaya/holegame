@@ -40,6 +40,7 @@
     "send:fruithole": "node serve-apk.mjs fruithole",
     "send:slicer": "node serve-apk.mjs slicer",
     "send:tycoon": "node serve-apk.mjs tycoon",
+    "paste:fruithole": "node fruithole/store-paste.mjs",
     "uploaded:hole": "node mark-uploaded.mjs hole",
     "uploaded:fruithole": "node mark-uploaded.mjs fruithole",
     "uploaded:slicer": "node mark-uploaded.mjs slicer",
