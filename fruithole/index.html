@@ -18225,10 +18225,19 @@ function spikeMatrix(inst, i, s, olcek = 1) {
 // almıyor — alacak bir şey yok — ama yine de kırılıyor ve sesini çıkarıyor,
 // yoksa oyuncu çarptığını bile anlamaz ve "bu bazen çalışmıyor" der.
 function shrinkHole(s) {
+  const onceki = holeRadius;
   holeRadius = Math.max(BASE_HOLE_R, holeRadius - SIZE_STEP);
   // Diken kırılıyor: ölçek sıfır, yani yığından kayboluyor.
   for (const inst of spikeInst) spikeMatrix(inst, spikes.indexOf(s), s, 0);
   burst(s.x, 0.4, s.z, 'berry');
+  // Bedel dikenin durduğu yerde. Boy rozeti deliğin hemen altında, yani
+  // saatten çok daha iyi bir yer — ama rozet **yeni** sayıyı gösteriyor,
+  // ne kaybedildiğini değil.
+  //
+  // Yalnızca gerçekten bir şey alındıysa: delik zaten tabandaysa diken
+  // hiçbir şey almıyor ve orada "−1 boy" yazmak yalan olurdu. Yazı yoksa da
+  // kırılma ve ses duruyor, yani çarptığı yine belli.
+  if (holeRadius < onceki) showLabel(s.x, 0.4, s.z, '−1 SIZE', '#ff6b5e');
   sfx.spike();
   // Rozet kendi kendine de kısılıyor (sayı düştüğü için), ama zaten tabanda
   // olan bir delikte sayı düşmüyor: animasyon yine de oynatılıyor ki
@@ -19366,6 +19375,11 @@ function landShot(c) {
     updateTimeUI();
     flashTime();
     sfx.bomb();
+    // Bedel, deliğin durduğu yerde. Bomba için yazılan sebebin aynısı, bir
+    // fazlasıyla: mancınığın atışı tahtanın öbür ucundan geliyor, yani
+    // oyuncunun bakmadığı yerden. Halkanın kapandığını görmediyse elinde
+    // yalnızca eksilen bir saat kalıyor.
+    showCost(holeX, 0.4, holeZ, SHOT_COST);
     shotHits++;
   }
   // Tahtadaki meyveyi patlatmıyor. Patlatsaydı bölümün hedefini elinden
@@ -21718,14 +21732,36 @@ function showCombo(mult) { flash(`x${mult} COMBO!`); }
 //
 // Rengi meyvenin kendi rengi: hangi sayacın arttığını da söylüyor.
 function showPay(x, y, z, amount, typeId) {
+  showLabel(x, y, z, '+' + amount, (TYPE_BY_ID[typeId] || TYPE_BY_ID.berry).light);
+}
+
+// Bombanın bedeli, bombanın durduğu yerde.
+//
+// Kaan 45. bölümü oynadı: *"bir şeye dokununca süreden gidiyor ama neye
+// anlayamadım."* Ölçüldü ve tarif ettiği şey tam olarak doğruydu — o bölüm
+// bir görev tahtası, yani mancınık, silindir, çamur, rakip ve rüzgâr orada
+// **yok**; saatten götüren tek şey 488 parçanın arasına serpilmiş altı bomba.
+//
+// Geri bildirim eksik değildi: patlama, bomba sesi ve saatin yanıp sönmesi.
+// Üçü birlikte "bir şey oldu" diyor, "beş saniye gitti, sebebi buydu"
+// demiyor. Saat ekranın üst ortasında ve delik ortadayken gözün bakmadığı
+// yer orası; patlama da tahtanın kendi patlamalarına benziyor.
+//
+// Eksik olan şey **yer**: bedelin, bedeli ödeten şeyin durduğu noktada
+// yazması. Dev için zaten böyle çalışıyordu, aynı fonksiyon.
+function showCost(x, y, z, saniye) {
+  showLabel(x, y, z, '−' + saniye + 's', '#ff6b5e');
+}
+
+function showLabel(x, y, z, metin, renk) {
   _proj.set(x, y, z).project(camera);
   // Kameranın arkasına düşen nokta ekranın ortasına yansıyor — dev kadraj
   // dışındayken sayının ekranın ortasında belirmesi demek olurdu.
   if (_proj.z > 1) return;
   const el = document.createElement('div');
   el.className = 'payup';
-  el.textContent = '+' + amount;
-  el.style.color = (TYPE_BY_ID[typeId] || TYPE_BY_ID.berry).light;
+  el.textContent = metin;
+  el.style.color = renk;
   // Ekranın içine sıkıştırılıyor.
   //
   // Dev kadrajın kenarındayken yansıtılan nokta ekranın dışına düşüyor —
@@ -22576,6 +22612,7 @@ function eatFruit(f, now) {
     burst(f.x, f.mesh.position.y, f.z, 'berry');
     sfx.bomb();
     flashTime();
+    showCost(f.x, f.mesh.position.y, f.z, BOMB_COST);
     f.mesh.visible = false;
     fieldGroup.remove(f.mesh);
     return;
@@ -23973,6 +24010,11 @@ window.fruitHoleEatBomb = () => {
   const yanindakiler = onceCanli.filter(f => f.eaten && !f.bomb).length;
   return { yutuldu: b.eaten, sayacArtisi: eatenCount - oncekiSayac, yanindakiler };
 };
+// Bedeli yazan etiketi doğrudan çağır: mekanizmanın kendisi ölçülebilsin.
+// Bağlandığı üç yer (bomba, mancınık, diken) oynanarak ölçülüyor, ama
+// etiketin ekranın içine sıkıştırılması ve yazısının doğru olması buradan
+// bakılıyor — üç yer için üç kez tahta kurmaya değmez.
+window.fruitHoleShowCost = (x, y, z, saniye) => { showCost(x, y, z, saniye); };
 // Kayalar: kaç tane, nerede, ve tahtayı kapatmıyorlar mı.
 window.fruitHoleRocks = () => ({
   sayi: rocks.length,
