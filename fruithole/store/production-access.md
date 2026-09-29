@@ -171,6 +171,49 @@ işliyor ve ~27 Eylül'de doluyor. Bu satır burada, çünkü sayı yalnızca Pl
 Console'da görünüyor ve buradan okunamıyor — yazılmazsa her oturumda yeniden
 sorulur, nitekim soruldu.
 
+## 29 Eylül: 12 kayıtlı, 5 kurulu
+
+Kapalı test sayfası iki ayrı sayı gösteriyor ve karıştırılıyor:
+
+| Sayı | Ne demek | Şarta etkisi |
+|---|---|---|
+| **Kaydolan testçi** | listedeki e-postalardan kaç kişi bağlantıyı açıp katıldı | **14 günlük sayacı bu besliyor** |
+| **İndiren kişi** | kaçı oyunu telefonuna gerçekten kurdu | sayaca girmiyor |
+
+Yani 5 indirme sayacı durdurmuyor — 29 Eylül itibarıyla sayaç dolmuş ve
+üretim başvurusu gönderilmiş durumda. Ama başvuruyu **bir insan** okuyor ve
+"12 kişi kaydoldu, 5'i açtı" tablosu, testin gerçekten yapılıp yapılmadığı
+sorusuna kötü bir cevap. Formun 2. ve 3. maddesi zaten testçilerden gelen
+geri bildirimi anlatıyor; onu destekleyen tek şey oynayan insan sayısı.
+
+Kaldıraç **konsol değil**, kaydolmuş ama kurmamış yedi kişi. Test
+kullanıcıları sayfasına dokunulmuyor: orada kaydetmek testi yeniden
+incelemeye yolluyor ve sayacı riske atıyor.
+
+WhatsApp/Telegram'a olduğu gibi atılacak metin:
+
+```
+Selam, oyunun test grubuna kayıtlısın ama henüz kurmamışsın gibi
+görünüyor — Google'a "12 kişi kaydoldu, 5'i oynadı" diye gidiyor ve
+oyunu yayınlayabilmem tam da buna bakıyor.
+
+İki dakikalık iş:
+1. Şu bağlantıyı aç: [kapalı test bağlantısı]
+2. "Download it on Google Play" de, kur.
+3. Beş on bölüm oyna, takıldığın ya da tuhaf gelen bir şey olursa
+   ekran görüntüsü at.
+
+Silmeni istemiyorum, bir hafta telefonda kalsın yeter. Sağ ol.
+```
+
+`[kapalı test bağlantısı]`: Play Console → Test → Kapalı test → **Testçiler**
+sekmesinin altındaki "Katılma bağlantısı"nı kopyala. Sayfada hiçbir şeyi
+değiştirme, yalnızca bağlantıyı al.
+
+Bir de sürüm 40 bu akşam çıkıyor ve **donmayı düzelten sürüm o**. Kurmuş
+olan beş kişi bugüne kadar donan bir oyun oynadı; mesajı 40 yayına
+girdikten sonra atmak, gelen ilk izlenimi de düzeltiyor.
+
 ## Kapalı testin zaman çizelgesi
 
 Başvuruda tarih sorulursa depo geçmişinden:

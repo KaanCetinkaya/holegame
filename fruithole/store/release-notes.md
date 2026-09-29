@@ -104,3 +104,41 @@ New in this update: five new things on the board.
 39 yüklendikten sonra yazıldı, yani ayrı bir not: 39'un kutusunda mancınık
 yoktu ve o sürüm testçilere gitti. Aynı notu ikinci kez göndermek, oyuncuya
 zaten oynadığı şeyi yeni diye anlatmak olurdu.
+
+## 41 (1.13) — 467 karakter
+
+```
+New in this update: five new things on the board.
+
+- A rival hole. The red one eats the crop too, and everything it takes is something you will not.
+- Catapults throw a bomb at wherever you are standing. A red ring marks where it lands.
+- Rollers are stone drums running back and forth across a bare lane.
+- Mud. Cross it at half speed, or go round.
+- Wind. Inside the marked band you drift, so steer into it.
+- Fixed a freeze that could stop the game on some levels.
+```
+
+40 ile aynı beş madde, artı bir satır: **donma**. O satır 40'ın notunda
+yoktu, çünkü not 40 yüklenmeden önce yazılmıştı ve donmanın sebebi
+(gerçek olmayan bir para birimi isteyen on beş nesne) daha bulunmamıştı.
+Testçiler 39'u oynadı ve 39 donuyordu — yani bu, listedeki tek madde
+arasında **başlarına gelmiş olanı**, ve dosyanın kuralı da o: oyuncunun
+göreceği şey yazılıyor.
+
+Rakip maddesinden "It never takes the last of what your cards need" cümlesi
+düştü. Doğru bir cümle — `rivalCanEat` tam olarak bunu garanti ediyor — ama
+oyuncu daha rakibi görmeden ona bir güvence vermek, olmayan bir korkuya
+cevap vermek. Kalan yer de bir karakter kalmamıştı.
+
+## 40 nereye gitti
+
+40, yarım kalmış bir merge'in içindeki ağaçtan derlendi ve yüklendi; sonra
+depo `git reset --hard` ile temizlenince "40 yüklendi" kaydı da silindi ve
+bir sonraki derleme 40'ı ikinci kez üretti. Play reddetti: *"40 sürüm kodu
+daha önce kullanıldı."*
+
+Bu, 37/38 ile aynı hatanın **üçüncü** tekrarı değil — sebebi başka.
+Orada `npm run uploaded:fruithole` hiç çalıştırılmamıştı; burada
+çalıştırıldı ama commit edilmedi, ve commit edilmemiş bir kayıt bir
+`reset --hard`'a dayanmıyor. Ders, komutun kendisi değil **komut + commit +
+push**'un tek bir iş olduğu: kayıt diskte değil, uzakta durursa yaşıyor.
