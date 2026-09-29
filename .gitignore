@@ -37,3 +37,17 @@ keystore.properties
 # öyle değil: her üretimde dosyanın tamamı değişiyor ve bir megabaytın
 # üstünde, yani depoda tutmak geçmişi her seferinde şişirirdi.
 fruithole/store/clips/
+
+# Mağazaya yapıştırılacak metinler: store-paste.mjs üretiyor, kaynağı
+# listing-en.md ve tek gerçek kaynak da o.
+#
+# Takipliyken Kaan'ın makinesinde bir `git pull`u durdurdular ve sebebi
+# satır sonu: betik LF yazıyor, Windows'ta git çalışma kopyasında CRLF
+# bekliyor, dosya hiç değişmeden "değişmiş" görünüyor. Üretilmiş bir
+# dosyanın diff'ine kimse bakmıyor zaten — bakılan şey listing-en.md.
+#
+# store/*.png öyle değil ve takipli kalıyor: Play Console'a yüklenen tam
+# olarak o dosyalar, yani değiştiklerinde görmek gerekiyor.
+#
+# Gerektiğinde: npm run paste:fruithole
+fruithole/store/paste/
