@@ -555,16 +555,28 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 ## Assets (ready in this folder)
 - `icon-512.png` — store icon, exactly 512×512 (required)
 - `feature-1024x500.png` — feature graphic (required)
-- `1-play.png` — level 1: the stepped pyramid on the beach
-- `2-grown.png` — the voxel level, hole grown, a swathe cleared
+- `1-play.png` — Pyramid, on the Egypt sand: a full field, hole still small
+- `2-grown.png` — Patches (Savanna), hole grown, a swathe cleared
 
-The feature graphic is shot from level 20 by `node fruithole/make-feature.mjs`.
-It used to be the voxel level on the dark shop floor — the most prominent
+The feature graphic comes from `node fruithole/make-feature.mjs`, which takes
+a **theme name** and picks that theme's densest ordinary grid board.
+
+Its theme has moved twice, and both moves were the same mistake caught late.
+It shipped as the voxel level on the dark shop floor — the most prominent
 image on the store page announcing a pixel game played in the dark, when one
-level in nineteen is voxel. Sand is the brightest ground the game owns.
+level in nineteen was voxel. Then `beach`, because sand is the brightest
+ground the game owns. Today `beach` has exactly one level, 3, and that is a
+**picture board**: the script now refuses rather than quietly shooting one,
+and the theme is `egypt`.
 
-- `3-snow.png` — a Snow Day level: snowmen, penguins, candy canes
-- `4-rings.png` — Orbits: rings opening out from the hole
+`savanna` was tried first, being the densest board in the game at 441 fruit,
+and it was worse: brown ground, a field that is red end to end, and a title
+that stops being readable on top of it. Density alone is not the measure —
+what this one plate has to do is separate the colours.
+
+- `3-place.png` — Condor (Nazca): a layout drawn to be read from above
+- `4-mission.png` — a mission level, because the set otherwise says every
+  level is "sweep the field"
 - `5-menu.png` — main menu, on the beach
 - `6-skins.png` — the ten hole skins
 - `7-levels.png` — the level map with star ratings
@@ -607,18 +619,30 @@ tablets, Chrome OS and Play Games on PC.
 Only screenshots go in those sections. The feature graphic and the icon each
 have their own field further up the page.
 
-## Görseller eskidi: resim tahtaları
+## Görseller nasıl eskiyor
 
-Sekiz ekran görüntüsünün hepsi ızgara düzenlerinden çekildi — piramit, kar,
-ada. Oyunda artık 3, 13, 23… bölümlerinde **resim tahtaları** var: mantar,
-balon, dondurma, çilek, karpuz, ananas, kiraz, çiçek. 1400-1850 parçadan
-kurulu ve mağazadaki hiçbir görselde yoklar.
+Bu bölüm iki kez yazıldı ve ikisinde de eskime aynı yerden geldi: **görsel
+üreten dosya tahtayı düzen adıyla istiyor, ama tahtanın türünü sormuyordu.**
 
-Bu bir bakım işi değil, satış işi: Play aramada ilk üç görseli gösteriyor ve
-kurulum kararının çoğu orada veriliyor. Rakiplerin görsellerinde tam da bu var
-— mısır koçanı, oyuncak ayı, Eyfel Kulesi — ve bizim ilk üç görselimiz onların
-yanında ızgara gibi duruyor.
+Ad istemek bölüm numarasının değişmesini karşılıyor — düzen nereye taşınırsa
+taşınsın bulunuyor. Karşılamadığı şey şu: resim, şerit ve bulmaca tahtaları
+tahtayı desenden değil **bölüm numarasından** alıyor. Bir düzen o yuvalardan
+birine kayarsa dosya yine çalışıyor, yine görsel üretiyor, sadece içinde
+istenen şey yok. Kimse fark etmiyor, çünkü hata bir çıktı değil bir resim.
 
-Üretim erişimi alındıktan sonra **ilk iş**: `make-shots.mjs` ile yeniden çek ve
-ilk üç sıraya bir resim tahtası koy. Aynısı `feature-1024x500.png` için de
-geçerli.
+29 Eylül'de üç dosyada birden çıktı. `make-shots.mjs`: `Walls` 48'e düşmüştü
+(bulmaca) ve `3-snow.png` altında "Every level is a shape — and a place"
+yazan bir bulmaca tahtası olacaktı; `Blocks` 15'e düşmüştü (devler görevi).
+`make-clips.mjs`: üç klip sırasıyla şerit, bulmaca ve yine şerit tahtası
+filme alıyordu. `make-feature.mjs`: `beach` teması tek bir bölüme, 3'e
+inmişti — resim tahtası.
+
+Üçü de artık tahta türünü oyundan okuyup **tek kare çekmeden önce** duruyor.
+Güvencenin değeri burada ölçüldü: yazıldığı gün üçünde de bir şey yakaladı.
+
+Geriye kalan iş, ilk üç sıraya bir **resim tahtası** koymak — mantar, balon,
+dondurma, çilek, karpuz, ananas, kiraz, çiçek; 1400-1850 parçadan kurulu ve
+hâlâ hiçbir mağaza görselinde yoklar. Rakiplerin ilk karesinde tam da bu var
+(mısır koçanı, oyuncak ayı, Eyfel Kulesi) ve Play aramada ilk üç görseli
+gösteriyor. Bugün konamadı, çünkü karenin altındaki yazıyı da değiştirmek
+gerekiyor ve `SHOTS` sırası mağazadaki sırayla birebir.

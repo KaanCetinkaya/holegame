@@ -39,7 +39,17 @@ const PORT = 8123;
 // çalışıyor, yine bir görsel üretiyor, sadece mağaza sayfasının en tepesindeki
 // resim başka bir yerde geçiyor. Aynı hata make-shots ve make-clips'te de
 // çıkmıştı; numara artık oyunun kendi tablosundan çözülüyor.
-const THEME = process.argv[2] || 'beach';
+//
+// `beach` de artık geçmiyor: temanın tek bölümü 3 ve orası bir **resim
+// tahtası**. Aşağıdaki güvence onu durdurdu, ama durdurduğu şey yalnızca
+// yeni çekim — mağazada duran görsel beach ızgarayken çekilmişti ve kimse
+// temanın altından tahtanın kaydığını göremezdi.
+//
+// Yerine `egypt`: 1. bölüm, kum zemin, dört meyvenin dördü de karede.
+// Savan denendi ve daha kötüydü — zemin kahverengi, tahta baştan aşağı
+// kırmızı, ve başlık kırmızının üstünde okunmuyor. Yoğunluk tek başına
+// ölçü değil; bu karede satan şey **renk ayrımı**.
+const THEME = process.argv[2] || 'egypt';
 
 const srv = createServer((req, res) => {
   const p = req.url === '/' ? '/index.html' : req.url.split('?')[0];
@@ -69,10 +79,21 @@ const LEVEL = await (async () => {
   if (!adaylar.length) {
     throw new Error(`tema bulunamadı: ${THEME} — oyundakiler: ${[...new Set(t.patternThemes)].join(', ')}`);
   }
-  let en = adaylar[0], enCok = -1;
+  // Tahta türü de sorulmalı, yoğunluk kadar. Aynı eskime üç dosyada birden
+  // çıktı: düzen adı bölüm numarasının değişmesini karşılıyor ama bölümün
+  // **türünün** değişmesini karşılamıyor, ve resim/şerit/bulmaca tahtaları
+  // tahtayı desenden değil bölüm numarasından alıyor. Mağaza sayfasının en
+  // tepesindeki resimde bunun bedeli en yüksek, çünkü orada görülen şey
+  // "bu oyun nasıl bir şey" sorusunun tek cevabı.
+  let en = null, enCok = -1;
   for (const a of adaylar) {
-    const n = await pg.evaluate(l => window.fruitHoleProbe(l).fruit, a.level);
-    if (n > enCok) { enCok = n; en = a; }
+    const p = await pg.evaluate(l => window.fruitHoleProbe(l), a.level);
+    if (p.kind !== 'ızgara') continue;
+    if (p.fruit > enCok) { enCok = p.fruit; en = a; }
+  }
+  if (!en) {
+    throw new Error(`${THEME} temasının bütün bölümleri resim/şerit/bulmaca tahtası — ` +
+      adaylar.map(a => `${a.level}:${a.ad}`).join(' '));
   }
   await pg.close();
   console.log(`tema ${THEME} -> bölüm ${en.level} (${en.ad}), ${enCok} meyve`);
