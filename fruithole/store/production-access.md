@@ -214,6 +214,65 @@ Bir de sürüm 40 bu akşam çıkıyor ve **donmayı düzelten sürüm o**. Kurm
 olan beş kişi bugüne kadar donan bir oyun oynadı; mesajı 40 yayına
 girdikten sonra atmak, gelen ilk izlenimi de düzeltiyor.
 
+## Yeni testçi bulmak
+
+Önce kaybetmemek: şart **"kesintisiz 14 gün, en az 12 testçi"** ve testçi
+**çıkarmak** sayacı sıfırlıyor. Eklemek sayacı düşürmüyor, ama listeyi her
+değiştirdiğinde sayfayı kaydediyorsun; bu yüzden ekleme **toplu** yapılıyor,
+birer birer değil.
+
+### Önce mekanizma: Google Grubu
+
+Test kullanıcıları sekmesinde iki seçenek var — **e-posta listesi** ve
+**Google Grupları**. Bugün liste kullanılıyor, ve her yeni kişi Play
+Console'a girip listeyi düzenlemek demek.
+
+Bir Google Grubu kurulursa (groups.google.com, "Yeni grup", herkese açık
+katılım), Console'a bir kez o grubun adresi yazılıyor ve bir daha
+dokunulmuyor. Sonrasında testçi eklemek **gruba üye eklemek** — Play
+Console'a hiç girilmiyor, yani kaydetme riski de yok.
+
+Bu, listenin kendisinden daha değerli: asıl istenmeyen şey testçi eklemek
+değil, testçi eklemek için o sayfayı açmak.
+
+### Sonra insan: nereden
+
+Sırayla, en güvenilirden en zayıfa:
+
+1. **Tanıdıklar.** Bugüne kadar çalışan tek kanal bu ve kurulum oranı da en
+   yüksek burada. Zayıf yanı: on iki kişiden sonra bitiyor.
+2. **TikTok hesabı.** Klipler zaten gidiyor ve izleyen insanlar oyunu
+   görmüş oluyor — yani en sıcak kitle orada. Profil açıklamasına bir
+   satır ve sabitlenmiş bir videonun altına bir yorum yetiyor.
+3. **Reddit.** r/AndroidGaming, r/alphaandbetausers, r/TestMyApp. Kurallar
+   alt forumdan alt foruma değişiyor, "ben yaptım" tarzı gönderilere izin
+   verilen günler var. Buradan gelen kişi oyunla ilgilenen kişi.
+4. **Karşılıklı test grupları** (Telegram/Discord'da "closed testing
+   exchange"). On iki kişiyi hızlı buluyor, ama gelen kişi oyunu oynamıyor
+   — kurup bırakıyor. Google'ın istediği şey **gerçek test** ve başvuru
+   formunda "testçileri nasıl buldun" diye soruyor. Riski şu: sahte
+   görünen bir test doğrudan ret sebebi. Kullanılacaksa dürüstçe yazılır.
+
+### Ne yazılacak
+
+Kısa, İngilizce (mağaza ve klipler zaten İngilizce), ve karşıdakine ne
+yapacağını söyleyen:
+
+```
+I'm looking for testers for my Android game, Peelo: Fruit Hole - you
+steer a hole around a field and swallow the fruit.
+
+It's on Google Play's closed test, so I need people who will actually
+install it and play a few levels. No signup, no ads to sit through if
+you don't want them, works offline.
+
+Join here: [kapalı test bağlantısı]
+
+If anything breaks or feels off, tell me - that's the whole point.
+```
+
+Türkçe konuşulan tanıdıklara giden metin `29 Eylül` başlığının altında.
+
 ## Kapalı testin zaman çizelgesi
 
 Başvuruda tarih sorulursa depo geçmişinden:
