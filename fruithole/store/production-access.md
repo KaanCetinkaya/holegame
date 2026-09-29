@@ -221,16 +221,43 @@ girdikten sonra atmak, gelen ilk izlenimi de düzeltiyor.
 değiştirdiğinde sayfayı kaydediyorsun; bu yüzden ekleme **toplu** yapılıyor,
 birer birer değil.
 
-### Önce mekanizma: Google Grubu
+### Mekanizma zaten kurulu: iki Google Grubu
 
-Test kullanıcıları sekmesinde iki seçenek var — **e-posta listesi** ve
-**Google Grupları**. Bugün liste kullanılıyor, ve her yeni kişi Play
-Console'a girip listeyi düzenlemek demek.
+**29 Eylül'de sayfaya bakıldı ve buradaki plan çöpe gitti.** Bu bölüm
+önce "e-posta listesi kullanılıyor, ileride gruba geçeriz, ama geçiş
+riskli" diye yazılmıştı. Hiçbiri doğru değilmiş: Test kullanıcıları
+sekmesinde **Google Gruplar** seçili ve iki grup bağlı —
 
-Bir Google Grubu kurulursa (groups.google.com, "Yeni grup", herkese açık
-katılım), Console'a bir kez o grubun adresi yazılıyor ve bir daha
-dokunulmuyor. Sonrasında testçi eklemek **gruba üye eklemek** — Play
-Console'a hiç girilmiyor, yani kaydetme riski de yok.
+```
+fruit-hole-testers@googlegroups.com     (bizim)
+testers-community@googlegroups.com      (karşılıklı test grubu)
+```
+
+Yani testçi eklemek Play Console'da yapılan bir iş değil: **gruba üye
+eklemek.** Console'a hiç girilmiyor, ve korunmak istenen şey zaten
+korunuyor.
+
+Ders, kurulumun kendisinde değil: bu dosya aylardır listenin nasıl
+kurulduğunu **varsayarak** yazıyordu ve iki oturum boyunca o varsayımın
+üstüne plan yapıldı — "geçişi üretim başvurusundan sonra yap, sırayı
+şöyle kur". Bakmak beş saniye sürdü.
+
+### Karşılıklı test grubu ve 5 kurulum
+
+`testers-community@googlegroups.com` o "closed testing exchange"
+gruplarından biri: üyeler birbirinin uygulamasına kaydoluyor. **12
+kayıtlı ama 5 kurulu** tablosunun en olası açıklaması bu — o grubun
+üyeleri sayaca giriyor, oyunu kurmuyor.
+
+Bu ikisi birden doğru:
+
+- Sayaç onlar sayesinde doldu. Grup çıkarılırsa sayı 12'nin altına
+  düşebilir ve 14 gün sıfırdan başlar, yani **çıkarılmıyor.**
+- Ama başvuruda "testçileri nasıl buldun" sorusunun cevabı bu grubu da
+  içeriyor ve orada dürüst olmak gerekiyor. Gerçek geri bildirim
+  tanıdıklardan geldi; bu grup sayıyı verdi, veriyi değil.
+
+Asıl iş bu yüzden hâlâ aynı: **oynayan** testçi eklemek.
 
 Bu, listenin kendisinden daha değerli: asıl istenmeyen şey testçi eklemek
 değil, testçi eklemek için o sayfayı açmak.
