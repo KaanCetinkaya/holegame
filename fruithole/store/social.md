@@ -699,13 +699,27 @@ Takvim günü değişmediği için anlatı bozulmuyor.
 
 | tarih | gün | klip | durum |
 |---|---|---|---|
-| 29 Eyl 12:46 | — | savanna (gün satırı yok) | **atıldı** |
-| 29 Eyl akşam | 48 | overgrown | |
+| 29 Eyl 12:46 | — | savanna (gün satırı yok) | **atıldı** — 9 saatte 100 izlenme |
+| 29 Eyl 21:22 | 48 | overgrown | **atıldı** |
 | 30 Eyl | 49 | redsquare | |
 | 1 Eki | 50 | boss | |
 | 2 Eki | 51 | suburb | |
 | 3 Eki | 52 | bazaar | |
 | 4 Eki | 53 | nazca | |
+
+**Sessizliğin bedeli ölçüldü.** 21, 22 ve 24 Eylül'deki üç gönderi
+396 / 368 / 353 izlenmede duruyor. Beş gün ara verildikten sonraki ilk
+gönderi (savanna) dokuz saatte **100**.
+
+Karşılaştırma kusurlu: öbür üçü günlerdir ortada, savanna dokuz saatlik.
+Ama bu hesapta dağıtımın ilk günden sonra durduğu zaten ölçülmüştü — yani
+dokuz saat, bir gönderinin alacağının çoğunu aldığı süre. Rakam yine de
+tek başına kanıt değil, çünkü tek gönderi.
+
+Bakılacak yer yarın: `redsquare` (gün 49) art arda ikinci gün oluyor. İki
+ardışık gönderinin ikincisi ilkinden yüksek çıkarsa düşüşün sebebi ara
+vermek demektir, ve "günde bir" kuralının değeri ilk kez ölçülmüş olur.
+Çıkmazsa sebep başka: klipler, saat, ya da hesabın kendisi.
 
 ### Testçi çağrısı nereye gidiyor
 
