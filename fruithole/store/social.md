@@ -692,10 +692,15 @@ Kaan üç atmak istedi, iki oldu. İki sebep:
 - Beş günlük sessizlik bir günde üç video atarak kapanmıyor. **Yarın bir
   gönderi olmasıyla** kapanıyor.
 
+Sıra ters gitti: 29 Eylül 12:46'da **savanna** atıldı, yani günün ikinci
+gönderisi birinci oldu. Günlük girdisi (`overgrown`, day 48) aynı günün
+akşamına kaldı — gün numarası yine 48, sadece o günün ikinci gönderisi.
+Takvim günü değişmediği için anlatı bozulmuyor.
+
 | tarih | gün | klip | durum |
 |---|---|---|---|
-| 29 Eyl | 48 | overgrown | |
-| 29 Eyl | — | savanna (gün satırı yok, +4 saat) | |
+| 29 Eyl 12:46 | — | savanna (gün satırı yok) | **atıldı** |
+| 29 Eyl akşam | 48 | overgrown | |
 | 30 Eyl | 49 | redsquare | |
 | 1 Eki | 50 | boss | |
 | 2 Eki | 51 | suburb | |
