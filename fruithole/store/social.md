@@ -673,18 +673,34 @@ klipler "burası neresi" sorusunu satıyor, engelleri değil.
 ### Sıra
 
 28 Eylül'de de atılmadı, yani sessizlik beş güne çıktı: son gönderi 24
-Eylül (gün 43). Tablo bir gün kaydırıldı ve gün numaraları takvimden
-okunuyor — 47 diye bir gönderi olmayacak, çünkü o gün geçti.
+Eylül (gün 43). Gün numaraları takvimden okunuyor — 44'ten 47'ye kadar
+gönderi olmayacak, çünkü o günler geçti.
+
+**29 Eylül'de iki video atıldı, ve ikincisinin gün satırı yok.**
+
+Sebep: günlük anlatısına bir günde iki "day" satırı sığmıyor. "day 48" ve
+"day 49"u aynı gün atmak takip eden birine yalan söylemek olur, ve bu
+dosyanın kuralı zaten "anlatı yalan söylemeye başladığı gün biter". Günün
+gönderisi bir tane; ikincisi günlük girdisi değil, sadece bir oyun videosu.
+Tutarlı olan bu.
+
+Kaan üç atmak istedi, iki oldu. İki sebep:
+
+- `social.md`'de duran "günde bir, en fazla" kuralı **ölçülmüş değil**,
+  varsayım. Bir kez esnetmek sorun değil; üçe katlamak elimizde kanıt
+  olmayan bir bahis.
+- Beş günlük sessizlik bir günde üç video atarak kapanmıyor. **Yarın bir
+  gönderi olmasıyla** kapanıyor.
 
 | tarih | gün | klip | durum |
 |---|---|---|---|
 | 29 Eyl | 48 | overgrown | |
-| 30 Eyl | 49 | savanna | |
-| 1 Eki | 50 | redsquare | |
-| 2 Eki | 51 | boss | |
-| 3 Eki | 52 | suburb | |
-| 4 Eki | 53 | bazaar | |
-| 5 Eki | 54 | nazca | |
+| 29 Eyl | — | savanna (gün satırı yok, +4 saat) | |
+| 30 Eyl | 49 | redsquare | |
+| 1 Eki | 50 | boss | |
+| 2 Eki | 51 | suburb | |
+| 3 Eki | 52 | bazaar | |
+| 4 Eki | 53 | nazca | |
 
 ### Açıklamalar
 
@@ -701,17 +717,19 @@ cracked tarmac with grass coming up through it. no two levels stand on the same 
 ```
 
 **2. savanna.mp4** — ekran yazısı: `the board is a giraffe`
-```
-day 49 of building my own mobile game 🦒
 
-48 layouts, and the fruit is arranged into a shape every time. this one took three tries to get right.
+Günün ikinci gönderisi, o yüzden **gün satırı yok**.
+```
+the board is a giraffe 🦒
+
+48 layouts in this game, and the fruit gets arranged into a shape every time. this one took three tries to get right.
 
 #indiedev #solodev #gamedev #mobilegame #oddlysatisfying
 ```
 
 **3. redsquare.mp4** — ekran yazısı: `i drew this floor in code. no image files`
 ```
-day 50 of building my own mobile game 🪆
+day 49 of building my own mobile game 🪆
 
 every floor in this game is maths. there is not one texture file in the whole thing.
 
@@ -720,7 +738,7 @@ every floor in this game is maths. there is not one texture file in the whole th
 
 **4. boss.mp4** — ekran yazısı: `every 10th level ends in one giant`
 ```
-day 51 of building my own mobile game 👑
+day 50 of building my own mobile game 👑
 
 you cannot take it early. the only way to it is to clear the field first.
 
@@ -729,7 +747,7 @@ you cannot take it early. the only way to it is to clear the field first.
 
 **5. suburb.mp4** — ekran yazısı: `a mown lawn at dusk, and a hole in it`
 ```
-day 52 of building my own mobile game 🚲
+day 51 of building my own mobile game 🚲
 
 the grass has mower stripes because a flat green reads as carpet. small things take the longest.
 
@@ -738,7 +756,7 @@ the grass has mower stripes because a flat green reads as carpet. small things t
 
 **6. bazaar.mp4** — ekran yazısı: `the carpet under this one is generated`
 ```
-day 53 of building my own mobile game 🧶
+day 52 of building my own mobile game 🧶
 
 a woven kilim, drawn line by line at run time. the hole does not care, but i do.
 
@@ -747,7 +765,7 @@ a woven kilim, drawn line by line at run time. the hole does not care, but i do.
 
 **7. nazca.mp4** — ekran yazısı: `drawn to be seen from above. so is this game`
 ```
-day 54 of building my own mobile game 🦅
+day 53 of building my own mobile game 🦅
 
 the camera here looks straight down, which is the only way this layout reads at all.
 
