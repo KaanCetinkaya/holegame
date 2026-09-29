@@ -68,14 +68,45 @@ async function sweep(pg, w, h, legs) {
 // nereye taşınırsa taşınsın doğru tahta bulunuyor, bulunamazsa gürültüyle
 // duruyor.
 const SHOTS = [
+  // Yukarı sürükleme **saniyelerle** ölçülüyor, ve sebebi burada yazılı
+  // olmazsa bir daha kısaltılır. Delik doğduğu yerde duruyorsa kare de orada
+  // duruyor: kamera deliği takip ediyor, delik tahtanın alt kenarındayken
+  // ekranın alt üçte biri boş zemin oluyor — mağazanın ilk karesinde, en
+  // değerli slotun üçte birini hiçbir şeye vermek.
+  //
+  // İlk iki düzeltme 1200'ü önce 1500'e, sonra 4000'e çıkarmaktı ve kare pek
+  // değişmedi. Sebep şuymuş: konteynerde GPU yok, SwiftShader'la delik
+  // saniyede **0.85 birim** gidiyor, tahtanın yarı boyu ise 11.55. Yani 4
+  // saniye 3.4 birim, ve Pyramid'in yakın ucu zaten boş — kamera deliği
+  // takip ettiği için ekranın altı o boşlukla doluyordu.
+  //
+  // Süre gözle değil ölçüyle seçildi: z 6.35'ten başlıyor, 8 saniyede 0.74'e,
+  // 12 saniyede -4.7'ye geliyor. 12 saniye fazla — delik desenin öbür ucuna
+  // çıkıyor ve bu sefer ekranın **üstü** boşalıyor.
+  //
+  // 8 saniyede de altta bir zemin şeridi kalıyor, ve ölçerken kullanılan
+  // 412x915 penceresinde kalmıyordu: mağaza karesi 1080x1920, yani daha
+  // geniş bir açı ve daha çok yakın zemin. Şerit kovalanmadı, çünkü alt
+  // yazı tam oraya oturuyor — meyvenin üstünde değil zeminin üstünde
+  // okunuyor. Kalan boşluk kareye zarar veren şey değil, yazının yeri.
   { name: '1-play', pattern: 'Pyramid', cap: 'Steer the hole, swallow the field',
-    play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1200], [80, -100, 500]]) },
-  { name: '2-grown', pattern: 'Blocks', cap: 'Eat enough and the giants are yours',
+    play: (pg, w, h) => sweep(pg, w, h, [[0, -260, 8000], [80, -120, 900]]) },
+  // Blocks'tan Patches'a: Blocks 15. bölüme düştü ve orası **devler görevi**,
+  // yani görsel sıradan bir tahta göstermiyordu. Patches (Savanna) hem ızgara
+  // hem de oyunun en tanınır düzenlerinden — zürafa deseni tek karede
+  // "buranın bir şekli var" diyor.
+  { name: '2-grown', pattern: 'Patches', cap: 'Eat enough and the giants are yours',
     play: async (pg, w, h) => {
       await pg.evaluate(() => window.fruitHoleSetSize(0.75));
       await sweep(pg, w, h, [[0, -120, 900], [110, -60, 900], [0, 120, 700]]);
     } },
-  { name: '3-snow', pattern: 'Walls', cap: 'Every level is a shape — and a place',
+  // Adı da değişti: `3-snow` kar demekti ve kare artık karda değil. Yanlış
+  // adlandırılmış bir dosya, bir sonraki bakanı yanıltacak tek şey.
+  //
+  // Condor (Nazca): düzen yukarıdan bakılmak için çizilmiş bir geoglif ve bu
+  // oyunun kamerası da orada — "her bölüm bir şekil" cümlesini kanıtlayan
+  // kare bu. Zemin de pampa, yani öteki yedi karenin hiçbirine benzemiyor.
+  { name: '3-place', pattern: 'Condor', cap: 'Every level is a shape — and a place',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1300], [-90, -90, 500]]) },
   // Görev bölümü. Sekiz görselin sekizi de "tarlayı süpür" diyordu, oysa
   // oyunun beşinci bölümünden itibaren bazı bölümler başka bir şey istiyor —
@@ -157,12 +188,29 @@ async function levelIndex() {
   await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
     { timeout: 25000 });
   const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);
+  // Çözülen bölümün tahtası gerçekten o düzen mi?
+  //
+  // Düzen adıyla istemek bölüm numarasının eskimesini çözüyor ama ikinci bir
+  // eskime var: resim, şerit ve bulmaca tahtaları tahtayı **desenden değil
+  // bölüm numarasından** alıyor. Bir düzen o yuvalardan birine kayarsa görsel
+  // yine üretiliyor — ama içinde istenen düzen yok.
+  //
+  // Tam olarak oldu: bölüm sırası kırk sekiz düzene göre yeniden kurulduğunda
+  // `Walls` 48'e (bulmaca) düştü ve `3-snow.png` bir bulmaca tahtası
+  // gösterecekti, altındaki yazı "Every level is a shape — and a place"
+  // derken. `make-clips.mjs` aynı güvenceyi taşıyor; ikisi de mağazaya giden
+  // dosya üretiyor.
+  const tahta = await pg.evaluate(o => o.map((_, i) => window.fruitHoleProbe(i + 1).kind), order);
   await pg.close();
   const map = {};
   order.forEach((name, i) => { if (!(name in map)) map[name] = i + 1; });
   for (const s of SHOTS) {
     if (s.pattern && !map[s.pattern]) {
       throw new Error(`düzen bulunamadı: ${s.pattern} — oyundakiler: ${order.join(', ')}`);
+    }
+    if (s.pattern && tahta[map[s.pattern] - 1] !== 'ızgara') {
+      throw new Error(`${s.name}: ${s.pattern} düzeni ${map[s.pattern]}. bölümde ve o bölüm ` +
+        `bir ${tahta[map[s.pattern] - 1]} tahtası — düzen görselde hiç görünmüyor.`);
     }
   }
   return map;
