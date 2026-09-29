@@ -20203,7 +20203,43 @@ function placeBombs() {
   }
   // Tepesi iri olan hücre atlanıyor: iri meyve tahtanın okunmasını sağlayan
   // şey ve yerine ceza koymak onu geri alıyor.
-  const aday = [...hucreler.values()].filter(f => !f.big);
+  const hepsi = [...hucreler.values()].filter(f => !f.big);
+  // Önü açık hücreler.
+  //
+  // Bombayı kendi hücresinin tepesine koymak yetmiyormuş. Kaan bir ekran
+  // görüntüsüne bakıp "meyvelerin altına koymuşsun" dedi ve ölçüldüğünde
+  // haklı çıktı: bombaların **%63'ünün önünde** onu aşan bir şey duruyor.
+  // Kaçınılması istenen bir şeyin görünmemesi cezayı adaletsiz yapıyor —
+  // bu dosyada bir kez daha yazılmış bir cümle.
+  //
+  // Önce yanlış bir şey denendi ve burada duruyor, çünkü akla yatkındı:
+  // "bombayı en uzun hücrelere koy, yükselirse görünür." Ölçüm %63'ten
+  // **%69'a** çıktı, yani daha kötü. Sebebi sonradan bakınca açık: kule
+  // kulenin yanında duruyor, yani bombayı yükselten şey önündekini de
+  // yükseltiyor. Yüksekliği hedeflemek işe yaramıyor; kapanmanın kendisini
+  // hedeflemek gerekiyor.
+  //
+  // `onuKapali` tam da ölçülen şeyi soruyor: kamera bombanın arkasında ve
+  // yukarısında duruyor, yani onu ancak **daha büyük z'deki** bir parça
+  // kapatabilir. Yanındaki ya da arkasındaki kule ne kadar uzun olursa
+  // olsun kapatmıyor.
+  //
+  // Havuz kurutulmuyor: önü açık hücre havuzun dörtte birinden azsa
+  // eskisi gibi hepsinden seçiliyor. Aday havuzunu daraltmanın bedeli bu
+  // fonksiyonda zaten bir kez ödendi — tek parçalık hücre kuralı mayın
+  // bölümünü %7'den %2.9'a düşürmüştü.
+  const onuKapali = bm => {
+    const ust = (bm.baseY || 0) + bm.r;
+    for (const f of fruits) {
+      if (f.eaten || f === bm) continue;
+      if (f.z <= bm.z || f.z - bm.z > NORMAL_R * 6) continue;
+      if (Math.abs(f.x - bm.x) > NORMAL_R * 1.2) continue;
+      if ((f.baseY || 0) + f.r > ust) return true;
+    }
+    return false;
+  };
+  const acik = hepsi.filter(f => !onuKapali(f));
+  const aday = acik.length >= hepsi.length * 0.25 ? acik : hepsi.slice();
   // Mayın bölümünde tahta bomba dolu.
   //
   // `missionKind` henüz atanmadı — buildField onu bombalardan sonra kuruyor —
@@ -23991,6 +24027,36 @@ window.fruitHoleBombs = () => {
     // Nerede duruyorlar: ekran görüntüsü alan araç kadrajı buradan kuruyor.
     yerler: b.map(f => ({ x: +f.x.toFixed(2), z: +f.z.toFixed(2) })),
     maliyet: BOMB_COST,
+    // Bomba kaç birim kapanıyor.
+    //
+    // Bomba kendi hücresinin tepesine konuyor — o düzeltme yapıldı. Ama Kaan
+    // bir ekran görüntüsüne bakıp "meyvelerin altına koymuşsun" dedi, ve
+    // tarif ettiği şey kendi hücresi değil **önündeki** hücre: bombanın
+    // hücresi tek parçalıkken önündeki beş katlı kule onu kapatıyor.
+    //
+    // İlk ölçü yanlıştı ve iki sayı üretti, ikisi de anlamsız. "Üç yarıçap
+    // içinde daha yüksek bir komşu var mı" diye soruyordu; kalabalık bir
+    // tahtada bunun cevabı her zaman evet, yani ölçtüğü şey **yoğunluktu**.
+    // Bir düzeltme denendi ve sayı %93'ten %95'e çıktı — düzeltmenin kötü
+    // olduğu için değil, sayının konuyla ilgisi olmadığı için.
+    //
+    // Kapanma yönlü bir şey: kamera bombanın arkasında ve yukarısında
+    // duruyor, yani bombayı ancak **daha büyük z'deki** bir şey kapatabilir.
+    // Yanındaki ya da arkasındaki kule ne kadar uzun olursa olsun kapatmıyor.
+    // Ölçülen: bombanın önünde, bir hücre genişliğindeki koridorda duran
+    // parçaların bombanın tepesini kaç birim aştığı.
+    kapanma: b.map(bm => {
+      const bmUst = (bm.baseY || 0) + bm.r;
+      let en = 0;
+      for (const f of fruits) {
+        if (f.eaten || f === bm) continue;
+        if (f.z <= bm.z) continue;                       // arkada: kapatmıyor
+        if (f.z - bm.z > NORMAL_R * 6) continue;         // çok uzakta: kamera üstünden görüyor
+        if (Math.abs(f.x - bm.x) > NORMAL_R * 1.2) continue;
+        en = Math.max(en, (f.baseY || 0) + f.r - bmUst);
+      }
+      return +en.toFixed(2);
+    }),
   };
 };
 // Bir bombayı yedir: deliği üstüne koyup oyunun kendi yeme kontrolünü

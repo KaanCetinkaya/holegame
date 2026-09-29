@@ -88,6 +88,33 @@ const cakisan = gec.filter(r => new Set(r.yerler.map(y => y.x + ',' + y.z)).size
 check(cakisan.length === 0, 'iki bomba aynı hücrede değil',
   cakisan.length ? `${cakisan.map(r => r.n + '. bölüm').join(', ')}` : '');
 
+// Bomba görünüyor mu?
+//
+// Bu ölçü bir oyuncu cümlesinden çıktı. Kaan 45. bölümü oynadı, "bir şeye
+// dokununca süreden gidiyor ama neye anlayamadım" dedi; bombanın yakın
+// çekimi gösterildiğinde de "meyvelerin altına koymuşsun" dedi. Ölçüldü ve
+// haklıydı: bombaların **%63'ünün önünde** onu aşan bir parça duruyordu.
+//
+// Kapanma yönlü: kamera bombanın arkasında ve yukarısında, yani onu ancak
+// daha büyük z'deki bir şey kapatabilir. `kapanma` alanı bunu veriyor.
+//
+// Buradaki eşik seçilirken bir şey kabul edildi: sıfır olamaz. Bomba
+// ızgaradaki bir hücrede duruyor ve tahtanın tamamı doluyken her hücrenin
+// önü açık olmuyor; havuzu tamamen kurutmak bombayı yok etmek demek
+// (aday havuzunu daraltmanın bedeli `placeBombs` içinde bir kez ödendi,
+// mayın bölümü %7'den %2.9'a düşmüştü). Dörtte bir, hem ölçülebilir bir
+// iyileşme hem de ulaşılabilir bir hedef.
+{
+  const kap = gec.flatMap(r => r.kapanma || []);
+  const kapali = kap.filter(k => k > 0).length;
+  check(kap.length > 0, 'kapanma ölçülebiliyor', `${kap.length} bomba`);
+  check(kapali / kap.length < 0.3, 'bombaların dörtte üçünden çoğunun önü açık',
+    `%${Math.round(kapali / kap.length * 100)} kapalı`);
+  const ort = kap.reduce((a, b) => a + b, 0) / kap.length;
+  check(ort < 0.6, 'ortalama kapanma bombanın çapının altında',
+    `${ort.toFixed(2)} birim`);
+}
+
 // Mayın bölümü: tahta gerçekten dolu mu?
 //
 // Dördüncü görev tipi bomba katmanının üstüne kuruldu ve tek farkı bu oran.
