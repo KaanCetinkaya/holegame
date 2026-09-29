@@ -242,6 +242,24 @@ kurulduğunu **varsayarak** yazıyordu ve iki oturum boyunca o varsayımın
 üstüne plan yapıldı — "geçişi üretim başvurusundan sonra yap, sırayı
 şöyle kur". Bakmak beş saniye sürdü.
 
+### İki bağlantı, ve hangisi kime
+
+Test kullanıcıları sekmesinin altında **iki** bağlantı duruyor ve
+karıştırılırsa gönderilen kişi kapalı bir kapıya çarpıyor:
+
+| Bağlantı | Ne yapıyor | Kime |
+|---|---|---|
+| `https://play.google.com/apps/testing/com.kaancetinkaya.fruithole` | "Become a tester" — **kaydolma** | henüz kaydolmamış herkes |
+| `https://play.google.com/store/apps/details?id=com.kaancetinkaya.fruithole` | mağaza sayfası — **kurma** | zaten kaydolmuş olan |
+
+Sıra önemli: kaydolmamış biri mağaza bağlantısına basarsa uygulamayı
+bulamıyor, ve o kişinin bir daha denemesi için sebebi yok. Gönderilen
+mesajda **önce** `apps/testing`, sonra mağaza.
+
+Konsolda kopyalanırken de karışıyor, çünkü "Android'de katılın" başlığının
+altındaki bağlantı **mağaza** bağlantısı; kaydolma bağlantısı "Web'de
+katılın"ın altında. Başlıklar tersini ima ediyor.
+
 ### Karşılıklı test grubu ve 5 kurulum
 
 `testers-community@googlegroups.com` o "closed testing exchange"
