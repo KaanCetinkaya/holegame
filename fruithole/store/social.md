@@ -707,6 +707,51 @@ Takvim günü değişmediği için anlatı bozulmuyor.
 | 3 Eki | 52 | bazaar | |
 | 4 Eki | 53 | nazca | |
 
+### Testçi çağrısı nereye gidiyor
+
+Kapalı test on iki kayıtlı kişiyle yürüyor ve beşi oyunu kurmuş. Yeni
+testçi lazım, ve TikTok elimizdeki en sıcak kitle: izleyen kişi oyunu
+zaten görmüş oluyor.
+
+**Açıklamaya girmiyor.** Üç sebep:
+
+1. Açıklamanın işi anlatıyı sürdürmek. "Günlüğümün 48. günü" ile "lütfen
+   oyunumu test edin" aynı kutuda durunca ikincisi birincisini yiyor —
+   gönderi günlük olmaktan çıkıp ilana dönüşüyor.
+2. Bu hesabın ölçülmüş tek sorunu **dağıtım**, ve TikTok platform dışına
+   çıkaran açıklamaları daha az dağıtıyor. Zaten az olan izlenmeyi
+   kendimiz kısmış oluruz.
+3. Çağrı klibin doğruladığı bir söz değil. Bu dosyanın kuralı açıklamada
+   yalnızca klibin tuttuğu sözlerin durması.
+
+Gittiği iki yer:
+
+- **Sabitlenmiş yorum.** Gönderi atıldıktan hemen sonra kendi videona
+  yorum yaz, sonra basılı tutup "Sabitle" de. Yorum alanı platformun
+  içinde, yani dağıtım cezası yok, ve ilgilenen kişi zaten oraya bakıyor.
+- **Bio.** Bağlantı orada duruyor, çünkü TikTok açıklamadaki bağlantıyı
+  tıklanabilir yapmıyor.
+
+Sabitlenecek yorum:
+
+```
+if anyone wants to actually play it: it's on Google Play's closed test
+right now, link in bio. I need people who'll install it and play a few
+levels - tell me what breaks 🙏
+```
+
+Bio, bağlantı eklenmiş hâliyle:
+
+```
+solo dev · building Peelo: Fruit Hole 🕳️
+testers wanted → link below
+```
+
+"new level every week · free on Android" satırı çıktı: oyun henüz
+herkesin indirebileceği yerde değil ve "free on Android" onu ima ediyor.
+Kapalı testteyken bu, bağlantıya tıklayıp mağazada hiçbir şey bulamayan
+biri demek.
+
 ### Açıklamalar
 
 Her biri üç parça: gün satırı, o klibin **gerçekten** doğruladığı söz,
