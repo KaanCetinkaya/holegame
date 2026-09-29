@@ -274,20 +274,43 @@ Sırayla, en güvenilirden en zayıfa:
 ### Ne yazılacak
 
 Kısa, İngilizce (mağaza ve klipler zaten İngilizce), ve karşıdakine ne
-yapacağını söyleyen:
+yapacağını söyleyen. **Bağlantı verilmiyor, adres isteniyor** — kapalı
+testin katılma adresi listede olmayan birinde açılmıyor.
+
+**r/alphaandbetausers** — başlık:
+`[Android] Peelo: Fruit Hole - a one-finger arcade game, looking for closed testers`
 
 ```
-I'm looking for testers for my Android game, Peelo: Fruit Hole - you
-steer a hole around a field and swallow the fruit.
+I've been building this on my own for a few months. You steer a hole
+around a field of fruit and swallow what fits; the more you eat the
+bigger you get, until the melons go down too. 48 levels, each one a
+different shape on a different ground, and nothing in it is an image
+file - the fruit, the floors and the objects are all drawn in code.
 
-It's on Google Play's closed test, so I need people who will actually
-install it and play a few levels. No signup, no ads to sit through if
-you don't want them, works offline.
+It's on Google Play's closed test, which means I have to add people by
+hand. Comment or DM me the Gmail address you use on your phone and I'll
+put you on the list tonight.
 
-Join here: [kapalı test bağlantısı]
+What I actually need is people who install it and play past level 10 -
+the first few levels are easy and everything interesting starts after
+them. If something breaks, freezes or just feels wrong, tell me. Two of
+the bugs I fixed this month only turned up because someone photographed
+their screen.
 
-If anything breaks or feels off, tell me - that's the whole point.
+Free, no signup, works offline.
 ```
+
+**r/TestMyApp** — aynı metin, ilk paragraf atılarak. Orada oyunun ne
+olduğu değil, testin ne istediği okunuyor.
+
+**r/AndroidGaming** — **önce kenar çubuğundaki kuralları oku.** Çoğu
+büyük oyun alt forumu kendi oyununu tanıtmayı ya tamamen yasaklıyor ya
+da haftanın belirli bir gününe bağlıyor ("Self-promotion Saturday"
+gibi). Kuralı çiğneyen gönderi siliniyor ve hesap kısıtlanıyor; buradan
+gelecek beş kişi için o riske girilmez. İzin varsa metin yukarıdakinin
+aynısı.
+
+Gelen adresler biriktirilip **tek seferde** ekleniyor.
 
 Türkçe konuşulan tanıdıklara giden metin `29 Eylül` başlığının altında.
 
