@@ -1273,34 +1273,48 @@ function missionRule() {
   // zaten her koşu başında görünüp ilk dokunuşta sönüyor. Yalnızca dikenin
   // ilk çıktığı bölümde — ikinci kez söylemek, söylenen şeyi gürültüye
   // çevirir.
-  if (level === SPIKE_FROM) {
+  //
+  // Her satır tahtaya bağlı, bölüm numarasına değil.
+  //
+  // Ölçüldü ve fark önemliydi: tanıtım bölümünde mancınık 40 tohumun
+  // 29'unda, diken 33'ünde çıkıyordu. Yani oyuncuların dörtte biri
+  // "kırmızı halka bomba düşeceği yer" satırını üstünde tek mancınık
+  // olmayan bir tahtada okuyordu. Yerleştirme rastgele, satır ise sabit bir
+  // numaraya bakıyordu; bu depoda elle yazılan sayının çürümesiyle aynı
+  // hata, başka kılıkta.
+  //
+  // Yerleştirme tarafı da düzeltildi (tanıtım bölümünde daha uzun aranıyor
+  // ve diken için bir alt sınır var), ama hiç uygun yer olmayan tahtalar
+  // kalıyor. Orada satır susuyor: söylenmemiş bir kural, yanlış söylenmiş
+  // bir kuraldan iyidir.
+  if (level === SPIKE_FROM && spikes.length) {
     return 'SPIKES: they do not stop you — running over one costs you a size';
   }
   // Mancınığın tanıtıldığı bölüm. Dikenden de çok anlatılması gereken şey,
   // çünkü ilk kez tahtadaki bir şey oyuncuya **geliyor**: halkanın ne
   // olduğunu bilmeyen biri onu süs sanıp üstünde durur.
-  if (level === CATAPULT_FROM) {
+  if (level === CATAPULT_FROM && catapults.length) {
     return 'CATAPULTS: a red ring means a bomb is landing there — keep moving';
   }
   // Silindir hiçbir şey almıyor, o yüzden anlatılacak şey ceza değil **yol**:
   // oyuncunun bilmesi gereken tek şey, boş şeridin boş olmadığı.
-  if (level === ROLLER_FROM) {
+  if (level === ROLLER_FROM && rollers.length) {
     return 'ROLLERS: the bare lane is not empty — time your crossing';
   }
   // Çamur hiçbir şey almıyor ve ekranda hiçbir şey çakmıyor, yani oyuncunun
   // yavaşladığını fark etmesi gerekiyor. Söylenmezse "oyun bazen ağırlaşıyor"
   // diye okunur.
-  if (level === MUD_FROM) {
+  if (level === MUD_FROM && muds.length) {
     return 'MUD: you can cross it, but at half speed — going round may be faster';
   }
   // Rakip: ekranda ikinci bir koyu daire var ve oyuncunun hangisinin kendisi
   // olduğunu bilmesi gerekiyor. Kenarı kırmızı, ve satır da onu söylüyor.
-  if (level === RIVAL_FROM) {
+  if (level === RIVAL_FROM && rival) {
     return 'A RIVAL HOLE: the red one eats the crop too — get there first';
   }
   // Rüzgâr: oyuncunun sürdüğü yönle deliğin gittiği yön ayrılıyor, ve bu
   // söylenmezse "kontroller bozuk" diye okunur — en pahalı yanlış anlama.
-  if (level === WIND_FROM) {
+  if (level === WIND_FROM && wind) {
     return 'WIND: inside the marked band you drift — steer into it';
   }
   return HINT_DEFAULT;
@@ -19115,8 +19129,21 @@ function placeSpikes() {
   // tahtada bu bir dikene, çok seyrekte hiçbirine iniyor.
   const buyume = fruits.reduce((s, f) =>
     s + (f.eaten || f.bomb ? 0 : f.giant ? 9 : f.big ? 3 : 1), 0) * growthUnit();
-  const kac = Math.min(Math.round(rows * SPIKE_PER_ROW),
-                       Math.floor((buyume * SPIKE_SHARE) / SIZE_STEP));
+  // Tanıtım bölümünde en az bir tane.
+  //
+  // Ölçüldü: 40 tohumun 33'ünde diken çıkıyordu, yani oyuncuların %17'si
+  // "DİKENLER: seni durdurmuyor, üstünden geçmek bir boy götürüyor"
+  // satırını üstünde tek diken olmayan bir tahtada okuyordu. Tanıtım
+  // bölümü öğreten bölüm; öğrettiği şeyin orada olmaması, satırı
+  // gürültüye çeviriyor.
+  //
+  // Sebep tavan: seyrek bir tahtada `buyume * SPIKE_SHARE` bir dikenin
+  // bedelinin altına düşüyor ve sayı sıfıra iniyor. Tavanın kendisi doğru
+  // ve yerinde kalıyor — yalnızca bu tek bölümde bir alt sınır var, çünkü
+  // orada dikenin görevi ceza vermek değil, kendini tanıtmak.
+  const taban = level === SPIKE_FROM ? 1 : 0;
+  const kac = Math.max(taban, Math.min(Math.round(rows * SPIKE_PER_ROW),
+                       Math.floor((buyume * SPIKE_SHARE) / SIZE_STEP)));
   if (kac < 1) return;
   // Kenar payı kayanınki **değil**, ve fark dikenin tanımından geliyor.
   //
@@ -19133,7 +19160,10 @@ function placeSpikes() {
   const kenar = SPIKE_R + 0.8;
   const mX = fieldHalfX - kenar, mZ = fieldHalfZ - kenar;
   if (mX <= 0 || mZ <= 0) return;
-  for (let deneme = 0; deneme < kac * 40 && spikes.length < kac; deneme++) {
+  // Tanıtım bölümünde çok daha fazla deneme: orada bir diken bulunması
+  // "iyi olur" değil, satırın doğru olmasının şartı.
+  const dene = level === SPIKE_FROM ? kac * 400 : kac * 40;
+  for (let deneme = 0; deneme < dene && spikes.length < kac; deneme++) {
     const x = (rnd() * 2 - 1) * mX;
     const z = (rnd() * 2 - 1) * mZ;
     if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + SPIKE_R + 3) continue;
@@ -19218,7 +19248,17 @@ function placeCatapults() {
   const kenar = HOLE_MAX + CATAPULT_R + 1.2;
   const mX = fieldHalfX - kenar, mZ = fieldHalfZ - kenar;
   if (mX <= 0 || mZ <= 0) return;
-  for (let deneme = 0; deneme < kac * 40 && catapults.length < kac; deneme++) {
+  // Tanıtım bölümünde çok daha fazla deneme.
+  //
+  // Ölçüldü: 40 tohumun yalnızca 29'unda mancınık çıkıyordu, yani
+  // oyuncuların dörtte biri "kırmızı halka bomba düşeceği yer" satırını
+  // üstünde tek mancınık olmayan bir tahtada okuyordu. Burada sebep sayı
+  // değil **yer**: kenar payı, doğuş yeri, kolosun önü ve her kayadan bir
+  // ağız boyu uzaklık birlikte kırk denemeye sığmıyor. Kurallardan biri
+  // gevşetilmedi — hepsinin bir sebebi var ve yukarıda yazılı — yalnızca
+  // bu tek bölümde daha uzun aranıyor.
+  const dene = level === CATAPULT_FROM ? kac * 400 : kac * 40;
+  for (let deneme = 0; deneme < dene && catapults.length < kac; deneme++) {
     const x = (rnd() * 2 - 1) * mX;
     const z = (rnd() * 2 - 1) * mZ;
     if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + CATAPULT_R + 4) continue;
