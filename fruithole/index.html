@@ -19312,6 +19312,23 @@ function placeCatapults() {
     // Dikenle çakışmasın: ikisi bir arada, oyuncunun neyden ne yediğini
     // göremediği yer.
     if (spikes.some(s => Math.hypot(s.x - x, s.z - z) < s.r + CATAPULT_R + HOLE_MAX)) continue;
+    // Devin dibine kurulmuyor.
+    //
+    // Aşağıdaki temizlik `f.giant`ı atlıyor ve atlaması doğru: dev tahtanın
+    // en değerli parçası, bir makine için silinmez. Ama silinmeyince de
+    // mancınığın içinde kalıyordu, ve mancınık katı — yani o dev bir daha
+    // yutulamıyor. Taranınca çıktı: her ulaşılamaz parçanın dibinde bir
+    // mancınık vardı, tahta başına bir tane.
+    //
+    // Ucuz olan dev değil mancınık: yeri rastgele ve denemesi bol.
+    //
+    // Pay devin **kendi boyundan** ölçülüyor, `HOLE_MAX`tan değil. İlk
+    // yazışta HOLE_MAX'tı ve fazla katıydı: tanıtım bölümünde mancınığın
+    // çıkma oranı %95'ten %50'ye düştü. Gereken şey bir devi yutabilecek
+    // kadar büyümüş deliğin oraya sığması, ve o boy devin boyu kadar — en
+    // büyük delik kadar değil.
+    if (fruits.some(f => !f.eaten && f.giant &&
+        Math.hypot(f.x - x, f.z - z) < f.r * 2 + CATAPULT_R)) continue;
     for (const f of fruits) {
       if (f.eaten || f.giant) continue;
       if (Math.hypot(f.x - x, f.z - z) > CATAPULT_R + NORMAL_R * 1.4) continue;
@@ -24276,6 +24293,139 @@ window.fruitHoleBombs = () => {
 // Sıfır olmalı: bir kule tek hamlede iniyor, yani kulede duran bir bomba —
 // altta da olsa üstte de — kuleyi almanın bedeli oluyor ve kaçınılabilir
 // bir şey kaçınılmaz hâle geliyor.
+// Tahtanın sağlığı: oyuncunun gördüğü ama kimsenin ölçmediği şeyler.
+//
+// Buradaki beş sayının hepsi sıfır olmalı ve hiçbirinin sıfır olduğu
+// ölçülmemişti. Böyle bir şeyin bozulması sessiz: kod çalışıyor, test
+// geçiyor, ve yanlış yalnızca tahtaya bakan oyuncuda görünüyor — bombanın
+// kulenin dibinde durması da tam olarak böyle yaşadı.
+// Tahtanın her yerine gidilebiliyor mu: kayaların arasından bir yol var mı.
+//
+// `placeRocks` bunu **yerel** kurallarla koruyor: iki kaya arası en geniş
+// ağızdan geniş, kenarla kaya arası da öyle. İkisi de doğru kurallar ve
+// `holerock.mjs` ikisini de ölçüyor — ama ölçtükleri şey kuralın kendisi,
+// korumak istediği şey değil. Bomba da tam böyleydi: kural yazılıydı,
+// savunulmuştu, ve onu uygulayan satır çalışmıyordu.
+//
+// Burada sorulan şey doğrudan: deliğin doğduğu yerden başlayıp tahtayı
+// tarayınca, ulaşılamayan bir meyve kalıyor mu. Kalıyorsa bölüm sessizce
+// bitirilemez — saat doluyor, sebep görünmüyor.
+//
+// Yarıçap parametre, çünkü cevap delik büyüdükçe değişiyor: bir açıklık
+// başlangıçta geçiliyor, yirmi meyve sonra geçilmiyor. Delik yalnızca
+// büyüdüğü için bu geri alınamaz bir kapanma.
+window.fruitHoleReach = (r) => {
+  const R = r == null ? BASE_HOLE_R : r;
+  // Tarama adımı kapıdan dar olmalı.
+  //
+  // İlk ölçüde 0.5'ti ve bulmaca tahtalarında 147 parçayı "ulaşılamaz"
+  // saydı — oysa bulmacanın tamamı tasarım gereği başlangıç deliğiyle
+  // gezilebilir. Kapı genişliği bir birimin altına inebiliyor, yani 0.5'lik
+  // ızgara kapının içine hiç nokta koymuyordu. Ölçümün çözünürlüğü,
+  // ölçtüğü şeyin en dar yerinden ince olmak zorunda.
+  const ADIM = 0.15;
+  const nx = Math.ceil(fieldHalfX * 2 / ADIM) + 1;
+  const nz = Math.ceil(fieldHalfZ * 2 / ADIM) + 1;
+  const katilar = [...rocks.map(o => ({ x: o.x, z: o.z, r: ROCK_R })),
+                   ...catapults.map(o => ({ x: o.x, z: o.z, r: CATAPULT_R }))];
+  const acik = (x, z) => {
+    if (Math.abs(x) > fieldHalfX || Math.abs(z) > fieldHalfZ) return false;
+    for (const o of katilar) if (Math.hypot(x - o.x, z - o.z) < o.r + R) return false;
+    return true;
+  };
+  const idx = (i, j) => i * nz + j;
+  const gorulen = new Uint8Array(nx * nz);
+  const xOf = i => -fieldHalfX + i * ADIM, zOf = j => -fieldHalfZ + j * ADIM;
+  // Başlangıç noktası deliğin **gerçek** yeri, varsayılan doğuş yeri değil.
+  //
+  // İlk ölçüde `SPAWN_X, spawnZ()` yazıyordu ve bulmaca tahtalarında 147
+  // parçayı "ulaşılamaz" saydı. Sebep tahtada değil ölçüdeydi: bulmacada
+  // delik koridorda doğuyor, sıradan tahtaların doğuş noktasında değil.
+  // `holepuzzle.mjs` kendi ölçüsüyle "0 ulaşılmaz" diyordu ve haklıydı.
+  const i0 = Math.round((holeX + fieldHalfX) / ADIM);
+  const j0 = Math.round((holeZ + fieldHalfZ) / ADIM);
+  const yigin = [];
+  if (i0 >= 0 && i0 < nx && j0 >= 0 && j0 < nz && acik(xOf(i0), zOf(j0))) {
+    gorulen[idx(i0, j0)] = 1; yigin.push([i0, j0]);
+  }
+  while (yigin.length) {
+    const [i, j] = yigin.pop();
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const a = i + di, b = j + dj;
+      if (a < 0 || a >= nx || b < 0 || b >= nz || gorulen[idx(a, b)]) continue;
+      if (!acik(xOf(a), zOf(b))) continue;
+      gorulen[idx(a, b)] = 1; yigin.push([a, b]);
+    }
+  };
+  // Bir meyveye ulaşılıyor mu: yakınında görülen bir kare varsa.
+  let ulasilmaz = 0;
+  const yerler = [];
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    const i = Math.round((f.x + fieldHalfX) / ADIM);
+    const j = Math.round((f.z + fieldHalfZ) / ADIM);
+    let bulundu = false;
+    for (let a = i - 1; a <= i + 1 && !bulundu; a++) {
+      for (let b = j - 1; b <= j + 1 && !bulundu; b++) {
+        if (a >= 0 && a < nx && b >= 0 && b < nz && gorulen[idx(a, b)]) bulundu = true;
+      }
+    }
+    if (!bulundu) { ulasilmaz++; if (yerler.length < 6) yerler.push({ x: +f.x.toFixed(2), z: +f.z.toFixed(2) }); }
+  }
+  return { yaricap: +R.toFixed(3), ulasilmaz, yerler,
+           kenar: { x: +fieldHalfX.toFixed(2), z: +fieldHalfZ.toFixed(2) },
+           parca: fruits.filter(f => !f.eaten).length };
+};
+window.fruitHoleSanity = () => {
+  const canli = fruits.filter(f => !f.eaten);
+  // 1. Üst üste binen parça: ekranda tek şey görünüyor, iki kez yeniyor.
+  const yer = new Map();
+  let ustUste = 0;
+  for (const f of canli) {
+    const k = `${f.x}|${f.z}|${(f.baseY || 0).toFixed(3)}`;
+    if (yer.has(k)) ustUste++; else yer.set(k, f);
+  }
+  // 2. Altı boş meyve: havada duran bir parça, kulenin bir katı eksikken.
+  const sutun = new Map();
+  for (const f of canli) {
+    const k = `${f.x}|${f.z}`;
+    if (!sutun.has(k)) sutun.set(k, []);
+    sutun.get(k).push(f);
+  }
+  let bosluk = 0;
+  for (const kat of sutun.values()) {
+    if (kat.length < 2) continue;
+    kat.sort((a, b) => (a.baseY || 0) - (b.baseY || 0));
+    for (let i = 1; i < kat.length; i++) {
+      const fark = (kat[i].baseY || 0) - (kat[i - 1].baseY || 0);
+      // İki kat arası, alttakinin çapından belirgin biçimde fazlaysa boşluk.
+      if (fark > kat[i - 1].r * 2 + 0.25) { bosluk++; break; }
+    }
+  }
+  // 3. Tahta dışına taşan parça: ulaşılamayan meyve, bitirilemez bölüm.
+  const disarida = canli.filter(f =>
+    Math.abs(f.x) > fieldHalfX + 0.6 || Math.abs(f.z) > fieldHalfZ + 0.6).length;
+  // 4. İç içe geçmiş katı engeller: ekranda tek bir şey, kuralları iki.
+  const katilar = [...rocks.map(o => ({ ...o, r: ROCK_R })),
+                   ...catapults.map(o => ({ x: o.x, z: o.z, r: CATAPULT_R })),
+                   ...rollers.map(o => ({ x: o.x, z: o.z, r: ROLLER_R }))];
+  let katiCakisma = 0;
+  for (let i = 0; i < katilar.length; i++) {
+    for (let j = i + 1; j < katilar.length; j++) {
+      const a = katilar[i], b = katilar[j];
+      if (Math.hypot(a.x - b.x, a.z - b.z) < (a.r + b.r) * 0.9) katiCakisma++;
+    }
+  }
+  // 5. Doğuş yerinde katı: oyuncu tahtaya inip ilk hamlesinde duvara çarpıyor.
+  //
+  // Pay `placeRocks`'ın kendi payı. Uydurulmuş bir sayı kullanmak, kodun
+  // söz verdiğinden başka bir şeyi ölçmek olurdu: ilk yazışta `HOLE_MAX`
+  // yazılmıştı ve o, oyunun kuralından **daha gevşek** — yani kural
+  // çiğnenirken bile sessiz kalabilirdi.
+  const dogusKatisi = katilar.filter(o =>
+    Math.hypot(o.x - SPAWN_X, o.z - spawnZ()) < HOLE_MAX + o.r + 3).length;
+  return { parca: canli.length, ustUste, bosluk, disarida, katiCakisma, dogusKatisi };
+};
 window.fruitHoleBombHucre = () => {
   const b = fruits.filter(f => !f.eaten && f.bomb);
   let paylasan = 0;
