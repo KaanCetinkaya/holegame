@@ -21442,6 +21442,29 @@ const ORDER_FLOOR = 30;     // küçük tarlada bile bölüm bölüm olsun
 // kısa. Doğru sayı Kaan'ın oynamasından gelecek — dar gelirse yukarı,
 // her bölüm üç yıldız veriyorsa aşağı.
 const CARD_SLACK = 2.8;
+// Geç turlarda pay daralıyor.
+//
+// Ölçüldü: dört tur boyunca kart/saniye oranı 1.10, 1.19, 1.16, 1.14 —
+// yani düz. Sebebi yapısal: kartlı bir bölümün saati kartın kendi turundan
+// çıkıyor, yani kart büyüyünce saat de büyüyor ve oran hiç kıpırdamıyor.
+// 55. bölümdeki oyuncu 10. bölümdekiyle aynı sıkışıklıkta oynuyor, ve
+// 145'te de öyle olacak. Tırmanılacak bir şey yok.
+//
+// Saati kısmak denenmiş ve geri alınmış: `levelSeconds` içindeki
+// `squeeze` tam olarak bunu yapıyor ama kartlı bölümlerde kapalı, çünkü
+// kartın saati kaba bir üst sınır değil o tahtaya özel bir tur ölçümü ve
+// içinde yenecek pay yok — %28 binince 205. bölümde kusursuz bot bile
+// yetişememiş.
+//
+// Oynanabilirliği bozmadan değişebilecek tek şey **oranın kendisi**. Tur
+// başına 0.15 iniyor ve 2.35'te duruyor: dördüncü turda pay yine kartın
+// turunun iki katından fazla, yani yetişilebilir bir tahta. Taban olmadan
+// yedinci turda oran 1'in altına inerdi — bitirilemez bölüm demek.
+const CARD_SLACK_STEP = 0.15;
+const CARD_SLACK_MIN = 2.35;
+function cardSlack() {
+  return Math.max(CARD_SLACK_MIN, CARD_SLACK - tier() * CARD_SLACK_STEP);
+}
 // Rush: saat kısa başlıyor ve her meyve ona ekliyor.
 //
 // Öteki iki görev "neyi yiyeceğini" değiştiriyor; bu, "ne kadar durabileceğini"
@@ -21725,7 +21748,7 @@ function levelTime() {
     // yarısını bile istemediği için her bölüm üç yıldızla biterdi; o hata
     // bir kez yapıldı ve README'de duruyor ("42-82% spare everywhere").
     : cards.length
-    ? Math.max(ORDER_FLOOR, Math.round(cardTourSeconds() * CARD_SLACK))
+    ? Math.max(ORDER_FLOOR, Math.round(cardTourSeconds() * cardSlack()))
     : Math.round(sweepSeconds() * 2.6);
   // Geç turlar daha sıkı — ama sipariş bölümü hariç.
   //

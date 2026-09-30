@@ -124,6 +124,58 @@ check(kartli.filter(r => r.n >= 10).every(r => r.cards.length <= 3),
 // tamamı düşerse yukarıdaki üç kontrol de koşmuyor.
 //
 // Daha hızlı bir makinede `node scratchpad/holecard.mjs --bot`.
+console.log('\nturlar sıkılaşıyor mu, ve hâlâ bitirilebilir mi');
+{
+  // İki şey birden ölçülüyor, çünkü ikisi birbirinin bedeli.
+  //
+  // Ölçüldü: dört tur boyunca kart/saniye oranı 1.10, 1.19, 1.16, 1.14 —
+  // düz. Sebebi yapısal: kartlı bir bölümün saati kartın **kendi turundan**
+  // çıkıyor, yani kart büyüyünce saat de büyüyor ve oran hiç kıpırdamıyor.
+  // 55. bölümdeki oyuncu 10. bölümdekiyle aynı sıkışıklıkta oynuyordu.
+  //
+  // Saati kısmak denenmiş ve geri alınmıştı — `levelSeconds` içindeki
+  // `squeeze` tam olarak bunu yapıyor ama kartlı bölümlerde kapalı, çünkü
+  // kartın saati kaba bir üst sınır değil o tahtaya özel bir tur ölçümü ve
+  // üstüne %28 binince 205. bölümde kusursuz bot bile yetişememiş. Değişen
+  // şey artık payın kendisi: `cardSlack()` tur başına 0.15 iniyor.
+  //
+  // Alt sınır de burada: pay 2.3'ün altına inerse saat, kartın turunun iki
+  // katından aza düşer ve oradan sonrası bitirilemez bölüm. Taban olmasa
+  // yedinci turda oran 1'in altına inerdi.
+  const satir = [];
+  // 47. bölüm (Dial) her turda sıradan bir ızgara tahtası: görev her beşinci
+  // bölümde, resim/şerit/bulmaca başka yuvalarda. Örnek bölüm elle
+  // seçilmiyor da olmuyor — tur karşılaştırması ancak **aynı** düzenin
+  // turları arasında anlamlı.
+  for (const n of [47, 95, 143, 191, 239, 287]) {
+    const o = await pg.evaluate(l => {
+      window.fruitHoleSeedField(8800 + (l % 48));
+      const p = window.fruitHoleProbe(l);
+      if (p.kind !== 'ızgara' || p.mission) { window.fruitHoleUnseedField(); return null; }
+      const c = window.fruitHoleCards();
+      window.fruitHoleUnseedField();
+      return { turSn: c.tur, saat: c.saat };
+    }, n);
+    if (o && o.turSn > 0) {
+      satir.push({ n, tur: Math.floor((n - 1) / 48) + 1, ...o, pay: o.saat / o.turSn });
+    }
+  }
+  console.log('\n  blm  tur | kartın turu    saat |  pay');
+  console.log('  ----+-----+-------------+------+------');
+  for (const r of satir) {
+    console.log(`  ${String(r.n).padStart(3)} | ${String(r.tur).padStart(3)} | ` +
+      `${String(r.turSn + 's').padStart(11)} | ${String(r.saat + 's').padStart(4)} | ${r.pay.toFixed(2)}`);
+  }
+  check(satir.length >= 4, 'birkaç turdan ölçüm alındı', String(satir.length));
+  const enDar = Math.min(...satir.map(r => r.pay));
+  check(enDar >= 2.3, 'en geç turda bile saat, kartın turunun 2.3 katından fazla',
+    enDar.toFixed(2));
+  // Ve gerçekten sıkılaşıyor: olmazsa bu bölüm hiçbir şey ölçmüyor demektir.
+  const ilk = satir[0].pay, son = satir[satir.length - 1].pay;
+  check(son < ilk - 0.2, 'geç turlar ilk turdan belirgin biçimde daha sıkı',
+    `${ilk.toFixed(2)} -> ${son.toFixed(2)}`);
+}
+
 if (!process.argv.includes('--bot')) {
   console.log('\nbot koşusu atlandı (--bot ile açılır)');
   console.log('\nsayfa hataları: ' + (errs.length ? errs.join(' | ') : 'yok'));
@@ -140,7 +192,36 @@ if (!process.argv.includes('--bot')) {
 console.log('\nbot koşusu (sahte saat):');
 console.log('blm | kart | botun işi | verilen saat | pay');
 console.log('----+------+-----------+--------------+-----');
+// İlk on kart bölümü, **artı geç turlardan birkaçı.**
+//
+// Önce yalnızca ilk on vardı ve hepsi 1. turdan: yani saat payının tur
+// başına daraldığı değişiklik, tam da etkilediği yerde ölçülmüyordu. Geç
+// turun bitirilebilirliği bu dosyanın en pahalı sorusu, çünkü yanlış
+// cevabı ancak oraya gelmiş bir oyuncuda görünüyor — ve oraya gelen oyuncu,
+// elde tutmaya değer tek oyuncu.
+//
+// 47'nin katları seçildi: o düzen her turda sıradan bir ızgara tahtası
+// kalıyor (görev her beşinci bölümde, resim ve şerit başka yuvalarda).
+// İkisi yetiyor ve sebebi maliyet: bir geç tur koşusu SwiftShader'la ~15
+// dakika (kare başına ~70 ms, 400 saniyelik oyun). `--bot` zaten isteğe
+// bağlı; beş geç bölüm koymak onu kimsenin çalıştırmayacağı bir şey yapar,
+// ve çalıştırılmayan bir ölçü, olmayan ölçüdür.
+//
+// 191 payın tabana oturduğu ilk tur (4.), 287 ise altıncı: tabanın gerçekten
+// taban olduğunu, yani daha aşağı inmediğini gösteriyor.
+const GEC = [191, 287];
 const KOS = kartli.filter(r => r.kind === 'ızgara').slice(0, 10);
+for (const n of GEC) {
+  const o = await pg.evaluate(l => {
+    window.fruitHoleSeedField(9100 + l);
+    const p = window.fruitHoleProbe(l);
+    if (p.kind !== 'ızgara' || p.mission) { window.fruitHoleUnseedField(); return null; }
+    const c = window.fruitHoleCards();
+    window.fruitHoleUnseedField();
+    return { n: l, kind: p.kind, cards: c.cards, saat: c.saat };
+  }, n);
+  if (o) KOS.push(o);
+}
 const dar = [];
 for (const r of KOS) {
   const o = await pg.evaluate(async (lvl) => {
