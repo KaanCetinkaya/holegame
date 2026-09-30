@@ -20365,15 +20365,36 @@ function placeBombs() {
   // bağımlı yapardı ve o bağ yanlış yönde.
   const mayin = missionKindFor(level) === 'mines';
   const kac = Math.round(fruits.length * (mayin ? MINE_RATE : BOMB_RATE));
+  // Bomba kulenin parçası değil: hücreyi tek başına tutuyor.
+  //
+  // Bu kural iki yanlış denemeden sonra yazıldı ve ikisi de aynı oyuncudan
+  // geldi. Önce bomba kulenin **altında** kalıyordu (seçim satırı
+  // çalışmıyordu): Kaan 55. bölümden bir ekran görüntüsü attı, çilek
+  // kulesinin dibinde bir bomba. Düzeltildi, bomba kulenin **tepesine**
+  // çıktı — ve 45. bölümden ikinci bir ekran görüntüsü geldi: karpuz
+  // kulesinin tepesinde bir bomba.
+  //
+  // İkisi de aynı şey. Bir kule tek hamlede iniyor, yani kulede bir bomba
+  // varsa kuleyi almak bombayı almak demek — altta da olsa üstte de. Kod
+  // "kulenin tepesindeki bomba gerçek bir karar" diyordu; kart o meyveyi
+  // istiyorsa karar değil, vergi.
+  //
+  // Doğrusu bombanın kulede hiç olmaması. Hücrenin öbür parçaları
+  // kaldırılıyor ve bomba zemine, tek başına oturuyor: etrafından
+  // dolaşılabilen, gerçekten kaçınılabilir bir şey. Bedeli tahtadan birkaç
+  // parça; `levelGoal` bombalardan sonra sayıldığı için hedef de doğru
+  // kalıyor.
+  const silinecek = new Set();
   for (let i = 0; i < kac && aday.length; i++) {
     const f = aday.splice(Math.floor(rnd() * aday.length), 1)[0];
-    // Kulenin tamamı değil tek parça: bir hücrede üst üste duran meyvelerin
-    // yalnızca biri bombaysa geri kalanı hâlâ yenebilir olmalı. Bomba
-    // parçanın kendi yüksekliğinde duruyor — zemine konsaydı kulenin içinde
-    // kaybolurdu.
-    // Yükseklik tutamaktan değil kaydından okunuyor: bu satır nesneler
-    // kurulmadan önce çalışıyor, yani `f.mesh` henüz yok.
-    const y = f.baseY;
+    // Hücredeki öbür parçalar gidiyor ve bomba onların en altına oturuyor.
+    let y = f.baseY;
+    for (const o of fruits) {
+      if (o === f || o.eaten || o.bomb) continue;
+      if (o.x !== f.x || o.z !== f.z) continue;
+      y = Math.min(y, o.baseY || 0);
+      silinecek.add(o);
+    }
     if (f.mesh) fieldGroup.remove(f.mesh);
     const mesh = BOMB_GEO.clone();
     mesh.scale.set(BOMB_R, BOMB_R, BOMB_R);
@@ -20387,6 +20408,10 @@ function placeBombs() {
     f.bomb = true;
     f.prop = null;
     f.baseY = y;
+  }
+  if (silinecek.size) {
+    for (const o of silinecek) if (o.mesh) fieldGroup.remove(o.mesh);
+    fruits = fruits.filter(f => !silinecek.has(f));
   }
 }
 
@@ -24223,6 +24248,19 @@ window.fruitHoleBombs = () => {
 //
 // Sıfır olmalı: bomba hücresinin tepesinde durmalı, yoksa kuleyi yemek
 // bombayı yemek demek ve kaçınılabilir bir şey kaçınılmaz olur.
+// Bomba hücresini paylaşıyor mu.
+//
+// Sıfır olmalı: bir kule tek hamlede iniyor, yani kulede duran bir bomba —
+// altta da olsa üstte de — kuleyi almanın bedeli oluyor ve kaçınılabilir
+// bir şey kaçınılmaz hâle geliyor.
+window.fruitHoleBombHucre = () => {
+  const b = fruits.filter(f => !f.eaten && f.bomb);
+  let paylasan = 0;
+  for (const bm of b) {
+    if (fruits.some(f => !f.eaten && f !== bm && f.x === bm.x && f.z === bm.z)) paylasan++;
+  }
+  return { toplam: b.length, paylasan };
+};
 window.fruitHoleBombUstunde = () => {
   const b = fruits.filter(f => !f.eaten && f.bomb);
   let altta = 0, enFazla = 0;

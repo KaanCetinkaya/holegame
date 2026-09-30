@@ -50,7 +50,7 @@ const satir = [];
 for (const n of [1, 3, 5, 6, 10, 14, 19, 24, 35]) {
   const d = await pg.evaluate(lv => {
     const p = window.fruitHoleProbe(lv);
-    return { kind: p.kind, ...window.fruitHoleBombs(), ustunde: window.fruitHoleBombUstunde() };
+    return { kind: p.kind, ...window.fruitHoleBombs(), ustunde: window.fruitHoleBombUstunde(), hucre: window.fruitHoleBombHucre() };
   }, n);
   satir.push({ n, ...d });
   console.log(`  ${String(n).padStart(2)}. bölüm — ${String(d.sayi).padStart(2)} bomba / ` +
@@ -112,6 +112,22 @@ check(cakisan.length === 0, 'iki bomba aynı hücrede değil',
   check(toplam > 0, 'ölçülecek bomba var', String(toplam));
   check(altta === 0, 'hiçbir bombanın üstünde meyve yok',
     `${altta}/${toplam} bombanın üstünde var`);
+
+  // Ve hiçbirinin altında da yok: bomba hücresini paylaşmıyor.
+  //
+  // Bu, yukarıdakinden daha güçlü bir şart ve ikinci bir ekran
+  // görüntüsünden sonra yazıldı. Bomba önce kulenin altında kalıyordu,
+  // düzeltilince tepesine çıktı — ve tepesi de aynı şey: bir kule tek
+  // hamlede iniyor, yani kulede bir bomba varsa kuleyi almak bombayı almak
+  // demek. "Kulenin tepesindeki bomba gerçek bir karar" diye yazılmıştı;
+  // kart o meyveyi istiyorsa karar değil, vergi.
+  //
+  // İkisi birden duruyor çünkü ikisi ayrı şeyi söylüyor: üstteki ölçü
+  // seçim satırının çalıştığını, bu ölçü kuralın kendisini.
+  const hucre = gec.map(r => r.hucre).filter(Boolean);
+  const paylasan = hucre.reduce((a, b) => a + b.paylasan, 0);
+  check(paylasan === 0, 'hiçbir bomba hücresini bir meyveyle paylaşmıyor',
+    `${paylasan}/${toplam}`);
 }
 
 // Bomba görünüyor mu?
