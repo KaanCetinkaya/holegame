@@ -50,7 +50,7 @@ const satir = [];
 for (const n of [1, 3, 5, 6, 10, 14, 19, 24, 35]) {
   const d = await pg.evaluate(lv => {
     const p = window.fruitHoleProbe(lv);
-    return { kind: p.kind, ...window.fruitHoleBombs() };
+    return { kind: p.kind, ...window.fruitHoleBombs(), ustunde: window.fruitHoleBombUstunde() };
   }, n);
   satir.push({ n, ...d });
   console.log(`  ${String(n).padStart(2)}. bölüm — ${String(d.sayi).padStart(2)} bomba / ` +
@@ -87,6 +87,32 @@ check(Math.max(...pay) < 0.03, 'bomba payı %3\'ün altında',
 const cakisan = gec.filter(r => new Set(r.yerler.map(y => y.x + ',' + y.z)).size !== r.yerler.length);
 check(cakisan.length === 0, 'iki bomba aynı hücrede değil',
   cakisan.length ? `${cakisan.map(r => r.n + '. bölüm').join(', ')}` : '');
+
+// Bomba hücresinin tepesinde mi?
+//
+// Bu ölçü Kaan'ın 55. bölümden attığı bir ekran görüntüsünden çıktı: çilek
+// kulesinin **altında** bir bomba duruyordu, yani kuleyi yemek bombayı
+// yemek demekti ve kaçınılabilir bir şey kaçınılmaz oluyordu.
+//
+// `placeBombs` bombayı hücrenin en üst parçasına koyuyor ve bunun neden
+// böyle olduğu orada uzun uzun yazılı. Kural yerindeydi; onu uygulayan
+// satır çalışmıyordu. Seçim `f.mesh.position.y`'ye bakıyordu, oysa o
+// fonksiyon **nesneler kurulmadan önce** çalışıyor — birkaç satır
+// aşağısında bu zaten yazılı ve orada `baseY` kullanılıyor. Yani her
+// karşılaştırma `0 > 0` idi ve "en üstteki" diye seçilen parça, dizide ilk
+// gelen parçaydı.
+//
+// Ölçüldü: bombaların **%67'sinin** üstünde meyve vardı, en fazlası altı
+// parça. Yazılmış bir kuralın çalıştığını kimse ölçmemişti.
+{
+  const ust = [];
+  for (const r of gec) if (r.ustunde) ust.push(r.ustunde);
+  const toplam = ust.reduce((a, b) => a + b.toplam, 0);
+  const altta = ust.reduce((a, b) => a + b.altta, 0);
+  check(toplam > 0, 'ölçülecek bomba var', String(toplam));
+  check(altta === 0, 'hiçbir bombanın üstünde meyve yok',
+    `${altta}/${toplam} bombanın üstünde var`);
+}
 
 // Bomba görünüyor mu?
 //

@@ -1259,7 +1259,11 @@ function missionRule() {
     return 'RUSH: the clock is short — every fruit you swallow adds to it';
   }
   if (missionKind === 'mines') {
-    return 'MINEFIELD: the crop is full of bombs — every one costs you five seconds';
+    // Sayı `BOMB_COST`'tan: satırda "five" yazılıydı ve bedel başka bir
+    // yerde duruyordu. Aynı sayı oyuncuya üçüncü bir yerde daha
+    // gösteriliyor — bombayı yutunca bombanın üstünde beliren `−5s` —
+    // yani üç yerin üçü de tek bir sabitten okumalı.
+    return `MINEFIELD: the crop is full of bombs — every one costs you ${BOMB_COST} seconds`;
   }
   if (missionKind === 'puzzle') {
     return 'PUZZLE: no clock. The hole only grows — go through the narrow doors first';
@@ -1946,17 +1950,18 @@ function upgCost(u) { return u.base * Math.pow(2, upg(u.id)); }
 // everything but name and there was no reason not to fire all three every
 // level.
 // ---------------------------------------------------------------------
+// Süre boosterının verdiği saniye. Hem açıklamada hem etkisinde aynı sayı
+// olmalı ve iki yerde durursa olmuyor — bkz. aşağıdaki açıklama geçişi.
+const BOOST_TIME_SEC = 15;
 const BOOSTERS = [
-  { id: 'time',   icon: '⏰', name: 'Time',     unlock: 4,  pay: 'lychee', cost: 120, free: 2,
-    desc: '+15 seconds' },
+  { id: 'time',   icon: '⏰', name: 'Time',     unlock: 4,  pay: 'lychee', cost: 120, free: 2 },
   { id: 'grow',   icon: '💥', name: 'Grow',     unlock: 7,  pay: 'banana', cost: 150, free: 1,
     desc: 'Hole grows at once' },
   // 135 -> 120: bir bölümün karpuz kazancının %52'siydi, kural yarısını
   // geçmemesini istiyor. Sayının yanlış olduğu, `holeecon` bölüm başına tek
   // tohum yerine üç tohumun ortalamasını almaya başlayınca görüldü — tek
   // tohumla %44 diyordu ve o, şanslı bir tahtaydı.
-  { id: 'magnet', icon: '🌟', name: 'Super magnet', unlock: 10, pay: 'melon', cost: 120, free: 1,
-    desc: '8 seconds of strong pull' },
+  { id: 'magnet', icon: '🌟', name: 'Super magnet', unlock: 10, pay: 'melon', cost: 120, free: 1 },
   // Dördüncüsü ve dördüncü meyve.
   //
   // Üç booster üç meyveyi kullanıyordu ve **çilek boştaydı** — oyunun ilk
@@ -20292,8 +20297,24 @@ function placeBombs() {
     if (f.eaten || f.prop) continue;
     if (Math.hypot(f.x - SPAWN_X, f.z - spawnZ()) <= 4.5) continue;
     const k = f.x + ',' + f.z;
+    // Yükseklik `baseY`'den okunuyor, `mesh`ten değil.
+    //
+    // Burada `f.mesh.position.y` yazıyordu ve bu fonksiyon **nesneler
+    // kurulmadan önce** çalışıyor — birkaç satır aşağıdaki yorum bunu zaten
+    // söylüyor ve orada `baseY` kullanılıyor. Yani `f.mesh` her parçada
+    // undefined'dı, karşılaştırma her seferinde `0 > 0` oluyordu, ve
+    // hücrenin "en üstteki" parçası diye seçilen şey aslında **dizide ilk
+    // gelen** parçaydı: çoğu zaman kulenin dibi.
+    //
+    // Oyuncunun gördüğü: çilek kulesinin altında bir bomba. Kuleyi yemek
+    // için bombayı yemek gerekiyor, kaçınılabilir bir şey kaçınılmaz hâle
+    // geliyor. Kaan 55. bölümde bunu yaşadı — "her türlü tuzağa takılıyorum".
+    //
+    // Bombanın kulenin tepesinde durması bu fonksiyonun ilk kuralı ve
+    // sebebi yukarıda yazılı; kural yerindeydi, onu uygulayan satır
+    // çalışmıyordu.
     const ust = hucreler.get(k);
-    if (!ust || (f.mesh ? f.mesh.position.y : 0) > (ust.mesh ? ust.mesh.position.y : 0)) {
+    if (!ust || (f.baseY || 0) > (ust.baseY || 0)) {
       hucreler.set(k, f);
     }
   }
@@ -20831,6 +20852,26 @@ let holeGroup;
 let magnetRing;
 const MAGNET_BOOST_MS = 8000;
 const MAGNET_BOOST_REACH = 1.6;
+// Sayılı booster açıklamaları, sayının kendisinden.
+//
+// İkisi de elle yazılıydı ve etkilerinden ayrı duruyordu: açıklama
+// '+15 seconds' derken etki `timeLeft += 15`, açıklama '8 seconds of strong
+// pull' derken süre `MAGNET_BOOST_MS`. Bugün uyuşuyorlardı ama birbirlerine
+// bakmıyorlardı, ve bu metin yalnızca mağazada durmuyor — booster
+// kullanıldığı anda ekranda da çakıyor, yani yanlış sayı tam onu test eden
+// anda görünürdü.
+//
+// Burada yazılmasının sebebi sıra: `BOOSTERS` bu satırdan çok önce
+// tanımlanıyor ama `MAGNET_BOOST_MS` burada, ve bir `const`u tanımından önce
+// okumak bu dosyada oyunu açılmaz yapan hata — yedi kez oldu. Açıklamalar
+// yalnızca çalışma anında, mağaza çizilirken okunuyor, yani burada
+// doldurulmaları yeterli.
+//
+// Sayısız olanlar ('Hole grows at once', 'Sweeps everything around you')
+// olduğu gibi duruyor: içinde çürüyecek bir sayı yok.
+BOOSTERS.find(b => b.id === 'time').desc = `+${BOOST_TIME_SEC} seconds`;
+BOOSTERS.find(b => b.id === 'magnet').desc =
+  `${MAGNET_BOOST_MS / 1000} seconds of strong pull`;
 // Unlit and never shadowed: it is a read-out, not an object lying on the
 // beach, and a shaded ring reads as a painted line on the sand instead of
 // something switched on.
@@ -21969,7 +22010,7 @@ function useBooster(b) {
   saveBoosters();
 
   if (b.id === 'time') {
-    timeLeft += 15;
+    timeLeft += BOOST_TIME_SEC;
     lastWholeSecond = -1;
     updateTimeUI();
   } else if (b.id === 'grow') {
@@ -23854,6 +23895,12 @@ window.fruitHoleWallet = () => ({ ...currency });
 window.fruitHoleStats = () => ({ ...stats });
 window.fruitHoleBoosters = () => ({ ...boosters });
 window.fruitHoleUseBooster = (id) => useBooster(BOOSTERS.find(b => b.id === id));
+// Booster tanımları: oyuncuya ne yazdığı. `fruitHoleBoosters` kaç tane
+// kaldığını veriyor, bu ne dediğini — ve `holesays.mjs` ikincisini
+// booster'ın gerçekten yaptığı şeyle karşılaştırıyor.
+window.fruitHoleBoosterDefs = () => BOOSTERS.map(b => ({
+  id: b.id, ad: b.name, desc: b.desc, unlock: b.unlock, cost: b.cost,
+}));
 // The super magnet's ring, and the pull it is meant to be drawing. The two
 // numbers have to agree: a ring at any other radius is decoration that lies
 // about where the fruit starts moving.
@@ -24172,6 +24219,25 @@ window.fruitHoleBombs = () => {
 // ve ağız bombadan geniş. O yüzden yanında kaç sıradan parçanın gittiği de
 // dönüyor: "bomba sayaca dokunmuyor" ancak bu ikisi karşılaştırılarak
 // ölçülebiliyor, yoksa komşuların artışı bombanınmış gibi okunuyor.
+// Bombanın üstünde kaç parça var.
+//
+// Sıfır olmalı: bomba hücresinin tepesinde durmalı, yoksa kuleyi yemek
+// bombayı yemek demek ve kaçınılabilir bir şey kaçınılmaz olur.
+window.fruitHoleBombUstunde = () => {
+  const b = fruits.filter(f => !f.eaten && f.bomb);
+  let altta = 0, enFazla = 0;
+  for (const bm of b) {
+    let ust = 0;
+    for (const f of fruits) {
+      if (f.eaten || f === bm) continue;
+      if (f.x !== bm.x || f.z !== bm.z) continue;
+      if ((f.baseY || 0) > (bm.baseY || 0)) ust++;
+    }
+    if (ust) altta++;
+    enFazla = Math.max(enFazla, ust);
+  }
+  return { toplam: b.length, altta, enFazla };
+};
 window.fruitHoleEatBomb = () => {
   const b = fruits.find(f => !f.eaten && f.bomb);
   if (!b) return null;
