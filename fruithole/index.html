@@ -19403,7 +19403,21 @@ function clearWind() {
 function placeWind() {
   clearWind();
   if (dailyRun || level < WIND_FROM) return;
-  if (missionKindFor(level)) return;
+  // Görev bölümlerinde de rüzgâr var; gerekçesi `placeMuds`'ta.
+  //
+  // Rüzgâr da hiçbir şey almıyor: sürüklüyor, ve şeridin dışına çıkmak her
+  // zaman mümkün.
+  //
+  // İki görev dışarıda. `rush` çamurla aynı sebepten: saat 12 saniyede
+  // başlıyor ve rüzgâra karşı gitmek yolu uzatıyor.
+  //
+  // `mines` ise rüzgâra özel. Orada tahta bomba dolu ve her bomba beş
+  // saniye; rüzgârın işi de deliği oyuncunun sürdüğü yönden **saptırmak**.
+  // İkisi bir aradayken oyuncu bir bombadan kaçıyor ve rüzgâr onu içine
+  // sokuyor — kaçındığı şeye, kaçındığı için çarpmak. Ceza hak edilmemiş
+  // olduğunda oyun bozuk okunuyor, ve bu birleşim tam olarak onu üretiyor.
+  const gorev = missionKindFor(level);
+  if (gorev === 'rush' || gorev === 'mines') return;
   const yari = WIND_BAND / 2;
   const mZ = fieldHalfZ - yari - 1;
   if (mZ <= 0) return;
@@ -19607,7 +19621,24 @@ function clearMuds() {
 function placeMuds() {
   clearMuds();
   if (dailyRun || level < MUD_FROM) return;
-  if (missionKindFor(level)) return;
+  // Görev bölümlerinde de çamur var.
+  //
+  // Sekiz engelin hepsi görevlerin dışındaydı ve sebebi tek bir kuraldı:
+  // bir engel bölümü bitirilemez yapmamalı. Ölçüldüğünde o kuralın bedeli
+  // göründü — 20. bölümden sonraki 29 bölümün yalnızca 16'sında (%55) yeni
+  // engellerden biri çıkıyordu, ve Kaan 45'i oynayıp "engelleri
+  // anlayamadım" dedi. Anlamamasının sebebi oradaydı: 45 bir görev tahtası,
+  // yani beş yeni engelin hiçbiri yok.
+  //
+  // Çamur o kuralı hiç zorlamıyor: tek bir meyveyi eksiltmiyor, tek bir
+  // yolu kapatmıyor, yalnızca içinden geçerken yavaşlatıyor. Etrafından
+  // dolaşmak da her zaman mümkün, çünkü leke tahtanın %8'ini aşamıyor.
+  //
+  // `rush` dışarıda kalıyor ve sebebi ölçülmüş bir sayı: o bölümün saati
+  // 12 saniyede başlıyor ve yalnızca yenen meyveyle büyüyor, yani yavaşlık
+  // doğrudan saatten yeniyor. Öbür görevlerde saat sabit, çamur yalnızca
+  // yolu uzatıyor.
+  if (missionKindFor(level) === 'rush') return;
   // Tahtanın kaçta kaçı çamur olabilir: pay aşılırsa duruyor. Sayıyı değil
   // **alanı** sınırlamak doğru olan — üç büyük leke, beş küçüğünden çok yer
   // kaplıyor.

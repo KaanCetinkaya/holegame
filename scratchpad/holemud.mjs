@@ -87,9 +87,27 @@ console.log('\n1. nerede çıkıyor');
   check(!yanlisTahta.length, 'resim, şerit ve bulmaca tahtalarında çamur yok',
     yanlisTahta.map(r => `${r.n}:${r.kind}`).join(' '));
 
-  const gorevde = satir.filter(r => r.mission && r.m.sayi);
-  check(!gorevde.length, 'görev bölümlerinde çamur yok',
-    gorevde.map(r => `${r.n}:${r.mission}`).join(' '));
+  // Çamur artık görev bölümlerinde de var — `rush` dışında.
+  //
+  // Bu iddia tersine döndü ve sebebi ölçüm: sekiz engelin hepsi görevlerin
+  // dışındayken 20. bölümden sonraki 29 bölümün yalnızca 16'sında (%55)
+  // yeni engellerden biri çıkıyordu. Kaan 45'i oynayıp "engelleri
+  // anlayamadım" dedi ve haklıydı — 45 bir görev tahtası, orada hiçbiri
+  // yoktu.
+  //
+  // Çamurun dışlanma sebebi zaten yoktu: tek bir meyveyi eksiltmiyor, tek
+  // bir yolu kapatmıyor, yani bir bölümü bitirilemez yapamıyor.
+  //
+  // `rush` ayrı: o bölümün saati 12 saniyede başlıyor ve yalnızca yenen
+  // meyveyle büyüyor, yani yavaşlık doğrudan saatten yiyor. Öbür
+  // görevlerde saat sabit ve çamur yalnızca yolu uzatıyor.
+  const rushta = satir.filter(r => r.mission === 'rush' && r.m.sayi);
+  check(!rushta.length, 'hız görevinde çamur yok',
+    rushta.map(r => `${r.n}`).join(' '));
+
+  const gorevde = satir.filter(r => r.mission && r.mission !== 'rush' && r.m.sayi);
+  check(gorevde.length > 0, 'öbür görev bölümlerinde çamur var',
+    gorevde.map(r => `${r.n}:${r.mission}`).join(' ') || 'hiçbirinde yok');
 
   // Tanıtım bölümü sıradan bir ızgara tahtası olmalı — silindirde öğrenilen
   // şey, artık her yeni engel için soruluyor.

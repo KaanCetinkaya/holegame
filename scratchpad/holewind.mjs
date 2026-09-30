@@ -84,9 +84,22 @@ console.log('\n1. nerede çıkıyor');
   check(!yanlisTahta.length, 'resim, şerit ve bulmaca tahtalarında rüzgâr yok',
     yanlisTahta.map(r => `${r.n}:${r.kind}`).join(' '));
 
-  const gorevde = satir.filter(r => r.mission && r.w.var);
-  check(!gorevde.length, 'görev bölümlerinde rüzgâr yok',
-    gorevde.map(r => `${r.n}:${r.mission}`).join(' '));
+  // Rüzgâr artık görev bölümlerinde de var — `rush` ve `mines` dışında.
+  // Gerekçesi `holemud.mjs`'te; rüzgâr da hiçbir şey almıyor.
+  //
+  // `mines` rüzgâra özel bir dışlama. Orada tahta bomba dolu ve her bomba
+  // beş saniye; rüzgârın işi de deliği oyuncunun sürdüğü yönden
+  // **saptırmak**. İkisi bir aradayken oyuncu bir bombadan kaçıyor ve
+  // rüzgâr onu içine sokuyor — kaçındığı şeye, kaçındığı için çarpmak.
+  // Hak edilmemiş ceza, oyunun bozuk okunduğu yerdir.
+  const yasak = satir.filter(r => (r.mission === 'rush' || r.mission === 'mines') && r.w.var);
+  check(!yasak.length, 'hız ve mayın görevlerinde rüzgâr yok',
+    yasak.map(r => `${r.n}:${r.mission}`).join(' '));
+
+  const gorevde = satir.filter(r =>
+    r.mission && r.mission !== 'rush' && r.mission !== 'mines' && r.w.var);
+  check(gorevde.length > 0, 'öbür görev bölümlerinde rüzgâr var',
+    gorevde.map(r => `${r.n}:${r.mission}`).join(' ') || 'hiçbirinde yok');
 
   const tanitim = satir.find(r => r.n === K.ilk);
   check(tanitim && tanitim.kind === 'ızgara' && !tanitim.mission && tanitim.w.var,
