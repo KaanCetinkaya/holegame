@@ -556,7 +556,7 @@ IDs must match the `PRODUCTS` list in the game **exactly**.
 - `icon-512.png` — store icon, exactly 512×512 (required)
 - `feature-1024x500.png` — feature graphic (required)
 - `1-play.png` — Pyramid, on the Egypt sand: a full field, hole still small
-- `2-grown.png` — Patches (Savanna), hole grown, a swathe cleared
+- `2-picture.png` — level 3: the Mushroom, drawn in 1,848 pieces of fruit
 
 The feature graphic comes from `node fruithole/make-feature.mjs`, which takes
 a **theme name** and picks that theme's densest ordinary grid board.
@@ -575,12 +575,19 @@ that stops being readable on top of it. Density alone is not the measure —
 what this one plate has to do is separate the colours.
 
 - `3-place.png` — Condor (Nazca): a layout drawn to be read from above
-- `4-mission.png` — a mission level, because the set otherwise says every
+- `4-grown.png` — Patches (Savanna), hole grown, a swathe cleared
+- `5-mission.png` — a mission level, because the set otherwise says every
   level is "sweep the field"
-- `5-menu.png` — main menu, on the beach
-- `6-skins.png` — the ten hole skins
-- `7-levels.png` — the level map with star ratings
+- `6-menu.png` — main menu, on the beach
+- `7-skins.png` — the ten hole skins
 - `8-collection.png` — the Collection screen, part found, part silhouette
+
+**The level map came out.** Play takes eight phone screenshots and the
+picture board had to go in, so something had to leave. The map was a list
+of buttons with stars on it — the only shot in the set showing an interface
+rather than the game, and the thing it said (there is progress to make) is
+said better by the collection screen, which shows what is still missing
+rather than a count.
 
 The collection shot is seeded with a spread a level-12 player could actually
 have: the early themes nearly full, the later ones empty, because themes
@@ -640,9 +647,22 @@ inmişti — resim tahtası.
 Üçü de artık tahta türünü oyundan okuyup **tek kare çekmeden önce** duruyor.
 Güvencenin değeri burada ölçüldü: yazıldığı gün üçünde de bir şey yakaladı.
 
-Geriye kalan iş, ilk üç sıraya bir **resim tahtası** koymak — mantar, balon,
-dondurma, çilek, karpuz, ananas, kiraz, çiçek; 1400-1850 parçadan kurulu ve
-hâlâ hiçbir mağaza görselinde yoklar. Rakiplerin ilk karesinde tam da bu var
-(mısır koçanı, oyuncak ayı, Eyfel Kulesi) ve Play aramada ilk üç görseli
-gösteriyor. Bugün konamadı, çünkü karenin altındaki yazıyı da değiştirmek
-gerekiyor ve `SHOTS` sırası mağazadaki sırayla birebir.
+## Resim tahtası ikinci sıraya girdi
+
+Sekiz görselin sekizi de ızgara düzeniydi ve oyunun en ayırt edici şeyi —
+meyveyle çizilmiş bir resim — mağazada hiç görünmüyordu. Rakiplerin ilk
+karesinde tam da bu var (mısır koçanı, oyuncak ayı, Eyfel Kulesi).
+
+Üç resim denendi. **Mantar** (3. bölüm, kumsal) seçildi: dondurma da
+okunuyor ama zemini kahverengi toprak, mantarınki kum ve üstte altta
+turkuaz deniz şeritleri var. Bu boşluk kaçınılmaz — kamera ortografik,
+ekran dar, resim genişlikten sınırlı — yani dikeyde her hâlükârda yer
+artıyor ve o yerin ne olduğu kareyi belirliyor.
+
+3. bölüm olması ayrıca dürüst: kare "ilerde bir yerde" değil, oyunun ilk
+beş dakikasında görülen bir şeyi gösteriyor.
+
+Karenin altındaki sayı oyundan okunuyor, elle yazılmıyor: yazı
+`1,848 pieces` diyor ve aynı karede oyunun kendi sayacı `24/1848`
+gösteriyor. Elle yazılsaydı resim değiştiği gün sessizce yalan olurdu —
+bu depoda birkaç kez olan şey.

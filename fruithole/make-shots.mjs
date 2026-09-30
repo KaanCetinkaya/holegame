@@ -91,14 +91,26 @@ const SHOTS = [
   // okunuyor. Kalan boşluk kareye zarar veren şey değil, yazının yeri.
   { name: '1-play', pattern: 'Pyramid', cap: 'Steer the hole, swallow the field',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -260, 8000], [80, -120, 900]]) },
-  // Blocks'tan Patches'a: Blocks 15. bölüme düştü ve orası **devler görevi**,
-  // yani görsel sıradan bir tahta göstermiyordu. Patches (Savanna) hem ızgara
-  // hem de oyunun en tanınır düzenlerinden — zürafa deseni tek karede
-  // "buranın bir şekli var" diyor.
-  { name: '2-grown', pattern: 'Patches', cap: 'Eat enough and the giants are yours',
-    play: async (pg, w, h) => {
-      await pg.evaluate(() => window.fruitHoleSetSize(0.75));
-      await sweep(pg, w, h, [[0, -120, 900], [110, -60, 900], [0, 120, 700]]);
+  // Resim tahtası, ve ikinci sırada.
+  //
+  // Sekiz görselin sekizi de ızgara düzeniydi. Oyunun en ayırt edici şeyi —
+  // 1440 ile 1848 parça arasında, meyveyle çizilmiş bir resim — mağazada
+  // hiç görünmüyordu. Play aramada ilk iki-üç kareyi gösteriyor ve kurulum
+  // kararının çoğu orada veriliyor; rakiplerin ilk karesinde mısır koçanı,
+  // oyuncak ayı, Eyfel Kulesi var, bizimkilerde meyve ızgarası.
+  //
+  // Mantar (3. bölüm, kumsal) seçildi, üç resim denendikten sonra. Dondurma
+  // da okunuyor ama zemini kahverengi toprak; mantarın kumsalında üstte ve
+  // altta turkuaz deniz şeritleri var ve onlar kadrajın boşluğunu
+  // dolduruyor. Kamera ortografik ve ekran dar: resim genişlikten sınırlı,
+  // yani dikeyde her hâlükârda yer artıyor — o yerin ne olduğu önemli.
+  //
+  // 3. bölüm olması ayrıca dürüst: bu kare "ilerde bir yerde" değil, oyunun
+  // ilk beş dakikasında görülen bir şey.
+  { name: '2-picture', level: 3, kind: 'resim', fit: true,
+    cap: async pg => {
+      const n = await pg.evaluate(() => window.fruitHoleWhere().total);
+      return `Some levels are a picture, drawn in ${n.toLocaleString('en-US')} pieces`;
     } },
   // Adı da değişti: `3-snow` kar demekti ve kare artık karda değil. Yanlış
   // adlandırılmış bir dosya, bir sonraki bakanı yanıltacak tek şey.
@@ -108,6 +120,15 @@ const SHOTS = [
   // kare bu. Zemin de pampa, yani öteki yedi karenin hiçbirine benzemiyor.
   { name: '3-place', pattern: 'Condor', cap: 'Every level is a shape — and a place',
     play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1300], [-90, -90, 500]]) },
+  // Blocks'tan Patches'a: Blocks 15. bölüme düştü ve orası **devler görevi**,
+  // yani görsel sıradan bir tahta göstermiyordu. Patches (Savanna) hem ızgara
+  // hem de oyunun en tanınır düzenlerinden — zürafa deseni tek karede
+  // "buranın bir şekli var" diyor.
+  { name: '4-grown', pattern: 'Patches', cap: 'Eat enough and the giants are yours',
+    play: async (pg, w, h) => {
+      await pg.evaluate(() => window.fruitHoleSetSize(0.75));
+      await sweep(pg, w, h, [[0, -120, 900], [110, -60, 900], [0, 120, 700]]);
+    } },
   // Görev bölümü. Sekiz görselin sekizi de "tarlayı süpür" diyordu, oysa
   // oyunun beşinci bölümünden itibaren bazı bölümler başka bir şey istiyor —
   // ve mağazada görünmeyen bir şey, indirme kararında yok demektir.
@@ -120,7 +141,7 @@ const SHOTS = [
   // "bir meyveyi kovala" diyen bir görselde sıfır, kuralı anlatmıyor. Tarla
   // her çalıştırmada farklı olduğu için yön de her çalıştırmada hesaplanıyor —
   // oyunun kendi "en yakın hedef" cevabına bakılıp o tarafa çekiliyor.
-  { name: '4-mission', level: 5, cap: 'Some levels want one fruit, not the field',
+  { name: '5-mission', level: 5, cap: 'Some levels want one fruit, not the field',
     play: async (pg, w, h) => {
       await pg.mouse.move(w / 2, h / 2);
       await pg.mouse.down();
@@ -153,11 +174,10 @@ const SHOTS = [
   // "0 stars collected — everything unlocked" diyordu: 12. bölümdeki bir
   // oyuncunun sıfır yıldızı olamaz, ve kendi içinde çelişen bir cümle
   // mağaza görselinde oyunun bozuk olduğunu düşündürür.
-  { name: '5-menu', level: 12, menu: true,
+  { name: '6-menu', level: 12, menu: true,
     purse: { berry: 4820, lychee: 3960, banana: 5140, melon: 2730 },
     stars: Object.fromEntries(Array.from({ length: 11 }, (_, i) => [i + 1, i < 6 ? 3 : 2])) },
-  { name: '6-skins', level: 12, screen: 'upgBtn' },
-  { name: '7-levels', level: 12, screen: 'levelsBtn' },
+  { name: '7-skins', level: 12, screen: 'upgBtn' },
   // Koleksiyon. 12. bölümdeki bir oyuncunun gerçekten sahip olabileceği
   // dağılımla tohumlanıyor: ilk temalar neredeyse dolu, sonrakiler boş —
   // çünkü temalar bölüm sırasına göre geliyor ve o oyuncu Orbit'i henüz
@@ -251,7 +271,7 @@ async function shoot(dir, width, height, scale) {
     if (s.screen) {
       await pg.click('#' + s.screen);
       await pg.waitForTimeout(500);
-      if (s.name === '6-skins') {
+      if (s.name === '7-skins') {
         // Görünümler yükseltmeler ekranının dibinde.
         await pg.evaluate(() => {
           const el = document.getElementById('skinShop');
@@ -267,11 +287,44 @@ async function shoot(dir, width, height, scale) {
         const hint = document.getElementById('hint');
         if (hint) hint.style.opacity = '0';
       });
+      // Bölüm numarasıyla istenen kareler için tahta türü güvencesi.
+      //
+      // Düzen adıyla istenenler `levelIndex` içinde kontrol ediliyor, ama
+      // numarayla istenenlerin böyle bir koruması yoktu: `isPictureLevel`
+      // bugün `n % 10 === 3` diyor ve bu kural bir gün değişirse `2-picture`
+      // sessizce sıradan bir ızgara çeker — mağazadaki en değerli ikinci
+      // slotta, "bir resim" diyen bir yazının altında.
+      if (s.kind) {
+        const gercek = await pg.evaluate(l => window.fruitHoleProbe(l).kind, s.level);
+        if (gercek !== s.kind) {
+          throw new Error(`${s.name}: ${s.level}. bölüm ${s.kind} olmalıydı, ${gercek} çıktı.`);
+        }
+      }
+      // Tahtanın tamamını kadraja al.
+      //
+      // Resimde şart: yarısı görünen bir çizim, çizim değil gürültü. Kamera
+      // ortografik ve yarı genişlikten kuruluyor; yükseklik en-boy oranından
+      // türüyor, yani ikisinden hangisi daha çok yer istiyorsa o belirliyor.
+      // %6 pay, kenardaki meyvenin kadrajı tam teğet geçmemesi için.
+      if (s.fit) {
+        await pg.evaluate(oran => {
+          const o = window.fruitHoleWhere();
+          window.fruitHoleZoom(Math.max(o.halfX, o.halfZ * oran) * 1.06);
+        }, w / h);
+        await pg.waitForTimeout(400);
+      }
       if (s.play) await s.play(pg, w, h);
       await pg.waitForTimeout(300);
     }
 
-    if (s.cap) {
+    // Yazı bir işlev olabiliyor: içindeki sayı oyundan okunsun diye.
+    //
+    // Elle yazılan sayı çürüyor ve bu depoda birkaç kez çürüdü. "1.800
+    // parçayla çizilmiş" cümlesi, resim bir gün büyüyüp küçüldüğünde
+    // sessizce yalan olurdu — üstelik aynı karede oyunun kendi sayacı doğru
+    // sayıyı gösterirken.
+    const yazi = typeof s.cap === 'function' ? await s.cap(pg) : s.cap;
+    if (yazi) {
       await pg.evaluate(text => {
         const d = document.createElement('div');
         d.style.cssText = `position:fixed;left:0;right:0;bottom:0;z-index:99;
@@ -284,7 +337,7 @@ async function shoot(dir, width, height, scale) {
           pointer-events:none;`;
         d.textContent = text;
         document.body.appendChild(d);
-      }, s.cap);
+      }, yazi);
       await pg.waitForTimeout(120);
     }
 
