@@ -152,6 +152,36 @@ const after2 = await pg.evaluate(() => window.fruitHoleWallet().berry);
 check(after2 - after === 1800, 'aynı paket ikinci kez alınabiliyor', `${after} -> ${after2}`);
 await pg.close();
 
+console.log('\n3b. yazan miktar, verilen miktar');
+{
+  // Mağaza sayfasında yazan sayı, satın alındığında verilen sayı olmalı.
+  //
+  // Bu ikisi ayrı yerlerde duruyordu: `fruit: 2500` bir satırda,
+  // `desc: '2500 of every fruit'` bir başkasında, ve birbirlerine hiç
+  // bakmıyorlardı. Bugün uyuşuyorlardı — ama bu depoda elle yazılan bir
+  // sayının çürümesi yedi kez oldu, ve burada çürüyecek sayı **gerçek
+  // parayla** satılan bir şeyin miktarı. Yanlış miktar yazan bir mağaza
+  // sayfası, tutarsızlık değil, Play'de bir politika sorunu.
+  //
+  // Açıklama artık miktardan üretiliyor. Bu ölçü o üretimin yerinde
+  // durduğunu söylüyor: bir gün elle yazmaya dönülürse burası düşsün.
+  const pg2 = await open({});
+  const urunler = await pg2.evaluate(() => window.fruitHoleProducts());
+  const bozuk = [];
+  for (const u of urunler) {
+    if (!u.meyve) continue;                       // sayısız ürün (reklam kaldırma)
+    const yazili = u.meyve.toLocaleString('en-US');
+    if (!u.yazi.includes(yazili)) bozuk.push(`${u.ad}: "${u.yazi}" ≠ ${yazili}`);
+    if (u.booster && !u.yazi.includes(String(u.booster))) {
+      bozuk.push(`${u.ad}: booster sayısı yazmıyor (${u.booster})`);
+    }
+  }
+  check(!bozuk.length, 'her paketin yazısı verdiği miktarı söylüyor', bozuk.join(' · '));
+  check(urunler.some(u => u.meyve), 'ölçülecek sayılı ürün var',
+    urunler.filter(u => u.meyve).map(u => `${u.ad}:${u.meyve}`).join(' '));
+  await pg2.close();
+}
+
 // ---- 4: yarıda kalmış satın alma açılışta kurtarılıyor ----
 console.log('\n4. yarıda kalmış satın alma');
 // Para alınmış, uygulama consume etmeden kapanmış. Play hâlâ "sahip" diyor.

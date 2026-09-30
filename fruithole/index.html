@@ -3682,6 +3682,18 @@ document.getElementById('awardsBtn').addEventListener('click', () => {
 // be rid of them. Calling grant() on restore instead would have been the
 // other bug: 2500 of every fruit and three of every booster, once per
 // reinstall, forever.
+// Açıklamadaki sayı, verilen miktarın kendisinden yazılıyor.
+//
+// Önce elle yazılıydı: `fruit: 2500` bir satırda, `desc: '2500 of every
+// fruit'` bir başkasında, ve ikisi birbirine hiç bakmıyordu. Bugün
+// uyuşuyorlardı, ama bu depoda elle yazılan bir sayının çürümesi yedi kez
+// oldu — ve burada çürüyen sayı **gerçek parayla** satılan bir şeyin
+// miktarı. Yanlış miktar yazan bir mağaza, tutarsızlık değil Play'de bir
+// politika sorunu.
+//
+// 'Remove ads' açıklaması düz cümle olarak kalıyor: içinde sayı yok, yani
+// çürüyecek bir şey de yok.
+const STARTER_BOOSTERS = 3;
 const PRODUCTS = [
   {
     id: 'fruithole_remove_ads', key: 'remove_ads', icon: '🚫',
@@ -3690,26 +3702,44 @@ const PRODUCTS = [
   },
   {
     id: 'fruithole_starter', key: 'starter', icon: '🎒', fruit: 2500,
-    name: 'Starter pack', desc: '2500 of every fruit, 3 of every booster, and no ads',
-    price: '$2.99',
+    name: 'Starter pack', price: '$2.99',
     entitle() { iap.remove_ads = true; hideBanner(); },
     grant() {
       TYPES.forEach(t => bumpCurrency(t.id, PRODUCT_BY_ID.fruithole_starter.fruit));
-      BOOSTERS.forEach(b => { boosters[b.id] = (boosters[b.id] || 0) + 3; });
+      BOOSTERS.forEach(b => { boosters[b.id] = (boosters[b.id] || 0) + STARTER_BOOSTERS; });
       saveBoosters();
     },
   },
   {
     id: 'fruithole_pack_small', icon: '🧺', fruit: 1800,
-    name: 'Fruit basket', desc: '1800 of every fruit', price: '$0.99',
+    name: 'Fruit basket', price: '$0.99',
     grant() { TYPES.forEach(t => bumpCurrency(t.id, PRODUCT_BY_ID.fruithole_pack_small.fruit)); },
   },
   {
     id: 'fruithole_pack_large', icon: '🚚', fruit: 6000,
-    name: 'Fruit truck', desc: '6000 of every fruit', price: '$2.49',
+    name: 'Fruit truck', price: '$2.49',
     grant() { TYPES.forEach(t => bumpCurrency(t.id, PRODUCT_BY_ID.fruithole_pack_large.fruit)); },
   },
 ];
+// Sayılı açıklamalar tek yerden, verilen miktardan.
+//
+// Burada bir geçiş zaten vardı ve aynı işi yapıyordu: açıklamanın
+// **başındaki** sayıyı bir regex'le `p.fruit`'ten yeniden yazıyordu. İkisi
+// birden durmuyor, çünkü tek bir iş için iki mekanizma kendi başına bir
+// çürüme sebebi.
+//
+// Kalanın seçilme sebebi: eskisi açıklamanın sayıyla **başlamasına**
+// dayanıyordu — cümle bir gün "Get 2500 of every fruit" olsa regex "Get"i
+// bulamaz ve sessizce hiçbir şey yapmazdı — ve "3 of every booster"
+// kısmını hiç korumuyordu. Burada sayının tek kaynağı `fruit` alanı ve
+// cümlenin biçimi hiçbir şeye söz vermiyor.
+for (const p of PRODUCTS) {
+  if (p.desc || !p.fruit) continue;
+  p.desc = `${p.fruit.toLocaleString('en-US')} of every fruit` +
+    (p.id === 'fruithole_starter'
+      ? `, ${STARTER_BOOSTERS} of every booster, and no ads`
+      : '');
+}
 const PRODUCT_BY_ID = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
 // Hand a product over. `payout` is false when the purchase is only being
 // restored, so what the player owns comes back without the one-off contents
@@ -3720,11 +3750,6 @@ function applyProduct(p, payout) {
   if (payout && p.grant) p.grant();
   saveIap();
 }
-// The shop lines quote the amount rather than repeating it, so a product's
-// description cannot drift away from what it actually pays out.
-PRODUCTS.forEach(p => {
-  if (p.fruit) p.desc = p.desc.replace(/^[\d,]+/, p.fruit.toLocaleString('en-US'));
-});
 // Now that PRODUCTS exists, ask Play for real prices and for anything this
 // account already owns.
 iapInit();
@@ -22398,6 +22423,16 @@ window.fruitHoleCollection = () => ({
   groups: propGroups().map(g => ({ name: g.name, n: g.ids.length })),
   thumbs: Object.keys(_thumbs).length,
 });
+// Mağazadaki ürünler: yazan ne, veren ne.
+//
+// İkisi bir arada dönüyor çünkü ölçülmek istenen şey ikisinin **aynı**
+// olduğu. Açıklama artık miktardan üretiliyor, yani ayrışamazlar; bu kanca
+// o güvencenin dışarıdan da görülebilmesi için — üretimin kendisi bir gün
+// elle yazmaya geri dönerse test düşsün.
+window.fruitHoleProducts = () => PRODUCTS.map(p => ({
+  id: p.id, ad: p.name, yazi: p.desc, meyve: p.fruit || 0,
+  booster: p.id === 'fruithole_starter' ? STARTER_BOOSTERS : 0,
+}));
 window.fruitHoleMarkFound = id => markFound(id);
 
 document.getElementById('rateGo').addEventListener('click', () => {
