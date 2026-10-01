@@ -699,27 +699,41 @@ Takvim günü değişmediği için anlatı bozulmuyor.
 
 | tarih | gün | klip | durum |
 |---|---|---|---|
-| 29 Eyl 12:46 | — | savanna (gün satırı yok) | **atıldı** — 9 saatte 100 izlenme |
-| 29 Eyl 21:22 | 48 | overgrown | **atıldı** |
-| 30 Eyl | 49 | redsquare | |
-| 1 Eki | 50 | boss | |
+| 29 Eyl 12:46 | — | savanna (gün satırı yok) | **atıldı** — 219 |
+| 29 Eyl 21:22 | 48 | overgrown | **atıldı** — 188 |
+| 30 Eyl 14:21 | 49 | redsquare | **atıldı** — 369 |
+| 1 Eki 21:00 | 50 | boss | **atıldı** |
 | 2 Eki | 51 | suburb | |
 | 3 Eki | 52 | bazaar | |
 | 4 Eki | 53 | nazca | |
 
-**Sessizliğin bedeli ölçüldü.** 21, 22 ve 24 Eylül'deki üç gönderi
-396 / 368 / 353 izlenmede duruyor. Beş gün ara verildikten sonraki ilk
-gönderi (savanna) dokuz saatte **100**.
+**Sessizliğin bedeli ölçüldü, ve sonra geri alındığı da.**
 
-Karşılaştırma kusurlu: öbür üçü günlerdir ortada, savanna dokuz saatlik.
-Ama bu hesapta dağıtımın ilk günden sonra durduğu zaten ölçülmüştü — yani
-dokuz saat, bir gönderinin alacağının çoğunu aldığı süre. Rakam yine de
-tek başına kanıt değil, çünkü tek gönderi.
+| gönderi | izlenme |
+|---|---|
+| 21-24 Eylül, ara öncesi üç gönderi | 396 / 368 / 353 |
+| savanna, 29 Eyl 12:46 | 219 |
+| gün 48, 29 Eyl 21:22 | 188 |
+| **gün 49, 30 Eyl 14:21** | **369** |
 
-Bakılacak yer yarın: `redsquare` (gün 49) art arda ikinci gün oluyor. İki
-ardışık gönderinin ikincisi ilkinden yüksek çıkarsa düşüşün sebebi ara
-vermek demektir, ve "günde bir" kuralının değeri ilk kez ölçülmüş olur.
-Çıkmazsa sebep başka: klipler, saat, ya da hesabın kendisi.
+Beş günlük sessizlikten sonraki ilk iki gönderi 219 ve 188'de kaldı —
+ara öncesinin yarısı. Art arda ikinci gün olan gün 49 ise **369** yaptı,
+yani bir öncekinin iki katı ve ara öncesi seviyenin kendisi. Üstelik daha
+az sürede: 31 saat, ötekinin 48 saatine karşı.
+
+Soru dün sorulmuştu ve cevabı bu: düşüşün sebebi klipler, saat ya da
+hesabın kendisi değil, **ara vermek**. "Günde bir, en fazla" kuralı
+dosyada aylardır duruyordu ve ölçülmemiş bir varsayımdı; artık ölçüldü.
+
+Bir uyarı: tek bir ardışık çift. İki gönderinin ikincisinin yüksek
+çıkması kuralı kanıtlamıyor, yalnızca ilk kez destekliyor — ve bu hesapta
+sayılar günler boyunca değişmeye devam ediyor (savanna dokuz saatte
+100'dü, bir günde 219 oldu). O yüzden yazılan şey "kanıtlandı" değil,
+"ilk ölçüm bu yönde".
+
+Dün bu dosyaya "dağıtım ilk günden sonra duruyor" diye yazılmıştı ve o da
+yanlıştı: savanna dokuz saatte 100, yirmi dört saatte 219. Dağıtım
+sürüyor, yalnızca yavaşlıyor.
 
 ### Testçi çağrısı nereye gidiyor
 
