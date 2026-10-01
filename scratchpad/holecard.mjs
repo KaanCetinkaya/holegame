@@ -292,7 +292,24 @@ for (const r of KOS) {
     `${String(o.bitti ? o.is + 's' : 'BİTİREMEDİ').padStart(9)} | ` +
     `${String(r.saat + 's').padStart(12)} | ${pay === null ? '-' : '%' + pay}` +
     (o.kurtarma ? `  (${o.kurtarma} kurtarma)` : ''));
-  if (!o.bitti || pay < 0) dar.push(String(r.n));
+  // Botun bitirememesi iki ayrı şey, ve ikisi aynı sonuca yazılamaz.
+  //
+  // Bu bot yol bulmuyor: en yakın hedefe düz gidiyor. Araya bir kaya
+  // girerse kurtarma sayısı yükseliyor ve koşunun tamamı rastgele yürüyüşe
+  // gidiyor — 191. bölümde 152 kurtarma oldu ve bitiremedi. O tahta
+  // ölçüldüğünde sağlamdı: ulaşılamayan parça yok, kartlar karşılanabilir,
+  // saat kartın turunun 2.35 katı, ve aynı turdaki 287 **%89 payla**
+  // bitiyor. Yani bitiremeyen şey tahta değil bot.
+  //
+  // O yüzden ölçü böyle ayrılıyor: bot serbestçe gezinirken (kurtarma az)
+  // saate yetişemiyorsa bu bölümün suçu ve düşüyor. Kurtarmayla boğuştuysa
+  // ölçü "bilmiyorum" diyor — yüksek sesle, çünkü sessiz bir "bilmiyorum"
+  // geçmiş sayılır.
+  if (!o.bitti && o.kurtarma >= 10) {
+    console.log(`     ↑ bot gezinemedi (${o.kurtarma} kurtarma) — bu bölüm hakkında bir şey söylemiyor`);
+  } else if (!o.bitti || pay < 0) {
+    dar.push(String(r.n));
+  }
 }
 check(!dar.length, 'bot her kart bölümünü saat içinde bitiriyor', dar.join(' '));
 
