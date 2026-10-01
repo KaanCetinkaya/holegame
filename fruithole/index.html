@@ -3138,7 +3138,18 @@ function refreshLevelTag() {
   document.getElementById('levelBadge').innerHTML =
     (isFinalLevel(level) ? '🏆 ' : isBossLevel(level) ? '👑 ' : '') +
     `LEVEL <span id="levelN">${level}</span>`;
-  const best = stars[level] ? '  ' + '★'.repeat(stars[level]) : '';
+  // Yıldızlar bu satırdan çıktı.
+  //
+  // Yer adı eklenince en uzun hâl 360 piksellik bir telefonda 364 piksele
+  // çıktı ve satır ikiye bölündü: üç yıldız tek başına alt satıra düşüp
+  // tahtanın üstüne bindi. Ekran görüntüsüyle bakıldı, okunmuyordu.
+  //
+  // Kırpılacak parça olarak yıldızlar seçildi çünkü satırdaki tek
+  // **geçmişe** ait şey onlar: oynarken önceki en iyin bir karar
+  // değiştirmiyor. Nerede olduğun ve tahtanın şekli değiştiriyor, turun
+  // kaçıncı olduğu da. Yıldızlar bölüm haritasında ve bitiş ekranında
+  // duruyor, yani hiçbir yerden kaybolmuyorlar.
+  const best = '';
   // Both halves of what makes this level itself: where you are, and what
   // shape the field is in.
   const th = p && THEMES[p.theme];
@@ -3162,10 +3173,26 @@ function refreshLevelTag() {
   // kuruyor. Mantar tahtasının üstünde "Orbits" yazıyordu — oyuna baktığında
   // gördüğün şeyin adı olmayan bir ad, yani bilgi değil gürültü.
   const resim = !dailyRun && isPictureLevel(level) ? pictureFor(level) : null;
+  // Yerin **adı** yazılıyor, yalnızca emojisi değil.
+  //
+  // Bu satırın on üç satır üstündeki yorum zaten "where you are, and what
+  // shape the field is in" diyor — ama "nerede olduğun" bir emojiydi.
+  // Kırk sekiz bölümde kırk altı yer var ve hiçbirinin adı oyunun içinde
+  // hiçbir yerde geçmiyordu; menüdeki afişte geçiyor, o da yalnızca
+  // oynamaya başlamadan önce.
+  //
+  // Kaan kırk yedi yerin dördünü (11, 22, 32, 44) yeni ekledikten sonra
+  // 55. bölüme kadar oynadı ve "bu yeni ülkeleri bir türlü bulamadım"
+  // dedi. Dördünden de geçmişti. Oyunun ona söylediği tek şey düzenin
+  // adıydı — `🛵🦴 Ribs`: Ribs bir şekil, İtalya ise yalnızca o motosiklet.
+  //
+  // Ad ile şekil arasında orta nokta `·` değil ince boşluk: ikisi aynı
+  // şeyin iki yarısı, ayrı iki alan değil.
+  const yer = th ? `${th.icon} ${th.name} ` : '';
   patternTagEl.textContent = loop + ord +
     (isFinalLevel(level) ? 'FINAL · ' : isBossLevel(level) ? 'BOSS · ' : '') +
-    (resim ? `${th ? th.icon + ' ' : ''}🎨 ${resim.name}`
-           : p ? `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}` : '') + best;
+    (resim ? `${yer}🎨 ${resim.name}`
+           : p ? `${yer}${p.icon} ${p.name}` : '') + best;
 }
 
 // ---------------------------------------------------------------------
