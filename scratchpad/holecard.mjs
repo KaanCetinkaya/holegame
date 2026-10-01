@@ -239,8 +239,40 @@ for (const r of KOS) {
     // Bot: kartın istediği en yakın meyveye git. O an yutulamıyorsa (dev ya
     // da iri meyve) en yakın parçaya gidip büyü — `holeorderplay.mjs`'in
     // botunun aynısı, tek farkı hedefi kartın söylemesi.
+    // Sıkışma kurtarma, ve neden gerektiği.
+    //
+    // Bu bot açgözlü: en yakın hedefe doğru bakıp düz gidiyor, yol bulma
+    // yok. Arada bir kaya varsa kayaya dayanıp orada kalıyor — yutulan
+    // sayı artmıyor, yer değişmiyor, ve döngü dört yüz saniye boyunca
+    // aynı duvara bastırıyor.
+    //
+    // Bu, ölçünün iki ayrı şeyi karıştırdığı yer: "bölüm bitirilemez" ile
+    // "bot aptal". 191. bölüm tam böyle düştü — tahta ölçüldüğünde sağlamdı
+    // (0 ulaşılamaz parça, kartlar karşılanabilir, saat kartın turunun 2.35
+    // katı) ama bot bitiremedi. Botun başarısızlığı bölüme yazılırsa
+    // olmayan bir hata kovalanır; görmezden gelinirse gerçek bir hata
+    // kaçar.
+    //
+    // İki saniyedir ne yiyen ne kıpırdayan bot, rastgele bir yöne yarım
+    // saniye sürülüyor. Kurtarma sayısı da dönüyor: çok fazlaysa ölçü
+    // "bot zor bir tahtada" diyor, sıfırsa düz bir koşu.
+    let kurtarma = 0;
+    let sonYenen = -1, sonX = 0, sonZ = 0, kipirtisiz = 0;
     while (t < 400 && !bitti()) {
       const w = window.fruitHoleWhere();
+      if (w.eaten === sonYenen && Math.hypot(w.x - sonX, w.z - sonZ) < 0.05) kipirtisiz += DT;
+      else kipirtisiz = 0;
+      sonYenen = w.eaten; sonX = w.x; sonZ = w.z;
+      if (kipirtisiz > 2) {
+        kurtarma++;
+        const a = Math.random() * Math.PI * 2;
+        for (let i = 0; i < 15; i++) {
+          window.fruitHoleSteer(Math.cos(a), Math.sin(a));
+          window.__step(MS); t += DT;
+        }
+        kipirtisiz = 0;
+        continue;
+      }
       const h = window.fruitHoleCardNearest();
       const hedef = (h && h.eatable) ? h : (window.fruitHoleNearest() || h);
       if (!hedef) break;
@@ -252,13 +284,14 @@ for (const r of KOS) {
     }
     window.fruitHoleHold(false);
     window.fruitHoleUnseedField();
-    return { is: +t.toFixed(1), bitti: bitti() };
+    return { is: +t.toFixed(1), bitti: bitti(), kurtarma };
   }, r.n);
   sonuc.set(r.n, o);
   const pay = o.bitti ? Math.round((1 - o.is / r.saat) * 100) : null;
   console.log(`${String(r.n).padStart(3)} | ${String(r.cards.length).padStart(4)} | ` +
     `${String(o.bitti ? o.is + 's' : 'BİTİREMEDİ').padStart(9)} | ` +
-    `${String(r.saat + 's').padStart(12)} | ${pay === null ? '-' : '%' + pay}`);
+    `${String(r.saat + 's').padStart(12)} | ${pay === null ? '-' : '%' + pay}` +
+    (o.kurtarma ? `  (${o.kurtarma} kurtarma)` : ''));
   if (!o.bitti || pay < 0) dar.push(String(r.n));
 }
 check(!dar.length, 'bot her kart bölümünü saat içinde bitiriyor', dar.join(' '));
