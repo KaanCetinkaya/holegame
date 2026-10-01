@@ -161,6 +161,37 @@ Yerden kazanmak için üç madde kırpıldı ("wherever you are standing" →
 "wherever you stand", "back and forth across" → "across", donmanın "on some
 levels"ı). İlk hâli 531'di.
 
+## 43 (1.13) — 399 karakter
+
+```
+What changed:
+
+- Bombs sit on open ground now instead of buried in a stack of fruit, so you can see one coming and go round it.
+- Anything that costs you says so where it happened - a bomb, a catapult hit, a spike.
+- Mud and wind turn up on mission levels too.
+- Past level 48 the clock gets tighter each time round.
+- Fixed a giant that could end up inside a catapult, where nothing could reach it.
+```
+
+Bu notun tamamı **Kaan'ın oynamasından** çıktı, bir plandan değil. 45.
+bölümde "bir şeye dokununca süreden gidiyor ama neye anlayamadım" dedi —
+bedel etiketleri oradan. 55'te çilek kulesinin **altında** bir bomba
+gördü, düzeltildi; 45'te karpuz kulesinin **üstünde** gördü, ve ikisinin
+aynı şey olduğu anlaşıldı: kule tek hamlede iniyor, bomba nerede olursa
+olsun kulenin bedeli oluyor. Bomba artık kulede değil.
+
+"Turların sıkılaşması" ölçüden çıktı: dört tur boyunca kart/saniye oranı
+1.10, 1.19, 1.16, 1.14 — yani düzdü, ve 55. bölümdeki oyuncu 10.
+bölümdekiyle aynı sıkışıklıkta oynuyordu.
+
+Mancınığın içindeki dev notta duruyor çünkü oyuncunun **başına gelen** bir
+şey: devler görevinde o devi yutmak zorundasın ve yutamıyorsun. Nasıl
+bulunduğu (tahta değişmezlerinin taranması) buraya girmiyor — bu kutu
+oyuncunun göreceği şeyi yazıyor.
+
+Yazılmayanlar: ölçüm dosyaları, mağaza metninin üretilmesi, botun sıkışma
+kurtarması. Hiçbiri oyuncunun gördüğü bir şey değil.
+
 ## 40 ve 41 nereye gitti
 
 40, yarım kalmış bir merge'in içindeki ağaçtan derlendi ve yüklendi; sonra
