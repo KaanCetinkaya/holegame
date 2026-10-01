@@ -12350,6 +12350,76 @@ const RIVAL_BITE = 0.25;
 // Deliğin hızından belirgin biçimde yavaş (1.5'e karşı 3.4): rüzgâra karşı
 // gidilebiliyor, yalnızca yavaş gidiliyor. Hızına yaklaşsaydı şeridin bir
 // yarısı ulaşılmaz olurdu ve bu bir engel değil bir duvar olurdu.
+// Hangi engel hangi yerde: zeminden.
+//
+// Kaan kırk sekiz bölüm oynayıp "o kadar şehir ekledik ama hep aynı bölümü
+// oynuyormuşum gibi" dedi. Ölçüldü: kırk sekiz yer, kırk sekiz düzen, dört
+// meyve — ve engeller yalnızca **bölüm numarasına** bağlı. Yani 40. bölümde
+// nerede olursan ol aynı beş şey birden çıkıyor: mancınık, silindir, çamur,
+// rakip, rüzgâr. Yer duvar kâğıdı oluyor, çünkü yaptığın şey her yerde aynı.
+//
+// Meyvenin rengini yerden türetmek denendi ve ölçümle düştü: kırk beş
+// tonun en uzak ikisi 441 üzerinden 6 çıktı, yani hiçbir şey. Boya
+// çalışmıyor; değişmesi gereken şey **oynanış**.
+//
+// Burada her yer bir engel alıyor ve hangisi olduğu zeminden geliyor —
+// kırk sekiz keyfi karar değil, üstünde durduğun şeyle uyan bir kural.
+// Çölde ve bozkırda rüzgâr, çimde ve ormanda çamur, sokakta silindir,
+// sahada ve arenada mancınık.
+//
+// Yerin imzası olmayan engel o tahtada çıkmıyor. Tahta başına beş değil
+// bir tane: "Tokyo'ya geldim" artık oynanışta bir şey söylüyor.
+const GROUND_OBSTACLE = {
+  // Rüzgâr: açık, kuru, esecek yer.
+  sand: 'wind', blacksand: 'wind', hardpan: 'wind', pampa: 'wind',
+  redcentre: 'wind', savanna: 'wind', ashfield: 'wind', redsquare: 'wind',
+  // Çamur: yaşayan, ıslak, bitkili zemin.
+  lawn: 'mud', tulipfield: 'mud', junglestone: 'mud', reef: 'mud',
+  cracktar: 'mud', shipdeck: 'mud',
+  // Silindir: insan yapımı, düz, üstünde bir şeyin yuvarlanacağı yer.
+  sidewalk: 'roller', crosswalk: 'roller', neonstreet: 'roller',
+  plaza: 'roller', playfloor: 'roller', mosaic: 'roller', flagstone: 'roller',
+  // Mancınık: oyun alanı — bir şeyin fırlatıldığı yer.
+  arena: 'catapult', courtstone: 'catapult', bailey: 'catapult',
+  pitchcheck: 'catapult', pitchdiag: 'catapult', pitcharc: 'catapult',
+  tartan: 'catapult',
+};
+// Yer başına **iki** engel, dördün hepsi değil.
+//
+// Önce bir taneydi ve ölçüm düşürdü: mancınık ile silindir altmış tahtanın
+// yalnızca dördünde kaldı, çamur ile rüzgâr da görev bölümlerinden tamamen
+// düştü — ki o, bir gün önce aynı şikâyet için eklenmişti. "Her yerde her
+// şey" yerine "hiçbir yerde hiçbir şey" geçmişti.
+//
+// İki tanesi dört arasından altı farklı çift ediyor: yerler hâlâ birbirinden
+// ayrı oynanıyor ama her engel eskisinin yarısı kadar tahtada çıkıyor, yani
+// hiçbiri ölü koda dönmüyor.
+//
+// Birincisi zeminden (yukarıdaki tablo), ikincisi yerin **adından**: aynı
+// yer her zaman aynı ikiliyi alıyor ve bu bölüm numarasına değil yere
+// bağlı — oyuncu Tokyo'ya ikinci kez geldiğinde aynı şeyi buluyor.
+const OBSTACLE_RING = ['wind', 'mud', 'roller', 'catapult'];
+function themeObstacles(themeId) {
+  const th = THEMES[themeId];
+  if (!th) return [];
+  let h = 0;
+  for (let i = 0; i < themeId.length; i++) h = (h * 31 + themeId.charCodeAt(i)) >>> 0;
+  const birinci = GROUND_OBSTACLE[th.ground] || OBSTACLE_RING[h % OBSTACLE_RING.length];
+  // İkincisi birinciden farklı olmalı, yoksa yer tek engele düşer.
+  const kalan = OBSTACLE_RING.filter(x => x !== birinci);
+  return [birinci, kalan[(h >>> 3) % kalan.length]];
+}
+// Bu bölümde bu engel olabilir mi: yerin imzası mı, ya da engelin kendi
+// tanıtım bölümü mü.
+//
+// Tanıtım bölümü istisnası şart: engelin açıklama satırı yalnızca
+// `X_FROM`'da çıkıyor ve satır artık tahtaya bağlı (bkz. `missionRule`).
+// Yerin imzası başka bir engelse tanıtım hiç yapılmaz ve oyuncu o engeli
+// ilk kez hiçbir açıklama olmadan görür.
+function obstacleHere(ad, ilkBolum) {
+  if (level === ilkBolum) return true;
+  return themeObstacles(themeIdForLevel(level)).includes(ad);
+}
 const WIND_FROM = 34;
 const WIND_SPEED = 1.5;
 // Şeridin boyu: tahtanın eni boyunca uzanıyor, derinliği bu kadar. Beş
@@ -19291,6 +19361,8 @@ function clearCatapults() {
 function placeCatapults() {
   clearCatapults();
   if (dailyRun || level < CATAPULT_FROM) return;
+  // Yerin imzası mı: bkz. `GROUND_OBSTACLE`.
+  if (!obstacleHere('catapult', CATAPULT_FROM)) return;
   // Görev bölümlerinde yok.
   //
   // Görev bölümleri zaten "bu bölüm başka" diyen bölümler ve her birinin
@@ -19532,6 +19604,7 @@ function placeWind() {
   // olduğunda oyun bozuk okunuyor, ve bu birleşim tam olarak onu üretiyor.
   const gorev = missionKindFor(level);
   if (gorev === 'rush' || gorev === 'mines') return;
+  if (!obstacleHere('wind', WIND_FROM)) return;
   const yari = WIND_BAND / 2;
   const mZ = fieldHalfZ - yari - 1;
   if (mZ <= 0) return;
@@ -19753,6 +19826,7 @@ function placeMuds() {
   // doğrudan saatten yeniyor. Öbür görevlerde saat sabit, çamur yalnızca
   // yolu uzatıyor.
   if (missionKindFor(level) === 'rush') return;
+  if (!obstacleHere('mud', MUD_FROM)) return;
   // Tahtanın kaçta kaçı çamur olabilir: pay aşılırsa duruyor. Sayıyı değil
   // **alanı** sınırlamak doğru olan — üç büyük leke, beş küçüğünden çok yer
   // kaplıyor.
@@ -19807,6 +19881,7 @@ function clearRollers() { rollers = []; }
 function placeRollers() {
   rollers = [];
   if (dailyRun || level < ROLLER_FROM) return;
+  if (!obstacleHere('roller', ROLLER_FROM)) return;
   // Görev bölümlerinde yok, mancınıkla aynı sebeple: her görevin kendi
   // kuralı var ve üstüne ikinci bir kural koymak ikisini de öğretilmez
   // yapıyor.
@@ -24667,14 +24742,30 @@ window.fruitHoleWind = () => {
     z: +wind.z.toFixed(2), yari: wind.yari, yon: wind.yon,
     dogusa: +(Math.abs(wind.z - spawnZ()) - wind.yari).toFixed(2),
     // Deliği şeridin içine ve dışına koyup bir saniye rüzgâr uygulamak.
+    //
+    // Başlangıç noktası **kayasız** seçiliyor. `stepWind` sürüklemenin
+    // ardından `pushOutOfRocks` çağırıyor, yani yakında bir kaya varsa
+    // ölçülen şey "rüzgâr eksi kaya" oluyor. Tam da öyle oldu: engeller
+    // yere bağlanınca tahta değişti, (0, wind.z) noktasının yanına bir kaya
+    // düştü ve ölçü 1.5 yerine 1.452 dedi. Kanca rüzgârı ölçtüğünü
+    // söylüyordu, başka bir şey ölçüyordu.
     surukleme: (() => {
       const sx = holeX, sz = holeZ;
-      holeX = 0; holeZ = wind.z;
+      const temizX = (z) => {
+        for (const x of [0, 2, -2, 4, -4, 6, -6]) {
+          if (!rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + HOLE_MAX + WIND_SPEED + 1)) return x;
+        }
+        return 0;
+      };
+      const x1 = temizX(wind.z);
+      holeX = x1; holeZ = wind.z;
       stepWind(1);
-      const ic = +(holeX - 0).toFixed(3);
-      holeX = 0; holeZ = wind.z + wind.yari + 3;
+      const ic = +(holeX - x1).toFixed(3);
+      const zDis = wind.z + wind.yari + 3;
+      const x2 = temizX(zDis);
+      holeX = x2; holeZ = zDis;
       stepWind(1);
-      const dis = +(holeX - 0).toFixed(3);
+      const dis = +(holeX - x2).toFixed(3);
       holeX = sx; holeZ = sz;
       return { ic, dis };
     })(),
@@ -25133,6 +25224,7 @@ window.fruitHoleLean = () => {
 // Klibin soğuk açılışı yakın plandan normale açılıyor ve "normal"in sayısını
 // klibin bilmesi gerekmiyor — burada zaten yazıyor, iki yere yazılsaydı
 // ayrışırdı.
+window.fruitHoleThemeObstacles = (k) => themeObstacles(k);
 window.fruitHoleZoom = (halfWidth) => {
   if (halfWidth === null || halfWidth === undefined) fitCamera();
   else {

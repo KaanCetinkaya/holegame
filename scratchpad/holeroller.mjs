@@ -104,7 +104,16 @@ console.log('\n1. nerede çıkıyor');
     'tanıtım bölümü sıradan bir ızgara tahtası',
     `${K.ilk}: ${tanitim.kind}${tanitim.mission ? '/' + tanitim.mission : ''}`);
 
-  check(silindirli.length >= 8, 'silindir gerçekten çıkıyor (ölü kod değil)',
+  // Eşik 8'den 5'e indi ve sebebi nüfusun değişmesi.
+  //
+  // Engeller artık **yere** bağlı: her yerin dört engelden ikisi var, yani
+  // silindir eskisi gibi 24'ten sonraki her tahtada değil, o tahtaların
+  // yaklaşık %40'ında aday. Üstüne silindirin kendi yerleşimi en zoru —
+  // çıplak bir şerit istiyor ve her tahtada bulamıyor.
+  //
+  // Eşiğin işi "ölü kod değil" demek, "sık" demek değil. Altmış tahtada
+  // altı, ölü değil.
+  check(silindirli.length >= 5, 'silindir gerçekten çıkıyor (ölü kod değil)',
     `${silindirli.length} tahta`);
 }
 
