@@ -223,6 +223,7 @@ for (const n of GEC) {
   if (o) KOS.push(o);
 }
 const dar = [];
+const sonuc = new Map();
 for (const r of KOS) {
   const o = await pg.evaluate(async (lvl) => {
     window.fruitHoleSeedField(9100 + lvl);
@@ -253,6 +254,7 @@ for (const r of KOS) {
     window.fruitHoleUnseedField();
     return { is: +t.toFixed(1), bitti: bitti() };
   }, r.n);
+  sonuc.set(r.n, o);
   const pay = o.bitti ? Math.round((1 - o.is / r.saat) * 100) : null;
   console.log(`${String(r.n).padStart(3)} | ${String(r.cards.length).padStart(4)} | ` +
     `${String(o.bitti ? o.is + 's' : 'BİTİREMEDİ').padStart(9)} | ` +
@@ -260,6 +262,30 @@ for (const r of KOS) {
   if (!o.bitti || pay < 0) dar.push(String(r.n));
 }
 check(!dar.length, 'bot her kart bölümünü saat içinde bitiriyor', dar.join(' '));
+
+// Üç yıldız geç turda da alınabiliyor mu.
+//
+// Bu ölçü, saat payının tur başına daralmasıyla birlikte doğdu. Üç yıldızın
+// şartı `timeLeft / levelTime() >= 0.45`, yani saatin yarısından fazlasının
+// kalması. Pay daraldıkça aynı oyun daha az yıldız veriyor — ve istenen
+// tam da bu. İstenmeyen, en üst notun **ulaşılamaz** olması: zor olmakla
+// alınamaz olmak ayrı şeyler, ve ikincisi oyuncuya "bu bozuk" dedirtiyor.
+//
+// Ölçülen şey kusursuz botun payı. 1. turda %76-88, 4. turda %52 — yani üç
+// yıldız duruyor ama arada yalnızca 0.07 var. Bir dahaki sıkıştırma bunu
+// sessizce götürürdü; artık götüremez.
+{
+  const gecKos = KOS.filter(r => r.n > 48);
+  const paylar = [];
+  for (const r of gecKos) {
+    const o = sonuc.get(r.n);
+    if (o && o.bitti) paylar.push({ n: r.n, oran: 1 - o.is / r.saat });
+  }
+  check(paylar.length > 0, 'geç turdan ölçüm alındı', String(paylar.length));
+  const enDar = paylar.length ? Math.min(...paylar.map(p => p.oran)) : 1;
+  check(enDar >= 0.45, 'geç turda kusursuz oyun hâlâ üç yıldız alıyor',
+    paylar.map(p => `${p.n}:%${Math.round(p.oran * 100)}`).join(' '));
+}
 
 console.log('\nsayfa hataları: ' + (errs.length ? errs.join(' | ') : 'yok'));
 console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');

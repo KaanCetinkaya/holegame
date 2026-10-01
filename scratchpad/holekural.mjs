@@ -60,9 +60,9 @@ const check = (ok, ne, ek = '') => {
 
 const SON = 48, TOHUM = 3;
 const topla = { parca: 0, ustUste: 0, bosluk: 0, disarida: 0, katiCakisma: 0,
-                dogusKatisi: 0, ulasilmaz: 0 };
+                dogusKatisi: 0, ulasilmaz: 0, iriKapali: 0, kartDar: 0 };
 const kotu = { ustUste: [], bosluk: [], disarida: [], katiCakisma: [],
-               dogusKatisi: [], ulasilmaz: [] };
+               dogusKatisi: [], ulasilmaz: [], iriKapali: [], kartDar: [] };
 
 for (let n = 1; n <= SON; n++) {
   for (let t = 0; t < TOHUM; t++) {
@@ -72,8 +72,11 @@ for (let n = 1; n <= SON; n++) {
       window.fruitHoleStartLevel();
       const s = window.fruitHoleSanity();
       const u = window.fruitHoleReach(null);
+      const i = window.fruitHoleBigReach();
+      const c = window.fruitHoleCardReach();
       window.fruitHoleUnseedField();
-      return { kind: p.kind, ...s, ulasilmaz: u.ulasilmaz, yerler: u.yerler };
+      return { kind: p.kind, ...s, ulasilmaz: u.ulasilmaz,
+               iriKapali: i.kapali.length, kartDar: (c.dar || []).length };
     }, [n, t]);
     // Bulmaca tahtası iki ölçünün dışında, ve sebebi ölçünün kendisinde.
     //
@@ -122,6 +125,24 @@ check(!topla.dogusKatisi, 'deliğin doğduğu yerde katı engel yok',
 // daha yutulamıyordu. Artık mancınık devin dibine kurulmuyor.
 check(!topla.ulasilmaz, 'her parçaya, başlangıç deliğiyle, ulaşılabiliyor',
   kotu.ulasilmaz.slice(0, 8).join(' '));
+
+// Delik yalnızca büyüyor, ve bu geri alınamaz.
+//
+// Yukarıdaki ölçü başlangıç deliğiyle soruyor; yetmiyor. Başta geçilen bir
+// açıklık yirmi meyve sonra geçilmiyor, ve o cebin içinde kalan şey bir
+// daha alınamıyor. İki yerde ölçülüyor:
+//
+//   - **İri parçalar.** Bir devi yutmak için ona yetişecek kadar büyümek
+//     gerekiyor; tam o boyda yanına varılamıyorsa dev, tahtada duran ama
+//     alınamayan bir şey. Mancınığın devin dibine kurulması bu hataydı.
+//   - **Kartlar.** Kartın istediği her şey yendikten sonraki yarıçapta,
+//     yani koşunun en geniş anında, hâlâ `need` kadar ulaşılabilir parça
+//     kalmalı. Kalmazsa bölüm **oyunun ortasında** bitirilemez oluyor:
+//     saat doluyor ve sebep hiçbir yerde görünmüyor.
+check(!topla.iriKapali, 'her iri parçaya, onu yutabilecek boydayken ulaşılabiliyor',
+  kotu.iriKapali.slice(0, 8).join(' '));
+check(!topla.kartDar, 'her kart, delik sonuna kadar büyüdüğünde de karşılanabiliyor',
+  kotu.kartDar.slice(0, 8).join(' '));
 
 console.log('\nsayfa hataları: ' + (errs.length ? errs.join(' | ') : 'yok'));
 console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');

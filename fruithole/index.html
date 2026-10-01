@@ -24370,11 +24370,69 @@ window.fruitHoleReach = (r) => {
         if (a >= 0 && a < nx && b >= 0 && b < nz && gorulen[idx(a, b)]) bulundu = true;
       }
     }
-    if (!bulundu) { ulasilmaz++; if (yerler.length < 6) yerler.push({ x: +f.x.toFixed(2), z: +f.z.toFixed(2) }); }
+    if (!bulundu) { ulasilmaz++; if (yerler.length < 400) yerler.push({ x: +f.x.toFixed(2), z: +f.z.toFixed(2) }); }
   }
   return { yaricap: +R.toFixed(3), ulasilmaz, yerler,
            kenar: { x: +fieldHalfX.toFixed(2), z: +fieldHalfZ.toFixed(2) },
            parca: fruits.filter(f => !f.eaten).length };
+};
+// İri parçalara, onları yutabilecek boydayken, hâlâ ulaşılabiliyor mu.
+//
+// `fruitHoleReach` başlangıç deliğiyle soruyor ve bu yetmiyor: delik
+// **yalnızca büyüyor**, yani başta geçilen bir açıklık yirmi meyve sonra
+// geçilmiyor ve bu geri alınamaz. Bir devi yutmak için ona yetişecek kadar
+// büyümek gerekiyor — ve tam o boyda devin yanına varılamıyorsa dev,
+// tahtada duran ama alınamayan bir şey oluyor.
+//
+// Mancınığın devin dibine kurulması tam bu hataydı; bu ölçü onun genel
+// hâli, çünkü aynı şeyi kayalar da yapabilir ve kolosun başına da gelebilir.
+//
+// Gereken boy oyunun kendi yutma kuralından: `f.r <= holeRadius * 0.92`.
+// Kart, delik büyüdükçe karşılanabilir kalıyor mu.
+//
+// En sert soru bu, çünkü yanlış cevabı **oyunun ortasında** görünüyor:
+// delik yalnızca büyüyor, bir açıklık kapandığında geri açılmıyor, ve
+// kartın istediği meyve o kapanan cebin içinde kalırsa saat dolana kadar
+// oynayıp sebebini hiç göremiyorsun.
+//
+// Ölçü, kartların istediği her şeyi yedikten **sonraki** yarıçapta
+// soruluyor, yani koşunun en geniş anında. Büyüme kaba hesaplanıyor: her
+// istenen parça sıradan sayılıyor. İri ve dev daha çok büyüttüğü için bu
+// gerçek yarıçapın altında kalabilir — ama altında kalması ölçüyü
+// **gevşetiyor**, yani burada bulunan bir sorun gerçek bir sorun.
+window.fruitHoleCardReach = () => {
+  if (!cards.length) return { kart: 0, dar: [] };
+  const ister = cards.reduce((a, k) => a + k.need, 0);
+  const sonR = Math.min(HOLE_MAX, BASE_HOLE_R + ister * growthUnit());
+  const r = window.fruitHoleReach(sonR);
+  const kapali = new Set(r.yerler.map(y => `${y.x}|${y.z}`));
+  const dar = [];
+  for (const k of cards) {
+    let ulasilir = 0;
+    for (const f of fruits) {
+      if (f.eaten || f.bomb || f.prop || f.type !== k.type) continue;
+      if (kapali.has(`${+f.x.toFixed(2)}|${+f.z.toFixed(2)}`)) continue;
+      ulasilir++;
+    }
+    if (ulasilir < k.need) dar.push({ type: k.type, need: k.need, ulasilir });
+  }
+  return { kart: cards.length, sonYaricap: +sonR.toFixed(2), dar };
+};
+window.fruitHoleBigReach = () => {
+  const iri = fruits.filter(f => !f.eaten && (f.giant || f.colossus));
+  const sonuc = [];
+  for (const f of iri) {
+    const gerek = f.r / 0.92;
+    const r = window.fruitHoleReach(gerek);
+    // `fruitHoleReach` bütün parçaları sayıyor; burada sorulan tek şey bu
+    // parçanın o boyda ulaşılıp ulaşılmadığı, o yüzden yerine bakılıyor.
+    const kapali = r.yerler.some(y =>
+      Math.abs(y.x - f.x) < 0.01 && Math.abs(y.z - f.z) < 0.01);
+    sonuc.push({ x: +f.x.toFixed(2), z: +f.z.toFixed(2),
+                 tur: f.colossus ? 'kolos' : 'dev',
+                 gerek: +gerek.toFixed(2), ulasilir: !kapali });
+  }
+  return { sayi: iri.length, kapali: sonuc.filter(o => !o.ulasilir), hepsi: sonuc };
 };
 window.fruitHoleSanity = () => {
   const canli = fruits.filter(f => !f.eaten);
