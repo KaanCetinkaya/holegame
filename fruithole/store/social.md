@@ -1007,3 +1007,105 @@ iş konteynerin dışında, çünkü TikTok'a çıkış kapalı.
 Geri kalan sekiz — `@rollic`, `@saygames`, `@zynga`, `@lionstudioscc`,
 `@supersonic`, `@hypercasualgamedev`, `@kwalee.games`, `@crazylabs` —
 kaydedildi ama bakılacak sıranın dışında.
+
+## Üçüncü parti — ve sözü tutmayan dokuz klip (2 Ekim)
+
+### Önce bulunan şey
+
+İkinci parti engel göstermek için yazılmıştı. Dosyanın kendi yorumu bunu
+uzun uzun savunuyordu — *"yirminci bölümden sonra tahtada mancınık,
+silindir, çamur, rakip delik ve rüzgâr var, yani orada çekilen bir klipte
+bir şey oluyor"*, ve *"mancınık bu iş için en iyisi"* — ve dokuz klibin
+notuna engel adları yazıldı.
+
+Ölçüldü. **Dokuz bölümün hiçbirinde mancınık yoktu.**
+
+| klip | blm | notta söz | tahtada olan |
+|---|---|---|---|
+| overgrown | 32 | mancınık | çamur, rakip |
+| suburb | 22 | mancınık | **hiçbir engel yok** |
+| bazaar | 27 | — | silindir |
+| redsquare | 34 | rüzgâr | rüzgâr, rakip ✓ |
+| academy | 44 | — | silindir, rakip |
+| nazca | 41 | — | rüzgâr, rakip |
+| savanna | 37 | — | çamur, rüzgâr, rakip |
+| jurassic | 40 | — | silindir, rüzgâr, rakip |
+| boss | 30 | — | çamur |
+
+Sebebi: engeller **yere bağlandı** (her yerin kendi engel çifti var, yerin
+adından türetiliyor). Liste yazıldığında bu kural yoktu; kural gelince
+dokuz tahtanın engelleri sessizce değişti ve notlar yerinde kaldı.
+
+`suburb` en kötüsü: 22. bölüm, teması çamur+rüzgâr kabul ediyor ama
+ikisinin eşiği de (29 ve 34) 22'nin üstünde — o tahtada hiçbir şey olmuyor.
+**Ve o klip gün 51 olarak yayınlandı.**
+
+Bu, depodaki **üçüncü** aynı hata: uzun uzun savunulmuş bir kural, onu
+uygulamayan bir satır, ölçen kimse yok. (Bombanın kule tepesinde durması,
+`CARD_SLACK`'in sıkılaşması, şimdi de bu.)
+
+### Ardından bulunan oyun hatası
+
+Mancınık neden hiç yoktu diye bakılınca ölçü oyunun kendisini gösterdi:
+mancınık izinli tahtalara da **yerleşemiyordu.** Kırk tohum, bölüm başına:
+
+| bölüm | önce | sonra |
+|---|---|---|
+| 21 Drive-In | **%43** | %78 |
+| 24 Fiesta | %50 | %88 |
+| 20 Rangoli | %80 | %83 |
+| 47 Red Planet | %80 | %98 |
+| 39 Tikal | %85 | **%100** |
+
+Yani Drive-In'i oynayan iki oyuncudan biri, Drive-In'i Drive-In yapan şeyin
+yarısını hiç görmüyordu. Kaan'ın *"o kadar şehir ekledik lig falan ekledik
+sanki hep aynı bölümü oynuyomuşum gibi"* dediği şeyin bir parçası tam
+olarak bu.
+
+Düzeltme: rastgele deneme boş döndüğünde tahta yarım birimlik bir ızgarada
+taranıyor. Denemeyi artırmak işe yaramıyordu (tanıtım bölümünde kırk kat
+artırılmış ve %72.5'ten %80'e çıkmıştı) çünkü sorun deneme sayısı değildi:
+dört yüz rastgele atış, tahtanın binde biri kadar bir alanı da buluyor —
+hiç bulamamak uygun alanın sıfıra yakın olduğu demek, ve rastgelelik
+"sıfıra yakın" ile "sıfır" arasındaki farkı ayırt edemiyor. Tarama ayırt
+ediyor.
+
+Kalan eksik gerçek: tahta x'te ±6.83 birim, kenar payı 4.85, yani
+mancınığın durabileceği şerit ±1.98 birim — iki kaya ve doğuş payı
+düştüğünde bazen hiç yer kalmıyor. Kenar payı gevşetilemiyor, çünkü delik
+bu tahtalarda `HOLE_MAX`a gerçekten ulaşıyor.
+
+### Üçüncü partinin kuralı: engel bir söz ve ölçülüyor
+
+Artık her klip satırı tahtada olmasını istediği engeli **adıyla** söylüyor
+ve üç yerde doğrulanıyor:
+
+1. **Eşik** — bölüm o engelin ilk bölümünden geride mi (`suburb`'u yakalar).
+2. **Tema izni** — yerin engel çifti o engeli kabul ediyor mu
+   (deterministik; dokuz klibin mancınık sözü tam burada düşerdi, ve iki
+   dakikalık bir çekim beklemek gerekmezdi).
+3. **Tahtanın kendisi** — koşu başladıktan sonra engel gerçekten orada mı
+   (yerleştirme rastgele ve başarısız olabiliyor).
+
+Bir de dördüncü: engel **kadrajda** olmalı. Tahta 27 birim geniş, kamera 11
+birim gösteriyor — tahtanın dörtte birinden azı ekranda, yani tahtada bir
+mancınık olması onun klipte göründüğü anlamına gelmiyor.
+
+Tutmazsa klip **düşüyor**. Sessizce engelsiz bir tahta kaydetmiyor.
+
+### Liste
+
+Mancınık sözü yalnızca %98-100 olan iki tahtada veriliyor; Drive-In ve
+Rangoli sözünü beşte birinde tutmayacak tahtalar.
+
+| klip | blm | yer | söz | meyve |
+|---|---|---|---|---|
+| tikal | 39 | Tikal | mancınık | 305 |
+| redplanet | 47 | Red Planet | mancınık | 216 |
+| jardin | 29 | Le Jardin | çamur (tanıtım bölümü, garanti) | 216 |
+| tulip | 31 | Tulip Fields | silindir | 400 |
+| matchday | 45 | Matchday France | çamur | **459 (en kalabalık)** |
+| forbidden | 35 | Forbidden City | çamur | 408 |
+| outback | 42 | Outback | rüzgâr | 201 |
+| academy | 44 | Academy | silindir | 243 |
+| boss | 30 | Pirate Cove | çamur | 230 |
