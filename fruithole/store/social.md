@@ -703,9 +703,21 @@ Takvim günü değişmediği için anlatı bozulmuyor.
 | 29 Eyl 21:22 | 48 | overgrown | **atıldı** — 188 |
 | 30 Eyl 14:21 | 49 | redsquare | **atıldı** — 369 |
 | 1 Eki 21:00 | 50 | boss | **atıldı** |
-| 2 Eki | 51 | suburb | |
-| 3 Eki | 52 | bazaar | |
-| 4 Eki | 53 | nazca | |
+| 2 Eki | 51 | suburb | **atıldı** |
+| 2 Eki | 52 | bazaar | **atıldı** |
+| 3 Eki | 53 | nazca | son klip |
+
+**Liste bitiyor.** `nazca`dan sonra elde yayınlanacak klip kalmıyor:
+dokuzun ikisi (`academy`, `jurassic`) ödemesiz bittiği için zaten
+ayrılmıştı. Seri dört gündür kesintisiz ve ölçüm ardışık günün iki katı
+izlenme getirdiğini söylüyor — yani boşluk vermemek bu dosyanın ölçtüğü
+tek şeyin tam karşılığı.
+
+Yeni parti üretilirken bilinen iki eksik: klipler **hiçbir engeli
+göstermiyor** (kayıt aracı belirli bir olayı beklemiyor, rastgele dokuz
+saniye çekiyor) ve iki klip ödemesiz bitiyor. Üçüncü bir şey de eklendi:
+44'ten beri her yerin kendi iki engeli var, yani "Tokyo'da silindir"
+artık klipte gösterilebilecek bir şey.
 
 **Sessizliğin bedeli ölçüldü, ve sonra geri alındığı da.**
 
