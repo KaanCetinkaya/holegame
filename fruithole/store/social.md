@@ -703,9 +703,26 @@ Takvim günü değişmediği için anlatı bozulmuyor.
 | 29 Eyl 21:22 | 48 | overgrown | **atıldı** — 188 |
 | 30 Eyl 14:21 | 49 | redsquare | **atıldı** — 369 |
 | 1 Eki 21:00 | 50 | boss | **atıldı** |
-| 2 Eki | 51 | suburb | **atıldı** |
-| 2 Eki | 52 | bazaar | **atıldı** |
-| 3 Eki | 53 | nazca | son klip |
+| 1 Eki 21:00 | 50 | boss | **atıldı** — 255 |
+| 2 Eki 13:07 | 51 | bazaar | **atıldı** (numarası düzeltildi) |
+| 3 Eki | 52 | nazca | son klip |
+| — | — | suburb | atılmadı, kuyruğa döndü |
+
+**Gün 51 atlandı ve numara düzeltilerek kapatıldı.** `suburb` atılmadı,
+`bazaar` atıldı ve kendini 52 ilan etti; günlük 50'den 52'ye atlıyordu.
+Düzeltmesi ucuzdu çünkü yanlış olan tek şey sayıydı — metin kilimi
+anlatıyor ve klip de kilim. Açıklama 51'e çekildi, sıra kesintisiz kaldı.
+
+Buradaki ders bu dosyanın kendi kuralında: **gün numarası tablodan
+okunuyor, bir öncekine bakılarak değil.** Kliplerin açıklamaları önceden
+yazıldığı için her biri kendi numarasını taşıyor, ve sıra değişince o
+numara sessizce yanlış oluyor. Aynı şey 29 Eylül'de `boss`un
+açıklamasında da olmuştu.
+
+İkinci kez olan bir şey daha: gönderi **"Sadece ben"** olarak çıktı
+(49'da da olmuştu). TikTok yükleme ekranında gizliliği hatırlıyor, yani
+bir kez kapalı atılırsa sonrakiler de kapalı geliyor. Atıldıktan sonra
+listede gizlilik sütununa bakmak, gönderi başına beş saniye.
 
 **Liste bitiyor.** `nazca`dan sonra elde yayınlanacak klip kalmıyor:
 dokuzun ikisi (`academy`, `jurassic`) ödemesiz bittiği için zaten
