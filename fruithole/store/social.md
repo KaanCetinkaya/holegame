@@ -892,3 +892,53 @@ the camera here looks straight down, which is the only way this layout reads at 
 
 #indiedev #solodev #gamedev #mobilegame #satisfying
 ```
+
+## Diğer oyun şirketlerinin hesapları (2 Ekim)
+
+24 Eylül'deki bulgu — *tür liderlerinin oyun hesabı yok* — hâlâ doğru, ama
+eksikti. **Yayıncının kendi hesabı var**, oyunun hesabı yok. İkisi aynı şey
+değil ve aradaki fark bizi doğrudan ilgilendiriyor.
+
+Aşağıdakiler aramada **gerçek bir `tiktok.com/@...` adresi olarak** çıktı,
+yani uydurma değil. Konteynerden TikTok'a çıkış kapalı (egress engelli), o
+yüzden takipçi sayıları aramanın döndürdüğü an itibarıyla — profili açıp
+tek tek doğrulayamadım, bunu bilerek yazıyorum.
+
+| hesap | kim | ölçü | ne yapıyor |
+|---|---|---|---|
+| `@homagames` | Homa Games — **Attack Hole**'un sahibi, en yakın rakip | 249 bin takipçi, 5,6 mn beğeni | şirket hesabı: ekip, ofis, işe alım, lansman duyurusu |
+| `@rollic` | Rollic (Zynga/Take-Two), İstanbul | — | *"Join Rollic, where bold ideas turn into hit games"* — tamamı işe alım |
+| `@saygames` | SayGames | — | *"say.games and nothing else"* |
+| `@solodevgames` | tek kişilik geliştirici derlemesi | **545 bin takipçi, 6,2 mn beğeni** | başkalarının oyunlarını derliyor |
+| `@gametik.studio` | TikTok Live oyunları | 27,8 bin | bizim işimiz değil, tamlık için |
+
+**Voodoo'yu bulamadım.** Arama `@voodoo_offical_` ve `@voodoo.io_` gösterdi;
+birincisinde "official" yanlış yazılmış, ikincisi de hayran hesabı gibi
+duruyor. Doğrulayamadığım bir hesabı buraya yazmıyorum.
+
+### Bulgunun söylediği
+
+**1. Rakibin hesabı bize örnek değil.** `@homagames` 249 bin takipçiyi
+Attack Hole klipleriyle toplamadı — Attack Hole'un 6 milyon kurulumu
+**TikTok reklamından** geldi, altı ay kesintisiz kampanya, ve oyun 2023'ün
+ilk çeyreğinde dünyada en çok indirilen oyun oldu. Organik hesap o işin
+yanında duran bir kurumsal vitrin: ekip, ofis, işe alım. Kopyalayacak bir
+şey yok, çünkü yaptıkları iş bizim yaptığımız iş değil.
+
+**2. Asıl kıyas `@solodevgames`.** 545 bin takipçi, oyun yapmayan bir hesap
+— yalnızca tek kişilik geliştiricilerin oyunlarını derliyor. Yani bu türde
+organik kitle **geliştirici anlatısında** duruyor, yayıncı hesabında değil.
+Bu, 24 Eylül'de yazdığımız şeyin (*organik büyüyen oyun hesapları neredeyse
+her zaman geliştiricinin kendisi*) bağımsız ikinci kanıtı ve gün numaralı
+günlük deneyinin neden doğru yön olduğunu söylüyor.
+
+**3. Takip listesi bu hesabın sorununu çözmüyor.** Ölçülen sorun dağıtım
+değil artık: beş gönderi, 370/255/219/188/354 izlenme, **toplam 1 beğeni**.
+Klipler gösteriliyor ve kaydırılıp geçiliyor. Kimi takip ettiğimiz bunu
+değiştirmez; ilk iki saniye değiştirir.
+
+**Yapılacak olan:** `@solodevgames`'in derlediği kliplerin **ilk iki
+saniyesine** bakmak — hangi karede ne var, yazı mı yüz mü oynanış mı, ve
+kaçıncı saniyede ilk şey yeniyor. Bizim kliplerde ilk saniye boş tarla:
+delik henüz ilk meyveye varmıyor. Ölçülmüş tek rakamımız (281–401 bandı,
+hiç açılmayan altı video) bunu söylüyordu, bu da aynı yere çıkıyor.
