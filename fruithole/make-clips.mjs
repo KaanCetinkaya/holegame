@@ -551,6 +551,13 @@ for (const clip of CLIPS) {
     if (!hedef && ad) {
       const e = window.__engel(ad);
       if (e.uzak !== null && e.uzak > r) hedef = { x: e.x, z: e.z };
+      // Eşik `ENGEL_R`'nin kendisi değil, **%70'i**. Tam sınırda bırakmak
+      // deliği sınırın dışına salıyor: engel 8 birime gelince yönelme
+      // kesiliyor, delik en yakın meyveyi kovalamaya dönüyor ve 3.4 birim/sn
+      // hızla birkaç saniyede 8'in ötesine çıkıyor. %70'te bırakınca delik
+      // engelin çevresinde dolanıyor — yaklaşıyor, yanındakini süpürüyor,
+      // biraz uzaklaşıyor, geri geliyor — ve şartın tutabileceği pencere
+      // açık kalıyor.
     }
     if (!hedef) hedef = window.fruitHoleNearest();
     if (!hedef) window.fruitHoleSteer(0, 0);
@@ -567,7 +574,7 @@ for (const clip of CLIPS) {
     const oldu = k.reduce((a, c) => a + Math.min(c.need, c.got), 0);
     return { dev: g.length, eaten: w.eaten, total: w.total, timeLeft: w.timeLeft,
              state: w.state, kartPay: ister ? +(oldu / ister).toFixed(2) : 0 };
-  }, [1000 / FPS, avla, git, ENGEL_R]);
+  }, [1000 / FPS, avla, git, ENGEL_R * 0.7]);
   //
   // Ne zaman kaydetmeye başlanacağı sabit bir gecikme değil, **deliğin
   // çevresindeki meyve sayısı**.
@@ -657,9 +664,17 @@ for (const clip of CLIPS) {
   }
   // İkinci aşama: engel şartı bırakılıyor, öteki dördü aranıyor. Burada
   // artık engele doğru sürülmüyor — sürmek ötekileri bozan şeydi.
+  //
+  // İkinci aşama **kısa**: `PRE_MAX`in üçte biri. Ölçüldü ve sebebi burada
+  // görüldü — ilk hâli bir `PRE_MAX` daha veriyordu ve o süre boyunca
+  // delik engelden uzaklaşıyordu. Tikal'de kayıt mancınık 19.47 birim
+  // ötedeyken başladı; delik ilk aşamada ona yaklaşmıştı (ölçülü: 17 birim
+  // 5 saniyede kapanıyor), ikinci aşamanın dört saniyesinde meyve
+  // kovalayarak geri açtı. Delik 3.4 birim/sn gidiyor, yani her saniye
+  // 3.4 birim kayıp.
   let engelsiz = false;
   if (!uygun(d)) {
-    const ikinci = enCok + Math.round(PRE_MAX * FPS);
+    const ikinci = enCok + Math.round(PRE_MAX / 3 * FPS);
     while (warm < ikinci && !dortu(d)) {
       await adim(false);
       d = await durum();
