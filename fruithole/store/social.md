@@ -1109,3 +1109,122 @@ Rangoli sözünü beşte birinde tutmayacak tahtalar.
 | outback | 42 | Outback | rüzgâr | 201 |
 | academy | 44 | Academy | silindir | 243 |
 | boss | 30 | Pirate Cove | çamur | 230 |
+
+### Çekim sonucu — 2 Ekim
+
+| klip | söz | kadrajda | ödeme | çevrede meyve | boyut |
+|---|---|---|---|---|---|
+| redplanet | mancınık | **6.46 birim ✓** | 8.4 sn | 65 | 4.2 MB |
+| matchday | çamur | **4.84 ✓** | 8.4 sn | 126 | 5.4 MB |
+| jardin | çamur | **5.52 ✓** | 8.4 sn | 50 | 4.2 MB |
+| boss | çamur | **5.53 ✓** | 8.4 sn | 93 | 3.1 MB |
+| outback | rüzgâr | **5.56 ✓** | 8.4 sn | 82 | 4.0 MB |
+| tulip | silindir | **5.6 ✓** | 8.4 sn | **144** | 6.2 MB |
+| forbidden | çamur | **7.14 ✓** | 8.4 sn | 51 | 3.4 MB |
+| academy | silindir | **7.99 ✓** | 8.4 sn | 53 | 3.1 MB |
+| tikal | mancınık | 10.91 ✗ | 8.4 sn | 53 | 3.3 MB |
+
+**Dokuzunun dokuzu** 9.0 saniye, soğuk açılışlı ve ödemeli — ikinci partide
+iki klip ödemesiz kesilmişti. **Sekizi engel sözünü tuttu;** `tikal`
+tutmadı (10.91 > 8) ve dört şartla alındı, yani engelsiz. Dosya bunu
+söylüyor, sessizce geçmiyor — ve `tikal`'in açıklaması mancınık sözü
+vermiyor.
+
+Boyutların hiçbiri donmuş klibin imzasına (363 KB) yakın değil; en küçüğü
+3.1 MB.
+
+`tikal` neden tutmadı: mancınık tahta kurulduğunda 11.36 birim ötedeydi ve
+yönelme onu 10.91'e getirdi — yani delik ona gitti ama 8'in içine
+girmedi. Sebebi mancınığın devden uzak durma kuralı (`f.r * 2 +
+CATAPULT_R`): dev kadrajdayken mancınık tanım gereği biraz ötede, ve iki
+şart aynı karede zor buluşuyor. `redplanet`'te buluştu (6.46), Tikal'de
+buluşmadı. Tek tahtada bir hipotez için kural gevşetilmiyor.
+
+### Üçüncü partinin açıklamaları
+
+`nazca` gün 52 olarak gidiyor (ikinci partinin son klibi), bu parti **gün
+53**'ten başlıyor.
+
+**1. redplanet.mp4** — ekran yazısı: `the red ring is where the next shot lands`
+
+Partinin ilk gönderisi bu olsun: mancınığın kadrajda olduğu tek klip, yani
+bir şeyin **olduğu** tek klip.
+```
+day 53 of building my own mobile game 🔴
+
+that machine throws rocks at wherever you are standing. the red ring is your warning, and it is the only warning you get.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**2. tulip.mp4** — ekran yazısı: `400 pieces on one board`
+```
+day 54 of building my own mobile game 🌷
+
+the striped rows are mown into the field, and the roller sweeps across them. the busiest board in the game.
+
+#indiedev #solodev #gamedev #mobilegame #oddlysatisfying
+```
+
+**3. matchday.mp4** — ekran yazısı: `459 pieces. the most in the game`
+```
+day 55 of building my own mobile game ⚽
+
+the mud patches slow the hole down. you can go around them or straight through, and one of those is wrong.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**4. outback.mp4** — ekran yazısı: `the wind drags the hole sideways`
+```
+day 56 of building my own mobile game 🪃
+
+there is a band across this board where you do not steer alone. five giants in frame and the wind pushing you off all of them.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**5. forbidden.mp4** — ekran yazısı: `i drew this courtyard in code`
+```
+day 57 of building my own mobile game 🏮
+
+408 pieces on stone, and not one image file in the whole game. the floor is maths.
+
+#indiedev #solodev #gamedev #procedural #satisfying
+```
+
+**6. jardin.mp4** — ekran yazısı: `a clipped hedge maze, from above`
+```
+day 58 of building my own mobile game 🌿
+
+this is where the game teaches you mud. every board after it has its own two obstacles, picked from the ground you are standing on.
+
+#indiedev #solodev #gamedev #mobilegame #cozygames
+```
+
+**7. academy.mp4** — ekran yazısı: `candlelit stone, and a key laid out in fruit`
+```
+day 59 of building my own mobile game 🗝️
+
+48 layouts in this game and the fruit gets arranged into a shape every time. this one is a key.
+
+#indiedev #solodev #gamedev #mobilegame #oddlysatisfying
+```
+
+**8. tikal.mp4** — ekran yazısı: `a stone ball court, drawn from above`
+
+**Mancınık sözü yok**, çünkü klipte mancınık yok (10.91 birim, kadrajın
+dışı). Açıklamanın kuralı bu dosyada yazılı: yalnızca klibin tuttuğu sözler
+duruyor.
+```
+day 60 of building my own mobile game 🪨
+
+the camera looks straight down here, which is the only way this layout reads at all.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**Yayınlanmayacak: boss.mp4.** Sözünü tutuyor (çamur 5.53, ödeme 8.4 sn) ve
+ölçülmüş en iyi kurgu bu — ama Pirate Cove zaten iki kez gönderildi (gün
+50 ve öncesi). Aynı yeri üçüncü kez göndermek yeni bir şey söylemiyor. Klip
+dosyada duruyor, bir sonraki partiye kadar.
