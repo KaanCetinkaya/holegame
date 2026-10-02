@@ -19387,11 +19387,13 @@ function placeCatapults() {
   // gevşetilmedi — hepsinin bir sebebi var ve yukarıda yazılı — yalnızca
   // bu tek bölümde daha uzun aranıyor.
   const dene = level === CATAPULT_FROM ? kac * 400 : kac * 40;
-  for (let deneme = 0; deneme < dene && catapults.length < kac; deneme++) {
-    const x = (rnd() * 2 - 1) * mX;
-    const z = (rnd() * 2 - 1) * mZ;
-    if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + CATAPULT_R + 4) continue;
-    if (hasColossus(level) && Math.hypot(x - 0, z + fieldHalfZ * 0.55) < COLOSSUS_R + CATAPULT_R + 2) continue;
+  // Şartlar ayrı bir fonksiyonda, çünkü iki yerden soruluyor: rastgele
+  // denemeler ve altındaki ızgara taraması. İçeride tek bir kural
+  // değişmedi — hepsinin sebebi aşağıda yazılı.
+  const olurMu = (x, z) => {
+    if (Math.abs(x) > mX || Math.abs(z) > mZ) return false;
+    if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + CATAPULT_R + 4) return false;
+    if (hasColossus(level) && Math.hypot(x - 0, z + fieldHalfZ * 0.55) < COLOSSUS_R + CATAPULT_R + 2) return false;
     // Kayadan bir ağız boyu uzak.
     //
     // Önce kayanın kaya-kaya kuralı kopyalanmıştı (aradan en geniş ağız
@@ -19406,11 +19408,11 @@ function placeCatapults() {
     // var. Kaya ile mancınığın arasından geçmek zorunda değilsin,
     // etrafından dolaşıyorsun. Burada kalan tek şart ikisinin birbirine
     // yapışıp tek bir kütle gibi okunmaması: bir ağız boyu yetiyor.
-    if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + CATAPULT_R + HOLE_MAX)) continue;
-    if (catapults.some(c => Math.hypot(c.x - x, c.z - z) < CATAPULT_R * 2 + HOLE_MAX * 2 + 1.2)) continue;
+    if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + CATAPULT_R + HOLE_MAX)) return false;
+    if (catapults.some(c => Math.hypot(c.x - x, c.z - z) < CATAPULT_R * 2 + HOLE_MAX * 2 + 1.2)) return false;
     // Dikenle çakışmasın: ikisi bir arada, oyuncunun neyden ne yediğini
     // göremediği yer.
-    if (spikes.some(s => Math.hypot(s.x - x, s.z - z) < s.r + CATAPULT_R + HOLE_MAX)) continue;
+    if (spikes.some(s => Math.hypot(s.x - x, s.z - z) < s.r + CATAPULT_R + HOLE_MAX)) return false;
     // Devin dibine kurulmuyor.
     //
     // Aşağıdaki temizlik `f.giant`ı atlıyor ve atlaması doğru: dev tahtanın
@@ -19427,7 +19429,10 @@ function placeCatapults() {
     // kadar büyümüş deliğin oraya sığması, ve o boy devin boyu kadar — en
     // büyük delik kadar değil.
     if (fruits.some(f => !f.eaten && f.giant &&
-        Math.hypot(f.x - x, f.z - z) < f.r * 2 + CATAPULT_R)) continue;
+        Math.hypot(f.x - x, f.z - z) < f.r * 2 + CATAPULT_R)) return false;
+    return true;
+  };
+  const kur = (x, z) => {
     for (const f of fruits) {
       if (f.eaten || f.giant) continue;
       if (Math.hypot(f.x - x, f.z - z) > CATAPULT_R + NORMAL_R * 1.4) continue;
@@ -19451,6 +19456,55 @@ function placeCatapults() {
       bekle: SHOT_EVERY * (0.6 + rnd() * 0.6),
       atis: null, isaret: null,
     });
+  };
+  for (let deneme = 0; deneme < dene && catapults.length < kac; deneme++) {
+    const x = (rnd() * 2 - 1) * mX;
+    const z = (rnd() * 2 - 1) * mZ;
+    if (olurMu(x, z)) kur(x, z);
+  }
+  // Rastgele deneme yetmediğinde **ızgara taraması.**
+  //
+  // Bu, denemeyi artırmanın çözmediği bir şey için yazıldı. Tanıtım
+  // bölümünde deneme sayısı kırk kata çıkarılmıştı ve 2 Ekim'de ölçüldü:
+  // kırk tohumda mancınık **%80**'inde çıkıyordu. Yani dört yüz deneme,
+  // yetmiş iki buçuktan seksene — yedi buçuk puan. Öteki bölümlerde daha
+  // kötü: Drive-In'de **%43**, Fiesta'da %50.
+  //
+  // Sebep deneme sayısı değil. Rastgele atmak, uygun alan tahtanın binde
+  // biri kaldığında da bir şey buluyor (dört yüz atışta %33 şans); hiç
+  // bulamaması uygun alanın **gerçekten sıfıra yakın** olduğu anlamına
+  // geliyor — ama "sıfıra yakın" ile "sıfır" arasındaki fark tam olarak
+  // oyuncunun gördüğü fark, ve rastgelelik o farkı ayırt edemiyor.
+  //
+  // Tarama ayırt ediyor: yarım birim aralıklı bir ızgarada her noktayı
+  // soruyor. Uygun bir yer varsa bulur; bulamazsa gerçekten yok. Yarım
+  // birim, mancınığın yarıçapından (0.9) küçük, yani uygun bir cebi
+  // atlamıyor.
+  //
+  // Oyuncunun gördüğü fark şu: yerin kendi engel çifti var
+  // (`GROUND_OBSTACLE`) ve o çift yere kimliğini veren şey. Drive-In'in
+  // mancınığı yarı yarıya çıkmıyorsa, Drive-In'i Drive-In yapan şeyin
+  // yarısı yok — ve Kaan'ın *"sanki hep aynı bölümü oynuyomuşum gibi"*
+  // dediği şey tam olarak bu.
+  //
+  // Maliyeti bir kez, bölüm kurulurken: 27×27 birimlik tahtada yarım birim
+  // ızgara ~2900 nokta, ve tarama yalnızca rastgele deneme **tamamen
+  // başarısız olduğunda** çalışıyor — yani beş tahtada bir.
+  if (catapults.length < kac) {
+    const ADIM = 0.5;
+    const yerler = [];
+    for (let x = -mX; x <= mX; x += ADIM) {
+      for (let z = -mZ; z <= mZ; z += ADIM) {
+        if (olurMu(x, z)) yerler.push({ x, z });
+      }
+    }
+    // Hangisi seçilecek: rastgele. Tarama sırayla gitse mancınık hep
+    // tahtanın aynı köşesinde çıkardı ve yer hep aynı görünürdü — düzeltmek
+    // istediğimiz şeyin aynısı.
+    while (catapults.length < kac && yerler.length) {
+      const y = yerler.splice(Math.floor(rnd() * yerler.length), 1)[0];
+      if (olurMu(y.x, y.z)) kur(y.x, y.z);
+    }
   }
 }
 

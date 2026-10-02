@@ -73,7 +73,10 @@ const SECONDS = Number(arg('seconds', 9));
 // sınır beklemenin bir yerde bitmesi için; arada karar `fruitHoleAhead()`
 // ile veriliyor.
 const PRE_MIN = Number(arg('pre', 3));
-const PRE_MAX = Number(arg('premax', 12));
+// Üst sınır 12 -> 18. Beşinci şart eklendi (kadrajda engel olsun) ve her şart
+// pencereyi daraltıyor; on iki saniye içinde beşinin birden tutmadığı tahtada
+// arama üst sınıra dayanıp engelsiz bir kare seçiyordu.
+const PRE_MAX = Number(arg('premax', 18));
 // Deliğin kaç birim çevresine, kaç meyve. Yarıçap tahtanın yarı genişliği
 // kadar (13 sütun × 1.05 ≈ 13.7 birim), yani "deliğin etrafında görünen yer".
 const AHEAD_R = Number(arg('aheadr', 9));
@@ -157,17 +160,102 @@ const CLIPS = [
   // kısaltıldı (`CARD_OPENING`) ve bölüm yirmi beş saniyede bitiyor —
   // `egypt` klibi dokuz saniye yerine 4.2 saniye çıktı ve ödemesiz kesildi.
   // Klipler bölümün bitmeyeceği kadar uzun tahtalarda çekiliyor.
-  { id: 'overgrown', pattern: 'Crack',     note: 'Overgrown · çatlamış asfalt + rakip delik, çamur, mancınık' },
-  { id: 'suburb',    pattern: 'House',     note: 'Suburb Night · alacakaranlıkta çim, ev silueti + mancınık' },
-  { id: 'bazaar',    pattern: 'Crescent',  note: 'Grand Bazaar · kilim zemin, hilal düzen' },
-  { id: 'redsquare', pattern: 'Onion',     note: 'Red Square · yelpaze parke, soğan kubbe + rüzgâr' },
-  { id: 'academy',   pattern: 'Key',       note: 'Academy · mumlu taş koridor, anahtar düzen' },
-  { id: 'nazca',     pattern: 'Condor',    note: 'Nazca · pampa çizgileri, kondor düzen' },
-  { id: 'savanna',   pattern: 'Patches',   note: 'Savanna · zürafa deseni, akasya gölgesi' },
-  { id: 'jurassic',  pattern: 'Track',     note: 'Jurassic · volkanik kül, ayak izi düzen' },
+  //
+  // ---------------------------------------------------------------------
+  // Liste dördüncü kez yazıldı, ve sebep üçüncü yazımın **hiç çalışmaması**
+  //
+  // Üçüncü yazım tam yukarıdaki paragrafı savunuyordu: klip engel göstersin,
+  // ve mancınık bu iş için en iyisi. Dokuz klibin notuna engel adları
+  // yazıldı — *"+ rakip delik, çamur, mancınık"*, *"+ mancınık"* — ve
+  // klipler çekildi.
+  //
+  // 2 Ekim'de ölçüldü. Dokuz bölümün **hiçbirinde mancınık yoktu.**
+  //
+  //   overgrown  32  söz: mancınık     tahtada: çamur, rakip
+  //   suburb     22  söz: mancınık     tahtada: HİÇBİR ENGEL YOK
+  //   redsquare  34  söz: rüzgâr       tahtada: rüzgâr, rakip        ✓
+  //
+  // Sebep: engeller artık **yere bağlı** (`GROUND_OBSTACLE`,
+  // `themeObstacles`). Her yerin kendi engel çifti var ve o çift yerin
+  // adından türetiliyor. Liste yazıldığında bu kural yoktu; kural gelince
+  // dokuz tahtanın engelleri sessizce değişti ve notlar yerinde kaldı.
+  // `suburb` en kötüsü: `mud,wind` izinli ama ikisinin de eşiği (29 ve 34)
+  // 22'nin üstünde, yani o tahtada hiçbir şey olmuyor — ve o klip gün 51
+  // olarak yayınlandı.
+  //
+  // Bu, bu depodaki **üçüncü** aynı hata: uzun uzun savunulmuş bir kural,
+  // onu uygulamayan bir satır, ve ölçen kimse yok. (Bombanın kule tepesinde
+  // durması, `CARD_SLACK`'in sıkılaşması, şimdi de bu.)
+  //
+  // Düzeltme notu düzeltmek değil: **`engel` artık bir söz ve ölçülüyor.**
+  // Aşağıdaki her satır tahtada olmasını istediği engeli adıyla söylüyor,
+  // ve iki yerde doğrulanıyor — koşu başlamadan temanın onu kabul ettiği
+  // (deterministik, listeyi anında yakalar), koşu başladıktan sonra da
+  // gerçekten tahtada olduğu (yerleştirme rastgele, başarısız olabiliyor).
+  // Tutmazsa klip düşüyor; sessizce engelsiz bir tahta kaydetmiyor.
+  //
+  // Seçim de buna göre yeniden yapıldı, ve **yerleşme oranı ölçülerek.**
+  //
+  // Mancınığı olan beş ızgara bölümünün her birinde kırk tohum denendi
+  // (ızgara taraması eklendikten sonraki hâl):
+  //
+  //   39 Tikal      %100        20 Rangoli    %83
+  //   47 Red Planet  %98        21 Drive-In   %78
+  //   24 Fiesta      %88
+  //
+  // Kalan eksik gerçek bir geometri sorunu, şanssızlık değil: tahta x'te
+  // yalnızca ±6.83 birim ve kenar payı 4.85, yani mancınığın
+  // durabileceği şerit ±1.98 birim. O şeride iki kaya ve doğuş payı
+  // düştüğünde bazen hiç yer kalmıyor — ve kenar payı gevşetilemez, çünkü
+  // delik bu tahtalarda `HOLE_MAX`a gerçekten ulaşıyor (`growthUnit`
+  // büyüme aralığını tahtanın `GROW_SWEEP` katına bölüyor, yani tahtayı
+  // bitirmeden tavana varılıyor).
+  //
+  // O yüzden mancınık sözü yalnızca %98-100 olan iki tahtada veriliyor.
+  // Drive-In ve Rangoli, sözünü beşte birinde tutmayacak tahtalar.
+  // ---------------------------------------------------------------------
+  { id: 'tikal',     pattern: 'Ballcourt', engel: 'mancınık', note: 'Tikal · taş saha, top oyunu düzeni · 305 meyve' },
+  { id: 'redplanet', pattern: 'Dial',      engel: 'mancınık', note: 'Red Planet · kızıl toz, kadran düzeni · 216 meyve' },
+  { id: 'jardin',    pattern: 'Maze',      engel: 'çamur',    note: 'Le Jardin · budanmış çit labirenti · 216 meyve' },
+  { id: 'tulip',     pattern: 'Comb',      engel: 'silindir', note: 'Tulip Fields · şeritli lale tarlası · 400 meyve' },
+  { id: 'matchday',  pattern: 'Cross',     engel: 'çamur',    note: 'Matchday France · çizgili çim · 459 meyve (en kalabalık)' },
+  { id: 'forbidden', pattern: 'Gate',      engel: 'çamur',    note: 'Forbidden City · kırmızı kapı, taş avlu · 408 meyve' },
+  { id: 'outback',   pattern: 'Boomerang', engel: 'rüzgâr',   note: 'Outback · kızıl merkez, bumerang düzeni · 201 meyve' },
+  { id: 'academy',   pattern: 'Key',       engel: 'silindir', note: 'Academy · mumlu taş koridor, anahtar düzen · 243 meyve' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
-  { id: 'boss',      level: 30,            note: 'patron bölümü — tahtanın ucunda devasa meyve' },
+  // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
+  // ve 2.73), o yüzden listeden çıkmıyor.
+  { id: 'boss',      level: 30,            engel: 'çamur',    note: 'patron bölümü — tahtanın ucunda devasa meyve' },
 ];
+
+// Engelin adını tahtadaki duruma çeviren tek yer.
+//
+// Sayı **ve uzaklık** birlikte isteniyor: tahtada bir mancınık olması onun
+// kadrajda olduğu anlamına gelmiyor, ve kadrajın dışındaki bir engel klibin
+// sözünü tutmuyor. Kamera deliği takip ediyor ve gösterdiği yer x'te ±5.4,
+// z'de ±9.6 birim; 8 birim ikisinin arasında makul bir yarıçap.
+const ENGEL_R = Number(arg('engelr', 8));
+// Sayfaya kuruluyor, parametre olarak geçirilmiyor: aynı okuma iki yerde
+// gerekiyor (tahta kurulduğunda bir kez, sonra kayıt penceresi aranırken her
+// karede) ve kare başına fazladan bir tur konteynerde pahalı.
+const ENGEL_KUR = () => {
+  window.__engel = (ad) => {
+    const w = window.fruitHoleWhere();
+    const enYakin = (l) => l.length
+      ? +Math.min(...l.map(o => Math.hypot(o.x - w.x, o.z - w.z))).toFixed(2) : null;
+    if (ad === 'mancınık') { const c = window.fruitHoleCatapults(); return { sayi: c.sayi, uzak: enYakin(c.yerler) }; }
+    if (ad === 'silindir') { const r = window.fruitHoleRollers(); return { sayi: r.sayi, uzak: enYakin(r.yerler) }; }
+    if (ad === 'çamur')    { const m = window.fruitHoleMud(); return { sayi: m.sayi, uzak: enYakin(m.yerler) }; }
+    // Rüzgâr bir şerit, bir nokta değil: tahtanın tamamını x'te kesiyor,
+    // yani uzaklık yalnızca z'de ölçülüyor.
+    if (ad === 'rüzgâr')   { const v = window.fruitHoleWind(); return { sayi: v.var ? 1 : 0, uzak: v.var ? +Math.abs(v.z - w.z).toFixed(2) : null }; }
+    if (ad === 'rakip')    { const v = window.fruitHoleRival(); return { sayi: v.var ? 1 : 0, uzak: v.var ? +Math.hypot(v.x - w.x, v.z - w.z).toFixed(2) : null }; }
+    return { sayi: 0, uzak: null };
+  };
+};
+// Temanın engel çifti: adı `themeObstacles`'ın kullandığı İngilizce karşılık.
+const ENGEL_ID = { 'mancınık': 'catapult', 'silindir': 'roller',
+                   'çamur': 'mud', 'rüzgâr': 'wind' };
 
 
 // Oyunun saatini sahteleyen katman. Sayfadaki her şeyden önce çalışması
@@ -221,7 +309,9 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
   await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
   await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
     { timeout: 25000 });
-  const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);
+  const tbl = await pg.evaluate(() => window.fruitHoleThemeTable());
+  const order = tbl.order;
+  const patternThemes = tbl.patternThemes;
   // Çözülen bölümün tahtası gerçekten o düzen mi?
   //
   // Düzen adıyla istemek bölüm numarasının eskimesini çözmüştü ama ikinci
@@ -239,7 +329,6 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
     const p = window.fruitHoleProbe(i + 1);
     return p.kind;
   }), order);
-  await pg.close();
   for (const c of CLIPS) {
     if (!c.pattern) continue;
     const i = order.indexOf(c.pattern);
@@ -250,6 +339,52 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
     }
     c.level = i + 1;
   }
+  // Sözü verilen engeli **tema kabul ediyor mu?**
+  //
+  // Bu, ikisinden ucuz olan doğrulama ve listeyi anında yakalıyor:
+  // `themeObstacles` yerin adından türetiliyor, yani deterministik — tohuma,
+  // rastgeleliğe, koşuya bağlı değil. Dokuz klibin mancınık sözünü tutmadığı
+  // tam burada görünürdü ve iki dakikalık bir çekim beklemek gerekmezdi.
+  //
+  // Eşik de burada bakılıyor: `suburb` 22. bölümdeydi ve teması çamur+rüzgâr
+  // kabul ediyordu, ama ikisinin eşiği de (29, 34) 22'nin üstünde. Yani
+  // "tema izin veriyor" yetmiyor, bölümün o engeli görecek kadar ileride
+  // olması da gerekiyor.
+  const esik = await pg.evaluate(() => ({
+    'mancınık': window.fruitHoleCatapults().ilkBolum,
+    'silindir': window.fruitHoleRollers().ilkBolum,
+    'çamur': window.fruitHoleMud().ilkBolum,
+    'rüzgâr': window.fruitHoleWind().ilkBolum,
+  }));
+  for (const c of CLIPS) {
+    if (!c.engel) throw new Error(`${c.id}: hangi engeli göstereceği yazılmamış.`);
+    const id = ENGEL_ID[c.engel];
+    if (!id) throw new Error(`${c.id}: '${c.engel}' bilinen bir engel adı değil.`);
+    if (c.level < esik[c.engel]) {
+      throw new Error(`${c.id}: ${c.engel} ${esik[c.engel]}. bölümden başlıyor ama ` +
+        `klip ${c.level}. bölümde — o tahtada hiç çıkmaz. Başka bir düzen seç.`);
+    }
+    // Numarası elle verilen klip de atlanmıyor: tema bölüm numarasından
+    // geliyor (`PATTERNS[(level - 1) % n].theme`), yani `boss` için de
+    // sorulabilir ve sorulmalı — o tahtanın engelleri de yere bağlı.
+    const tid = patternThemes[(c.level - 1) % patternThemes.length];
+    const izin = await pg.evaluate(t => window.fruitHoleThemeObstacles(t), tid);
+    // Tanıtım bölümü muafiyeti, `obstacleHere`'in aynısı: bir engelin ilk
+    // bölümünde o engel yerin çiftinde olmasa da çıkıyor, çünkü oyuncu onu
+    // bir yerde öğrenmek zorunda ve öğrendiği bölüm o.
+    //
+    // Bu satır olmadan doğrulama kendi işini fazla iyi yapıyordu: `jardin`
+    // 29. bölümde ve Le Jardin'in çifti catapult+wind, ama 29 çamurun
+    // tanıtım bölümü — yani çamur orada **garanti**, listede en güvenilir
+    // tahta. Doğrulama onu reddediyordu.
+    const tanitim = c.level === esik[c.engel];
+    if (!tanitim && !izin.includes(id)) {
+      throw new Error(`${c.id}: ${c.pattern} düzeni ${c.level}. bölümde, orada ` +
+        `${tid} teması var ve o temanın engelleri ${izin.join(', ')} — ` +
+        `${c.engel} o tahtaya hiç gelmiyor. Başka bir düzen ya da başka bir engel seç.`);
+    }
+  }
+  await pg.close();
 }
 
 const dusen = [];
@@ -269,6 +404,7 @@ for (const clip of CLIPS) {
   const pg = await br.newPage({ viewport: { width: CAP_W, height: CAP_H } });
   pg.on('pageerror', e => console.log('  SAYFA HATASI: ' + e));
   await pg.addInitScript(FAKE_CLOCK);
+  await pg.addInitScript(ENGEL_KUR);
   await pg.addInitScript(lv => {
     localStorage.setItem('fruithole_level', String(lv));
     // Yükseltmeler kapalı: tanıtımda görülen hız ve boyut yeni oyuncunun
@@ -328,6 +464,24 @@ for (const clip of CLIPS) {
   // Tarla düşerken oyun zaten oynanamıyor; o bir buçuk saniyeyi klibe
   // koymuyoruz, izleyici ilk karede oynanış görmeli.
   await pump(Math.round(1.8 * FPS));
+
+  // Söz verilen engel **gerçekten tahtada mı?**
+  //
+  // Tema izni yukarıda bakıldı ve deterministik; bu başka bir soru. Engel
+  // yerleştirme rastgele ve **başarısız olabiliyor**: `placeCatapults` kenar
+  // payı, doğuş yeri, kolosun önü ve her kayadan bir ağız boyu uzaklık
+  // şartlarını sağlayan bir yer arıyor, ve bulamazsa sessizce boş dönüyor.
+  // (Tanıtım bölümünde kırk tohumun on birinde tam bu oluyordu; orada deneme
+  // sayısı kırk kata çıkarıldı, ötekilerde değil.)
+  //
+  // Yani izin var diye engel var değil. Burada tahtanın kendisine bakılıyor.
+  const sozu = await pg.evaluate(a => window.__engel(a), clip.engel);
+  if (!sozu.sayi) {
+    throw new Error(`${clip.id}: ${clip.engel} bu tahtaya yerleşmedi (tema izinli ama ` +
+      `yerleştirme boş döndü) — klip engelsiz çıkardı. Yeniden çalıştır, ` +
+      `tahta rastgele.`);
+  }
+  console.log(`  ${clip.engel}: ${sozu.sayi} tane, en yakını ${sozu.uzak} birim`);
 
   // Isınma: kaydetmeden oyna. Kare yakalamadığımız için bu kısım hızlı
   // geçiyor — maliyeti yalnızca çizim, ekran görüntüsü değil.
@@ -396,7 +550,7 @@ for (const clip of CLIPS) {
   // öbeğe yapıştı ama öbek tarlanın sol kenarındaydı, ve kamera deliği takip
   // ettiği için karenin üçte biri tarlanın dışındaki düz yeşil zemin oldu.
   // Kalabalık bir kare istiyoruz, kalabalığın yanında boş bir şerit değil.
-  const durum = () => pg.evaluate(r => {
+  const durum = () => pg.evaluate(([r, ad]) => {
     const w = window.fruitHoleWhere();
     const g = window.fruitHoleGiantList();
     // Kadrajda olan dev: önümüzde (dz negatif, kamera yukarısı) ve yakın.
@@ -408,8 +562,10 @@ for (const clip of CLIPS) {
       // Dev ne kadar uzakta — mesafe olarak değil, **boyut olarak**. 1.0
       // yutulabilir demek, 2.0 deliğin iki katı büyüklükte demek.
       buyukluk: onde.length ? +(onde[0].r / (w.r * 0.92)).toFixed(2) : null,
+      // Sözü verilen engel kadrajda mı.
+      engelUzak: window.__engel(ad).uzak,
     };
-  }, AHEAD_R);
+  }, [AHEAD_R, clip.engel]);
   // Dördüncü şart: dev yalnızca yutulamaz değil, **neredeyse** yutulabilir
   // olmalı.
   //
@@ -417,8 +573,16 @@ for (const clip of CLIPS) {
   // dev karpuz onun üç katı. Açılış sözü veriyordu ama dokuz saniyede delik o
   // boya ulaşmıyordu; arama süresi bitti ve klip ödemesiz kesildi. Söz
   // verilecek dev, o sözün tutulabileceği kadar yakın olmalı.
+  // Beşinci şart: engel **kadrajda** olsun.
+  //
+  // Tahtada olması yetmiyor, ve bu farkı ölçmeden görmek mümkün değil.
+  // Tahta 27 birim geniş, kamera 11 birim gösteriyor: tahtanın dörtte
+  // birinden azı ekranda. Mancınık öteki ucundaysa klip onu hiç
+  // göstermiyor — ve klip "burada bir şey oluyor" sözünü tam olarak
+  // böyle tutmuyordu.
   const uygun = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE
-    && d.dev > 0 && d.yutulabilir === 0 && d.buyukluk <= NEAR_MAX;
+    && d.dev > 0 && d.yutulabilir === 0 && d.buyukluk <= NEAR_MAX
+    && d.engelUzak !== null && d.engelUzak <= ENGEL_R;
   let warm = 0;
   for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim(false);
   const enCok = Math.round(PRE_MAX * FPS);
@@ -430,8 +594,24 @@ for (const clip of CLIPS) {
   }
   console.log(`  kayıt ${(warm / FPS).toFixed(1)}. saniyede başlıyor · ` +
     `çevrede ${d.yakin} meyve · kenara ${(d.halfX - Math.abs(d.x)).toFixed(1)} birim · ` +
-    `kadrajda ${d.dev} dev (yutulabilir ${d.yutulabilir}, büyüklük ${d.buyukluk})` +
+    `kadrajda ${d.dev} dev (yutulabilir ${d.yutulabilir}, büyüklük ${d.buyukluk}) · ` +
+    `${clip.engel} ${d.engelUzak === null ? 'yok' : d.engelUzak + ' birim'}` +
     (uygun(d) ? '' : '  (şart sağlanmadı, üst sınıra dayandı)'));
+  // Hangi şartın tutmadığı yazılıyor. Beş şart var ve "şart sağlanmadı"
+  // hangisini aramaya devam etmek gerektiğini söylemiyor — `--premax` mı
+  // artmalı, `--engelr` mi gevşemeli, yoksa tahta mı yanlış.
+  if (!uygun(d)) {
+    const eksik = [];
+    if (!(d.yakin >= AHEAD_MIN)) eksik.push(`çevrede meyve ${d.yakin} < ${AHEAD_MIN}`);
+    if (!(Math.abs(d.x) <= d.halfX - EDGE)) eksik.push('delik kenarda');
+    if (!(d.dev > 0)) eksik.push('kadrajda dev yok');
+    if (!(d.yutulabilir === 0)) eksik.push('dev şimdiden yutulabilir');
+    if (!(d.buyukluk <= NEAR_MAX)) eksik.push(`dev çok büyük (${d.buyukluk} > ${NEAR_MAX})`);
+    if (!(d.engelUzak !== null && d.engelUzak <= ENGEL_R)) {
+      eksik.push(`${clip.engel} kadraj dışında (${d.engelUzak} > ${ENGEL_R})`);
+    }
+    console.log(`  tutmayan: ${eksik.join(' · ')}`);
+  }
 
   // Soğuk açılış: klibin ilk COLD saniyesi, devin üstünde yakın planda.
   //
