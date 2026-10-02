@@ -974,3 +974,36 @@ yere götürür:
 Yani bakma sırası: **`@rubygames__` → `@solodevgames` → `@storeglide`.**
 Üçü de oyuncuya konuşuyor, üçü de bizim tür. Geri kalanı kurumsal vitrin
 ya da B2B.
+
+### Üçüncü tur, ve listenin sonu (2 Ekim)
+
+| hesap | kim | ölçü |
+|---|---|---|
+| `@supercent.official` | Supercent (Kore) — **hesabından "Super Slime Black Hole Game" klibi atmış** | — |
+| `@kwalee.games` | Kwalee | 57,3 bin |
+| `@crazylabs` | CrazyLabs | — |
+
+`@supercent.official` bu üç turda bulunanların **en yakını**: bir stüdyo
+hesabı ve oradan gerçekten bir delik-oyunu klibi atıyor, yani hem bizim tür
+hem bizim iş. Kurumsal vitrin değil.
+
+**Burada kesiyorum, ve sebebi bir ölçü.** Üç turda on üç hesap çıktı; daha
+aramak yeni hesap verir ama yeni *bilgi* vermiyor. Üçüncü turda çıkan her
+şey aynı iki kalıba düştü: ya kurumsal vitrin (`@crazylabs`, `@kwalee.games`
+— lansman duyurusu, işe alım), ya B2B. Dördüncü tur da aynısını verir.
+
+Bu hesabın ölçülmüş sorunu hesap listesi değil: beş gönderi, 1 beğeni.
+Sıradaki iş **bir hesabın ilk iki saniyesini sayı olarak çıkarmak** — ve o
+iş konteynerin dışında, çünkü TikTok'a çıkış kapalı.
+
+**Toplam liste, bakılma sırasıyla:**
+
+1. `@rubygames__` — Türk, bizim tür, oyuncuya konuşuyor
+2. `@supercent.official` — delik oyunu klibi atan stüdyo
+3. `@solodevgames` — 545 bin, tek kişilik geliştirici derlemesi
+4. `@storeglide` — hypercasual derlemesi
+5. `@homagames` — Attack Hole'un sahibi (ama kurumsal vitrin)
+
+Geri kalan sekiz — `@rollic`, `@saygames`, `@zynga`, `@lionstudioscc`,
+`@supersonic`, `@hypercasualgamedev`, `@kwalee.games`, `@crazylabs` —
+kaydedildi ama bakılacak sıranın dışında.
