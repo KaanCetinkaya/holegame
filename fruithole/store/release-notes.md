@@ -161,6 +161,33 @@ Yerden kazanmak için üç madde kırpıldı ("wherever you are standing" →
 "wherever you stand", "back and forth across" → "across", donmanın "on some
 levels"ı). İlk hâli 531'di.
 
+## 44 (1.13) — 386 karakter
+
+```
+What changed:
+
+- The badge at the top now names the place you are in, not just the shape of the board. There are forty-six places and not one of them said its name.
+- Every place has its own two obstacles, chosen by the ground you are standing on: wind on sand, mud on grass, rollers on pavement, catapults on pitches. Arriving somewhere now changes how you play, not only how it looks.
+```
+
+İki madde de aynı cümleden çıktı. Kaan 55. bölüme kadar oynadı ve "o
+kadar şehir ekledik ama hep aynı bölümü oynuyormuşum gibi" dedi; ondan
+önce de "bu yeni ülkeleri bir türlü bulamadım" demişti — dördünden de
+geçmiş olduğu hâlde.
+
+Ölçüm ikisini tek bir sebebe indirdi: kırk sekiz yer, kırk sekiz düzen,
+**dört meyve**, ve engeller yalnızca bölüm numarasına bağlı. Yani yer ne
+adıyla görünüyordu ne de oynanışta bir şey değiştiriyordu.
+
+Notta **olmayan** şey: meyvenin rengini yerden türetme denemesi. Ölçüldü
+ve düştü (kırk beş tonun en uzak ikisi 441 üzerinden 6), geri alındı. Bu
+kutu oyuncunun gördüğü şeyi yazıyor; görünmeyen bir deneme buraya girmez.
+
+Yıldızların üst satırdan çıkması da yazılmadı. Oyuncu için bir kayıp
+değil — yıldızlar bölüm haritasında ve bitiş ekranında duruyor — ve yer
+adının sığması için gereken şeydi. Bir satırlık yer açmayı duyurmak,
+duyurunun kendisini ucuzlatır.
+
 ## 43 (1.13) — 399 karakter
 
 ```
