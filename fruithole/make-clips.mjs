@@ -73,10 +73,17 @@ const SECONDS = Number(arg('seconds', 9));
 // sınır beklemenin bir yerde bitmesi için; arada karar `fruitHoleAhead()`
 // ile veriliyor.
 const PRE_MIN = Number(arg('pre', 3));
-// Üst sınır 12 -> 18. Beşinci şart eklendi (kadrajda engel olsun) ve her şart
-// pencereyi daraltıyor; on iki saniye içinde beşinin birden tutmadığı tahtada
-// arama üst sınıra dayanıp engelsiz bir kare seçiyordu.
-const PRE_MAX = Number(arg('premax', 18));
+// Üst sınır 12'de kalıyor, ve bir kez 18'e çıkarılıp geri getirildi.
+//
+// Beşinci şart (kadrajda engel olsun) eklenince pencere daraldı ve ilk
+// düşünce üst sınırı büyütmekti. Ölçüldü ve tersi çıktı: on sekiz saniye
+// ısınmada Tikal'de tahtanın 110/275'i yendi, çevredeki meyve 41'e düştü
+// (50 gerekiyor), devler bitti ve bölüm arama bitmeden kazanıldı. Beklemek
+// tahtayı **tüketiyor**; aranan şeyi aramakla yok ediyor.
+//
+// Çözüm beklemeyi uzatmak değil, ısınmayı engele doğru sürmek oldu
+// (`adim`'in `git` parametresi).
+const PRE_MAX = Number(arg('premax', 12));
 // Deliğin kaç birim çevresine, kaç meyve. Yarıçap tahtanın yarı genişliği
 // kadar (13 sütun × 1.05 ≈ 13.7 birim), yani "deliğin etrafında görünen yer".
 const AHEAD_R = Number(arg('aheadr', 9));
@@ -241,16 +248,30 @@ const ENGEL_R = Number(arg('engelr', 8));
 const ENGEL_KUR = () => {
   window.__engel = (ad) => {
     const w = window.fruitHoleWhere();
-    const enYakin = (l) => l.length
-      ? +Math.min(...l.map(o => Math.hypot(o.x - w.x, o.z - w.z))).toFixed(2) : null;
-    if (ad === 'mancınık') { const c = window.fruitHoleCatapults(); return { sayi: c.sayi, uzak: enYakin(c.yerler) }; }
-    if (ad === 'silindir') { const r = window.fruitHoleRollers(); return { sayi: r.sayi, uzak: enYakin(r.yerler) }; }
-    if (ad === 'çamur')    { const m = window.fruitHoleMud(); return { sayi: m.sayi, uzak: enYakin(m.yerler) }; }
+    // Uzaklık **ve yer**: ısınma engele doğru sürüyor, yani yalnızca "ne
+    // kadar uzakta" yetmiyor, "nerede" de gerekiyor.
+    const enYakin = (l) => {
+      let en = null, ed = Infinity;
+      for (const o of l) {
+        const d = Math.hypot(o.x - w.x, o.z - w.z);
+        if (d < ed) { ed = d; en = o; }
+      }
+      return en ? { sayi: l.length, uzak: +ed.toFixed(2), x: en.x, z: en.z }
+                : { sayi: 0, uzak: null, x: null, z: null };
+    };
+    if (ad === 'mancınık') return enYakin(window.fruitHoleCatapults().yerler);
+    if (ad === 'silindir') return enYakin(window.fruitHoleRollers().yerler);
+    if (ad === 'çamur')    return enYakin(window.fruitHoleMud().yerler);
     // Rüzgâr bir şerit, bir nokta değil: tahtanın tamamını x'te kesiyor,
-    // yani uzaklık yalnızca z'de ölçülüyor.
-    if (ad === 'rüzgâr')   { const v = window.fruitHoleWind(); return { sayi: v.var ? 1 : 0, uzak: v.var ? +Math.abs(v.z - w.z).toFixed(2) : null }; }
-    if (ad === 'rakip')    { const v = window.fruitHoleRival(); return { sayi: v.var ? 1 : 0, uzak: v.var ? +Math.hypot(v.x - w.x, v.z - w.z).toFixed(2) : null }; }
-    return { sayi: 0, uzak: null };
+    // yani uzaklık yalnızca z'de ölçülüyor ve gidilecek yer deliğin kendi
+    // x'i — şeride dik gitmek en kısa yol.
+    if (ad === 'rüzgâr')   { const v = window.fruitHoleWind();
+      return v.var ? { sayi: 1, uzak: +Math.abs(v.z - w.z).toFixed(2), x: w.x, z: v.z }
+                   : { sayi: 0, uzak: null, x: null, z: null }; }
+    if (ad === 'rakip')    { const v = window.fruitHoleRival();
+      return v.var ? { sayi: 1, uzak: +Math.hypot(v.x - w.x, v.z - w.z).toFixed(2), x: v.x, z: v.z }
+                   : { sayi: 0, uzak: null, x: null, z: null }; }
+    return { sayi: 0, uzak: null, x: null, z: null };
   };
 };
 // Temanın engel çifti: adı `themeObstacles`'ın kullandığı İngilizce karşılık.
@@ -505,11 +526,33 @@ for (const clip of CLIPS) {
   // sorun oradaydı, sadece rastlamıyordu.
   //
   // Artık av son saniyelere saklanıyor: önce tarla süpürülüyor, sonra dev.
-  const adim = (avla = true) => pg.evaluate(([dt, av]) => {
+  //
+  // `git`: ısınma sırasında engele doğru sürülsün mü, ve hangi engele?
+  //
+  // Bu, ölçülerek eklendi. Engel şartı ilk hâliyle beklemeye bırakılmıştı —
+  // bot en yakın meyveyi kovalıyor, mancınık tahtanın öteki ucunda, ve
+  // şartın tutması tesadüfe kalıyordu. Tikal'de ölçüldü: mancınık tahta
+  // kurulduğunda **18.32 birim** ötedeydi, delik ona on sekiz saniyede
+  // sürüklendi, ve o on sekiz saniyede tahtanın 110/275'i yendi. Kayıt
+  // başladığında şartın ikisi birden düşmüştü: çevrede 41 meyve (50
+  // gerekiyor) ve kadrajda dev yok. Bölüm de arama bitmeden kazanıldı,
+  // yani klip ödemesiz kesildi.
+  //
+  // Beklemek yerine **gitmek**: engel uzaktaysa ona doğru sürülüyor, bir
+  // kez kadraja girdiğinde sıradan süpürmeye dönülüyor. Delik yol boyunca
+  // zaten meyve yiyor, yani tahta süpürülmüş olmuyor — süpürme engele doğru
+  // oluyor. Engele yapışma riski yok: yönelme yalnızca `ENGEL_R` (8 birim)
+  // dışındayken, mancınığın yarıçapı 0.9.
+  const adim = (avla = true, git = null) => pg.evaluate(([dt, av, ad, r]) => {
     const w = window.fruitHoleWhere();
     const g = window.fruitHoleGiantList();
     const yut = av ? g.filter(x => x.eatable && x.dist < 15) : [];
-    const hedef = yut.length ? yut[0] : window.fruitHoleNearest();
+    let hedef = yut.length ? yut[0] : null;
+    if (!hedef && ad) {
+      const e = window.__engel(ad);
+      if (e.uzak !== null && e.uzak > r) hedef = { x: e.x, z: e.z };
+    }
+    if (!hedef) hedef = window.fruitHoleNearest();
     if (!hedef) window.fruitHoleSteer(0, 0);
     else {
       const dx = hedef.x - w.x, dz = hedef.z - w.z;
@@ -517,8 +560,14 @@ for (const clip of CLIPS) {
       window.fruitHoleSteer(dx / d, dz / d);
     }
     window.__step(dt);
-    return { dev: g.length, eaten: w.eaten, total: w.total, timeLeft: w.timeLeft, state: w.state };
-  }, [1000 / FPS, avla]);
+    // `kartPay`: kartların ne kadarı tamamlandı. Av penceresinin ikinci
+    // tetiği bu — aşağıda sebebi yazılı.
+    const k = window.fruitHoleCards().cards;
+    const ister = k.reduce((a, c) => a + c.need, 0);
+    const oldu = k.reduce((a, c) => a + Math.min(c.need, c.got), 0);
+    return { dev: g.length, eaten: w.eaten, total: w.total, timeLeft: w.timeLeft,
+             state: w.state, kartPay: ister ? +(oldu / ister).toFixed(2) : 0 };
+  }, [1000 / FPS, avla, git, ENGEL_R]);
   //
   // Ne zaman kaydetmeye başlanacağı sabit bir gecikme değil, **deliğin
   // çevresindeki meyve sayısı**.
@@ -580,23 +629,51 @@ for (const clip of CLIPS) {
   // birinden azı ekranda. Mancınık öteki ucundaysa klip onu hiç
   // göstermiyor — ve klip "burada bir şey oluyor" sözünü tam olarak
   // böyle tutmuyordu.
-  const uygun = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE
-    && d.dev > 0 && d.yutulabilir === 0 && d.buyukluk <= NEAR_MAX
-    && d.engelUzak !== null && d.engelUzak <= ENGEL_R;
+  // Dört şart ve beşincisi, **ayrı ayrı sorulabiliyor.**
+  //
+  // Beşi birden isteyen tek bir koşul, tutmadığında elindeki kareyi
+  // olduğu gibi alıyordu — yani engel şartı eklenince klip hem engelsiz hem
+  // devsiz çıkabiliyordu, eskisinden kötü. Beşinci şart ötekileri
+  // kaybetmeye değmiyor: dev ve kalabalık tahta ölçülmüş olarak işe
+  // yarıyor (patron klibi 3.35 sn, ötekiler 2.21 ve 2.73), engel ise
+  // henüz bir hipotez.
+  //
+  // O yüzden arama iki aşamalı: önce beşi, sonra dördü. Geri adım bir
+  // yerde yazılı olmalı, yoksa "şart sağlanmadı" satırı klibin neyi
+  // kaybettiğini söylemiyor.
+  const dortu = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE
+    && d.dev > 0 && d.yutulabilir === 0 && d.buyukluk <= NEAR_MAX;
+  const engelde = d => d.engelUzak !== null && d.engelUzak <= ENGEL_R;
+  const uygun = d => dortu(d) && engelde(d);
   let warm = 0;
-  for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim(false);
+  // Isınmanın ilk kısmı da engele doğru: delik büyürken yolu oraya çıksın.
+  for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim(false, clip.engel);
   const enCok = Math.round(PRE_MAX * FPS);
   let d = await durum();
   while (warm < enCok && !uygun(d)) {
-    await adim(false);
+    await adim(false, clip.engel);
     d = await durum();
     warm++;
+  }
+  // İkinci aşama: engel şartı bırakılıyor, öteki dördü aranıyor. Burada
+  // artık engele doğru sürülmüyor — sürmek ötekileri bozan şeydi.
+  let engelsiz = false;
+  if (!uygun(d)) {
+    const ikinci = enCok + Math.round(PRE_MAX * FPS);
+    while (warm < ikinci && !dortu(d)) {
+      await adim(false);
+      d = await durum();
+      warm++;
+    }
+    engelsiz = dortu(d);
   }
   console.log(`  kayıt ${(warm / FPS).toFixed(1)}. saniyede başlıyor · ` +
     `çevrede ${d.yakin} meyve · kenara ${(d.halfX - Math.abs(d.x)).toFixed(1)} birim · ` +
     `kadrajda ${d.dev} dev (yutulabilir ${d.yutulabilir}, büyüklük ${d.buyukluk}) · ` +
     `${clip.engel} ${d.engelUzak === null ? 'yok' : d.engelUzak + ' birim'}` +
-    (uygun(d) ? '' : '  (şart sağlanmadı, üst sınıra dayandı)'));
+    (uygun(d) ? ''
+      : engelsiz ? `  (${clip.engel} kadraja girmedi, dört şartla alındı)`
+      : '  (şart sağlanmadı, üst sınıra dayandı)'));
   // Hangi şartın tutmadığı yazılıyor. Beş şart var ve "şart sağlanmadı"
   // hangisini aramaya devam etmek gerektiğini söylemiyor — `--premax` mı
   // artmalı, `--engelr` mi gevşemeli, yoksa tahta mı yanlış.
@@ -707,10 +784,21 @@ for (const clip of CLIPS) {
   // dev. Ödemenin sonda olmasının tek yolu bu — beklemek yetmiyor, devi
   // ortada yememek gerekiyor.
   const AV_BASLA = total - Math.round(AV_SN * FPS);
-  let f = 0, yutuldu = -1, erken = 0, onceki = null;
+  let f = 0, yutuldu = -1, erken = 0, onceki = null, kartBitti = false, bitti = null;
   let ilkYenen = null, sonYenen = null, ilkSaat = null, sonSaat = null;
   while (true) {
-    const s = await adim(f >= AV_BASLA);
+    // Av penceresi iki tetikli: ya klibin son saniyeleri, ya **kartlar
+    // bitmek üzere**.
+    //
+    // İkincisi ölçülerek eklendi. Tikal'de kayıt sırasında bölüm
+    // *kazanıldı*: kartlar 181 meyvede doldu, `state` 'won' oldu ve döngü
+    // kırıldı — dev hâlâ tahtada, klip ödemesiz. Beklemek işe yaramaz,
+    // çünkü beklenen şeyin kendisi bölümü bitiriyor.
+    //
+    // Kartların %85'i dolduğunda ava geçiliyor: ödeme sonda kalıyor ama
+    // bölümün sonundan **önce** geliyor.
+    const s = await adim(f >= AV_BASLA || kartBitti);
+    if (s.kartPay >= 0.85) kartBitti = true;
     if (ilkYenen === null) { ilkYenen = s.eaten; ilkSaat = s.timeLeft; }
     sonYenen = s.eaten; sonSaat = s.timeLeft;
     await pg.screenshot({
@@ -729,9 +817,12 @@ for (const clip of CLIPS) {
     f++;
     if (yutuldu >= 0 && f > yutuldu + TAIL) break;
     if (f >= total + ARA) break;
-    if (s.state !== 'playing') break;   // bölüm bitti: daha fazla kare yok
+    if (s.state !== 'playing') { bitti = s.state; break; }   // bölüm bitti
   }
   const son = await pg.evaluate(() => window.fruitHoleWhere());
+  // Ödemenin **neden** gelmediği: arama süresi mi bitti, bölüm mü bitti.
+  // İkisi ayrı sorun ve ayrı cevapları var — biri `--search`'ü artırmak,
+  // öteki başka bir tahta ya da daha erken av.
   await pg.close();
 
   const sonKare = yutuldu >= 0 ? Math.min(f - 1, yutuldu + TAIL) : f - 1;
@@ -741,7 +832,10 @@ for (const clip of CLIPS) {
   console.log(`  gövde ${basKare}-${sonKare} arası (${(adet / FPS).toFixed(1)} sn) · ` +
     (yutuldu >= 0
       ? `dev ${((yutuldu - basKare + coldN) / FPS).toFixed(1)}. saniyede yutuluyor`
-      : 'UYARI: dev yutulmadı, sondan kesildi — ödeme yok') +
+      : bitti
+        ? `UYARI: dev yutulmadan bölüm '${bitti}' oldu — ödeme yok. ` +
+          `Kartlar dev avlanmadan dolmuş; başka bir tahta ya da daha erken av gerek.`
+        : 'UYARI: dev yutulmadı, arama süresi bitti — ödeme yok (--search artırılabilir)') +
     (erken ? ` · ${erken} erken yutma atlandı` : ''));
 
   // Yenen meyve sayısı sıfırsa video boş bir tarla gösteriyor demektir;
