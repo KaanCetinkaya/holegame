@@ -942,3 +942,35 @@ saniyesine** bakmak — hangi karede ne var, yazı mı yüz mü oynanış mı, v
 kaçıncı saniyede ilk şey yeniyor. Bizim kliplerde ilk saniye boş tarla:
 delik henüz ilk meyveye varmıyor. Ölçülmüş tek rakamımız (281–401 bandı,
 hiç açılmayan altı video) bunu söylüyordu, bu da aynı yere çıkıyor.
+
+### İkinci tur — daha fazla hesap (2 Ekim)
+
+Aynı yöntem: aramada gerçek bir `tiktok.com/@...` adresi olarak çıkanlar.
+TikTok'a çıkış hâlâ kapalı, profilleri açıp doğrulamadım.
+
+| hesap | kim | ölçü | kime konuşuyor |
+|---|---|---|---|
+| `@rubygames__` | Ruby Games (Türk, *"Welcome to satisfying universe"*) | — | **oyuncuya** |
+| `@zynga` | Zynga | — | oyuncuya |
+| `@lionstudioscc` | Lion Studios (AppLovin), *"Bringing you the best mobile games"* | — | oyuncuya |
+| `@supersonic` | Supersonic (Unity), *"Scale your game at Supersonic speed"* | 44,8 bin | **geliştiriciye** |
+| `@hypercasualgamedev` | derleme hesabı | — | geliştiriciye |
+| `@storeglide` | derleme hesabı | — | oyuncuya |
+
+Ayrıca: `#gamedev` etiketinde **2,3 milyon** gönderi var. Yani etiket
+kalabalık; etiketle bulunmak diye bir şey yok, dağıtımı etiket değil ilk
+kare belirliyor.
+
+**Önemli ayrım.** Bu listede iki ayrı iş var ve karıştırmak bizi yanlış
+yere götürür:
+
+- `@supersonic` ve `@hypercasualgamedev` **bize** satış yapıyor — yayıncılık
+  hizmeti, SDK, "oyununu bize getir". Bizim kitlemiz değil, biz onların
+  kitlesiyiz. Buradan oynanış kurgusu öğrenilmez.
+- `@rubygames__` ve `@storeglide` oyuncuya konuşuyor, ve `@rubygames__`
+  bizimle **aynı türde**: "satisfying universe" dediği şey tam olarak bizim
+  kliplerimizin yaptığı iş. Bakılacak hesap bu.
+
+Yani bakma sırası: **`@rubygames__` → `@solodevgames` → `@storeglide`.**
+Üçü de oyuncuya konuşuyor, üçü de bizim tür. Geri kalanı kurumsal vitrin
+ya da B2B.
