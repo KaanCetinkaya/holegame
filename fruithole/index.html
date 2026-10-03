@@ -21937,8 +21937,24 @@ function levelTime() {
     ? RUSH_START
     // Mayın: sıradan bir bölümün saati, artı dört bombalık pay. Tarlayı
     // temiz süpüren oyuncu o payı hiç harcamıyor; her bombada beş saniye
-    // gidiyor ve beşincisinden sonra saat yetişmiyor. Yani ceza yeni bir
-    // kaybetme şartı değil — zaten var olan saat.
+    // gidiyor. Ceza yeni bir kaybetme şartı değil — zaten var olan saat.
+    //
+    // Burada "beşincisinden sonra saat yetişmiyor" yazıyordu ve **ölçülünce
+    // beş kat yanlış çıktı** (`scratchpad/holemayin.mjs`). Bot üç mayın
+    // bölümünde on iki kez oynatıldı, bombalara hiç aldırmadan: 12-29 bomba
+    // yedi, yani 60-145 saniye ceza aldı, ve **on ikide on biri kazandı.**
+    // Gerçek tolerans beş değil yirmi beş civarı.
+    //
+    // Sebep bu satırda değil: taban saat `süpürme × 2.6` ve o 2.6 kat pay
+    // yüz otuz saniyelik bir cezayı sessizce yutuyor. Yani bomba bedeli
+    // yanlış ölçeklenmiş değil, **saat bol** — ve aynı bolluk kart
+    // bölümlerinde de ölçülmüştü (`CARD_SLACK`).
+    //
+    // Mekanizma yine de boş değil, ve yorumun kaçırdığı yer burası: ceza
+    // **yıldızı** alıyor. Üç yıldız `timeLeft / levelTime() >= 0.45`
+    // istiyor; aynı koşularda bot %13-44 ile bitirdi, yani bir ya da iki
+    // yıldız. Yani bomba oyuncuya bölümü kaybettirmiyor, bölümü **ucuz
+    // bitirmesini** engelliyor. Satır bunu söylemiyordu.
     : missionKind === 'mines'
     ? Math.round(sweepSeconds() * 2.6) + MINE_ALLOW * BOMB_COST
     // Hedef kartı olan bölümün saati tarlanın tamamından değil, **kartların
