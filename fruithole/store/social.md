@@ -1228,3 +1228,64 @@ the camera looks straight down here, which is the only way this layout reads at 
 ölçülmüş en iyi kurgu bu — ama Pirate Cove zaten iki kez gönderildi (gün
 50 ve öncesi). Aynı yeri üçüncü kez göndermek yeni bir şey söylemiyor. Klip
 dosyada duruyor, bir sonraki partiye kadar.
+
+## Link canlı — 3 Ekim
+
+Açık test yayına girdi ve mağaza sayfası herkese açık:
+
+```
+https://play.google.com/store/apps/details?id=com.kaancetinkaya.fruithole
+```
+
+Bu, bu dosyanın **en başından beri ölçülmüş darboğazıydı.** 24 Eylül'de
+yazılmıştı: 2.300 izlenmeye karşı 6 profil görüntülemesi, ve sebebi
+*"oyunun adı hiçbir yerde geçmiyor... bio'da link de yok (üretime çıkana
+kadar bilerek — kapalı testteki bir linke tıklayan 'bulunamadı' görür ve
+bir daha gelmez)"*. Artık görmüyor.
+
+### Takılan yer: kanal duraklatılmıştı
+
+45 yüklendi, incelendi, onaylandı — ve hiçbir yere çıkmadı. Panodaki kutu
+"Başla" diyordu, yani kanal hiç çalışmıyor gibi görünüyordu. Kanal
+sayfası sebebi söyledi:
+
+> **Etkin değil** · Son sürüm: 45 (1.13) · 178 ülke/bölge
+
+Açık test kanalı duraklatılmış durumdaydı. Sürüm hazırdı, kanal kapalıydı.
+"Kanalı devam ettir" bağlantısı onu çalıştırdı ve satır **Etkin** oldu.
+
+Bu, bugün ikinci kez: pano kartı kapalı test için "40" diyordu, kanal
+sayfası "44". **Pano kartları bayat; kanal sayfası doğruyu söylüyor.** Bir
+şeyin yayında olup olmadığı sorusu yalnızca oradan cevaplanıyor.
+
+### Bio
+
+TikTok açıklamadaki bağlantıyı tıklanabilir yapmıyor, o yüzden link
+bio'da duruyor — ve artık yabancıda **çalışıyor**.
+
+```
+solo dev · building Peelo: Fruit Hole 🕳️
+play.google.com/store/apps/details?id=com.kaancetinkaya.fruithole
+```
+
+### Sabitlenmiş yorum
+
+Çağrı hâlâ açıklamaya girmiyor; gerekçesi yukarıda yazılı (anlatıyı
+bozuyor ve TikTok dışarı çıkaran açıklamaları daha az dağıtıyor). Gönderi
+atıldıktan hemen sonra kendi videona yorum yaz, sonra basılı tutup
+"Sabitle" de:
+
+```
+it's on google play now — search Peelo: Fruit Hole 🕳️ free, link in bio
+```
+
+**"Search Peelo" diye yazılmasının sebebi ölçülmüş bir şey:** açık testteki
+oyunlar Play aramasında çıkıyor. Yani tıklamak istemeyen biri de arayıp
+bulabiliyor, ve arama bir linkten daha az sürtünmeli.
+
+### Bundan sonra değişen ölçü
+
+Şimdiye kadar bakılan sayı izlenme ve beğeniydi, çünkü başka bir şey
+olamazdı. Artık bakılacak sayı **Play Console → İstatistikler → yükleme**,
+ve o sayı gönderi başına okunabiliyor: bir klip atıldığı gün kaç kurulum
+geldi. İzlenme artık ara bir ölçü; kurulum nihai olanı.
