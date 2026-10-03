@@ -11983,6 +11983,10 @@ const SPIKE_SHARE = 0.2;
 // hareket eden bir oyuncu neredeyse hiç yemiyor, bir öbeğin üstünde durup
 // süpüren oyuncu yiyor. Cezalandırdığı şey beceriksizlik değil **kamp**.
 const CATAPULT_R = 0.9;
+// Mancınığın katı bir komşudan bırakacağı görsel pay `CATAPULT_READ_GAP`,
+// ve tanımı burada değil `HOLE_MAX`ın yanında — ondan türüyor ve burada
+// yazılmış hâli oyunu **hiç açılmaz** yapıyordu (`HOLE_MAX` bin satır
+// aşağıda; bu dosyada aynı hatanın sekizinci kez görülmesi).
 // Dikenden sonra: bomba 6, kaya 9, diken 12, mancınık 20. Aradaki boşluk
 // ötekilerden büyük, çünkü bu bir engel değil bir **olay** — tahtada duran
 // bir şeyi öğrenmekle, tahtanın sana bir şey atmasını öğrenmek aynı şey değil.
@@ -19408,11 +19412,11 @@ function placeCatapults() {
     // var. Kaya ile mancınığın arasından geçmek zorunda değilsin,
     // etrafından dolaşıyorsun. Burada kalan tek şart ikisinin birbirine
     // yapışıp tek bir kütle gibi okunmaması: bir ağız boyu yetiyor.
-    if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + CATAPULT_R + HOLE_MAX)) return false;
+    if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + CATAPULT_R + CATAPULT_READ_GAP)) return false;
     if (catapults.some(c => Math.hypot(c.x - x, c.z - z) < CATAPULT_R * 2 + HOLE_MAX * 2 + 1.2)) return false;
     // Dikenle çakışmasın: ikisi bir arada, oyuncunun neyden ne yediğini
     // göremediği yer.
-    if (spikes.some(s => Math.hypot(s.x - x, s.z - z) < s.r + CATAPULT_R + HOLE_MAX)) return false;
+    if (spikes.some(s => Math.hypot(s.x - x, s.z - z) < s.r + CATAPULT_R + CATAPULT_READ_GAP)) return false;
     // Devin dibine kurulmuyor.
     //
     // Aşağıdaki temizlik `f.giant`ı atlıyor ve atlaması doğru: dev tahtanın
@@ -20748,6 +20752,27 @@ function placeGiants() {
 // ---------------------------------------------------------------------
 const BASE_HOLE_R = 0.55;
 const HOLE_MAX = BASE_HOLE_R + 2.2;
+// Mancınığın katı bir komşudan (kaya, diken) bırakacağı **görsel** pay.
+//
+// Bu sayı ölçülerek değişti. Kaya ve diken payı `HOLE_MAX` kullanıyordu —
+// oyundaki **en geniş** ağız, 2.75 birim — ve yorumu şunu diyordu: amaç
+// ikisinin birbirine yapışıp tek bir kütle gibi okunmaması, "bir ağız boyu
+// yetiyor". Ama bir okunurluk kuralı için en geniş ağzı seçmek, elindeki
+// en büyük sayıyı ödünç almak demek; geçilebilirliği kenar payı zaten
+// garanti ediyor (yorumu orada yazılı), yani bu pay yalnızca gözle ilgili.
+//
+// Ne kadar yediği sayıldı. Yarım birimlik ızgarada, mancınığın
+// durabileceği kutunun **%42'sini doğuş payı, %45-50'sini kaya payı**
+// yiyor; ikisinden sonra tahtanın sekizde biri kalıyor, ve kalanın içine
+// diken ve dev de giriyor. Rastgele kaya yerleşimi o sekizde biri bazı
+// tohumlarda sıfıra indiriyor — Red Square'de mancınık on tohumun altısında
+// çıkıyordu.
+//
+// Yarısı (1.375 birim) hâlâ bir ağızdan geniş: başlangıç deliğinin çapı
+// 1.1. Yani iki şey ekranda ayrı duruyor, kuralın istediği şey oluyor, ve
+// yer iki katına çıkıyor. Geçilebilirlik `holekural.mjs`'in ulaşılabilirlik
+// taramasıyla ayrıca ölçülüyor — kural değişince o tarama yine çalıştı.
+const CATAPULT_READ_GAP = HOLE_MAX * 0.5;
 // Deliğin taban hızı. Ana döngünün yanında duruyordu ve orası dosyanın en
 // sonu — yani sayfa açılırken tarla kurulurken henüz tanımlı değil. Süre
 // hesabı oraya baktığı an oyun hiç açılmıyordu: kaydı 5. bölümde olan bir
@@ -24764,7 +24789,7 @@ window.fruitHoleSpeed = () => ({
 window.fruitHoleCatapultWhy = () => {
   const kenar = HOLE_MAX + CATAPULT_R + 1.2;
   const mX = fieldHalfX - kenar, mZ = fieldHalfZ - kenar;
-  const sayac = { dar: 0, dogus: 0, kolos: 0, kaya: 0, mancinik: 0, diken: 0, dev: 0, olur: 0 };
+  const sayac = { dar: 0, dogus: 0, kolos: 0, kaya: 0, diken: 0, dev: 0, olur: 0 };
   if (mX <= 0 || mZ <= 0) return { ...sayac, dar: 1, toplam: 0,
     kutu: { mX: +mX.toFixed(2), mZ: +mZ.toFixed(2) } };
   let toplam = 0;
@@ -24773,9 +24798,13 @@ window.fruitHoleCatapultWhy = () => {
       toplam++;
       if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + CATAPULT_R + 4) { sayac.dogus++; continue; }
       if (hasColossus(level) && Math.hypot(x - 0, z + fieldHalfZ * 0.55) < COLOSSUS_R + CATAPULT_R + 2) { sayac.kolos++; continue; }
-      if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + CATAPULT_R + HOLE_MAX)) { sayac.kaya++; continue; }
-      if (catapults.some(c => Math.hypot(c.x - x, c.z - z) < CATAPULT_R * 2 + HOLE_MAX * 2 + 1.2)) { sayac.mancinik++; continue; }
-      if (spikes.some(sp => Math.hypot(sp.x - x, sp.z - z) < sp.r + CATAPULT_R + HOLE_MAX)) { sayac.diken++; continue; }
+      if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + CATAPULT_R + CATAPULT_READ_GAP)) { sayac.kaya++; continue; }
+      // Var olan mancınık **sayılmıyor**, ve ilk ölçüm bu yüzden okunamadı.
+      // `CATAPULT_COUNT` bir: tahtada bir mancınık varsa "ikincisi sığar mı"
+      // sorusunun cevabı zaten hayır, ve o kural kalan yerin tamamını
+      // yiyerek diken ile devin payını sıfır gösteriyordu. Sorulan şey
+      // "mancınığı olmayan bu tahtada bir yer var mı".
+      if (spikes.some(sp => Math.hypot(sp.x - x, sp.z - z) < sp.r + CATAPULT_R + CATAPULT_READ_GAP)) { sayac.diken++; continue; }
       if (fruits.some(f => !f.eaten && f.giant &&
           Math.hypot(f.x - x, f.z - z) < f.r * 2 + CATAPULT_R)) { sayac.dev++; continue; }
       sayac.olur++;
