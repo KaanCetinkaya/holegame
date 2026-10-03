@@ -125,6 +125,51 @@ for (const lv of [7, 51]) {
   await pg.close();
 }
 
+// ---------------------------------------------------------------------
+// Geri getiremeyen cihazda ne kadar bekleniyor?
+//
+// `forceContextRestore()` bir istek, emir değil. Depodaki iki telefon
+// kaydı da aynı şeyi söylüyor: bazı cihazlarda hiç çalışmıyor, ve ne kadar
+// beklense değişmiyor. O cihazda dört deneme × 1.5 saniye artı vazgeçme
+// payı — yedi buçuk saniye — bomboş bir tahtaya bakarak geçiyor.
+//
+// Defter bunu zaten biliyor: `geri` alanı olmayan bir 'gl' satırı, bağlamın
+// bir kez kaybolup hiç geri gelmediği demek. Ölçülen şey, o satır varken
+// deneme sayısının bire inmesi.
+console.log('\ngeçmişte geri getiremeyen cihaz');
+{
+  const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
+  await pg.addInitScript(FAKE_CLOCK);
+  // Defteri sayfa açılmadan kur: `glLog` yüklenirken okunuyor.
+  await pg.addInitScript(() => {
+    localStorage.setItem('fruithole_gllog', JSON.stringify([
+      { tip: 'gl', t: '10-01 12:00', lv: 37, parca: 0, geo: 31, tex: 15,
+        cagri: 24, ms: 900, hal: 'menu', rek: 0 },   // `geri` yok: gelmedi
+    ]));
+  });
+  pg.on('pageerror', e => errs.push(String(e)));
+  await pg.goto('http://localhost:8351/', { waitUntil: 'load' });
+  await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function', { timeout: 25000 });
+  const once = await pg.evaluate(() => window.fruitHoleGl());
+  console.log(`  defterde geri gelmeyen kayıt: ${once.gecmisteGelmedi} · deneme sınırı ${once.max}`);
+  check(once.gecmisteGelmedi === 1, 'defterdeki başarısız kayıt okunuyor', String(once.gecmisteGelmedi));
+  check(once.max === 1, 'geri getiremeyen cihazda tek deneme yapılıyor',
+    `${once.max} (dört yerine)`);
+  await pg.close();
+}
+// Temiz defterli cihazda dört deneme sürüyor: hızlandırma yalnızca
+// geçmişinde başarısızlık olan cihaz için, herkes için değil.
+{
+  const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
+  await pg.addInitScript(FAKE_CLOCK);
+  pg.on('pageerror', e => errs.push(String(e)));
+  await pg.goto('http://localhost:8351/', { waitUntil: 'load' });
+  await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function', { timeout: 25000 });
+  const o = await pg.evaluate(() => window.fruitHoleGl());
+  check(o.max === 4, 'temiz defterli cihazda dört deneme yapılıyor', String(o.max));
+  await pg.close();
+}
+
 console.log('\nsayfa hataları: ' + (errs.length ? errs.join(' | ') : 'yok'));
 console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');
 await br.close();

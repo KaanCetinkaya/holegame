@@ -4240,7 +4240,7 @@ function refreshGlNotice() {
   const barText = document.getElementById('glBarText');
   const barBtn = document.getElementById('glBarBtn');
   if (bar) bar.hidden = !glLost;
-  const bitti = _glTries >= GL_TRY_MAX;
+  const bitti = _glTries >= glTryMax();
   if (barText) {
     barText.textContent = bitti
       ? 'Graphics could not restart.'
@@ -4265,6 +4265,36 @@ function refreshGlNotice() {
 // Kaç kez denendiği. Dördü bitince vazgeçilmiyor artık — uygulama öne
 // geldiğinde sayaç sıfırlanıyor, çünkü asıl sorun deneme sayısı değildi.
 const GL_TRY_MAX = 4;
+
+// Bu cihaz bağlamı daha önce geri getirebildi mi?
+//
+// Defterde `geri` alanı olmayan bir 'gl' satırı, bağlamın bir kez kaybolup
+// **hiç geri gelmediği** anlamına geliyor. `forceContextRestore()` bir
+// istek, emir değil; reddeden cihaz bir dahaki sefere de reddediyor —
+// depodaki iki telefon kaydı da bunu söylüyor.
+//
+// Böyle bir satır varsa dört deneme × 1.5 saniye, artı vazgeçmeden önceki
+// 1.5 saniye — toplam yedi buçuk saniye — işe yaramayacağı **bilinen** bir
+// şeye harcanıyor, ve o sürenin tamamını oyuncu bomboş bir tahtaya bakarak
+// geçiriyor. Kesin çalışan çare yenileme; o cihazlarda doğrudan ona
+// gidiliyor ve bekleme üç saniyeye iniyor.
+//
+// Tek deneme yine de yapılıyor, sıfır değil: defter cihazın geçmişini
+// söylüyor, o anki durumunu değil, ve bir denemenin maliyeti 1.5 saniye.
+function glGecmisteGelmedi() {
+  let n = 0;
+  for (let i = 0; i < glLog.length; i++) {
+    const k = glLog[i];
+    if (k.tip !== 'gl') continue;
+    // En üstteki satır şu anki kayıp olabilir — `geri` henüz yazılmadı ama
+    // yazılacak. Onu saymak, ilk kaybı da "bu cihaz getiremiyor" saymak
+    // olurdu.
+    if (i === 0 && glLost) continue;
+    if (k.geri == null) n++;
+  }
+  return n;
+}
+function glTryMax() { return glGecmisteGelmedi() ? 1 : GL_TRY_MAX; }
 
 function gorunur() {
   return typeof document === 'undefined' || document.visibilityState !== 'hidden';
@@ -4318,7 +4348,7 @@ function glGiveUp() {
 function glRetry() {
   if (!glLost) return;
   if (!gorunur()) { clearTimeout(_glTimer); return; }
-  if (_glTries >= GL_TRY_MAX) {
+  if (_glTries >= glTryMax()) {
     refreshGlNotice();
     clearTimeout(_glTimer);
     // Bir buçuk saniye: oyuncu ne olduğunu okuyacak kadar görsün, ama
@@ -4349,7 +4379,7 @@ document.addEventListener('resume', glOnVisible, false);
 {
   const btn = document.getElementById('glBarBtn');
   if (btn) btn.addEventListener('click', () => {
-    if (_glTries >= GL_TRY_MAX) { _glReloaded = false; glGiveUp(); return; }
+    if (_glTries >= glTryMax()) { _glReloaded = false; glGiveUp(); return; }
     _glTries = 0;
     glRetry();
   });
@@ -24117,6 +24147,11 @@ window.fruitHoleGiveTime = (s) => {
 window.fruitHoleGl = () => ({
   lost: glLost,
   tries: _glTries,
+  // Bu cihazda kaç deneme yapılacak: dört, ya da geçmişte geri gelmediyse
+  // bir. Ölçülecek şey gözle görünmüyor — oyuncu yalnızca beklediği süreyi
+  // görüyor, kaç kez denendiğini değil.
+  max: glTryMax(),
+  gecmisteGelmedi: glGecmisteGelmedi(),
   logged: _glLostN,
   visible: gorunur(),
   barVisible: !!(document.getElementById('glBar')
