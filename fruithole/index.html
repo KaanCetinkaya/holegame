@@ -24474,6 +24474,33 @@ window.fruitHoleCellMap = () => {
   }
   return g.map(row => row.join('')).join('\n');
 };
+// Tahtadaki meyve **türlerinin** dağılımı.
+//
+// Boyut dağılımı (`fruitHoleMix`) tahtanın kaçta kaçının iri olduğunu
+// söylüyor; bu, kaçta kaçının **aynı şey** olduğunu söylüyor. İkisi ayrı
+// soru ve ikincisi ölçülmemişti.
+//
+// Kaan'ın 96. bölümden attığı ekran görüntüsü bunu istedi: ekran baştan
+// aşağı aynı sarı toplarla dolu, aralarında iki karpuz, ve "bu bölüm çok
+// sade olmuş" diyor. Desen çeşitli, zemin çeşitli, ama **oyuncunun
+// yuttuğu şey** tek tip — ve tahtaya bakan biri yalnızca onu görüyor.
+//
+// `enCokPay`: en kalabalık türün tahtadaki payı. 0.25 dört türün eşit
+// dağıldığı tahta, 1.0 tek türden ibaret olan tahta.
+window.fruitHoleTypes = () => {
+  const live = fruits.filter(f => !f.eaten && !f.bomb && !f.prop);
+  const say = {};
+  for (const f of live) say[f.type] = (say[f.type] || 0) + 1;
+  const n = live.length;
+  const paylar = Object.values(say).sort((a, b) => b - a);
+  return {
+    toplam: n, say,
+    tur: paylar.length,
+    enCokPay: n ? +(paylar[0] / n).toFixed(3) : 0,
+    // İkinci türün payı: tek tür baskınsa bu çok düşük kalıyor.
+    ikinciPay: n && paylar.length > 1 ? +(paylar[1] / n).toFixed(3) : 0,
+  };
+};
 // Bombalar: kaç tane, nerede, ve bölümü bitirme şartına girmiyorlar mı.
 window.fruitHoleBombs = () => {
   const live = fruits.filter(f => !f.eaten);
