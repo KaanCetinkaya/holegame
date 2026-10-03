@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#20163a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Triple Market</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #20163a; color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  .pill {
+    background: linear-gradient(180deg, #8f6ce8, #6f49d6);
+    border: 3px solid #fff; border-radius: 999px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.28);
+    padding: 7px 16px; font-weight: 800; font-size: 17px;
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  }
+  .btn {
+    display: block; width: 100%; text-align: center; cursor: pointer;
+    background: linear-gradient(180deg, #a98cff, #7b55e8);
+    border: 3px solid #fff; border-radius: 18px;
+    box-shadow: 0 5px 0 rgba(0,0,0,.3);
+    padding: 13px 20px; font-weight: 900; font-size: 19px; color: #fff;
+  }
+  .btn.alt { background: linear-gradient(180deg, #4b4266, #362f4d); }
+  .btn:disabled { opacity: .45; }
+
+  #hud { position: absolute; top: calc(env(safe-area-inset-top,0px) + 10px);
+         left: 10px; right: 10px; display: flex; gap: 8px; align-items: center;
+         justify-content: space-between; pointer-events: none; }
+
+  /* Tepsi ekranın altında sabit. Oyunun bütün gerilimi burada: yedi yuva,
+     dolarsa tur biter. O yüzden oyun alanının içinde değil, onun üstünde
+     kendi şeridinde duruyor — gözden kaçmaması gereken tek şey. */
+  #tray { position: absolute; left: 0; right: 0;
+          bottom: calc(env(safe-area-inset-bottom,0px) + 18px);
+          display: flex; justify-content: center; gap: 6px; pointer-events: none; }
+  .slot { width: 40px; height: 44px; border-radius: 11px;
+          background: rgba(255,255,255,.10);
+          border: 2px solid rgba(255,255,255,.22); }
+  .slot.warn { border-color: #ff6b7a; background: rgba(255,107,122,.18); }
+
+  .screen { position: absolute; inset: 0; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: 12px; padding: 26px; background: rgba(20,12,38,.86); }
+  .screen.show { display: flex; }
+  .screen h1 { margin: 0 0 4px; font-size: 32px; }
+  .screen h2 { margin: 0; font-size: 25px; }
+  .screen p { margin: 0 0 8px; opacity: .8; font-size: 14px; text-align: center; }
+  .stack { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; }
+  .card { width: 100%; max-width: 320px; background: rgba(255,255,255,.07);
+          border: 2px solid rgba(255,255,255,.14); border-radius: 16px;
+          padding: 12px 14px; margin-bottom: 14px; }
+  .row { display: flex; justify-content: space-between; font-size: 14px; padding: 3px 0; }
+
+  #ver { position: absolute; left: 12px; bottom: 12px; font-size: 10px;
+         font-weight: 700; color: rgba(255,255,255,.45); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="pill" id="lvlTag">BÖLÜM 1</div>
+    <div class="pill" id="leftTag">0</div>
+  </div>
+  <div id="tray"></div>
+
+  <div class="screen show" id="menu">
+    <h1>Triple Market</h1>
+    <p>Tap three of a kind. The tray holds seven.</p>
+    <div class="card">
+      <div class="row"><span>Level</span><span id="mLevel">1</span></div>
+      <div class="row"><span>Best streak</span><span id="mStreak">0</span></div>
+    </div>
+    <div class="stack"><button class="btn" id="playBtn">PLAY</button></div>
+    <span id="ver">dev</span>
+  </div>
+
+  <div class="screen" id="win">
+    <h2>Cleared! 🎉</h2>
+    <p id="winSub"></p>
+    <div class="stack"><button class="btn" id="nextBtn">NEXT LEVEL</button></div>
+  </div>
+
+  <div class="screen" id="lose">
+    <h2>Tray full</h2>
+    <p>No room left. Try a different order.</p>
+    <div class="stack">
+      <button class="btn" id="retryBtn">TRY AGAIN</button>
+      <button class="btn alt" id="quitBtn">MENU</button>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://esm.sh/three@0.161.0" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const $ = id => document.getElementById(id);
+const app = $('app');
+
+// ---------------------------------------------------------------------
+// Kayıt
+// ---------------------------------------------------------------------
+const KEY = 'triplemarket';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(KEY + '_' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(KEY + '_' + k, JSON.stringify(v)); } catch {} },
+};
+let level = store.get('level', 1);
+let bestStreak = store.get('streak', 0);
+
+// ---------------------------------------------------------------------
+// Nesneler
+// ---------------------------------------------------------------------
+// Hepsi kodla üretiliyor, dışarıdan tek bir görsel dosyası yok — depodaki
+// öteki üç oyunda da kural bu.
+//
+// Biçimler birbirinden **siluetle** ayrılıyor, yalnızca renkle değil: üçlü
+// eşleştirmede oyuncunun saniyede yaptığı iş "bu ikisi aynı mı" ve iki kırmızı
+// küre ile iki kırmızı küp arasındaki farkı renk değil biçim söylüyor. Renk
+// körlüğü bir yana, küçük bir ekranda renk tek başına okunmuyor.
+const KINDS = [
+  { id: 'apple',  colour: '#e8413c', make: () => new THREE.SphereGeometry(0.42, 18, 12) },
+  { id: 'lemon',  colour: '#f5c43a', make: () => { const g = new THREE.SphereGeometry(0.4, 16, 12); g.scale(1, 0.78, 1); return g; } },
+  { id: 'milk',   colour: '#eef3f8', make: () => new THREE.BoxGeometry(0.52, 0.8, 0.52) },
+  { id: 'can',    colour: '#5ec1e8', make: () => new THREE.CylinderGeometry(0.3, 0.3, 0.72, 16) },
+  { id: 'bread',  colour: '#c68b4a', make: () => { const g = new THREE.CapsuleGeometry(0.28, 0.5, 4, 10); g.rotateZ(Math.PI / 2); return g; } },
+  { id: 'cheese', colour: '#f0a93a', make: () => new THREE.ConeGeometry(0.42, 0.62, 4) },
+  { id: 'jar',    colour: '#8fd94a', make: () => new THREE.CylinderGeometry(0.34, 0.3, 0.58, 12) },
+  { id: 'cake',   colour: '#f288c4', make: () => new THREE.CylinderGeometry(0.42, 0.42, 0.44, 18) },
+];
+const GEO = {}, MAT = {};
+for (const k of KINDS) {
+  GEO[k.id] = k.make();
+  MAT[k.id] = new THREE.MeshStandardMaterial({ color: k.colour, roughness: 0.45, metalness: 0.08 });
+}
+
+// ---------------------------------------------------------------------
+// Sahne
+// ---------------------------------------------------------------------
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// Ton eşlemesi baştan kurulu. Slice Rush'ta bu atlanmıştı ve sahne lineer
+// değerlerle çizildiği için parlaklar beyaza yapışıp gölgeler düz bir renge
+// oturuyordu; sonradan eklendiğinde en büyük görsel kazanç oydu.
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+app.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#20163a');
+
+const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(0, 9.4, 7.6);
+camera.lookAt(0, 0, -0.4);
+
+scene.add(new THREE.HemisphereLight('#dcd2ff', '#3a2f5c', 0.95));
+const sun = new THREE.DirectionalLight('#fff6e6', 1.1);
+sun.position.set(5, 12, 7);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.near = 1; sun.shadow.camera.far = 34;
+sun.shadow.camera.left = -8; sun.shadow.camera.right = 8;
+sun.shadow.camera.top = 8; sun.shadow.camera.bottom = -8;
+sun.shadow.bias = -0.0007;
+scene.add(sun, sun.target);
+
+// Tezgâh. Nesnelerin üstünde durduğu yüzey; gölgeyi alan şey de bu.
+const table = new THREE.Mesh(
+  new THREE.BoxGeometry(11, 0.5, 11),
+  new THREE.MeshStandardMaterial({ color: '#4a3b73', roughness: 0.85 }));
+table.position.y = -0.25;
+table.receiveShadow = true;
+scene.add(table);
+
+function fit() {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+}
+addEventListener('resize', fit);
+
+// ---------------------------------------------------------------------
+// Tahta
+// ---------------------------------------------------------------------
+// Tahta üretiminin tek kuralı var ve oyunun tamamı ona bağlı: **her türden
+// nesne sayısı üçün katı olmak zorunda.** Değilse tahta bitirilemez ve bu
+// ekranda "zor bölüm" gibi görünür. Kural burada tek yerde uygulanıyor ve
+// dışarıdan `mkProbe()` ile doğrulanabiliyor.
+const TRAY_MAX = 7;
+let items = [];            // tahtadaki nesneler
+let tray = [];             // tepsidekiler, tür türe gruplu duruyor
+let busy = false;          // uçuş sürerken ikinci dokunuşu yut
+let streak = 0;
+
+const boardGroup = new THREE.Group();
+scene.add(boardGroup);
+
+// Bölüm kaç tür ve kaç üçlü içeriyor.
+//
+// Zorluk tür sayısıyla geliyor, nesne sayısıyla değil: tepsi yedi yuvalık,
+// yani aynı anda en fazla altı farklı tür taşınabilir (yedincisi ya eşleşir
+// ya kaybettirir). Tür sayısı altıyı geçtiği anda oyun gerçek bir seçim
+// oyununa dönüyor.
+function levelPlan(n) {
+  const kinds = Math.min(KINDS.length, 3 + Math.floor((n - 1) / 2));
+  const triples = Math.min(16, 3 + Math.floor((n - 1) * 0.8));
+  return { kinds, triples };
+}
+
+function buildBoard(n) {
+  for (const it of items) { boardGroup.remove(it.mesh); }
+  items = [];
+  boardGroup.clear();
+
+  const plan = levelPlan(n);
+  const pool = KINDS.slice(0, plan.kinds);
+  // Üçlüleri türlere dağıt: her tür en az bir üçlü alsın, kalanı rastgele.
+  const counts = pool.map(() => 1);
+  for (let i = pool.length; i < plan.triples; i++) {
+    counts[(Math.random() * pool.length) | 0]++;
+  }
+
+  const bag = [];
+  pool.forEach((k, i) => { for (let j = 0; j < counts[i] * 3; j++) bag.push(k.id); });
+  // Karıştır.
+  for (let i = bag.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    [bag[i], bag[j]] = [bag[j], bag[i]];
+  }
+
+  // Yerleşim: hafif dağınık bir ızgara. Üst üste yığmak, altta kalanı
+  // seçilemez yapardı — ve seçilemeyen bir nesne tahtayı bitirilemez kılar.
+  // Katman yerine sıkı ama ayrık bir düzen: hepsi görünür, hepsi dokunulur.
+  const per = Math.ceil(Math.sqrt(bag.length));
+  const step = 1.15;
+  const off = (per - 1) * step / 2;
+  bag.forEach((id, i) => {
+    const gx = i % per, gz = (i / per) | 0;
+    const mesh = new THREE.Mesh(GEO[id], MAT[id]);
+    mesh.position.set(
+      gx * step - off + (Math.random() - 0.5) * 0.18,
+      0.42,
+      gz * step - off + (Math.random() - 0.5) * 0.18);
+    mesh.rotation.y = Math.random() * Math.PI * 2;
+    mesh.castShadow = true;
+    boardGroup.add(mesh);
+    items.push({ id, mesh, home: mesh.position.clone(), flying: null });
+  });
+}
+
+// ---------------------------------------------------------------------
+// Tepsi
+// ---------------------------------------------------------------------
+function trayX(i) { return (i - (TRAY_MAX - 1) / 2) * 0.92; }
+
+function refreshTrayUI() {
+  const wrap = $('tray');
+  wrap.innerHTML = '';
+  for (let i = 0; i < TRAY_MAX; i++) {
+    const d = document.createElement('div');
+    d.className = 'slot' + (tray.length >= TRAY_MAX - 1 && i >= tray.length ? ' warn' : '');
+    wrap.appendChild(d);
+  }
+}
+
+// Tepsiye yerleştirme sırası: aynı türler **yan yana** duruyor.
+//
+// Sıraya atmak eşleşmeyi göz işi hâline getiriyordu; oyuncunun yapması
+// gereken karar "hangi nesneyi alayım", "tepsimde ne var" değil.
+function trayInsertIndex(id) {
+  const son = tray.map(t => t.id).lastIndexOf(id);
+  return son === -1 ? tray.length : son + 1;
+}
+
+function layoutTray() {
+  tray.forEach((t, i) => {
+    t.target.set(trayX(i), 0.5, 5.3);
+  });
+}
+
+function pick(it) {
+  if (busy || it.flying || tray.length >= TRAY_MAX) return;
+  const at = trayInsertIndex(it.id);
+  const rec = { id: it.id, mesh: it.mesh, target: new THREE.Vector3(), t: 0,
+                from: it.mesh.position.clone() };
+  tray.splice(at, 0, rec);
+  items = items.filter(x => x !== it);
+  boardGroup.remove(it.mesh);
+  scene.add(it.mesh);
+  layoutTray();
+  refreshTrayUI();
+  ping(560, 0.05);
+
+  // Üçlü tamamlandı mı?
+  const same = tray.filter(t => t.id === it.id);
+  if (same.length >= 3) {
+    // Uçuş bitince patlasın: hemen silmek, nesnenin tepsiye vardığını
+    // görmeden kaybolması demek ve oyuncu neden temizlendiğini anlamıyor.
+    setTimeout(() => clearTriple(it.id), 230);
+  } else if (tray.length >= TRAY_MAX) {
+    setTimeout(() => finish(false), 260);
+  }
+}
+
+function clearTriple(id) {
+  const same = tray.filter(t => t.id === id).slice(0, 3);
+  if (same.length < 3) return;
+  for (const t of same) scene.remove(t.mesh);
+  tray = tray.filter(t => !same.includes(t));
+  layoutTray();
+  refreshTrayUI();
+  streak++;
+  if (streak > bestStreak) { bestStreak = streak; store.set('streak', bestStreak); }
+  ping(760, 0.07);
+  refreshHud();
+  if (items.length === 0 && tray.length === 0) finish(true);
+}
+
+function refreshHud() {
+  $('lvlTag').textContent = 'BÖLÜM ' + level;
+  $('leftTag').textContent = items.length + tray.length;
+}
+
+// ---------------------------------------------------------------------
+// Dokunma
+// ---------------------------------------------------------------------
+const ray = new THREE.Raycaster();
+const ptr = new THREE.Vector2();
+renderer.domElement.addEventListener('pointerdown', e => {
+  if (state !== 'playing') return;
+  ptr.x = (e.clientX / innerWidth) * 2 - 1;
+  ptr.y = -(e.clientY / innerHeight) * 2 + 1;
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(items.map(i => i.mesh), false)[0];
+  if (!hit) return;
+  const it = items.find(i => i.mesh === hit.object);
+  if (it) pick(it);
+});
+
+// ---------------------------------------------------------------------
+// Akış
+// ---------------------------------------------------------------------
+let state = 'menu';
+const screens = { menu: $('menu'), win: $('win'), lose: $('lose') };
+function showScreen(name) {
+  for (const k in screens) screens[k].classList.toggle('show', k === name);
+}
+
+function startLevel(n) {
+  level = n;
+  store.set('level', level);
+  streak = 0;
+  for (const t of tray) scene.remove(t.mesh);
+  tray = [];
+  buildBoard(level);
+  refreshTrayUI();
+  refreshHud();
+  state = 'playing';
+  showScreen(null);
+}
+
+function finish(ok) {
+  if (state !== 'playing') return;
+  state = ok ? 'win' : 'lose';
+  if (ok) {
+    $('winSub').textContent = `Level ${level} · streak ${streak}`;
+    level++;
+    store.set('level', level);
+    ping(920, 0.09);
+  } else ping(180, 0.09);
+  showScreen(ok ? 'win' : 'lose');
+}
+
+$('playBtn').onclick = () => startLevel(level);
+$('nextBtn').onclick = () => startLevel(level);
+$('retryBtn').onclick = () => startLevel(level);
+$('quitBtn').onclick = () => { state = 'menu'; $('mLevel').textContent = level;
+  $('mStreak').textContent = bestStreak; showScreen('menu'); };
+
+// ---------------------------------------------------------------------
+// Ses
+// ---------------------------------------------------------------------
+let actx = null;
+function ping(freq, gain = 0.06) {
+  try {
+    actx ||= new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(freq, actx.currentTime);
+    g.gain.setValueAtTime(gain, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.16);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + 0.16);
+  } catch {}
+}
+
+// ---------------------------------------------------------------------
+// Döngü
+// ---------------------------------------------------------------------
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  // Tepsiye uçuş: konuma doğru yumuşak yaklaşma. Anında ışınlamak neyin
+  // nereye gittiğini göstermiyor.
+  for (const t of tray) {
+    const k = 1 - Math.pow(0.0009, dt);
+    t.mesh.position.lerp(t.target, k);
+    t.mesh.rotation.y += dt * 2.2;
+  }
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+$('mLevel').textContent = level;
+$('mStreak').textContent = bestStreak;
+refreshTrayUI();
+fit();
+requestAnimationFrame(tick);
+
+// ---------------------------------------------------------------------
+// Probe
+// ---------------------------------------------------------------------
+// Tahtanın geçerliliği dışarıdan doğrulanabilsin: her türden sayı üçün katı
+// mı, toplam kaç nesne var, tepside ne duruyor.
+window.mkProbe = () => {
+  const say = {};
+  for (const it of items) say[it.id] = (say[it.id] || 0) + 1;
+  for (const t of tray) say[t.id] = (say[t.id] || 0) + 1;
+  return {
+    state, level, board: items.length, tray: tray.map(t => t.id),
+    counts: say, kinds: Object.keys(say).length,
+    ucunKati: Object.values(say).every(n => n % 3 === 0),
+    streak, best: bestStreak,
+  };
+};
+window.mkStart = n => { startLevel(n); return window.mkProbe(); };
+window.mkPick = id => {
+  const it = items.find(i => i.id === id);
+  if (it) pick(it);
+  return window.mkProbe();
+};
+// Tahtayı kurallara göre çöz: her türden üçer üçer al. Çözülebilir bir
+// tahtanın bu sırayla mutlaka bitmesi gerekiyor.
+window.mkSolve = () => {
+  const türler = [...new Set(items.map(i => i.id))];
+  for (const id of türler) {
+    let kalan = items.filter(i => i.id === id).length;
+    while (kalan > 0 && state === 'playing') {
+      const it = items.find(i => i.id === id);
+      if (!it) break;
+      pick(it);
+      kalan--;
+    }
+  }
+  return window.mkProbe();
+};
+window.mkReset = () => { try { localStorage.clear(); } catch {} };
+</script>
+</body>
+</html>

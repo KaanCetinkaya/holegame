@@ -1,0 +1,134 @@
+// Kuleler ne kadar yüksek duruyor, ve yükseltince ne bozuluyor?
+//
+//   node build-www.mjs && node scratchpad/holepillar.mjs
+//
+// Kule sayısı yükseklik değil: çilek küre, karpuz dilimi ince disk. Aynı
+// sayıda parça çok farklı boyda kule veriyor. O yüzden ölçüm dünya
+// biriminden, `fruitHolePillars()` ile alınıyor.
+//
+// Yükseltmenin iki sınırı var, ikisi de burada ölçülüyor:
+//   1. Aynı sıradaki kuleler ekranda üst üste binerse sütun dizisi kesintisiz
+//      bir şeride dönüşüyor — aralarından geçilebildiği görünmüyor.
+//   2. Kule çok uzarsa ekranın üstünden taşıyor ya da deliği kapatıyor.
+//
+// Kareler /tmp/pillar/ altına yazılıyor, göze de bakmak gerekiyor.
+
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import { createServer } from 'http';
+import { readFileSync, mkdirSync } from 'fs';
+
+mkdirSync('/tmp/pillar', { recursive: true });
+
+const srv = createServer((q, r) => {
+  const p = q.url === '/' ? '/index.html' : q.url.split('?')[0];
+  try {
+    const b = readFileSync('/home/user/holegame/www-fruithole' + p);
+    r.writeHead(200, { 'content-type': p.endsWith('.js') ? 'text/javascript' : 'text/html' });
+    r.end(b);
+  } catch { r.writeHead(404); r.end('no'); }
+}).listen(8199);
+
+const br = await chromium.launch({
+  executablePath: '/opt/pw-browsers/chromium',
+  args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'],
+});
+const pg = await br.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2 });
+const errs = []; pg.on('pageerror', e => errs.push(String(e)));
+
+const fails = [];
+const check = (ok, what, saw) => {
+  console.log(`  ${ok ? 'OK  ' : 'FAIL'} ${what}${saw === undefined ? '' : `   ${saw}`}`);
+  if (!ok) fails.push(what);
+};
+
+// Bölüm numarası oyundan hesaplanıyor, dosyaya yazılmıyor.
+//
+// Burada "42" yazıyordu ve yanında `PATTERNS[(level-1) % 19]` diye bir yorum
+// vardı. On dokuz düzen yirmi dörde çıkınca 42. bölüm Pillars olmaktan çıktı
+// — test çalışmaya devam etti, ölçtü, ve **başka bir deseni** sütun sanıp
+// hata verdi. Numara yerine desenin adı soruluyor: kaçıncı sırada olursa
+// olsun doğru tahta bulunuyor.
+//
+// Üçüncü tur isteniyor, ilk değil: tahta bölümle birlikte uzuyor ve
+// sütunların şerit haline gelip gelmediği ancak uzun tahtada görülüyor.
+const ONCE = await br.newPage();
+await ONCE.goto('http://localhost:8199/', { waitUntil: 'load' });
+await ONCE.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
+  { timeout: 25000 });
+const ORDER = await ONCE.evaluate(() => window.fruitHoleThemeTable().order);
+const IDX = ORDER.indexOf('Pillars');
+if (IDX < 0) throw new Error(`Pillars deseni yok — oyundakiler: ${ORDER.join(', ')}`);
+// Bölüm numarası da hesaplanmıyor, **sorulup bulunuyor**.
+//
+// Burada `IDX + 1 + ORDER.length * 2` yazıyordu: "aynı desen iki tur sonra
+// yine aynı numarada" varsayımı. Tur başına 7 kayma gelince bu varsayım
+// çöktü ve test yine sessizce başka bir tahtayı (Island) ölçüp sütunları
+// yerinde bulamadı — yukarıdaki notun anlattığı hatanın birebir aynısı,
+// bir kat yukarıdan. Numarayı artık oyun söylüyor.
+//
+// 13'ten başlıyor: tahta o bölümde 34 satıra oturuyor ve sütunların şeride
+// dönüp dönmediği ancak uzun tahtada görülüyor.
+let BOLUM = 0;
+for (let n = 13; n <= ORDER.length * 6 && !BOLUM; n++) {
+  const r = await ONCE.evaluate(k => window.fruitHoleLoop(k), n);
+  if (r.pattern === 'Pillars') BOLUM = n;
+}
+await ONCE.close();
+if (!BOLUM) throw new Error('Pillars hiçbir bölümde bulunamadı');
+
+await pg.addInitScript(n => localStorage.setItem('fruithole_level', String(n)), BOLUM);
+await pg.goto('http://localhost:8199/', { waitUntil: 'load' });
+await pg.waitForFunction(() => window.fruitHolePillars, { timeout: 25000 });
+await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
+await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
+await pg.click('#playBtn');
+await pg.waitForTimeout(3000);
+
+const desen = await pg.evaluate(n => window.fruitHoleProbe(n).pattern, BOLUM);
+console.log(`\ndesen: ${desen}  (bölüm ${BOLUM})\n`);
+if (desen !== 'Pillars') { fails.push(`yanlış desen açıldı: ${desen}`); }
+
+const lines = await pg.evaluate(() => window.fruitHolePillars());
+console.log('sütun | dünya birimi | parça');
+console.log('------+--------------+-------');
+for (const l of lines) {
+  console.log(`  ${String(l.col).padStart(3)} | ${String(l.top).padStart(12)} | ${String(l.pieces).padStart(5)}`);
+}
+
+const tops = lines.map(l => l.top);
+const inner = Math.max(tops[1], tops[2]);
+const outer = Math.max(tops[0], tops[3]);
+console.log(`\niç sütunlar ${inner} birim, dış sütunlar ${outer} birim`);
+check(inner > outer + 0.5, 'iç sütunlar dıştan belirgin yüksek', `${inner} > ${outer}`);
+
+// Aynı sıradaki kuleler ekranda birbirine giriyor mu? Eksi = üst üste binme.
+const gaps = await pg.evaluate(() => window.fruitHolePillarGaps());
+console.log('\nsütun | kule | en dar boşluk (px)');
+console.log('------+------+-------------------');
+for (const g of gaps) {
+  console.log(`  ${String(g.col).padStart(3)} | ${String(g.towers).padStart(4)} | ${String(g.minGap).padStart(17)}`);
+}
+const worst = Math.min(...gaps.map(g => g.minGap).filter(v => v !== null));
+check(worst > 0, 'kuleler arasından zemin görünüyor (şeride dönmüyor)', `en dar ${worst}px`);
+
+// Kule ekranda nereye kadar çıkıyor? Tepe noktası HUD'un altında kalmalı,
+// yoksa kule sayaçların arkasına giriyor.
+const screen = await pg.evaluate(() => {
+  const r = window.fruitHoleLean();
+  return { crownY: r.screenDy, foot: r.towerHeight, dx: r.screenDx };
+});
+console.log(`en yüksek kule ${screen.foot} birim, ekranda ${Math.abs(screen.crownY).toFixed(0)}px yukarı çıkıyor`);
+check(Math.abs(screen.dx) < 2, 'kule dimdik duruyor (yana kaymıyor)', `${screen.dx}px`);
+check(Math.abs(screen.crownY) < 420, 'kule HUD ile sayaçların altında kalıyor',
+  `${Math.abs(screen.crownY).toFixed(0)}px / 420px sınır`);
+
+// Delik kulelerin arkasında kaybolmamalı: deliğin durduğu yerde zeminin
+// göründüğünü, üstünü bir kulenin örtmediğini istiyoruz.
+await pg.screenshot({ path: '/tmp/pillar/play.png' });
+console.log('\n/tmp/pillar/play.png');
+
+console.log('\nhatalar: ' + (errs.length ? errs.join(' | ') : 'yok'));
+console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');
+await br.close();
+srv.close();
+process.exit(fails.length || errs.length ? 1 : 0);
