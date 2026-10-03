@@ -24746,6 +24746,64 @@ window.fruitHoleSpeed = () => ({
   taban: BASE_MOVE_SPEED,
   simdi: BASE_MOVE_SPEED * (1 + upg('speed') * 0.08),
 });
+// **Hangi kural yeri reddediyor?**
+//
+// Bu kanca bir ölçüden doğdu. Kırk sekiz bölüm, on tohum tarandı ve üç
+// ızgara tahtasında izinli bir engel **hiç** çıkmadı — Forbidden City ve
+// Matchday France'ta mancınık 0/10, Frontier'de silindir 0/10. Sıfır,
+// şanssızlık değil: bir kural sistematik olarak engelliyor.
+//
+// Ama hangisi? Yerleştirme altı şartı sırayla soruyor ve hepsi `continue`
+// ile dönüyor, yani dışarıdan bakan biri yalnızca "yer bulunamadı"
+// görüyor. Hangi şartın kaç yeri yediğini bilmeden gevşetilecek kural
+// seçilemez — ve yanlış kuralı gevşetmek, her birinin yorumda yazılı bir
+// sebebi olduğu için, başka bir yeri bozar.
+//
+// Tarama `placeCatapults`'ın ızgarasının aynısı (yarım birim) ve şartları
+// aynı sırada soruyor; her reddi sebebine yazıyor.
+window.fruitHoleCatapultWhy = () => {
+  const kenar = HOLE_MAX + CATAPULT_R + 1.2;
+  const mX = fieldHalfX - kenar, mZ = fieldHalfZ - kenar;
+  const sayac = { dar: 0, dogus: 0, kolos: 0, kaya: 0, mancinik: 0, diken: 0, dev: 0, olur: 0 };
+  if (mX <= 0 || mZ <= 0) return { ...sayac, dar: 1, toplam: 0,
+    kutu: { mX: +mX.toFixed(2), mZ: +mZ.toFixed(2) } };
+  let toplam = 0;
+  for (let x = -mX; x <= mX; x += 0.5) {
+    for (let z = -mZ; z <= mZ; z += 0.5) {
+      toplam++;
+      if (Math.hypot(x - SPAWN_X, z - spawnZ()) < HOLE_MAX + CATAPULT_R + 4) { sayac.dogus++; continue; }
+      if (hasColossus(level) && Math.hypot(x - 0, z + fieldHalfZ * 0.55) < COLOSSUS_R + CATAPULT_R + 2) { sayac.kolos++; continue; }
+      if (rocks.some(r => Math.hypot(r.x - x, r.z - z) < r.r + CATAPULT_R + HOLE_MAX)) { sayac.kaya++; continue; }
+      if (catapults.some(c => Math.hypot(c.x - x, c.z - z) < CATAPULT_R * 2 + HOLE_MAX * 2 + 1.2)) { sayac.mancinik++; continue; }
+      if (spikes.some(sp => Math.hypot(sp.x - x, sp.z - z) < sp.r + CATAPULT_R + HOLE_MAX)) { sayac.diken++; continue; }
+      if (fruits.some(f => !f.eaten && f.giant &&
+          Math.hypot(f.x - x, f.z - z) < f.r * 2 + CATAPULT_R)) { sayac.dev++; continue; }
+      sayac.olur++;
+    }
+  }
+  return { ...sayac, toplam, kutu: { mX: +mX.toFixed(2), mZ: +mZ.toFixed(2) },
+           kaya_sayi: rocks.length, diken_sayi: spikes.length,
+           dev_sayi: fruits.filter(f => !f.eaten && f.giant).length };
+};
+// Silindirin aynısı: şerit tahtanın enine uzandığı için tek serbestlik z,
+// yani tarama tek boyutlu.
+window.fruitHoleRollerWhy = () => {
+  const yariBoy = ROLLER_SPAN / 2;
+  const sayac = { dar: 0, dogus: 0, kolos: 0, kati: 0, olur: 0 };
+  if (fieldHalfX - yariBoy - ROLLER_R < HOLE_MAX) return { ...sayac, dar: 1, toplam: 0 };
+  const mZ = fieldHalfZ - ROLLER_R - 1.5;
+  let toplam = 0;
+  for (let z = -mZ; z <= mZ; z += 0.5) {
+    toplam++;
+    if (Math.abs(z - spawnZ()) < HOLE_MAX + ROLLER_R + 4) { sayac.dogus++; continue; }
+    if (hasColossus(level) && Math.abs(z + fieldHalfZ * 0.55) < COLOSSUS_R + ROLLER_R + 2) { sayac.kolos++; continue; }
+    if ([...rocks, ...catapults].some(o =>
+        Math.abs(o.z - z) < o.r + ROLLER_R + 0.6 && Math.abs(o.x) < yariBoy + o.r)) { sayac.kati++; continue; }
+    sayac.olur++;
+  }
+  return { ...sayac, toplam, span: ROLLER_SPAN, ucBosluk: +(fieldHalfX - yariBoy - ROLLER_R).toFixed(2),
+           kaya_sayi: rocks.length };
+};
 window.fruitHoleCatapultFire = (i) => {
   const c = catapults[i];
   if (!c) return null;
