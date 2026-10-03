@@ -1289,3 +1289,33 @@ bulabiliyor, ve arama bir linkten daha az sürtünmeli.
 olamazdı. Artık bakılacak sayı **Play Console → İstatistikler → yükleme**,
 ve o sayı gönderi başına okunabiliyor: bir klip atıldığı gün kaç kurulum
 geldi. İzlenme artık ara bir ölçü; kurulum nihai olanı.
+
+### Gün 53 — linkli ilk gönderi (3 Ekim)
+
+`redplanet` atıldı, ve bu **linki olan ilk gönderi.** Önceki beş gönderi
+(gün 48-52) linksiz atılmıştı, çünkü kapalı test linki yabancıda
+çalışmıyordu.
+
+Sabitlenmiş yorum:
+```
+it's live → play.google.com/store/apps/details?id=com.kaancetinkaya.fruithole
+```
+
+Paket adının içinde Kaan'ın soyadı geçiyor ve bu **değiştirilemez** — Play
+yayınlandıktan sonra paket adını değiştirmeye izin vermiyor, değiştirmek
+yeni bir uygulama demek. Kaan'a aramaya yönlendiren, adsız bir alternatif
+sunuldu (*"search Peelo: Fruit Hole"*); kalsın dedi. Mağaza sayfasında
+geliştirici adı zaten **fenixgame**, yani ad yalnızca linkte görünüyor.
+
+**Sabitleme yalnızca telefon uygulamasında var.** Web'de kendi yorumunun
+üç nokta menüsünde tek seçenek "Sil" — bu, yanlışlıkla yorumu silmenin tam
+olarak göründüğü yer.
+
+### Artık bakılacak sayı
+
+Beş gönderi, 1.386 izlenme, **1 beğeni**, 6 profil görüntülemesi — ve
+gidilecek hiçbir yer. Bu gönderiden itibaren ölçü değişiyor:
+
+**Play Console → İstatistikler → yükleme**, gönderi gününe göre okunuyor.
+İzlenme bir ara ölçü; kurulum nihai olanı. Bir klibin iyi olup olmadığını
+artık izlenmesi değil, o gün gelen kurulum söyleyecek.
