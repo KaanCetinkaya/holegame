@@ -247,3 +247,36 @@ kutusunda "41 sürüm kodu daha önce kullanıldı" dedi. Kitaplık listesi
 sürüm kodlarının tamamını göstermiyor, yani **bir şeyin yokluğu** o
 listeden okunamaz. Doğrunun tek kaynağı yükleme kutusunun kendisi ve
 uygulama paketi gezgini.
+
+## 45 (1.13) — 211 karakter — **ilk açık test**
+
+```
+First public test build.
+
+- The catapult was missing from more than half the boards that are meant to have one - Drive-In, Fiesta, Rangoli. It now turns up every time, so a place plays the way it is supposed to.
+```
+
+Sürüm adı (yalnızca panoda görünür, oyuncuya gösterilmez): `45 (1.13)`
+
+Bu not öncekilerden iki yerde ayrılıyor, ve ikisinin de sebebi aynı:
+**kutuyu ilk kez yabancılar okuyacak.**
+
+Birincisi, ilk satır. 41-44 doğrudan *"What changed"* ile başlıyordu ve
+doğruydu — okuyan herkes bir önceki sürümü oynamıştı. Açık testte okuyanın
+çoğu oyunu hiç görmedi, ve değişiklik listesiyle başlayan bir kutu onlara
+hiçbir şey söylemiyor. *"First public test build"* ikisine birden çalışıyor:
+yeni gelen nerede olduğunu anlıyor, kapalı testteki on iki kişi de
+güncellemenin ne olduğunu.
+
+İkincisi, tek madde. Dört sürümdür listeler uzuyordu çünkü her biri Kaan'ın
+oynamasından çıkan birkaç düzeltme taşıyordu. 44'ten beri oyuncunun
+gördüğü **tek** değişiklik var: mancınık, zemininin onu çağırdığı
+tahtalarda gerçekten çıkıyor. Ölçüldü — Drive-In'de kırk tohumun
+on yedisinde çıkıyordu (%43), şimdi kırkında. Yani "yerin kendi engeli"
+sözü, oyuncuların yarısında tutulmuyordu.
+
+Nota **girmeyenler**: ızgara taramasının kendisi (oyuncu yerleştirme
+algoritmasını görmüyor), kaya payının yarıya inmesi (aynı şeyin içi),
+mayın saatindeki yorum düzeltmesi (davranış değişmedi, yalnızca yanlış
+yazılmış bir sayı düzeldi), ve klip aracının tamamı. Bu kutu oyuncunun
+gördüğü şeyi yazıyor.
