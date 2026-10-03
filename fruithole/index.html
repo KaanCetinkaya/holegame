@@ -508,6 +508,20 @@
     display: flex; align-items: center; justify-content: center; padding: 0 5px;
     box-shadow: 0 3px 0 rgba(120,10,20,.55); }
 
+  /* Ekran dışındaki deve bakan ok.
+     Yalnızca devler görevinde ve yalnızca dev kadrajın dışındayken. İçerideki
+     bir deve ok tutmak, zaten görülen şeyi işaret etmek olurdu. */
+  #giantArrow { position: fixed; left: 0; top: 0; z-index: 7; pointer-events: none;
+    display: none; width: 54px; height: 54px; margin: -27px;
+    align-items: center; justify-content: center;
+    font-size: 26px; line-height: 1;
+    color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.5);
+    filter: drop-shadow(0 0 7px rgba(0,0,0,.45)); }
+  #giantArrow.show { display: flex; }
+  /* Henüz yutulamayan dev: aynı yer, farklı söz. Oyuncu oraya gitmeden
+     önce büyümesi gerektiğini okun kendisinden anlıyor. */
+  #giantArrow.small { opacity: .5; }
+
   #hint { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom,0px) + 132px);
     text-align: center; pointer-events: none; font-size: 13px; font-weight: 800;
     opacity: 0; transition: opacity .5s ease; z-index: 5; padding: 0 24px;
@@ -918,6 +932,7 @@
   <div id="sizeTag">Size <span id="sizeN">1</span></div>
   <div id="boosterBar"></div>
   <div id="combo"></div>
+  <div id="giantArrow">🍉</div>
   <div id="hint">Drag anywhere to steer the hole and swallow the fruit</div>
   <div id="joyBase"></div>
   <div id="joyKnob"></div>
@@ -2178,6 +2193,7 @@ const cardRowEl = document.getElementById('cardRow');
 const timeNEl = document.getElementById('timeN');
 const patternTagEl = document.getElementById('patternTag');
 const hintEl = document.getElementById('hint');
+const giantArrowEl = document.getElementById('giantArrow');
 // Sipariş bölümü ipucu satırını devralıyor, sonra buraya geri dönüyor.
 const HINT_DEFAULT = hintEl.textContent;
 const joyBaseEl = document.getElementById('joyBase');
@@ -21536,6 +21552,64 @@ function fitCamera() {
   camera.updateProjectionMatrix();
 }
 
+// Ekran dışındaki deve bakan ok.
+//
+// Devler görevi ölçüldü ve beklenen yerde kırılmadı: bot dokuz koşunun
+// dokuzunu da kazandı, saatin 4 ile 22 saniyesi elinde kalarak. Yani saat
+// yeterli. Ama botun oyuncuda olmayan bir şeyi var —
+// `fruitHoleGiantList()` ona her devin yerini anında söylüyor.
+//
+// Oyuncunun durumu başka. Tahta 13.7×35.7 birim, kadraj 10.8×24: yarısı
+// ekran dışında. Sekiz dev oraya dağıldığında harcanan sürenin çoğu yemek
+// değil **aramak**, ve arama saatin hesabında yok — `giantTourSeconds`
+// devler arası yolu ölçüyor, o yolu bulmayı değil.
+//
+// Kaan'ın kaybettiği tahta buydu: sekiz devin biri alınmış, 243 meyve
+// yenmiş, saat bitmiş. Boyu yetmişti; nerede olduklarını bilmiyordu.
+//
+// Ok saati değiştirmiyor, aramayı seyahate çeviriyor. Yalnızca dev kadrajın
+// **dışındayken** çıkıyor: içerideki bir deve ok tutmak, görülen şeyi
+// işaret etmek olurdu.
+const GIANT_ARROW_PAD = 46;     // kenardan içeride durduğu piksel
+function refreshGiantArrow() {
+  if (!giantArrowEl) return;
+  if (missionKind !== 'giants' || state !== 'playing') {
+    giantArrowEl.classList.remove('show');
+    return;
+  }
+  // En yakın dev. "Yutulabilir olan" diye süzülmüyor: oyuncunun gideceği
+  // yer, büyüdüğünde gideceği yerle aynı, ve yutulamayan bir devi
+  // saklamak onu iki kez aratır.
+  let en = null, ed = Infinity;
+  for (const f of fruits) {
+    if (f.eaten || !f.giant) continue;
+    const d = (f.x - holeX) ** 2 + (f.z - holeZ) ** 2;
+    if (d < ed) { ed = d; en = f; }
+  }
+  if (!en) { giantArrowEl.classList.remove('show'); return; }
+  // Dünyadan ekrana. `project` kameranın matrisini kullanıyor, yani açılış
+  // sürerken de doğru — kadraj değişirken ok da onunla değişiyor.
+  const v = new THREE.Vector3(en.x, en.baseY || 0, en.z).project(camera);
+  const sx = (v.x * 0.5 + 0.5) * innerWidth;
+  const sy = (-v.y * 0.5 + 0.5) * innerHeight;
+  const icerde = v.z < 1 && sx > GIANT_ARROW_PAD && sx < innerWidth - GIANT_ARROW_PAD
+    && sy > GIANT_ARROW_PAD * 3 && sy < innerHeight - GIANT_ARROW_PAD * 3;
+  if (icerde) { giantArrowEl.classList.remove('show'); return; }
+  // Kenara sabitle: ekranın ortasından deve doğru bir ışın çizip kutunun
+  // kenarıyla kesiştir. Ok hep kadrajın içinde, ama hep devin yönünde.
+  const cx = innerWidth / 2, cy = innerHeight / 2;
+  let dx = sx - cx, dy = sy - cy;
+  // Kameranın arkasındaki bir nokta `project`ten ters işaretle dönüyor.
+  if (v.z >= 1) { dx = -dx; dy = -dy; }
+  const d = Math.hypot(dx, dy) || 1;
+  const limX = cx - GIANT_ARROW_PAD, limY = cy - GIANT_ARROW_PAD * 3;
+  const k = Math.min(limX / Math.abs(dx || 1e-6), limY / Math.abs(dy || 1e-6));
+  giantArrowEl.style.left = (cx + dx * k) + 'px';
+  giantArrowEl.style.top = (cy + dy * k) + 'px';
+  giantArrowEl.classList.add('show');
+  giantArrowEl.classList.toggle('small', en.r > holeRadius * 0.92);
+}
+
 // Keep the view inside the field: following the hole to the very edge
 // would otherwise park half the screen on empty ground.
 // The camera used to stop right at the last row, so the board looked like
@@ -23746,6 +23820,19 @@ window.fruitHoleHold = (on = true) => {
 // Camera settle: how far the view jumps between one frame and the next. This
 // outlived the combo kick it was written to measure, because what it is
 // really watching is that nothing *else* ever moves the camera off the hole.
+// Devler okunun durumu. Gözle doğrulanamaz: ok ekranın kenarında bir
+// emoji ve "doğru yöne bakıyor mu" sorusunun cevabı piksel koordinatında.
+window.fruitHoleGiantArrow = () => {
+  const el = document.getElementById('giantArrow');
+  const gorunur = !!el && el.classList.contains('show');
+  return {
+    gorunur,
+    kucuk: !!el && el.classList.contains('small'),
+    x: gorunur ? Math.round(parseFloat(el.style.left) || 0) : null,
+    y: gorunur ? Math.round(parseFloat(el.style.top) || 0) : null,
+    gorev: missionKind,
+  };
+};
 window.fruitHoleShake = () => ({
   streak,
   // Kadrajın yarı genişliği ve açılışın kalan süresi. Açılış gözle
@@ -25842,6 +25929,8 @@ function tick(now) {
     camera.position.set(camX, 13, camZ + 6.2);
     camera.lookAt(camX, 0, camZ - 0.4);
   }
+  camera.updateMatrixWorld();
+  refreshGiantArrow();
   camera.updateMatrixWorld();
   // Carry the shadow box along with the view so the whole field is shadowed
   // the same way, not just the patch around the origin.
