@@ -21483,6 +21483,31 @@ function resetHole() {
 // Camera
 // ---------------------------------------------------------------------
 let camX = 0, camZ = 0;
+// Bölüm açılışı: kamera bir an bütün tahtayı gösteriyor, sonra deliğe iniyor.
+//
+// Kaan üç kez "bölümler hep aynı geliyor" dedi ve üçünde de haklıydı. Ölçüm
+// sebebi gösterdi, ve sebep çeşit eksikliği değildi: kırk sekiz zemin, kırk
+// sekiz düzen, otuz dokuz ayrı nesne kümesi var — görsel çeşitlilik zaten
+// tavanda.
+//
+// Eksik olan şey **görmek**. Her düzen tahtaya bir resim çiziyor ve rengi
+// fırça olarak kullanıyor: `Track` bir ayak izi, pençe uçları başka meyve;
+// `Wave` bir dalga; `Anchor` bir çapa. Bunun bedeli tahtanın tek renk
+// görünmesi — ölçüldü, altmış sekiz ızgara tahtanın yirmi dokuzunda bir tür
+// tahtanın yarısından fazlası, birinde %92.
+//
+// Ama oyun o bedeli ödeyip karşılığını almıyordu. Kamera tahtanın yarısını
+// gösteriyor (13.7×35.7 birimlik tahta, 10.8×24 birimlik kadraj) ve delik
+// resmin **içinde** doğuyor. Oyuncu ayak izini hiç görmüyor; sarı topların
+// arasında iki karpuz görüyor, ve "sade" diyor.
+//
+// Açılış bu yüzden bedava bir an değil, eksik olan tek şey: resim zaten
+// çizilmiş, kırk sekiz tane, ve kimse bakmamış.
+//
+// Saate hiç dokunmuyor: tarla düşerken çalışıyor ve saat tarla düşene kadar
+// başlamıyor (`fruitHoleDrop`).
+const ACILIS_SN = 1.2;
+let acilis = 0;
 // Kameranın takip ettiği nokta, delikten başkasıysa. Oynanışta hep null —
 // yalnızca `fruitHoleCamLook()` dolduruyor, o da tanıtım klibi çekilirken.
 // Değişken burada, kameranın yanında duruyor: kullanıldığı yer çizim döngüsü,
@@ -22370,6 +22395,9 @@ function startLevel() {
 function startRun() {
   resetHole();
   camX = holeX; camZ = holeZ;
+  // Açılış: kamera tahtanın ortasından başlıyor, deliğe iniyor.
+  acilis = ACILIS_SN;
+  camX = 0; camZ = 0;
   fitCamera();
   timeLeft = timeFull = levelTime();
   lastWholeSecond = -1;
@@ -23720,6 +23748,10 @@ window.fruitHoleHold = (on = true) => {
 // really watching is that nothing *else* ever moves the camera off the hole.
 window.fruitHoleShake = () => ({
   streak,
+  // Kadrajın yarı genişliği ve açılışın kalan süresi. Açılış gözle
+  // doğrulanamaz — bir buçuk saniye sürüyor ve konteynerde kare hızı yok —
+  // ama bu iki sayı onu tam olarak anlatıyor.
+  halfW: +camera.right.toFixed(2), acilis: +acilis.toFixed(2),
   camX: +camera.position.x.toFixed(4), camZ: +camera.position.z.toFixed(4),
 });
 window.fruitHoleWater = () => ({ offsetX: waterTex.offset.x, surf: surf.scale.x });
@@ -25771,8 +25803,33 @@ function tick(now) {
     const bulmacaKam = !dailyRun && isPuzzleLevel(level);
     const hedefX = camLook ? camLook.x : (bulmacaKam ? 0 : holeX);
     const hedefZ = camLook ? camLook.z : holeZ;
-    camX += (hedefX - camX) * follow;
-    camZ += (hedefZ - camZ) * follow;
+    // Açılış sürerken takip yerine **iniş**: kadraj bütün tahtadan oyunun
+    // kendi genişliğine, hedef de tahtanın ortasından deliğe doğru gidiyor.
+    //
+    // Geniş kadraj elle yazılmıyor, tahtadan türüyor: `fieldHalfX + 1`
+    // enin tamamını gösteriyor ve dikeyi en-boy oranı veriyor — bu telefonda
+    // 17.4 birim, tahtanın yarı boyu 17.85. Yani tahtanın tamamına yakını
+    // ekranda, ve sayı tahta büyüdüğünde kendiliğinden büyüyor.
+    //
+    // Yumuşatma smoothstep: doğrusal iniş hem başta hem sonda sert duruyor,
+    // ve sert biten bir kamera hareketi oyuncuya "bir şey atladım" dedirtiyor.
+    if (acilis > 0 && !camLook) {
+      acilis = Math.max(0, acilis - dt);
+      const t = 1 - acilis / ACILIS_SN;
+      const e = t * t * (3 - 2 * t);
+      const genis = fieldHalfX + 1;
+      const halfH = genis + (VIEW_HALF_X - genis) * e;
+      const aspect = innerWidth / innerHeight;
+      camera.left = -halfH; camera.right = halfH;
+      camera.top = halfH / aspect; camera.bottom = -halfH / aspect;
+      camera.updateProjectionMatrix();
+      camX = hedefX * e;
+      camZ = hedefZ * e;
+      if (acilis === 0) fitCamera();
+    } else {
+      camX += (hedefX - camX) * follow;
+      camZ += (hedefZ - camZ) * follow;
+    }
     clampCamera();
     // The camera sits on the hole and nothing else moves it. A combo used to
     // add a decaying wobble here; see the note above eatFruit for why it is
