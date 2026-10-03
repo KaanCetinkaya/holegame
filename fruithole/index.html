@@ -22371,6 +22371,23 @@ function startRun() {
   hintEl.textContent = missionRule();
   hintEl.style.opacity = '.8';
   state = 'playing';
+  // Bağlam yokken oyuna **başlanmıyor** da.
+  //
+  // `webglcontextlost` saati durduruyordu, ama tek bir yönü kapatıyordu:
+  //
+  //     if (state === 'playing') pauseGame();
+  //
+  // Yani "oynarken kaybedilirse". Kaan'ın telefonundan gelen ekran
+  // görüntüsü öteki yönü gösterdi — bomboş bir tahta, üstünde "Graphics
+  // restarting…", kartlar 0/14 0/18 0/53 ve **işleyen bir saat.** Bağlam
+  // bölüm kurulurken, `state` daha `'playing'` olmadan düşmüştü; o şart
+  // tutmayınca `pauseGame()` hiç çağrılmadı ve iki satır sonra buradaki
+  // `state = 'playing'` saati başlattı. Ölü bir bağlamın üstünde.
+  //
+  // Ölçüldü (`scratchpad/holeglbas.mjs`): üç saniyede 1.7 saniye gidiyordu,
+  // 7. ve 51. bölümlerde aynı. Uyarı çubuğu çıkıyor, oyuncu ne olduğunu
+  // okuyor, ve okurken bölümü kaybediyor.
+  if (glLost) pauseGame();
   refreshMusic();
 }
 
@@ -22546,6 +22563,9 @@ async function revive() {
   sizeTagEl.classList.add('show');
   joyBaseEl.classList.add('show'); joyKnobEl.classList.add('show');
   state = 'playing';
+  // Aynı kural burada da. Canlanma on beş saniye veriyor ve görülmeyen bir
+  // tahtada o on beş saniye reklamı izlemiş bir oyuncudan çalınmış olur.
+  if (glLost) pauseGame();
 }
 reviveBtnEl.addEventListener('click', revive);
 
