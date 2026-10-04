@@ -1,7 +1,9 @@
 # Hangi bölümde hangi yer
 
-54 yer, 54 bölüm, sonra baştan. **İkinci tur için bölüm numarasına 54
-ekle** (Kapalıçarşı bölüm 32 → 86), üçüncü tur için 108.
+55 yer, 55 bölüm, sonra baştan — ama **sıra her turda kayıyor**, o
+yüzden ikinci tur bölüm numarasına 55 eklemek değil. Oyun her turda
+sırayı 7 adım ötelliyor, yani aynı yer ikinci turda başka bir numarada
+çıkıyor. Aşağıdaki sütun o numarayı veriyor.
 
 Yerin adı bölüm başında rozette yazıyor, ve bölüm başlarken kamera bütün
 tahtayı gösteriyor — zemin ve nesneler orada görünüyor.
@@ -10,60 +12,61 @@ Bu dosya elle yazılmıyor: `node scratchpad/holeliste.mjs` üretiyor.
 
 | blm | 2. tur | yer | ne var |
 |---|---|---|---|
-| **1** | 55 | 🔺 Valley of Kings | Mısır — sfenks, dikilitaş, hiyeroglif zemin |
-| **2** | 56 | 🔽 Neon Night | Tokyo — torii kapısı, ramen, neon sokak |
-| **3** | 57 | 🏝️ Beach | kumsal — deniz yıldızı, deniz kabuğu, parmak arası terlik |
-| **4** | 58 | 💫 Matchday Germany | Almanya maçı — bira bardağı, bratwurst, bas davul |
-| **5** | 59 | 🏛️ Manhattan | New York — sarı taksi, yangın musluğu, sosisli, yaya çizgisi |
-| **6** | 60 | 🪟 Highlands | İskoçya — gayda, tüylü inek, viski fıçısı, tartan zemin |
-| **7** | 61 | 🌊 Copacabana | Rio — tukan, samba davulu, teleferik, mozaik kaldırım |
-| **8** | 62 | 🏎️ Pit Lane | pist — lastik yığını, damalı bayrak, pit tabelası, asfalt ve kerb |
-| **9** | 63 | 🫧 Aloha | Hawaii — palmiye, sörf tahtası, tiki, siyah kum |
-| **10** | 64 | 👑 Cup Night | kupa gecesi — kocaman kupa, madalya, TV kamerası, yıldızlı saha |
-| **11** | 65 | ⭕ Match Day | maç günü — top, krampon, forma, çim |
-| **12** | 66 | 🔢 Playground | oyun parkı — salıncak, kaydırak, tahterevalli |
-| **13** | 67 | 🏁 Hollywood | Hollywood — klaket, film makarası, projektör, kaldırım |
-| **14** | 68 | 💥 Rooftop | çizgi roman çatısı — su deposu, yangın merdiveni, projektör, telefon kulübesi |
-| **15** | 69 | 🕹️ Arcade | atari salonu — oyun dolabı, joystick, piksel hayalet, neon halı |
-| **16** | 70 | 🥞 Market Day | pazar — terazi, sepet, ekmek, peynir, arnavut kaldırımı |
-| **17** | 71 | 🦴 Matchday Italy | İtalya maçı — Vespa, espresso, tifo, kavisli saha |
-| **18** | 72 | 🧊 Gadget Shop | teknoloji mağazası — televizyon, piyano, kulaklık |
-| **19** | 73 | 🪜 Indoors | ev içi — ahşap zemin, dondurma, donut, kupa |
-| **20** | 74 | 📶 Matchday England | İngiltere maçı — atkı, korner bayrağı, kareli saha |
-| **21** | 75 | 💛 Orbit | uzay — uydu, gezegen, kask, istasyon güvertesi |
-| **22** | 76 | 🪂 Drop Zone | ada — ganimet sandığı, paraşüt, erzak kutusu, fırtına duvarı |
-| **23** | 77 | 🏰 Castle Keep | kale — miğfer, kalkan, taştaki kılıç, mancınık |
-| **24** | 78 | 🍥 Rangoli | Hindistan — fil, baharat tepsisi, çay güğümü, tabla, rangoli zemin |
-| **25** | 79 | ➡️ Drive-In | arabalı sinema — burger, patates, kola, asfalt |
-| **26** | 80 | 🏡 Suburb Night | banliyö gecesi — BMX, ampul dizisi, bal kabağı, posta kutusu, biçilmiş çim |
-| **27** | 81 | 🟩 Cube World | küp dünya — kazma, meşale, sandık, küp örümcek, blok çim |
-| **28** | 82 | 🌳 Harvest | hasat — saman balyası, tavuk, yumurta, sürülmüş toprak |
-| **29** | 83 | ⭐ Fiesta | Meksika — sombrero, marakas, kaktüs, piñata, talavera çini |
-| **30** | 84 | 🧲 Frontier | Vahşi Batı — at arabası, boğa kafatası, şerif yıldızı, kurak toprak |
-| **31** | 85 | 🎯 The Arena | Kolezyum — miğfer, kalkan, sütun, defne, arena kumu |
-| **32** | 86 | 🌙 Grand Bazaar | Kapalıçarşı — simit, çay, nazar boncuğu, lokum, kilim |
-| **33** | 87 | 💎 Gold Coast | Dubai — kule, süper araba, şahin, deve, meydan taşı |
-| **34** | 88 | 🧭 Le Jardin | Paris — demir kule, kruvasan, kafe sandalyesi, sokak lambası |
-| **35** | 89 | ⚓ Pirate Cove | korsan koyu — çapa, dümen, top, papağan, gemi güvertesi |
-| **36** | 90 | 🪮 Tulip Fields | Hollanda — yel değirmeni, bisiklet, takunya, peynir, lale tarlası |
-| **37** | 91 | ⚡ Overgrown | terk edilmiş şehir — çökmüş çatı, rüzgârgülü, fıçı, kaktüs |
-| **38** | 92 | 🥥 The Reef | resif — mercan, denizanası, istiridye, kum dalgası |
-| **39** | 93 | 🧅 Red Square | Moskova — soğan kubbe, matruşka, semaver, kar |
-| **40** | 94 | ⛩️ Forbidden City | Yasak Şehir — ejder, fener, panda, çay, kiremit |
-| **41** | 95 | 🌸 Happy Hour | bar — neon tabela, taburе, kokteyl, plak |
-| **42** | 96 | 🦒 Savanna | savan — zürafa, zebra, akasya, davul, kurak çim |
-| **43** | 97 | ⚙️ Funfair | lunapark — dönme dolap, atlıkarınca, pamuk şeker, balon |
-| **44** | 98 | 🌩️ Rooftop | çizgi roman çatısı — su deposu, yangın merdiveni, projektör, telefon kulübesi |
-| **45** | 99 | 🏟 Tikal | kayıp şehir — Maya piramidi, taş maske, liyan, totem |
-| **46** | 100 | 🦶 Jurassic | dinozor — stegosaurus, dino yumurtası, eğrelti otu, kaburga, volkanik kül |
-| **47** | 101 | 🦅 Nazca | Nazca — lama, pan flüt, chullo, dokuma, pampa çizgileri |
-| **48** | 102 | 🪃 Outback | Avustralya — kanguru, koala, okaliptüs, yol tabelası, kızıl toprak |
-| **49** | 103 | ⌛ Payday | para — bitcoin, euro, rupi, peso, mermer zemin |
-| **50** | 104 | 🔑 Academy | akademi — şamdan, gargoyle, demir kapı, kitap yığını, taş döşeme |
-| **51** | 105 | 🔀 Matchday France | Fransa maçı — bere, tricolore, konfeti, dikey çizgili saha |
-| **52** | 106 | 🌀 Matchday Spain | İspanya maçı — flama, portakal, paella, çapraz çizgili saha |
-| **53** | 107 | 📀 Red Planet | Mars — keşif aracı, iniş aracı, bayrak, drone, kızıl toz |
-| **54** | 108 | 🧱 Snow Day | kar — kardan adam, eldiven, baston şeker, penguen |
+| **1** | 104 | 🔺 Valley of Kings | Mısır — sfenks, dikilitaş, hiyeroglif zemin |
+| **2** | 105 | 🔽 Neon Night | Tokyo — torii kapısı, ramen, neon sokak |
+| **3** | 106 | 🏝️ Beach | kumsal — deniz yıldızı, deniz kabuğu, parmak arası terlik |
+| **4** | 107 | 💫 Matchday Germany | Almanya maçı — bira bardağı, bratwurst, bas davul |
+| **5** | 108 | 🏛️ Manhattan | New York — sarı taksi, yangın musluğu, sosisli, yaya çizgisi |
+| **6** | 109 | 🪟 Highlands | İskoçya — gayda, tüylü inek, viski fıçısı, tartan zemin |
+| **7** | 110 | 🌊 Copacabana | Rio — tukan, samba davulu, teleferik, mozaik kaldırım |
+| **8** | 56 | 🏎️ Pit Lane | pist — lastik yığını, damalı bayrak, pit tabelası, asfalt ve kerb |
+| **9** | 57 | 🫧 Aloha | Hawaii — palmiye, sörf tahtası, tiki, siyah kum |
+| **10** | 58 | 👑 Cup Night | kupa gecesi — kocaman kupa, madalya, TV kamerası, yıldızlı saha |
+| **11** | 59 | ⭕ Match Day | maç günü — top, krampon, forma, çim |
+| **12** | 60 | 🔢 Playground | oyun parkı — salıncak, kaydırak, tahterevalli |
+| **13** | 61 | 🏁 Hollywood | Hollywood — klaket, film makarası, projektör, kaldırım |
+| **14** | 62 | 💥 Rooftop | çizgi roman çatısı — su deposu, yangın merdiveni, projektör, telefon kulübesi |
+| **15** | 63 | 🕹️ Arcade | atari salonu — oyun dolabı, joystick, piksel hayalet, neon halı |
+| **16** | 64 | 🥞 Market Day | pazar — terazi, sepet, ekmek, peynir, arnavut kaldırımı |
+| **17** | 65 | 🦴 Matchday Italy | İtalya maçı — Vespa, espresso, tifo, kavisli saha |
+| **18** | 66 | 🧊 Gadget Shop | teknoloji mağazası — televizyon, piyano, kulaklık |
+| **19** | 67 | 🪜 Indoors | ev içi — ahşap zemin, dondurma, donut, kupa |
+| **20** | 68 | 📶 Matchday England | İngiltere maçı — atkı, korner bayrağı, kareli saha |
+| **21** | 69 | 💛 Orbit | uzay — uydu, gezegen, kask, istasyon güvertesi |
+| **22** | 70 | 🪂 Drop Zone | ada — ganimet sandığı, paraşüt, erzak kutusu, fırtına duvarı |
+| **23** | 71 | 🏰 Castle Keep | kale — miğfer, kalkan, taştaki kılıç, mancınık |
+| **24** | 72 | 🍥 Rangoli | Hindistan — fil, baharat tepsisi, çay güğümü, tabla, rangoli zemin |
+| **25** | 73 | ➡️ Drive-In | arabalı sinema — burger, patates, kola, asfalt |
+| **26** | 74 | 🏡 Suburb Night | banliyö gecesi — BMX, ampul dizisi, bal kabağı, posta kutusu, biçilmiş çim |
+| **27** | 75 | 🟩 Cube World | küp dünya — kazma, meşale, sandık, küp örümcek, blok çim |
+| **28** | 76 | 🌳 Harvest | hasat — saman balyası, tavuk, yumurta, sürülmüş toprak |
+| **29** | 77 | 🛣️ Everything | **açıklama eksik** |
+| **30** | 78 | ⭐ Fiesta | Meksika — sombrero, marakas, kaktüs, piñata, talavera çini |
+| **31** | 79 | 🧲 Frontier | Vahşi Batı — at arabası, boğa kafatası, şerif yıldızı, kurak toprak |
+| **32** | 80 | 🎯 The Arena | Kolezyum — miğfer, kalkan, sütun, defne, arena kumu |
+| **33** | 81 | 🌙 Grand Bazaar | Kapalıçarşı — simit, çay, nazar boncuğu, lokum, kilim |
+| **34** | 82 | 💎 Gold Coast | Dubai — kule, süper araba, şahin, deve, meydan taşı |
+| **35** | 83 | 🧭 Le Jardin | Paris — demir kule, kruvasan, kafe sandalyesi, sokak lambası |
+| **36** | 84 | ⚓ Pirate Cove | korsan koyu — çapa, dümen, top, papağan, gemi güvertesi |
+| **37** | 85 | 🪮 Tulip Fields | Hollanda — yel değirmeni, bisiklet, takunya, peynir, lale tarlası |
+| **38** | 86 | ⚡ Overgrown | terk edilmiş şehir — çökmüş çatı, rüzgârgülü, fıçı, kaktüs |
+| **39** | 87 | 🥥 The Reef | resif — mercan, denizanası, istiridye, kum dalgası |
+| **40** | 88 | 🧅 Red Square | Moskova — soğan kubbe, matruşka, semaver, kar |
+| **41** | 89 | ⛩️ Forbidden City | Yasak Şehir — ejder, fener, panda, çay, kiremit |
+| **42** | 90 | 🌸 Happy Hour | bar — neon tabela, taburе, kokteyl, plak |
+| **43** | 91 | 🦒 Savanna | savan — zürafa, zebra, akasya, davul, kurak çim |
+| **44** | 92 | ⚙️ Funfair | lunapark — dönme dolap, atlıkarınca, pamuk şeker, balon |
+| **45** | 93 | 🌩️ Rooftop | çizgi roman çatısı — su deposu, yangın merdiveni, projektör, telefon kulübesi |
+| **46** | 94 | 🏟 Tikal | kayıp şehir — Maya piramidi, taş maske, liyan, totem |
+| **47** | 95 | 🦶 Jurassic | dinozor — stegosaurus, dino yumurtası, eğrelti otu, kaburga, volkanik kül |
+| **48** | 96 | 🦅 Nazca | Nazca — lama, pan flüt, chullo, dokuma, pampa çizgileri |
+| **49** | 97 | 🪃 Outback | Avustralya — kanguru, koala, okaliptüs, yol tabelası, kızıl toprak |
+| **50** | 98 | ⌛ Payday | para — bitcoin, euro, rupi, peso, mermer zemin |
+| **51** | 99 | 🔑 Academy | akademi — şamdan, gargoyle, demir kapı, kitap yığını, taş döşeme |
+| **52** | 100 | 🔀 Matchday France | Fransa maçı — bere, tricolore, konfeti, dikey çizgili saha |
+| **53** | 101 | 🌀 Matchday Spain | İspanya maçı — flama, portakal, paella, çapraz çizgili saha |
+| **54** | 102 | 📀 Red Planet | Mars — keşif aracı, iniş aracı, bayrak, drone, kızıl toz |
+| **55** | 103 | 🧱 Snow Day | kar — kardan adam, eldiven, baston şeker, penguen |
 
 ## Konsept grupları
 
@@ -85,10 +88,11 @@ para, çizgi roman çatısı, küp dünya, pist, atari salonu, ada
 
 ## Nerede ne eksik
 
-Elli dört tema var, elli dört düzen — ama Rooftop iki düzen aldığı için
-bir temaya yer kalmıyor: **"Everything" teması hiç çıkmıyor.** Bir tema
-ancak bir düzen onu işaret ederse ekrana geliyor. Yeni bir yer eklemek,
-aynı zamanda yeni bir düzen yazmak demek.
+Elli dört tema, elli beş düzen. Rooftop iki düzen alıyor (14 Blast,
+44 Bolt), ve açıkta kalan **"Everything" teması artık çıkıyor**: 29.
+bölümün `Lanes` düzeni onu işaret ediyor. Bir tema ancak bir düzen onu
+gösterirse ekrana geliyor — yeni bir yer eklemek, aynı zamanda yeni bir
+düzen yazmak demek.
 
 Düzenin **şekli** her bölümde görünmüyor: resim (3, 13, 23, 33, 43, 53),
 şerit (6, 16, 26, 36, 46) ve bulmaca (18, 28, 38, 48) tahtaları bölüm

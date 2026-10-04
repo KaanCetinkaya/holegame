@@ -68,6 +68,7 @@ const NE_VAR = {
   'Pit Lane': 'pist — lastik yığını, damalı bayrak, pit tabelası, asfalt ve kerb',
   'Arcade': 'atari salonu — oyun dolabı, joystick, piksel hayalet, neon halı',
   'Drop Zone': 'ada — ganimet sandığı, paraşüt, erzak kutusu, fırtına duvarı',
+  'Everything': 'her şey — havuzun tamamından nesneler, kumsal zemini',
 };
 
 const srv = createServer((q, r) => {

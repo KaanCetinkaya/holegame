@@ -18257,7 +18257,11 @@ const PATTERNS = [
         Math.hypot(nx, ny + 0.66),
         Math.hypot(nx + 0.8, ny + 0.36),
         Math.hypot(nx - 0.8, ny + 0.36)) < 0.2;
-      return pence ? ID[3 % ID.length] : ID[1 % ID.length];
+      // Pençe izleri ayrı renk, tabanı dama. Taban tek renkti ve ekranın
+      // %76'sıydı — bu düzen gizli tahtanın altındayken hiç ölçülmemişti,
+      // `Lanes` araya girip sırayı kaydırınca ızgaraya çıktı.
+      return pence ? ID[3 % ID.length]
+        : damaTip(r, c, 2, ID[1 % ID.length], ID[0]);
     },
     big: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -18424,9 +18428,13 @@ const PATTERNS = [
     // Oyma çizgiler: kol boyunca aralıklı başka renk.
     type: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
+      // Bumerangın boyunca giden çentikler, aralarındaki gövde iki şeritli.
+      // Ekranda yalnızca iki tür vardı: çentik seyrek düştüğü için rengi
+      // tek başına o taşıyamıyor.
       const t = Math.abs(nx) + ny * 0.4;
       return Math.abs(Math.sin(t * Math.PI * 4)) > 0.75
-        ? ID[3 % ID.length] : ID[1 % ID.length];
+        ? ID[3 % ID.length]
+        : seritTip(r, c, 2, [ID[1 % ID.length], ID[0], ID[2 % ID.length]], 2);
     },
     big: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -18610,9 +18618,10 @@ const PATTERNS = [
     },
     type: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
+      // Halka tek renk, sap bantlı, dişler dama. Sap ekranın %64'üydü.
       if (Math.hypot(nx, (ny + 0.6) * 0.95) < 0.55) return ID[2 % ID.length];
-      if (nx > 0.14) return ID[3 % ID.length];
-      return ID[1 % ID.length];
+      if (nx > 0.14) return damaTip(r, c, 2, ID[3 % ID.length], ID[0]);
+      return seritTip(r, c, 2, [ID[1 % ID.length], ID[2 % ID.length]]);
     },
     big: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);

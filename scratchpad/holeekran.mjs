@@ -127,8 +127,25 @@ console.log('\nekranda tek düzelik — ızgara tahtaları (tür < 3 ya da en ç
 for (const x of kotu.sort((a, b) => b.turPay - a.turPay)) {
   console.log(`  ${String(x.lv).padStart(3)}  ${x.ad.padEnd(12)}  ${x.tur.toFixed(1)} tür, en çok %${Math.round(x.turPay * 100)}`);
 }
-console.log(`  ${kotu.length ? 'FAIL' : 'OK  '} ${izgara.length - kotu.length} / ${izgara.length} ızgara tahtası geçti`);
-process.exitCode = kotu.length ? 1 : 0;
+console.log(`  ${kotu.length ? 'FAIL' : 'OK  '} ${izgara.length - kotu.length} / ${izgara.length} ızgara tahtası tür bakımından geçti`);
+
+// İkinci yarı: yükseklik.
+//
+// "Şekilli" olmanın iki ayağı var ve ilk ölçümde yalnızca biri eşiğe
+// bağlandı. Tahtanın tamamı aynı renkse ekran tek renk bir kütle; tahtanın
+// tamamı aynı yükseklikteyse ekran düz bir halı. İkincisi ölçülmüştü ama
+// kimse eşik koymamıştı: Patches'te hücrelerin %95'i, Maze'de %89'u,
+// Dial'da %90'ı aynı kat sayısında.
+//
+// Eşik %75: ölçülen otuz üç tahtanın ortalaması %50, yani çoğu zaten
+// altında. Üstünde kalan, tek katlı bir zemine birkaç kule serpilmiş olan.
+const duz = izgara.filter(x => x.katPay > 0.75);
+console.log('\nekranda düzlük — en çok kat sayısı %75 üstü:');
+for (const x of duz.sort((a, b) => b.katPay - a.katPay)) {
+  console.log(`  ${String(x.lv).padStart(3)}  ${x.ad.padEnd(12)}  ${x.kat.toFixed(1)} ayrı kat, en çoğu %${Math.round(x.katPay * 100)}`);
+}
+console.log(`  ${duz.length ? 'FAIL' : 'OK  '} ${izgara.length - duz.length} / ${izgara.length} ızgara tahtası yükseklik bakımından geçti`);
+process.exitCode = (kotu.length || duz.length) ? 1 : 0;
 
 console.log('\nortalama:');
 console.log(`  bir ekranda tür sayısı   ${ort(hepsi.map(x => x.tur)).toFixed(2)}`);
