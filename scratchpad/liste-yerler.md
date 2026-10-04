@@ -64,38 +64,3 @@ Bu dosya elle yazılmıyor: `node scratchpad/holeliste.mjs` üretiyor.
 | **52** | 106 | 🌀 Matchday Spain | İspanya maçı — flama, portakal, paella, çapraz çizgili saha |
 | **53** | 107 | 📀 Red Planet | Mars — keşif aracı, iniş aracı, bayrak, drone, kızıl toz |
 | **54** | 108 | 🧱 Snow Day | kar — kardan adam, eldiven, baston şeker, penguen |
-
-## Konsept grupları
-
-Elli üç ayrı yer var — elli dört düzene karşı, çünkü Rooftop'un iki düzeni
-var (14 Blast, 44 Bolt).
-
-**Şehir / ülke (29)** — Mısır, Tokyo, New York, İskoçya, Rio, Hawaii,
-Hollywood, pazar, Hindistan, banliyö, Meksika, Vahşi Batı, Roma,
-Kapalıçarşı, Dubai, Paris, Hollanda, Moskova, Yasak Şehir, savan, Maya,
-Nazca, Avustralya, akademi, Mars, kar, kumsal, resif, hasat
-
-**Futbol (7)** — Almanya, İtalya, İngiltere, Fransa, İspanya, Kupa Gecesi,
-Maç Günü. Her birinin saha çizgisi farklı: baklava, kavis, kare, dikey,
-çapraz, yıldız, düz çim.
-
-**Diğer (17)** — oyun parkı, teknoloji mağazası, ev içi, uzay, kale,
-arabalı sinema, korsan koyu, terk edilmiş şehir, bar, lunapark, dinozor,
-para, çizgi roman çatısı, küp dünya, pist, atari salonu, ada
-
-## Nerede ne eksik
-
-Elli dört tema var, elli dört düzen — ama Rooftop iki düzen aldığı için
-bir temaya yer kalmıyor: **"Everything" teması hiç çıkmıyor.** Bir tema
-ancak bir düzen onu işaret ederse ekrana geliyor. Yeni bir yer eklemek,
-aynı zamanda yeni bir düzen yazmak demek.
-
-Düzenin **şekli** her bölümde görünmüyor: resim (3, 13, 23, 33, 43, 53),
-şerit (6, 16, 26, 36, 46) ve bulmaca (18, 28, 38, 48) tahtaları bölüm
-numarasından geliyor ve o numaraya düşen şekli çizmiyor. On beş yuva, elli
-dört düzen — kayıp kaçınılmaz, hangi on beşinin kaybolduğu seçim. Seçim
-oyunda yazılı (`HIDDEN_SHAPES`) ve açılışta ölçülüyor; iki yeni şekil
-(Blast, Cubes) bir süre farkında olmadan oraya düşmüştü.
-
-Yerin kendisi gizli yuvada da görünüyor — zemin, nesneler ve ışık desenin
-temasından geliyor, tahtanın türünden değil.

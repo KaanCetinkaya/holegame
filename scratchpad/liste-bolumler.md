@@ -70,23 +70,3 @@ Bu dosya elle yazılmıyor: `node scratchpad/holeliste.mjs` üretiyor.
 | **52** | Matchday Spain | Spiral | ızgara | 191 | 7 | 108s | mancınık, silindir, rakip, bomba |
 | **53** | Red Planet | Dial | RESİM | 1464 | 0 | 116s | — |
 | **54** | Snow Day | Walls | ızgara | 445 | 7 | 185s | mancınık, çamur, rakip, bomba |
-
-## Görev bölümleri
-
-Her onuncu bölümde bir görev var ve sırası sabit: sipariş, devler, rush,
-mayın, sonra baştan.
-
-| bölüm | görev | ne istiyor |
-|---|---|---|
-| 5, 45 | SİPARİŞ | tek bir meyvenin **hepsini** topla |
-| 15, 55 | DEVLER | büyü, sonra **bütün devleri** yut |
-| 25, 65 | RUSH | saat 12 saniye başlıyor, her meyve ekliyor |
-| 35, 75 | MAYIN | tahta bomba dolu, her biri 5 saniye |
-| 18'den sonra her 10 bölümde | BULMACA | saat yok; kapılar dar, sıra önemli |
-
-## Tahta türleri
-
-- **ızgara** — sıradan tahta, meyveler hücrelere diziliyor
-- **RESİM** — 1400-1800 parça, meyveler bir resim oluşturuyor
-- **ŞERİT** — parçalar çizgiler boyunca diziliyor, ızgara yok
-- **BULMACA** — odalar ve kapılar, saat yok

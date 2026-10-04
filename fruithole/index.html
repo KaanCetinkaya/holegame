@@ -18982,23 +18982,34 @@ const PATTERNS = [
 const LEVEL_ORDER = [
   'Pyramid', 'Chevrons', 'Island', 'Orbits', 'Pillars',
   'Lattice', 'Wave', 'Circuit', 'Bubbles', 'Crown',
-  'Rings', 'Hopscotch', 'Blast', 'Checkers', 'Flipper',
+  'Rings', 'Hopscotch', 'Checkers', 'Blast', 'Flipper',
   'Piles', 'Ribs', 'Blocks', 'Ladder', 'Stairs',
   'Heart', 'Zone', 'Keep', 'Whirl', 'Arrow',
-  'House', 'Orchard', 'Cubes', 'Star', 'Horseshoe',
+  'House', 'Cubes', 'Orchard', 'Star', 'Horseshoe',
   'Ring', 'Crescent', 'Diamond', 'Maze', 'Anchor',
   'Comb', 'Crack', 'Lens', 'Onion', 'Gate',
   'Bloom', 'Patches', 'Cogs', 'Bolt', 'Ballcourt',
   'Track', 'Condor', 'Boomerang', 'Hourglass', 'Key',
   'Cross', 'Spiral', 'Dial', 'Walls',
 ];
-// Altı yeni düzenin hiçbiri resim (3, 13, 23, 33), şerit (6, 16, 26, 36) ya
-// da bulmaca (18, 28, 38) bölümüne denk gelmiyor. O üçü tahtayı bölüm
-// **numarasından** devralıyor: altına düşen düzen ilk turda hiç
-// görünmüyor. Ballcourt ilk yazışta 33'e düştü ve tam bunu yapıyordu.
+// Resim, şerit ve bulmaca tahtaları bölüm **numarasından** seçiliyor: o
+// numaraya düşen düzenin şekli ilk turda hiç çizilmiyor. Elli dört düzene
+// karşı on beş gizli yuva var, yani kaybın kendisi kaçınılmaz — seçim
+// olan şey **hangi** on beşinin kaybolduğu.
 //
 // Yerin kendisi yine de görünüyor — zemin, nesneler ve ışık desenin
 // temasından geliyor, tahtanın türünden değil. Kaybolan şey şekil.
+//
+// Bu liste, o seçimin yazılı hâli. Üstünde yıllarca "altı yeni düzenin
+// hiçbiri gizli yuvaya denk gelmiyor" diyen bir yorum durdu ve kimse
+// ölçmedi: Blast 13'e (resim), Cubes 28'e (bulmaca) düşmüştü, yani yeni
+// eklenen altı şeklin ikisi hiç çizilmiyordu. Yorum ölçmüyor; aşağıdaki
+// karşılaştırma ölçüyor.
+const HIDDEN_SHAPES = [
+  'Island', 'Lattice', 'Checkers', 'Piles', 'Blocks',
+  'Keep', 'House', 'Orchard', 'Diamond', 'Comb',
+  'Lens', 'Cogs', 'Track', 'Boomerang', 'Dial',
+];
 // Yeni düzen listenin **sonuna** değil ortasına giriyor.
 //
 // Sona eklenen bir düzen turun son bölümü oluyor: yeni yer, oyuncunun ancak
@@ -19011,6 +19022,17 @@ for (const p of PATTERNS) {
   if (!LEVEL_ORDER.includes(p.name)) throw new Error(`LEVEL_ORDER is missing ${p.name}`);
 }
 PATTERNS.sort((a, b) => LEVEL_ORDER.indexOf(a.name) - LEVEL_ORDER.indexOf(b.name));
+// Gizli yuvaya düşenler gerçekten listedekiler mi? Sıra değişince bu
+// kendiliğinden kayıyor ve kayma hiçbir yerde görünmüyor — oyun açılıyor,
+// tahta doluyor, sadece bir şekil eksik oluyor. O yüzden burada duruyor.
+{
+  const olan = LEVEL_ORDER.filter((_, i) =>
+    isPictureLevel(i + 1) || isRibbonLevel(i + 1) || isPuzzleLevel(i + 1));
+  const bekle = [...HIDDEN_SHAPES].sort().join(',');
+  if ([...olan].sort().join(',') !== bekle) {
+    throw new Error(`HIDDEN_SHAPES is stale: ${olan.join(',')}`);
+  }
+}
 // Bundan sonra `themeIdForLevel` güvenle çağrılabilir.
 _patternsReady = true;
 

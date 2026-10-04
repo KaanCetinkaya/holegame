@@ -1,0 +1,20 @@
+
+--- gerçek saatle ---
+  OK   bölüm  1 — ilk bölüm
+  OK   bölüm  5 — sipariş bölümü
+  OK   bölüm 10 — patron bölümü
+  OK   bölüm 13 — tahtanın büyüdüğü yer
+  OK   bölüm 25 — ikinci tur, çevrilmiş tahta
+  OK   bölüm 35 — ikinci turun siparişi
+  OK   bölüm 73 — dördüncü tur
+
+--- sahte saatle ---
+  OK   bölüm  1 — ilk bölüm
+  OK   bölüm  5 — sipariş bölümü
+  OK   bölüm 10 — patron bölümü
+  OK   bölüm 13 — tahtanın büyüdüğü yer
+  OK   bölüm 25 — ikinci tur, çevrilmiş tahta
+  OK   bölüm 35 — ikinci turun siparişi
+  OK   bölüm 73 — dördüncü tur
+
+--- oynanırken ---

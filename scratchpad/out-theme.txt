@@ -1,0 +1,111 @@
+
+1. tablo tutarlı
+  OK   her tema yalnızca var olan nesneleri istiyor   -
+  OK   her tema ilk turda en az bir bölümde çıkıyor   -
+  OK   her nesnenin bir teması var   -
+  OK   her nesnenin para birimi gerçek bir para birimi   berry, lychee, banana, melon
+  OK   her yerin tarla dışı da bir yer   -
+  OK   tarla dışı dokuları tanımlı   -
+  OK   her yerin kendi dışı var   -
+  OK   her temanın zemini tanımlı   -
+  OK   hiçbir zemin ikiden fazla temada kullanılmıyor   -
+
+2. dağılım
+    Rooftop(2) Pit Lane(1) Arcade(1) Drop Zone(1) Cube World(1) Beach(1) Aloha(1) Hollywood(1) Manhattan(1) Gold Coast(1) Copacabana(1) Neon Night(1) Le Jardin(1) Grand Bazaar(1) The Reef(1) The Arena(1) Funfair(1) Red Planet(1) Highlands(1) Tulip Fields(1) Fiesta(1) Rangoli(1) Castle Keep(1) Red Square(1) Nazca(1) Outback(1) Playground(1) Suburb Night(1) Overgrown(1) Academy(1) Savanna(1) Tikal(1) Jurassic(1) Forbidden City(1) Pirate Cove(1) Frontier(1) Valley of Kings(1) Matchday England(1) Matchday Spain(1) Matchday Italy(1) Matchday Germany(1) Matchday France(1) Cup Night(1) Match Day(1) Indoors(1) Snow Day(1) Payday(1) Orbit(1) Happy Hour(1) Drive-In(1) Gadget Shop(1) Harvest(1) Market Day(1)
+  OK   temalar arasındaki düzen farkı en fazla bir   1-2
+  OK   her temanın en az dört nesnesi var   Rooftop:9 Pit Lane:6 Arcade:5 Drop Zone:5 Cube World:4 Beach:16 Aloha:12 Hollywood:10 Manhattan:9 Gold Coast:9 Copacabana:9 Neon Night:8 Le Jardin:9 Grand Bazaar:9 The Reef:8 The Arena:8 Funfair:8 Red Planet:8 Highlands:8 Tulip Fields:8 Fiesta:8 Rangoli:8 Castle Keep:8 Red Square:8 Nazca:8 Outback:8 Playground:8 Suburb Night:8 Overgrown:8 Academy:8 Savanna:8 Tikal:8 Jurassic:8 Forbidden City:8 Pirate Cove:8 Frontier:8 Valley of Kings:8 Matchday England:8 Matchday Spain:8 Matchday Italy:8 Matchday Germany:8 Matchday France:8 Cup Night:8 Match Day:6 Indoors:6 Snow Day:9 Payday:8 Orbit:6 Happy Hour:7 Drive-In:9 Gadget Shop:11 Harvest:13 Market Day:10
+
+3. bölüm sırası
+  OK   aynı yer arka arkaya iki bölümde çıkmıyor   -
+  OK   her düzenin kendi ikonu var   -
+  OK   düzen adları benzersiz
+
+4. her tema gerçekten çiziliyor
+  OK   hiçbir tahtada bilinmeyen tipte parça yok   
+  OK   ilk turda her tema bir kez çiziliyor   -
+  OK   hiçbir bölümde başka temanın nesnesi yok   -
+  OK   Rooftop: zemin doğru   halftone
+  OK   Pit Lane: zemin doğru   racetrack
+  OK   Arcade: zemin doğru   neoncarpet
+  OK   Drop Zone: zemin doğru   stormisland
+  OK   Cube World: zemin doğru   grassblock
+  OK   Beach: zemin doğru   sand
+  OK   Aloha: zemin doğru   blacksand
+  OK   Hollywood: zemin doğru   sidewalk
+  OK   Manhattan: zemin doğru   crosswalk
+  OK   Gold Coast: zemin doğru   plaza
+  OK   Copacabana: zemin doğru   mosaic
+  OK   Neon Night: zemin doğru   neonstreet
+  OK   Le Jardin: zemin doğru   gravel
+  OK   Grand Bazaar: zemin doğru   kilim
+  OK   The Reef: zemin doğru   reef
+  OK   The Arena: zemin doğru   arena
+  OK   Funfair: zemin doğru   fair
+  OK   Red Planet: zemin doğru   mars
+  OK   Highlands: zemin doğru   tartan
+  OK   Tulip Fields: zemin doğru   tulipfield
+  OK   Fiesta: zemin doğru   talavera
+  OK   Rangoli: zemin doğru   rangoli
+  OK   Castle Keep: zemin doğru   bailey
+  OK   Red Square: zemin doğru   redsquare
+  OK   Nazca: zemin doğru   pampa
+  OK   Outback: zemin doğru   redcentre
+  OK   Playground: zemin doğru   playfloor
+  OK   Suburb Night: zemin doğru   lawn
+  OK   Overgrown: zemin doğru   cracktar
+  OK   Academy: zemin doğru   flagstone
+  OK   Savanna: zemin doğru   savanna
+  OK   Tikal: zemin doğru   junglestone
+  OK   Jurassic: zemin doğru   ashfield
+  OK   Forbidden City: zemin doğru   courtstone
+  OK   Pirate Cove: zemin doğru   shipdeck
+  OK   Frontier: zemin doğru   hardpan
+  OK   Valley of Kings: zemin doğru   hieroglyph
+  OK   Matchday England: zemin doğru   pitchcheck
+  OK   Matchday Spain: zemin doğru   pitchdiag
+  OK   Matchday Italy: zemin doğru   pitcharc
+  OK   Matchday Germany: zemin doğru   pitchdiamond
+  OK   Matchday France: zemin doğru   pitchvert
+  OK   Cup Night: zemin doğru   pitchstar
+  OK   Match Day: zemin doğru   grass
+  OK   Indoors: zemin doğru   wood
+  OK   Snow Day: zemin doğru   snow
+  OK   Payday: zemin doğru   marble
+  OK   Orbit: zemin doğru   deck
+  OK   Happy Hour: zemin doğru   bar
+  OK   Drive-In: zemin doğru   asphalt
+  OK   Gadget Shop: zemin doğru   tiles
+  OK   Harvest: zemin doğru   soil
+  OK   Market Day: zemin doğru   cobbles
+
+5. dev-only nesneler hücre boyunda çıkmıyor
+  OK   dev nesneler yalnızca dev olarak çıkıyor   -
+
+6. ışık
+    comic:#ffd9a8/0.76 circuit:#fff6e0/0.78 arcade:#e0d4ff/0.55 island:#fff0d8/0.74 voxel:#fff8e8/0.7 beach:#fff8e8/0.72 hawaii:#fff6e4/0.78 la:#fff2d8/0.74 ny:#fbfdff/0.72 dubai:#fff0c4/0.78 rio:#fff0d0/0.76 tokyo:#ffb0d8/0.5 paris:#fff4e0/0.72 istanbul:#ffd9a0/0.62 reef:#e8f8ff/0.6 colosseum:#fff0cc/0.76 fair:#ffd8a8/0.58 mars:#fff0e0/0.8 scotland:#f6f8ff/0.62 holland:#fffaec/0.7 mexico:#fff0c8/0.78 india:#ffe8b8/0.74 castle:#f4f6fa/0.58 redsquare:#f8f8ff/0.56 nazca:#fff4dc/0.76 outback:#fff0cc/0.76 playground:#fff6e0/0.7 suburb:#c8d4ff/0.5 overgrown:#e8ecdc/0.6 academy:#ffe0a8/0.56 savanna:#ffdf9a/0.74 tikal:#f0f6d8/0.6 jurassic:#ffd9a8/0.66 ming:#fff8ea/0.62 cove:#ffd9a0/0.66 frontier:#fff6de/0.78 egypt:#fff0c0/0.8 england:#fbfdff/0.64 spain:#ffeec0/0.8 italy:#f6f6ff/0.66 germany:#fffbf0/0.7 france:#fffaf0/0.68 ucl:#ffffff/0.72 pitch:#fffdf2/0.7 home:#ffdca8/0.55 snow:#eaf4ff/0.62 money:#fff6df/0.7 space:#ffffff/0.95 cocktail:#ffb867/0.55 drivein:#ffc98a/0.62 tech:#f8fbff/0.72 farm:#ffd89a/0.78 market:#fff1d2/0.74
+  OK   her yerin kendi ışığı var   53 / 53
+  OK   hiçbir yer okunamayacak kadar karanlık değil   comic:2.72 circuit:2.72 arcade:2.6 island:2.64 voxel:2.9 beach:2.67 hawaii:2.83 la:2.62 ny:2.54 dubai:2.83 rio:2.71 tokyo:2.4 paris:2.58 istanbul:2.52 reef:2.65 colosseum:2.67 fair:2.48 mars:2.52 scotland:2.56 holland:2.64 mexico:2.75 india:2.69 castle:2.58 redsquare:2.62 nazca:2.72 outback:2.74 playground:2.64 suburb:2.62 overgrown:2.62 academy:2.64 savanna:2.7 tikal:2.6 jurassic:2.54 ming:2.66 cove:2.52 frontier:2.66 egypt:2.78 england:2.58 spain:2.76 italy:2.56 germany:2.64 france:2.59 ucl:2.66 pitch:2.57 home:2.42 snow:2.92 money:2.55 space:2.17 cocktail:2.15 drivein:2.27 tech:2.32 farm:2.71 market:2.6
+  OK   Orbit dışında anahtar ışık sertleştirilmemiş   -
+
+7. havada olan şey
+    home:30 snow:110 space:34 cocktail:45 farm:70 market:42
+  OK   birkaç yerde havada bir şey var   6 / 53
+  OK   kurulan her atmosfer görünür ölçekte   -
+  OK   atmosfersiz yerde kalıntı yok   -
+  OK   parçacık bütçesi aşılmıyor   en çok 110 / 140
+  OK   parçacıklar kadrajın içinde kalıyor   -
+
+8. hareket kapalıyken hava da duruyor
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:8263/", waiting until "load"[22m
+
+    at /home/user/holegame/scratchpad/holetheme.mjs:335:15 {
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.2
