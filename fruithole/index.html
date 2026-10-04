@@ -1761,7 +1761,13 @@ const RIBBON_STEP = 0.68;
 // çıkıyor.
 const RIBBON_GAP = 1.9;
 
-const RIBBONS = ['spiral', 'rings', 'pyramid', 'serpentine', 'chevron', 'loops', 'spokes'];
+// Yeni iki şekil **araya** giriyor, sona değil.
+//
+// Şerit bölümleri onda bir: 6, 16, 26, 36, 46. Sona eklenseydi `rozet` 76.,
+// `yildiz` 86. bölümde çıkardı — yani ilk turda hiç görünmezdi, ve ikisi de
+// tam olarak "hep aynı bölüm" dendiği için yazıldı.
+const RIBBONS = ['spiral', 'rings', 'rozet', 'pyramid', 'yildiz',
+                 'serpentine', 'chevron', 'loops', 'spokes'];
 function ribbonForLevel(n) {
   return RIBBONS[Math.floor((n - RIBBON_AT) / RIBBON_EVERY) % RIBBONS.length];
 }
@@ -19374,7 +19380,10 @@ function materialiseFruit() {
 // `nokta(t)` eğriyi 0..1 arasında veriyor; adım dünya biriminde sabit
 // tutuluyor, yani eğri nereden geçerse geçsin boncuklar eşit aralıklı. Eşit
 // olmasaydı sarmalın içi tıkanır dışı seyrelirdi ve şerit şerit gibi durmazdı.
-function ribbonStrand(nokta, type, r = RIBBON_R) {
+// `adim` parçalar arası mesafe. Varsayılanı boncuk şeritlerinin ölçüsü;
+// iri parçayla çizilen bir şekil (yıldız) daha geniş aralık istiyor, yoksa
+// parçalar birbirinin içine giriyor.
+function ribbonStrand(nokta, type, r = RIBBON_R, adim = RIBBON_STEP) {
   const ORNEK = 900;
   let onceX = null, onceZ = null, biriken = 0;
   const vis = { geo: BEAD_GEO, mat: PIC_MAT[type], sx: r, sy: r, baseY: r };
@@ -19383,9 +19392,9 @@ function ribbonStrand(nokta, type, r = RIBBON_R) {
     if (onceX !== null) biriken += Math.hypot(x - onceX, z - onceZ);
     const ilk = onceX === null;
     onceX = x; onceZ = z;
-    if (!ilk && biriken < RIBBON_STEP) continue;
+    if (!ilk && biriken < adim) continue;
     biriken = 0;
-    if (Math.abs(x) > fieldHalfX - 0.4 || Math.abs(z) > fieldHalfZ - 0.4) continue;
+    if (Math.abs(x) > fieldHalfX - r - 0.1 || Math.abs(z) > fieldHalfZ - r - 0.1) continue;
     fruits.push({ mesh: null, vis, jit: 1, rotY: 0,
                   x, z, r, type, big: false, prop: null,
                   eaten: false, baseY: vis.baseY, nudge: 0 });
@@ -19580,6 +19589,103 @@ function buildRibbon(kind) {
       }, renk(k));
       // Zikzagın tepesi z - 1.2'de; işaret iki sıra arasına gidiyor.
       if (k % 4 === 2) isaret.push([0, z - 1.2 + RIBBON_GAP * 0.5, renk(k)]);
+    }
+  } else if (kind === 'rozet') {
+    // Yuvarlak basamaklı tepe: merkezden dışa halka halka, içe doğru
+    // yükselerek. Kaan'ın attığı karede olan şey bu — bir yığın kırmızı
+    // küp, yelpaze gibi açılmış, ortaya doğru kabarıyor.
+    //
+    // Var olan `pyramid` kare; bu yuvarlak, ve fark ekranda duruyor:
+    // karenin kenarı tahtanın kenarına paralel, yuvarlağın kenarı deliğin
+    // geldiği her yönde aynı. Oyuncu hangi taraftan yaklaşırsa yaklaşsın
+    // aynı şeyi görüyor.
+    //
+    // Tek renk, `pyramid` ile aynı sebepten: basamağı gösteren şey gölge ve
+    // kat farkı; karışık renk olunca göz katları değil renkleri sayıyor.
+    // Kaan'ın karesindeki yığın da baştan aşağı tek renk.
+    const type = tipler[Math.floor(rnd() * tipler.length)];
+    const R = 0.44, ADIM = 0.78;
+    // Dış yarıçap ekrandan geliyor, tahtadan değil: şekli görmek için onu
+    // bütün olarak görmek gerekiyor ve kamera 10.8 birim gösteriyor. Tahta
+    // boyunca kaç tane sığıyorsa o kadar tepe var — tek tepe, iki ekran boyu
+    // boş zemin bırakıyordu.
+    const disR = Math.min(mX * 0.82, 4.6);
+    const aralik = disR * 2 + 2.2;
+    const kacTepe = Math.max(1, Math.floor((mZ * 2 - 1.5) / aralik));
+    const halka = Math.max(3, Math.round(disR / ADIM));
+    for (let t = 0; t < kacTepe; t++) {
+      const cz = -mZ + aralik * (t + 0.5) + (mZ * 2 - aralik * kacTepe) / 2;
+      for (let k = halka; k >= 0; k--) {
+        const rr = k * ADIM;
+        // Kat: dışta bir, ortaya doğru yükseliyor. İki halkada bir artıyor,
+        // yoksa tepe bir dikme oluyor ve basamak kalmıyor.
+        const kat = Math.max(1, Math.min(5, 1 + Math.floor((halka - k) / 2)));
+        if (k === 0) { ribbonStack(0, cz, type, R, kat); continue; }
+        // Halkadaki parça sayısı çevreden: dışta çok, içte az, yani aralık
+        // her halkada aynı kalıyor ve yığın sıkı duruyor.
+        const n = Math.max(6, Math.round((TAU * rr) / ADIM));
+        for (let i = 0; i < n; i++) {
+          // Komşu halkalar yarım adım kaydırılıyor: hizalanınca aradan
+          // dümdüz koridorlar geçiyor ve yığın bir ızgaraya dönüyor.
+          const a = ((i + (k % 2) * 0.5) / n) * TAU;
+          const x = Math.cos(a) * rr, z = cz + Math.sin(a) * rr;
+          if (Math.abs(x) > mX - R || Math.abs(z) > mZ - R) continue;
+          ribbonStack(x, z, type, R, kat);
+        }
+      }
+      // Tepenin yanında bakılacak bir şey: çevresi tamamen boş kalmasın.
+      for (const yan of [-1, 1]) {
+        const ix = yan * (mX - 1.1);
+        if (Math.abs(ix) > mX - BIG_R) continue;
+        isaret.push([ix, cz, renk(t + 1)]);
+      }
+    }
+  } else if (kind === 'yildiz') {
+    // Tek sıra parçayla çizilmiş kocaman bir yıldız.
+    //
+    // Kaan'ın attığı ikinci kare bu: beş uçlu bir yıldız, bir parça
+    // kalınlığında, ortası boş, ve delik tam ortasında duruyor. Şeridin bu
+    // zamana kadarki bütün şekilleri ya kapalı eğri (halka, sarmal) ya da
+    // açık yol (yılan, kama); köşeli ve kapalı bir şekil yoktu.
+    //
+    // Şekil on köşeli bir çokgen: beş dış uç, aralarında beş iç köşe. Dış/iç
+    // yarıçap oranı 0.42 — daha büyüğünde uçlar körelip beşgene dönüyor,
+    // daha küçüğünde uçlar iğneleşiyor ve aradaki boşluktan delik geçemiyor.
+    const UC = 5, ORAN = 0.42;
+    const disR = Math.min(mX * 0.9, 5.2);
+    const aralik = disR * 2 + 1.6;
+    const kac = Math.max(1, Math.floor((mZ * 2 - 1) / aralik));
+    for (let t = 0; t < kac; t++) {
+      const cz = -mZ + aralik * (t + 0.5) + (mZ * 2 - aralik * kac) / 2;
+      const kose = [];
+      for (let i = 0; i < UC * 2; i++) {
+        const a = -Math.PI / 2 + (i / (UC * 2)) * TAU;
+        const rr = i % 2 === 0 ? disR : disR * ORAN;
+        kose.push([Math.cos(a) * rr, cz + Math.sin(a) * rr]);
+      }
+      // Köşeler arasında düz git: eğri bir yıldız yıldız değil.
+      const kenarda = (u, olcek) => {
+        const s = u * kose.length;
+        const i = Math.min(kose.length - 1, Math.floor(s));
+        const f = s - i;
+        const a = kose[i], b = kose[(i + 1) % kose.length];
+        const x = a[0] + (b[0] - a[0]) * f, z = a[1] + (b[1] - a[1]) * f;
+        return [x * olcek, cz + (z - cz) * olcek];
+      };
+      ribbonStrand(u => kenarda(u, 1), renk(t), 0.52, 1.12);
+      // İçinde ikinci bir yıldız, ince boncuktan.
+      //
+      // Tek çizgi bırakılınca bütün tahtada 76 parça kalıyordu — şerit
+      // tahtalarının ortalaması 339. Yıldız okunuyordu ama bölüm birkaç
+      // saniyede bitiyordu. İçteki yıldız hem sayıyı topluyor hem de boş
+      // kalan ortayı dolduruyor; iri dış çizgi ile ince iç çizgi arasındaki
+      // doku farkı ikisinin ayrı şeyler olduğunu söylüyor.
+      ribbonStrand(u => kenarda(u, 0.62), renk(t + 2));
+      // Beş ucun her birinde iri bir parça: uç, ucun kendisinden değil
+      // oradaki iri şeyden okunuyor.
+      for (let i = 0; i < kose.length; i += 2) {
+        isaret.push([kose[i][0], kose[i][1], renk(t + 1)]);
+      }
     }
   } else if (kind === 'loops') {
     // Dağınık halkalar: her biri tek renk, aralarında geniş boşluk.
