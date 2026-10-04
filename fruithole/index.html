@@ -15942,6 +15942,20 @@ const SURROUND_MAKERS = {
   rubble: rubbleTexture,
   cloister: cloisterTexture,
   tarmac: darkAsphaltTexture,
+  // Çatının dışı gece şehri: koyu lacivert kütle, içinde pencere ışıkları.
+  // Beşi de `speckTexture`'ın aynı işi — koyu bir kütlenin içinde noktalar —
+  // ama rengi o yerin dışının rengi, ve futbol tribünlerinin yaptığı şey de
+  // tam bu.
+  skyline: () => speckTexture('#1b2040', '#131733', '#3b4680', 15),
+  // Pistin dışı çakıl tuzağı: açık gri, iri taneli.
+  runoff: () => speckTexture('#6f6a5e', '#5b574d', '#8d887a', 20),
+  // Salonun dışı karanlık duvar, içinde neon kırıntısı.
+  arcadewall: () => speckTexture('#171233', '#0f0c24', '#3a2a6b', 14),
+  // Adanın dışı fırtına: mor kütle. Oyun alanının bittiği yeri bu türde
+  // anlatan şey zaten bu renk.
+  stormwall: () => speckTexture('#4c3a7a', '#382a5c', '#7a5fc0', 16),
+  // Küp dünyanın dışı taş blok: gri, blok blok, çizgili.
+  blockstone: () => mownTexture('#6b6b6b', '#5c5c5c', '#7d7d7d', 16),
   // Kaldırımın dışı bulvar: asfalt, ve üstünde şerit çizgisi.
   //
   // Önce Drive-In'in asfaltı paylaşılacaktı — aynı malzeme, aynı iş. Ama
@@ -16073,10 +16087,14 @@ const THEMES = {
   comic: {
     name: 'Rooftop', icon: '💥',
     ground: 'halftone', surround: '#2b3350',
+    beyond: 'skyline',
     props: ['watertower', 'fireescape', 'searchlight', 'phonebox',
             // Çatının geri kalanı: şehrin zaten elindeki eşya.
             'hydrant', 'mailbox', 'stringlights', 'tv', 'spotlight'],
     hero: ['watertower', 'phonebox'],
+    // Alacakaranlık: çizgi roman çatısının saati. Zemin açık sarı, yani
+    // ışık kısılabiliyor ve meyve yine okunuyor.
+    light: { sky: '#7a86c8', bounce: '#3a3550', hemi: 1.3, amb: '#cfd8ff', ambI: 0.58, sun: '#ffd9a8', sunI: 0.9 },
   },
   // Yarış pisti.
   //
@@ -16085,8 +16103,12 @@ const THEMES = {
   circuit: {
     name: 'Pit Lane', icon: '🏎️',
     ground: 'racetrack', surround: '#5f7a4a',
+    beyond: 'runoff',
     props: ['tyrestack', 'chequerflag', 'pitboard', 'cone', 'hydrant', 'barricade'],
     hero: ['chequerflag'],
+    // Öğle güneşi, sert gölge: pistin kendi ışığı bu. Asfalt zaten koyu,
+    // kısık bir ışıkta meyve ayırt edilmiyor.
+    light: { sky: '#bcd4ea', bounce: '#4a4d52', hemi: 1.15, amb: '#eaf2ff', ambI: 0.5, sun: '#fff6e0', sunI: 1.25 },
   },
   // Atari salonu.
   //
@@ -16095,8 +16117,13 @@ const THEMES = {
   arcade: {
     name: 'Arcade', icon: '🕹️',
     ground: 'neoncarpet', surround: '#120e24',
+    beyond: 'arcadewall',
     props: ['cabinet', 'joystick', 'pixelghost', 'tv', 'headphones'],
     hero: ['cabinet'],
+    // Karanlık ama oynanabilir karanlık — `suburb`un çözdüğü aynı sorun.
+    // Karanlığı üreten şey rengin kendisi: her şey mora çalıyor ve anahtar
+    // ışık kısık, ama dolgu yüksek, yani meyve hâlâ okunuyor.
+    light: { sky: '#6b4fd0', bounce: '#1a1030', hemi: 1.45, amb: '#b49aff', ambI: 0.6, sun: '#e0d4ff', sunI: 0.55 },
   },
   // Ada.
   //
@@ -16106,8 +16133,11 @@ const THEMES = {
   island: {
     name: 'Drop Zone', icon: '🪂',
     ground: 'stormisland', surround: '#2f6ea8',
+    beyond: 'stormwall',
     props: ['lootcrate', 'parachute', 'supplybox', 'oildrum', 'barricade'],
     hero: ['parachute', 'lootcrate'],
+    // Fırtına öncesi: ışık hâlâ var ama gökyüzü mora dönmüş.
+    light: { sky: '#8f7fd0', bounce: '#3c5a2e', hemi: 1.25, amb: '#d8d0ff', ambI: 0.56, sun: '#fff0d8', sunI: 0.95 },
   },
   // Küp dünya.
   //
@@ -16118,10 +16148,14 @@ const THEMES = {
   // İsim de jenerik: kimsenin oyununun adı geçmiyor, ama tahtaya bakan
   // nerede olduğunu biliyor.
   voxel: {
-    name: 'Cube World', icon: '🧊',
+    name: 'Cube World', icon: '🟩',
     ground: 'grassblock', surround: '#6cc5f0',
+    beyond: 'blockstone',
     props: ['pickaxe', 'torch', 'chestblock', 'cubespider'],
     hero: ['chestblock'],
+    // Düz ve parlak gün: bu türün ışığı gölgeyle oynamıyor, her yüz kendi
+    // tonunda duruyor. Yüksek dolgu tam olarak onu veriyor.
+    light: { sky: '#bfe4ff', bounce: '#4a6b38', hemi: 1.4, amb: '#ffffff', ambI: 0.6, sun: '#fff8e8', sunI: 1.0 },
   },
   beach: {
     name: 'Beach', icon: '🏖️',
@@ -18705,7 +18739,7 @@ const PATTERNS = [
     //
     // Blok boyu dört hücre: iki hücre ızgaranın kendisiyle karışıyordu,
     // sekiz hücre tahtaya üç blok sığdırıyor ve desen görünmüyor.
-    name: 'Cubes', icon: '🧊', theme: 'voxel',
+    name: 'Cubes', icon: '🟩', theme: 'voxel',
     empty: (r, c) => {
       const br = Math.floor(r / 4), bc = Math.floor(c / 4);
       // Dama: bir blok dolu, komşusu boş. Ama tamamen boş değil —
@@ -18738,7 +18772,7 @@ const PATTERNS = [
     //
     // Şimşek bu yüzden Rooftop'a ikinci düzen olarak girdi: yeni bir yer
     // yaratmıyor, var olanı ikinci bir biçimde gösteriyor.
-    name: 'Bolt', icon: '⚡', theme: 'comic',
+    name: 'Bolt', icon: '🌩️', theme: 'comic',
     empty: (r, c) => {
       const { nx, ny, wob } = shapeCoords(r, c);
       // Zikzak: y'ye göre kayan bir orta eksen, iki kırılma noktasıyla.
