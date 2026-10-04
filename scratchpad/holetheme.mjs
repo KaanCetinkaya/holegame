@@ -332,7 +332,11 @@ console.log('\n8. hareket kapalıyken hava da duruyor');
     localStorage.clear();
     localStorage.setItem('fruithole_level', '10');   // Snow Day: en yoğun atmosfer
   });
-  await kisik.goto('http://localhost:8263/', { waitUntil: 'load' });
+  // Süre sınırı açıkça veriliyor: bu, aynı tarayıcıda açılan **ikinci**
+  // sayfa ve oyunu baştan kuruyor. Konteynerde GPU yok, SwiftShader'la ilk
+  // çizimler yavaş, ve varsayılan 30 saniye yük altında yetmiyordu — test
+  // bugün üç kez tam burada düştü, oyunda hiçbir şey olmadığı hâlde.
+  await kisik.goto('http://localhost:8263/', { waitUntil: 'load', timeout: 120000 });
   await kisik.waitForFunction(() => window.fruitHoleAir, { timeout: 40000 });
   if (await kisik.isVisible('#dailyBtn')) await kisik.click('#dailyBtn');
   await kisik.waitForSelector('#playBtn', { state: 'visible', timeout: 25000 });
