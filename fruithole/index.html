@@ -19083,7 +19083,11 @@ const PATTERNS = [
       return a > 1.05 + wob || b > 1.05 + wob;
     },
     stack: (r, c) => ridge(1 - Math.abs(shapeCoords(r, c).nx) / 0.5, 3),
-    type: (r, c) => typeFromNoise(r, c, 0.22, 97),
+    // Ölçek 0.22'den 0.6'ya. Gürültü lekesi ekrandan büyük olunca ekranda
+    // tek leke kalıyor: Lens gizli tahtanın altındayken hiç ölçülmemişti,
+    // sıra kayıp ızgaraya çıkınca %63 tek tür çıktı — Ribs ve Heart'ta da
+    // aynı sebep, aynı düzeltme.
+    type: (r, c) => typeFromNoise(r, c, 0.6, 97),
     big: (r, c) => blob(r, c, 0.3, 101) > 0.74,
   },
   {

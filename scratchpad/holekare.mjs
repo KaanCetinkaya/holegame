@@ -70,14 +70,37 @@ async function oyundan(lv, ad, adim = 40, tohum = 400) {
   console.log(`  kare-${ad}.png  (bölüm ${lv})`);
 }
 
+// Anıta bakan kare: kamerayı anıtın üstüne çeviriyor.
+//
+// Oyun kamerası deliği takip ediyor ve anıt tahtanın uzak bir köşesinde
+// duruyor — normal karede ekrana hiç girmiyor. `fruitHoleCamLook` tam bunun
+// için var ve oyunda hiçbir şeyi değiştirmiyor.
+async function anitta(lv, ad, tohum = 400) {
+  const o = await pg.evaluate(([l, t]) => {
+    window.fruitHoleSeedField(t + l);
+    window.fruitHoleProbe(l);
+    window.fruitHoleStartLevel();
+    for (let i = 0; i < 24; i++) window.__step(1000 / 30);
+    const a = window.fruitHoleLandmarks();
+    if (!a.sayi) return { yok: true };
+    // En iri parça anıt: `fruitHoleGiantList` devleri de veriyor, en
+    // büyüğü anıt oluyor.
+    const iri = window.fruitHoleGiantList().sort((p, q) => q.r - p.r)[0];
+    window.fruitHoleCamLook(iri.x, iri.z, true);
+    window.__step(1000 / 30);
+    return { a, iri, delik: window.fruitHoleSizes().delik };
+  }, [lv, tohum]);
+  if (o.yok) { console.log(`  ${ad}: anıt yok`); return; }
+  await pg.screenshot({ path: `${CIKTI}/kare-${ad}.png`, timeout: 120000 });
+  await pg.evaluate(() => { window.fruitHoleCamLook(null); window.fruitHoleUnseedField(); });
+  console.log(`  kare-${ad}.png  (bölüm ${lv}) anıt r=${o.iri.r} ağız=${o.delik} alinabilir=${o.iri.eatable}`);
+}
+
 console.log('');
-await ustten(29, 'koridor-ustten');
-await oyundan(29, 'koridor-oyundan');
-await ustten(26, 'rozet-ustten');
-await ustten(46, 'yildiz-ustten');
-await oyundan(30, 'kule-oyundan', 40, 9100);
-await oyundan(22, 'kule-oyundan-2', 40, 5500);
-await ustten(14, 'blast-ustten');
-await ustten(44, 'bolt-ustten');
+await anitta(20, 'anit-20');
+await anitta(41, 'anit-41');
+await anitta(22, 'anit-22');
+await oyundan(22, 'merdiven-22', 40, 5500);
+await oyundan(41, 'merdiven-41', 40, 400);
 
 await br.close(); srv.close();
