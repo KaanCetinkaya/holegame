@@ -62,7 +62,7 @@ for (let n = 1; n <= 24; n++) {
   if (resimler.has(n)) continue;
   const d = await pg.evaluate(lv => {
     const p = window.fruitHoleProbe(lv);
-    return { ad: p.pattern, ...window.fruitHoleMix() };
+    return { ad: p.pattern, kind: p.kind, ...window.fruitHoleMix() };
   }, n);
   tToplam += d.toplam; tIri += d.buyuk + d.dev;
   // Tahtası yüksek kulelerden ibaret olan desenler muaf.
@@ -74,11 +74,19 @@ for (let n = 1; n <= 24; n++) {
   // hata değil tasarım. Muafiyet isimle değil **ölçüyle**: hücre başına
   // ortalama kat sayısı.
   const kuleDesen = d.ortKat >= KULE_KAT;
-  const bayrak = d.iriPay < EN_AZ ? (kuleDesen ? '  (kule deseni, muaf)' : '  <-- halı') : '';
+  // Bulmaca tahtaları da muaf: oraya dev konmuyor (kurala göre, hata değil) ve
+  // iri payı dev olmadan zaten eşiğin altında kalıyor. Blocks 18. bölüme
+  // kaydığında test onu halı diye işaretledi — oysa tahtanın türü bulmaca ve
+  // sıfır dev tam olarak kuralın söylediği şey.
+  const bulmaca = d.kind === 'bulmaca';
+  const muaf = kuleDesen || bulmaca;
+  const bayrak = d.iriPay < EN_AZ
+    ? (muaf ? (bulmaca ? '  (bulmaca tahtası, muaf)' : '  (kule deseni, muaf)') : '  <-- halı')
+    : '';
   console.log(`  ${String(n).padStart(2)}    ${d.ad.padEnd(14)} ${String(d.toplam).padStart(5)} ` +
     `${String(d.siradan).padStart(8)} ${String(d.buyuk).padStart(6)} ${String(d.dev).padStart(4)}` +
     `   %${(d.iriPay * 100).toFixed(1).padStart(5)}  ${d.ortKat.toFixed(1)} kat${bayrak}`);
-  if (d.iriPay < EN_AZ && !kuleDesen) fails.push(`${n}. bölüm (${d.ad}): iri payı %${(d.iriPay * 100).toFixed(1)}`);
+  if (d.iriPay < EN_AZ && !muaf) fails.push(`${n}. bölüm (${d.ad}): iri payı %${(d.iriPay * 100).toFixed(1)}`);
 }
 console.log(`\nızgara bölümlerinin ortalaması: %${(tIri / tToplam * 100).toFixed(1)} iri`);
 console.log(fails.length
