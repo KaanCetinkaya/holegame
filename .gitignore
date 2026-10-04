@@ -51,3 +51,7 @@ fruithole/store/clips/
 #
 # Gerektiğinde: npm run paste:fruithole
 fruithole/store/paste/
+
+# Test çıktıları ve ara dosyalar — ölçüm sonucu, kaynak değil
+scratchpad/out-*.txt
+scratchpad/liste-*.md

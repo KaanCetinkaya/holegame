@@ -164,8 +164,25 @@ for (const s of satir) {
   y += `| **${s.lv}** | ${s.lv + TUR} | ${s.ikon} ${ad} | ${NE_VAR[ad] || '**açıklama eksik**'} |\n`;
 }
 
-writeFileSync('/home/user/holegame/scratchpad/liste-bolumler.md', b);
-writeFileSync('/home/user/holegame/scratchpad/liste-yerler.md', y);
+// Dosyaya doğrudan yazıyor, araya bir dosya koymuyor.
+//
+// İlk yazışta betik `scratchpad/liste-*.md` üretiyordu ve onu belgenin
+// içine taşımak elle yapılıyordu. Elle yapılan adım bir dahaki sefere
+// yapılmıyor — belgenin iki yıl yanlış kalmasının sebebi tam buydu.
+// Tablonun altındaki elle yazılmış bölümler (görevler, konsept grupları)
+// korunuyor: ilk `## ` başlığından sonrası olduğu gibi kalıyor.
+function yaz(yol, govde) {
+  const tam = '/home/user/holegame/' + yol;
+  let alt = '';
+  try {
+    const eski = readFileSync(tam, 'utf8');
+    const i = eski.indexOf('\n## ');
+    if (i >= 0) alt = eski.slice(i);
+  } catch {}
+  writeFileSync(tam, govde.replace(/\s+$/, '') + '\n' + alt);
+}
+yaz('fruithole/store/bolumler.md', b);
+yaz('fruithole/store/yerler.md', y);
 console.log(`\n  ${TUR} bölüm yazıldı`);
 if (eksik.length) {
   console.log('  açıklaması eksik yer: ' + eksik.map(s => adlar[s.tema]).join(', '));
