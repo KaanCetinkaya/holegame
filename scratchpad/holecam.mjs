@@ -99,12 +99,20 @@ if (donus > 7) fails.push(`bırakıldıktan sonra kamera deliğe dönmedi: ${don
 // bilmiyor — `fruitHoleZoom(null)` diyor. O yüzden null'ın gerçekten oyunun
 // genişliğini geri koyduğu ölçülüyor: koymazsa klibin gövdesi yanlış
 // ölçekte çekilir ve bunu ancak videoyu izleyen biri fark eder.
+// Varsayılan genişlik oyundan okunuyor, buraya yazılmıyor. `5.4` elle
+// yazılıydı ve kamera yakınlaştırılınca (4.3) test düştü — oysa ölçtüğü şey
+// "zoom geri alınca varsayılana dönüyor mu", yani sayının kaç olduğu değil
+// aynı olup olmadığı. Elle yazılmış bir sabit, değişen bir gerçek.
 const z = await pg.evaluate(() => ({
+  varsayilan: window.fruitHolePictureBounds().viewHalfX,
   dar: window.fruitHoleZoom(2.6),
   geri: window.fruitHoleZoom(null),
 }));
 if (z.dar !== 2.6) fails.push(`fruitHoleZoom(2.6) genişliği ${z.dar} yaptı`);
-if (Math.abs(z.geri - 5.4) > 0.01) fails.push(`fruitHoleZoom(null) 5.4'e dönmedi: ${z.geri}`);
+if (z.varsayilan == null) fails.push('kameranın varsayılan genişliği okunamadı');
+else if (Math.abs(z.geri - z.varsayilan) > 0.01) {
+  fails.push(`fruitHoleZoom(null) ${z.varsayilan}'e dönmedi: ${z.geri}`);
+}
 
 console.log(`1. dokunulmamış   — kamera delikten ${d1} birim`);
 console.log(`2. baktırılmış    — hedefe ${kilit} birim, delik ${kacti} birim ötede`);
