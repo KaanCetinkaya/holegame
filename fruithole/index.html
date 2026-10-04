@@ -19955,7 +19955,6 @@ function buildField() {
   // Şerit tahtası: ızgara yine hiç çalışmıyor, parçaları eğriler diziyor.
   const serit = !dailyRun && !resim && isRibbonLevel(level) ? ribbonForLevel(level) : null;
   if (serit) buildRibbon(serit);
-  const iriHucre = new Set();
   for (const cell of (resim || serit) ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
       const { x, z } = cell;
       const [a, b] = bak(cell.a, cell.b);
@@ -20033,24 +20032,23 @@ function buildField() {
       // Seçici ayrı bir gürültü: `big`in kendi eşiğini yukarı çekmek
       // hiçbir şey yapmıyordu (ölçüldü — sıfır hücre), çünkü iri hücrelerin
       // çoğu desenin kendi `big` kuralından geliyor, o blob'tan değil.
-      // İki iri parça yan yana gelmiyor.
+      // İri parçalar dama ızgarasına oturuyor.
       //
-      // İri yarıçap 0.72, yani 1.44 birim en; hücre 1.05. Tek başına duran
-      // bir iri parça komşu hücreye 0.2 taşıyor ve ekranda "iri meyve" diye
-      // okunuyor. **Yan yana iki tanesi** birbirinin içine 0.39 giriyor ve
-      // okunan şey iki meyve değil, bir kütle — yan yana beş tanesi bir
-      // duvar. Kaan'ın daire içine aldığı yığın bu; desenin iri payı yüksek
-      // olan tahtalarda (Zone %42) ekranın tamamı o duvardan ibaret kalıyor.
+      // İki sebep, ikisi de ölçülü. Birincisi geometri: iri yarıçap 0.72,
+      // yani 1.44 birim en; hücre 1.05. Tek başına duran bir iri parça
+      // komşusuna 0.2 taşıyor ve "iri meyve" diye okunuyor; **yan yana iki
+      // tanesi** birbirinin içine 0.39 giriyor ve okunan şey iki meyve değil
+      // bir kütle, beş tanesi bir duvar. Desenin iri payı yüksek olan
+      // tahtalarda (Zone %42) ekranın tamamı o duvardı.
       //
-      // Sol ve üst komşuya bakmak yetiyor: ızgara satır satır, soldan sağa
-      // dolduruluyor, yani her yatay ve dikey komşuluk bu iki kontrolden
-      // birine düşüyor. Köşegen serbest — köşegen iki parçanın merkezleri
-      // 1.48 uzakta ve 1.44'lük iki parça orada değiyor ama örtmüyor.
-      const iriKomsu = !currentPattern.polar &&
-        (iriHucre.has((cell.a - 1) + ',' + cell.b) ||
-         iriHucre.has(cell.a + ',' + (cell.b - 1)));
-      const iri = big && !iriKomsu;
-      if (iri && !currentPattern.polar) iriHucre.add(cell.a + ',' + cell.b);
+      // İkincisi görünüş: Kaan "şu şeyleri düzgün diz" dedi. Komşuyu tek tek
+      // kontrol etmek çakışmayı çözüyor ama sonucu düzensiz — hangi hücrenin
+      // iri kaldığı tarama sırasına bağlı. `(satır + sütun) % 2` ise bir
+      // **kural**: iri parçalar köşegen bir ızgaraya diziliyor, aralarına
+      // küçükler giriyor, ve tahta dizilmiş gibi okunuyor. Köşegen komşuların
+      // merkezleri 1.48 uzakta — değiyorlar ama örtmüyorlar, öbek de zaten
+      // böyle görünmeli.
+      const iri = big && (currentPattern.polar || (cell.a + cell.b) % 2 === 0);
       const radius = iri ? BIG_R : NORMAL_R;
       // Every so often a cell holds an object instead of a fruit. It pays
       // into one of the four counters all the same, so nothing downstream
@@ -25261,8 +25259,17 @@ window.fruitHoleThemeTable = () => ({
 // Hücre boyunda yerleştirilmiş nesneler. Dev olarak işaretlenen bir nesnenin
 // küçük çıkması, ekranda okunmaz bir yumru demek — ve bu, tarlaya bakarak
 // fark edilmiyor, çünkü zaten okunmuyor.
+// Kule parçaları buna girmiyor.
+//
+// Bu ölçüm "dev olarak tasarlanmış bir nesne hücre boyunda çıkmış mı" diye
+// bakıyor ve sebebi haklı: korkuluk küçültülünce çubuğa, el arabası kutuya
+// iniyor. Kule parçası o duruma girmiyor — yarıçapı 1.05, devin 1.34'ünün
+// %78'i, ve dört ile yedi katlı bir sütun hâlinde duruyor, yani ekrandaki
+// yeri bir devden büyük. Testi değiştirmek yerine burayı değiştirmenin
+// sebebi: "küçük nesne" sorusunun cevabı oyunun kendi bilgisi, testin
+// tahmini değil.
 window.fruitHoleSmallProps = () =>
-  [...new Set(fruits.filter(f => f.prop && !f.giant).map(f => f.prop))];
+  [...new Set(fruits.filter(f => f.prop && !f.giant && !f.tower).map(f => f.prop))];
 window.fruitHoleLevelName = () => currentPattern.name;
 
 // Skins, read off the live material rather than off the saved value — the
