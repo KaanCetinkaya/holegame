@@ -18424,7 +18424,11 @@ const PATTERNS = [
     big: (r, c) => Math.hypot(shapeCoords(r, c).nx, shapeCoords(r, c).ny) < 0.22,
   },
   {
-    // Blok: tahta kare kare doluyor, aralarında kare boşluklar.
+    // Küp: tahta kare kare doluyor, aralarında kare boşluklar.
+    //
+    // Adı `Blocks` değil `Cubes`, çünkü `Blocks` zaten var (15. bölüm,
+    // Gadget Shop) ve oyun ikinci kez aynı adı görünce açılmıyor — bu
+    // düzeni ilk yazdığımda tam o oldu.
     //
     // Küp dünyanın tarlası bir desen değil bir **yapı** olmalı: kenarları
     // dik, köşeleri doksan derece. Öteki kırk sekiz düzenin hepsi eğri —
@@ -18433,7 +18437,7 @@ const PATTERNS = [
     //
     // Blok boyu dört hücre: iki hücre ızgaranın kendisiyle karışıyordu,
     // sekiz hücre tahtaya üç blok sığdırıyor ve desen görünmüyor.
-    name: 'Blocks', icon: '🧊', theme: 'voxel',
+    name: 'Cubes', icon: '🧊', theme: 'voxel',
     empty: (r, c) => {
       const br = Math.floor(r / 4), bc = Math.floor(c / 4);
       // Dama: bir blok dolu, komşusu boş. Ama tamamen boş değil —
@@ -18451,6 +18455,36 @@ const PATTERNS = [
     // Renk de blok blok: `blockType` tam bunun için var.
     type: (r, c) => blockType(r, c, 4, 4, 137),
     big: (r, c) => (Math.floor(r / 4) + Math.floor(c / 4)) % 5 === 0 && r % 4 === 0 && c % 4 === 0,
+  },
+  {
+    // Şimşek: yukarıdan aşağı inen, iki kez kırılan kalın bir zikzak.
+    //
+    // Üçüncü düzen **sayı yüzünden** var, süs olsun diye değil. Resim,
+    // şerit ve bulmaca tahtaları bölüm numarasının onluk kalanına bakıyor
+    // (3, 6, 8), yani düzen sayısı onun katı olduğunda hangi düzenlerin o
+    // tahtaların altında kaldığı **sabitleniyor**: aynı on dört düzen her
+    // turda, sonsuza kadar görünmez olurdu. Kırk sekiz çalışıyordu çünkü
+    // 48 % 10 = 8 ve gizlenen küme her tur kayıyor. İki düzen eklemek
+    // elliyi, yani sıfır kalanı veriyordu — ve on dört düzeni gömüyordu.
+    // Üç ekleyince elli bir, kalan bir, kayma geri geliyor.
+    //
+    // Şimşek bu yüzden Rooftop'a ikinci düzen olarak girdi: yeni bir yer
+    // yaratmıyor, var olanı ikinci bir biçimde gösteriyor.
+    name: 'Bolt', icon: '⚡', theme: 'comic',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      // Zikzak: y'ye göre kayan bir orta eksen, iki kırılma noktasıyla.
+      const kol = ny < -0.33 ? 0.55 : ny < 0.33 ? -0.55 : 0.55;
+      // Kırılmalar arasında eksen doğrusal geçiyor; sert geçiş şimşeği
+      // üç ayrı çubuğa bölüyordu.
+      const t = ny < -0.33 ? (ny + 1) / 0.67 : ny < 0.33 ? (ny + 0.33) / 0.66 : (ny - 0.33) / 0.67;
+      const eksen = ny < -0.33 ? -0.55 + t * 1.1 : ny < 0.33 ? 0.55 - t * 1.1 : -0.55 + t * 1.1;
+      return Math.abs(nx - eksen) > 0.3 + wob;
+    },
+    stack: (r, c) => ridge(1 - Math.abs(shapeCoords(r, c).ny), 3),
+    // Tek renk: şimşek bir çizgi, ve çizginin iki rengi olmaz.
+    type: () => ID[2 % ID.length],
+    big: (r, c) => blob(r, c, 0.3, 149) > 0.76,
   },
   {
     name: 'Crown', icon: '👑', theme: 'ucl',
@@ -18544,14 +18578,15 @@ const PATTERNS = [
 const LEVEL_ORDER = [
   'Pyramid', 'Chevrons', 'Island', 'Orbits', 'Pillars',
   'Lattice', 'Wave', 'Bubbles', 'Crown', 'Rings',
-  'Hopscotch', 'Checkers', 'Piles', 'Ribs', 'Blocks',
-  'Ladder', 'Stairs', 'Heart', 'Keep', 'Whirl',
-  'Arrow', 'House', 'Orchard', 'Star', 'Horseshoe',
-  'Ring', 'Crescent', 'Diamond', 'Maze', 'Anchor',
-  'Comb', 'Crack', 'Lens', 'Onion', 'Gate',
-  'Bloom', 'Patches', 'Cogs', 'Ballcourt', 'Track',
-  'Condor', 'Boomerang', 'Hourglass', 'Key', 'Cross',
-  'Spiral', 'Dial', 'Walls',
+  'Hopscotch', 'Blast', 'Checkers', 'Piles', 'Ribs',
+  'Blocks', 'Ladder', 'Stairs', 'Heart', 'Keep',
+  'Whirl', 'Arrow', 'House', 'Orchard', 'Cubes',
+  'Star', 'Horseshoe', 'Ring', 'Crescent', 'Diamond',
+  'Maze', 'Anchor', 'Comb', 'Crack', 'Lens',
+  'Onion', 'Gate', 'Bloom', 'Patches', 'Cogs',
+  'Ballcourt', 'Bolt', 'Track', 'Condor', 'Boomerang',
+  'Hourglass', 'Key', 'Cross', 'Spiral', 'Dial',
+  'Walls',
 ];
 // Altı yeni düzenin hiçbiri resim (3, 13, 23, 33), şerit (6, 16, 26, 36) ya
 // da bulmaca (18, 28, 38) bölümüne denk gelmiyor. O üçü tahtayı bölüm
