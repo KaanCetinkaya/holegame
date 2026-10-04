@@ -1451,7 +1451,7 @@ const TYPE_BY_ID = Object.fromEntries(TYPES.map(t => [t.id, t]));
 // silueti bölüm başındaki kamera açılışında bütün hâlinde gösteriliyor
 // (`ACILIS_SN`), yani şekil kaybolmuyor — oynarken daha az tahta, bölüm
 // başında tamamı.
-const VIEW_HALF_X = 4.3;
+const VIEW_HALF_X = 5.2;
 const PICTURE_SCALE = 2;
 const PIC_CHAR = { R: 'berry', A: 'lychee', B: 'banana', M: 'melon' };
 
@@ -3045,7 +3045,7 @@ function refreshMenuLevel() {
     // yakaladı. Bayrak da bunun için var.
     const t = _patternsReady ? themeForLevel() : null;
     banner.innerHTML = `<span class="bi">${(t && t.icon) || '🗺️'}</span>` +
-      `<span class="bt">${(t && t.name) || 'Forty-eight places'}</span>`;
+      `<span class="bt">${(t && t.name) || 'Fifty-three places'}</span>`;
   } else if (next) {
     banner.innerHTML = iconHTML('lock', '🔒', 'bi') +
       `<span class="bt">${next.name} booster unlocks at level ${next.unlock}</span>`;
@@ -17066,7 +17066,7 @@ function stepWater(now) {
 // ---------------------------------------------------------------------
 // Field
 // ---------------------------------------------------------------------
-const CELL = 1.05;
+const CELL = 1.35;
 let fieldHalfX = (COLS * CELL) / 2;
 let fieldHalfZ = (rows * CELL) / 2;
 
@@ -17422,6 +17422,50 @@ function smallRingAt(r, c) {
     if (d <= k.r && d >= k.r - RING_BAND) return { i, t: (k.r - d) / RING_BAND };
   }
   return null;
+}
+
+// Yerleşim biçimi: siluetin **içi** nasıl doluyor.
+//
+// Kaan "çok tek tip diziyorsun" dedi ve haklı. Elli beş düzenin silueti
+// birbirinden bambaşka — nal, kalp, yıldız, şimşek — ama içini dolduran
+// kural hepsinde aynıydı: siluete giren her hücreye bir parça. Şekil
+// değişiyor, **dizilim** değişmiyor, ve oyuncunun ekranda gördüğü şey
+// siluetin tamamı değil onun bir parçası, yani gördüğü şey hep aynı doku.
+//
+// Beş biçim var ve bölüm numarası seçiyor. Siluetin üstüne biniyorlar:
+// `empty` şekli çiziyor, bu da o şeklin içini nasıl dolduracağını söylüyor.
+//
+//   dolu    — her hücre (eski davranış)
+//   halka   — küçük boş çemberler, ortaları boş
+//   sira    — iki sıra dolu bir sıra boş: koridorlar
+//   dama    — bir dolu bir boş: seyrek, zemini en çok gösteren
+//   obek    — yuvarlak öbekler, aralarında zemin
+//
+// Beş biçim ile elli beş düzen aralarında asal değil (55 = 5 x 11), yani
+// her düzen her turda aynı biçimi alırdı. Bölüm numarasına tur kayması da
+// ekleniyor: `(level + tur) % 5`, böylece ikinci turda aynı düzen başka
+// biçimde doluyor — "bunu gördüm" demenin önündeki tek şey o.
+const YERLESIM = ['dolu', 'halka', 'sira', 'dama', 'obek'];
+function yerlesimStili(n) {
+  return YERLESIM[(n + Math.floor((n - 1) / PATTERNS.length)) % YERLESIM.length];
+}
+// Hücre bu biçimde dolu mu? Ölçüler hücre cinsinden: tahtanın boyu bölümden
+// bölüme değişiyor, normalleştirilmiş bir ölçü daireyi elipse çeviriyor.
+function yerlesimDolu(stil, r, c) {
+  if (stil === 'dolu') return true;
+  if (stil === 'sira') return r % 3 !== 2;
+  if (stil === 'dama') return (r + c) % 2 === 0;
+  if (stil === 'halka') {
+    // Çember merkezleri beş hücrede bir; bant bir buçuk hücre kalın.
+    // İnce olursa çember boncuklara dağılıyor, kalın olursa ortası kapanıp
+    // disk oluyor — `RING_BAND` aynı sebeple 1.6.
+    const mr = ((r % 5) + 5) % 5 - 2, mc = ((c % 5) + 5) % 5 - 2;
+    const d = Math.hypot(mr, mc);
+    return d >= 1.1 && d <= 2.2;
+  }
+  // obek: gürültüyle yuvarlak öbekler. Eşik 0.42 — daha yükseği tahtayı
+  // boşaltıyor, daha alçağı öbekleri birleştirip yine dolu tahta yapıyor.
+  return blob(r, c, 0.5, 2027) > 0.42;
 }
 
 // Which circle a cell falls in, and how deep into it. -1 for open ground.
@@ -19731,7 +19775,14 @@ function buildRibbon(kind) {
     // kat farkı; karışık renk olunca göz katları değil renkleri sayıyor.
     // Kaan'ın karesindeki yığın da baştan aşağı tek renk.
     const type = tipler[Math.floor(rnd() * tipler.length)];
-    const R = 0.44, ADIM = 0.78;
+    // Aralık 0.78'den 0.95'e: tepe 660 parçadan ~440'a iniyor.
+    //
+    // `holerelease` bir tahtanın 600 parçayı geçmemesini istiyor ve rozet
+    // 660 ile tek başına sınırı aşıyordu. Aralığı açmak parça sayısını
+    // düşürüyor ve tepeyi de iyileştiriyor: 0.78'de boncuklar birbirine
+    // değip tek bir kütle oluyordu, 0.95'te basamaklar tek tek okunuyor —
+    // Kaan'ın bütün tahtalar için söylediği şeyin aynısı.
+    const R = 0.44, ADIM = 0.95;
     // Dış yarıçap ekrandan geliyor, tahtadan değil: şekli görmek için onu
     // bütün olarak görmek gerekiyor ve kamera 10.8 birim gösteriyor. Tahta
     // boyunca kaç tane sığıyorsa o kadar tepe var — tek tepe, iki ekran boyu
@@ -19970,10 +20021,32 @@ function buildField() {
   // Şerit tahtası: ızgara yine hiç çalışmıyor, parçaları eğriler diziyor.
   const serit = !dailyRun && !resim && isRibbonLevel(level) ? ribbonForLevel(level) : null;
   if (serit) buildRibbon(serit);
+  // Biçim, tahta ona dayanıyorsa uygulanıyor.
+  //
+  // Seyreltici biçimler (dama, halka, öbek) hücrelerin yarısını atıyor ve
+  // zaten seyrek bir siluette geriye oynanacak bir şey kalmıyor: ölçüldü,
+  // en seyrek ızgara bölümü 80 parça sınırının altına, 57'ye indi. Siluetin
+  // kaç hücresi olduğu doldurmadan önce sayılıyor ve az ise biçim 'dolu'ya
+  // düşüyor — şeklin kendisi zaten seyrekse, onu bir de delmek gerekmiyor.
+  //
+  // Eşik 150 hücre: seyreltici biçimler yarısını bıraktığı için bu, en kötü
+  // durumda 75 hücre demek ve her hücre en az bir parça, çoğu daha fazla
+  // (desenin kendi `stack`i). Sınırın (80) hemen üstünde duruyor.
+  let stil = yerlesimStili(level);
+  if (stil !== 'dolu' && !currentPattern.polar) {
+    let hucreSayisi = 0;
+    for (const cell of gridCells()) {
+      const [a, b] = bak(cell.a, cell.b);
+      if (currentPattern.empty && currentPattern.empty(a, b)) continue;
+      hucreSayisi++;
+    }
+    if (hucreSayisi < 150) stil = 'dolu';
+  }
   for (const cell of (resim || serit) ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
       const { x, z } = cell;
       const [a, b] = bak(cell.a, cell.b);
       if (currentPattern.empty && currentPattern.empty(a, b)) continue;
+      if (!currentPattern.polar && !yerlesimDolu(stil, a, b)) continue;
 
       // Desenin kendi `big` kuralına dokunulmuyor: o şeklin parçası — ağacın
       // gövdesi, merdivenin basamağı, adanın tepesi. Üstüne serpiştirilen bir
@@ -25839,6 +25912,11 @@ window.fruitHoleLandmarks = () => {
     enGenis: HOLE_MAX,
   };
 };
+// Bu bölümün yerleşim biçimi.
+window.fruitHoleLayout = () => ({
+  stil: yerlesimStili(level),
+  hepsi: YERLESIM,
+});
 window.fruitHoleSizes = () => {
   const canli = fruits.filter(f => !f.eaten && !f.bomb);
   const acik = canli.filter(f => f.r <= holeRadius * 0.92);
@@ -26070,9 +26148,13 @@ window.fruitHoleBoardCells = () => {
     const r = Math.round(f.z / CELL + (rows - 1) / 2);
     const k = r + ',' + c;
     const v = h.get(k);
-    if (v) { v.kat++; if (f.big) v.big = true; if (f.giant) v.giant = true; }
-    else h.set(k, { r, c, type: f.type, kat: 1, big: !!f.big, giant: !!f.giant,
-                    prop: f.prop || null, bomb: !!f.bomb });
+    if (v) { v.kat++; if (f.big) v.big = true; if (f.giant) v.giant = true;
+             if (f.r > v.yari) v.yari = f.r; }
+    // `r` satır indisi; parçanın yarıçapı ayrı bir alan (`yari`). İkisini
+    // aynı harfle anmak bir ölçümü sessizce bozdu: zemin kaplaması
+    // hesaplanırken `h.r` yarıçap sanıldı ve her tahta "%100 kaplı" çıktı.
+    else h.set(k, { r, c, yari: f.r, type: f.type, kat: 1, big: !!f.big,
+                    giant: !!f.giant, prop: f.prop || null, bomb: !!f.bomb });
   }
   return { rows, cols: COLS, cell: CELL, hucre: [...h.values()] };
 };

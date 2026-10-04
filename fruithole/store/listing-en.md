@@ -47,10 +47,10 @@ fazla, yani metin Play Console'a yapıştırılamıyordu.
 
 Bu sefer kırpma başka türlü yapıldı. Birincisinde dokuz bölümün hepsi
 korunmuştu; burada bölümler yine duruyor ama **iki uzun sayım** kısaldı:
-kırk sekiz yerin listesi ve iki yüz seksen üç nesnenin listesi. İkisi birlikte
+elli üç yerin listesi ve iki yüz doksan sekiz nesnenin listesi. İkisi birlikte
 metnin %40'ıydı ve ikisi de mağaza sayfasında okunmuyor — okunan şey başlık,
 gerisi göz gezdirilen bir duvar. Onların yerine bir avuç örnek ve bir sayı
-kaldı ("Forty-eight places in all"), çünkü satan şey liste değil sayı.
+kaldı ("Fifty-three places in all"), çünkü satan şey liste değil sayı.
 
 Sekiz engel de tek paragrafta toplandı: her biri ayrı paragraftayken
 beşincisinde okuyan kişi çoktan kaydırmıştı.
@@ -75,7 +75,7 @@ Finishing isn't enough — how fast you finish is what counts. The more time
 left, the more stars, and your best on every level is kept.
 
 🎨 EVERY LEVEL IS A SHAPE — AND A PLACE
-Forty-eight hand-built layouts: a stepped pyramid taken down terrace by
+Fifty-five hand-built layouts: a stepped pyramid taken down terrace by
 terrace, a castle keep, a condor with its wings out, a hopscotch grid, a house
 with its door and windows, an iron key, a maze you thread, a cogwheel. Five lay
 the field in rings around you.
@@ -84,7 +84,7 @@ And each one is somewhere. A beach with the sea running up the sand. A Tokyo
 street at night, lit by its own signs. Raked gravel gardens in Paris. The red
 dust of Mars. Six pitches mown six different ways. Dry savanna, the Nazca
 pampa, a candlelit cloister, a pirate deck, a jungle-taken ruin, fresh snow, a
-marble bank floor veined with gold. Forty-eight places in all, and the ground
+marble bank floor veined with gold. Fifty-three places in all, and the ground
 is never the same twice.
 
 🔥 CHAIN COMBOS
@@ -112,7 +112,7 @@ and achievements.
 Fruit is piled into towers you take down in one pass, and giants are scattered
 through it — twice the width of your opening, and never a slice.
 
-🧺 TWO HUNDRED AND EIGHTY-THREE THINGS TO FIND
+🧺 TWO HUNDRED AND NINETY-EIGHT THINGS TO FIND
 Whatever belongs where you are: a ukulele on the black sand, a rover on Mars, a
 kangaroo in the outback, a sword in the stone, a polar bear in the snow. Every
 one you swallow is kept — the Collection screen holds them all, the ones you
