@@ -15,14 +15,14 @@ pg.on('pageerror', e => console.log('HATA ' + e));
 await pg.goto('http://localhost:8484/', { waitUntil: 'load' });
 await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 25000 });
 
-for (const lv of [46]) {
+for (const lv of [29]) {
   const o = await pg.evaluate((l) => {
     window.fruitHoleSeedField(900 + l);
     const p = window.fruitHoleProbe(l);
     window.fruitHoleStartLevel();
     const b = window.fruitHoleBoardCells();
     // Dünya koordinatından kaba bir harita: 0.55 birimlik kareler.
-    const ADIM = 0.34;
+    const ADIM = 0.5;
     const w = window.fruitHoleWhere();
     const g = {};
     let minX = 9e9, maxX = -9e9, minZ = 9e9, maxZ = -9e9;

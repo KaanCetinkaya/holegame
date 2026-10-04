@@ -18827,6 +18827,42 @@ const PATTERNS = [
     //
     // Blok boyu dört hücre: iki hücre ızgaranın kendisiyle karışıyordu,
     // sekiz hücre tahtaya üç blok sığdırıyor ve desen görünmüyor.
+    // Koridor: kenarlarda sıkı bloklar, ortada aralı sıralar.
+    //
+    // Kaan'ın attığı üçüncü kare bu: tahtanın ortasından aşağı tek sıra
+    // meyveden koridorlar iniyor, aralarında bir hücre boşluk var, iki
+    // kenarda da başka bir meyveden sıkı bloklar duruyor. Bizim tahtalarımız
+    // bir siluetin içini dolduruyor; bu, siluet değil **dizilim** — düzeni
+    // şeklin kendisi değil aradaki boşluk veriyor.
+    //
+    // Teması `mixed`: oyundaki tek kullanılmayan tema. Elli dört tema vardı,
+    // elli dördü de bir düzene bağlıydı ama Rooftop ikisini birden aldığı
+    // için "Everything" açıkta kalmıştı ve hiç ekrana gelmiyordu (yerler.md,
+    // "Nerede ne eksik"). Her koridorun ayrı meyve olduğu bir tahta için de
+    // zaten en doğru ad o.
+    name: 'Lanes', icon: '🛣️', theme: 'mixed',
+    empty: (r, c) => {
+      const kenar = 3;
+      // Kenar bloklar: dolu, ama her beş sırada bir ara veriyor — kesintisiz
+      // bir duvar koridoru kapatıyor ve tahtanın iki yanı ölü alan oluyor.
+      if (c < kenar || c >= COLS - kenar) return r % 5 === 4;
+      // Orta: bir sıra dolu, bir sıra boş.
+      return (c - kenar) % 2 === 1;
+    },
+    // Koridorlar alçak, bloklar yüksek: hangisinin yol hangisinin duvar
+    // olduğunu yükseklik söylüyor.
+    stack: (r, c) => (c < 3 || c >= COLS - 3 ? 3 : 1 + (r % 7 === 0 ? 1 : 0)),
+    // Her koridor kendi meyvesi, iki blok ayrı ikisi. Tek tek sayıldığında
+    // tahtada dört tür birden duruyor — adı "Everything" olan tema için.
+    type: (r, c) => {
+      const kenar = 3;
+      if (c < kenar) return ID[0];
+      if (c >= COLS - kenar) return ID[3 % ID.length];
+      return ID[(Math.floor((c - kenar) / 2) % 2) + 1];
+    },
+    big: (r, c) => (c >= 3 && c < COLS - 3 && r % 6 === 0 && (c - 3) % 4 === 1),
+  },
+  {
     name: 'Cubes', icon: '🟩', theme: 'voxel',
     empty: (r, c) => {
       const br = Math.floor(r / 4), bc = Math.floor(c / 4);
@@ -19075,7 +19111,7 @@ const LEVEL_ORDER = [
   'Rings', 'Hopscotch', 'Checkers', 'Blast', 'Flipper',
   'Piles', 'Ribs', 'Blocks', 'Ladder', 'Stairs',
   'Heart', 'Zone', 'Keep', 'Whirl', 'Arrow',
-  'House', 'Cubes', 'Orchard', 'Star', 'Horseshoe',
+  'House', 'Cubes', 'Orchard', 'Lanes', 'Star', 'Horseshoe',
   'Ring', 'Crescent', 'Diamond', 'Maze', 'Anchor',
   'Comb', 'Crack', 'Lens', 'Onion', 'Gate',
   'Bloom', 'Patches', 'Cogs', 'Bolt', 'Ballcourt',
@@ -19095,10 +19131,17 @@ const LEVEL_ORDER = [
 // ölçmedi: Blast 13'e (resim), Cubes 28'e (bulmaca) düşmüştü, yani yeni
 // eklenen altı şeklin ikisi hiç çizilmiyordu. Yorum ölçmüyor; aşağıdaki
 // karşılaştırma ölçüyor.
+//
+// Araya bir düzen eklemenin bedeli de burada görünüyor. `Lanes` 29. bölüme
+// girince kendisinden sonraki yirmi altı düzenin hepsi bir basamak kaydı ve
+// gizli yuvaya düşenlerin **yedisi** değişti: Diamond, Comb, Lens, Cogs,
+// Track, Boomerang, Dial kurtuldu; Crescent, Anchor, Crack, Patches,
+// Ballcourt, Condor, Spiral altına düştü. Sayı aynı kaldığı için bu bir
+// kayıp değil, ama sessizce olmadı — bekçi durdurdu ve liste elle güncellendi.
 const HIDDEN_SHAPES = [
   'Island', 'Lattice', 'Checkers', 'Piles', 'Blocks',
-  'Keep', 'House', 'Orchard', 'Diamond', 'Comb',
-  'Lens', 'Cogs', 'Track', 'Boomerang', 'Dial',
+  'Keep', 'House', 'Orchard', 'Crescent', 'Anchor',
+  'Crack', 'Patches', 'Ballcourt', 'Condor', 'Spiral',
 ];
 // Yeni düzen listenin **sonuna** değil ortasına giriyor.
 //
@@ -20009,6 +20052,9 @@ function buildField() {
     puzzleRooms = [];
     placeRocks();
     placeGiants();
+    // Kule devden sonra: ikisi aynı boşluğa oturmasın, ve bomba ile diken
+    // kulenin ayağını da hesaba katsın.
+    placeTowers();
     placeBombs();
     // Dikenler en sonda: yerini seçerken hem kayaya hem kolosun yoluna
     // bakması gerekiyor, yani ikisi de yerleşmiş olmalı.
@@ -21765,6 +21811,80 @@ function placeGiants() {
 
   // The pieces a giant displaced were marked eaten so nothing else lands on
   // them; drop them from the list so they are not counted towards the goal.
+  fruits = fruits.filter(f => !f.eaten);
+}
+
+// Kule: üst üste dizilmiş iri cisimlerden bir sütun.
+//
+// Kaan iki rakip karesi attı — biri reçel kavanozlarından, biri krepten
+// kurulmuş, ikisi de ekranın tepesini aşan sütunlar — ve "şöle dev cisimler
+// koyalım" dedi. Tahtamızda en iri şey devdi (1.34) ve dev **yatıyor**:
+// yere basan tek bir yumru. Ekrandaki ağırlığı yarıçapı kadar.
+//
+// Sütun başka bir şey. Beş parçalık bir kule 2.1 birim eninde ama 10.7 birim
+// yüksekliğinde, yani ekranda bir devin beş katı yer kaplıyor ve tahtanın
+// öbür ucundan görünüyor. Oyuncunun "oraya gideyim" dediği şey bu.
+//
+// Parça yarıçapı dev ile büyük arasında: kule bir **seri** yemek, tek bir
+// lokma değil. 1.05 ağzı 1.14'te açılıyor, yani tahtanın üçte birini
+// süpürmüş bir oyuncu kulenin dibini alabiliyor.
+const TOWER_R = 1.05;
+// Kaçıncı bölümden sonra. Kaya (9) ve dikenden (12) sonra, mancınıktan (20)
+// önce: tahtanın dikey bir şey taşıdığını oyuncu mancınıkla uğraşmadan önce
+// öğrensin.
+const TOWER_AT = 14;
+function placeTowers() {
+  if (level < TOWER_AT) return;
+  const aday = fruits.filter(f => !f.eaten && !f.big &&
+    Math.hypot(f.x - SPAWN_X, f.z - spawnZ()) >= 3.4);
+  if (!aday.length) return;
+  // Kaç tane: tahta uzadıkça artıyor ama üçü geçmiyor. Dördüncü kule
+  // ölçüldüğünde tahtanın ortasını kapatıyor ve koridor kalmıyordu.
+  const kac = Math.min(3, 1 + Math.floor(rows / 16) + (rnd() < 0.4 ? 1 : 0));
+  const kuleler = [];
+  const BOSLUK = TOWER_R + NORMAL_R * 1.6;
+  const havuz = (currentTheme.props || GIANT_PROPS).filter(id => GIANT_PROPS.includes(id));
+  for (let deneme = 0; deneme < kac * 40 && kuleler.length < kac; deneme++) {
+    const tohum = aday[Math.floor(rnd() * aday.length)];
+    if (tohum.eaten) continue;
+    const x = tohum.x, z = tohum.z;
+    if (Math.abs(x) > fieldHalfX - TOWER_R || Math.abs(z) > fieldHalfZ - TOWER_R) continue;
+    // İki kule birbirine yapışınca tek bir duvar oluyor ve aradan geçilmiyor.
+    if (kuleler.some(k => Math.hypot(k.x - x, k.z - z) < TOWER_R * 5)) continue;
+    // Kayanın ve dikenin yanına kurulmasın: ikisinin arasından geçecek yer
+    // kalmıyor ve kule yenemeden bölüm bitiyor.
+    if (rocks.some(k => Math.hypot(k.x - x, k.z - z) < TOWER_R + k.r + TOWER_R / 0.92 + 0.6)) continue;
+    for (const f of fruits) {
+      if (f.eaten) continue;
+      if (Math.hypot(f.x - x, f.z - z) > BOSLUK) continue;
+      unbuildFruit(f);
+    }
+    // Dört ile yedi kat. Üç kat bir yığın, sekiz kat ekrandan taşıyor ve
+    // tepesi hiç görünmüyor.
+    const kat = 4 + Math.floor(rnd() * 4);
+    const prop = havuz.length && rnd() < 0.6 ? pick(havuz) : null;
+    for (let k = 0; k < kat; k++) {
+      const vis = prop ? propVisual(prop, TOWER_R * 1.1)
+                       : fruitVisual(tohum.type, TOWER_R, true);
+      const type = prop ? vis.currency : tohum.type;
+      const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
+      mesh.scale.set(vis.sx, vis.sy, vis.sx);
+      // Kat yüksekliği parçanın kendi boyundan: ızgaranın yığınları da aynı
+      // ölçüyü kullanıyor, yani parçalar değiyor ama içe girmiyor.
+      const y = vis.baseY + k * TOWER_R * 2.05;
+      mesh.position.set(x, y, z);
+      mesh.userData.ox = x; mesh.userData.oz = z;
+      // Her kat biraz dönük: hepsi aynı yöne bakınca sütun tek bir uzun
+      // nesne gibi okunuyor ve kaç parçadan kurulduğu kaybolyor.
+      mesh.rotation.y = vis.upright ? k * 0.4 : rnd() * Math.PI * 2;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      fieldGroup.add(mesh);
+      fruits.push({ mesh, x, z, r: TOWER_R, type, prop,
+                    big: true, tower: true, eaten: false, baseY: y, nudge: 0 });
+    }
+    kuleler.push({ x, z, kat });
+  }
   fruits = fruits.filter(f => !f.eaten);
 }
 
@@ -25478,6 +25598,36 @@ window.fruitHolePropSheet = (only) => {
 };
 
 // Giants per level, and how far the nearest one is from the opening.
+// Nesne kuleleri: kaç tane, kaç katlı, en yakını doğuşa ne kadar uzakta.
+//
+// Adı `fruitHoleTowers` değil, çünkü o ad zaten alınmış: ızgaranın kendi
+// yığınlarını sayan ölçüm. İkisi ayrı şey — o, desenin hücre hücre kurduğu
+// ince sütunlar (0.46'lık parçalar), bu, tahtaya ayrıca dikilen kalın
+// nesne sütunları. Aynı adı ikinci kez tanımlamak öncekini sessizce
+// eziyor ve ölçüm bambaşka bir şeyi ölçmeye başlıyor; bir kere oldu.
+window.fruitHoleTowerObjects = () => {
+  const k = fruits.filter(f => !f.eaten && f.tower);
+  const sutun = new Map();
+  for (const f of k) {
+    const a = f.x.toFixed(2) + ',' + f.z.toFixed(2);
+    sutun.set(a, (sutun.get(a) || 0) + 1);
+  }
+  const kat = [...sutun.values()];
+  return {
+    sayi: sutun.size, parca: k.length,
+    enAlcak: kat.length ? Math.min(...kat) : 0,
+    enYuksek: kat.length ? Math.max(...kat) : 0,
+    r: TOWER_R,
+    // Kuleyi yutmak için gereken ağız. Oyunun en genişi 2.75.
+    gerekenAgiz: +(TOWER_R / 0.92).toFixed(2),
+    dogusaUzak: sutun.size
+      ? +Math.min(...[...sutun.keys()].map(a => {
+          const [x, z] = a.split(',').map(Number);
+          return Math.hypot(x - SPAWN_X, z - spawnZ());
+        })).toFixed(2)
+      : null,
+  };
+};
 window.fruitHoleGiants = () => {
   const g = fruits.filter(f => f.giant && !f.eaten);
   return {
