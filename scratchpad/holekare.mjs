@@ -97,9 +97,8 @@ async function anitta(lv, ad, tohum = 400) {
 }
 
 console.log('');
-await anitta(20, 'anit-20');
-await anitta(41, 'anit-41');
-await anitta(22, 'anit-22');
+await oyundan(22, 'kule-22', 40, 5500);
+await oyundan(20, 'kule-20', 40, 9100);
 await oyundan(22, 'merdiven-22', 40, 5500);
 await oyundan(41, 'merdiven-41', 40, 400);
 

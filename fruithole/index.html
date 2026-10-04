@@ -1436,7 +1436,22 @@ const TYPE_BY_ID = Object.fromEntries(TYPES.map(t => [t.id, t]));
 // değişkendi; resim tahtası onu okumak zorunda, çünkü resim **görünen** alana
 // sığmalı. Tahtanın tamamına yayıldığında kenarları ekran dışında kalıyordu:
 // dondurmanın külahı ekranı taşıyordu ve resim resim gibi durmuyordu.
-const VIEW_HALF_X = 5.4;
+// 5.4'ten 4.3'e: kamera yakınlaştı.
+//
+// Kaan rakip oyunlardan art arda kareler attı ve hepsinde aynı şey var —
+// parçalar ekranda kocaman. Önce parçaları büyütmeye çalıştım ve yanlıştı:
+// hücre 1.05 birim, hücreye sığmayan parça komşusunu örtüyor (aşağıda, iri
+// parçanın dama ızgarası). Oran zaten doğruymuş; yanlış olan **uzaklık**.
+//
+// 10.8 birim genişlik ekrana 10.3 hücre sığdırıyordu; 8.6 birim 8.2 hücre
+// sığdırıyor, yani her şey %26 büyük görünüyor — delik de dahil, çünkü
+// ölçek değil mesafe değişiyor. Oyun aynı oyun, ekran yakın.
+//
+// Bedeli ölçüldü: tahtanın görünen payı %68'den %53'e iniyor. Düzenin
+// silueti bölüm başındaki kamera açılışında bütün hâlinde gösteriliyor
+// (`ACILIS_SN`), yani şekil kaybolmuyor — oynarken daha az tahta, bölüm
+// başında tamamı.
+const VIEW_HALF_X = 4.3;
 const PICTURE_SCALE = 2;
 const PIC_CHAR = { R: 'berry', A: 'lychee', B: 'banana', M: 'melon' };
 
