@@ -11866,6 +11866,143 @@ function propTemplates() {
     T.bear = { g, h: 1.1, currency: 'melon', only: 'giant' };
   }
 
+  // --- çizgi roman şehri -----------------------------------------------
+  //
+  // Süper kahraman teması, Playground'un kuralıyla: **yer**, karakter değil.
+  // Pelerinli kimse yok, arması olan hiçbir şey yok, hiçbir renk bir
+  // kahramandan alınmadı. Buradaki her parça sıradan bir şehir çatısında
+  // zaten duran bir şey — ve o çatıyı çizgi roman çatısı yapan şey tek
+  // parça değil, **takım**: su deposu, yangın merdiveni, projektör.
+
+  // Su deposu: ahşap fıçı, dört ayak üstünde. Amerikan şehir çatısının
+  // siluetini tek başına kuran parça.
+  {
+    const g = new THREE.Group();
+    const tahta = PROP_MAT('#8a5a36', 0.62);
+    const demir = PROP_MAT('#5a6068', 0.42);
+    const govde = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.5, 0.86, 12), tahta);
+    put(g, govde, 0, 1.16, 0);
+    // Çember: fıçıyı fıçı yapan şey. İkisi, üstte ve altta.
+    for (const y of [0.9, 1.42])
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.49, 0.035, 6, 16), demir), 0, y, 0, Math.PI / 2);
+    // Konik çatı.
+    put(g, new THREE.Mesh(new THREE.ConeGeometry(0.56, 0.3, 12), PROP_MAT('#6f4528', 0.6)), 0, 1.74, 0);
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.74, 6), demir),
+          sx * 0.3, 0.37, sz * 0.3);
+    T.watertower = { g, h: 1.9, currency: 'melon', only: 'giant' };
+  }
+
+  // Yangın merdiveni: duvara asılı demir platform ve eğik merdiven.
+  {
+    const g = new THREE.Group();
+    const demir = PROP_MAT('#3e4a56', 0.5);
+    put(g, new THREE.Mesh(bevelBox(0.9, 0.06, 0.46, 0.02), demir), 0, 0.5, 0);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.5, 6), demir), sx * 0.4, 0.25, 0);
+    // Korkuluk: üst boru ve dikmeler.
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.9, 6), demir),
+        0, 0.86, -0.2, 0, 0, Math.PI / 2);
+    for (const sx of [-0.4, 0, 0.4])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.36, 5), demir), sx, 0.68, -0.2);
+    // Eğik merdiven: basamakları görünsün diye beş tane.
+    for (let i = 0; i < 5; i++)
+      put(g, new THREE.Mesh(bevelBox(0.34, 0.03, 0.08, 0.01), demir),
+          0.26, 0.12 + i * 0.09, 0.14 + i * 0.07, 0, 0, 0);
+    T.fireescape = { g, h: 0.9, currency: 'lychee' };
+  }
+
+  // Projektör: çatıdan göğe bakan ışık. Gökyüzüne bir işaret düşüren şey —
+  // ama işaretin kendisi yok, çünkü o işaret birinin markası.
+  {
+    const g = new THREE.Group();
+    const govde = PROP_MAT('#2f3640', 0.4);
+    const cam = new THREE.MeshStandardMaterial({ color: '#ffe9a8', roughness: 0.2,
+      emissive: '#ffd36b', emissiveIntensity: 0.55 });
+    const kutu = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.34, 0.44, 12), govde);
+    put(g, kutu, 0, 0.5, 0, -0.5, 0, 0);
+    put(g, new THREE.Mesh(new THREE.CircleGeometry(0.28, 12), cam), 0, 0.68, 0.17, -0.5, 0, 0);
+    put(g, new THREE.Mesh(bevelBox(0.42, 0.08, 0.42, 0.02), govde), 0, 0.14, 0);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.34, 6), govde), sx * 0.16, 0.3, -0.08);
+    T.searchlight = { g, h: 0.8, currency: 'banana' };
+  }
+
+  // Telefon kulübesi: kapısı kapalı, kimse girmiyor. Şehrin kendi eşyası.
+  {
+    const g = new THREE.Group();
+    const kirmizi = PROP_MAT('#c43a33', 0.4);
+    const cam = new THREE.MeshStandardMaterial({ color: '#bfe6ef', roughness: 0.15,
+      transparent: true, opacity: 0.6 });
+    put(g, new THREE.Mesh(bevelBox(0.5, 1.1, 0.5, 0.04), kirmizi), 0, 0.57, 0);
+    for (const [dx, dz, ry] of [[0, 0.26, 0], [0.26, 0, Math.PI / 2]])
+      put(g, new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.66), cam), dx, 0.72, dz, 0, ry, 0);
+    put(g, new THREE.Mesh(bevelBox(0.58, 0.1, 0.58, 0.03), PROP_MAT('#8f2a24', 0.45)), 0, 1.17, 0);
+    T.phonebox = { g, h: 1.25, currency: 'berry' };
+  }
+
+  // --- küp dünya -------------------------------------------------------
+  //
+  // Oyunun zaten bir voxel katmanı var (`VOX_GEO`), yani küp burada yabancı
+  // değil. Buradaki parçaların hepsi **keskin kutu**: `bevelBox` kullanılmıyor,
+  // çünkü bu türü o tür yapan şey tam olarak pahlanmamış kenar.
+
+  // Kazma: sap ve taş baş, ikisi de kutu.
+  {
+    const g = new THREE.Group();
+    const sap = PROP_MAT('#8a6239', 0.7);
+    const tas = PROP_MAT('#8f949a', 0.65);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.84, 0.1), sap), 0, 0.42, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.12, 0.12), tas), 0, 0.82, 0);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), tas), sx * 0.3, 0.72, 0);
+    T.pickaxe = { g, h: 0.9, currency: 'lychee' };
+  }
+
+  // Meşale: duvardaki değil yerdeki hâli — bir çubuk ve üstünde alev küpü.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.6, 0.09), PROP_MAT('#7a5630', 0.7)), 0, 0.3, 0);
+    const alev = new THREE.MeshStandardMaterial({ color: '#ffb43c', roughness: 0.3,
+      emissive: '#ff7a1a', emissiveIntensity: 0.85 });
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.18), alev), 0, 0.68, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.11),
+        new THREE.MeshStandardMaterial({ color: '#ffe07a', roughness: 0.3,
+          emissive: '#ffd05a', emissiveIntensity: 1 })), 0, 0.8, 0);
+    T.torch = { g, h: 0.9, currency: 'banana' };
+  }
+
+  // Sandık: kapağı aralık. Küp dünyanın en tanınan eşyası, ve hiçbir
+  // markaya ait değil — sandık sandıktır.
+  {
+    const g = new THREE.Group();
+    const tahta = PROP_MAT('#9a6b33', 0.68);
+    const demir = PROP_MAT('#c9a04a', 0.45);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.5), tahta), 0, 0.2, 0);
+    // Kapak: arkadan menteşeli, öne doğru açık.
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.5), tahta), 0, 0.5, -0.12, -0.5, 0, 0);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.08), demir), 0, 0.3, 0.26);
+    T.chestblock = { g, h: 0.7, currency: 'melon' };
+  }
+
+  // Örümcek: küp gövde, küp kafa, sekiz kısa bacak.
+  {
+    const g = new THREE.Group();
+    const kara = PROP_MAT('#2b2b32', 0.6);
+    const govde = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.26, 0.5), kara);
+    put(g, govde, 0, 0.3, -0.1);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.24, 0.26), kara), 0, 0.32, 0.26);
+    const goz = new THREE.MeshStandardMaterial({ color: '#c0352e', roughness: 0.3,
+      emissive: '#8f1f1a', emissiveIntensity: 0.6 });
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.04), goz), sx * 0.08, 0.37, 0.4);
+    for (const sx of [-1, 1]) {
+      for (const dz of [-0.3, -0.1, 0.1, 0.3])
+        put(g, new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.07, 0.07), kara), sx * 0.3, 0.16, dz);
+    }
+    T.cubespider = { g, h: 0.5, currency: 'berry' };
+  }
+
   return T;
 }
 
@@ -14627,7 +14764,98 @@ const GROUND_TEX = {};
 // Dağıtıcı kendi adıyla duruyor, çünkü `GROUND_TEX` **önbellek** — açılışta
 // boş ve yalnızca oynanmış temaları içeriyor. "Bu temanın zemini tanımlı mı"
 // sorusu ona sorulduğunda cevap her zaman "hayır" çıkıyor.
+// Çizgi roman zemini: yarım ton nokta baskısı.
+//
+// Çizgi romanın görüntüsü karakterlerden değil **baskısından** geliyor:
+// renk, üst üste basılan nokta ızgaralarıyla elde ediliyordu ve nokta
+// yakından bakınca görünüyordu. Oyuna da bu yüzden uyuyor — burada hiç
+// resim dosyası yok, zeminler kodla çiziliyor, ve yarım ton zaten nokta
+// demek.
+//
+// İki ızgara, biri 15° dönük: tek ızgara düz bir benek dokusu veriyor,
+// ikisi üst üste gelince o tanıdık moiré çıkıyor. Nokta boyu konuma göre
+// değişiyor, yani zemin bir yerde koyu bir yerde açık — tek tonluk bir
+// nokta tarlası duvar kâğıdı gibi duruyordu.
+function halftoneTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#fdf3d8';
+  ctx.fillRect(0, 0, S, S);
+  const izgara = (adim, aci, renk, taban) => {
+    ctx.save();
+    ctx.translate(S / 2, S / 2); ctx.rotate(aci); ctx.translate(-S / 2, -S / 2);
+    ctx.fillStyle = renk;
+    for (let y = -S; y < S * 2; y += adim) {
+      for (let x = -S; x < S * 2; x += adim) {
+        // Nokta boyu yumuşak bir dalgadan: baskının eşit olmayan mürekkebi.
+        const d = taban * (0.55 + 0.45 * Math.sin(x * 0.021) * Math.cos(y * 0.017));
+        if (d <= 0.2) continue;
+        ctx.beginPath(); ctx.arc(x, y, d, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.restore();
+  };
+  ctx.globalAlpha = 0.5;   izgara(11, 0, '#e8453c', 3.1);
+  ctx.globalAlpha = 0.34; izgara(11, Math.PI / 12, '#2f6fd0', 2.6);
+  ctx.globalAlpha = 1;
+  // Panel çizgisi: çizgi romanı çizgi roman yapan ikinci şey, kareler
+  // arasındaki kalın siyah ayraç. Tek bir yatay ve tek bir dikey yetiyor;
+  // daha fazlası zemini ızgaraya çeviriyor ve meyve ızgarası zaten var.
+  ctx.strokeStyle = '#1b1b22'; ctx.lineWidth = 5; ctx.globalAlpha = 0.8;
+  ctx.beginPath(); ctx.moveTo(0, 168); ctx.lineTo(S, 168); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(96, 0); ctx.lineTo(96, 168); ctx.stroke();
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 3);
+  return tex;
+}
+
+// Küp dünya zemini: üstten bakılan çimen blokları.
+//
+// Oyunun elinde zaten bir voxel katmanı var (`VOX_GEO`), yani küp görüntüsü
+// burada yabancı değil. Eksik olan tek şey zemindi.
+//
+// Blok ızgarası **sert**: kenarlar yumuşatılmıyor, çünkü o türü o tür yapan
+// şey tam olarak yumuşatılmamış olması. Her bloğun kendi tonu var ve tonlar
+// rastgele değil konumdan türüyor; rastgele olsaydı her yeniden çizimde
+// başka bir tarla çıkardı ve zemin titrerdi.
+function grassblockTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  const N = 8, adim = S / N;
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const h = (Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
+      const t = Math.abs(h);
+      const yesil = 92 + Math.round(t * 46);
+      ctx.fillStyle = `rgb(${52 + Math.round(t * 26)},${yesil},${44 + Math.round(t * 22)})`;
+      ctx.fillRect(x * adim, y * adim, adim, adim);
+      // Blok üstündeki benekler: çimen kümesi. Dördü yetiyor, çünkü
+      // kamera yukarıdan bakıyor ve blok ekranda küçük.
+      ctx.fillStyle = `rgba(${40 + Math.round(t * 20)},${yesil + 26},${38},0.5)`;
+      for (let i = 0; i < 4; i++) {
+        const px = x * adim + ((i * 7 + y * 3) % 5) * (adim / 5);
+        const py = y * adim + ((i * 5 + x * 3) % 5) * (adim / 5);
+        ctx.fillRect(px, py, adim / 6, adim / 6);
+      }
+    }
+  }
+  // Blok ayrımı: ince koyu çizgi. Olmadığında tarla tek bir yeşil leke.
+  ctx.strokeStyle = 'rgba(28,46,26,.55)'; ctx.lineWidth = 2;
+  for (let i = 0; i <= N; i++) {
+    ctx.beginPath(); ctx.moveTo(i * adim, 0); ctx.lineTo(i * adim, S); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i * adim); ctx.lineTo(S, i * adim); ctx.stroke();
+  }
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 4);
+  // En yakın komşu: küpün kenarı keskin kalsın. Yumuşatma, bütün bu
+  // zeminin anlamını siliyor.
+  tex.magFilter = THREE.NearestFilter;
+  return tex;
+}
+
 const GROUND_MAKERS = { sand: groundTexture, blacksand: blackSandTexture,
+  halftone: halftoneTexture, grassblock: grassblockTexture,
   sidewalk: sidewalkTexture, crosswalk: crosswalkTexture,
   plaza: plazaTexture, mosaic: mosaicTexture, neonstreet: neonStreetTexture,
   kilim: kilimTexture, reef: reefTexture, arena: arenaTexture,
@@ -15597,6 +15825,39 @@ scene.add(ground);
 // because that is what the four counters and the whole shop are built on.
 // ---------------------------------------------------------------------
 const THEMES = {
+  // Çizgi roman şehri.
+  //
+  // Kural `playground`'un kuralı: **yer**, karakter değil. Pelerinli kimse
+  // yok, arma yok, hiçbir renk bir kahramandan alınmadı — çünkü onların
+  // hepsi birinin markası ve Play'de şikâyet uygulamayı kaldırır. Burada
+  // duran her şey sıradan bir şehir çatısında zaten var: su deposu, yangın
+  // merdiveni, telefon kulübesi, göğe bakan bir projektör.
+  //
+  // O çatıyı çizgi roman çatısı yapan şey tek parça değil, ikisi birden:
+  // takım, ve **zemin**. Yarım ton nokta baskısı ötekilerin hiçbirine
+  // benzemiyor, ve bu temanın asıl işini o yapıyor.
+  comic: {
+    name: 'Rooftop', icon: '💥',
+    ground: 'halftone', surround: '#2b3350',
+    props: ['watertower', 'fireescape', 'searchlight', 'phonebox',
+            // Çatının geri kalanı: şehrin zaten elindeki eşya.
+            'hydrant', 'mailbox', 'stringlights', 'tv', 'spotlight'],
+    hero: ['watertower', 'phonebox'],
+  },
+  // Küp dünya.
+  //
+  // Oyunun zaten bir voxel katmanı var (`VOX_GEO`), yani bu görüntü motora
+  // yabancı değil — eksik olan tek şey zemindi. Parçalar da keskin kutu,
+  // `bevelBox` kullanılmıyor: bu türü o tür yapan şey pahlanmamış kenar.
+  //
+  // İsim de jenerik: kimsenin oyununun adı geçmiyor, ama tahtaya bakan
+  // nerede olduğunu biliyor.
+  voxel: {
+    name: 'Cube World', icon: '🧊',
+    ground: 'grassblock', surround: '#6cc5f0',
+    props: ['pickaxe', 'torch', 'chestblock', 'cubespider'],
+    hero: ['chestblock'],
+  },
   beach: {
     name: 'Beach', icon: '🏖️',
     ground: 'sand', surround: '#22c9cd', ripples: true,
@@ -18129,6 +18390,69 @@ const PATTERNS = [
   },
   {
     // Taç: üstte mazgallı bir sur, altında dolu gövde.
+    // Patlama: çizgi romanın "POW" yıldızı — ortadan dışarı giden sivri
+    // uçlar, aralarında boşluk.
+    //
+    // Uç sayısı dokuz, tek sayı: çift sayıda uç karşılıklı eşleşiyor ve
+    // şekil bir çarka dönüyor (Whirl zaten o). Tek sayı, patlamanın o
+    // dengesiz görüntüsünü veriyor.
+    //
+    // İçi dolu bir çekirdek var: uçları çekirdeksiz bırakmak patlamayı
+    // dağınık bir yıldız tarlası yapıyordu, ortası dolu olunca bir yerden
+    // çıktığı okunuyor.
+    name: 'Blast', icon: '💥', theme: 'comic',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      const d = Math.hypot(nx, ny);
+      if (d < 0.3) return false;                       // çekirdek
+      const a = Math.atan2(ny, nx);
+      // Dokuz uç: açıya göre daralıp genişleyen bir yarıçap eşiği.
+      const uc = 0.52 + 0.5 * Math.abs(Math.cos(a * 4.5));
+      return d > uc + wob;
+    },
+    // Çekirdek yüksek, uçlar alçak: patlamanın merkezi kalın.
+    stack: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      return ridge(1 - Math.hypot(nx, ny) / 0.8, 3);
+    },
+    // İki renk: çekirdek bir meyve, uçlar başka. Çizgi romanın iki renkli
+    // baskısı zaten bu — ve `Track`'in ayak izi/pençe ayrımıyla aynı fikir.
+    type: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      return Math.hypot(nx, ny) < 0.42 ? ID[0 % ID.length] : ID[2 % ID.length];
+    },
+    big: (r, c) => Math.hypot(shapeCoords(r, c).nx, shapeCoords(r, c).ny) < 0.22,
+  },
+  {
+    // Blok: tahta kare kare doluyor, aralarında kare boşluklar.
+    //
+    // Küp dünyanın tarlası bir desen değil bir **yapı** olmalı: kenarları
+    // dik, köşeleri doksan derece. Öteki kırk sekiz düzenin hepsi eğri —
+    // yay, daire, dalga, spiral — ve bu onların hiçbirine benzemiyor,
+    // benzememesi de bütün mesele.
+    //
+    // Blok boyu dört hücre: iki hücre ızgaranın kendisiyle karışıyordu,
+    // sekiz hücre tahtaya üç blok sığdırıyor ve desen görünmüyor.
+    name: 'Blocks', icon: '🧊', theme: 'voxel',
+    empty: (r, c) => {
+      const br = Math.floor(r / 4), bc = Math.floor(c / 4);
+      // Dama: bir blok dolu, komşusu boş. Ama tamamen boş değil —
+      // boş blokların da bir köşesi duruyor, yoksa tahta ikiye bölünüyor
+      // ve delik bir yarıda kalıyor.
+      if ((br + bc) % 2 === 0) return false;
+      return !(r % 4 < 2 && c % 4 < 2);
+    },
+    // Kat sayısı blok blok: her blok kendi yüksekliğinde, içinde düz.
+    // Küpün anlamı bu — blok bir **birim**, hücre değil.
+    stack: (r, c) => {
+      const br = Math.floor(r / 4), bc = Math.floor(c / 4);
+      return 1 + Math.round(blob(br * 4, bc * 4, 0.5, 131) * 3);
+    },
+    // Renk de blok blok: `blockType` tam bunun için var.
+    type: (r, c) => blockType(r, c, 4, 4, 137),
+    big: (r, c) => (Math.floor(r / 4) + Math.floor(c / 4)) % 5 === 0 && r % 4 === 0 && c % 4 === 0,
+  },
+  {
     name: 'Crown', icon: '👑', theme: 'ucl',
     empty: (r, c) => {
       const { ny } = shapeCoords(r, c);
