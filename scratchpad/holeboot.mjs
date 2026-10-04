@@ -136,16 +136,23 @@ console.log('\n--- oynanırken ---');
   });
   await pg.goto('http://localhost:8276/', { waitUntil: 'load' });
   await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 40000 });
-  // Bütün ilk tur: kırk sekiz bölüm, kırk sekiz yer. Nesneler temaya göre
-  // değişiyor, yani hatayı bulmak için çok sayıda tahta gerekiyor — biri
-  // yetmiyordu.
+  // Bütün ilk tur: her düzen, her yer. Nesneler temaya göre değişiyor, yani
+  // hatayı bulmak için çok sayıda tahta gerekiyor — biri yetmiyordu.
+  //
+  // Bölüm sayısı **oyundan** okunuyor, elle yazılmıyor. Burada `48` yazılıydı
+  // ve düzen sayısı elli dörde çıkınca test yeni altı düzenin hiçbirini
+  // oynamadı — ama satırı yine "kırk sekiz bölümün hepsi geçti" diyordu, yani
+  // geniş ağın deliği tam olarak yeni eklenen yerin üstündeydi. Bu dosyanın
+  // kendi hata sınıfı: bir yerde yazılı bir sayı, değişen bir gerçek, ve
+  // ikisini karşılaştıran kimse yok.
   //
   // Kare sayısı altmış: konteynerde her kare gerçek bir çizim ve yüz kare ×
   // altmış bölüm testi on dakikanın üstüne çıkarıyordu. Asıl kök neden zaten
   // `holetheme.mjs`'de doğrudan ölçülüyor (her nesnenin para birimi); burası
   // geniş ağ.
+  const TUR = await pg.evaluate(() => window.fruitHoleThemeTable().order.length);
   const bozuk = [];
-  for (let lvl = 1; lvl <= 48; lvl++) {
+  for (let lvl = 1; lvl <= TUR; lvl++) {
     const r = await pg.evaluate(l => {
       window.__kareHata.length = 0;
       window.fruitHoleProbe(l);
@@ -162,7 +169,7 @@ console.log('\n--- oynanırken ---');
     }, lvl);
     if (r.hata) bozuk.push(`${lvl}: ${r.hata}`);
   }
-  console.log(`  ${bozuk.length ? 'FAIL' : 'OK  '} kırk sekiz bölümün hepsi oynanırken hata atmıyor` +
+  console.log(`  ${bozuk.length ? 'FAIL' : 'OK  '} ${TUR} bölümün hepsi oynanırken hata atmıyor` +
     (bozuk.length ? `   ${bozuk.slice(0, 3).join(' · ')}` : ''));
   for (const b of bozuk) fails.push(`oynanırken patladı — ${b}`);
   await ctx.close();
