@@ -280,3 +280,39 @@ algoritmasını görmüyor), kaya payının yarıya inmesi (aynı şeyin içi),
 mayın saatindeki yorum düzeltmesi (davranış değişmedi, yalnızca yanlış
 yazılmış bir sayı düzeldi), ve klip aracının tamamı. Bu kutu oyuncunun
 gördüğü şeyi yazıyor.
+
+---
+
+## 46 (1.13)
+
+```
+The camera sits closer now, so everything on the board reads at its proper size.
+
+- Towers of stacked objects, and landmarks too big to swallow until you have grown into them
+- Big fruit no longer overlaps, so a board reads as laid out rather than poured
+- Eleven new layouts and five new places: a comic rooftop, a cube world, a pit lane, an arcade, a drop zone
+- Every level opens by showing you the whole board
+- An arrow points to the giants you still have to find
+- Fixes for the blank screen that could follow an ad
+```
+
+426 karakter (sınır 500).
+
+Sürüm adı (yalnızca panoda görünür): `46 (1.13)`
+
+Bu not 45'ten iki yerde ayrılıyor.
+
+Birincisi uzunluğu. 45 tek maddeydi çünkü oyuncunun gördüğü tek değişiklik
+vardı. 46'da altı tane var ve altısı da ekranda duruyor — kamera mesafesi,
+kuleler, anıtlar, çakışmanın bitmesi, on bir düzen, bölüm açılışı. Liste
+uzunsa sebebi listeyi uzatmak değil, sürümün uzun olması.
+
+İkincisi ilk satır. Kamera mesafesi başa alındı çünkü oyunu açan birinin
+**ilk saniyede** fark edeceği tek şey o: tahta aynı tahta, ekran yakın.
+Öteki beş madde oynadıkça çıkıyor.
+
+Nota **girmeyenler**: iri parçaların dama ızgarasına oturması (oyuncu
+kuralı değil sonucunu görüyor — "çakışma bitti" maddesi o), tür desenleri
+(şerit, dama, halka — tahtaların tek renk görünmemesinin sebebi ama
+oyuncunun okuyacağı bir cümle değil), boy merdiveninin basamakları,
+`HIDDEN_SHAPES` bekçisi, ve bütün ölçüm betikleri.
