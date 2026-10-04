@@ -12003,6 +12003,136 @@ function propTemplates() {
     T.cubespider = { g, h: 0.5, currency: 'berry' };
   }
 
+  // --- yarış pisti -----------------------------------------------------
+
+  // Lastik yığını: üç lastik üst üste, en üstte beyaz şerit.
+  {
+    const g = new THREE.Group();
+    const kara = PROP_MAT('#26282c', 0.78);
+    for (let i = 0; i < 3; i++)
+      put(g, new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.12, 8, 16), kara), 0, 0.14 + i * 0.26, 0, Math.PI / 2);
+    put(g, new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.125, 8, 16), PROP_MAT('#e8e4da', 0.5)),
+        0, 0.66, 0, Math.PI / 2);
+    T.tyrestack = { g, h: 0.85, currency: 'berry' };
+  }
+
+  // Damalı bayrak: direk ve dalgalı bez. Bezin dalgası düz bir dikdörtgenden
+  // ayıran tek şey — düz olunca tabela gibi duruyor.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 1.3, 7), PROP_MAT('#8d939b', 0.4)), 0, 0.65, 0);
+    const bez = new THREE.Group();
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 3; j++) {
+        const kare = new THREE.Mesh(bevelBox(0.14, 0.14, 0.02, 0.01),
+          PROP_MAT((i + j) % 2 === 0 ? '#1b1d21' : '#f0ece2', 0.42));
+        // Dalga: x arttıkça z salınıyor.
+        put(bez, kare, 0.1 + i * 0.14, 0.98 + j * 0.14, Math.sin(i * 1.1) * 0.06);
+      }
+    }
+    g.add(bez);
+    T.chequerflag = { g, h: 1.45, currency: 'lychee' };
+  }
+
+  // Pit tabelası: direkli pano, üstünde bir rakam yok — rakam bir takımın
+  // olurdu, pano herkesin.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.045, 0.9, 7), PROP_MAT('#6f757d', 0.45)), 0, 0.45, 0);
+    put(g, new THREE.Mesh(bevelBox(0.56, 0.4, 0.06, 0.03), PROP_MAT('#2b2f36', 0.4)), 0, 1.06, 0);
+    for (const y of [1.16, 1.0])
+      put(g, new THREE.Mesh(bevelBox(0.42, 0.1, 0.02, 0.01), PROP_MAT('#f2c53d', 0.4)), 0, y, 0.04);
+    T.pitboard = { g, h: 1.3, currency: 'banana' };
+  }
+
+  // --- atari salonu ----------------------------------------------------
+
+  // Jetonlu makine: dik kasa, eğik ekran, iki düğme.
+  {
+    const g = new THREE.Group();
+    const kasa = PROP_MAT('#2a2250', 0.42);
+    put(g, new THREE.Mesh(bevelBox(0.62, 1.2, 0.5, 0.05), kasa), 0, 0.6, 0);
+    const ekran = new THREE.MeshStandardMaterial({ color: '#0b1030', roughness: 0.2,
+      emissive: '#2de2e6', emissiveIntensity: 0.5 });
+    put(g, new THREE.Mesh(new THREE.PlaneGeometry(0.44, 0.34), ekran), 0, 0.92, 0.26, -0.35, 0, 0);
+    // Üst tabela: salonun karanlığında makineyi gösteren şey.
+    put(g, new THREE.Mesh(bevelBox(0.58, 0.22, 0.1, 0.03),
+      new THREE.MeshStandardMaterial({ color: '#ff3d7f', roughness: 0.35,
+        emissive: '#ff3d7f', emissiveIntensity: 0.55 })), 0, 1.3, 0.04);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 10),
+        PROP_MAT(sx < 0 ? '#ffd23f' : '#06d6a0', 0.35)), sx * 0.13, 0.63, 0.22);
+    T.cabinet = { g, h: 1.45, currency: 'melon', only: 'giant' };
+  }
+
+  // Joystick: taban, çubuk, top.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(bevelBox(0.4, 0.1, 0.34, 0.03), PROP_MAT('#1f2436', 0.42)), 0, 0.05, 0);
+    put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.3, 8), PROP_MAT('#9aa3ad', 0.35)), 0, 0.24, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), PROP_MAT('#e8453c', 0.3)), 0, 0.44, 0);
+    T.joystick = { g, h: 0.55, currency: 'berry' };
+  }
+
+  // Piksel hayalet: küp gövde, altı dalgalı etek. Hiçbir oyunun hayaleti
+  // değil — hayalet hayalettir, ve bu türün yeri atari salonu.
+  {
+    const g = new THREE.Group();
+    const mor = PROP_MAT('#9b5de5', 0.4);
+    put(g, new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.4, 0.4), mor), 0, 0.42, 0);
+    put(g, new THREE.Mesh(new THREE.SphereGeometry(0.23, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), mor), 0, 0.62, 0);
+    // Etek: üç küçük kutu, alt kenarı tırtıklı yapan şey.
+    for (const sx of [-0.15, 0, 0.15])
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.12, 0.4), mor), sx, 0.16, 0);
+    const ak = PROP_MAT('#f4f6ff', 0.3);
+    for (const sx of [-1, 1]) {
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.12, 0.04), ak), sx * 0.1, 0.52, 0.21);
+      put(g, new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.03), PROP_MAT('#1b1f3a', 0.3)), sx * 0.1, 0.52, 0.24);
+    }
+    T.pixelghost = { g, h: 0.75, currency: 'lychee' };
+  }
+
+  // --- ada --------------------------------------------------------------
+
+  // Ganimet kasası: ahşap sandık, üstünde ışıklı şerit.
+  {
+    const g = new THREE.Group();
+    put(g, new THREE.Mesh(bevelBox(0.66, 0.44, 0.48, 0.04), PROP_MAT('#8a6b3f', 0.6)), 0, 0.22, 0);
+    put(g, new THREE.Mesh(bevelBox(0.68, 0.1, 0.5, 0.03),
+      new THREE.MeshStandardMaterial({ color: '#ffd166', roughness: 0.3,
+        emissive: '#f2a93b', emissiveIntensity: 0.5 })), 0, 0.48, 0);
+    for (const sx of [-1, 1])
+      put(g, new THREE.Mesh(bevelBox(0.06, 0.44, 0.5, 0.02), PROP_MAT('#5c4426', 0.6)), sx * 0.28, 0.22, 0);
+    T.lootcrate = { g, h: 0.6, currency: 'melon' };
+  }
+
+  // Paraşüt: kubbe ve ipler. Yere inmiş hâli — kubbe bir yana yatmış.
+  {
+    const g = new THREE.Group();
+    const kubbe = new THREE.Mesh(
+      new THREE.SphereGeometry(0.52, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2),
+      PROP_MAT('#e6e9ef', 0.55));
+    put(g, kubbe, 0, 0.5, -0.1, 0.35, 0, 0);
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]])
+      put(g, new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.5, 4),
+        PROP_MAT('#b9bec8', 0.5)), sx * 0.26, 0.26, 0.18 + sz * 0.06, 0.4, 0, sx * 0.2);
+    put(g, new THREE.Mesh(bevelBox(0.3, 0.2, 0.22, 0.03), PROP_MAT('#4b5563', 0.5)), 0, 0.1, 0.3);
+    T.parachute = { g, h: 0.9, currency: 'banana', only: 'giant' };
+  }
+
+  // Sandık değil **kasa**: istiflenmiş iki tahta kutu.
+  {
+    const g = new THREE.Group();
+    const tahta = PROP_MAT('#a87a44', 0.65);
+    const cita = PROP_MAT('#7d5730', 0.65);
+    put(g, new THREE.Mesh(bevelBox(0.5, 0.46, 0.5, 0.03), tahta), 0, 0.23, 0);
+    put(g, new THREE.Mesh(bevelBox(0.38, 0.34, 0.38, 0.03), tahta), 0.06, 0.63, -0.04);
+    for (const y of [0.23, 0.63])
+      put(g, new THREE.Mesh(bevelBox(y > 0.4 ? 0.4 : 0.52, 0.05, y > 0.4 ? 0.4 : 0.52, 0.01), cita),
+          y > 0.4 ? 0.06 : 0, y, y > 0.4 ? -0.04 : 0);
+    T.supplybox = { g, h: 0.85, currency: 'berry' };
+  }
+
   return T;
 }
 
@@ -14854,8 +14984,112 @@ function grassblockTexture() {
   return tex;
 }
 
+// Yarış pisti: asfalt, orta çizgi ve kerb.
+//
+// Pistin kimliği asfaltta değil **kenarında**: kırmızı-beyaz kerb olmadan
+// bu sadece koyu bir zemin olur, ve oyunda zaten koyu zeminler var
+// (`asphalt`, `cracktar`). Kerb şeridi bu yüzden dokunun içinde duruyor.
+function racetrackTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#3a3d42';
+  ctx.fillRect(0, 0, S, S);
+  // Asfalt dokusu: ince benek. Düz gri bir zemin ekranda plastik duruyor.
+  for (let i = 0; i < 2600; i++) {
+    ctx.globalAlpha = 0.1 + Math.random() * 0.22;
+    ctx.fillStyle = Math.random() < 0.5 ? '#4a4e55' : '#2c2f34';
+    ctx.fillRect(Math.random() * S, Math.random() * S, 1 + Math.random() * 2, 1 + Math.random() * 2);
+  }
+  ctx.globalAlpha = 1;
+  // Kerb: üstte ve altta kırmızı-beyaz dilimler.
+  for (const y of [0, S - 22]) {
+    for (let x = 0; x < S; x += 22) {
+      ctx.fillStyle = (x / 22) % 2 === 0 ? '#d8403a' : '#f2efe8';
+      ctx.fillRect(x, y, 22, 22);
+    }
+  }
+  // Orta çizgi: kesikli beyaz.
+  ctx.fillStyle = '#eceae2';
+  for (let y = 34; y < S - 34; y += 34) ctx.fillRect(S / 2 - 4, y, 8, 18);
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 3);
+  return tex;
+}
+
+// Atari salonu halısı: koyu zemin, üstünde neon geometri.
+//
+// Seksenlerin atari salonlarında yer hep desenli halıydı ve deseni karanlıkta
+// parlıyordu — zemin, oyunun kendisinden önce gelen şeydi. Burada o: siyaha
+// yakın bir taban ve üstünde zıt renkli üçgen, daire, zikzak.
+function neoncarpetTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#141028';
+  ctx.fillRect(0, 0, S, S);
+  const renk = ['#ff3d7f', '#2de2e6', '#ffd23f', '#9b5de5', '#06d6a0'];
+  // Üçgenler.
+  for (let i = 0; i < 26; i++) {
+    ctx.fillStyle = renk[i % renk.length];
+    ctx.globalAlpha = 0.75;
+    const x = Math.random() * S, y = Math.random() * S, r = 7 + Math.random() * 13;
+    ctx.beginPath();
+    ctx.moveTo(x, y - r); ctx.lineTo(x + r, y + r); ctx.lineTo(x - r, y + r);
+    ctx.closePath(); ctx.fill();
+  }
+  // Daireler ve zikzaklar.
+  for (let i = 0; i < 22; i++) {
+    ctx.strokeStyle = renk[(i + 2) % renk.length];
+    ctx.lineWidth = 2.5; ctx.globalAlpha = 0.7;
+    if (i % 2 === 0) {
+      ctx.beginPath();
+      ctx.arc(Math.random() * S, Math.random() * S, 5 + Math.random() * 11, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      const x = Math.random() * S, y = Math.random() * S;
+      ctx.beginPath(); ctx.moveTo(x, y);
+      for (let k = 1; k <= 4; k++) ctx.lineTo(x + k * 9, y + (k % 2 ? 9 : -9));
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 3);
+  return tex;
+}
+
+// Ada zemini: çimen, üstünde fırtına halkasının kenarı.
+//
+// Halka dokuda duruyor, tahtada değil: oyun alanının daralması bu türün
+// tek kuralı ve onu anlatan şey mor bir sınır. Tahtanın üstüne gerçek bir
+// daralan halka koymak yeni bir mekanik olurdu; burada istenen şey **yer**.
+function stormislandTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#5c8f3e';
+  ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2200; i++) {
+    ctx.globalAlpha = 0.16 + Math.random() * 0.26;
+    ctx.fillStyle = Math.random() < 0.5 ? '#6ea24a' : '#4a7a33';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 2.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // Fırtına kenarı: mor bir yay, iç tarafı parlak.
+  ctx.strokeStyle = '#8b5cf6'; ctx.lineWidth = 9; ctx.globalAlpha = 0.5;
+  ctx.beginPath(); ctx.arc(S * 0.5, S * 0.5, S * 0.42, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = '#c4b5fd'; ctx.lineWidth = 3; ctx.globalAlpha = 0.8;
+  ctx.beginPath(); ctx.arc(S * 0.5, S * 0.5, S * 0.42, 0, Math.PI * 2); ctx.stroke();
+  ctx.globalAlpha = 1;
+  const tex = finishTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 2);
+  return tex;
+}
+
 const GROUND_MAKERS = { sand: groundTexture, blacksand: blackSandTexture,
   halftone: halftoneTexture, grassblock: grassblockTexture,
+  racetrack: racetrackTexture, neoncarpet: neoncarpetTexture,
+  stormisland: stormislandTexture,
   sidewalk: sidewalkTexture, crosswalk: crosswalkTexture,
   plaza: plazaTexture, mosaic: mosaicTexture, neonstreet: neonStreetTexture,
   kilim: kilimTexture, reef: reefTexture, arena: arenaTexture,
@@ -15843,6 +16077,37 @@ const THEMES = {
             // Çatının geri kalanı: şehrin zaten elindeki eşya.
             'hydrant', 'mailbox', 'stringlights', 'tv', 'spotlight'],
     hero: ['watertower', 'phonebox'],
+  },
+  // Yarış pisti.
+  //
+  // Yerin kimliği asfaltta değil kenarında: kırmızı-beyaz kerb olmasa bu
+  // sadece bir koyu zemin olurdu, ve oyunda zaten iki koyu zemin var.
+  circuit: {
+    name: 'Pit Lane', icon: '🏎️',
+    ground: 'racetrack', surround: '#5f7a4a',
+    props: ['tyrestack', 'chequerflag', 'pitboard', 'cone', 'hydrant', 'barricade'],
+    hero: ['chequerflag'],
+  },
+  // Atari salonu.
+  //
+  // Seksenlerin salonlarında yer hep desenli halıydı ve karanlıkta parlardı.
+  // Burada aranan şey o: zemin, makinelerden önce geliyor.
+  arcade: {
+    name: 'Arcade', icon: '🕹️',
+    ground: 'neoncarpet', surround: '#120e24',
+    props: ['cabinet', 'joystick', 'pixelghost', 'tv', 'headphones'],
+    hero: ['cabinet'],
+  },
+  // Ada.
+  //
+  // Fırtına halkası zeminde duruyor, tahtada değil: alanın daralması bu
+  // türün kuralı ama onu gerçekten daraltmak yeni bir mekanik olurdu.
+  // İstenen şey yer, kural değil.
+  island: {
+    name: 'Drop Zone', icon: '🪂',
+    ground: 'stormisland', surround: '#2f6ea8',
+    props: ['lootcrate', 'parachute', 'supplybox', 'oildrum', 'barricade'],
+    hero: ['parachute', 'lootcrate'],
   },
   // Küp dünya.
   //
@@ -18496,6 +18761,98 @@ const PATTERNS = [
     big: (r, c) => blob(r, c, 0.3, 149) > 0.76,
   },
   {
+    // Pist: tahtayı dolanan kapalı bir halka, içi ve dışı boş.
+    //
+    // `Ring` ve `Rings` zaten var ama ikisi de **daire**. Pist daire değil:
+    // iki uzun düzlük, iki uçta viraj, ve bir tarafında daralma — yani
+    // yarışın şekli. Yukarıdan bakınca pist olduğu okunuyor, daire olsaydı
+    // okunmazdı.
+    name: 'Circuit', icon: '🏎️', theme: 'circuit',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      // Yuvarlatılmış dikdörtgen: köşeleri kesen bir norm.
+      const d = Math.pow(Math.abs(nx / 0.62), 3) + Math.pow(Math.abs(ny / 0.78), 3);
+      // Şikan: tahtanın bir yanında şerit daralıyor.
+      const dar = ny > 0.1 && ny < 0.45 && nx > 0 ? 0.16 : 0.26;
+      return Math.abs(Math.pow(d, 1 / 3) - 1) > dar + wob;
+    },
+    stack: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      // Virajlar yüksek, düzlükler alçak: pistin bankingi.
+      return ridge(Math.abs(ny) - 0.3, 3);
+    },
+    type: (r, c) => typeFromNoise(r, c, 0.26, 151),
+    big: (r, c) => blob(r, c, 0.3, 157) > 0.78,
+  },
+  {
+    // Flipper: üstte iki tampon, aşağı doğru daralan bir huni, altta iki
+    // kanat. Pinball masasının yukarıdan görünüşü.
+    name: 'Flipper', icon: '🕹️', theme: 'arcade',
+    empty: (r, c) => {
+      const { nx, ny, wob } = shapeCoords(r, c);
+      // Masa: yukarıda geniş, aşağıda dar.
+      const en = 0.86 - Math.max(0, ny) * 0.5;
+      if (Math.abs(nx) > en + wob) return true;
+      // İki tampon: üst yarıda iki daire, içleri boş kalıyor çünkü
+      // tampona çarpılır, üstünden geçilmez.
+      for (const tx of [-0.38, 0.38])
+        if (Math.hypot(nx - tx, (ny + 0.5) * 1.1) < 0.17) return true;
+      // Kanatlar: en altta iki eğik boşluk, aralarında drenaj.
+      if (ny > 0.62 && Math.abs(nx) < 0.18) return true;
+      return false;
+    },
+    stack: (r, c) => {
+      const { ny } = shapeCoords(r, c);
+      return ridge(0.5 - Math.abs(ny), 3);
+    },
+    type: (r, c) => typeFromNoise(r, c, 0.3, 163),
+    big: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      return Math.min(Math.hypot(nx + 0.38, (ny + 0.5) * 1.1),
+                      Math.hypot(nx - 0.38, (ny + 0.5) * 1.1)) < 0.3;
+    },
+  },
+  {
+    // Bölge: iç içe iki halka ve ortada bir ada — fırtınanın daralması.
+    //
+    // `Rings` da halka ama orada halkalar eş aralıklı ve tahtayı dolduruyor;
+    // burada iki halka var ve aralarındaki **boşluk** geniş, yani oyuncu
+    // halkadan halkaya geçerken boş yer kat ediyor. Türü anlatan şey o
+    // boşluk.
+    name: 'Zone', icon: '🪂', theme: 'island',
+    // Mesafe **hücre biriminde** ölçülüyor, normalize koordinatta değil.
+    //
+    // İlk yazışta `shapeCoords`un nx/ny'siyle ölçülüyordu ve harita
+    // (`holemap`) bulamaç gösterdi: tahta on üç sütun, otuz üç satır, yani
+    // normalize uzayda daire olan şey ekranda çok uzun bir elips — halkalar
+    // halka değil enine bant olarak okunuyordu. Oyunun kendi halka düzeni
+    // (`smallRingAt`) bunu zaten biliyor ve hücre uzayında ölçüyor.
+    empty: (r, c) => {
+      const d = Math.hypot(c - midCol(), r - midRow());
+      const w = (blob(r, c, 0.45, 171) - 0.5) * 1.2;
+      if (d < 1.7 + w) return false;                     // merkez ada
+      if (Math.abs(d - 4.3) < 0.95 + w) return false;    // iç halka
+      // Dış halka tahtanın eninden geniş: yanlardan kesiliyor ve üstte
+      // altta iki yay olarak çıkıyor. Bilerek — fırtına ekrandan büyük.
+      if (Math.abs(d - 7.8) < 1.0 + w) return false;
+      // Dördüncü halka tahtanın uçlarını dolduruyor.
+      //
+      // Üç halkayla tahtanın otuz üç satırının on dördü bomboş kalıyordu —
+      // ölçülmüş bir sorun: seyrek tahta "sade" okunuyor (Wave %22 doluluk).
+      // Bu halka yalnızca üstte ve altta görünüyor, yanlardan tamamen
+      // kesiliyor, yani tahtanın ucunda bir yay olarak duruyor.
+      if (Math.abs(d - 11.6) < 1.1 + w) return false;
+      return true;
+    },
+    stack: (r, c) => {
+      const d = Math.hypot(c - midCol(), r - midRow());
+      // Merkez en yüksek: daralmanın bittiği yer.
+      return ridge(1 - d / 8, 3);
+    },
+    type: (r, c) => typeFromNoise(r, c, 0.24, 167),
+    big: (r, c) => Math.hypot(shapeCoords(r, c).nx, shapeCoords(r, c).ny * 0.82) < 0.2,
+  },
+  {
     name: 'Crown', icon: '👑', theme: 'ucl',
     empty: (r, c) => {
       const { ny } = shapeCoords(r, c);
@@ -18586,16 +18943,16 @@ const PATTERNS = [
 // düşen eski düzen yalnızca iki oluyor — Spiral ile Walls.
 const LEVEL_ORDER = [
   'Pyramid', 'Chevrons', 'Island', 'Orbits', 'Pillars',
-  'Lattice', 'Wave', 'Bubbles', 'Crown', 'Rings',
-  'Hopscotch', 'Blast', 'Checkers', 'Piles', 'Ribs',
-  'Blocks', 'Ladder', 'Stairs', 'Heart', 'Keep',
-  'Whirl', 'Arrow', 'House', 'Orchard', 'Cubes',
-  'Star', 'Horseshoe', 'Ring', 'Crescent', 'Diamond',
-  'Maze', 'Anchor', 'Comb', 'Crack', 'Lens',
-  'Onion', 'Gate', 'Bloom', 'Patches', 'Cogs',
-  'Ballcourt', 'Bolt', 'Track', 'Condor', 'Boomerang',
-  'Hourglass', 'Key', 'Cross', 'Spiral', 'Dial',
-  'Walls',
+  'Lattice', 'Wave', 'Circuit', 'Bubbles', 'Crown',
+  'Rings', 'Hopscotch', 'Blast', 'Checkers', 'Flipper',
+  'Piles', 'Ribs', 'Blocks', 'Ladder', 'Stairs',
+  'Heart', 'Zone', 'Keep', 'Whirl', 'Arrow',
+  'House', 'Orchard', 'Cubes', 'Star', 'Horseshoe',
+  'Ring', 'Crescent', 'Diamond', 'Maze', 'Anchor',
+  'Comb', 'Crack', 'Lens', 'Onion', 'Gate',
+  'Bloom', 'Patches', 'Cogs', 'Bolt', 'Ballcourt',
+  'Track', 'Condor', 'Boomerang', 'Hourglass', 'Key',
+  'Cross', 'Spiral', 'Dial', 'Walls',
 ];
 // Altı yeni düzenin hiçbiri resim (3, 13, 23, 33), şerit (6, 16, 26, 36) ya
 // da bulmaca (18, 28, 38) bölümüne denk gelmiyor. O üçü tahtayı bölüm
