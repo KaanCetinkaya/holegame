@@ -18043,7 +18043,10 @@ const PATTERNS = [
       const arm = Math.round((turn - ring * 0.045) * 3);
       return ID[((arm % ID.length) + ID.length) % ID.length];
     },
-    stack: (ring) => 1 + (ring % 5 === 0 ? 2 : 0),
+    // Girdabın kolları: beşte bir halka yüksek, kalanlar da düz değil.
+    // Düzken ekranın %81'i tek yükseklikteydi ve girdap düz bir spiral
+    // çizgisi oluyordu.
+    stack: (ring) => 1 + (ring % 5 === 0 ? 2 : ring % 2),
     // Altı halkada bir yerine dörtte bir.
     //
     // Whirl yeni düzenler araya girince 15. bölümden 18'e kaydı ve tahta
@@ -18619,7 +18622,10 @@ const PATTERNS = [
     type: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
       // Halka tek renk, sap bantlı, dişler dama. Sap ekranın %64'üydü.
-      if (Math.hypot(nx, (ny + 0.6) * 0.95) < 0.55) return ID[2 % ID.length];
+      // Halkanın kendisi de bantlı: tek renkken ekranın %69'u oydu.
+      if (Math.hypot(nx, (ny + 0.6) * 0.95) < 0.55) {
+        return halkaTip(r, c, 2, [ID[2 % ID.length], ID[1 % ID.length]]);
+      }
       if (nx > 0.14) return damaTip(r, c, 2, ID[3 % ID.length], ID[0]);
       return seritTip(r, c, 2, [ID[1 % ID.length], ID[2 % ID.length]]);
     },
@@ -18776,7 +18782,11 @@ const PATTERNS = [
       const bant = Math.floor(r / 3) % 2;
       return bant ? c < 2 : c > COLS - 3;
     },
-    stack: () => 2,
+    // Labirentin duvarları: blok blok yükseliyor. Hepsi 2 kattı ve
+    // yukarıdan bakınca duvar ile koridor aynı şeydi — ekranın %90'ı tek
+    // yükseklik. Blok ölçüsü `type` ile aynı (2x3), yani renk ve yükseklik
+    // aynı duvarı gösteriyor.
+    stack: (r, c) => 1 + ((Math.floor(r / 3) + Math.floor(c / 2)) % 3),
     type: (r, c) => blockType(r, c, 2, 3, 79),
     big: (r, c) => r % 6 === 2 && c % 5 === 2,
   },
@@ -19034,7 +19044,14 @@ const PATTERNS = [
       const tepe = mazgal ? -0.85 : -0.5;
       return ny < tepe;
     },
-    stack: (r, c) => (shapeCoords(r, c).ny < -0.4 ? 3 : 1),
+    // Tacın uçları: taban düz, uçlar sivriliyor. İki değer vardı (3 ve 1)
+    // ve tabanın tamamı 1'di — ekranın %84'ü. Uçlar artık tek tek farklı
+    // yükseklikte, taban da sütun sütun dalgalanıyor.
+    stack: (r, c) => {
+      const { nx, ny } = shapeCoords(r, c);
+      if (ny < -0.4) return 3 + (Math.abs(Math.round(nx * 6)) % 3);
+      return 1 + (Math.abs(Math.round(nx * 5)) % 2);
+    },
     type: (r, c) => typeFromNoise(r, c, 0.24, 83),
     big: (r, c) => shapeCoords(r, c).ny > 0.4 && blob(r, c, 0.3, 89) > 0.7,
   },
@@ -19075,7 +19092,10 @@ const PATTERNS = [
     // boşluk kalmıyordu — hedef tahtasının çizgileri ince, arası geniştir.
     // 67. bölümde 528 parça.
     empty: (ring) => Math.floor(ring) % 3 !== 0,
-    stack: () => 2,
+    // Kadranın halkaları: içe doğru yükseliyor, ve her üçüncü halka bir
+    // basamak. Hepsi 2 kattı, yani ekranın %90'ı aynı yükseklikte — kadran
+    // değil düz bir disk. Yükseklik, halkaların birbirinden ayrılma yolu.
+    stack: (ring) => 1 + (Math.floor(ring) % 3 === 0 ? 2 : Math.floor(ring) % 3),
     type: (ring) => ID[Math.floor(ring / 3) % ID.length],
     big: (ring, turn) => Math.floor(ring) % 3 === 1
       && Math.abs(Math.sin(turn * Math.PI * 6)) > 0.95,

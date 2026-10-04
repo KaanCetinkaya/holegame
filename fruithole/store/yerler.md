@@ -40,7 +40,7 @@ Bu dosya elle yazılmıyor: `node scratchpad/holeliste.mjs` üretiyor.
 | **26** | 74 | 🏡 Suburb Night | banliyö gecesi — BMX, ampul dizisi, bal kabağı, posta kutusu, biçilmiş çim |
 | **27** | 75 | 🟩 Cube World | küp dünya — kazma, meşale, sandık, küp örümcek, blok çim |
 | **28** | 76 | 🌳 Harvest | hasat — saman balyası, tavuk, yumurta, sürülmüş toprak |
-| **29** | 77 | 🛣️ Everything | **açıklama eksik** |
+| **29** | 77 | 🛣️ Everything | her şey — havuzun tamamından nesneler, kumsal zemini |
 | **30** | 78 | ⭐ Fiesta | Meksika — sombrero, marakas, kaktüs, piñata, talavera çini |
 | **31** | 79 | 🧲 Frontier | Vahşi Batı — at arabası, boğa kafatası, şerif yıldızı, kurak toprak |
 | **32** | 80 | 🎯 The Arena | Kolezyum — miğfer, kalkan, sütun, defne, arena kumu |

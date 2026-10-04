@@ -97,14 +97,16 @@ for (const lv of LV) {
     window.fruitHoleStartLevel();
     const ad = window.fruitHoleLevelName();
     const kind = window.fruitHoleProbe(l).kind;
+    const t = window.fruitHoleThemeTable();
+    const kutupsal = t.polar.includes(ad);
     const o = window.fruitHoleBoardCells();
     window.fruitHoleUnseedField();
-    return { ad, kind, ...o };
+    return { ad, kind, kutupsal, ...o };
   }, lv);
   const p = pencereler(b, W, D);
   if (!p.length) { console.log(`  ${String(lv).padStart(3)}  ${b.ad.padEnd(12)}  — pencere sığmıyor`); continue; }
   const s = {
-    lv, ad: b.ad, kind: b.kind,
+    lv, ad: b.ad, kind: b.kind, kutupsal: b.kutupsal,
     tur: ort(p.map(x => x.tur)), turPay: ort(p.map(x => x.turPay)),
     kat: ort(p.map(x => x.katSayi)), katPay: ort(p.map(x => x.katPay)),
     iri: ort(p.map(x => x.iri)),
@@ -139,7 +141,16 @@ console.log(`  ${kotu.length ? 'FAIL' : 'OK  '} ${izgara.length - kotu.length} /
 //
 // Eşik %75: ölçülen otuz üç tahtanın ortalaması %50, yani çoğu zaten
 // altında. Üstünde kalan, tek katlı bir zemine birkaç kule serpilmiş olan.
-const duz = izgara.filter(x => x.katPay > 0.75);
+// Kutupsal düzenler yükseklik eşiğinin dışında — ölçü orada başka bir şeyi
+// sayıyor.
+//
+// Kat sayısı, aynı ızgara hücresine düşen parça sayısından çıkıyor. Kutupsal
+// bir tahtada parçalar ızgaraya göre değil halkalara göre diziliyor: iki
+// komşu halka parçası aynı hücreye düşebiliyor, bir hücre bomboş
+// kalabiliyor. Yani orada ölçülen şey yığının yüksekliği değil, halkaların
+// ızgarayla çakışma biçimi. Dial'in %93'ü bu — `stack` fonksiyonu üç ayrı
+// yükseklik veriyor ve ölçü onu görmüyor.
+const duz = izgara.filter(x => !x.kutupsal && x.katPay > 0.75);
 console.log('\nekranda düzlük — en çok kat sayısı %75 üstü:');
 for (const x of duz.sort((a, b) => b.katPay - a.katPay)) {
   console.log(`  ${String(x.lv).padStart(3)}  ${x.ad.padEnd(12)}  ${x.kat.toFixed(1)} ayrı kat, en çoğu %${Math.round(x.katPay * 100)}`);
