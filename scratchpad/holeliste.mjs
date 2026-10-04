@@ -91,6 +91,14 @@ await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { ti
 
 const tbl = await pg.evaluate(() => window.fruitHoleThemeTable());
 const TUR = tbl.order.length;
+// Tur kayması oyundan okunuyor, buraya yazılmıyor.
+const KAY = await pg.evaluate(() => {
+  // patternForLevel'in kaymasını geri çöz: 2. turun ilk bölümünde hangi
+  // düzen var?
+  const n = window.fruitHoleThemeTable().order.length + 1;
+  window.fruitHoleProbe(n);
+  return window.fruitHoleThemeTable().order.indexOf(window.fruitHoleLevelName());
+});
 const adlar = Object.fromEntries(tbl.themes.map(t => [t.id, t.name]));
 
 // Her düzenin kendi teması var; yerin adı ve rozeti oradan geliyor.
@@ -129,8 +137,9 @@ devam ettiği için engeller ve saat değişiyor: 2. turda her tahta kendi
 engel çiftini alıyor (1. turda eşikler henüz geçilmemiş olabiliyor) ve
 saat tur tur sıkılaşıyor.
 
-Yani **bölüm ${TUR + 1} = 1. düzen, ama 1. bölüm değil.** 2. tur için bölüm
-numarasına ${TUR} ekle (bölüm 11 → ${11 + TUR}), 3. tur için ${TUR * 2}.
+Yani **bölüm ${TUR + 1} = 1. düzen değil.** Oyun her turda sırayı ${KAY} adım
+ötelliyor, bu yüzden ikinci turun ilk bölümü listenin ${KAY + 1}. düzeni oluyor.
+Hangi yerin ikinci turda hangi bölümde çıktığı yerler.md'de yazılı.
 
 Engeller tohuma göre biraz değişir — bu liste tek bir tohumun ölçümü.
 Eşikler sabit: bomba 7, kaya 9, diken 12, mancınık 20, silindir 24,
@@ -146,10 +155,20 @@ for (const s of satir) {
   b += `| **${s.lv}** | ${adlar[s.tema]} | ${s.pattern} | ${tahta} | ${s.fruit} | ${s.dev} | ${Math.round(s.seconds)}s | ${s.engel.join(', ') || '—'} |\n`;
 }
 
+// İkinci turda aynı yer hangi bölümde?
+//
+// "Bölüm numarasına ${TUR} ekle" diye yazıyordu ve yanlıştı. Oyun turdan
+// tura sırayı kaydırıyor (`TIER_SHIFT`), yani 55. bölüm 1. düzen değil.
+// Kaymayı oyunun kendi formülünden geri çözüyor: t. turda i. düzen
+// (n-1 + t*KAY) % TUR === i olan n'de çıkıyor.
+const ikinciTur = (i) => ((i - KAY + TUR * 2) % TUR) + TUR + 1;
+
 let y = `# Hangi bölümde hangi yer
 
-${TUR} yer, ${TUR} bölüm, sonra baştan. **İkinci tur için bölüm numarasına ${TUR}
-ekle** (Kapalıçarşı bölüm ${satir.find(s => adlar[s.tema] === 'Grand Bazaar').lv} → ${satir.find(s => adlar[s.tema] === 'Grand Bazaar').lv + TUR}), üçüncü tur için ${TUR * 2}.
+${TUR} yer, ${TUR} bölüm, sonra baştan — ama **sıra her turda kayıyor**, o
+yüzden ikinci tur bölüm numarasına ${TUR} eklemek değil. Oyun her turda
+sırayı ${KAY} adım ötelliyor, yani aynı yer ikinci turda başka bir numarada
+çıkıyor. Aşağıdaki sütun o numarayı veriyor.
 
 Yerin adı bölüm başında rozette yazıyor, ve bölüm başlarken kamera bütün
 tahtayı gösteriyor — zemin ve nesneler orada görünüyor.
@@ -161,7 +180,7 @@ Bu dosya elle yazılmıyor: \`node scratchpad/holeliste.mjs\` üretiyor.
 `;
 for (const s of satir) {
   const ad = adlar[s.tema];
-  y += `| **${s.lv}** | ${s.lv + TUR} | ${s.ikon} ${ad} | ${NE_VAR[ad] || '**açıklama eksik**'} |\n`;
+  y += `| **${s.lv}** | ${ikinciTur(s.lv - 1)} | ${s.ikon} ${ad} | ${NE_VAR[ad] || '**açıklama eksik**'} |\n`;
 }
 
 // Dosyaya doğrudan yazıyor, araya bir dosya koymuyor.

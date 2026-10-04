@@ -17244,6 +17244,50 @@ function blockType(r, c, bw, bh, seed) {
   return typeFromNoise(Math.floor(r / bh) * bh, Math.floor(c / bw) * bw, 0.45, seed);
 }
 
+// ---------------------------------------------------------------------
+// Ekran ölçeğinde tür deseni
+//
+// Bir tahtayı "şekilli" yapan şey tahtanın tamamındaki silueti değil, bir
+// **ekranda** görünen kadarındaki düzen. Ölçüldü (scratchpad/holeekran.mjs):
+// oyun kamerası tahtanın %68'ini görüyor, yani siluet aslında ekranda — ama
+// dokuz tahtada ekrandaki parçaların %60'tan fazlası tek bir meyve, Bolt'ta
+// %100. Yani silueti çiziyoruz, oyuncu tek renk bir kütle görüyor.
+//
+// Sebebi: tür fonksiyonlarının çoğu tahtayı iki üç **bölgeye** ayırıyor
+// (üstü şu, altı bu). Bölge ekrandan büyük olunca ekranda tek bölge kalıyor.
+// Aşağıdakiler türü bölgeyle değil **hücre aralığıyla** değiştiriyor: aralık
+// birkaç hücre olunca desen her ekranda birkaç kez tekrarlanıyor ve
+// düzen olarak okunuyor.
+//
+// Kaan'ın 107. bölümden attığı görüntü tam bunu söylüyordu: "toplu
+// dizilimleri biraz daha şekilli dizmemiz gerekiyo".
+
+// Şerit: verilen yöne dik bantlar. `yon` 0 yatay, 1 dikey, 2 çapraz.
+function seritTip(r, c, en, dizi, yon = 0) {
+  const t = yon === 1 ? c : yon === 2 ? r + c : r;
+  return dizi[Math.floor(t / en) % dizi.length];
+}
+
+// Dama: `en` x `en` hücrelik kareler, iki tür dönüşümlü.
+function damaTip(r, c, en, a, b) {
+  return (Math.floor(r / en) + Math.floor(c / en)) % 2 ? b : a;
+}
+
+// Benek: düzenli aralıklarla tek hücrelik başka bir tür. Aralık dörtten
+// büyük olunca ekranda benek sayılmayacak kadar seyrek kalıyor.
+function benekTip(r, c, aralik, ana, benek) {
+  return (r % aralik === 0 && c % aralik === 0) ? benek : ana;
+}
+
+// Halka: bir merkezden hücre cinsinden eş uzaklıktaki bantlar. Ölçü hücre
+// cinsinden, normalleştirilmiş koordinatta değil — 13x33'lük bir tahtada
+// normalleştirilmiş daire uzun bir elips oluyor (`smallRingAt` bunu zaten
+// böyle yapıyor).
+function halkaTip(r, c, en, dizi) {
+  const d = Math.hypot(c - midCol(), r - midRow());
+  return dizi[Math.floor(d / en) % dizi.length];
+}
+
 // Quantising a coordinate before a shape test turns a smooth outline into
 // a staircase, which is how a dense field of boxes actually ends.
 function stepped(v, size) { return Math.floor(v / size) * size; }
@@ -17722,7 +17766,13 @@ const PATTERNS = [
     props: 0.05,
     empty: (r, c) => ladderAt(r, c) === null,
     // Dikmeler bir meyve, raflar başka: iskeletin iki parçası ayrılsın.
-    type: (r, c) => { const k = ladderAt(r, c); return k && k.part === 0 ? ID[2] : ID[0]; },
+    // Dikmeler tek renk, raflar sırayla: rafların hepsi aynı renkken ekranın
+    // %58'i tek meyveydi ve merdiven bir ızgaraya dönüyordu.
+    type: (r, c) => { const k = ladderAt(r, c);
+      if (!k) return ID[0];
+      // Dikmeler de iki renkli: tek renkken ekranın %60'ı onlardı.
+      return k.part === 0 ? seritTip(r, c, 4, [ID[2], ID[3 % ID.length]])
+        : seritTip(r, c, LADDER_STEP, [ID[0], ID[1 % ID.length], ID[3 % ID.length]]); },
     // Dikmeler yüksek, raflar alçak. Eşit yükseklikte ikisi tek bir ızgara
     // oluyor ve hangisinin taşıyıcı olduğu kayboluyor.
     stack: (r, c) => { const k = ladderAt(r, c);
@@ -17743,7 +17793,8 @@ const PATTERNS = [
       const { nx, ny } = shapeCoords(r, c);
       return ridge(1 - Math.hypot(nx * 1.1, (ny + 0.15) * 1.5), 3);
     },
-    type: (r, c) => typeFromNoise(r, c, 0.22, 61),
+    // Ölçek 0.22'den 0.6'ya: aynı sebep, gürültü lekesi ekrandan büyüktü.
+    type: (r, c) => typeFromNoise(r, c, 0.6, 61),
     big: (r, c) => blob(r, c, 0.4, 12) > 0.74,
   },
   {
@@ -18071,7 +18122,11 @@ const PATTERNS = [
       const { nx, ny } = shapeCoords(r, c);
       const a = Math.atan2(ny + 0.18, nx);
       const civi = Math.abs(Math.sin(a * 5)) > 0.93;
-      return civi ? ID[2 % ID.length] : ID[1 % ID.length];
+      // Çiviler ayrı renk, yayın kendisi iki şeritli demir. Tek renkken
+      // ekranın %67'si tek meyveydi: çiviler bir ekranda ancak bir iki tane
+      // düşüyor, yani rengi tek başına onlar taşıyamıyor.
+      return civi ? ID[2 % ID.length]
+        : halkaTip(r, c, 2, [ID[1 % ID.length], ID[0]]);
     },
     big: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -18152,10 +18207,12 @@ const PATTERNS = [
       return ny > 0.7 ? 1 : 2;
     },
     type: (r, c) => {
+      // Çatı katları ve kapı kanadı. Alt katın tamamı tek renkti ve ekranın
+      // %62'siydi; kapı kanadı dikine çıtalardan oluşuyor, desen zaten orada.
       const { ny } = shapeCoords(r, c);
       if (ny < -0.5) return ID[2 % ID.length];
-      if (ny < -0.24) return ID[3 % ID.length];
-      return ID[0];
+      if (ny < -0.24) return seritTip(r, c, 2, [ID[3 % ID.length], ID[2 % ID.length]]);
+      return seritTip(r, c, 2, [ID[0], ID[1 % ID.length]], 1);
     },
     big: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -18259,8 +18316,11 @@ const PATTERNS = [
     // arasının **ayrı** olması — renk hücre merkezinden okunuyor, hücrenin
     // tamamı tek renk.
     type: (r, c) => {
+      // Yamaların dördü de ayrı: ikiye bölünmüştü ve iki yama ekranı
+      // dolduruyordu (%53, ekranda yalnızca iki tür).
       const p = patchAt(r, c, 4.2, 307);
-      return noiseAt(p.ix * 3.1, p.iy * 3.1, 313) > 0.5 ? ID[1 % ID.length] : ID[0];
+      const n = noiseAt(p.ix * 3.1, p.iy * 3.1, 313);
+      return ID[Math.min(ID.length - 1, Math.floor(n * ID.length))];
     },
     big: (r, c) => blob(r, c, 0.4, 311) > 0.79,
   },
@@ -18325,10 +18385,12 @@ const PATTERNS = [
     // Tüy uçları: kanadın son dilimi başka renk, yani kanadın nerede
     // bittiği tahtadan okunuyor.
     type: (r, c) => {
+      // Kanat tüyleri: kanat boyunca bantlar, gövde düz. Üç bölgeydi ve
+      // gövde ekranın %69'unu tek renk kaplıyordu.
       const { nx, ny } = shapeCoords(r, c);
-      if (Math.abs(nx) > 0.62) return ID[2 % ID.length];
+      if (Math.abs(nx) > 0.62) return seritTip(r, c, 2, [ID[2 % ID.length], ID[0]], 1);
       if (ny > 0.42) return ID[3 % ID.length];
-      return ID[1 % ID.length];
+      return damaTip(r, c, 2, ID[1 % ID.length], ID[2 % ID.length]);
     },
     big: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -18455,10 +18517,13 @@ const PATTERNS = [
     },
     // Çatı bir renk, gövde başka, baca üçüncü.
     type: (r, c) => {
+      // Çatı kiremit kiremit, duvar tuğla tuğla. Üç bölgeydi (baca, çatı,
+      // duvar) ve duvar ekranın %85'ini kaplıyordu: ev değil, tek renk bir
+      // blok. Kiremit ile tuğlanın ikisi de zaten tekrarlayan desen.
       const { nx, ny } = shapeCoords(r, c);
       if (nx > 0.2 && ny < -0.6) return ID[3 % ID.length];
-      if (ny < -0.04) return ID[2 % ID.length];
-      return ID[1 % ID.length];
+      if (ny < -0.04) return seritTip(r, c, 2, [ID[2 % ID.length], ID[0]]);
+      return damaTip(r, c, 2, ID[1 % ID.length], ID[3 % ID.length]);
     },
     big: (r, c) => {
       const { nx, ny } = shapeCoords(r, c);
@@ -18496,7 +18561,12 @@ const PATTERNS = [
       let en = 9;
       for (const [x0, y0, x1, y1] of CRACK_GOVDE)
         en = Math.min(en, segDist(nx, ny, x0, y0, x1, y1));
-      return en < 0.24 ? ID[1 % ID.length] : ID[3 % ID.length];
+      // Çatlağın içi tek renk, dışı benekli: çatlak ancak çevresinden
+      // ayrıldığı sürece çatlak. Dışı da tek renkti ve ekranın %66'sıydı.
+      // Çatlağın gövdesi tahtanın çoğu: tek renk bırakılınca ekranın
+      // %64'ü oluyordu. Gövde de boyunca bantlı, çevresi dama.
+      return en < 0.24 ? seritTip(r, c, 3, [ID[1 % ID.length], ID[2 % ID.length]], 2)
+        : damaTip(r, c, 2, ID[3 % ID.length], ID[0]);
     },
     big: (r, c) => blob(r, c, 0.42, 437) > 0.79,
   },
@@ -18668,8 +18738,12 @@ const PATTERNS = [
       return !(omurga || dal);
     },
     stack: (r, c) => (Math.abs(shapeCoords(r, c).nx) < 0.16 ? 3 : 1),
+    // Omurga tek renk, kaburgalar sırayla. Gürültüyle boyanıyordu ve
+    // gürültü lekesi ekrandan büyük olduğu için ekranda tek renk kalıyordu
+    // (ölçülen %63). Kaburga zaten sıra sıra: deseni şeklin kendisi veriyor.
     type: (r, c) => (Math.abs(shapeCoords(r, c).nx) < 0.16
-      ? ID[0] : typeFromNoise(r, c, 0.3, 73)),
+      ? ID[0] : seritTip(r, c, 2, [ID[1 % ID.length], ID[3 % ID.length],
+                                   ID[2 % ID.length]])),
     big: (r, c) => r % 5 === 0 && (c % 8 === 1 || c % 8 === 6),
   },
   {
@@ -18724,8 +18798,12 @@ const PATTERNS = [
     // İki renk: çekirdek bir meyve, uçlar başka. Çizgi romanın iki renkli
     // baskısı zaten bu — ve `Track`'in ayak izi/pençe ayrımıyla aynı fikir.
     type: (r, c) => {
+      // Patlamanın halkaları: merkezden dışa doğru bantlar. İki bölgeydi
+      // (iç/dış) ve bölge ekrandan büyük olduğu için ekranda tek renk
+      // kalıyordu — ölçülen %70.
       const { nx, ny } = shapeCoords(r, c);
-      return Math.hypot(nx, ny) < 0.42 ? ID[0 % ID.length] : ID[2 % ID.length];
+      if (Math.hypot(nx, ny) < 0.22) return ID[0];
+      return halkaTip(r, c, 2, [ID[2 % ID.length], ID[0], ID[1 % ID.length]]);
     },
     big: (r, c) => Math.hypot(shapeCoords(r, c).nx, shapeCoords(r, c).ny) < 0.22,
   },
@@ -18794,8 +18872,14 @@ const PATTERNS = [
       return Math.abs(nx - eksen) > 0.46 + wob;
     },
     stack: (r, c) => ridge(1 - Math.abs(shapeCoords(r, c).ny), 3),
-    // Tek renk: şimşek bir çizgi, ve çizginin iki rengi olmaz.
-    type: () => ID[2 % ID.length],
+    // Şimşeğin boyunca ilerleyen bantlar.
+    //
+    // Tek renkti ve yorumu "şimşek bir çizgi, çizginin iki rengi olmaz"
+    // diyordu. Ölçünce ekranın **%100'ü** tek meyve çıktı — oyunun hiçbir
+    // tahtasında bu kadarı yoktu. Zikzak zaten dar, yani tek renk olunca
+    // ekranda duran şey bir şekil değil tek renk bir şerit.
+    type: (r, c) => seritTip(r, c, 3, [ID[2 % ID.length], ID[1 % ID.length],
+                                       ID[2 % ID.length], ID[0]]),
     big: (r, c) => blob(r, c, 0.3, 149) > 0.76,
   },
   {
@@ -25403,6 +25487,48 @@ window.fruitHoleTypes = () => {
     enCokPay: n ? +(paylar[0] / n).toFixed(3) : 0,
     // İkinci türün payı: tek tür baskınsa bu çok düşük kalıyor.
     ikinciPay: n && paylar.length > 1 ? +(paylar[1] / n).toFixed(3) : 0,
+  };
+};
+// Hücre hücre tahta: hangi hücrede hangi tür, kaç kat, iri mi.
+//
+// `fruitHoleCellMap` hücrenin dolu olup olmadığını söylüyor, `fruitHoleTypes`
+// tahtanın tamamındaki tür dağılımını. İkisinin arasında kalan soru
+// ölçülmemişti: **bir ekranda** ne görünüyor. Kaan'ın 107. bölümden attığı
+// görüntü onu sordu — tahtanın tamamı güzel bir nal, ama oyuncunun gördüğü
+// kadarında nal yok, aynı meyveden dikine sütunlar var.
+//
+// Kat sayısı aynı hücredeki parça sayısı: yığının yüksekliği oradan geliyor.
+window.fruitHoleBoardCells = () => {
+  const h = new Map();
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    const c = Math.round(f.x / CELL + (COLS - 1) / 2);
+    const r = Math.round(f.z / CELL + (rows - 1) / 2);
+    const k = r + ',' + c;
+    const v = h.get(k);
+    if (v) { v.kat++; if (f.big) v.big = true; if (f.giant) v.giant = true; }
+    else h.set(k, { r, c, type: f.type, kat: 1, big: !!f.big, giant: !!f.giant,
+                    prop: f.prop || null, bomb: !!f.bomb });
+  }
+  return { rows, cols: COLS, cell: CELL, hucre: [...h.values()] };
+};
+// Oyun kamerasının bir ekranda gösterdiği alan — hücre cinsinden.
+//
+// Desenlerin şekli 13x33'lük tahtanın tamamına çiziliyor. Oyun kamerası o
+// tahtanın ne kadarını görüyor sorusu hiç sorulmamıştı, ve bir şeklin
+// "okunur" olup olmadığı tam olarak buna bağlı.
+// Derinlik ekrandaki dikey açıklıktan doğrudan çıkmıyor: kamera eğik, yani
+// zeminde z yönünde d kadar yol ekranda d·sin(yükseklik açısı) kadar yer
+// kaplıyor. Açıyı sabit yazmak yerine kameranın kendi bakış vektöründen
+// okuyor — kamera açısı değişirse bu sayı da değişsin.
+window.fruitHoleViewCells = () => {
+  const v = new THREE.Vector3();
+  camera.getWorldDirection(v);
+  const sin = Math.abs(v.y) || 1;
+  return {
+    genisHucre: +((camera.right - camera.left) / CELL).toFixed(2),
+    derinHucre: +((camera.top - camera.bottom) / CELL / sin).toFixed(2),
+    tahtaGenis: COLS, tahtaDerin: rows,
   };
 };
 // Bombalar: kaç tane, nerede, ve bölümü bitirme şartına girmiyorlar mı.

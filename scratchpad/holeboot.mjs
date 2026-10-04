@@ -152,21 +152,36 @@ console.log('\n--- oynanırken ---');
   // geniş ağ.
   const TUR = await pg.evaluate(() => window.fruitHoleThemeTable().order.length);
   const bozuk = [];
+  // Her bölümün kendi süre sınırı var.
+  //
+  // Sınırsız bırakılmıştı ve döngü bir bölümde takıldığında test ne
+  // basıyordu ne bitiyordu: kırk dakika boyunca beş saniye işlemci harcayıp
+  // bekledi. Hiç bitmeyen bir test, hata basan testten de kötü — en azından
+  // o bir şey söylüyor. Takılan bölüm artık **adıyla** rapor ediliyor.
+  const SINIR = 25000;
   for (let lvl = 1; lvl <= TUR; lvl++) {
-    const r = await pg.evaluate(l => {
-      window.__kareHata.length = 0;
-      window.fruitHoleProbe(l);
-      window.fruitHoleStartLevel();
-      for (let i = 0; i < 60; i++) {
-        const w = window.fruitHoleWhere();
-        const n = window.fruitHoleNearest();
-        if (n) { const dx = n.x - w.x, dz = n.z - w.z, d = Math.hypot(dx, dz) || 1;
-                 window.fruitHoleSteer(dx / d, dz / d); }
-        window.__step(1000 / 30);
-        if (window.__kareHata.length) break;
-      }
-      return { hata: window.__kareHata[0] || null, yenen: window.fruitHoleWhere().eaten };
-    }, lvl);
+    let r;
+    try {
+      r = await Promise.race([
+        pg.evaluate(l => {
+          window.__kareHata.length = 0;
+          window.fruitHoleProbe(l);
+          window.fruitHoleStartLevel();
+          for (let i = 0; i < 60; i++) {
+            const w = window.fruitHoleWhere();
+            const n = window.fruitHoleNearest();
+            if (n) { const dx = n.x - w.x, dz = n.z - w.z, d = Math.hypot(dx, dz) || 1;
+                     window.fruitHoleSteer(dx / d, dz / d); }
+            window.__step(1000 / 30);
+            if (window.__kareHata.length) break;
+          }
+          return { hata: window.__kareHata[0] || null, yenen: window.fruitHoleWhere().eaten };
+        }, lvl),
+        new Promise((_, red) => setTimeout(() => red(new Error('takıldı')), SINIR)),
+      ]);
+    } catch (e) {
+      r = { hata: `${SINIR / 1000} saniyede bitmedi (${e.message})` };
+    }
     if (r.hata) bozuk.push(`${lvl}: ${r.hata}`);
   }
   console.log(`  ${bozuk.length ? 'FAIL' : 'OK  '} ${TUR} bölümün hepsi oynanırken hata atmıyor` +
