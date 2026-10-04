@@ -12975,11 +12975,22 @@ const NORMAL_R = 0.46, BIG_R = 0.72;
 // sekiz basamaklık bir büyüme aralığıyla karşılaşıyordu: ölçüm tahtanın
 // %73'ünün baştan, dörtte biri yenince %100'ünün açık olduğunu söylüyor.
 //
-// 1.15 ağzı 1.25'te açılıyor: erken hediyenin iki katı ötede, yani tahtanın
-// bir kısmı süpürülmeden alınamıyor. `TOWER_R`den (1.05) ayrı duruyor çünkü
-// kule bir sütun, bu tek bir parça — ve ikisi aynı sayı olursa hangi
-// basamağın neyi açtığı ölçülemez hâle geliyor.
-const HUGE_R = 1.15;
+// Üçüncü bir boy **hücre ızgarasına** konmaya çalışıldı ve geri alındı.
+//
+// Hücre 1.05 birim; 1.15 yarıçaplı bir parça 2.3 birim eninde, yani iki
+// hücreye yayılıyor ve komşularının içine giriyor. Tahta dizilim değil yığın
+// oluyordu — Kaan'ın daire içine aldığı şey buydu, ve onu bu dosyaya ben
+// koymuştum, aynı gün. Üç deneme de kötüydü:
+//
+//   * komşu hücreleri boşaltmak: geriye yalnızca iri parçalar kalıyor,
+//     tahta baştan aşağı birbirine değen koca çileklerden oluşuyor
+//   * boyu 0.95'e indirmek: taşma azalıyor ama tahta hâlâ tek boy
+//   * seyrekleştirmek: kapı kazancı kayboluyor
+//
+// Dersi şu: **ızgaraya konan bir parça kendine yer açamaz**, ve hücresinden
+// taşan her parça komşusunu örter. Kapı, yer açabilen şeylerden gelmeli —
+// dev, kule ve anıt kendi ayağını temizliyor ve ekranda tam da bu yüzden
+// nesne gibi duruyorlar. Üçüncü basamak onların sayısından çıkıyor.
 // Beşinci bir basamak (1.60) denendi ve geri alındı: ölçüde kazancı yarım
 // puandı (%99 → %98) ve o boyda bir parça üç buçuk hücre eninde, yani
 // komşularının içine giriyor. Sayıyla ölçülen bir kazanç, gözle görülen bir
@@ -17257,7 +17268,15 @@ function shapeCoords(r, c) {
   return {
     nx: (c - midCol()) / (COLS / 2),
     ny: (r - midRow()) / (rows / 2),
-    wob: (blob(r, c, 0.45, 91) - 0.5) * 0.22,
+    // Kenar dalgası da bölümden bölüme değişiyor.
+    //
+    // Tohum `91` sabitti ve `shapeCoords` neredeyse bütün desenlerin `empty`
+    // fonksiyonunda kullanılıyor — yani **tek bir gürültü alanı elli beş
+    // tahtanın hepsinin kenarını aynı biçimde yontuyordu**. Kırk ızgara
+    // tahtasının ortalamasında sütun payları %33.6 / %43.0 / %23.4 çıkıyor;
+    // birbirinden bağımsız kırk şeklin ortalaması böyle eğik olmaz, ortak
+    // bir sebep olmadıkça.
+    wob: (blob(r, c, 0.45, 91 + level * 29) - 0.5) * 0.22,
   };
 }
 
@@ -19936,10 +19955,12 @@ function buildField() {
   // Şerit tahtası: ızgara yine hiç çalışmıyor, parçaları eğriler diziyor.
   const serit = !dailyRun && !resim && isRibbonLevel(level) ? ribbonForLevel(level) : null;
   if (serit) buildRibbon(serit);
+  const iriHucre = new Set();
   for (const cell of (resim || serit) ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
       const { x, z } = cell;
       const [a, b] = bak(cell.a, cell.b);
       if (currentPattern.empty && currentPattern.empty(a, b)) continue;
+
       // Desenin kendi `big` kuralına dokunulmuyor: o şeklin parçası — ağacın
       // gövdesi, merdivenin basamağı, adanın tepesi. Üstüne serpiştirilen bir
       // **taban** geliyor.
@@ -19974,8 +19995,27 @@ function buildField() {
       // dağılıyor ve boy farkı düzen değil gürültü oluyordu. Mekânsal bir
       // eşik, onları öbek öbek topluyor — bir yerde iri meyve tarlası, başka
       // yerde küçükler.
+      // Öbek ölçeği denendi ve geri alındı: 0.16 yerine 0.42 (yani daha
+      // küçük, daha çok öbek) tahtayı **dengesizleştirdi** — ölçümde
+      // dengesiz tahta sayısı 28'den 35'e çıktı. Yığılmanın sebebi iri
+      // öbeklerin boyu değilmiş.
+      // Tohum bölümden bölüme değişiyor.
+      //
+      // `777` sabitti. Gürültü alanı tohumdan çıkıyor, hücre indisleri her
+      // tahtada aynı, yani **her bölümde iri öbek tam olarak aynı yere
+      // düşüyordu**. Elli beş bölüm boyunca yığın hep aynı köşede: Kaan'ın
+      // "hep hepsini bir kenara yığıyorsun" dediği şey bu, ve haklıydı.
+      //
+      // Ölçüm de söylüyordu ama ilk bakışta okunmadı: kırk ızgara tahtasının
+      // ortalamasında sol sütun %33.7, orta %41.8, sağ %24.5 — rastgele
+      // yerleşen bir şey kırk tahtanın ortalamasında böyle bir eğilim
+      // göstermez. Ortalamanın kendisi eğikse, altındaki şey ortak demektir.
+      //
+      // Önce öbek **ölçeği** değiştirildi (0.16 → 0.42) ve dengesiz tahta
+      // sayısı 28'den 35'e çıktı: yanlış teşhis, geri alındı. Sorun öbeğin
+      // boyu değil, her tahtada aynı yerde olmasıydı.
       const big = (currentPattern.big ? currentPattern.big(a, b) : false)
-        || (desenKat <= BIG_MAX_STACK && blob(a, b, 0.16, 777) > 0.62);
+        || (desenKat <= BIG_MAX_STACK && blob(a, b, 0.16, 777 + level * 37) > 0.62);
       // İri parçaların bir kısmı bir üst basamakta.
       //
       // Boy merdiveni iki basamaklıydı — 0.46 ve 0.72 — ve delik 0.63'le
@@ -19993,8 +20033,25 @@ function buildField() {
       // Seçici ayrı bir gürültü: `big`in kendi eşiğini yukarı çekmek
       // hiçbir şey yapmıyordu (ölçüldü — sıfır hücre), çünkü iri hücrelerin
       // çoğu desenin kendi `big` kuralından geliyor, o blob'tan değil.
-      const cokIri = big && blob(a, b, 0.22, 881) > 0.6;
-      const radius = cokIri ? HUGE_R : big ? BIG_R : NORMAL_R;
+      // İki iri parça yan yana gelmiyor.
+      //
+      // İri yarıçap 0.72, yani 1.44 birim en; hücre 1.05. Tek başına duran
+      // bir iri parça komşu hücreye 0.2 taşıyor ve ekranda "iri meyve" diye
+      // okunuyor. **Yan yana iki tanesi** birbirinin içine 0.39 giriyor ve
+      // okunan şey iki meyve değil, bir kütle — yan yana beş tanesi bir
+      // duvar. Kaan'ın daire içine aldığı yığın bu; desenin iri payı yüksek
+      // olan tahtalarda (Zone %42) ekranın tamamı o duvardan ibaret kalıyor.
+      //
+      // Sol ve üst komşuya bakmak yetiyor: ızgara satır satır, soldan sağa
+      // dolduruluyor, yani her yatay ve dikey komşuluk bu iki kontrolden
+      // birine düşüyor. Köşegen serbest — köşegen iki parçanın merkezleri
+      // 1.48 uzakta ve 1.44'lük iki parça orada değiyor ama örtmüyor.
+      const iriKomsu = !currentPattern.polar &&
+        (iriHucre.has((cell.a - 1) + ',' + cell.b) ||
+         iriHucre.has(cell.a + ',' + (cell.b - 1)));
+      const iri = big && !iriKomsu;
+      if (iri && !currentPattern.polar) iriHucre.add(cell.a + ',' + cell.b);
+      const radius = iri ? BIG_R : NORMAL_R;
       // Every so often a cell holds an object instead of a fruit. It pays
       // into one of the four counters all the same, so nothing downstream
       // has to know: only the shape on the board changes.
@@ -20017,7 +20074,7 @@ function buildField() {
         ? pick(themePool) : null;
       // Giants are built whole; everything else stays a slice.
       const vis = prop ? propVisual(prop, radius * 1.45)
-                       : fruitVisual(currentPattern.type(a, b), radius, big);
+                       : fruitVisual(currentPattern.type(a, b), radius, iri);
       const type = prop ? vis.currency : currentPattern.type(a, b);
 
       // A cell can hold a pile. Each fruit in it is its own entry, so the
@@ -20085,7 +20142,7 @@ function buildField() {
         // konmuştu, ama yukarıdan bakılan yatık bir disk kendi merkezinden
         // kayıyor ve sıralar eğri çıkıyor — bütün ızgara çarpık okunuyor.
         fruits.push({ mesh: null, vis, jit, rotY: vis.upright ? 0 : rnd() * Math.PI * 2,
-                      x, z, r: radius, type, big, prop, eaten: false, baseY: y, nudge: 0 });
+                      x, z, r: radius, type, big: iri, prop, eaten: false, baseY: y, nudge: 0 });
       }
   }
   // Kayalar **devlerden önce**.
@@ -21797,7 +21854,14 @@ function placeGiants() {
   const reach = 0.92 * (BASE_HOLE_R + 0.35 * birim * growthUnit());
   const giantR = Math.max(0.95, Math.min(GIANT_R, reach));
 
-  const want = 3 + Math.floor(rnd() * 3) + Math.min(3, Math.floor(rows / 12));
+  // Dev sayısı iki arttı.
+  //
+  // Büyümenin bir kapı olması için tahtada "şu an alamadığım şey" olması
+  // gerekiyor ve bunu ancak kendine yer açan parçalar yapabiliyor (bir üstteki
+  // yorum: ızgaraya konan iri parça komşusunu örtüyor). Dev zaten yerini
+  // temizliyor, ekranda nesne gibi duruyor ve 1.46 ağız istiyor — yani
+  // aradığımız şeyin kendisi, yalnızca sayısı azdı.
+  const want = 5 + Math.floor(rnd() * 3) + Math.min(3, Math.floor(rows / 12));
   const placed = [];
   const CLEAR = giantR + NORMAL_R * 1.5;
 
