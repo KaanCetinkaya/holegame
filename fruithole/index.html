@@ -16094,7 +16094,7 @@ const THEMES = {
     hero: ['watertower', 'phonebox'],
     // Alacakaranlık: çizgi roman çatısının saati. Zemin açık sarı, yani
     // ışık kısılabiliyor ve meyve yine okunuyor.
-    light: { sky: '#7a86c8', bounce: '#3a3550', hemi: 1.3, amb: '#cfd8ff', ambI: 0.58, sun: '#ffd9a8', sunI: 0.9 },
+    light: { sky: '#7a86c8', bounce: '#3a3550', hemi: 1.34, amb: '#cfd8ff', ambI: 0.62, sun: '#ffd9a8', sunI: 0.76 },
   },
   // Yarış pisti.
   //
@@ -16106,9 +16106,11 @@ const THEMES = {
     beyond: 'runoff',
     props: ['tyrestack', 'chequerflag', 'pitboard', 'cone', 'hydrant', 'barricade'],
     hero: ['chequerflag'],
-    // Öğle güneşi, sert gölge: pistin kendi ışığı bu. Asfalt zaten koyu,
-    // kısık bir ışıkta meyve ayırt edilmiyor.
-    light: { sky: '#bcd4ea', bounce: '#4a4d52', hemi: 1.15, amb: '#eaf2ff', ambI: 0.5, sun: '#fff6e0', sunI: 1.25 },
+    // Parlak öğle, ama parlaklık **dolgudan**: anahtar ışık 0.8'in altında
+    // kalıyor. Önce 1.25 yazılmıştı ve `holetheme` düşürdü — sert bir anahtar
+    // her kürenin bir yanını gölgeye atıyor ve bu boyutta meyve çamur gibi
+    // okunuyor. Asfalt koyu olduğu için tarlayı okutan şey zaten yarımküre.
+    light: { sky: '#bcd4ea', bounce: '#4a4d52', hemi: 1.32, amb: '#eaf2ff', ambI: 0.62, sun: '#fff6e0', sunI: 0.78 },
   },
   // Atari salonu.
   //
@@ -16136,8 +16138,9 @@ const THEMES = {
     beyond: 'stormwall',
     props: ['lootcrate', 'parachute', 'supplybox', 'oildrum', 'barricade'],
     hero: ['parachute', 'lootcrate'],
-    // Fırtına öncesi: ışık hâlâ var ama gökyüzü mora dönmüş.
-    light: { sky: '#8f7fd0', bounce: '#3c5a2e', hemi: 1.25, amb: '#d8d0ff', ambI: 0.56, sun: '#fff0d8', sunI: 0.95 },
+    // Fırtına öncesi: ışık hâlâ var ama gökyüzü mora dönmüş. Anahtar
+    // kısık — fırtına öncesinin gölgesi zaten yumuşak.
+    light: { sky: '#8f7fd0', bounce: '#3c5a2e', hemi: 1.3, amb: '#d8d0ff', ambI: 0.6, sun: '#fff0d8', sunI: 0.74 },
   },
   // Küp dünya.
   //
@@ -16153,9 +16156,10 @@ const THEMES = {
     beyond: 'blockstone',
     props: ['pickaxe', 'torch', 'chestblock', 'cubespider'],
     hero: ['chestblock'],
-    // Düz ve parlak gün: bu türün ışığı gölgeyle oynamıyor, her yüz kendi
-    // tonunda duruyor. Yüksek dolgu tam olarak onu veriyor.
-    light: { sky: '#bfe4ff', bounce: '#4a6b38', hemi: 1.4, amb: '#ffffff', ambI: 0.6, sun: '#fff8e8', sunI: 1.0 },
+    // Düz ve parlak gün: bu türün ışığı gölgeyle **oynamıyor**, her yüz
+    // kendi tonunda duruyor. O yüzden anahtar en kısığı: parlaklığın tamamı
+    // yarımküre ve ortamdan geliyor, yani gölge yumuşak ve küp küp kalıyor.
+    light: { sky: '#bfe4ff', bounce: '#4a6b38', hemi: 1.52, amb: '#ffffff', ambI: 0.68, sun: '#fff8e8', sunI: 0.7 },
   },
   beach: {
     name: 'Beach', icon: '🏖️',
