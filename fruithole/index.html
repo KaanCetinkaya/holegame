@@ -12967,6 +12967,23 @@ function propVisual(id, radius) {
 // the opening drop to 0.55 and roughly doubles the gap the player has to
 // grow across.
 const NORMAL_R = 0.46, BIG_R = 0.72;
+// Merdivenin üçüncü basamağı.
+//
+// Delik 0.63'le başlıyor, 2.75'e çıkıyor, ve ilk lokmalar fazladan 0.2
+// veriyor (`EARLY_CAP`) — yani oyuncu daha hiçbir şey yapmadan ağzı 0.83
+// oluyor ve 0.72'lik bütün iri tabaka açılıyor. İki basamaklı bir tahta, on
+// sekiz basamaklık bir büyüme aralığıyla karşılaşıyordu: ölçüm tahtanın
+// %73'ünün baştan, dörtte biri yenince %100'ünün açık olduğunu söylüyor.
+//
+// 1.15 ağzı 1.25'te açılıyor: erken hediyenin iki katı ötede, yani tahtanın
+// bir kısmı süpürülmeden alınamıyor. `TOWER_R`den (1.05) ayrı duruyor çünkü
+// kule bir sütun, bu tek bir parça — ve ikisi aynı sayı olursa hangi
+// basamağın neyi açtığı ölçülemez hâle geliyor.
+const HUGE_R = 1.15;
+// Beşinci bir basamak (1.60) denendi ve geri alındı: ölçüde kazancı yarım
+// puandı (%99 → %98) ve o boyda bir parça üç buçuk hücre eninde, yani
+// komşularının içine giriyor. Sayıyla ölçülen bir kazanç, gözle görülen bir
+// kayıp.
 
 // A third tier, far wider than a cell. The hole opens at 0.62 and a "big"
 // fruit at 0.72 needs it barely a tenth larger, so the size gate never
@@ -19955,7 +19972,25 @@ function buildField() {
       // yerde küçükler.
       const big = (currentPattern.big ? currentPattern.big(a, b) : false)
         || (desenKat <= BIG_MAX_STACK && blob(a, b, 0.16, 777) > 0.62);
-      const radius = big ? BIG_R : NORMAL_R;
+      // İri parçaların bir kısmı bir üst basamakta.
+      //
+      // Boy merdiveni iki basamaklıydı — 0.46 ve 0.72 — ve delik 0.63'le
+      // başlayıp 2.75'e çıkıyor. Ölçüldü (`holekapi.mjs`): tahtanın %73'ü
+      // baştan açık, dörtte biri yenince %100'ü açık. Yani on sekiz
+      // basamaklık bir büyüme aralığı, iki basamaklı bir tahtayla
+      // karşılaşıyor ve kapı bölümün ilk çeyreğinde kapanıyor.
+      //
+      // Üçüncü basamak 1.05: ağzı 1.14'te açılıyor, yani tahtanın üçte biri
+      // süpürülmeden alınamıyor. İri parçaların yaklaşık üçte biri bu
+      // boyda, ve hangisinin olduğu yine mekânsal — öbeğin **ortası** iri,
+      // kenarı normal iri. Rastgele seçilseydi boy farkı yine gürültü
+      // olurdu; öbeğin ortası olunca tahtada "şu yığının göbeği henüz
+      // alınamıyor" diye okunuyor.
+      // Seçici ayrı bir gürültü: `big`in kendi eşiğini yukarı çekmek
+      // hiçbir şey yapmıyordu (ölçüldü — sıfır hücre), çünkü iri hücrelerin
+      // çoğu desenin kendi `big` kuralından geliyor, o blob'tan değil.
+      const cokIri = big && blob(a, b, 0.22, 881) > 0.6;
+      const radius = cokIri ? HUGE_R : big ? BIG_R : NORMAL_R;
       // Every so often a cell holds an object instead of a fruit. It pays
       // into one of the four counters all the same, so nothing downstream
       // has to know: only the shape on the board changes.
@@ -20084,6 +20119,8 @@ function buildField() {
     // Kule devden sonra: ikisi aynı boşluğa oturmasın, ve bomba ile diken
     // kulenin ayağını da hesaba katsın.
     placeTowers();
+    // Anıt kuleden sonra: en geniş boşluğu o istiyor ve kalanı o seçsin.
+    placeLandmarks();
     placeBombs();
     // Dikenler en sonda: yerini seçerken hem kayaya hem kolosun yoluna
     // bakması gerekiyor, yani ikisi de yerleşmiş olmalı.
@@ -21840,6 +21877,73 @@ function placeGiants() {
 
   // The pieces a giant displaced were marked eaten so nothing else lands on
   // them; drop them from the list so they are not counted towards the goal.
+  fruits = fruits.filter(f => !f.eaten);
+}
+
+// Anıt: tahtanın sonuna kadar alınamayan tek bir iri nesne.
+//
+// Ölçüldü (`scratchpad/holekapi.mjs`) ve sonuç şuydu: tahtanın **%75'i
+// baştan yutulabilir**, ve oyuncu dörtte birini yediğinde **%100'ü** açılıyor.
+// Yani delik 0.55'ten 2.75'e büyüyor ama bu büyüme bölümün ilk çeyreğinde
+// işini bitiriyor; kalan dörtte üçte büyümek ekranda bir sayı, bir karar
+// değil. Kaan'ın "hep aynı" demesinin altında bu var: şekil değişiyor,
+// **verilen karar** değişmiyor.
+//
+// Deliğin tavanı 2.75, tahtadaki en iri sıradan şey 1.34 — yani ağzın iki
+// katı kullanılmayan bir alan var. Anıt o alanı dolduruyor: başından
+// görüyorsun, alamıyorsun, tahtayı süpürüp geri geliyorsun.
+//
+// Yarıçap elle seçilmiyor, tahtadan hesaplanıyor. Bölümün hedefi bütün
+// parçaları yemek (`levelGoal`), yani alınamayan bir anıt bölümü
+// bitirilemez yapar. Tahtanın %75'i yendiğinde ağız ne kadar olacaksa anıt
+// o kadar: ne daha önce açılıyor, ne de bölümü kilitliyor.
+const LANDMARK_MAX = 2.0;
+const LANDMARK_AT = 18;
+function placeLandmarks() {
+  if (level < LANDMARK_AT) return;
+  const birim = fruits.reduce((s, f) =>
+    s + (f.eaten || f.bomb ? 0 : f.giant ? 9 : f.big ? 3 : 1), 0);
+  const uc = 0.92 * (BASE_HOLE_R + 0.75 * birim * growthUnit());
+  // Devden belirgin biçimde iri olmalı: aynı boydaysa yeni bir sınıf değil,
+  // ikinci bir dev olur ve kapı diye bir şey kalmaz.
+  const r = Math.min(LANDMARK_MAX, uc);
+  if (r < GIANT_R * 1.2) return;
+  const havuz = (currentTheme.props || GIANT_PROPS).filter(id => GIANT_PROPS.includes(id));
+  const kac = 1 + (rows >= 28 && rnd() < 0.5 ? 1 : 0);
+  const kondu = [];
+  const BOSLUK = r + NORMAL_R * 2.2;
+  const aday = fruits.filter(f => !f.eaten && !f.big &&
+    Math.hypot(f.x - SPAWN_X, f.z - spawnZ()) >= 4.2);
+  for (let deneme = 0; deneme < kac * 40 && kondu.length < kac; deneme++) {
+    const tohum = aday[Math.floor(rnd() * aday.length)];
+    if (!tohum || tohum.eaten) continue;
+    const x = tohum.x, z = tohum.z;
+    if (Math.abs(x) > fieldHalfX - r || Math.abs(z) > fieldHalfZ - r) continue;
+    if (kondu.some(k => Math.hypot(k.x - x, k.z - z) < r * 4)) continue;
+    if (rocks.some(k => Math.hypot(k.x - x, k.z - z) < r + k.r + r / 0.92 + 0.6)) continue;
+    for (const f of fruits) {
+      if (f.eaten) continue;
+      if (Math.hypot(f.x - x, f.z - z) > BOSLUK) continue;
+      unbuildFruit(f);
+    }
+    // Nesne, meyve değil. Bu ölçekte silueti olan bir şey gerekiyor: yirmi
+    // boncuğun ortasındaki yirmi birinci meyve, göz için aynı şeyin büyüğü.
+    const nesne = havuz.length ? pick(havuz) : null;
+    const vis = nesne ? propVisual(nesne, r * 1.1) : fruitVisual(tohum.type, r, true);
+    const type = nesne ? vis.currency : tohum.type;
+    const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
+    mesh.scale.set(vis.sx, vis.sy, vis.sx);
+    mesh.position.set(x, vis.baseY, z);
+    mesh.userData.ox = x; mesh.userData.oz = z;
+    mesh.rotation.y = vis.upright ? 0 : rnd() * Math.PI * 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    fieldGroup.add(mesh);
+    fruits.push({ mesh, x, z, r, type, prop: nesne,
+                  big: true, giant: true, landmark: true,
+                  eaten: false, baseY: vis.baseY, nudge: 0 });
+    kondu.push({ x, z, r });
+  }
   fruits = fruits.filter(f => !f.eaten);
 }
 
@@ -25627,6 +25731,91 @@ window.fruitHolePropSheet = (only) => {
 };
 
 // Giants per level, and how far the nearest one is from the opening.
+// Tahtanın kaçta kaçı **şu anda** yutulabilir.
+//
+// `fruitHoleMix` boy dağılımını söylüyor; bu, o dağılımın oyuncunun elindeki
+// ağza göre ne anlama geldiğini söylüyor. İkisi ayrı soru: tahtanın %25'i
+// iri olabilir ama hepsi baştan yutulabiliyorsa büyümek bir kapı değil.
+//
+// Bir parça `r <= delik * 0.92` ise yutuluyor; `acikPay` kalan parçaların
+// kaçının bu şartı sağladığı.
+// Anıtlar: kaç tane, ne kadar iri, hangi ağzı istiyorlar.
+window.fruitHoleLandmarks = () => {
+  const a = fruits.filter(f => !f.eaten && f.landmark);
+  return {
+    sayi: a.length,
+    r: a.length ? +Math.max(...a.map(f => f.r)).toFixed(2) : null,
+    gerekenAgiz: a.length ? +(Math.max(...a.map(f => f.r)) / 0.92).toFixed(2) : null,
+    enGenis: HOLE_MAX,
+  };
+};
+window.fruitHoleSizes = () => {
+  const canli = fruits.filter(f => !f.eaten && !f.bomb);
+  const acik = canli.filter(f => f.r <= holeRadius * 0.92);
+  const kilitli = {};
+  for (const f of canli) {
+    if (f.r <= holeRadius * 0.92) continue;
+    const k = f.r.toFixed(2);
+    kilitli[k] = (kilitli[k] || 0) + 1;
+  }
+  return {
+    delik: +holeRadius.toFixed(2),
+    enGenis: HOLE_MAX,
+    toplam: canli.length,
+    acik: acik.length,
+    acikPay: canli.length ? +(acik.length / canli.length).toFixed(3) : 1,
+    // Kilitli parçalar yarıçapa göre: hangi boy kaç tane bekliyor.
+    kilitli,
+  };
+};
+// Büyüme eğrisi: tahta yendikçe kilidi ne zaman açılıyor.
+//
+// Gerçekten oynayarak ölçmek konteynerde işlemiyordu — her kare bir çizim ve
+// bir tahtayı bitirmek dakikalar sürüyor. Bu, aynı hesabı çizmeden yapıyor:
+// her adımda **o anda açık** olan parçalardan biri yeniyor (oyuncunun
+// yapabileceği tek şey bu), delik oyunun kendi kuralıyla büyüyor, ve belirli
+// duraklarda tahtanın kaçta kaçının açık olduğu yazılıyor.
+//
+// Yeme sırası rastgele: oyuncunun hangi parçayı seçtiği bilinmiyor, ama
+// **hangilerini seçemediği** biliniyor ve soru tam olarak o.
+window.fruitHoleGateCurve = () => {
+  const canli = fruits.filter(f => !f.eaten && !f.bomb)
+    .map(f => ({ r: f.r, big: !!f.big, giant: !!f.giant, yendi: false }));
+  const toplam = canli.length;
+  if (!toplam) return null;
+  const birim = growthUnit();
+  let delik = holeRadius, erken = 0;
+  const acikPay = () => {
+    const kalan = canli.filter(f => !f.yendi);
+    if (!kalan.length) return 1;
+    return kalan.filter(f => f.r <= delik * 0.92).length / kalan.length;
+  };
+  const kayit = { toplam, bas: acikPay(), basR: +delik.toFixed(2) };
+  const duraklar = [[0.25, 'c25'], [0.5, 'c50'], [0.75, 'c75']];
+  let yendi = 0, tikandi = false;
+  while (yendi < toplam) {
+    const acik = canli.filter(f => !f.yendi && f.r <= delik * 0.92);
+    if (!acik.length) { tikandi = true; break; }
+    const f = acik[Math.floor(Math.random() * acik.length)];
+    f.yendi = true; yendi++;
+    if (delik < HOLE_MAX) {
+      const base = birim * (f.giant ? 9 : f.big ? 3 : 1);
+      const fazla = Math.min(Math.max(0, 0.2 - erken), base * 4);
+      erken += fazla;
+      delik = Math.min(HOLE_MAX, delik + base + fazla);
+    }
+    for (const [oran, ad] of duraklar) {
+      if (kayit[ad] === undefined && yendi >= Math.floor(toplam * oran)) kayit[ad] = acikPay();
+    }
+  }
+  kayit.son = acikPay();
+  kayit.sonR = +delik.toFixed(2);
+  kayit.yenen = yendi;
+  // Tıkanma: açık parça kalmadığı hâlde tahta bitmemiş. Bu bir hata değil
+  // bilgi — tahtanın geri kalanı o ağızla alınamıyor demek.
+  kayit.tikandi = tikandi;
+  return kayit;
+};
 // Nesne kuleleri: kaç tane, kaç katlı, en yakını doğuşa ne kadar uzakta.
 //
 // Adı `fruitHoleTowers` değil, çünkü o ad zaten alınmış: ızgaranın kendi
