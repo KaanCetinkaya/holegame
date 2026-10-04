@@ -286,26 +286,29 @@ gördüğü şeyi yazıyor.
 ## 46 (1.13)
 
 ```
-The camera sits closer now, so everything on the board reads at its proper size.
+The camera sits closer, so everything reads at its proper size.
 
-- Towers of stacked objects, and landmarks too big to swallow until you have grown into them
-- Big fruit no longer overlaps, so a board reads as laid out rather than poured
-- Eleven new layouts and five new places: a comic rooftop, a cube world, a pit lane, an arcade, a drop zone
-- Every level opens by showing you the whole board
-- An arrow points to the giants you still have to find
-- Fixes for the blank screen that could follow an ad
+- Towers and landmarks: things too big to swallow until you grow into them
+- Big fruit no longer overlaps
+- Eleven new layouts and five new places
 ```
 
-426 karakter (sınır 500).
+207 karakter (sınır 500).
 
 Sürüm adı (yalnızca panoda görünür): `46 (1.13)`
 
-Bu not 45'ten iki yerde ayrılıyor.
+İlk yazışta altı maddeydi ve Kaan "fazla uzunmuş" dedi. Haklı, ve sebebi
+sınır değil: 426 karakter sınırın altında kalıyordu ama kutu **okunmak**
+için var. Oyuncu orada "ne değişmiş" sorusunun cevabını arıyor, değişiklik
+envanteri değil. Altı maddelik bir liste okunmuyor, üçü okunuyor.
 
-Birincisi uzunluğu. 45 tek maddeydi çünkü oyuncunun gördüğü tek değişiklik
-vardı. 46'da altı tane var ve altısı da ekranda duruyor — kamera mesafesi,
-kuleler, anıtlar, çakışmanın bitmesi, on bir düzen, bölüm açılışı. Liste
-uzunsa sebebi listeyi uzatmak değil, sürümün uzun olması.
+Çıkanlar: bölüm açılışı, dev oku, beyaz ekran düzeltmesi. Üçü de gerçek ve
+üçü de oynarken kendini gösteriyor — kutuda yer kaplamalarının karşılığı
+yok. Kalan üçü kalma sebebi, oyuncunun **tahtaya bakınca** fark edeceği
+şeyler olması.
+
+Birinci satır yine kamera, aynı sebeple: oyunu açan birinin ilk saniyede
+gördüğü tek şey o.
 
 İkincisi ilk satır. Kamera mesafesi başa alındı çünkü oyunu açan birinin
 **ilk saniyede** fark edeceği tek şey o: tahta aynı tahta, ekran yakın.
