@@ -26590,6 +26590,14 @@ function dropUnreachable() {
   //
   // Her ayrı yarıçap için bir tarama; oyunda dört beş ayrı iri boy var, yani
   // en fazla o kadar tarama.
+  // Bulmaca tahtası bu elemenin dışında.
+  //
+  // Orada "büyüyünce odaya dönememek" kusur değil **kuralın kendisi**: dar
+  // kapılar, sıra önemli, ve geniş bir ağızla girilemeyen oda bilerek
+  // girilemiyor. Eleme uygulandığında odaların tamamı boşaldı (`holepuzzle`:
+  // "oda 1 boş değil — 0") — yani oyunun tasarımını hata sayıp sildi.
+  if (isPuzzleLevel(level) && !dailyRun) return;
+
   const bakilacak = [holeRadius];
   for (const f of fruits) {
     if (f.eaten || !f.big) continue;
@@ -26629,7 +26637,14 @@ function dropUnreachableAt(R, hepsi) {
       gorulen[idx(a, b)] = 1; yigin.push([a, b]);
     }
   }
-  let atildi = 0;
+  // Önce sayılıyor, sonra atılıyor.
+  //
+  // Eleme bir **güvenlik ağı**: tahtada bir iki sıkışmış parça varsa onları
+  // düşürüyor. Yüzlercesini düşürüyorsa sorun tahtada değil taramadadır, ve
+  // o durumda doğru davranış hiçbir şey atmamak — ölçülmemiş bir tahta,
+  // boşaltılmış bir tahtadan iyidir. Ölçüldü: bir tahta sıfır parçaya indi
+  // (`holerelease`, "en seyrek ızgara bölümü 80+ meyve (0)").
+  const aday = [];
   for (const f of fruits) {
     if (f.eaten) continue;
     // İri tarama yalnızca o boyu gerektiren parçalara bakıyor.
@@ -26642,9 +26657,13 @@ function dropUnreachableAt(R, hepsi) {
         if (a >= 0 && a < nx && b >= 0 && b < nz && gorulen[idx(a, b)]) bulundu = true;
       }
     }
-    if (!bulundu) { unbuildFruit(f); atildi++; }
+    if (!bulundu) aday.push(f);
   }
-  if (atildi) fruits = fruits.filter(f => !f.eaten);
+  const canli = fruits.filter(f => !f.eaten).length;
+  if (!aday.length) return;
+  if (aday.length > Math.max(6, canli * 0.08)) return;
+  for (const f of aday) unbuildFruit(f);
+  fruits = fruits.filter(f => !f.eaten);
 }
 
 window.fruitHoleReach = (r) => {
