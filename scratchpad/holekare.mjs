@@ -97,7 +97,7 @@ async function anitta(lv, ad, tohum = 400) {
 }
 
 console.log('');
-await oyundan(76, 'gul-76', 40, 400);
-await ustten(76, 'gul-76-ust');
+await oyundan(16, 'gul-16', 40, 400);
+await oyundan(56, 'gul-56', 40, 400);
 
 await br.close(); srv.close();

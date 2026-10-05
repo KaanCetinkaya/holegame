@@ -1781,8 +1781,25 @@ const RIBBON_GAP = 1.9;
 // Şerit bölümleri onda bir: 6, 16, 26, 36, 46. Sona eklenseydi `rozet` 76.,
 // `yildiz` 86. bölümde çıkardı — yani ilk turda hiç görünmezdi, ve ikisi de
 // tam olarak "hep aynı bölüm" dendiği için yazıldı.
-const RIBBONS = ['spiral', 'rings', 'rozet', 'pyramid', 'yildiz',
-                 'serpentine', 'chevron', 'loops', 'spokes'];
+// `loops` listede iki yerde ve öne alındı.
+//
+// Kaan "çember yap, ortasına bir şey koy" dedi ve oyunda o zaten var: her
+// halka bir gül — dışta boncuklardan çember, ortasında iri bir nesne. Ama
+// şerit tahtası onda bir geliyor ve `loops` dokuz şeritten biriydi, yani
+// **doksan bölümde bir**. 118. bölümdeki bir oyuncu onu bir kez görmüş
+// oluyor, muhtemelen fark etmeden.
+//
+// Şerit sıklığına (`RIBBON_EVERY`) dokunulmadı, iki sebeple. Birincisi:
+// gizli tahta sayısı oradan geliyor — şerit sıklaşınca ızgara düzenlerinin
+// daha çoğu siluetini hiç gösteremiyor (`HIDDEN_SHAPES`). İkincisi: şerit
+// tahtası seyrek bir tahta, beşte bire çıkarsa oyunun dokusu bu sefer öbür
+// yöne kayıyor. Çözüm sıklığı değil **sırayı** değiştirmek: aynı sayıda
+// şerit tahtası, içlerinde çember iki kez.
+//
+// Yeni sıra: 6 spiral, 16 **gül**, 26 rozet, 36 piramit, 46 yıldız,
+// 56 **gül**, 66 halkalar, 76 yılan, 86 kama, 96 ağ.
+const RIBBONS = ['spiral', 'loops', 'rozet', 'pyramid', 'yildiz',
+                 'loops', 'rings', 'serpentine', 'chevron', 'spokes'];
 function ribbonForLevel(n) {
   return RIBBONS[Math.floor((n - RIBBON_AT) / RIBBON_EVERY) % RIBBONS.length];
 }
