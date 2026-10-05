@@ -6,7 +6,7 @@
     "uploaded": []
   },
   "fruithole": {
-    "versionCode": 46,
+    "versionCode": 47,
     "versionName": "1.13",
     "uploaded": [
       21,
@@ -33,7 +33,8 @@
       42,
       43,
       44,
-      45
+      45,
+      46
     ],
     "built": 45
   },
