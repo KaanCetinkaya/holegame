@@ -77,7 +77,11 @@ for (const lv of SEVIYELER) {
   }, lv);
   toplam++;
 
-  check(p.rooms.length === (lv >= 28 ? 4 : 3), 'oda sayısı', String(p.rooms.length));
+  // Oda sayısı artık bulmacadan bulmacaya değişiyor (ilk bulmaca üç, sonra
+  // üç ile beş arası). Testin işi sayının **kaç** olduğunu bilmek değil,
+  // tahtanın o sayıyla çözülebilir kalması — elle yazılmış bir 4, mimari
+  // çeşitlenince testi yanlış yere bakmaya başlattı.
+  check(p.rooms.length >= 3 && p.rooms.length <= 5, 'oda sayısı 3-5', String(p.rooms.length));
   check(p.feasible === true, 'tahta çözülebilir');
 
   // Kapılar: ölçülen genişlik tasarlananla aynı mı, ve delik gerçekten geçiyor mu?
@@ -125,14 +129,22 @@ for (const lv of SEVIYELER) {
     // Duvarın iki ucu: solda tahtanın kenarını aşmalı, sağda dikey duvara
     // değmeli. Bir uçta yarım kaya eksikliği, odanın etrafından dolaşılması
     // demek — ve o hiçbir yerde hata vermez.
-    check(duvar[0] <= -6.82, `ara duvar z=${z.toFixed(1)} sol kenarı kapatıyor`,
-          String(duvar[0]));
-    check(duvar[duvar.length - 1] >= p.wallX - 0.01,
-          `ara duvar z=${z.toFixed(1)} dikey duvara değiyor`, String(duvar[duvar.length - 1]));
+    const uc = p.side > 0 ? Math.min(...duvar) : Math.max(...duvar);
+    check(p.side > 0 ? uc <= -6.82 : uc >= 6.82,
+      `ara duvar z=${z.toFixed(1)} oda tarafının kenarını kapatıyor`,
+          String(uc));
+    // Öteki uç dikey duvara değmeli — hangi uç olduğu yöne bağlı.
+    const ic = p.side > 0 ? Math.max(...duvar) : Math.min(...duvar);
+    check(p.side > 0 ? ic >= p.wallX - 0.01 : ic <= p.wallX + 0.01,
+          `ara duvar z=${z.toFixed(1)} dikey duvara değiyor`, String(ic));
   }
 
   // Koridorda meyve yok: orası düşünme yeri.
-  const koridorda = p.fruits.filter(f => f.x > p.wallX).length;
+  // Koridor yönü oyundan okunuyor: mimari bulmacadan bulmacaya aynalanıyor
+  // ve "sağ" diye varsaymak testi yanlış tarafa baktırıyordu.
+  const koridorTarafi = (x) => (p.side > 0 ? x > p.wallX : x < p.wallX);
+  const odaTarafi = (x) => (p.side > 0 ? x < p.wallX : x > p.wallX);
+  const koridorda = p.fruits.filter(f => koridorTarafi(f.x)).length;
   check(koridorda === 0, 'koridor boş', String(koridorda));
 
   // Meyve duvarın dibinde kalmamış mı? Delik bir kayaya `r + 0.62`den fazla
@@ -141,7 +153,7 @@ for (const lv of SEVIYELER) {
   let ulasilmaz = 0;
   for (const rm of p.rooms) {
     const rGiris = rm.limit;                       // o odaya girerken en geniş hâli
-    const icinde = p.fruits.filter(f => f.x < p.wallX && f.z >= rm.z0 && f.z < rm.z1);
+    const icinde = p.fruits.filter(f => odaTarafi(f.x) && f.z >= rm.z0 && f.z < rm.z1);
     for (const f of icinde) {
       const enYakin = Math.min(...p.rocks.map(r => Math.hypot(r.x - f.x, r.z - f.z)));
       // En kötü hâl: odadaki en büyük yarıçapla. Küçükken yenebiliyorsa sorun yok.

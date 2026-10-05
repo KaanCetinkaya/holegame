@@ -97,9 +97,7 @@ async function anitta(lv, ad, tohum = 400) {
 }
 
 console.log('');
-await oyundan(21, 'stil-halka', 40, 5300);
-await oyundan(22, 'stil-sira', 40, 5500);
-await oyundan(23, 'stil-dama', 40, 5500);
-await oyundan(24, 'stil-obek', 40, 5500);
+await ustten(108, 'bulmaca-108-ust');
+await ustten(18, 'bulmaca-18-ust');
 
 await br.close(); srv.close();

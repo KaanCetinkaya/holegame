@@ -20053,7 +20053,14 @@ function buildField() {
   // Eşik 150 hücre: seyreltici biçimler yarısını bıraktığı için bu, en kötü
   // durumda 75 hücre demek ve her hücre en az bir parça, çoğu daha fazla
   // (desenin kendi `stack`i). Sınırın (80) hemen üstünde duruyor.
-  let stil = yerlesimStili(level);
+  // Bulmaca tahtası dolgu biçimi almıyor.
+  //
+  // Orada düzeni **odalar** veriyor: taş duvarlar tahtayı bölüyor, kapılar
+  // dar, sıra önemli. Üstüne bir de seyreltme binince odaların içi boşalıyor
+  // ve geriye köşelerde birkaç küme ile boş kum kalıyor — Kaan'ın 108.
+  // bölümden attığı kare tam bu. İki ayrı düzen üst üste binince ikisi de
+  // okunmuyor.
+  let stil = isPuzzleLevel(level) && !dailyRun ? 'dolu' : yerlesimStili(level);
   if (stil !== 'dolu' && !currentPattern.polar) {
     let hucreSayisi = 0;
     for (const cell of gridCells()) {
@@ -21366,10 +21373,14 @@ const GATE_OK = new THREE.MeshBasicMaterial({ color: '#6fe08a', transparent: tru
 const GATE_NO = new THREE.MeshBasicMaterial({ color: '#f2545b', transparent: true, opacity: 0.85 });
 let puzzleGateMeshes = [];
 let puzzleWallX = 0;
+// Koridor tahtanın hangi yanında: +1 sağ, -1 sol. Odalar da buna göre
+// öteki yana diziliyor.
+let puzzleSide = 1;
 let puzzleTries = 0, puzzleTriesLv = 0, puzzleDead = false;
 
 function puzzleOn() { return !dailyRun && isPuzzleLevel(level); }
-function puzzleCorrCX() { return fieldHalfX - PUZZLE_CORR / 2; }
+// Koridorun orta ekseni. Yön değişebildiği için işaretli.
+function puzzleCorrCX() { return puzzleSide * (fieldHalfX - PUZZLE_CORR / 2); }
 
 // Deliğin bölüm başındaki yarıçapı. `resetHole` ile aynı satır olmak zorunda:
 // kapı genişlikleri buradan hesaplanıyor ve ikisi ayrışırsa tahta ya imkânsız
@@ -21570,8 +21581,22 @@ function buildPuzzle() {
   // ama geometrilerini bırakmıyor, ve bulmaca başına üç-dört tane.
   for (const g of puzzleGateMeshes) g.mesh.geometry.dispose();
   puzzleGateMeshes = [];
-  const N = level >= PUZZLE_4ROOMS ? 4 : 3;
-  puzzleWallX = fieldHalfX - PUZZLE_CORR - ROCK_R;
+  // Oda sayısı ve koridorun yönü bölüme göre değişiyor.
+  //
+  // Mimari tek bir şekildi: koridor hep sağda, odalar hep sola dizili, oda
+  // sayısı 18'den sonra hep dört. Bulmaca her onuncu bölümde geliyor, yani
+  // oyuncu aynı planı onlarca kez görüyor — Kaan 108. bölümden "bu bölümde
+  // hep aynı" diye yazdı ve haritaların imzası farklı olduğu hâlde haklıydı:
+  // değişen şey odaların **içi**, planın kendisi değil.
+  //
+  // İki şey değişiyor. Koridor bir bulmacada sağda, bir sonrakinde solda —
+  // yani oyuncu girdiği yönü her seferinde yeniden öğreniyor. Oda sayısı
+  // üç ile beş arasında: üç oda geniş ve hızlı, beş oda dar ve sıralı.
+  const bulmacaNo = Math.floor((level - PUZZLE_FIRST) / PUZZLE_EVERY);
+  const N = level >= PUZZLE_4ROOMS ? 3 + (bulmacaNo % 3) : 3;
+  // Koridorun yönü: +1 sağda, -1 solda.
+  puzzleSide = bulmacaNo % 2 ? -1 : 1;
+  puzzleWallX = puzzleSide * (fieldHalfX - PUZZLE_CORR - ROCK_R);
   const derin = (fieldHalfZ * 2) / N;
   // Duvarlar tahtanın dışına yarım kaya taşıyor: kenar kısıtı deliğin
   // yarıçapının yarısı kadar dışarı sarkmasına izin veriyor, yani duvar tam
@@ -21580,7 +21605,8 @@ function buildPuzzle() {
   const cizgiler = [[puzzleWallX, -fieldHalfZ - tasma, puzzleWallX, fieldHalfZ + tasma]];
   for (let i = 1; i < N; i++) {
     const z = -fieldHalfZ + i * derin;
-    cizgiler.push([-fieldHalfX - tasma, z, puzzleWallX, z]);
+    // Oda duvarı koridorun karşı kenarından koridor duvarına kadar.
+    cizgiler.push([puzzleSide * (-fieldHalfX - tasma), z, puzzleWallX, z]);
   }
 
   // 1. Duvarların ve koridorun üstündeki meyveler alınıyor.
@@ -21590,7 +21616,10 @@ function buildPuzzle() {
   // oyuncunun canı ne isterse orada olurdu.
   for (const f of fruits) {
     if (f.eaten) continue;
-    const koridorda = f.x > puzzleWallX - ROCK_R - 0.3;
+    // Koridor yönü değişebiliyor, yani "sağda" diye sormak yetmiyor.
+    const koridorda = puzzleSide > 0
+      ? f.x > puzzleWallX - ROCK_R - 0.3
+      : f.x < puzzleWallX + ROCK_R + 0.3;
     const duvarda = cizgiler.some(c => segDist(f.x, f.z, c[0], c[1], c[2], c[3]) < ROCK_R + PUZZLE_CLEAR);
     if (!koridorda && !duvarda) continue;
     unbuildFruit(f);
@@ -21608,10 +21637,12 @@ function buildPuzzle() {
   // benziyor; desenin şeklini bozmuyor çünkü orada zaten desen yok.
   for (let i = 0; i < N; i++) {
     const z0 = -fieldHalfZ + i * derin, z1 = z0 + derin;
-    const varOlan = fruits.filter(f => !f.eaten && f.x < puzzleWallX && f.z >= z0 && f.z < z1);
+    const odada = (x) => (puzzleSide > 0 ? x < puzzleWallX : x > puzzleWallX);
+    const varOlan = fruits.filter(f => !f.eaten && odada(f.x) && f.z >= z0 && f.z < z1);
     let hedef = PUZZLE_MIN_ROOM - varOlan.length;
     if (hedef <= 0) continue;
-    const x0 = -fieldHalfX + CELL, x1 = puzzleWallX - ROCK_R - PUZZLE_CLEAR;
+    const x0 = puzzleSide > 0 ? -fieldHalfX + CELL : puzzleWallX + ROCK_R + PUZZLE_CLEAR;
+    const x1 = puzzleSide > 0 ? puzzleWallX - ROCK_R - PUZZLE_CLEAR : fieldHalfX - CELL;
     const zz0 = z0 + ROCK_R + PUZZLE_CLEAR, zz1 = z1 - ROCK_R - PUZZLE_CLEAR;
     if (zz1 <= zz0) continue;
     for (let sx = 0; sx < 6 && hedef > 0; sx++) {
@@ -21671,7 +21702,7 @@ function buildPuzzle() {
   }
   for (let i = 1; i < puzzleRooms.length; i++) {
     const z = puzzleRooms[i].z0;
-    puzzleRockLine(-fieldHalfX - tasma, z, puzzleWallX, z);
+    puzzleRockLine(puzzleSide * (-fieldHalfX - tasma), z, puzzleWallX, z);
   }
 
   puzzleGates();
@@ -21714,7 +21745,8 @@ function stepPuzzleGates() {
 
 // Delik hangi odada? Koridor için -1.
 function puzzleWhere() {
-  if (!puzzleRooms.length || holeX > puzzleWallX) return -1;
+  if (!puzzleRooms.length) return -1;
+  if (puzzleSide > 0 ? holeX > puzzleWallX : holeX < puzzleWallX) return -1;
   for (let i = 0; i < puzzleRooms.length; i++) {
     if (holeZ >= puzzleRooms[i].z0 && holeZ < puzzleRooms[i].z1) return i;
   }
@@ -21737,7 +21769,9 @@ function puzzleWhere() {
 function puzzleStuck() {
   if (!puzzleRooms.length) return false;
   const kalan = puzzleRooms.map(rm =>
-    fruits.some(f => !f.eaten && !f.bomb && f.x < puzzleWallX && f.z >= rm.z0 && f.z < rm.z1));
+    fruits.some(f => !f.eaten && !f.bomb
+      && (puzzleSide > 0 ? f.x < puzzleWallX : f.x > puzzleWallX)
+      && f.z >= rm.z0 && f.z < rm.z1));
   if (!kalan.some(Boolean)) return false;
   const gecmez = i => holeRadius > puzzleRooms[i].limit + 0.02;
   const nerede = puzzleWhere();
@@ -26754,17 +26788,22 @@ window.fruitHoleSpikeRun = (i, r) => {
 //
 // `rocks` de burada: kapı genişliği tasarlanan sayıdan değil, **konan
 // kayalardan** ölçülmeli. Aradaki farkın adı hata.
+const odaTarafi = (x) => (puzzleSide > 0 ? x < puzzleWallX : x > puzzleWallX);
 window.fruitHolePuzzle = () => ({
   on: missionKind === 'puzzle',
   rooms: puzzleRooms.map((rm, i) => ({
     i, z0: +rm.z0.toFixed(2), z1: +rm.z1.toFixed(2), cz: +rm.cz.toFixed(2),
     g: +rm.g.toFixed(4), limit: +rm.limit.toFixed(3), gap: +rm.gap.toFixed(3),
     fruit: rm.fruit,
-    kalan: fruits.filter(f => !f.eaten && f.x < puzzleWallX
+    kalan: fruits.filter(f => !f.eaten && odaTarafi(f.x)
                              && f.z >= rm.z0 && f.z < rm.z1).length,
   })),
   order: puzzleOrder.slice(),
   wallX: +puzzleWallX.toFixed(3), corrCX: +puzzleCorrCX().toFixed(3),
+  // Koridorun yönü: +1 sağda, -1 solda. Mimari artık bulmacadan bulmacaya
+  // aynalanıyor, yani "sağda" diye varsaymak yerine sormak gerekiyor.
+  side: puzzleSide,
+  odaKenari: +(puzzleSide * (-fieldHalfX)).toFixed(3),
   rockR: ROCK_R, holeMax: HOLE_MAX,
   r0: +startHoleRadius().toFixed(4), holeR: +holeRadius.toFixed(4),
   at: puzzleWhere(), stuck: puzzleStuck(), tries: puzzleTries,
@@ -26782,7 +26821,10 @@ window.fruitHolePuzzle = () => ({
 window.fruitHolePuzzlePut = (room, r) => {
   const rm = room < 0 ? null : puzzleRooms[room];
   if (r != null) holeRadius = r;
-  if (rm) { holeX = (-fieldHalfX + puzzleWallX) / 2; holeZ = rm.cz; }
+  // Odanın ortası: koridor hangi yandaysa oda öteki yanda. Burası
+  // `-fieldHalfX` diye yazılıydı ve mimari aynalanınca deliği odanın değil
+  // koridorun içine koyuyordu — oyun da haklı olarak "sıkışma yok" diyordu.
+  if (rm) { holeX = (puzzleSide * -fieldHalfX + puzzleWallX) / 2; holeZ = rm.cz; }
   else { holeX = puzzleCorrCX(); holeZ = spawnZ(); }
   return { x: +holeX.toFixed(2), z: +holeZ.toFixed(2), r: +holeRadius.toFixed(3),
            at: puzzleWhere(), stuck: puzzleStuck() };
@@ -26793,7 +26835,7 @@ window.fruitHolePuzzleEat = (room) => {
   if (!rm) return null;
   const now = performance.now();
   for (const f of fruits) {
-    if (f.eaten || f.x >= puzzleWallX || f.z < rm.z0 || f.z >= rm.z1) continue;
+    if (f.eaten || !odaTarafi(f.x) || f.z < rm.z0 || f.z >= rm.z1) continue;
     eatFruit(f, now);
   }
   return { r: +holeRadius.toFixed(4), eaten: eatenCount, stuck: puzzleStuck() };
