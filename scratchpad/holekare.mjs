@@ -56,15 +56,16 @@ async function ustten(lv, ad, tohum = 400) {
 }
 
 // Oyun kamerasından: oyuncunun gerçekten gördüğü şey.
-async function oyundan(lv, ad, adim = 40, tohum = 400) {
-  await pg.evaluate(([l, t, n]) => {
+async function oyundan(lv, ad, adim = 40, tohum = 400, boy = null) {
+  await pg.evaluate(([l, t, n, b]) => {
     window.fruitHoleSeedField(t + l);
     window.fruitHoleProbe(l);
     window.fruitHoleStartLevel();
+    if (b != null) window.fruitHoleSetSize(b);
     // Birkaç kare ilerlet: kamera açılış animasyonunu bitirsin ve tahta
     // oturduğu hâliyle görünsün.
     for (let i = 0; i < n; i++) window.__step(1000 / 30);
-  }, [lv, tohum, adim]);
+  }, [lv, tohum, adim, boy]);
   await pg.screenshot({ path: `${CIKTI}/kare-${ad}.png`, timeout: 120000 });
   await pg.evaluate(() => window.fruitHoleUnseedField());
   console.log(`  kare-${ad}.png  (bölüm ${lv})`);
@@ -97,7 +98,8 @@ async function anitta(lv, ad, tohum = 400) {
 }
 
 console.log('');
-await oyundan(16, 'gul-16', 40, 400);
-await oyundan(56, 'gul-56', 40, 400);
+await oyundan(125, 'delik-kucuk', 40, 400, 0);
+await oyundan(125, 'delik-orta', 40, 400, 0.35);
+await oyundan(125, 'delik-buyuk', 40, 400, 0.7);
 
 await br.close(); srv.close();

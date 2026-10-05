@@ -22946,6 +22946,15 @@ const HOLE_INTERIOR_MAT = new THREE.MeshBasicMaterial({ map: holeInteriorTexture
 const HOLE_RIM_MAT = new THREE.MeshStandardMaterial({
   color: '#f59321', roughness: 0.35, metalness: 0.05,
 });
+// Büyüme yayının izi: yayla aynı kalınlıkta, açık krem.
+//
+// Önce koyu kahve denendi ("aynı rengin soluğu") ve ahşap zeminde hiç
+// görünmedi — iz görünmeyince yay yine yarım bir parça gibi kaldı. İzin işi
+// zemine karışmak değil, **halkayı tamamlamak**.
+const HOLE_TRACK_MAT = new THREE.MeshStandardMaterial({
+  color: '#f6e3c8', roughness: 0.7, metalness: 0.0,
+  transparent: true, opacity: 0.8,
+});
 const HOLE_LIP_MAT = new THREE.MeshStandardMaterial({
   color: '#ffc978', roughness: 0.5, map: COLLAR_SHADE });
 
@@ -23029,6 +23038,20 @@ function buildHole() {
   // bigger — which you cannot judge against a board that is also changing.
   // It carries the skin's colour, so the thing you buy is still the thing
   // you see.
+  // Yayın arkasında tam bir iz duruyor.
+  //
+  // İz yokken yay kırılmış bir kenar gibi okunuyor: Kaan 125. bölümden
+  // "bu şeyin yarısı niye yok" diye yazdı ve gördüğü şey doğruydu — yakanın
+  // bir yanında turuncu bir hilal var, öteki yanında hiçbir şey. Yarım bir
+  // halka, çevresinde kardeşi olmadığı sürece "eksik" demek.
+  //
+  // İzin rengi aynı malzemenin soluğu: ayrı bir renk ikinci bir nesne gibi
+  // okunuyordu, aynı rengin soluğu "burası dolacak" diyor.
+  const arcTrack = new THREE.Mesh(
+    new THREE.TorusGeometry(BASE_HOLE_R * 1.14, 0.075, 8, 44), HOLE_TRACK_MAT);
+  arcTrack.rotation.x = Math.PI / 2;
+  arcTrack.position.y = 0.018;
+
   sizeArc = new THREE.Mesh(new THREE.BufferGeometry(), HOLE_RIM_MAT);
   sizeArc.rotation.x = Math.PI / 2;
   sizeArc.position.y = 0.02;
@@ -23047,7 +23070,7 @@ function buildHole() {
   contact.rotation.x = -Math.PI / 2;
   contact.position.y = 0.012;
 
-  holeGroup.add(contact, edge, band, sizeArc, inner);
+  holeGroup.add(contact, edge, band, arcTrack, sizeArc, inner);
   scene.add(holeGroup);
 
   // Super magnet's reach, drawn on the ground while it is running.
