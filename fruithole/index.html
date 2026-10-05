@@ -17454,6 +17454,29 @@ function smallRingAt(r, c) {
 // her düzen her turda aynı biçimi alırdı. Bölüm numarasına tur kayması da
 // ekleniyor: `(level + tur) % 5`, böylece ikinci turda aynı düzen başka
 // biçimde doluyor — "bunu gördüm" demenin önündeki tek şey o.
+// Karo desenleri: tahtayı 6x6'lık karolarla döşüyor, her karonun içinde
+// tekrar eden bir şekil. Dolgu biçimlerini ayarlamak dört turdur cevap
+// vermedi — Kaan "bir desen yap" dedi ve haklı: seyreltmek bir dizilim
+// değil, yalnızca daha az parça.
+//
+// Altı satır, altı sütun; `#` dolu. Şekiller karo sınırına değmiyor, yani
+// karolar arasında kendiliğinden bir hücrelik zemin kalıyor.
+// Karo deseni denendi ve kaldırıldı.
+//
+// Tahtayı 4x4'lük karolarla döşüyordu, her karonun içinde tekrar eden bir
+// şekil (baklava, artı, çerçeve, köşegen). İki sebeple tutmadı:
+//
+//   * **Okunmadı.** Ekrana 7-8 hücre giriyor, parçalar hücrelerinden
+//     taşıyor ve yığınlar arkalarındaki zemini örtüyor. Karonun şekli bu
+//     üçünün altında kayboluyor. Önce 6x6 denendi, ekrana tek karo sığdı;
+//     4x4'te de parçalar şekli yedi.
+//   * **Dengeyi bozdu.** İnce bir siluetle kesişince geriye hiçbir şey
+//     kalmıyordu: en seyrek ızgara bölümü 80 parça sınırına karşı **8**
+//     parçaya indi.
+//
+// Ders, kalınlaştırma ölçümüyle aynı yere çıkıyor: bu kamerada bir şekli
+// hücre ızgarasına çizmek işlemiyor. Oyunda bunu yapan şey zaten var —
+// resim tahtaları, 1400-1800 küçük ve düz parçayla.
 const YERLESIM = ['dolu', 'halka', 'sira', 'blok', 'sutun'];
 let zorlaStil = null;
 function yerlesimStili(n) {
@@ -18077,7 +18100,15 @@ const PATTERNS = [
     // the pyramid's terraces — a ring of mixed fruit reads as a scatter that
     // happens to be curved.
     empty: (r, c) => !smallRingAt(r, c),
-    type: (r, c) => { const k = smallRingAt(r, c); return ID[k ? k.i % ID.length : 0]; },
+    // Halkanın dışı tek renk değil, şerit.
+    //
+    // `ID[0]` yazılıydı: halkaların arası zaten boştu, yani o dal hiç
+    // çalışmıyordu. Şekil kalınlaştırılınca çalışmaya başladı ve ekranın
+    // %66'sı tek meyve oldu — eski bir varsayılan, yeni bir durumda.
+    type: (r, c) => {
+      const k = smallRingAt(r, c);
+      return k ? ID[k.i % ID.length] : seritTip(r, c, 2, ID);
+    },
     // Tallest along the crest of the band, so the ring is a wall with a
     // hollow inside rather than a flat washer.
     stack: (r, c) => { const k = smallRingAt(r, c); return ridge(k ? 1 - Math.abs(k.t - 0.5) * 2 : 0, 2); },
@@ -19007,7 +19038,12 @@ const PATTERNS = [
       const kenar = 3;
       if (c < kenar) return ID[0];
       if (c >= COLS - kenar) return ID[3 % ID.length];
-      return ID[(Math.floor((c - kenar) / 2) % 2) + 1];
+      // Koridorların rengi sırayla, dördü de. Düzenin kendi bantları zaten
+      // ekrandan geniş; Lanes bu ölçümde sınırda duruyor ve bilerek öyle
+      // bırakıldı — bant sayısını artırmak denendi, tahta 600 parça tavanını
+      // aştı ve yükseklik ölçüsü de bozuldu. Bir ölçüyü düzeltmek için iki
+      // ölçüyü bozmak düzeltme değil.
+      return ID[(c - kenar) % ID.length];
     },
     big: (r, c) => (c >= 3 && c < COLS - 3 && r % 6 === 0 && (c - 3) % 4 === 1),
   },
@@ -20272,9 +20308,16 @@ function buildField() {
       // tanımsız çıkıyor. Tanımsız bir tür `fruitVisual`den malzemesiz bir
       // görsel döndürüyor, o da çizim sırasında patlıyor — sahneye hiç
       // ulaşmadan, yani ekranda boş tahta olarak görünüyor.
+      // Yedek tür tek bir meyve değil, şerit.
+      //
+      // Önce `ID[0]` yazılıydı ve kalınlaştırmayla birlikte yan etki verdi:
+      // büyüyen hücrelerin hepsi aynı meyve oluyor ve ekranda tek renk payı
+      // yükseliyor (Rings %66, Lanes'te ekranda 2.7 tür). Şerit, şeklin
+      // dışına taşan halkayı da desenin bir parçası gibi gösteriyor.
       const tur = currentPattern.type(a, b);
+      const esas = TYPE_IDS.includes(tur) ? tur : seritTip(a, b, 2, ID);
       const vis = prop ? propVisual(prop, radius * 1.45)
-                       : fruitVisual(TYPE_IDS.includes(tur) ? tur : ID[0], radius, iri);
+                       : fruitVisual(esas, radius, iri);
       const type = prop ? vis.currency : currentPattern.type(a, b);
 
       // A cell can hold a pile. Each fruit in it is its own entry, so the
