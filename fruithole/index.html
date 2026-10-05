@@ -20486,6 +20486,22 @@ function buildField() {
   // patron bölümünde tutmadı.
   fruits = fruits.filter(f => !f.eaten);
 
+  // Ulaşılamayan parça tahtadan düşürülüyor.
+  //
+  // Kural zaten vardı — `placeRocks` iki katı engel arasını en geniş ağızdan
+  // geniş tutuyor — ama o **yerel** bir kural ve korumak istediği şeyi
+  // garanti etmiyor: bir parça iki kayanın değil, bir kaya ile tahtanın
+  // kenarının arasında da sıkışabiliyor. Şekil kalınlaştırma bunu görünür
+  // yaptı, çünkü siluet artık engellerin dibine kadar uzanıyor: 21. ve 41.
+  // bölümlerde birer parça başlangıç deliğiyle ulaşılamaz çıktı
+  // (`holekural.mjs`).
+  //
+  // Bir parçayı alamamak bölümü bitirilemez yapıyor — hedef bütün parçaları
+  // yemek. O yüzden burada ummak yerine **ölçüp** atıyoruz: doğuş noktasından
+  // tahtayı tarıyor, hiçbir açık kareye komşu olmayan parçayı düşürüyor.
+  // Tarama adımı kapıdan ince (0.15), sebebi `fruitHoleReach`te yazılı.
+  dropUnreachable();
+
   // Tahtadan alınacak her şey alındı; çizilecek olanlar ancak şimdi kuruluyor.
   materialiseFruit();
 
@@ -26557,6 +26573,80 @@ window.fruitHoleBombs = () => {
 // Yarıçap parametre, çünkü cevap delik büyüdükçe değişiyor: bir açıklık
 // başlangıçta geçiliyor, yirmi meyve sonra geçilmiyor. Delik yalnızca
 // büyüdüğü için bu geri alınamaz bir kapanma.
+// Başlangıç deliğiyle ulaşılamayan parçaları listeden düşür.
+//
+// `fruitHoleReach` ile aynı tarama; farkı, ölçmek yerine temizlemesi.
+// Ayrı yazılmasının sebebi: ölçüm kancası oyunun içinden çağrılmamalı,
+// yoksa testin ölçtüğü şey testin kendisi oluyor.
+function dropUnreachable() {
+  // İki soru soruluyor, ikisi de aynı taramayla.
+  //
+  //   1. Başlangıç deliğiyle her parçaya varılabiliyor mu?
+  //   2. **İri** bir parçaya, onu yutabilecek boydayken hâlâ varılabiliyor mu?
+  //
+  // İkincisi ayrı bir soru çünkü delik yalnızca büyüyor: başta geçilen bir
+  // aralık, o parçayı yutabilecek boya gelindiğinde geçilmiyor olabiliyor ve
+  // o parça tahtada duran ama alınamayan bir şey oluyor.
+  //
+  // Her ayrı yarıçap için bir tarama; oyunda dört beş ayrı iri boy var, yani
+  // en fazla o kadar tarama.
+  const bakilacak = [holeRadius];
+  for (const f of fruits) {
+    if (f.eaten || !f.big) continue;
+    const gerek = Math.min(HOLE_MAX, f.r / 0.92);
+    if (!bakilacak.some(v => Math.abs(v - gerek) < 0.01)) bakilacak.push(gerek);
+  }
+  for (const R of bakilacak) dropUnreachableAt(R, R === holeRadius);
+}
+
+function dropUnreachableAt(R, hepsi) {
+  const ADIM = 0.15;
+  const nx = Math.ceil(fieldHalfX * 2 / ADIM) + 1;
+  const nz = Math.ceil(fieldHalfZ * 2 / ADIM) + 1;
+  const katilar = [...rocks.map(o => ({ x: o.x, z: o.z, r: ROCK_R })),
+                   ...catapults.map(o => ({ x: o.x, z: o.z, r: CATAPULT_R }))];
+  if (!katilar.length) return;
+  const acik = (x, z) => {
+    if (Math.abs(x) > fieldHalfX || Math.abs(z) > fieldHalfZ) return false;
+    for (const o of katilar) if (Math.hypot(x - o.x, z - o.z) < o.r + R) return false;
+    return true;
+  };
+  const idx = (i, j) => i * nz + j;
+  const gorulen = new Uint8Array(nx * nz);
+  const xOf = i => -fieldHalfX + i * ADIM, zOf = j => -fieldHalfZ + j * ADIM;
+  const i0 = Math.round((holeX + fieldHalfX) / ADIM);
+  const j0 = Math.round((holeZ + fieldHalfZ) / ADIM);
+  const yigin = [];
+  if (i0 >= 0 && i0 < nx && j0 >= 0 && j0 < nz && acik(xOf(i0), zOf(j0))) {
+    gorulen[idx(i0, j0)] = 1; yigin.push([i0, j0]);
+  }
+  while (yigin.length) {
+    const [i, j] = yigin.pop();
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const a = i + di, b = j + dj;
+      if (a < 0 || a >= nx || b < 0 || b >= nz || gorulen[idx(a, b)]) continue;
+      if (!acik(xOf(a), zOf(b))) continue;
+      gorulen[idx(a, b)] = 1; yigin.push([a, b]);
+    }
+  }
+  let atildi = 0;
+  for (const f of fruits) {
+    if (f.eaten) continue;
+    // İri tarama yalnızca o boyu gerektiren parçalara bakıyor.
+    if (!hepsi && !(f.big && Math.abs(Math.min(HOLE_MAX, f.r / 0.92) - R) < 0.01)) continue;
+    const i = Math.round((f.x + fieldHalfX) / ADIM);
+    const j = Math.round((f.z + fieldHalfZ) / ADIM);
+    let bulundu = false;
+    for (let a = i - 1; a <= i + 1 && !bulundu; a++) {
+      for (let b = j - 1; b <= j + 1 && !bulundu; b++) {
+        if (a >= 0 && a < nx && b >= 0 && b < nz && gorulen[idx(a, b)]) bulundu = true;
+      }
+    }
+    if (!bulundu) { unbuildFruit(f); atildi++; }
+  }
+  if (atildi) fruits = fruits.filter(f => !f.eaten);
+}
+
 window.fruitHoleReach = (r) => {
   const R = r == null ? BASE_HOLE_R : r;
   // Tarama adımı kapıdan dar olmalı.
