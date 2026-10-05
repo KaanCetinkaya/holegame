@@ -27,7 +27,7 @@ await pg.addInitScript(() => {
 });
 await pg.goto('http://localhost:8518/', { waitUntil: 'load', timeout: 90000 });
 await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 90000 });
-const stiller = ['dolu', 'halka', 'sira', 'dama', 'obek'];
+const stiller = ['dolu', 'halka', 'sira', 'blok', 'sutun'];
 let n = 0;
 for (const st of stiller) {
   n++;

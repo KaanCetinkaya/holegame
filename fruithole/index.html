@@ -12981,6 +12981,9 @@ function propVisual(id, radius) {
 // for it before the level began. Dropping the ordinary fruit to 0.46 lets
 // the opening drop to 0.55 and roughly doubles the gap the player has to
 // grow across.
+// Geçerli tür kimlikleri — `ID` desen dosyasının altında kuruluyor, bu
+// liste ondan önce de lazım.
+const TYPE_IDS = TYPES.map(t => t.id);
 const NORMAL_R = 0.46, BIG_R = 0.72;
 // Merdivenin üçüncü basamağı.
 //
@@ -17438,14 +17441,20 @@ function smallRingAt(r, c) {
 //   dolu    — her hücre (eski davranış)
 //   halka   — küçük boş çemberler, ortaları boş
 //   sira    — iki sıra dolu bir sıra boş: koridorlar
-//   dama    — bir dolu bir boş: seyrek, zemini en çok gösteren
-//   obek    — yuvarlak öbekler, aralarında zemin
+//   blok    — 3x4'lük sıkı bloklar, aralarında bir hücre boşluk
+//   sutun   — iki sütun dolu bir sütun boş: dikey koridorlar
+//
+// `dama` (bir dolu bir boş) ve `obek` (gürültüyle yuvarlak kümeler)
+// denendi ve atıldı. İkisi de zemin gösteriyordu ama **serpiyordu**:
+// Kaan "etrafa saçıyorsun, az örüntülü diz" dedi ve rakip karelerinde
+// olan şey tam tersi — sıkı bloklar, net sıralar, aralarında temiz
+// boşluk. Seyreklik ile dağınıklık ayrı şeyler; aradığımız birincisi.
 //
 // Beş biçim ile elli beş düzen aralarında asal değil (55 = 5 x 11), yani
 // her düzen her turda aynı biçimi alırdı. Bölüm numarasına tur kayması da
 // ekleniyor: `(level + tur) % 5`, böylece ikinci turda aynı düzen başka
 // biçimde doluyor — "bunu gördüm" demenin önündeki tek şey o.
-const YERLESIM = ['dolu', 'halka', 'sira', 'dama', 'obek'];
+const YERLESIM = ['dolu', 'halka', 'sira', 'blok', 'sutun'];
 let zorlaStil = null;
 function yerlesimStili(n) {
   return YERLESIM[(n + Math.floor((n - 1) / PATTERNS.length)) % YERLESIM.length];
@@ -17455,7 +17464,22 @@ function yerlesimStili(n) {
 function yerlesimDolu(stil, r, c) {
   if (stil === 'dolu') return true;
   if (stil === 'sira') return r % 3 !== 2;
-  if (stil === 'dama') return (r + c) % 2 === 0;
+  if (stil === 'sutun') return c % 3 !== 2;
+  if (stil === 'blok') {
+    // Blok 3 geniş, 4 derin, arasında bir hücre boşluk — yani ızgara 4x5.
+    // Blokların içi **tamamen** dolu: dağınıklığı yaratan şey boşluk değil,
+    // boşluğun parçaların arasına girmesi. Boşluk blokların arasında duruyor.
+    const bi = Math.floor(c / 4), bj = Math.floor(r / 5);
+    if (c % 4 === 3 || r % 5 === 4) return false;
+    // Blokların hepsi dolu değil: gürültü hangi bloğun duracağını söylüyor.
+    // Blok ölçeğinde sorulduğu için cevap blok boyunca aynı — hücre
+    // ölçeğinde sorulsaydı blok yine delik deşik olurdu.
+    // Eşik düşük: blokların **çoğu** duruyor. 0.34 ile yarısı siliniyordu
+    // ve halka gibi ince bir siluetle kesişince geriye kırıntı kalıyordu —
+    // ölçüldü, 260 parçalık tahta 95'e indi. Düzeni veren şey blokların
+    // seyrekliği değil, aralarındaki **düzenli** boşluk.
+    return blob(bj * 5, bi * 4, 0.5, 2027) > 0.12;
+  }
   if (stil === 'halka') {
     // Çember merkezleri beş hücrede bir; bant bir buçuk hücre kalın.
     // İnce olursa çember boncuklara dağılıyor, kalın olursa ortası kapanıp
@@ -17464,9 +17488,7 @@ function yerlesimDolu(stil, r, c) {
     const d = Math.hypot(mr, mc);
     return d >= 1.1 && d <= 2.2;
   }
-  // obek: gürültüyle yuvarlak öbekler. Eşik 0.42 — daha yükseği tahtayı
-  // boşaltıyor, daha alçağı öbekleri birleştirip yine dolu tahta yapıyor.
-  return blob(r, c, 0.5, 2027) > 0.42;
+  return true;
 }
 
 // Which circle a cell falls in, and how deep into it. -1 for open ground.
@@ -20061,21 +20083,77 @@ function buildField() {
   // ve geriye köşelerde birkaç küme ile boş kum kalıyor — Kaan'ın 108.
   // bölümden attığı kare tam bu. İki ayrı düzen üst üste binince ikisi de
   // okunmuyor.
-  let stil = zorlaStil || (isPuzzleLevel(level) && !dailyRun ? 'dolu' : yerlesimStili(level));
-  if (stil !== 'dolu' && !currentPattern.polar) {
-    let hucreSayisi = 0;
+  // Siluet önce bir kez çıkarılıyor: hem dolgu biçimi kararı hem de
+  // kalınlaştırma buna bakıyor.
+  const izinli = new Set();
+  if (!currentPattern.polar) {
     for (const cell of gridCells()) {
       const [a, b] = bak(cell.a, cell.b);
       if (currentPattern.empty && currentPattern.empty(a, b)) continue;
-      hucreSayisi++;
+      izinli.add(cell.a + ',' + cell.b);
     }
-    if (hucreSayisi < 150) stil = 'dolu';
   }
+
+  // İnce şekiller bir hücre kalınlaştırılıyor.
+  //
+  // Ölçüldü (`scratchpad/holeiclik.mjs`): dolu hücrelerin yalnızca %17'sinin
+  // dört komşusu da dolu, ve elli düzenin **otuz altısı** %25'in altında.
+  // Yani şekillerimizin çoğu kütle değil çizgi — iki hücre kalınlığında bir
+  // bant. Oyun kamerası ekrana sekiz hücre sığdırıyor, ve iki hücrelik bir
+  // bant orada bir dizilim değil serpinti olarak okunuyor.
+  //
+  // Kaan dört turdur "etrafa saçıyorsun" diyor ve her turda dolgu biçimi
+  // değiştirildi — oysa dolgu, zaten ince olan bir şekli daha da inceltiyordu.
+  // Sorun dolgunun kendisi değil altındaki siluetti.
+  //
+  // Kalınlaştırma **genişletme** (dilation): dolu bir hücrenin boş komşusu
+  // doluyor. Şekil büyüyor ama kimliğini koruyor — halka halka kalıyor,
+  // yalnızca bandı kalınlaşıyor. Delik açma (closing) denenmedi çünkü
+  // halkanın ortasını doldurmak halkayı disk yapardı.
+  //
+  // Yalnızca ince olanlara uygulanıyor: zaten kütle olan bir şekli
+  // şişirmek tahtayı tavana vurduruyor (`holerelease` 600 parça sınırı).
+  if (izinli.size) {
+    // Bir tur yetmedi: ölçüldü, %17 ancak %26'ya çıktı ve elli düzenin
+    // yirmi dördü hâlâ çizgi. İki hücrelik bir bant bir turda dörde çıkıyor
+    // ama dört hücrelik bir bandın da yalnızca ortadaki iki sırası "iç"
+    // oluyor. İki tura kadar çıkılıyor, ve tahtanın yarısını geçmemek
+    // şartıyla — şişirilmiş bir kütle de dizilim değil, yine halı.
+    const toplamHucre = rows * COLS;
+    for (let tur = 0; tur < 2; tur++) {
+      let ic2 = 0;
+      for (const k of izinli) {
+        const [r, c] = k.split(',').map(Number);
+        if (izinli.has((r - 1) + ',' + c) && izinli.has((r + 1) + ',' + c) &&
+            izinli.has(r + ',' + (c - 1)) && izinli.has(r + ',' + (c + 1))) ic2++;
+      }
+      if (ic2 / izinli.size >= 0.35) break;
+      if (izinli.size > toplamHucre * 0.5) break;
+      const ek = [];
+      for (const k of izinli) {
+        const [r, c] = k.split(',').map(Number);
+        for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const n = (r + dr) + ',' + (c + dc);
+          if (!izinli.has(n)) ek.push(n);
+        }
+      }
+      for (const k of ek) izinli.add(k);
+    }
+  }
+
+  let stil = zorlaStil || (isPuzzleLevel(level) && !dailyRun ? 'dolu' : yerlesimStili(level));
+  if (stil !== 'dolu' && !currentPattern.polar && izinli.size < 150) stil = 'dolu';
   for (const cell of (resim || serit) ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
       const { x, z } = cell;
       const [a, b] = bak(cell.a, cell.b);
-      if (currentPattern.empty && currentPattern.empty(a, b)) continue;
-      if (!currentPattern.polar && !yerlesimDolu(stil, a, b)) continue;
+      // Izgara tahtasında siluet yukarıda bir kez çıkarıldı (ve gerekiyorsa
+      // kalınlaştırıldı); burada ona bakılıyor, `empty`ye değil.
+      if (currentPattern.polar) {
+        if (currentPattern.empty && currentPattern.empty(a, b)) continue;
+      } else {
+        if (!izinli.has(cell.a + ',' + cell.b)) continue;
+        if (!yerlesimDolu(stil, a, b)) continue;
+      }
 
       // Desenin kendi `big` kuralına dokunulmuyor: o şeklin parçası — ağacın
       // gövdesi, merdivenin basamağı, adanın tepesi. Üstüne serpiştirilen bir
@@ -20188,8 +20266,15 @@ function buildField() {
       const prop = !big && themePool.length && propYer && rnd() < propRate * 2.2
         ? pick(themePool) : null;
       // Giants are built whole; everything else stays a slice.
+      // Desenin `type`i şeklin **içi** için yazılmış. Kalınlaştırma şekli bir
+      // hücre büyütüyor ve o yeni hücreler bazı desenlerde şeklin dışına
+      // düşüyor: `smallRingAt` gibi yardımcılar orada null dönüyor ve tür
+      // tanımsız çıkıyor. Tanımsız bir tür `fruitVisual`den malzemesiz bir
+      // görsel döndürüyor, o da çizim sırasında patlıyor — sahneye hiç
+      // ulaşmadan, yani ekranda boş tahta olarak görünüyor.
+      const tur = currentPattern.type(a, b);
       const vis = prop ? propVisual(prop, radius * 1.45)
-                       : fruitVisual(currentPattern.type(a, b), radius, iri);
+                       : fruitVisual(TYPE_IDS.includes(tur) ? tur : ID[0], radius, iri);
       const type = prop ? vis.currency : currentPattern.type(a, b);
 
       // A cell can hold a pile. Each fruit in it is its own entry, so the
