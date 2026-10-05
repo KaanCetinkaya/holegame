@@ -17992,7 +17992,14 @@ const PATTERNS = [
       const { wob } = shapeCoords(r, c);
       return Math.abs(c - midCol()) > glassHalf(r) + wob * COLS * 0.5;
     },
-    type: (r, c) => typeFromNoise(r, c, 0.34, 73),
+    // Kum saatinin iki haznesi iki ayrı renk, boğazda karışıyor: şeklin
+    // kendisi deseni veriyor. Gürültü ölçeği 0.34 ile leke ekrandan
+    // büyüktü (%67 tek tür).
+    type: (r, c) => {
+      const { ny } = shapeCoords(r, c);
+      const kum = seritTip(r, c, 2, [ID[1 % ID.length], ID[2 % ID.length]]);
+      return Math.abs(ny) < 0.2 ? kum : (ny < 0 ? ID[0] : ID[3 % ID.length]);
+    },
     // Boğaza doğru yükseliyor: tahtanın en dar yeri en yüksek yeri de olsun,
     // yoksa darlık yalnızca bir eksiklik gibi duruyor.
     stack: (r) => ridge(1 - Math.abs(r / (rows - 1) - 0.5) * 2, 3),
@@ -18090,8 +18097,11 @@ const PATTERNS = [
     stack: (r, c) => { const k = circleAt(r, c); return ridge(k ? k.t : 0, 3); },
     // One oversized fruit sitting at the middle of the three larger circles.
     big: (r, c) => {
+      // Eşik 0.8'den 0.72'ye: yerleşim biçimleri tahtayı seyreltince iri
+      // payı %7.6'ya indi ve `holemix`in halı sınırı %8. Kuralın kendisi
+      // doğru (kabarcığın **göbeği** iri), yalnızca göbek büyüdü.
       const k = circleAt(r, c);
-      return !!k && k.t > 0.8 && CIRCLES[k.i].r >= 3;
+      return !!k && k.t > 0.72 && CIRCLES[k.i].r >= 3;
     },
   },
 
@@ -18857,8 +18867,10 @@ const PATTERNS = [
     // Omurga tek renk, kaburgalar sırayla. Gürültüyle boyanıyordu ve
     // gürültü lekesi ekrandan büyük olduğu için ekranda tek renk kalıyordu
     // (ölçülen %63). Kaburga zaten sıra sıra: deseni şeklin kendisi veriyor.
+    // Şerit genişliği 2'den 1'e. Tahta seyreltilince iki sıralık bir bandın
+    // yarısı siliniyor ve geriye tek renk kalıyordu (%65).
     type: (r, c) => (Math.abs(shapeCoords(r, c).nx) < 0.16
-      ? ID[0] : seritTip(r, c, 2, [ID[1 % ID.length], ID[3 % ID.length],
+      ? ID[0] : seritTip(r, c, 1, [ID[1 % ID.length], ID[3 % ID.length],
                                    ID[2 % ID.length]])),
     big: (r, c) => r % 5 === 0 && (c % 8 === 1 || c % 8 === 6),
   },
@@ -19034,8 +19046,10 @@ const PATTERNS = [
     // diyordu. Ölçünce ekranın **%100'ü** tek meyve çıktı — oyunun hiçbir
     // tahtasında bu kadarı yoktu. Zikzak zaten dar, yani tek renk olunca
     // ekranda duran şey bir şekil değil tek renk bir şerit.
-    type: (r, c) => seritTip(r, c, 3, [ID[2 % ID.length], ID[1 % ID.length],
-                                       ID[2 % ID.length], ID[0]]),
+    // Bant 3'ten 2'ye: aynı sebep, seyreltilmiş tahtada geniş bant tek
+    // renge iniyor.
+    type: (r, c) => seritTip(r, c, 2, [ID[2 % ID.length], ID[1 % ID.length],
+                                       ID[3 % ID.length], ID[0]]),
     big: (r, c) => blob(r, c, 0.3, 149) > 0.76,
   },
   {
@@ -19059,7 +19073,11 @@ const PATTERNS = [
       // Virajlar yüksek, düzlükler alçak: pistin bankingi.
       return ridge(Math.abs(ny) - 0.3, 3);
     },
-    type: (r, c) => typeFromNoise(r, c, 0.26, 151),
+    // Pistin asfaltı tek renk değil: boyunca şeritler. Gürültüyle
+    // boyanıyordu ve lekesi ekrandan büyüktü — tahta seyreltilince oran
+    // daha da bozuldu, ekranın %74'ü tek meyve.
+    type: (r, c) => seritTip(r, c, 2, [ID[1 % ID.length], ID[0],
+                                       ID[2 % ID.length], ID[0]], 2),
     big: (r, c) => blob(r, c, 0.3, 157) > 0.78,
   },
   {
@@ -19180,7 +19198,10 @@ const PATTERNS = [
       return ring > 1.5 && kol < 0.82;
     },
     stack: (ring) => ridge(Math.min(1, ring / 6), 2),
-    type: (ring, turn) => ID[(Math.floor(turn * 8) + (ring > 3 ? 1 : 0)) % ID.length],
+    // Diş sayısı sekizden on altıya: çark dişi başına bir renk ve ekranda
+    // çarkın ancak bir parçası görünüyor, yani sekiz diş bir ekrana iki üç
+    // renk düşürüyordu.
+    type: (ring, turn) => ID[(Math.floor(turn * 16) + (ring > 3 ? 1 : 0)) % ID.length],
     big: (ring, turn) => ring > 2 && Math.abs(Math.sin(turn * Math.PI * 8)) > 0.97,
   },
   {

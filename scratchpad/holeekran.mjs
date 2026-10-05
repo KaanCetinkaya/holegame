@@ -62,7 +62,13 @@ function pencereler(b, w, d) {
           if (h && !h.prop && !h.bomb) icinde.push(h);
         }
       }
-      if (icinde.length < 12) continue;
+      // Pencerede en az otuz parça olsun.
+      //
+      // Sınır on ikiydi ve tahta seyreltilince (yerleşim biçimleri) anlamını
+      // kaybetti: on iki parçanın sekizi aynı tür olunca oran %67 çıkıyor ve
+      // test "ekran tek renk" diyor — oysa ekranda sekiz parça var, duvar
+      // değil. Eşik aynı kaldı (%60), ölçüldüğü örnek büyüdü.
+      if (icinde.length < 30) continue;
       const tur = {}, kat = {};
       for (const h of icinde) {
         tur[h.type] = (tur[h.type] || 0) + 1;
