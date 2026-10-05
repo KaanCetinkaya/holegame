@@ -17479,6 +17479,8 @@ function smallRingAt(r, c) {
 // resim tahtaları, 1400-1800 küçük ve düz parçayla.
 const YERLESIM = ['dolu', 'halka', 'sira', 'blok', 'sutun'];
 let zorlaStil = null;
+// Bu tahtada seçilen dolgu biçimi — yerleştirme adımları buna bakıyor.
+let stilSecilen = 'dolu';
 function yerlesimStili(n) {
   return YERLESIM[(n + Math.floor((n - 1) / PATTERNS.length)) % YERLESIM.length];
 }
@@ -17504,12 +17506,12 @@ function yerlesimDolu(stil, r, c) {
     return blob(bj * 5, bi * 4, 0.5, 2027) > 0.12;
   }
   if (stil === 'halka') {
-    // Çember merkezleri beş hücrede bir; bant bir buçuk hücre kalın.
-    // İnce olursa çember boncuklara dağılıyor, kalın olursa ortası kapanıp
-    // disk oluyor — `RING_BAND` aynı sebeple 1.6.
-    const mr = ((r % 5) + 5) % 5 - 2, mc = ((c % 5) + 5) % 5 - 2;
+    // Çember merkezleri yedi hücrede bir; bant bir buçuk hücre kalın ve
+    // ortası boş. Beş hücrede bir denendi: çemberler birbirine değiyor ve
+    // ekranda halka değil petek okunuyor. Yedide aralarında zemin kalıyor.
+    const mr = ((r % 7) + 7) % 7 - 3, mc = ((c % 7) + 7) % 7 - 3;
     const d = Math.hypot(mr, mc);
-    return d >= 1.1 && d <= 2.2;
+    return d >= 1.6 && d <= 3.1;
   }
   return true;
 }
@@ -20178,6 +20180,7 @@ function buildField() {
   }
 
   let stil = zorlaStil || (isPuzzleLevel(level) && !dailyRun ? 'dolu' : yerlesimStili(level));
+  stilSecilen = stil;
   if (stil !== 'dolu' && !currentPattern.polar && izinli.size < 150) stil = 'dolu';
   for (const cell of (resim || serit) ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
       const { x, z } = cell;
@@ -20425,6 +20428,8 @@ function buildField() {
     placeTowers();
     // Anıt kuleden sonra: en geniş boşluğu o istiyor ve kalanı o seçsin.
     placeLandmarks();
+    // Halka dolgusu seçildiyse çemberlerin ortaları doluyor.
+    if (stilSecilen === 'halka') placeRingCores();
     placeBombs();
     // Dikenler en sonda: yerini seçerken hem kayaya hem kolosun yoluna
     // bakması gerekiyor, yani ikisi de yerleşmiş olmalı.
@@ -22281,6 +22286,62 @@ function placeLandmarks() {
                   big: true, giant: true, landmark: true,
                   eaten: false, baseY: vis.baseY, nudge: 0 });
     kondu.push({ x, z, r });
+  }
+  fruits = fruits.filter(f => !f.eaten);
+}
+
+// Çemberlerin ortasına birer iri nesne.
+//
+// Kaan'ın sözü: "çember yap, daire yap, ortasına bir şey koy." Halka dolgusu
+// çemberi çiziyordu ama ortası bomboştu — ve boş bir çember, çember değil
+// delik gibi okunuyor. Halkanın işi bir şeyi **çevrelemek**.
+//
+// Şerit tahtalarında bu zaten var (`loops`, "her halka bir gül: dışta
+// boncuklardan çember, ortasında iri meyveler") ve orada çalışıyor; eksik
+// olan ızgara tahtasıydı.
+//
+// Merkezler dolgunun kendi ızgarasından geliyor (yedi hücrede bir), yani
+// nesne çemberin tam ortasına düşüyor — ayrıca hesaplanmıyor, aynı sayı iki
+// yerde durmuyor.
+function placeRingCores() {
+  if (currentPattern.polar) return;
+  const havuz = (currentTheme.props || GIANT_PROPS).filter(id => GIANT_PROPS.includes(id));
+  const r = Math.min(GIANT_R, BIG_R * 1.6);
+  for (let rr = 3; rr < rows; rr += 7) {
+    for (let cc = 3; cc < COLS; cc += 7) {
+      const { x, z } = gridToWorld(rr, cc);
+      if (Math.abs(x) > fieldHalfX - r || Math.abs(z) > fieldHalfZ - r) continue;
+      if (Math.hypot(x - SPAWN_X, z - spawnZ()) < 3.4) continue;
+      // Çember gerçekten kurulmuş mu: ortasının çevresinde yeterince parça
+      // yoksa orada halka yok demektir ve nesne boşluğa konmuş olur.
+      let cevre = 0;
+      for (const f of fruits) {
+        if (f.eaten || f.big) continue;
+        const d = Math.hypot(f.x - x, f.z - z);
+        if (d > 1.4 && d < 3.6) cevre++;
+      }
+      if (cevre < 8) continue;
+      // Ortayı temizle: halkanın içi boş kalmalı, yoksa nesne yığının
+      // üstüne oturuyor.
+      for (const f of fruits) {
+        if (f.eaten) continue;
+        if (Math.hypot(f.x - x, f.z - z) > r + NORMAL_R * 1.4) continue;
+        unbuildFruit(f);
+      }
+      const nesne = havuz.length ? pick(havuz) : null;
+      const vis = nesne ? propVisual(nesne, r * 1.1) : fruitVisual(ID[0], r, true);
+      const type = nesne ? vis.currency : ID[0];
+      const mesh = vis.make ? vis.make() : new THREE.Mesh(vis.geo, vis.mat);
+      mesh.scale.set(vis.sx, vis.sy, vis.sx);
+      mesh.position.set(x, vis.baseY, z);
+      mesh.userData.ox = x; mesh.userData.oz = z;
+      mesh.rotation.y = vis.upright ? 0 : rnd() * Math.PI * 2;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      fieldGroup.add(mesh);
+      fruits.push({ mesh, x, z, r, type, prop: nesne,
+                    big: true, giant: true, eaten: false, baseY: vis.baseY, nudge: 0 });
+    }
   }
   fruits = fruits.filter(f => !f.eaten);
 }
