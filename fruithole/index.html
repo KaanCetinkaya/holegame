@@ -17446,6 +17446,7 @@ function smallRingAt(r, c) {
 // ekleniyor: `(level + tur) % 5`, böylece ikinci turda aynı düzen başka
 // biçimde doluyor — "bunu gördüm" demenin önündeki tek şey o.
 const YERLESIM = ['dolu', 'halka', 'sira', 'dama', 'obek'];
+let zorlaStil = null;
 function yerlesimStili(n) {
   return YERLESIM[(n + Math.floor((n - 1) / PATTERNS.length)) % YERLESIM.length];
 }
@@ -20060,7 +20061,7 @@ function buildField() {
   // ve geriye köşelerde birkaç küme ile boş kum kalıyor — Kaan'ın 108.
   // bölümden attığı kare tam bu. İki ayrı düzen üst üste binince ikisi de
   // okunmuyor.
-  let stil = isPuzzleLevel(level) && !dailyRun ? 'dolu' : yerlesimStili(level);
+  let stil = zorlaStil || (isPuzzleLevel(level) && !dailyRun ? 'dolu' : yerlesimStili(level));
   if (stil !== 'dolu' && !currentPattern.polar) {
     let hucreSayisi = 0;
     for (const cell of gridCells()) {
@@ -25967,6 +25968,9 @@ window.fruitHoleLandmarks = () => {
     enGenis: HOLE_MAX,
   };
 };
+// Yerleşim biçimini elle seçtir — yalnızca ölçüm ve karşılaştırma için.
+// Oyunda hiçbir şey çağırmıyor; null verilince bölüm numarası yine seçiyor.
+window.fruitHoleForceLayout = (s) => { zorlaStil = s || null; return zorlaStil; };
 // Bu bölümün yerleşim biçimi.
 window.fruitHoleLayout = () => ({
   stil: yerlesimStili(level),
