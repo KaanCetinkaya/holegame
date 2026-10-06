@@ -25848,6 +25848,16 @@ window.fruitHoleWhere = () => ({
 // ucunda doğup -z'ye ilerliyor (ölçüldü: doğuş z = 9.8, halfZ = 17.9), yani
 // ekranda yukarısı azalan z. Deliğin arkasında kalan meyve sayılınca, tepesi
 // dolu görünen ama önü boş olan kareler "yeterince kalabalık" sayılıyordu.
+// Tarladaki parçaların **yerleri**: ölçüm için, tek tek.
+//
+// `fruitHoleBoardCells` ızgara hücresi veriyor ve şerit tahtalarında bu
+// yanıltıyor — parçalar ızgaraya göre değil kendi aralığına göre diziliyor,
+// bir hücreye yirmi sekiz parça düşebiliyor. Hücre sayarak "çevrede kaç
+// parça var" sorusu cevaplanamaz; `fruitHoleAhead` da yalnızca **deliğin
+// durduğu yerde** cevaplıyor. Bu, soruyu tahtanın her noktası için
+// sorulabilir hâle getiriyor.
+window.fruitHoleFruitSpots = () =>
+  fruits.filter(f => !f.eaten && !f.bomb).map(f => ({ x: f.x, z: f.z, r: f.r }));
 window.fruitHoleAhead = (r = 9, back = 3) => {
   let n = 0;
   for (const f of fruits) {

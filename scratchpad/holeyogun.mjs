@@ -43,23 +43,15 @@ for (let lv = 1; lv <= 55; lv++) {
     window.fruitHoleSeedField(7700 + l);
     window.fruitHoleProbe(l);
     window.fruitHoleStartLevel();
-    const b = window.fruitHoleBoardCells();
-    // Hücrede `x`/`z` yok — `r` satır, `c` sütun. İlk hâlinde `h.x` okundu
-    // ve elli beş tahtanın hepsi "0 parça" çıktı; aynı hatanın bir başkası
-    // `fruitHoleBoardCells`in kendi yorumunda yazılı (`h.r` yarıçap sanılmıştı).
-    // Dünya konumu ızgaradan hesaplanıyor.
+    // Parçanın **kendi** yeri okunuyor, ızgara hücresi değil.
     //
-    // `kat` de sayılıyor: bir hücrede yedi parçalık bir sütun varsa klip
-    // şartının saydığı şey yedi parça, bir hücre değil.
-    const p = [];
-    for (const h of b.hucre) {
-      if (h.bomb) continue;
-      p.push({
-        x: (h.c - (b.cols - 1) / 2) * b.cell,
-        z: (h.r - (b.rows - 1) / 2) * b.cell,
-        kat: h.kat || 1,
-      });
-    }
+    // İki tur boşa gitti. Önce `h.x` okundu ve hücrede öyle bir alan yok —
+    // elli beş tahta "0" çıktı. Sonra hücre merkezi hesaplanıp `kat`
+    // sayıldı ve bu sefer şerit tahtaları şişti: Island 66 hücrede 1848
+    // parça verdi, çünkü orada parçalar ızgaraya göre dizilmiyor ve
+    // yirmi sekizi aynı hücreye düşüyor. İkisi de aynı hatanın hâli —
+    // ölçülmek istenen şey parçanın yeriyken hücre okunuyordu.
+    const p = window.fruitHoleFruitSpots();
     let en = 0;
     // Daireyi tahtanın üstünde gezdiriyor. Adım 1.5 birim: daha incesi
     // ölçüyü değiştirmiyor, yalnızca yavaşlatıyor.
@@ -72,7 +64,7 @@ for (let lv = 1; lv <= 55; lv++) {
         let n = 0;
         for (const q of p) {
           const dx = q.x - cx, dz = q.z - cz;
-          if (dx * dx + dz * dz <= r * r) n += q.kat;
+          if (dx * dx + dz * dz <= r * r) n++;
         }
         if (n > en) en = n;
       }
