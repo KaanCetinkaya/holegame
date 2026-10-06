@@ -221,7 +221,14 @@ const CLIPS = [
   // O yüzden mancınık sözü yalnızca %98-100 olan iki tahtada veriliyor.
   // Drive-In ve Rangoli, sözünü beşte birinde tutmayacak tahtalar.
   // ---------------------------------------------------------------------
-  { id: 'tikal',     pattern: 'Ballcourt', engel: 'mancınık', note: 'Tikal · taş saha, top oyunu düzeni · 305 meyve' },
+  // `Ballcourt` 46. bölüme kaydı ve orası şerit tahtası — düzen ekrana hiç
+  // gelmiyor, yani o klip oyunun göstermediği bir şeyi gösterecekti. Aracın
+  // kendi bekçisi durdurdu. Yerine `Cubes` (27, ızgara): küp bloklar, Kaan'ın
+  // "blok gibi dizilsin" dediği şeyin tahtadaki karşılığı.
+  // Engel de temadan geliyor: Cube World'ün izin verdikleri silindir ve
+  // rüzgâr, mancınık o tahtaya hiç gelmiyor. Aracın ikinci bekçisi bunu da
+  // söyledi — klipte olmayan bir engeli vaat etmek, klibi yalan yapardı.
+  { id: 'cubes',     pattern: 'Cubes',     engel: 'silindir', note: 'Cube World · küp bloklar · ızgara tahta' },
   { id: 'redplanet', pattern: 'Dial',      engel: 'mancınık', note: 'Red Planet · kızıl toz, kadran düzeni · 216 meyve' },
   { id: 'jardin',    pattern: 'Maze',      engel: 'çamur',    note: 'Le Jardin · budanmış çit labirenti · 216 meyve' },
   { id: 'tulip',     pattern: 'Comb',      engel: 'silindir', note: 'Tulip Fields · şeritli lale tarlası · 400 meyve' },
