@@ -242,7 +242,16 @@ const CLIPS = [
   // söyledi — klipte olmayan bir engeli vaat etmek, klibi yalan yapardı.
   { id: 'cubes',     pattern: 'Cubes',     engel: 'silindir', note: 'Cube World · küp bloklar · ızgara tahta' },
   { id: 'redplanet', pattern: 'Dial',      engel: 'mancınık', note: 'Red Planet · kızıl toz, kadran düzeni · 216 meyve' },
-  { id: 'jardin',    pattern: 'Maze',      engel: 'rüzgâr',    note: 'Le Jardin · budanmış çit labirenti · 216 meyve' },
+  // jardin çıkarıldı: Maze 35. bölümde ve orası bir **görev bölümü**.
+  //
+  // Görev bölümlerinde hiçbir engel yerleşmiyor — ölçüldü, üç kuruluşta
+  // mancınık, silindir, çamur ve rüzgâr dördü de sıfır. Yani klip hangi
+  // engeli isterse istesin tutmaz; önce rüzgâr denendi (altı koşu), öncesinde
+  // çamur yazıyordu, ikisi de aynı sebepten boşunaydı.
+  //
+  // Le Jardin'i klibe sokmak için engelsiz bir klip tipi ya da temanın başka
+  // bir turdaki bölümü gerekiyor; ikisi de ayrı iş. Şimdilik listede yok.
+  // { id: 'jardin', pattern: 'Maze', engel: 'rüzgâr', note: 'Le Jardin · budanmış çit labirenti' },
   { id: 'tulip',     pattern: 'Comb',      engel: 'silindir', note: 'Tulip Fields · şeritli lale tarlası · 400 meyve' },
   { id: 'matchday',  pattern: 'Cross',     engel: 'çamur',    note: 'Matchday France · çizgili çim · 459 meyve (en kalabalık)' },
   { id: 'forbidden', pattern: 'Gate',      engel: 'çamur',    note: 'Forbidden City · kırmızı kapı, taş avlu · 408 meyve' },
@@ -517,9 +526,29 @@ for (const clip of CLIPS) {
   // Yani izin var diye engel var değil. Burada tahtanın kendisine bakılıyor.
   const sozu = await pg.evaluate(a => window.__engel(a), clip.engel);
   if (!sozu.sayi) {
-    throw new Error(`${clip.id}: ${clip.engel} bu tahtaya yerleşmedi (tema izinli ama ` +
-      `yerleştirme boş döndü) — klip engelsiz çıkardı. Yeniden çalıştır, ` +
-      `tahta rastgele.`);
+    // "Yeniden çalıştır, tahta rastgele" her zaman doğru değil.
+    //
+    // jardin altı denemenin altısında bu satırı verdi ve altısı da boşunaydı:
+    // 35. bölüm bir **görev bölümü** ve görev bölümünde hiçbir engel
+    // yerleşmiyor. Mesaj "rastgele, tekrar dene" dediği için altı kez
+    // denendi; oysa orada hiçbir tohum tutmaz.
+    //
+    // Tahtada başka engel var mı diye bakmak ikisini ayırıyor: hiç yoksa
+    // bu bölümün kuralı, varsa yerleştirmenin şansı.
+    const hepsi = await pg.evaluate(() => ({
+      mancınık: (window.fruitHoleCatapults().yerler || []).length,
+      silindir: (window.fruitHoleRollers().yerler || []).length,
+      çamur: (window.fruitHoleMud().yerler || []).length,
+      rüzgâr: window.fruitHoleWind().var ? 1 : 0,
+    }));
+    const baska = Object.entries(hepsi).filter(([, n]) => n > 0)
+      .map(([k, n]) => `${k}:${n}`);
+    throw new Error(baska.length
+      ? `${clip.id}: ${clip.engel} bu tahtaya yerleşmedi, ama tahtada ` +
+        `${baska.join(', ')} var — yerleştirmenin şansı. Yeniden çalıştır.`
+      : `${clip.id}: ${clip.engel} bu bölümde **hiç** çıkmıyor — tahtada ` +
+        `hiçbir engel yok. Görev bölümleri (her onuncunun beşincisi) engelsiz. ` +
+        `Yeniden çalıştırmak işe yaramaz; klibin bölümünü ya da engelini değiştir.`);
   }
   console.log(`  ${clip.engel}: ${sozu.sayi} tane, en yakını ${sozu.uzak} birim`);
 
