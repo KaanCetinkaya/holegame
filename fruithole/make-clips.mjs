@@ -722,6 +722,20 @@ for (const clip of CLIPS) {
       eksik.push(`${clip.engel} kadraj dışında (${d.engelUzak} > ${ENGEL_R})`);
     }
     console.log(`  tutmayan: ${eksik.join(' · ')}`);
+    // Şart tutmadıysa klip **çıkmıyor**.
+    //
+    // Eskiden çıkıyordu, ve çıkan şey tahtanın en boş anıydı: arama şart
+    // tutana kadar oynamaya devam ediyor, oynarken de çevresini yiyor, ve
+    // üst sınıra dayandığında kayıt tam oradan başlıyordu. redplanet ve
+    // academy kareleri böyle çıktı — bomboş zemin, kenarda iki muz.
+    //
+    // Geri sarılamıyor (tahta her koşuda rastgele, aynı kare bir daha
+    // kurulamıyor), o yüzden tek doğru davranış vazgeçmek. Engel
+    // yerleşmediğinde zaten böyle yapılıyordu; aynı kural buraya da.
+    if (!engelsiz) {
+      throw new Error(`${clip.id}: şart tutmadı — ${eksik.join(' · ')}. ` +
+        `Klip tahtanın en boş anından çıkardı. Yeniden çalıştır, tahta rastgele.`);
+    }
   }
 
   // Soğuk açılış: klibin ilk COLD saniyesi, devin üstünde yakın planda.
