@@ -1368,3 +1368,36 @@ Bunu kıran şey ölçülmedi ve bu dosyada ona dair bir sözüm yok.
 kurulum oldu — 1.386 izlenmenin kaç kurulum getirdiği, Play Console →
 İstatistikler'den okunup buraya yazılacak. İzlenme üzerine bir karar daha
 verilmeyecek.
+
+### Bio sırası ters döndü — 6 Ekim
+
+```
+free on google play 🕳️ search Peelo: Fruit Hole
+solo dev
+```
+
+Önce "solo dev" baştaydı. Gerekçesi şuydu: hesap bir oyunun reklamı
+değil, oyunu yapan birinin günlüğü — ilk satır bunu söylesin.
+
+**O gerekçe ölçüldü ve tutmadı.** Beş günlük gönderisi 0 beğeni, 0 yorum
+verdi ve izlenme aşağı gitti. Yani profiline gelen kişiye ilk söylenen
+şey, işe yaramadığı ölçülmüş olan şeydi.
+
+Profiline gelen zaten videoyu izlemiş biri; ona kim olduğunu anlatmanın
+değeri yok, **indirebileceği bir şey olduğunu** söylemenin var. "solo dev"
+duruyor ama sona geçti — Kaan öyle istedi, ve kimliğin orada durması
+günlük anlatısını tamamen silmiyor.
+
+Beklenti: **sıfıra yakın.** Bio'yu ayda 6 kişi görüyor. Bu bir deneme
+değil, tutarlılık düzeltmesi.
+
+**Tıklanabilir link hâlâ yok ve bu kapandı.** Profil düzenlemede "Web
+sitesi" alanı yok; TikTok onu 1.000 takipçiye ya da işletme hesabına
+bağlıyor, ve işletme hesabına geçiş Kaan'ın sürümünden kaldırılmış
+(Hesap ekranında yalnızca "Doğrulanmış İşletme Hesabı" var, o da şirket
+evrağı istiyor). Üç ayrı yol denendi, üçü de kapalı.
+
+Onun yerine **arama** çalışıyor: açık testteki oyunlar Play aramasında
+çıkıyor, ve "search Peelo: Fruit Hole" bir linke gerek bırakmıyor. Zaten
+ölçülen dönüşüm oranı %76,92 — sayfayı gören kuruyor. Sorun sayfaya
+gelen olmaması, ve onu bio değil erişim çözer.
