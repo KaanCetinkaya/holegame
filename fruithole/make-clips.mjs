@@ -47,7 +47,15 @@ const FPS = 30;
 const CAP_W = 720, CAP_H = 1280;          // çizim boyutu
 const OUT_W = 1080, OUT_H = 1920;         // sosyal medya standardı
 
+// `--anahtar değer` ve `--anahtar=değer`, ikisi de.
+//
+// Yalnızca boşluklu hâli okunuyordu ve `--only=jardin` sessizce **bütün**
+// klipleri yeniden çekti: `indexOf('--only')` eşleşmeyince ONLY null kalıyor,
+// null da "hepsi" demek. Tek klip için başlatılan iki koşu, saatlerce dokuz
+// klip çekti. Sessiz çalışan yanlış komut, hata verenden pahalı.
 const arg = (k, d) => {
+  const esit = process.argv.find(a => a.startsWith('--' + k + '='));
+  if (esit) return esit.slice(k.length + 3);
   const i = process.argv.indexOf('--' + k);
   return i === -1 ? d : process.argv[i + 1];
 };
