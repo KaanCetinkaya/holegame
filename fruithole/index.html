@@ -17818,7 +17818,13 @@ const PATTERNS = [
     // look like it has an edge you are being funnelled along.
     stack: (r, c) => (Math.abs(c - midCol()) === CHEV_W - 2 - (r % CHEV_W) ? 3 : 2),
     // A giant sits in the mouth of every other funnel.
-    big: (r, c) => r % (CHEV_W * 2) === CHEV_W - 2 && c === Math.round(midCol()),
+    // Kamanın ucu iri, ve iki kamada bir değil her kamada.
+    //
+    // İri payı %6.9'a indi (`holemix` halı sınırı %8): şekil kalınlaştırma
+    // tahtaya parça ekledi, iri kuralı ise iki kamada bir tek hücre veriyordu,
+    // yani pay seyreldi. Kuralın anlamı değişmiyor — iri olan şey yine
+    // kamanın ucu.
+    big: (r, c) => r % CHEV_W === CHEV_W - 2 && Math.abs(c - midCol()) <= 1,
     props: 0.05,
   },
   {
@@ -19040,6 +19046,12 @@ const PATTERNS = [
     // "Nerede ne eksik"). Her koridorun ayrı meyve olduğu bir tahta için de
     // zaten en doğru ad o.
     name: 'Lanes', icon: '🛣️', theme: 'mixed',
+    // Dolgu biçimi uygulanmıyor: bu düzenin kendisi zaten koridor. Üstüne
+    // bir de sütun dolgusu binince koridorların üçte biri siliniyor ve
+    // ekranda iki renk kalıyor (ölçülen 2.0 tür, %68). İki ayrı koridor
+    // sistemi üst üste binince ikisi de okunmuyor — bulmaca tahtasında
+    // çıkan dersin aynısı.
+    noFill: true,
     empty: (r, c) => {
       const kenar = 3;
       // Kenar bloklar: dolu, ama her beş sırada bir ara veriyor — kesintisiz
@@ -19062,7 +19074,12 @@ const PATTERNS = [
       // bırakıldı — bant sayısını artırmak denendi, tahta 600 parça tavanını
       // aştı ve yükseklik ölçüsü de bozuldu. Bir ölçüyü düzeltmek için iki
       // ölçüyü bozmak düzeltme değil.
-      return ID[(c - kenar) % ID.length];
+      // Renk koridorun **sırasına** bağlı, sütun numarasına değil.
+      //
+      // Koridorlar iki sütunda bir (`(c - kenar) % 2 === 1`) ve renk döngüsü
+      // dört. Sütun numarasıyla sorulunca iki adım bir arada atlanıyor ve
+      // dört renkten yalnızca ikisi çıkıyor — ölçüldü, ekranda 2.3 tür.
+      return ID[Math.floor((c - kenar) / 2) % ID.length];
     },
     big: (r, c) => (c >= 3 && c < COLS - 3 && r % 6 === 0 && (c - 3) % 4 === 1),
   },
@@ -20196,7 +20213,9 @@ function buildField() {
     }
   }
 
-  let stil = zorlaStil || (isPuzzleLevel(level) && !dailyRun ? 'dolu' : yerlesimStili(level));
+  let stil = zorlaStil ||
+    ((currentPattern.noFill || (isPuzzleLevel(level) && !dailyRun))
+      ? 'dolu' : yerlesimStili(level));
   stilSecilen = stil;
   if (stil !== 'dolu' && !currentPattern.polar && izinli.size < 150) stil = 'dolu';
   for (const cell of (resim || serit) ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
