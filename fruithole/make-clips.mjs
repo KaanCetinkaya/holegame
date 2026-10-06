@@ -225,12 +225,16 @@ const CLIPS = [
   // gelmiyor, yani o klip oyunun göstermediği bir şeyi gösterecekti. Aracın
   // kendi bekçisi durdurdu. Yerine `Cubes` (27, ızgara): küp bloklar, Kaan'ın
   // "blok gibi dizilsin" dediği şeyin tahtadaki karşılığı.
+  // Sıra kayınca her düzen başka bir temaya düştü ve engeller temadan
+  // geliyor. Ölçülüp tek tek düzeltildi (`fruitHoleThemeObstacles`):
+  // Maze artık Paris'te ve Paris çamur vermiyor, rüzgâr veriyor.
+  //
   // Engel de temadan geliyor: Cube World'ün izin verdikleri silindir ve
   // rüzgâr, mancınık o tahtaya hiç gelmiyor. Aracın ikinci bekçisi bunu da
   // söyledi — klipte olmayan bir engeli vaat etmek, klibi yalan yapardı.
   { id: 'cubes',     pattern: 'Cubes',     engel: 'silindir', note: 'Cube World · küp bloklar · ızgara tahta' },
   { id: 'redplanet', pattern: 'Dial',      engel: 'mancınık', note: 'Red Planet · kızıl toz, kadran düzeni · 216 meyve' },
-  { id: 'jardin',    pattern: 'Maze',      engel: 'çamur',    note: 'Le Jardin · budanmış çit labirenti · 216 meyve' },
+  { id: 'jardin',    pattern: 'Maze',      engel: 'rüzgâr',    note: 'Le Jardin · budanmış çit labirenti · 216 meyve' },
   { id: 'tulip',     pattern: 'Comb',      engel: 'silindir', note: 'Tulip Fields · şeritli lale tarlası · 400 meyve' },
   { id: 'matchday',  pattern: 'Cross',     engel: 'çamur',    note: 'Matchday France · çizgili çim · 459 meyve (en kalabalık)' },
   { id: 'forbidden', pattern: 'Gate',      engel: 'çamur',    note: 'Forbidden City · kırmızı kapı, taş avlu · 408 meyve' },
