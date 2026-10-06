@@ -578,6 +578,36 @@ for (const clip of CLIPS) {
       // biraz uzaklaşıyor, geri geliyor — ve şartın tutabileceği pencere
       // açık kalıyor.
     }
+    // En yakın meyve değil, **en kalabalık yer**.
+    //
+    // `fruitHoleNearest` deliği kendi açtığı boşlukta tutuyordu: çevresini
+    // yiyor, geriye tek tük parçalar kalıyor, en yakın olan da onlardan biri
+    // oluyor. Arama "çevrede 50 meyve" şartını beklerken delik oradan hiç
+    // çıkmıyor ve sayı yükselmek yerine düşüyor. Ölçüldü: on üç denemenin
+    // on ikisi "çevrede meyve 2-43 < 50" diye düştü, oysa her tahtada 62 ile
+    // 267 arası parça alan bir daire var (`holeyogun`).
+    //
+    // Hedef artık o daire: parçalar 3 birimlik kovalara bölünüyor, en dolu
+    // kova seçiliyor. Uzaklık cezası, deliği tahtanın öbür ucuna
+    // göndermemek için — yakındaki iyi yer, uzaktaki en iyi yerden değerli.
+    if (!hedef) {
+      const p = window.fruitHoleFruitSpots();
+      const kova = new Map();
+      for (const f of p) {
+        const k = Math.round(f.x / 3) + ',' + Math.round(f.z / 3);
+        const v = kova.get(k);
+        if (v) { v.n++; v.x += f.x; v.z += f.z; }
+        else kova.set(k, { n: 1, x: f.x, z: f.z });
+      }
+      let en = null;
+      for (const v of kova.values()) {
+        const cx = v.x / v.n, cz = v.z / v.n;
+        const d = Math.hypot(cx - w.x, cz - w.z);
+        const puan = v.n / (1 + d / 12);
+        if (!en || puan > en.puan) en = { puan, x: cx, z: cz };
+      }
+      if (en) hedef = { x: en.x, z: en.z };
+    }
     if (!hedef) hedef = window.fruitHoleNearest();
     if (!hedef) window.fruitHoleSteer(0, 0);
     else {
