@@ -442,35 +442,36 @@ doğrulandı, ona dokunulmuyor.
 
 ### Gün numarası
 
-**Gün 1 = 24 Eylül 2026, ilk TikTok gönderisi.** 6 Ekim = gün 13.
+**Sayı gönderiyi sayıyor: bir sonraki gönderi = son gönderi + 1.** 6 Ekim'de
+atılan `cubes` gün 13; sıradaki gün 14.
 
 Önce gün 1 = 13 Ağustos (Fruit Hole'un ilk commit'i) sayılıyordu ve
 gönderiler 43-53 diye gidiyordu. Kaan değiştirdi: izleyen kişi için sayı,
 oyunun yaşı değil **dizinin** yaşı — 43. günden başlayan bir dizi, ilk
 kırk iki günü kaçırmış hissi veriyor.
 
-Geriye dönük tutarsızlık bilerek kabul edildi: altı gönderi 43-53 diyor ve
-bu 13'e düşüyor. Ölçüldü, maliyeti sıfıra yakın — 2.300 izlenmede 6 profil
-ziyareti var, yani geriye bakan neredeyse kimse yok. Bundan sonrası
-tutarlı gidiyor.
+**Geriye dönük düzeltmeye gerek kalmadı.** Bu dosya bir ara "altı gönderi
+43-53 diyor, tutarsızlık kabul edildi" yazıyordu; yanlıştı. Profildeki
+canlı gönderiler yeni sayıyı taşıyor:
 
-Eski sayım (duruyor, çünkü eski gönderilerdeki sayıyı açıklayan tek şey o):
-gün 1 = 13 Ağustos 2026, Fruit Hole'un ilk commit'i. Depo 9 Ağustos'ta
-açıldı ama o Hole'du, bu oyun değil.
+| tarih | gün | izlenme |
+|---|---|---|
+| 1 Eki | 9 | 376 |
+| 2 Eki | 10 | 262 |
+| 3 Eki | 11 | 197 |
+| 4 Eki | 12 | 209 |
+| 6 Eki | 13 | — (yeni) |
 
-| tarih | gün | klip | durum |
-|---|---|---|---|
-| 24 Eyl | 43 | beach | **atıldı** |
-| 25 Eyl | 44 | farm | |
-| 26 Eyl | 45 | shop | |
-| 27 Eyl | 46 | drive | |
-| 28 Eyl | 47 | bar | |
-| 29 Eyl | 48 | space | |
-| 30 Eyl | 49 | boss | |
-| 1 Eki | 50 | orbits | |
+**Takvim günü değil, gönderi sayılıyor.** 5 Ekim'de gönderi yok ama 4
+Ekim 12, 6 Ekim 13 — yani numara atlanmıyor. Önceki kural ("bir gün
+atlarsan numarayı da atla") canlı profille çelişiyordu; canlı olan
+kazanıyor, çünkü düzeltilmesi gereken altı gönderi değil bir satır.
 
-Bir gün atlarsan numarayı da atla — takvim günü sayılıyor, gönderi değil.
-Anlatı yalan söylemeye başladığı gün biter.
+Eski sayım (duruyor, çünkü aşağıdaki eski partilerde 43-53 yazmasını
+açıklayan tek şey o): gün 1 = 13 Ağustos 2026, Fruit Hole'un ilk
+commit'i. Depo 9 Ağustos'ta açıldı ama o Hole'du, bu oyun değil. O
+partilerin açıklamalarındaki gün satırları **atılırken düzeltildi**, dosyada
+yazıldığı gibi gitmedi.
 
 ### Bio
 
@@ -1156,24 +1157,25 @@ buluşmadı. Tek tahtada bir hipotez için kural gevşetilmiyor.
 
 ### Üçüncü partinin açıklamaları
 
-`nazca` gün 52 olarak gidiyor (ikinci partinin son klibi), bu parti **gün
-53**'ten başlıyor.
+Gün numaraları aşağıda **atıldıkları hâlleriyle** duruyor (gönderi sayımı,
+bkz. "Gün numarası"). İlk üçü çıktı: `redplanet` 11, `tulip` 12, `cubes` 13.
+Sıradaki `matchday`, gün 14.
 
-**1. redplanet.mp4** — ekran yazısı: `the red ring is where the next shot lands`
+**1. redplanet.mp4** — ekran yazısı: `the red ring is where the next shot lands` — **atıldı (3 Eki)**
 
 Partinin ilk gönderisi bu olsun: mancınığın kadrajda olduğu tek klip, yani
 bir şeyin **olduğu** tek klip.
 ```
-day 53 of building my own mobile game 🔴
+day 11 of building my own mobile game 🔴
 
 that machine throws rocks at wherever you are standing. the red ring is your warning, and it is the only warning you get.
 
 #indiedev #solodev #gamedev #mobilegame #satisfying
 ```
 
-**2. tulip.mp4** — ekran yazısı: `400 pieces on one board`
+**2. tulip.mp4** — ekran yazısı: `400 pieces on one board` — **atıldı (4 Eki)**
 ```
-day 54 of building my own mobile game 🌷
+day 12 of building my own mobile game 🌷
 
 the striped rows are mown into the field, and the roller sweeps across them. the busiest board in the game.
 
@@ -1182,7 +1184,7 @@ the striped rows are mown into the field, and the roller sweeps across them. the
 
 **3. matchday.mp4** — ekran yazısı: `459 pieces. the most in the game`
 ```
-day 55 of building my own mobile game ⚽
+day 14 of building my own mobile game ⚽
 
 the mud patches slow the hole down. you can go around them or straight through, and one of those is wrong.
 
@@ -1191,7 +1193,7 @@ the mud patches slow the hole down. you can go around them or straight through, 
 
 **4. outback.mp4** — ekran yazısı: `the wind drags the hole sideways`
 ```
-day 56 of building my own mobile game 🪃
+day 15 of building my own mobile game 🪃
 
 there is a band across this board where you do not steer alone. five giants in frame and the wind pushing you off all of them.
 
@@ -1200,7 +1202,7 @@ there is a band across this board where you do not steer alone. five giants in f
 
 **5. forbidden.mp4** — ekran yazısı: `i drew this courtyard in code`
 ```
-day 57 of building my own mobile game 🏮
+day 16 of building my own mobile game 🏮
 
 408 pieces on stone, and not one image file in the whole game. the floor is maths.
 
@@ -1209,7 +1211,7 @@ day 57 of building my own mobile game 🏮
 
 **6. jardin.mp4** — ekran yazısı: `a clipped hedge maze, from above`
 ```
-day 58 of building my own mobile game 🌿
+day 17 of building my own mobile game 🌿
 
 this is where the game teaches you mud. every board after it has its own two obstacles, picked from the ground you are standing on.
 
@@ -1218,9 +1220,9 @@ this is where the game teaches you mud. every board after it has its own two obs
 
 **7. academy.mp4** — ekran yazısı: `candlelit stone, and a key laid out in fruit`
 ```
-day 59 of building my own mobile game 🗝️
+day 18 of building my own mobile game 🗝️
 
-48 layouts in this game and the fruit gets arranged into a shape every time. this one is a key.
+55 layouts in this game and the fruit gets arranged into a shape every time. this one is a key.
 
 #indiedev #solodev #gamedev #mobilegame #oddlysatisfying
 ```
@@ -1231,7 +1233,7 @@ day 59 of building my own mobile game 🗝️
 dışı). Açıklamanın kuralı bu dosyada yazılı: yalnızca klibin tuttuğu sözler
 duruyor.
 ```
-day 60 of building my own mobile game 🪨
+day 19 of building my own mobile game 🪨
 
 the camera looks straight down here, which is the only way this layout reads at all.
 
@@ -1304,10 +1306,10 @@ olamazdı. Artık bakılacak sayı **Play Console → İstatistikler → yüklem
 ve o sayı gönderi başına okunabiliyor: bir klip atıldığı gün kaç kurulum
 geldi. İzlenme artık ara bir ölçü; kurulum nihai olanı.
 
-### Gün 53 — linkli ilk gönderi (3 Ekim)
+### Gün 11 — linkli ilk gönderi (3 Ekim)
 
 `redplanet` atıldı, ve bu **linki olan ilk gönderi.** Önceki beş gönderi
-(gün 48-52) linksiz atılmıştı, çünkü kapalı test linki yabancıda
+(gün 6-10) linksiz atılmıştı, çünkü kapalı test linki yabancıda
 çalışmıyordu.
 
 Sabitlenmiş yorum:
@@ -1333,3 +1335,36 @@ gidilecek hiçbir yer. Bu gönderiden itibaren ölçü değişiyor:
 **Play Console → İstatistikler → yükleme**, gönderi gününe göre okunuyor.
 İzlenme bir ara ölçü; kurulum nihai olanı. Bir klibin iyi olup olmadığını
 artık izlenmesi değil, o gün gelen kurulum söyleyecek.
+
+## Günlük dizisinin ilk ölçümü — 6 Ekim
+
+Beş gönderi canlı ve hepsi yeni sayıyı taşıyor (gün 9-13). İzlenmeler:
+
+| gün | tarih | izlenme |
+|---|---|---|
+| 9 | 1 Eki | 376 |
+| 10 | 2 Eki | 262 |
+| 11 | 3 Eki | 197 |
+| 12 | 4 Eki | 209 |
+| 13 | 6 Eki | yeni |
+
+**Beşinde de 0 beğeni, 0 yorum.** Bu, dosyadaki en net olumsuz ölçüm:
+"klip aynı, anlatan değişiyor" denemesi **izlenmeyi de tutmadı** (376 →
+197 → 209, yani aşağı), etkileşimi hiç başlatmadı. Önceki parti 281-401
+bandındaydı; bu parti aynı bandın altında.
+
+Yani günlük anlatısı, tek başına, altı denemelik kurgu değişikliğinden
+daha iyi bir şey yapmadı. Bu dosyada denenmiş ve tutmamış şeylerin
+listesine giriyor:
+
+1. klibin kurgusu (altı deneme) — izletme iki katına çıktı, erişim sabit
+2. açıklamanın sesi (günlük) — erişim sabit, etkileşim sıfır
+
+Kalan tek denenmemiş değişken **erişimin kendisi**: 200-400 izlenme
+TikTok'un "takipçisiz hesap" bandı, yani video değil hesap ölçülüyor.
+Bunu kıran şey ölçülmedi ve bu dosyada ona dair bir sözüm yok.
+
+**Ama artık bakılacak sayı bu değil.** Link canlı (3 Ekim) ve ölçü
+kurulum oldu — 1.386 izlenmenin kaç kurulum getirdiği, Play Console →
+İstatistikler'den okunup buraya yazılacak. İzlenme üzerine bir karar daha
+verilmeyecek.
