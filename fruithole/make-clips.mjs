@@ -252,6 +252,23 @@ const CLIPS = [
   // Le Jardin'i klibe sokmak için engelsiz bir klip tipi ya da temanın başka
   // bir turdaki bölümü gerekiyor; ikisi de ayrı iş. Şimdilik listede yok.
   // { id: 'jardin', pattern: 'Maze', engel: 'rüzgâr', note: 'Le Jardin · budanmış çit labirenti' },
+  // Altı yeni bölüm, **ölçülerek** seçildi.
+  //
+  // Liste sekiz bölümdü ve oyunda elli beş düzen var; eksik olan stok, fikir
+  // değil. Seçim üç şarta göre: ızgara tahtası olacak (şerit, resim, bulmaca
+  // ve görev tahtalarına hiç engel yerleşmiyor — 38, 46, 48 ve 53'te dördü
+  // de sıfır çıktı), 34'ten büyük olacak (engellerin ilk bölümleri), ve
+  // 9 birimlik dairesi doluca olacak (`holeyogun`).
+  //
+  // Engel tercihi de ölçüme dayanıyor: çamur tahtada üç tane, mancınık ve
+  // silindir birer tane. Tek olanlar kliplerde sürekli "kadraj dışında"
+  // diye düştü, o yüzden çamur varsa çamur seçildi.
+  { id: 'lens',      pattern: 'Lens',      engel: 'çamur',    note: 'Lens · mercek düzeni · 245 meyve' },
+  { id: 'onion',     pattern: 'Onion',     engel: 'rüzgâr',   note: 'Onion · iç içe halkalar · 306 meyve' },
+  { id: 'bloom',     pattern: 'Bloom',     engel: 'mancınık', note: 'Bloom · açılan taç yaprakları · 516 meyve (listenin en kalabalığı)' },
+  { id: 'cogs',      pattern: 'Cogs',      engel: 'çamur',    note: 'Cogs · dişli çarklar · 219 meyve' },
+  { id: 'track',     pattern: 'Track',     engel: 'silindir', note: 'Track · pist düzeni · 232 meyve' },
+  { id: 'hourglass', pattern: 'Hourglass', engel: 'çamur',    note: 'Hourglass · kum saati · 314 meyve · patron bölümü' },
   { id: 'tulip',     pattern: 'Comb',      engel: 'silindir', note: 'Tulip Fields · şeritli lale tarlası · 400 meyve' },
   { id: 'matchday',  pattern: 'Cross',     engel: 'çamur',    note: 'Matchday France · çizgili çim · 459 meyve (en kalabalık)' },
   { id: 'forbidden', pattern: 'Gate',      engel: 'çamur',    note: 'Forbidden City · kırmızı kapı, taş avlu · 408 meyve' },
