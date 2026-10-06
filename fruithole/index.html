@@ -20357,7 +20357,14 @@ function buildField() {
       const esas = TYPE_IDS.includes(tur) ? tur : seritTip(a, b, 2, ID);
       const vis = prop ? propVisual(prop, radius * 1.45)
                        : fruitVisual(esas, radius, iri);
-      const type = prop ? vis.currency : currentPattern.type(a, b);
+      // Parçanın türü, görselini kurduğu türle **aynı** olmak zorunda.
+      //
+      // Burada bir kere daha `currentPattern.type(a, b)` yazılıydı: yukarıda
+      // tanımsız tür için yedek bulunuyor, burada ham değer yeniden
+      // soruluyordu. Yani görsel şeride düşüyor, parçanın `type` alanı
+      // `undefined` kalıyordu — `holetheme` 2. bölümde tam bunu yakaladı.
+      // Tanımsız tür sayaçlara ve eşleştirmeye `undefined` diye giriyor.
+      const type = prop ? vis.currency : esas;
 
       // A cell can hold a pile. Each fruit in it is its own entry, so the
       // hole takes the whole stack as it passes and the pile drops in.
