@@ -172,7 +172,9 @@ console.log('\n7. harcanmış versionCode');
   // yalnızca uyarıyordu. Artık kayıt var ve derleme hiç başlamıyor.
   const r = run(repo({ deps: DEPS, versionCode: 27, uploaded: [21, 25, 27] }));
   check(r.code === 1, 'derleme başlamadı');
-  check(/zaten Play'e yüklenmiş/.test(r.out), 'sebebini söylüyor');
+  // Mesaj "Play'e yüklenmiş"ten "kullanılmış"a döndü: derleme artık kendi
+  // kodunu da tüketiyor, yani bir kod yüklenmeden de harcanmış olabiliyor.
+  check(/zaten kullanılmış/.test(r.out), 'sebebini söylüyor');
   check(/28/.test(r.out), 'sıradaki numarayı söylüyor',
     (r.out.match(/versionCode -> \d+/) || ['-'])[0]);
 }
@@ -183,8 +185,8 @@ console.log('\n8. temiz versionCode geçiyor');
   // olanı durduruyor. Derleme Gradle'a kadar gidip orada düşüyor (bu sahte
   // depoda gradlew yok), yani sürüm kontrolünü geçtiği buradan anlaşılıyor.
   const r = run(repo({ deps: DEPS, versionCode: 28, uploaded: [21, 25, 27] }));
-  check(!/zaten Play'e yüklenmiş/.test(r.out), 'sürüm kontrolüne takılmadı');
-  check(/Yüklenmiş kodlar: 21, 25, 27/.test(r.out), 'yüklenenleri yine de yazıyor');
+  check(!/zaten kullanılmış/.test(r.out), 'sürüm kontrolüne takılmadı');
+  check(/Kullanılmış kodlar: 21, 25, 27/.test(r.out), 'kullanılmış kodları yine de yazıyor');
 }
 
 console.log('\n9. liste yokken eski davranış');
@@ -193,7 +195,7 @@ console.log('\n9. liste yokken eski davranış');
   // güncellenmeden önceki hâli) hâlâ derlenebilmeli.
   const r = run(repo({ deps: DEPS, versionCode: 23 }));
   check(!/zaten Play'e yüklenmiş/.test(r.out), 'liste yoksa engellemiyor');
-  check(!/Yüklenmiş kodlar/.test(r.out), 'boş liste için satır yazmıyor');
+  check(!/Kullanılmış kodlar/.test(r.out), 'boş liste için satır yazmıyor');
 }
 
 console.log(fails.length ? `\n${fails.length} kontrol düştü` : '\nhepsi geçti');

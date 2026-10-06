@@ -215,23 +215,38 @@ if (!version) {
 // versionCode'u bir artırıyor. Yani "hangisini yüklemiştik" sorusunun
 // cevabı dosyada duruyor ve artırmayı unutmak mümkün olmuyor.
 const uploaded = Array.isArray(version.uploaded) ? version.uploaded : [];
-if (uploaded.includes(version.versionCode)) {
+// Derlenmiş kodlar da tüketilmiş sayılıyor.
+//
+// `uploaded` yalnızca `npm run uploaded:<uygulama>` çalıştırılıp commit
+// edilince doluyor, ve o adım pratikte her seferinde atlanıyor: üç ayrı
+// yüklemede Play "bu sürüm kodu daha önce kullanıldı" dedi, çünkü depodaki
+// kayıt yüklemenin gerisinde kalmıştı. Kaydı tutmak insana bırakılan bir iş
+// olduğu sürece tutulmuyor.
+//
+// Derleme artık kendi kodunu da tüketiyor: başarılı bir `.aab`den sonra kod
+// `builtCodes`a yazılıyor ve `versionCode` bir artıyor. Sürüm kodu bedava —
+// tek şartı artması — yani yüklenmeyen bir derlemenin kodunu yakmak hiçbir
+// şeye mal olmuyor. Yüklemeyi unutmanın bedeli ise bu hata.
+const builtCodes = Array.isArray(version.builtCodes) ? version.builtCodes : [];
+const tuketilmis = [...new Set([...uploaded, ...builtCodes])];
+if (tuketilmis.includes(version.versionCode)) {
   console.error('\n' + '!'.repeat(60));
-  console.error(`DURDU: versionCode ${version.versionCode} zaten Play'e yüklenmiş.`);
-  console.error(`Yüklenenler: ${uploaded.join(', ')}`);
+  console.error(`DURDU: versionCode ${version.versionCode} zaten kullanılmış.`);
+  console.error(`Yüklenenler: ${uploaded.join(', ') || '—'}`);
+  console.error(`Derlenenler: ${builtCodes.join(', ') || '—'}`);
   console.error('');
   console.error('Play aynı kodu ikinci kez kabul etmiyor, yani bu paket derlense');
   console.error('bile yükleme kutusunda reddedilirdi.');
   console.error('');
-  console.error(`  app-version.json > ${appName}.versionCode -> ${Math.max(...uploaded) + 1}`);
+  console.error(`  app-version.json > ${appName}.versionCode -> ${Math.max(...tuketilmis) + 1}`);
   console.error('');
   console.error('Liste yanlışsa doğrusu Play Console > Release > App bundle');
   console.error('explorer\'da; oradan düzeltip tekrar dene.');
   console.error('!'.repeat(60) + '\n');
   process.exit(1);
 }
-if (uploaded.length) {
-  console.log(`Yüklenmiş kodlar: ${uploaded.join(', ')} — ${version.versionCode} temiz.`);
+if (tuketilmis.length) {
+  console.log(`Kullanılmış kodlar: ${tuketilmis.join(', ')} — ${version.versionCode} temiz.`);
 }
 
 // --- imza bloğunu app/build.gradle'a enjekte et ---
@@ -452,7 +467,15 @@ if (!wantApk && !wantDev && existsSync(out)) {
   try {
     const fresh = JSON.parse(readFileSync(versionFile, 'utf8'));
     fresh[appName].built = version.versionCode;
+    // Kod tüketildi: listeye yazılıyor ve sıradaki bir ileri alınıyor.
+    const lst = Array.isArray(fresh[appName].builtCodes) ? fresh[appName].builtCodes : [];
+    if (!lst.includes(version.versionCode)) lst.push(version.versionCode);
+    fresh[appName].builtCodes = lst.sort((a, b) => a - b);
+    const hepsi = [...(fresh[appName].uploaded || []), ...lst];
+    fresh[appName].versionCode = Math.max(...hepsi) + 1;
     writeFileSync(versionFile, JSON.stringify(fresh, null, 2) + '\n');
+    console.log(`Sıradaki derleme versionCode ${fresh[appName].versionCode} ile çıkacak.`);
+    console.log('Bu değişikliği commit et — kayıt depoda durmazsa sıradaki derleme aynı kodu üretir.');
   } catch (e) {
     console.warn('not: app-version.json güncellenemedi, `built` yazılamadı.');
   }

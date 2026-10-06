@@ -32,7 +32,15 @@ if (!v) {
 }
 
 if (!Array.isArray(v.uploaded)) v.uploaded = [];
-const code = v.versionCode;
+// İşaretlenen şey **son derlenen** kod, sıradaki değil.
+//
+// Eskiden `versionCode` işaretleniyordu ve doğruydu: derleme kodu
+// artırmıyordu, yani "sıradaki" ile "az önce derlenen" aynı sayıydı. Derleme
+// artık kendi kodunu tüketip sıradakine geçiyor (sebebi build-aab.mjs'de),
+// yani `versionCode` artık **bir sonraki** paketin kodu. Onu yüklenmiş
+// işaretlemek listeyi bir sayı ileri kaydırır ve hiç yüklenmemiş bir kodu
+// yüklenmiş gösterirdi.
+const code = v.built != null ? v.built : v.versionCode;
 const force = process.argv.includes('--force');
 
 // Derlenmemiş bir paketi yüklemiş olamazsın.
@@ -57,7 +65,7 @@ if (v.uploaded.includes(code)) {
   console.log(`versionCode ${code} zaten yüklenmiş olarak işaretli.`);
   // Yine de sıradakine geçilmiş mi bak: işaretli ama artırılmamışsa
   // derleme bir sonraki denemede duracak, ve sebebi anlaşılmayacaktı.
-  const next = Math.max(...v.uploaded) + 1;
+  const next = Math.max(...v.uploaded, ...(v.builtCodes || [])) + 1;
   if (v.versionCode < next) {
     v.versionCode = next;
     writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
@@ -68,7 +76,7 @@ if (v.uploaded.includes(code)) {
 
 v.uploaded.push(code);
 v.uploaded.sort((a, b) => a - b);
-v.versionCode = Math.max(...v.uploaded) + 1;
+v.versionCode = Math.max(...v.uploaded, ...(v.builtCodes || [])) + 1;
 writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
 
 console.log(`${app}: ${code} yüklendi olarak işaretlendi.`);
