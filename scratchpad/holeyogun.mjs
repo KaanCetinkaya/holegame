@@ -44,12 +44,26 @@ for (let lv = 1; lv <= 55; lv++) {
     window.fruitHoleProbe(l);
     window.fruitHoleStartLevel();
     const b = window.fruitHoleBoardCells();
-    // Parçanın dünya konumu lazım; hücre ızgarası yetmiyor çünkü yığının
-    // katları aynı hücrede duruyor ve hepsi ayrı parça.
-    const p = b.hucre.filter(h => !h.bomb).map(h => ({ x: h.x, z: h.z }));
+    // Hücrede `x`/`z` yok — `r` satır, `c` sütun. İlk hâlinde `h.x` okundu
+    // ve elli beş tahtanın hepsi "0 parça" çıktı; aynı hatanın bir başkası
+    // `fruitHoleBoardCells`in kendi yorumunda yazılı (`h.r` yarıçap sanılmıştı).
+    // Dünya konumu ızgaradan hesaplanıyor.
+    //
+    // `kat` de sayılıyor: bir hücrede yedi parçalık bir sütun varsa klip
+    // şartının saydığı şey yedi parça, bir hücre değil.
+    const p = [];
+    for (const h of b.hucre) {
+      if (h.bomb) continue;
+      p.push({
+        x: (h.c - (b.cols - 1) / 2) * b.cell,
+        z: (h.r - (b.rows - 1) / 2) * b.cell,
+        kat: h.kat || 1,
+      });
+    }
     let en = 0;
     // Daireyi tahtanın üstünde gezdiriyor. Adım 1.5 birim: daha incesi
     // ölçüyü değiştirmiyor, yalnızca yavaşlatıyor.
+    if (!p.length) { window.fruitHoleUnseedField(); return { ad: window.fruitHoleLevelName(), toplam: 0, en: 0 }; }
     const xs = p.map(q => q.x), zs = p.map(q => q.z);
     const x0 = Math.min(...xs), x1 = Math.max(...xs);
     const z0 = Math.min(...zs), z1 = Math.max(...zs);
@@ -58,7 +72,7 @@ for (let lv = 1; lv <= 55; lv++) {
         let n = 0;
         for (const q of p) {
           const dx = q.x - cx, dz = q.z - cz;
-          if (dx * dx + dz * dz <= r * r) n++;
+          if (dx * dx + dz * dz <= r * r) n += q.kat;
         }
         if (n > en) en = n;
       }
