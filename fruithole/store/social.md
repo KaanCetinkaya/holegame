@@ -442,8 +442,21 @@ doğrulandı, ona dokunulmuyor.
 
 ### Gün numarası
 
-Gün 1 = **13 Ağustos 2026**, Fruit Hole'un ilk commit'i. (Depo 9 Ağustos'ta
-açıldı ama o Hole'du, bu oyun değil. Sayı doğru olsun.)
+**Gün 1 = 24 Eylül 2026, ilk TikTok gönderisi.** 6 Ekim = gün 13.
+
+Önce gün 1 = 13 Ağustos (Fruit Hole'un ilk commit'i) sayılıyordu ve
+gönderiler 43-53 diye gidiyordu. Kaan değiştirdi: izleyen kişi için sayı,
+oyunun yaşı değil **dizinin** yaşı — 43. günden başlayan bir dizi, ilk
+kırk iki günü kaçırmış hissi veriyor.
+
+Geriye dönük tutarsızlık bilerek kabul edildi: altı gönderi 43-53 diyor ve
+bu 13'e düşüyor. Ölçüldü, maliyeti sıfıra yakın — 2.300 izlenmede 6 profil
+ziyareti var, yani geriye bakan neredeyse kimse yok. Bundan sonrası
+tutarlı gidiyor.
+
+Eski sayım (duruyor, çünkü eski gönderilerdeki sayıyı açıklayan tek şey o):
+gün 1 = 13 Ağustos 2026, Fruit Hole'un ilk commit'i. Depo 9 Ağustos'ta
+açıldı ama o Hole'du, bu oyun değil.
 
 | tarih | gün | klip | durum |
 |---|---|---|---|
@@ -706,6 +719,7 @@ Takvim günü değişmediği için anlatı bozulmuyor.
 | 1 Eki 21:00 | 50 | boss | **atıldı** — 255 |
 | 2 Eki 13:07 | 51 | bazaar | **atıldı** (numarası düzeltildi) |
 | 3 Eki | 52 | nazca | son klip |
+| 6 Eki | **13** | cubes | yeni sayım (gün 1 = 24 Eyl) |
 | — | — | suburb | atılmadı, kuyruğa döndü |
 
 **Gün 51 atlandı ve numara düzeltilerek kapatıldı.** `suburb` atılmadı,
