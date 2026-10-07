@@ -349,9 +349,12 @@ const store = {
 const _Cap = window.Capacitor;
 const _AdMob = _Cap && _Cap.Plugins ? _Cap.Plugins.AdMob : null;
 const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _AdMob);
-// Google's public test unit. Slice Rush has no AdMob app yet; swap this and
-// set ADS_TESTING to false before release.
-const AD_UNITS = { rewarded: 'ca-app-pub-3940256099942544/5224354917' };
+// Slice Rush'ın kendi ödüllü birimi. `ADS_TESTING` kaynakta true kalıyor ve
+// yalnızca `npm run release:slicer` onu kapatıyor (bkz. build-www.mjs) —
+// yani `aab:slicer` ile derlenen paket gerçek birimi test kipinde çağırır
+// ve derleme yine başarılı olur. Aradaki farkı ancak AdMob panelinde
+// sıfır görerek fark edersin.
+const AD_UNITS = { rewarded: 'ca-app-pub-2542927456156553/6043545961' };
 const ADS_TESTING = true;
 
 // Menünün köşesindeki sürüm yazısı. Kaynakta 'dev' duruyor, gerçek numarayı
