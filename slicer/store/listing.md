@@ -137,10 +137,32 @@ hâlini göstermemek için.
    olan `ADS_TESTING`'i kapatıyor, öteki test reklamıyla derliyor ve derleme
    yine başarılı olduğu için bu ancak AdMob panelinde aylar sonra sıfır
    görerek fark edilir.
-2. `AD_UNITS.rewarded` gerçek AdMob birimiyle değiştirilmeli (`slicer/index.html`)
-3. `patch-manifest.mjs` içindeki `slicer.appId` gerçek AdMob uygulama
-   kimliğiyle değiştirilmeli (şu an Google'ın test kimliği)
-4. Uygulama adı Play'de tekrar aratılmalı
-5. `app-version.json` → `slicer.versionCode` artırılmalı, yükledikten sonra
-   `npm run uploaded:slicer`
+2. ~~`AD_UNITS.rewarded` gerçek AdMob birimiyle değiştirilmeli~~ — **yapıldı**
+   (7 Ekim 2026): `ca-app-pub-2542927456156553/6043545961`
+3. ~~`patch-manifest.mjs` içindeki `slicer.appId`~~ — **yapıldı**:
+   `ca-app-pub-2542927456156553~2923303466`
+4. Uygulama adı Play'de tekrar aratılmalı — **hâlâ yapılmadı**
+5. `app-version.json` → yükledikten sonra `npm run uploaded:slicer`
 6. Gizlilik politikası sayfası yayında mı (`docs/privacy-slicerush.html`)
+   — **hâlâ doğrulanmadı**; konteynerden GitHub Pages'e çıkış kapalı,
+   tarayıcıdan bakılacak
+
+## Yayın durumu — 7 Ekim 2026
+
+**Sürüm 1 (1.0) derlendi ve yüklendi.** `npm run release:slicer`, yani
+reklamlar canlı: `LIVE_ADS=1` `ADS_TESTING`'i kapatıyor ve derlemede
+doğrulandı.
+
+Play Console tarafında doldurulanlar: içerik derecelendirmesi (3+, reklam
+içerir), veri güvenliği (yalnızca **cihaz kimliği**, toplanıyor + paylaşılıyor,
+amaç reklam), hedef kitle **13+**, reklam beyanı evet, kategori Gündelik,
+mağaza metni ve on yedi görsel.
+
+**Hedef kitle neden 13+:** 13 altı işaretlenirse oyun "Aileler" programına
+giriyor, reklamlar kişiselleştirilemiyor ve tek gelir kalemi düşüyor. Beyan
+kaçamak değil — oyun çocuğa özel yapılmadı, çizgi film maskotu ya da "çocuklar
+için" dili yok.
+
+**Önce dahili test, sonra kapalı test.** Oyun o güne kadar hiçbir telefonda
+çalışmamıştı; dahili test incelemeye girmiyor ve bozuk bir paketi kapalı teste
+göndermeden gösteriyor.
