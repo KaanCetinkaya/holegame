@@ -55,16 +55,24 @@ check(g.nokta === false, 'alınacak bir şey yokken nokta yanmıyor');
 // --- 2. oynayınca sayıyor mu ---
 console.log('\n2) Bir tur oynandıktan sonra');
 const once = g.stats.cuts;
-await pg.evaluate(async () => {
-  window.sliceStart(1);
-  await new Promise(res => {
-    const t = setInterval(() => {
-      window.sliceAutoPlay();
-      if (window.sliceProbe().state !== 'playing') { clearInterval(t); res(); }
-    }, 16);
-    setTimeout(() => { clearInterval(t); res(); }, 30000);
-  });
-});
+// Tur, sayfanın içindeki bir `setInterval` ile değil **dışarıdan** sürülüyor.
+//
+// Eski hâli 16 ms'lik bir aralıkla `sliceAutoPlay`i çağırıyordu ve bu test
+// konteynerde her koşuda "kesim 0, tur 0" verdi. Sebep oyun değil: GPU yok,
+// SwiftShader'la çiziliyor, ve 16 ms'lik bir aralık sayfaya kare çizecek
+// zaman bırakmıyor — geri çağrı çalışıyor ama bıçak hiç kıpırdamıyor, yani
+// kesilecek bir şeye hiç varmıyor. `slicefull` aynı turu dışarıdan 55 ms
+// aralıklarla sürüyor ve bölümleri bitiriyor.
+//
+// CLAUDE.md'de yazan kural da bu: testler zamanlamaya bağlı yazılmamalı.
+await pg.evaluate(n => window.sliceStart(n), 1);
+await pg.waitForTimeout(300);
+for (let adim = 0; adim < 400; adim++) {
+  await pg.evaluate(() => window.sliceAutoPlay());
+  await pg.waitForTimeout(55);
+  const p = await pg.evaluate(() => window.sliceProbe());
+  if (p.state !== 'playing') break;
+}
 g = await pg.evaluate(() => window.sliceGoals());
 console.log(`  kesim ${g.stats.cuts}, tur ${g.stats.runs}, bitirilen ${g.stats.cleared}`);
 check(g.stats.cuts > once, 'kesim sayacı arttı');
