@@ -20318,7 +20318,28 @@ function buildField() {
       // küçükler giriyor, ve tahta dizilmiş gibi okunuyor. Köşegen komşuların
       // merkezleri 1.48 uzakta — değiyorlar ama örtmüyorlar, öbek de zaten
       // böyle görünmeli.
-      const iri = big && (currentPattern.polar || (cell.a + cell.b) % 2 === 0);
+      // Kutupsal tahtada dama, **halka ve yuva** üstünden.
+      //
+      // Muafiyet yazılıydı ve gerekçesi yoktu. Ölçüldüğünde listenin tepesi
+      // tamamen o muaf tahtalardı: Bloom %92 iri, Whirl %71, Dial %68,
+      // Cogs %56 — elli beş tahtanın ortalaması %22. Bloom'da ikinci yarısı
+      // daha kötü: başta tahtanın yalnızca **%8'i** ağza sığıyordu, yani
+      // oyuncu bölüme girip yiyecek bir şey arıyordu.
+      //
+      // Önce muafiyet kaldırılıp ızgara kuralı (`(satır + sütun) % 2`) oraya
+      // da uygulandı ve bu sefer %92 → **%6**'ya düştü: ikisi de yanlış.
+      // Sebep, kutupsal tahtada ızgara hücresinin bir **kova** olması —
+      // parçalar halkaya göre diziliyor, dış halkalar birkaç hücreye
+      // yığılıyor (Island'da hücre başına yirmi sekiz parça ölçüldü), ve
+      // ızgara pariteyle yarılayınca giden parça sayısı orantısız oluyor.
+      //
+      // Kural aynı kural, yalnızca tahtanın kendi koordinatında: halka
+      // numarası artı o halkadaki yuva numarası. Yuva sayısı çevreden
+      // çıkıyor (`polarCells` ile aynı formül), yani komşu yuvalar gerçekten
+      // bir atlayarak iri oluyor.
+      const iri = big && (currentPattern.polar
+        ? (cell.a + Math.round(cell.b * Math.max(6, Math.round(2 * Math.PI * cell.a)))) % 2 === 0
+        : (cell.a + cell.b) % 2 === 0);
       const radius = iri ? BIG_R : NORMAL_R;
       // Every so often a cell holds an object instead of a fruit. It pays
       // into one of the four counters all the same, so nothing downstream
