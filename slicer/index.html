@@ -2101,6 +2101,20 @@ function tick(now) {
 // ---------------------------------------------------------------------
 // Probes — for the automated checks, not the game
 // ---------------------------------------------------------------------
+// Sahnenin maliyeti: donma şikâyetini ölçebilmek için.
+//
+// Kaan telefonda "bazen donuyor gibi" dedi ve bu oyunda akla ilk gelen şey
+// kesimin kendisi — her kesim gerçekten yeni geometri üretiyor. Yarılar
+// temizlenmiyorsa sahne oynadıkça büyür ve kare süresi uzar. Bunu dışarıdan
+// göremiyorduk, çünkü çizicinin kendi sayaçları dışarı açık değildi.
+window.sliceCost = () => ({
+  geo: renderer.info.memory.geometries,
+  doku: renderer.info.memory.textures,
+  cagri: renderer.info.render.calls,
+  ucgen: renderer.info.render.triangles,
+  nesne: (() => { let n = 0; scene.traverse(() => n++); return n; })(),
+  parca: shards.length,
+});
 window.sliceProbe = () => ({
   state, level, maxLevel, dist: +dist.toFixed(2), bladeY: +bladeY.toFixed(2),
   cut: cutCount, total: totalCuts, streak, shards: shards.length,
