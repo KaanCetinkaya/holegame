@@ -58,7 +58,7 @@ console.log(`  başlangıç çarpanı: ${res0.mult.toFixed(0)}x  (${start.points
 for (let m = 1; m <= 30; m++) {
   const r = await pg.evaluate(() => {
     window.jeRun(60);
-    window.jeBuy(['Döküm','Pres','Montaj','Sevkiyat'].indexOf(window.jeProbe().neck), 'max');
+    window.jeBuy(['Foundry','Stamping','Assembly','Dispatch'].indexOf(window.jeProbe().neck), 'max');
     return window.jeProbe();
   });
   if ([1,5,10,20,30].includes(m))

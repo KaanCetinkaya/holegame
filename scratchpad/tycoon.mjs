@@ -34,7 +34,7 @@ for (let step = 0; step < 40; step++) {
   await pg.evaluate(() => window.jeRun(20));
   const r = await pg.evaluate(() => {
     const p = window.jeProbe();
-    const i = ['Döküm','Pres','Montaj','Sevkiyat'].indexOf(p.neck);
+    const i = ['Foundry','Stamping','Assembly','Dispatch'].indexOf(p.neck);
     window.jeBuy(i, 'max');
     return window.jeProbe();
   });

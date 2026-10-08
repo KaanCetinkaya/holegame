@@ -73,7 +73,7 @@ async function shoot(dir, w, h, scale) {
     await pg.evaluate(m => {
       for (let k = 0; k < m; k++) {
         window.jeRun(60);
-        window.jeBuy(['Döküm', 'Pres', 'Montaj', 'Sevkiyat'].indexOf(window.jeProbe().neck), 'max');
+        window.jeBuy(['Foundry', 'Stamping', 'Assembly', 'Dispatch'].indexOf(window.jeProbe().neck), 'max');
       }
     }, s.mins);
     await pg.waitForTimeout(900);

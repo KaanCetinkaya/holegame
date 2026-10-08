@@ -34,7 +34,7 @@ await pg.click('#dOk');
 await pg.evaluate(() => {
   for (let k = 0; k < 25; k++) {
     window.jeRun(60);
-    window.jeBuy(['Döküm','Pres','Montaj','Sevkiyat'].indexOf(window.jeProbe().neck), 'max');
+    window.jeBuy(['Foundry','Stamping','Assembly','Dispatch'].indexOf(window.jeProbe().neck), 'max');
   }
 });
 const g = await pg.evaluate(() => window.jeGoals());

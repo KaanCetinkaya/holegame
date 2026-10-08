@@ -36,7 +36,7 @@ const play = m => pg.evaluate(mins => {
     window.jeRun(60);
     const p = window.jeProbe();
     for (let i = 0; i < 4; i++) if (!p.mgr[i]) window.jeBuyManager(i);
-    window.jeBuy(['Döküm','Pres','Montaj','Sevkiyat'].indexOf(p.neck), 'max');
+    window.jeBuy(['Foundry','Stamping','Assembly','Dispatch'].indexOf(p.neck), 'max');
   }
   return window.jeProbe();
 }, m);

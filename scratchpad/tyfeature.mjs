@@ -31,7 +31,7 @@ await pg.evaluate(() => {
   document.getElementById('daily').classList.remove('show');
   for (let k = 0; k < 30; k++) {
     window.jeRun(60);
-    window.jeBuy(['Döküm', 'Pres', 'Montaj', 'Sevkiyat'].indexOf(window.jeProbe().neck), 'max');
+    window.jeBuy(['Foundry', 'Stamping', 'Assembly', 'Dispatch'].indexOf(window.jeProbe().neck), 'max');
   }
   // Öne çıkan grafik oyunun arayüzünü değil, yerini göstermeli: panel ve
   // rozetler burada yalnızca yazının önünü kapatıyor.
@@ -62,7 +62,7 @@ await pg.evaluate(() => {
         <span style="color:#ff9422">WORKS</span></div>
       <div style="margin-top:18px;font-size:21px;font-weight:800;line-height:1.4;
                   color:#c9d0da;text-shadow:0 2px 10px rgba(0,0,0,.9)">
-        Döküm · Pres · Montaj · Sevkiyat<br>
+        Foundry · Stamping · Assembly · Dispatch<br>
         <span style="color:#ffc44d">Hattı kur, darboğazı bul,<br>fabrikayı büyüt</span></div>
     </div>`;
   document.body.appendChild(d);
