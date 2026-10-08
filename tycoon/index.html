@@ -1210,6 +1210,10 @@ const REACH = 2.6;
 const carryMax = () => CARRY_BASE + resLvl('mgr') * 2;
 
 const worker = new THREE.Group();
+let bacakSol, bacakSag, kolSol, kolSag;
+// Adım evresi **yol** ile ilerliyor, zamanla değil: hızlanan bir işçi daha
+// sık adım atmalı, aynı sıklıkta daha hızlı kaymamalı.
+let yuruFaz = 0;
 {
   const gövde = new THREE.Mesh(
     new THREE.CapsuleGeometry(0.28, 0.5, 4, 10), MAT('#f2b23c', 0.6, 0.1));
@@ -1224,6 +1228,30 @@ const worker = new THREE.Group();
     MAT('#ffd23f', 0.5, 0.1));
   baret.position.y = 1.34;
   worker.add(baret);
+
+  // Bacaklar ve kollar.
+  //
+  // İşçi kapsülden ibaretti ve yürürken hiçbir şeyi kıpırdamıyordu: zeminde
+  // kayan bir cisim, yürüyen bir adam değil. Oyunun elle yapılan tek işi
+  // taşımak, yani ekranda hareket eden tek şeyin inandırıcı olması gerekiyor.
+  //
+  // Uzuvlar kalçadan ve omuzdan dönüyor: kutu doğrudan döndürülürse merkezi
+  // etrafında dönüp gövdenin içine giriyor. Her biri bir gruba asılı,
+  // grubun kendisi eklemin yerinde duruyor.
+  const uzuv = (w, h, d, x, y, renk) => {
+    const g = new THREE.Group();
+    g.position.set(x, y, 0);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), MAT(renk, 0.7, 0));
+    m.position.y = -h / 2;          // kutu eklemin altında asılı
+    m.castShadow = true;
+    g.add(m);
+    worker.add(g);
+    return g;
+  };
+  bacakSol = uzuv(0.15, 0.46, 0.17, -0.14, 0.46, '#3a4a63');
+  bacakSag = uzuv(0.15, 0.46, 0.17,  0.14, 0.46, '#3a4a63');
+  kolSol   = uzuv(0.12, 0.40, 0.12, -0.34, 0.96, '#f2b23c');
+  kolSag   = uzuv(0.12, 0.40, 0.12,  0.34, 0.96, '#f2b23c');
 }
 worker.position.set(2.4, 0, BAY_Z[0]);
 scene.add(worker);
@@ -1276,12 +1304,34 @@ canvasEl.addEventListener('pointercancel', dragBitir);
 
 // İşçinin bir adımı: yürü, sonra bulunduğu bölmede al ya da bırak.
 function stepWorker(dt) {
+  const oncekiX = worker.position.x, oncekiZ = worker.position.z;
   if (moveX || moveZ) {
     worker.position.x = Math.max(-7, Math.min(7, worker.position.x + moveX * WORKER_SPEED * dt));
     worker.position.z = Math.max(BAY_Z[LAST] - 3, Math.min(BAY_Z[0] + 3,
       worker.position.z + moveZ * WORKER_SPEED * dt));
     worker.rotation.y = Math.atan2(moveX, moveZ);
   }
+  // Yürüyüş: uzuvlar **gidilen yola** göre sallanıyor.
+  //
+  // Evreyi `dt` ile ilerletmek yanlış olurdu — duvara dayanmış, yerinde
+  // sayan bir işçi de adım atmaya devam ederdi. Yol ölçülünce duran
+  // duruyor, yavaşlayan yavaş adımlıyor.
+  const yol = Math.hypot(worker.position.x - oncekiX, worker.position.z - oncekiZ);
+  yuruFaz += yol / 0.55;                       // 0.55 birim = yarım adım
+  const salin = Math.min(1, yol / (WORKER_SPEED * dt || 1));
+  const a = Math.sin(yuruFaz) * 0.65 * salin;
+  bacakSol.rotation.x = a;
+  bacakSag.rotation.x = -a;
+  // Eli doluyken kollar sallanmıyor, yükü tutuyor: taşımanın görünür olması
+  // bu figürün bütün sebebi.
+  if (carryN > 0) {
+    kolSol.rotation.x = kolSag.rotation.x = -1.15;
+  } else {
+    kolSol.rotation.x = -a * 0.7;
+    kolSag.rotation.x = a * 0.7;
+  }
+  // Adım başına hafif bir yaylanma. Büyük olursa zıplıyor gibi duruyor.
+  worker.position.y = Math.abs(Math.sin(yuruFaz)) * 0.045 * salin;
   // Hangi bölmedeyiz?
   let bay = -1;
   for (let i = 0; i < STATIONS.length; i++) {
@@ -1962,6 +2012,19 @@ window.jeStep = sec => {
   while (t < sec) { const d = Math.min(h, sec - t); runFactory(d); stepWorker(d); t += d; }
   return window.jeProbe();
 };
+// Yürüyüşü dışarıdan sürmek ve uzuvları okumak — ölçüm için.
+//
+// Yön normalde parmağın sürüklemesinden geliyor, yani testten verilemiyordu
+// ve işçinin yürüyüp yürümediği ancak ekran görüntüsüne bakarak
+// anlaşılabilirdi.
+window.jeMove = (x, z) => { moveX = x; moveZ = z; return [moveX, moveZ]; };
+window.jeLimbs = () => ({
+  bacakSol: +bacakSol.rotation.x.toFixed(3),
+  bacakSag: +bacakSag.rotation.x.toFixed(3),
+  kolSol: +kolSol.rotation.x.toFixed(3),
+  y: +worker.position.y.toFixed(3),
+  tasiyor: carryN,
+});
 window.jeGiveManager = i => { G.mgr[i] = true; refreshPanel(); return G.mgr[i]; };
 // Ölçüm için kusursuz taşıyıcı. Oyunda kapalı, yalnızca buradan açılıyor.
 window.jeAutoCarry = on => { AUTO_CARRY = !!on; return AUTO_CARRY; };
