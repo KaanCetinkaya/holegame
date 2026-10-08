@@ -1051,8 +1051,17 @@ function makeHalf(item, worldY, up) {
   // kabuğuyla kapanıyordu ve gelecek engel görünmüyordu. Yanal hız üçe
   // katlandı, ömür kısaldı, sönme erken başlıyor — koridoru hemen boşaltsın.
   const side = up ? 1 : -1;
+  // Kesik yüzün geometrisi **yarıma ait**, gövdeninki değil.
+  //
+  // Gövde `GEO[s.id]`den geliyor, yani bütün karpuzlar aynı geometriyi
+  // paylaşıyor ve onu serbest bırakmak sonraki karpuzu bozar. Yüz ise her
+  // kesimde yeniden kuruluyor — kesilen yerin kesitine göre — ve temizlikte
+  // yalnızca malzemeler bırakılıyordu. Ölçüldü: sekiz bölümde GPU'daki
+  // geometri 69'dan 496'ya çıkıyor, çizim çağrısı 12'de sabit kalıyor.
+  // Yani parçalar sahneden çıkıyor ama bellekten çıkmıyor; telefonda donma
+  // diye hissedilen şey bu.
   shards.push({
-    g, basePlane, plane, mats: [skin, flesh],
+    g, basePlane, plane, mats: [skin, flesh], geos: [face.geometry],
     vx: side * (3.4 + Math.random() * 2.2),
     vy: up ? 3.2 + Math.random() * 1.4 : 0.6 + Math.random(),
     vz: (Math.random() - 0.5) * 1.2,
@@ -1093,6 +1102,7 @@ function stepShards(dt) {
     if (s.life <= 0 || s.g.position.y < -8) {
       scene.remove(s.g);
       for (const m of s.mats) m.dispose();
+      for (const gg of s.geos) gg.dispose();
       shards.splice(i, 1);
     }
   }
@@ -1778,7 +1788,11 @@ function startLevel() {
   bladeY = targetY = (LANE_LOW + LANE_HIGH) / 2;
   speed = Math.min(8 + (level - 1) * 0.45, 15);
   history.length = 0;
-  for (const s of shards) { scene.remove(s.g); for (const m of s.mats) m.dispose(); }
+  for (const s of shards) {
+    scene.remove(s.g);
+    for (const m of s.mats) m.dispose();
+    for (const gg of s.geos) gg.dispose();
+  }
   shards.length = 0;
   $('levelTag').textContent = 'LEVEL ' + level;
   $('scoreTag').textContent = '🔪 0';
