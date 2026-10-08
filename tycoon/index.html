@@ -367,9 +367,9 @@ function fmt(n) {
 function fmtTime(sec) {
   sec = Math.floor(sec);
   const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
-  if (h) return `${h} sa ${m} dk`;
-  if (m) return `${m} dk ${s} sn`;
-  return `${s} sn`;
+  if (h) return `${h}h ${m}m`;
+  if (m) return `${m}m ${s}s`;
+  return `${s}s`;
 }
 
 // ---------------------------------------------------------------------
@@ -1393,7 +1393,7 @@ function refreshPanel() {
     r.lvl.textContent = G.lvl[i];
     r.el.classList.toggle('neck', i === ch.neck);
     const hits = milestonesHit(i), nxt = nextMilestone(i);
-    r.sub.textContent = `${fmt(rateOf(i))} ${s.unit}/sn`;
+    r.sub.textContent = `${fmt(rateOf(i))} ${s.unit}/s`;
     // A full bar turning red was meant to be self-explanatory and it was not:
     // the first person to play it on a phone asked what red meant while three
     // stations sat blocked and the answer — buy the one marked DARBOĞAZ — was
