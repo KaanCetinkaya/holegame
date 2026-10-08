@@ -63,7 +63,7 @@ await pg.evaluate(() => {
       <div style="margin-top:18px;font-size:21px;font-weight:800;line-height:1.4;
                   color:#c9d0da;text-shadow:0 2px 10px rgba(0,0,0,.9)">
         Foundry · Stamping · Assembly · Dispatch<br>
-        <span style="color:#ffc44d">Hattı kur, darboğazı bul,<br>fabrikayı büyüt</span></div>
+        <span style="color:#ffc44d">Build the line, find the bottleneck,<br>grow the factory</span></div>
     </div>`;
   document.body.appendChild(d);
 });

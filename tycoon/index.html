@@ -1478,8 +1478,8 @@ $('muteBtn').onclick = () => {
 };
 $('prestigeBtn').onclick = () => {
   if (!canPrestige()) return;
-  $('pNow').textContent = `${fmt(freePoints())} puan boşta`;
-  $('pNext').textContent = `+${fmt(pendingPoints())} puan`;
+  $('pNow').textContent = `${fmt(freePoints())} points unspent`;
+  $('pNext').textContent = `+${fmt(pendingPoints())} points`;
   $('prestige').classList.add('show');
 };
 $('pNo').onclick = () => $('prestige').classList.remove('show');

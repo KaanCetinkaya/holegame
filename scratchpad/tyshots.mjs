@@ -29,32 +29,34 @@ const browser = await chromium.launch({
 // Her kare bir hikâye anlatıyor: sırayla fabrika, darboğaz, görevler,
 // çevrimdışı kazanç, hız kutusu, şube devri.
 const SHOTS = [
-  { name: '1-factory', mins: 26, cap: 'Fabrikanı büyüt, hat hızlansın',
+  { name: '1-factory', mins: 26, cap: 'Grow the plant, speed up the line',
     do: async () => {} },
   // Önce/sonra: ikinci kare erken oyundan, ilkiyle aynı açıdan. İkisi de
   // olgun fabrikayı gösterdiğinde mağazada aynı resmin iki kopyası gibi
   // duruyordu ve büyüme hiç anlatılmıyordu.
-  { name: '2-early',   mins: 2, cap: 'Dört tezgâhla, tek ocakla başla',
+  { name: '2-early',   mins: 2, cap: 'Four stations. You start with one',
     do: async () => {} },
-  { name: '3-goals',   mins: 26, cap: 'Görevleri tamamla, ödülünü al',
+  { name: '3-goals',   mins: 26, cap: 'Finish the goals, take the payout',
     do: async pg => {
       await pg.click('#menuBtn'); await pg.waitForTimeout(150);
       await pg.click('#goalsBtn'); await pg.waitForTimeout(250);
     } },
-  { name: '4-offline', mins: 20, cap: 'Kapalıyken de para kazan',
+  { name: '4-offline', mins: 20, cap: 'It earns while the app is closed',
     do: async pg => {
       await pg.evaluate(() => window.jeOffline(4 * 3600));
       await pg.waitForTimeout(250);
     } },
-  { name: '5-boost',   mins: 26, cap: 'Hız kutusuyla üç katına çıkar',
+  { name: '5-boost',   mins: 26, cap: 'The speed crate triples everything',
     do: async pg => {
       await pg.evaluate(() => window.jeBoost());
       await pg.waitForTimeout(900);
     } },
-  { name: '6-branch',  mins: 40, cap: 'Devret, kalıcı olarak güçlen',
+  { name: '6-branch',  mins: 40, cap: 'Hand it on, keep the multiplier',
     do: async pg => {
-      await pg.click('#menuBtn'); await pg.waitForTimeout(150);
-      await pg.click('#prestigeBtn'); await pg.waitForTimeout(250);
+      await pg.evaluate(() => window.jeSetEarned(5e12));
+      await pg.waitForTimeout(200);
+      await pg.click('#menuBtn'); await pg.waitForTimeout(200);
+      await pg.click('#prestigeBtn'); await pg.waitForTimeout(300);
     } },
 ];
 
