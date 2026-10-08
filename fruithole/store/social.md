@@ -1401,3 +1401,50 @@ Onun yerine **arama** çalışıyor: açık testteki oyunlar Play aramasında
 çıkıyor, ve "search Peelo: Fruit Hole" bir linke gerek bırakmıyor. Zaten
 ölçülen dönüşüm oranı %76,92 — sayfayı gören kuruyor. Sorun sayfaya
 gelen olmaması, ve onu bio değil erişim çözer.
+
+## İki hesap, günlük anlatısı bırakıldı — 7-8 Ekim
+
+**Günlük sayısı kalktı.** Gönderiler artık "day N of building my own mobile
+game" demiyor; açıklama klipte **ne olduğunu** anlatıyor. Sebebi ölçüm:
+günlük partisi 197-376 izlenme yaptı, ondan önceki oyunu anlatan parti
+281-401. Günlük denemesi daha kötüydü.
+
+**İkinci hesap açıldı: `@peelogame_0`.** Kaan'ın gerekçesi, `@peelogame`'in
+eskiden kendi kişisel hesabı olması — oyun hesabı olarak kullanmak
+istemedi. (Bir ara "eski hesap bozuk olabilir" diye bir teori kurdum; o
+benim çıkarımımdı, Kaan öyle demedi.)
+
+Aynı klip iki hesaba da gidiyor, **açıklamalar farklı**. Kopya ceza
+riski var ama TikTok'un özgünlük kuralı asıl olarak başkasının videosunu
+yeniden atmayı hedefliyor; kendi videonu kendi iki hesabından atmak yaygın.
+Beklenen şey ceza değil, ikincisinin daha az dağıtım alması.
+
+### Sayılar
+
+Birinci hesap (`@peelogame`, 322 takip / 10 takipçi / 11 beğeni):
+
+| tarih | klip | izlenme |
+|---|---|---|
+| 2 Eki | (gün 10) | 262 |
+| 3 Eki | redplanet (gün 11) | 200 |
+| 4 Eki | tulip (gün 12) | 211 |
+| 6 Eki | cubes (gün 13) | ~300 — **yanlışlıkla silindi** |
+| 7 Eki 19:39 | cubes | 29 (2,5 saat sonra) |
+| 7 Eki 20:46 | onion | 12 (1,5 saat sonra) |
+
+İkinci hesap (`@peelogame_0`, 0 takipçi): onion **8**, öteki üçü
+(forbidden, tulip, boss) **0**.
+
+**Üç videonun sıfırda kalması açıklanamadı.** Gizlilik ayarı herkese açık,
+bildirim yok, ve aynı hesapta sonradan atılan video 8 aldı — yani hesap
+bastırılmış değil. Elimde doğrulanmış bir sebep yok; tahmin yürütmedim.
+
+**Bütün gönderilerde 0 beğeni, 0 yorum.** Bu, dosyanın başından beri
+değişmeyen tek sayı: izlenme 200'ü buluyor, kimse etkileşmiyor.
+
+### Klip stoğu
+
+Dokuz klip, hepsi 4-6 Ekim'deki düzen değişikliğinden **sonraki**
+derlemeden: `boss`, `tulip`, `cubes`, `forbidden`, `matchday`, `onion`,
+`hourglass`, `track`, `lens`. Öncekiler eski tahtaları gösteriyordu —
+Kaan'ın "hep bir kenara yığıyorsun" dediği hâli.
