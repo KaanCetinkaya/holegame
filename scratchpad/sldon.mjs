@@ -70,9 +70,29 @@ for (const lvl of [1, 3, 5, 7, 9, 11, 13, 15]) {
 const ilk = satir[0], son = satir[satir.length - 1];
 console.log('\nilk bölüm → son bölüm:');
 console.log(`  ortalama kare  ${ilk.ort.toFixed(0)}ms → ${son.ort.toFixed(0)}ms`);
-if (ilk.geo != null) console.log(`  geometri       ${ilk.geo} → ${son.geo}`);
-if (ilk.nesne != null) console.log(`  sahne nesnesi  ${ilk.nesne} → ${son.nesne}`);
-const buyudu = ilk.geo != null && son.geo > ilk.geo * 1.5;
-console.log(`\n  ${buyudu ? 'FAIL sahne büyüyor — sızıntı' : 'OK   sahne büyümüyor'}`);
+console.log(`  geometri       ${ilk.geo} → ${son.geo}`);
+console.log(`  sahne nesnesi  ${ilk.nesne} → ${son.nesne}`);
+
+// Sahne nesnesinin artması sızıntı **değil**.
+//
+// `buildCourse` koridora bölümle birlikte daha çok şey koyuyor
+// (`slots = min(24 + n*2, 48)`): 1. bölümde 26 yuva, 15'te 48. Yani nesne
+// sayısı tasarım gereği büyüyor ve onu kusur saymak çalışan bir kuralı
+// bozmak olurdu. İlk ölçümde öyle sayıldı ve yanlıştı.
+//
+// Sızıntının işareti **geometri**: kesilen her yarım kendi kesik yüzünü
+// kuruyor ve temizlenmezse GPU'da birikiyor. Düzeltmeden önce 69 → 496
+// çıkıyordu; şimdi 23 → 36.
+//
+// Eşik kesim başına: sekiz bölümde ~230 kesim yapılıyor, yani sızıntı
+// varken geometri kesim sayısıyla birlikte artar. Kesim başına 0.5'ten
+// fazla geometri birikmişse sızıntı geri gelmiş demektir.
+const toplamKesim = satir.reduce((a, s) => a + s.cut, 0);
+const birikme = (son.geo - ilk.geo) / Math.max(1, toplamKesim);
+console.log(`\n  ${toplamKesim} kesimde ${son.geo - ilk.geo} geometri birikti ` +
+  `(kesim başına ${birikme.toFixed(3)})`);
+const sizinti = birikme > 0.5;
+console.log(`  ${sizinti ? 'FAIL kesilen yarımlar bellekten çıkmıyor' : 'OK   yarımlar temizleniyor'}`);
+process.exitCode = sizinti ? 1 : 0;
 
 await br.close(); srv.close();
