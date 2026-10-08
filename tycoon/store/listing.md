@@ -179,9 +179,27 @@ Görseller `scratchpad/tyshots.mjs` ve `scratchpad/tyfeature.mjs` ile
 
 ## Yayın öncesi kontrol listesi
 
-1. `tycoon/index.html` içinde `ADS_TESTING = false`
-2. `AD_UNITS.rewarded` gerçek AdMob birimiyle değiştirilmeli
-3. `patch-manifest.mjs` içindeki `tycoon.appId` gerçek AdMob uygulama
-   kimliğiyle değiştirilmeli (şu an Google'ın test kimliği)
-4. Uygulama adı Play'de tekrar aratılmalı
-5. `app-version.json` → `tycoon.versionCode` artırılmalı
+1. **`npm run release:tycoon`** ile derle, `aab:tycoon` değil. `release:`
+   olan `ADS_TESTING`'i kapatıyor; öteki gerçek birimi test kipinde çağırır
+   ve derleme yine başarılı olur, yani fark ancak AdMob panelinde aylar
+   sonra sıfır görünce anlaşılır.
+2. ~~`AD_UNITS.rewarded` gerçek AdMob birimiyle~~ — **yapıldı** (8 Ekim 2026):
+   `ca-app-pub-2542927456156553/3308416462`
+3. ~~`patch-manifest.mjs` içindeki `tycoon.appId`~~ — **yapıldı**:
+   `ca-app-pub-2542927456156553~3883131532`
+4. Uygulama adı Play'de tekrar aratılmalı — **hâlâ yapılmadı**
+5. `app-version.json` → yükledikten sonra `npm run uploaded:tycoon`
+6. Gizlilik politikası: `docs/privacy-motorworks.html` (8 Ekim'de yazıldı)
+   → `https://kaancetinkaya.github.io/holegame/privacy-motorworks.html`
+   Fruit Hole'unki **kullanılmaz**: o sayfa banner, geçiş reklamı ve
+   uygulama içi satın almadan bahsediyor, Motor Works'te üçü de yok.
+
+## Dil — 8 Ekim 2026
+
+Arayüzün tamamı İngilizceye çevrildi (47 metin). Mağaza görselleri de:
+öne çıkan grafik, altı telefon ve altı tablet karesi, ve karelerin üstüne
+gömülü altı açıklama. Oyun Türkçe açılırken İngilizce mağaza sayfasıyla
+yayınlanmak, Slice Rush'ta Eylül'de yakalanan hatanın aynısıydı.
+
+Testler adları Türkçe sanıyordu (`['Döküm','Pres',…].indexOf(neck)`) ve
+on birin altısı düştü; yedi dosyada adlar güncellendi, şimdi 11/11 geçiyor.

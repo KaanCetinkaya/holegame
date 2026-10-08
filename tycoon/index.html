@@ -402,9 +402,12 @@ const _Cap = window.Capacitor;
 const _AdMob = _Cap && _Cap.Plugins ? _Cap.Plugins.AdMob : null;
 const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _AdMob);
 
-// Google's public test units. Motor Works has no AdMob app of its own yet;
-// swap these for the real ids and set ADS_TESTING to false before release.
-const AD_UNITS = { rewarded: 'ca-app-pub-3940256099942544/5224354917' };
+// Motor Works'ün kendi ödüllü birimi. `ADS_TESTING` kaynakta true kalıyor ve
+// yalnızca `npm run release:tycoon` onu kapatıyor (bkz. build-www.mjs) —
+// yani `aab:tycoon` ile derlenen paket gerçek birimi test kipinde çağırır ve
+// derleme yine başarılı olur. Aradaki farkı ancak AdMob panelinde sıfır
+// görerek fark edersin.
+const AD_UNITS = { rewarded: 'ca-app-pub-2542927456156553/3308416462' };
 const ADS_TESTING = true;
 
 async function adsInit() {
