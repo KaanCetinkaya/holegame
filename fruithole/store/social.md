@@ -1532,3 +1532,17 @@ hesaba kayabilir.
 
 Değişmeyen tek sayı yine aynı: **0 beğeni, 0 yorum.** 188 kişi izleyip
 hiçbiri dokunmuyor.
+
+### 0 izlenmeli gönderi yeniden atılıyor — 9 Ekim
+
+Sıfırda kalan video `forbidden` (41. bölüm, Forbidden City · Gate).
+Silinip yeniden atılıyor.
+
+**Silmeyi savunan şey burada farklı:** `cubes` silinip yeniden atıldığında
+~300 izlenme 29'a düşmüştü, o yüzden "yeniden atma" kuralı doğmuştu. Ama o
+kural izlenme **alan** gönderiler için. Bunun 0'ı var; kaybedecek bir şey
+yok, dağıtımı baştan başlatmak zaten tek seçenek.
+
+Açıklama değişiyor: ilk hâli gün numaralıydı ("day 16 of building..."), o
+anlatı bırakıldı. Birebir aynı gönderiyi ikinci kez atmak da kopya
+işaretini gereksiz yere davet ederdi.
