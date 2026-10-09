@@ -4904,6 +4904,41 @@ parça**, yani ikisi de tahta kurulu değilken oldu. Geometri ve doku sayıları
 (31/15 ve 90/16) hiçbir şeyin birikmediğini söylüyor. Yani kaybın sebebi
 oyunun kendi yükü değil; dışarıdan geliyor.
 
+### Üçüncü kayıt: kaybın hepsi bölüm bitiminde
+
+9 Ekim'de tanılama ekranının tamamı geldi — on kayıt, defterin dolusu. Önceki
+iki kayıtla aralarındaki fark, teoriyi tahmin olmaktan çıkarıyor:
+
+```
+GL 10-05 22:25  bölüm 124 ·  0 parça · 170 geo · 16 doku ·  17 çizim · won · GERİ GELMEDİ
+GL 10-05 22:24  bölüm 122 · 27 parça · 214 geo · 16 doku · 146 çizim · won · GERİ GELMEDİ
+GL 10-05 22:23  bölüm 120 · 11 parça · 281 geo · 16 doku · 111 çizim ·       GERİ GELMEDİ
+GL 10-05 11:32  bölüm 117 ·  0 parça · 114 geo · 16 doku ·  80 çizim · won · GERİ GELMEDİ
+GL 10-05 11:30  bölüm 115 · 12 parça · 160 geo · 15 doku ·  89 çizim · won · GERİ GELMEDİ
+GL 10-05 11:28  bölüm 113 · 33 parça · 218 geo · 16 doku · 122 çizim · won · GERİ GELMEDİ
+```
+
+**Neredeyse hepsinde durum `won`.** İlk iki kayıt menüdeydi ve "0 parça" ortak
+yanları diye yazılmıştı; o ortaklık yanlış bir yere bakıyormuş. Gerçek ortaklık
+parça sayısı değil, **anın kendisi**: bölüm bitiminde.
+
+Bölüm bitiminde ekranda ne var? Sandık, ve yanında **"2× için reklam izle"**.
+Ödüllü video Android'de ayrı bir Activity açıyor, yani uygulama arka plana
+düşüyor — eski teorinin parantez içinde tahmin olarak yazdığı "bir reklam"
+tam olarak bu. Teori doğruydu, hangi arka plana düşme olduğu artık belli.
+
+**Kanıtın sınırı:** kayıt reklamın izlendiğini söylemiyor, yalnızca durumun
+`won` olduğunu söylüyor. Sandığın göründüğü an ile reklamın izlendiği an
+aynı değil. Yani "ödüllü video" en iyi açıklama, kanıtlanmış sebep değil.
+
+**Dört gündür tekrarlamadı.** Son kayıt 5 Ekim, 9 Ekim'deki oturumda "GL
+kaybı: olmadı". 48/49/50 sürümlerindeki düzeltmelerden sonrası. Düzeldiğinin
+kanıtı değil — o günlerde ne kadar oynandığı bilinmiyor — ama kötüye gitmediği
+kesin.
+
+Sayılar da hâlâ temiz: 114-281 geometri, 15-16 doku. Sızıntı yok, yani oyunun
+kendi yükü sebep değil. Bu üçüncü kayıtta da öyle.
+
 ### Bulmaca ekranda görünmüyordu
 
 İlk telefon denemesinden önce iki şey daha düzeltildi. İkisi de "oyun doğru
