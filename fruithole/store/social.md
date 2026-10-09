@@ -1448,3 +1448,59 @@ Dokuz klip, hepsi 4-6 Ekim'deki düzen değişikliğinden **sonraki**
 derlemeden: `boss`, `tulip`, `cubes`, `forbidden`, `matchday`, `onion`,
 `hourglass`, `track`, `lens`. Öncekiler eski tahtaları gösteriyordu —
 Kaan'ın "hep bir kenara yığıyorsun" dediği hâli.
+
+## Dördüncü parti — 9 Ekim
+
+Üç klibin **karesi tek tek açılıp bakıldı**, açıklama oradan yazıldı. Eski
+listede `boss` için "Pirate Cove" yazıyordu; 6 Ekim derlemesinde o bölüm
+**Fiesta**'ya kaymış (temalar düzen sırası değişince kaydı). Yani ezberden
+yazılan bir açıklama klibi yalan yapacaktı — dosyadaki tema adına değil,
+klibin kendisine bakılıyor.
+
+| klip | bölüm | tema · düzen | engel | ekranda |
+|---|---|---|---|---|
+| track | 47 | Jurassic · Track | silindir | kül zemini, kaburga, amber |
+| hourglass | 50 | **PATRON** · Payday · Hourglass | çamur | mermer, külçe, madeni para |
+| boss | 30 | **PATRON** · Fiesta · Star | çamur | talavera çini, kaktüs, dondurma |
+
+**`boss` stokta kalıyor** — ikinci hesaba zaten atılmıştı (0 izlenme aldı),
+aynı videoyu aynı hesaba ikinci kez atmak yapılmaz.
+
+### Hesap 1 (@peelogame) — track.mp4
+
+Ekran yazısı: `level 47. the floor is volcanic ash`
+
+```
+a hole eating its way across a dinosaur graveyard 🦕
+
+the layout is a race track and the roller sweeps along it. it does not stop for you, and the ash does not slow it down.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+### Hesap 2 (@peelogame_0) — track.mp4
+
+Aynı klip, **farklı açıklama**. Bu sefer engel değil, oyunun nasıl
+yapıldığı anlatılıyor — iki hesap aynı şeyi söylemesin diye.
+
+Ekran yazısı: `no image files. the floor is maths`
+
+```
+every bone and every fern here was drawn in code 🦴
+
+there is not a single image file in this game. the ash floor, the ribcage, the fruit — all of it generated. level 47.
+
+#indiedev #solodev #procedural #gamedev #oddlysatisfying
+```
+
+### Hesap 2 (@peelogame_0) — hourglass.mp4
+
+Ekran yazısı: `level 50. the boss is made of money`
+
+```
+level 50 is a boss level and the boss is money 💰
+
+marble floor, gold bars, and over 300 coins to swallow before the clock runs out. that grey patch is mud, and it slows you down exactly when you cannot afford it.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
