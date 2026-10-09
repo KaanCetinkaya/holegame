@@ -1504,3 +1504,31 @@ marble floor, gold bars, and over 300 coins to swallow before the clock runs out
 
 #indiedev #solodev #gamedev #mobilegame #satisfying
 ```
+
+### Sıfır izlenme düzeltmesi — 9 Ekim
+
+**"Üç videonun sıfırda kalması" geçersiz.** Hesabın profil ekranına
+bakıldığında dört gönderinin izlenmesi şöyle:
+
+```
+188  ·  90  ·  0  ·  95
+```
+
+Yani üçü sonradan dağıtım aldı. Yukarıda "açıklanamadı" diye yazılan şey
+bir gizem değilmiş: TikTok yeni hesabın ilk gönderilerini geç dağıtıyor ve
+atıldıktan birkaç saat sonra bakmak erken oluyor. Bir tanesi hâlâ 0.
+
+**Ve ikinci hesap birinciden iyi çalışıyor:**
+
+| hesap | takipçi | son gönderiler |
+|---|---|---|
+| @peelogame | 10 | 29 · 12 |
+| @peelogame_0 | 0 | 188 · 95 · 90 |
+
+Bu, "ikincisi daha az dağıtım alır" beklentisinin tersi. Takipçi sayısının
+dağıtımla ilgisi olmadığını söylüyor — iki hesabın da izlenmesi takipçiden
+değil, Sizin İçin akışından geliyor. Tek ölçüm, ama yönü net: emek ikinci
+hesaba kayabilir.
+
+Değişmeyen tek sayı yine aynı: **0 beğeni, 0 yorum.** 188 kişi izleyip
+hiçbiri dokunmuyor.
