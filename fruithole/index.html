@@ -25877,8 +25877,15 @@ window.fruitHoleWhere = () => ({
 // parça var" sorusu cevaplanamaz; `fruitHoleAhead` da yalnızca **deliğin
 // durduğu yerde** cevaplıyor. Bu, soruyu tahtanın her noktası için
 // sorulabilir hâle getiriyor.
+//
+// `big`/`giant` de veriliyor, çünkü yarıçap tek başına "iri mi" sorusunu
+// cevaplamıyor: şerit tahtalarının boncukları `big: false` ama yarıçapları
+// 0.52 olabiliyor. Yarıçapa eşik koyan bir ölçüm (0.5 üstü = iri) 46. bölümü
+// "%53 iri" diye işaretledi — oysa o 99 parça boncuktu ve hepsi başlangıç
+// ağzından (0.58) küçüktü. Oyunun kendi bayrağı sorulmalı.
 window.fruitHoleFruitSpots = () =>
-  fruits.filter(f => !f.eaten && !f.bomb).map(f => ({ x: f.x, z: f.z, r: f.r }));
+  fruits.filter(f => !f.eaten && !f.bomb)
+        .map(f => ({ x: f.x, z: f.z, r: f.r, big: !!f.big, giant: !!f.giant }));
 window.fruitHoleAhead = (r = 9, back = 3) => {
   let n = 0;
   for (const f of fruits) {
