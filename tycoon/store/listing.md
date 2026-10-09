@@ -203,3 +203,42 @@ yayınlanmak, Slice Rush'ta Eylül'de yakalanan hatanın aynısıydı.
 
 Testler adları Türkçe sanıyordu (`['Döküm','Pres',…].indexOf(neck)`) ve
 on birin altısı düştü; yedi dosyada adlar güncellendi, şimdi 11/11 geçiyor.
+
+## Ölçülmemiş iki sayı — 10 Ekim
+
+Kaan 110. seviyede kilitlendi, sonra beş dakikada 177 paradan 109M'e çıktı.
+İkisinin de sebebi aynı: **ekranda ve ödülde kullanılan hız, fabrikanın
+gerçekten kazandığı hız değil.**
+
+### Düzeltildi: ekrandaki hız
+
+Para hanesinin altındaki sayı `chain().income` yazıyordu — zincirin teorik
+hızı, yani "bütün istasyonlar beslenseydi". Müdürü olmayan bir fabrikada
+kimse kimseyi beslemiyor. Kaan ekranda `14.3K / s` görüp beş dakika bekledi,
+parası `1.90K`'da sabit kaldı. Artık kasaya gerçekten giren para yazıyor,
+`scratchpad/tyhiz.mjs` ikisini karşılaştırıyor.
+
+### Ölçülmedi: hedef ve günlük ödülü
+
+`goalPay = g.pay * chain().income / boostMult()` ve
+`dailyPay = chain().income / boostMult() * 1800 * streak`. İkisi de aynı
+teorik hızı kullanıyor, yani:
+
+- Hiçbir şey kazanmayan bir fabrika, tam gaz çalışıyormuş gibi ödeniyor.
+- Ödül anlık hıza bağlı, yani **ne zaman aldığın** ne kadar aldığını
+  belirliyor: biriktirip sırayla almak kartopu yapıyor. Bir hedefi almak
+  seviyeyi yükseltiyor, hız çıkıyor, sıradaki hedefin ödülü büyüyor.
+
+Ölçülmesi gereken: hedefleri hemen almakla biriktirip sırayla almak
+arasındaki fark kaç kat. Ondan önce dokunulmayacak — denge
+`scratchpad/tycoon*.mjs` simülasyonlarıyla kuruldu ve tek bir gecelik
+gözleme bakıp gevşetmek çalışan bir kuralı bozmak olur.
+
+### Ölçülmedi: taşıma kapasitesi üretimle birlikte büyümüyor
+
+`CARRY_BASE = 6` sabit, oysa istasyon 60. seviyede saniyede 1010 parça
+üretiyor. Yani elle taşımak büyük seviyelerde hiçbir işe yaramıyor —
+binde altısını taşıyorsun. Müdürünü almamış bir oyuncu kilitleniyor:
+geliri sıfır, müdür 110K, ve elle kazanması saatler sürüyor. Kaan tam
+buraya düştü. Hedef ödülleri onu kurtardı, ama kurtaran şey yukarıdaki
+ikinci sorun.
