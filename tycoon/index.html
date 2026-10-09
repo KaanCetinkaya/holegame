@@ -728,6 +728,7 @@ let AUTO_CARRY = false;
 // buffers are what make this a pipeline instead of a formula: in a single
 // big step each station can only move one buffer's worth however long the
 // step was, so a twenty-second catch-up paid out about a second's work.
+let olculenHiz = 0;
 function runFactory(dt) {
   const steps = dt > 1.05 ? Math.min(400, Math.ceil(dt)) : 1;
   const h = dt / steps;
@@ -767,6 +768,20 @@ function runFactory(dt) {
   if (!Number.isFinite(earned)) return 0;
   G.cash += earned;
   G.totalEarned += earned;
+  // Kasaya **gerçekten** giren para, saniye başına.
+  //
+  // Ekrandaki hız `chain().income` yazıyordu: zincirin teorik hızı, yani
+  // "bütün istasyonlar beslenseydi" hesabı. Müdürü olmayan bir fabrikada
+  // kimse kimseyi beslemiyor, yani o sayı kasaya giren parayla hiç ilgili
+  // değil. Kaan 110. seviyede ekranda `14.3K / s` görüp beş dakika bekledi
+  // ve parası `1.90K`'da sabit kaldı — ekran bir şey söylüyordu, banka
+  // başka bir şey.
+  //
+  // Üstel ortalama, çünkü ham `earned / dt` kare kare zıplıyor: işçi malı
+  // bıraktığı karede yüksek, ötekilerde sıfır. Zaman sabiti ~2.5 sn, yani
+  // sayı okunacak kadar duruyor ama durursan birkaç saniyede sıfıra iniyor.
+  const anlik = dt > 0 ? earned / dt : 0;
+  olculenHiz += (anlik - olculenHiz) * Math.min(1, dt / 2.5);
   return earned;
 }
 
@@ -1527,7 +1542,11 @@ function refreshPanel() {
     }
   }
   $('cashPill').textContent = '💰 ' + fmt(G.cash);
-  $('rate').textContent = fmt(ch.income) + ' / s';
+  // Ölçülen hız, teorik olan değil — hangisinin yazılacağı yukarıda,
+  // `olculenHiz`'in başında anlatıldı. Zincirin teorik hızı kayıp
+  // olmuyor: istasyon satırları ve BOTTLENECK etiketi onu zaten
+  // söylüyor, ve orada yanıltmıyor çünkü istasyonun kendi hızı o.
+  $('rate').textContent = fmt(olculenHiz) + ' / s';
   $('branchPill').textContent = '🏭 ' + (G.branches + 1);
   const nx = nextProduct();
   $('prodTag').innerHTML = `🚗 ${product().name}` +
@@ -1553,7 +1572,7 @@ $('menuBtn').onclick = () => {
     ? `RESEARCH  ● ${fmt(freePoints())} POINTS`
     : 'RESEARCH';
   $('kTotal').textContent = fmt(G.totalEarned);
-  $('kRate').textContent = fmt(ch.income) + ' / s';
+  $('kRate').textContent = fmt(olculenHiz) + ' / s';
   $('kNeck').textContent = STATIONS[ch.neck].name;
   $('kProd').textContent = `${product().name} (×${fmt(product().mult)})`;
   $('kPrice').textContent = fmt(unitPrice());
@@ -2031,7 +2050,11 @@ window.jeProbe = () => {
     carry: carryN, carryKind,
     wz: +worker.position.z.toFixed(2), wx: +worker.position.x.toFixed(2),
     flow: +ch.flow.toFixed(3), neck: STATIONS[ch.neck].name,
+    // `income` zincirin teorik hızı, `gosterilen` ekranda yazan ölçülmüş
+    // hız. İkisi ayrı okunabilmeli: ekranın bankayla uyuştuğu ancak böyle
+    // ölçülebiliyor.
     income: +ch.income.toFixed(2),
+    gosterilen: +olculenHiz.toFixed(2),
     crates: belts.reduce((a, b) => a + b.crates.length, 0),
   };
 };
