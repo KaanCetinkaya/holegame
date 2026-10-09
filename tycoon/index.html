@@ -1214,9 +1214,28 @@ let bacakSol, bacakSag, kolSol, kolSag;
 // Adım evresi **yol** ile ilerliyor, zamanla değil: hızlanan bir işçi daha
 // sık adım atmalı, aynı sıklıkta daha hızlı kaymamalı.
 let yuruFaz = 0;
+// Bölme platformunun üstü. `DECK` 0.3 kalınlığında ve 0.15'te duruyor,
+// yani yüzeyi burada. İşçi `y = 0`'da yürüyordu — platformun üstündeyken
+// bacakları betonun içinde kalıyordu ve yürüyüş hiç görünmüyordu. Oyunun
+// neredeyse tamamı platformların üstünde geçtiği için animasyon pratikte
+// hiç izlenmemiş oluyordu.
+const DECK_TOP = 0.3;
+const DECK_YARI_X = 4.5, DECK_YARI_Z = 2.7;    // BoxGeometry(9, _, 5.4)
+let tabanY = DECK_TOP;
+// İşçinin rengi **kasalarla çakışıyordu**.
+//
+// Gövde `#f2b23c`, yani turuncu-sarı; taşıdığı külçe `#e8791e`, döküm
+// ocağının ışığı da turuncu. Tepeden bakan bir kamerada figür yerde duran
+// bir kasadan ayırt edilmiyordu — Kaan 45. seviye bir fabrikada "işçi yok"
+// dedi, oysa işçi ekrandaydı ve ocağın yanında duruyordu.
+//
+// Turkuaz fabrikada hiç kullanılmıyor: zemin koyu gri, makineler mavi,
+// kasalar turuncu / çelik / kırmızı, şeritler sarı. Baret sarı kalıyor,
+// "işçi" okunurluğunu veren şey o.
+const VEST = '#17c4b2';
 {
   const gövde = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.28, 0.5, 4, 10), MAT('#f2b23c', 0.6, 0.1));
+    new THREE.CapsuleGeometry(0.28, 0.5, 4, 10), MAT(VEST, 0.6, 0.1));
   gövde.position.y = 0.72;
   gövde.castShadow = true;
   worker.add(gövde);
@@ -1250,10 +1269,25 @@ let yuruFaz = 0;
   };
   bacakSol = uzuv(0.15, 0.46, 0.17, -0.14, 0.46, '#3a4a63');
   bacakSag = uzuv(0.15, 0.46, 0.17,  0.14, 0.46, '#3a4a63');
-  kolSol   = uzuv(0.12, 0.40, 0.12, -0.34, 0.96, '#f2b23c');
-  kolSag   = uzuv(0.12, 0.40, 0.12,  0.34, 0.96, '#f2b23c');
+  kolSol   = uzuv(0.12, 0.40, 0.12, -0.34, 0.96, VEST);
+  kolSag   = uzuv(0.12, 0.40, 0.12,  0.34, 0.96, VEST);
+
+  // Ayağının altındaki halka.
+  //
+  // Renk tek başına yetmiyor: fabrika büyüdükçe ekranda otuz küsur nesne
+  // oluyor ve göz hangisinin oynadığını aramak zorunda kalıyor. Zemine
+  // yapışık parlak bir halka, figür makinelerin arkasına girse bile
+  // "oyuncu burada" diyor. Idle oyunların elle oynanan kısmı bu figür,
+  // bulunamayan bir figür oyunun yarısını götürüyor.
+  const halka = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 24), GLOW(VEST, 0.85));
+  halka.rotation.x = -Math.PI / 2;
+  halka.position.y = 0.02;
+  worker.add(halka);
 }
-worker.position.set(2.4, 0, BAY_Z[0]);
+// Figür de büyüdü: 0.28 yarıçaplı bir kapsül, 1.3 birimlik bir makinenin
+// yanında ölçülünce küçük kalıyordu.
+worker.scale.setScalar(1.3);
+worker.position.set(2.4, DECK_TOP, BAY_Z[0]);
 scene.add(worker);
 
 // Sırttaki yığın. Taşınan mal görünmezse taşımak bir şey ifade etmiyor.
@@ -1330,8 +1364,16 @@ function stepWorker(dt) {
     kolSol.rotation.x = -a * 0.7;
     kolSag.rotation.x = a * 0.7;
   }
+  // Zemin yüksekliği: platformun üstünde mi, avluda mı?
+  //
+  // Geçiş yumuşatılıyor. Sert bir 0.3 sıçraması kenardan geçerken figürü
+  // ışınlanmış gibi gösteriyordu; bu hızda göz basamağı görüyor ama
+  // sıçramayı görmüyor.
+  const platformda = Math.abs(worker.position.x) < DECK_YARI_X &&
+    BAY_Z.some(z => Math.abs(worker.position.z - z) < DECK_YARI_Z);
+  tabanY += ((platformda ? DECK_TOP : 0) - tabanY) * Math.min(1, dt * 14);
   // Adım başına hafif bir yaylanma. Büyük olursa zıplıyor gibi duruyor.
-  worker.position.y = Math.abs(Math.sin(yuruFaz)) * 0.045 * salin;
+  worker.position.y = tabanY + Math.abs(Math.sin(yuruFaz)) * 0.045 * salin;
   // Hangi bölmedeyiz?
   let bay = -1;
   for (let i = 0; i < STATIONS.length; i++) {
@@ -2004,6 +2046,13 @@ window.jeWalk = bay => {
   worker.position.x = 2.4;
   return +worker.position.z.toFixed(2);
 };
+// Serbest bir noktaya koy. `jeWalk` yalnızca bölmelere koyabiliyor, oysa
+// zemin yüksekliğini ölçmek için platformun **dışında** bir yer gerekiyor.
+window.jeTeleport = (x, z) => {
+  worker.position.x = x;
+  worker.position.z = z;
+  return { x: +worker.position.x.toFixed(2), z: +worker.position.z.toFixed(2) };
+};
 // Fabrikayı ve işçiyi birlikte ilerlet. jeRun yalnızca fabrikayı çeviriyor;
 // taşıma tick'in içinde olduğu için onunla ölçülemiyordu.
 window.jeStep = sec => {
@@ -2022,7 +2071,11 @@ window.jeLimbs = () => ({
   bacakSol: +bacakSol.rotation.x.toFixed(3),
   bacakSag: +bacakSag.rotation.x.toFixed(3),
   kolSol: +kolSol.rotation.x.toFixed(3),
-  y: +worker.position.y.toFixed(3),
+  // Ölçülen şey **yaylanma**, figürün dünyadaki yüksekliği değil. İkisi
+  // aynı sayıyken platforma çıkmak testi düşürdü: 0.3'lük zemin, 0.04'lük
+  // yaylanmanın yanında ezici. Taban ayrı veriliyor.
+  y: +(worker.position.y - tabanY).toFixed(3),
+  taban: +tabanY.toFixed(3),
   tasiyor: carryN,
 });
 window.jeGiveManager = i => { G.mgr[i] = true; refreshPanel(); return G.mgr[i]; };

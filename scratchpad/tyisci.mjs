@@ -49,7 +49,29 @@ const durAralik = Math.max(...dur.map(k => k.bacakSol)) - Math.min(...dur.map(k 
 ok(durAralik < 0.01, 'dururken bacak kıpırdamıyor', `aralık ${durAralik.toFixed(4)}`);
 ok(dur[dur.length - 1].y < 0.005, 'dururken yaylanma yok');
 
-console.log('\n3) Yük taşırken');
+// Bölme platformu 0.3 yüksekliğinde ve işçi y=0'da yürüyordu: oyunun
+// neredeyse tamamı platformların üstünde geçtiği için bacaklar betonun
+// içinde kalıyordu ve eklenen yürüyüş animasyonu hiç görünmüyordu. Kaan
+// "işçi yok" dedi; işçi oradaydı, yarısı gömülüydü.
+console.log('\n3) Zemin yüksekliği');
+const zemin = await pg.evaluate(async () => {
+  const sonuc = {};
+  // Bölmenin ortası: BAY_Z[0] = -1.5, platform z'de ±2.7 geniş.
+  window.jeMove(0, 0);
+  window.jeWalk(0);
+  for (let i = 0; i < 40; i++) window.jeStep(0.05);
+  sonuc.platform = window.jeLimbs().taban;
+  // Avlu: platformların dışı. Bölmeler z'de -1.5 ile -22.5 arasında ve
+  // her biri ±2.7 geniş, yani +8 hiçbirine değmiyor.
+  window.jeTeleport(0, 8);
+  for (let i = 0; i < 40; i++) window.jeStep(0.05);
+  sonuc.avlu = window.jeLimbs().taban;
+  return sonuc;
+});
+ok(Math.abs(zemin.platform - 0.3) < 0.01, 'platformda taban 0.3', `${zemin.platform}`);
+ok(zemin.avlu < 0.05, 'avluda taban 0', `${zemin.avlu}`);
+
+console.log('\n4) Yük taşırken');
 const yuk = await pg.evaluate(() => {
   window.jeGive(1e7);
   window.jeRun(60);
