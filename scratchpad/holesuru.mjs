@@ -52,8 +52,8 @@ const DT = 1000 / 60;
 // `make-clips.mjs`'teki sürüş, birebir — ama 270 karenin tamamı **sayfanın
 // içinde** dönüyor. İlk hâli her kare için ayrı bir `pg.evaluate` yapıyordu:
 // 2160 gidiş-dönüş, ve ölçüm zaman aşımına uğradı.
-async function olc(lv, korunan) {
-  return pg.evaluate(([lvl, kor]) => {
+async function olc(lv, korunan, uzak = 0) {
+  return pg.evaluate(([lvl, kor, UZAK]) => {
     window.fruitHoleProbe(lvl);
     window.fruitHoleStartLevel();
     // Tahta **oturana** kadar bekle. `settling` true iken delik kilitli:
@@ -65,6 +65,7 @@ async function olc(lv, korunan) {
     while (window.fruitHoleWhere().settling && bekle++ < 2000) window.__step(1000 / 60);
     let hedef = null;
     const yol = [];
+    const uzakliklar = [];
     let hedefDegisti = 0;
     for (let f = 0; f < 150; f++) {
       const w = window.fruitHoleWhere();
@@ -85,6 +86,12 @@ async function olc(lv, korunan) {
         for (const v of kova.values()) {
           const cx = v.x / v.n, cz = v.z / v.n;
           const d = Math.hypot(cx - w.x, cz - w.z);
+          // `UZAK`: hedefin en az bu kadar ötede olma şartı. Sıfırken
+          // aracın bugünkü hâli — ve en kalabalık kova çoğu zaman
+          // deliğin **durduğu** kova oluyor, çünkü delik parçaların
+          // içinde. Uzaklık sıfıra yakınken `dx/d` yön değil gürültü
+          // veriyor ve delik yerinde titriyor.
+          if (d < UZAK) continue;
           const puan = v.n / (1 + d / 12);
           if (!en || puan > en.puan) en = { puan, x: cx, z: cz };
         }
@@ -97,6 +104,7 @@ async function olc(lv, korunan) {
         const d = Math.hypot(dx, dz) || 1;
         window.fruitHoleSteer(dx / d, dz / d);
       }
+      uzakliklar.push(hedef ? Math.hypot(hedef.x - w.x, hedef.z - w.z) : 0);
       window.__step(1000 / 60);
       const u = window.fruitHoleWhere();
       yol.push([u.x, u.z]);
@@ -118,8 +126,9 @@ async function olc(lv, korunan) {
       if (Math.hypot(yol[k][0] - yol[k - 1][0], yol[k][1] - yol[k - 1][1]) > 1e-4) hareket++;
     return { ortDeg: ort * 180 / Math.PI,
              sert: donus.filter(d => d > Math.PI / 2).length,
-             n: donus.length, hedefDegisti, hareket, kare: yol.length };
-  }, [lv, korunan]);
+             n: donus.length, hedefDegisti, hareket, kare: yol.length,
+             ortUzak: uzakliklar.reduce((a, b) => a + b, 0) / (uzakliklar.length || 1) };
+  }, [lv, korunan, uzak]);
 }
 
 let fail = 0;
@@ -137,18 +146,18 @@ for (const lv of LVL) {
   eski.push(r);
   console.log(`  ${String(lv).padStart(3)}   ort yön değişimi ${r.ortDeg.toFixed(1)}° · ` +
     `90°+ geri dönüş ${r.sert}/${r.n} (%${Math.round(r.sert / r.n * 100)}) · ` +
-    `hedef ${r.hedefDegisti} kez değişti · hareketli kare ${r.hareket}/${r.kare}`);
+    `hedefe uzaklık ort ${r.ortUzak.toFixed(2)} birim · hareketli kare ${r.hareket}/${r.kare}`);
 }
 
-console.log('\n  blm  hedef varılana kadar korunuyor');
+console.log('\n  blm  hedef en az 4 birim ötede + varılana kadar korunuyor');
 console.log('  ----+-------------------------------------------------');
 const yeni = [];
 for (const lv of LVL) {
-  const r = await olc(lv, true);
+  const r = await olc(lv, true, 4);
   yeni.push(r);
   console.log(`  ${String(lv).padStart(3)}   ort yön değişimi ${r.ortDeg.toFixed(1)}° · ` +
     `90°+ geri dönüş ${r.sert}/${r.n} (%${Math.round(r.sert / r.n * 100)}) · ` +
-    `hedef ${r.hedefDegisti} kez değişti · hareketli kare ${r.hareket}/${r.kare}`);
+    `hedefe uzaklık ort ${r.ortUzak.toFixed(2)} birim · hareketli kare ${r.hareket}/${r.kare}`);
 }
 
 const pay = a => a.reduce((s, r) => s + r.sert, 0) / a.reduce((s, r) => s + r.n, 0);
