@@ -72,6 +72,10 @@ async function shoot(dir, w, h, scale) {
     await pg.waitForTimeout(400);
     // the daily reward pops on a fresh save and would be in every frame
     await pg.evaluate(() => document.getElementById('daily').classList.remove('show'));
+    // Öğretici şeridi de öyle: taze kayıtta birinci adımda duruyor ve
+    // fabrikanın üstünü kapatıyor. Mağazadaki kare oyunu göstermeli, ilk
+    // açılış ipucunu değil.
+    await pg.evaluate(() => window.jeTutSkip());
     await pg.evaluate(m => {
       for (let k = 0; k < m; k++) {
         window.jeRun(60);
