@@ -820,8 +820,17 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#2b2f38');
-scene.fog = new THREE.Fog('#2b2f38', 46, 92);
+// Gündüz, akşam değil.
+//
+// Sahne `#2b2f38` bir gökyüzü ve soğuk bir dolgu ışığıyla kuruluydu: zemin
+// koyu gri, platformlar gri, makineler gri, ve ekranın ortasında tek bir
+// ton. Telefonda gün ışığında bakınca hepsi birbirine karışıyordu. Tür
+// rakiplerinin hepsi öğle güneşi altında duruyor ve fark modelleme değil,
+// tam olarak bu.
+scene.background = new THREE.Color('#9fc4e4');
+// Sis uzağa itildi: 46 birimde başlayınca en arkadaki bölme griye
+// boyanıyordu, oysa görülmesi gereken şey o.
+scene.fog = new THREE.Fog('#9fc4e4', 70, 130);
 
 // Orthographic: the factory is a diorama the player looks at, not a place
 // they move through, and perspective made the far station a third the size
@@ -845,8 +854,12 @@ function fit() {
 }
 addEventListener('resize', fit);
 
-scene.add(new THREE.HemisphereLight('#cfe0ff', '#39404c', 0.85));
-const sun = new THREE.DirectionalLight('#fff4dc', 1.05);
+// Yarım küre ışığının alt rengi **yerden yansıyan** ışık. Soğuk gri
+// (`#39404c`) idi, yani gölgede kalan her yüzey ölü griye düşüyordu. Sıcak
+// bir yansıma gölgeleri açıyor ve değer aralığını genişletiyor — düzeltmek
+// istenen asıl şey oydu.
+scene.add(new THREE.HemisphereLight('#e8f2ff', '#a08a6a', 1.0));
+const sun = new THREE.DirectionalLight('#fff2d2', 1.9);
 sun.position.set(9, 20, 12);
 sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
@@ -869,11 +882,11 @@ function finish(c) {
 
 function yardTexture() {
   const S = 256, [c, ctx] = newCanvas(S);
-  ctx.fillStyle = '#6b6f78';
+  ctx.fillStyle = '#9ba1a8';
   ctx.fillRect(0, 0, S, S);
   for (let i = 0; i < 1400; i++) {
     ctx.globalAlpha = 0.05 + Math.random() * 0.09;
-    ctx.fillStyle = Math.random() < 0.5 ? '#585c64' : '#82868f';
+    ctx.fillStyle = Math.random() < 0.5 ? '#8a9097' : '#b2b8c0';
     ctx.beginPath();
     ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 3, 0, Math.PI * 2);
     ctx.fill();
@@ -882,7 +895,7 @@ function yardTexture() {
   // A shop floor is marked out. The painted bay lines are what stop the
   // concrete reading as fog, and they give the four stations a place to be
   // rather than four models standing on grey.
-  ctx.strokeStyle = 'rgba(240,200,60,.5)';
+  ctx.strokeStyle = 'rgba(248,196,36,.85)';
   ctx.lineWidth = 5;
   ctx.strokeRect(3, 3, S - 6, S - 6);
   ctx.globalAlpha = 0.25;
@@ -891,12 +904,12 @@ function yardTexture() {
   ctx.globalAlpha = 1;
   const t = finish(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(6, 12);
+  t.repeat.set(13, 24);
   return t;
 }
 
 const yard = new THREE.Mesh(
-  new THREE.PlaneGeometry(30, 60),
+  new THREE.PlaneGeometry(64, 120),
   new THREE.MeshStandardMaterial({ map: yardTexture(), roughness: 0.95 }));
 yard.rotation.x = -Math.PI / 2;
 yard.position.set(0, 0, -11);
@@ -930,8 +943,8 @@ const DECK = (g, col) =>
 // only warm thing in a grey yard, so the eye starts at the top of the chain.
 function foundryBay() {
   const g = new THREE.Group(), grow = [], moving = [];
-  DECK(g, '#5a5f68');
-  const shell = MAT('#8a5a3a', 0.75), steel = MAT('#9aa3ad', 0.4, 0.55);
+  DECK(g, '#8d7566');
+  const shell = MAT('#a8553a', 0.75), steel = MAT('#c3ccd6', 0.4, 0.55);
   const tierMats = [steel];
   for (let i = 0; i < 6; i++) {
     const u = new THREE.Group();
@@ -956,8 +969,8 @@ function foundryBay() {
 // moves on a beat, so this is what tells you the line is running.
 function stampBay() {
   const g = new THREE.Group(), grow = [], moving = [];
-  DECK(g, '#5c6570');
-  const frame = MAT('#7d868f', 0.45, 0.45), body = MAT('#3f7de0', 0.4, 0.2);
+  DECK(g, '#6f8496');
+  const frame = MAT('#4f7ca8', 0.45, 0.45), body = MAT('#2f8be8', 0.4, 0.2);
   const tierMats = [frame];
   for (let i = 0; i < 6; i++) {
     const u = new THREE.Group();
@@ -965,7 +978,7 @@ function stampBay() {
     for (const sx of [-0.8, 0.8])
       put(u, new THREE.Mesh(new THREE.BoxGeometry(0.24, 2.1, 0.24), frame), sx, 1.05, 0);
     put(u, new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.3, 1.3), frame), 0, 2.15, 0);
-    put(u, new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.26, 1.4), MAT('#5a626c', 0.6, 0.4)), 0, 0.16, 0);
+    put(u, new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.26, 1.4), MAT('#3d627f', 0.6, 0.4)), 0, 0.16, 0);
     const ram = put(u, new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.55, 1.05), body), 0, 1.5, 0);
     moving.push({ m: ram, kind: 'ram', phase: i * 0.7 });
     // stacked panels beside the press
@@ -983,9 +996,9 @@ function stampBay() {
 // where the player's eye should be.
 function assemblyBay() {
   const g = new THREE.Group(), grow = [], moving = [];
-  DECK(g, '#5c6570');
-  put(g, new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.22, 1.5), MAT('#3d444e', 0.7, 0.3)), 0, 0.4, -0.2);
-  const arm = MAT('#f2a23a', 0.4, 0.25), joint = MAT('#3d444e', 0.5, 0.5);
+  DECK(g, '#6f8496');
+  put(g, new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.22, 1.5), MAT('#5a6470', 0.7, 0.3)), 0, 0.4, -0.2);
+  const arm = MAT('#ff9f2e', 0.4, 0.25), joint = MAT('#7a5a3c', 0.5, 0.5);
   const tierMats = [arm];
   // Gövdeler üretilen ürünün rengini alıyor; malzemeler saklanıyor ki
   // kademe atlayınca yerinde değiştirilebilsin.
@@ -1035,7 +1048,7 @@ function dispatchBay() {
   const g = new THREE.Group(), grow = [], moving = [], loadMats = [];
   const rail = MAT('#8a929c', 0.5, 0.4), post = MAT('#6d757f', 0.5, 0.4);
   const tierMats = [rail, post];
-  DECK(g, '#4c5560');
+  DECK(g, '#6b8a74');
   put(g, new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.06, 1.2), MAT('#e8d060', 0.8)), 0, 0.32, 2.0);
   for (let i = 0; i < 4; i++) {
     const t = new THREE.Group();
@@ -1155,8 +1168,8 @@ for (let i = 0; i < 4; i++) {
 // the factory speeding up is something you see before you read it.
 function beltTexture() {
   const S = 64, [c, ctx] = newCanvas(S);
-  ctx.fillStyle = '#33383f'; ctx.fillRect(0, 0, S, S);
-  ctx.fillStyle = '#4a515a';
+  ctx.fillStyle = '#4f5862'; ctx.fillRect(0, 0, S, S);
+  ctx.fillStyle = '#6e7985';
   for (let i = 0; i < 4; i++) ctx.fillRect(0, i * 16, S, 7);
   const t = finish(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
