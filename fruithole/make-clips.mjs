@@ -656,6 +656,23 @@ for (const clip of CLIPS) {
     // Hedef artık o daire: parçalar 3 birimlik kovalara bölünüyor, en dolu
     // kova seçiliyor. Uzaklık cezası, deliği tahtanın öbür ucuna
     // göndermemek için — yakındaki iyi yer, uzaktaki en iyi yerden değerli.
+    // Seçilen kova hedefi **varılana kadar korunuyor**.
+    //
+    // Taban tek başına yetmiyor: hedef her karede yeniden seçilince, iki
+    // birim ötede karşılıklı duran iki kova sırayla öne geçiyor ve delik
+    // yine ters dönüyor. Ölçüldü — yalnız tabanla çekilen `hourglass`
+    // 135.9 derece/kare ve %76 geri dönüş verdi.
+    //
+    // Düzenekteki "taban 2 birim" kipi aslında taban **ve** tutmaydı
+    // (`korunan = u !== 0`); araca yalnız tabanı koymak, ölçülenden
+    // başka bir şey kurmak oldu.
+    //
+    // Sıra önemli: tutulan hedef dev ve engelden **sonra** bakılıyor,
+    // yoksa engele yönelmenin önüne geçiyor ve klip engeli kadraja
+    // sokamıyor.
+    if (!hedef) hedef = window.__kovaHedef || null;
+    if (hedef && hedef.kova &&
+        Math.hypot(hedef.x - w.x, hedef.z - w.z) < 2.5) hedef = null;
     if (!hedef) {
       const p = window.fruitHoleFruitSpots();
       const kova = new Map();
@@ -710,8 +727,9 @@ for (const clip of CLIPS) {
           if (!en || puan > en.puan) en = { puan, x: cx, z: cz };
         }
       }
-      if (en) hedef = { x: en.x, z: en.z };
+      if (en) hedef = { x: en.x, z: en.z, kova: true };
     }
+    window.__kovaHedef = (hedef && hedef.kova) ? hedef : null;
     if (!hedef) hedef = window.fruitHoleNearest();
     if (!hedef) window.fruitHoleSteer(0, 0);
     else {
