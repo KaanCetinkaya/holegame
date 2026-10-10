@@ -724,7 +724,13 @@ for (const clip of CLIPS) {
     const k = window.fruitHoleCards().cards;
     const ister = k.reduce((a, c) => a + c.need, 0);
     const oldu = k.reduce((a, c) => a + Math.min(c.need, c.got), 0);
-    return { dev: g.length, eaten: w.eaten, total: w.total, timeLeft: w.timeLeft,
+    // Deliğin yeri de dönüyor: kaydedilen karelerdeki yol buradan
+    // ölçülüyor. Videodan takip etmek güvenilmez — en koyu bölge
+    // gölgelerle delik arasında zıplıyor ve ölçüm hangi sürüşte olursa
+    // olsun aynı sayıyı veriyor.
+    const son = window.fruitHoleWhere();
+    return { hx: son.x, hz: son.z,
+             dev: g.length, eaten: w.eaten, total: w.total, timeLeft: w.timeLeft,
              state: w.state, kartPay: ister ? +(oldu / ister).toFixed(2) : 0 };
   }, [1000 / FPS, avla, git, ENGEL_R * 0.7]);
   //
@@ -967,6 +973,9 @@ for (const clip of CLIPS) {
   const AV_BASLA = total - Math.round(AV_SN * FPS);
   let f = 0, yutuldu = -1, erken = 0, onceki = null, kartBitti = false, bitti = null;
   let ilkYenen = null, sonYenen = null, ilkSaat = null, sonSaat = null;
+  // Deliğin kare kare yeri. Klibin **kaydedilen** penceresinde ne kadar
+  // sallandığını buradan ölçüyoruz.
+  const yol = [];
   while (true) {
     // Av penceresi iki tetikli: ya klibin son saniyeleri, ya **kartlar
     // bitmek üzere**.
@@ -982,6 +991,7 @@ for (const clip of CLIPS) {
     if (s.kartPay >= 0.85) kartBitti = true;
     if (ilkYenen === null) { ilkYenen = s.eaten; ilkSaat = s.timeLeft; }
     sonYenen = s.eaten; sonSaat = s.timeLeft;
+    yol.push([s.hx, s.hz]);
     await pg.screenshot({
       path: join(bodyDir, String(f).padStart(5, '0') + '.png'),
       animations: 'disabled',
@@ -1010,6 +1020,33 @@ for (const clip of CLIPS) {
   const basKare = Math.max(0, sonKare - total + 1);
   const adet = sonKare - basKare + 1;
   console.log(`  ${f} kare çekildi · yenen ${son.eaten}/${son.total} · durum ${son.state}   `);
+  // Titreşim ölçüsü: kaydedilen pencerede deliğin yönü kare başına ne
+  // kadar değişiyor, ve kaç karede 90 dereceden fazla geri dönüyor.
+  //
+  // Bu satır, "delik cin çarpmış gibi titreşiyor" diye bakılan bir
+  // kusurun bir daha gözle aranmaması için var. Sebebi ölçüldü
+  // (`scratchpad/holesuru.mjs`): hedef deliğin durduğu yer olunca
+  // `dx / d` yön değil gürültü veriyordu — 170 derece/kare, %96 geri
+  // dönüş. Düzgün bir sürüş 10 derecenin altında kalıyor.
+  {
+    const pencere = yol.slice(basKare, sonKare + 1);
+    const donus = [];
+    for (let k = 2; k < pencere.length; k++) {
+      const dx = pencere[k][0] - pencere[k - 1][0], dz = pencere[k][1] - pencere[k - 1][1];
+      const px = pencere[k - 1][0] - pencere[k - 2][0], pz = pencere[k - 1][1] - pencere[k - 2][1];
+      if (Math.hypot(dx, dz) < 1e-4 || Math.hypot(px, pz) < 1e-4) continue;
+      let d = Math.abs(Math.atan2(dz, dx) - Math.atan2(pz, px));
+      if (d > Math.PI) d = 2 * Math.PI - d;
+      donus.push(d);
+    }
+    if (donus.length) {
+      const ort = donus.reduce((a, b) => a + b, 0) / donus.length * 180 / Math.PI;
+      const sert = donus.filter(d => d > Math.PI / 2).length;
+      const pay = Math.round(sert / donus.length * 100);
+      console.log(`  sürüş: yön değişimi ${ort.toFixed(1)}°/kare · geri dönüş %${pay}` +
+        (ort > 25 ? '  ← TİTRİYOR' : ''));
+    }
+  }
   console.log(`  gövde ${basKare}-${sonKare} arası (${(adet / FPS).toFixed(1)} sn) · ` +
     (yutuldu >= 0
       ? `dev ${((yutuldu - basKare + coldN) / FPS).toFixed(1)}. saniyede yutuluyor`
