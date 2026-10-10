@@ -1695,7 +1695,30 @@ const goalTaken = g => G.claimed.includes(g.id);
 const goalReady = () => GOALS.some(g => goalDone(g) && !goalTaken(g));
 // Paid at the chain's rate without the boost, or watching an ad while a
 // goal is ready would triple every reward on the list at once.
-const goalPay = g => g.pay * chain().income / boostMult();
+// Ödül, hedef **tamamlandığı anda** donuyor.
+//
+// Önce alındığı anda hesaplanıyordu ve hız seviyeyle büyüdüğü için
+// biriktirmek kazandırıyordu: ölçüldü (`scratchpad/tyodul.mjs`), aynı yolu
+// yürüyen iki oyuncudan hedeflerini sona saklayan 3.1 kat fazla aldı.
+// Bilen oyuncu hedeflere dokunmadan oynar, bilmeyen cezalandırılır — bir
+// ödülün yapmaması gereken tam olarak bu.
+//
+// Donmuş değer kayda yazılıyor. Eski kayıtlarda yok, o yüzden ilk soruluşta
+// hesaplanıp oraya kondu: eski bir oyuncu bir kerelik bugünkü hızından
+// ödeniyor, sonrası sabit.
+const goalPayNow = g => g.pay * chain().income / boostMult();
+const goalPay = g => {
+  if (!G.goalVal) G.goalVal = {};
+  if (G.goalVal[g.id] == null) {
+    if (!goalDone(g)) return goalPayNow(g);     // henüz bitmedi, önizleme
+    G.goalVal[g.id] = goalPayNow(g);
+  }
+  return G.goalVal[g.id];
+};
+// Biten hedeflerin değerini sabitle. Kare döngüsünden ve `jeStep`'ten
+// çağrılıyor: oyun bunu saniyede sekiz kez yapıyor, ölçüm de aynısını
+// yapmalı, yoksa test oyunun yapmadığı bir şeyi ölçer.
+const lockGoals = () => { for (const g of GOALS) if (goalDone(g)) goalPay(g); };
 
 function renderGoals() {
   const list = $('goalList');
@@ -1717,7 +1740,14 @@ function renderGoals() {
       if (!goalDone(g) || goalTaken(g)) return;
       const pay = goalPay(g);
       G.cash += pay;
-      G.totalEarned += pay;
+      // `G.totalEarned`'a **eklenmiyor**.
+      //
+      // O sayı fabrikanın ürettiğini ölçüyor ve iki şeyi besliyor: "toplam
+      // şu kadar kazan" hedeflerini ve prestij puanını. Ödülü oraya
+      // yazmak, ödülü kendi ölçüsüne yazmak demekti — ölçüldü
+      // (`scratchpad/tyodul.mjs`): hiçbir şey üretmemiş bir fabrika
+      // yalnızca hedef alarak 27.65M para ve 105 prestij puanı kazanıyordu,
+      // ve aldığı ödül bir sonraki hedefi açıyordu.
       G.claimed.push(g.id);
       saveNow();
       ping(880, 0.22);
@@ -1808,7 +1838,7 @@ function checkDaily() {
 $('dOk').onclick = () => {
   const pay = dailyPay();
   G.cash += pay;
-  G.totalEarned += pay;
+  // Hedeflerle aynı sebep: ödül, kendi ölçüsünü büyütmemeli.
   saveNow();
   ping(820, 0.22);
   floatCash('+' + fmt(pay));
@@ -2034,7 +2064,7 @@ function tick(now) {
   camera.lookAt(0, 0, -12);
 
   sinceUI += dt;
-  if (sinceUI > 0.12) { sinceUI = 0; refreshPanel(); refreshBoost(); refreshGoalDot(); }
+  if (sinceUI > 0.12) { sinceUI = 0; refreshPanel(); refreshBoost(); lockGoals(); refreshGoalDot(); }
   sinceFloat += dt;
   if (sinceFloat > 0.55 && floatAcc > 0) {
     sinceFloat = 0;
@@ -2124,6 +2154,7 @@ window.jeStep = sec => {
   const h = Math.min(0.25, sec);
   let t = 0;
   while (t < sec) { const d = Math.min(h, sec - t); runFactory(d); stepWorker(d); t += d; }
+  lockGoals();                 // oyunun kare döngüsü de bunu yapıyor
   return window.jeProbe();
 };
 // Yürüyüşü dışarıdan sürmek ve uzuvları okumak — ölçüm için.
@@ -2171,6 +2202,26 @@ window.jeOffline = sec => {
 window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
 window.jeBuyManager = i => { buyManager(i); return G.mgr[i]; };
 window.jeReset = () => { wiped = true; localStorage.removeItem(KEY); location.reload(); };
+// Sayfayı yeniden yüklemeden **her şeyi** sıfırla.
+//
+// `jeSoftReset` parayı ve tamponları sıfırlıyor ama `totalEarned`'ı,
+// alınmış hedefleri ve seviyeleri bırakıyor. Hedef ölçümü ilk yazıldığında
+// bunu bilmeden `jeSoftReset` kullandı: önceki koşudan 7.40B taşındı,
+// alınacak hedef kalmadı ve test hiçbir şey ölçmeden geçti.
+// `jeReset` ise sayfayı yeniden yüklüyor ve ölçüm bağlamını yıkıyor.
+window.jeWipeProgress = () => {
+  G.cash = 0; G.totalEarned = 0; G.lifetime = 0; G.branches = 0;
+  G.claimed = []; G.goalVal = {}; G.res = {}; G.boosts = 0; G.boostUntil = 0;
+  G.lvl = STATIONS.map(() => 1);
+  G.mgr = G.mgr.map(() => false);
+  G.buf = G.buf.map(() => 0);
+  G.pile = G.pile.map(() => 0);
+  carryN = 0; carryKind = -1; setCarryVisual(0, 0);
+  olculenHiz = 0;
+  worker.position.set(2.4, DECK_TOP, BAY_Z[0]);
+  refreshPanel();
+  return window.jeProbe();
+};
 window.jeFmt = fmt;
 window.jeSeenTier = () => shownTier;
 window.jeLook = () => ({
@@ -2196,6 +2247,18 @@ window.jeGoals = () => GOALS.map(g => ({
   id: g.id, at: +g.at().toFixed(0), need: g.need,
   done: goalDone(g), taken: goalTaken(g), pay: +goalPay(g).toFixed(0) }));
 window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().toFixed(0) });
+// Bir hedefi al. Düğmeye tıklamak yerine kanca, çünkü ölçülmek istenen şey
+// **sıra**: hangi hedefi ne zaman aldığın ne kadar kazandırıyor.
+window.jeClaimGoal = id => {
+  const g = GOALS.find(x => x.id === id);
+  if (!g || !goalDone(g) || goalTaken(g)) return 0;
+  const pay = goalPay(g);
+  G.cash += pay;
+  G.claimed.push(g.id);
+  renderGoals();
+  refreshGoalDot();
+  return +pay.toFixed(2);
+};
 window.jePrestige = () => { $('prestigeBtn').click(); $('pGo').click(); };
 window.jeRes = () => ({
   free: freePoints(), spent: spentPoints(), banked: bankedPoints(),
