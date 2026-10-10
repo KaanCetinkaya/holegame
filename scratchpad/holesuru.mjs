@@ -56,7 +56,13 @@ async function olc(lv, korunan) {
   return pg.evaluate(([lvl, kor]) => {
     window.fruitHoleProbe(lvl);
     window.fruitHoleStartLevel();
-    for (let i = 0; i < 30; i++) window.__step(1000 / 60);
+    // Tahta **oturana** kadar bekle. `settling` true iken delik kilitli:
+    // sabit bir yön verilse bile hiç kıpırdamıyor. İlk ölçüm bunu
+    // bilmeden yapıldı, delik 150 karenin hiçbirinde yerinden oynamadı,
+    // ve açı hesabı kayan noktalı toz üzerinden %90 "geri dönüş" saydı.
+    // İki kip de aynı çıktığı için sonuç inandırıcı bile göründü.
+    let bekle = 0;
+    while (window.fruitHoleWhere().settling && bekle++ < 2000) window.__step(1000 / 60);
     let hedef = null;
     const yol = [];
     let hedefDegisti = 0;
@@ -105,9 +111,14 @@ async function olc(lv, korunan) {
       donus.push(d);
     }
     const ort = donus.reduce((x, y) => x + y, 0) / (donus.length || 1);
+    // Kaç karede delik gerçekten yer değiştirdi? Bu sayı düşükse açı
+    // ölçümü anlamsızdır ve rapor onu saklamamalı.
+    let hareket = 0;
+    for (let k = 1; k < yol.length; k++)
+      if (Math.hypot(yol[k][0] - yol[k - 1][0], yol[k][1] - yol[k - 1][1]) > 1e-4) hareket++;
     return { ortDeg: ort * 180 / Math.PI,
              sert: donus.filter(d => d > Math.PI / 2).length,
-             n: donus.length, hedefDegisti };
+             n: donus.length, hedefDegisti, hareket, kare: yol.length };
   }, [lv, korunan]);
 }
 
@@ -126,7 +137,7 @@ for (const lv of LVL) {
   eski.push(r);
   console.log(`  ${String(lv).padStart(3)}   ort yön değişimi ${r.ortDeg.toFixed(1)}° · ` +
     `90°+ geri dönüş ${r.sert}/${r.n} (%${Math.round(r.sert / r.n * 100)}) · ` +
-    `hedef ${r.hedefDegisti} kez değişti`);
+    `hedef ${r.hedefDegisti} kez değişti · hareketli kare ${r.hareket}/${r.kare}`);
 }
 
 console.log('\n  blm  hedef varılana kadar korunuyor');
@@ -137,11 +148,13 @@ for (const lv of LVL) {
   yeni.push(r);
   console.log(`  ${String(lv).padStart(3)}   ort yön değişimi ${r.ortDeg.toFixed(1)}° · ` +
     `90°+ geri dönüş ${r.sert}/${r.n} (%${Math.round(r.sert / r.n * 100)}) · ` +
-    `hedef ${r.hedefDegisti} kez değişti`);
+    `hedef ${r.hedefDegisti} kez değişti · hareketli kare ${r.hareket}/${r.kare}`);
 }
 
 const pay = a => a.reduce((s, r) => s + r.sert, 0) / a.reduce((s, r) => s + r.n, 0);
 console.log(`\n  geri dönüş payı: %${Math.round(pay(eski) * 100)} → %${Math.round(pay(yeni) * 100)}`);
+const hareketli = [...eski, ...yeni].every(r => r.hareket > r.kare * 0.8);
+ok(hareketli, 'delik gerçekten hareket etti (yoksa açı ölçümü anlamsız)');
 ok(pay(yeni) < 0.05, 'hedef korununca geri dönüş kalmıyor', `%${Math.round(pay(yeni) * 100)}`);
 ok(pay(eski) > pay(yeni) * 3, 'bugünkü hâli belirgin şekilde kötü');
 
