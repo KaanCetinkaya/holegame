@@ -2764,7 +2764,11 @@ function tick(now) {
   const tier = productTier();
   if (tier !== shownTier) {
     shownTier = tier;
-    const pr = SKUS[tier];
+    // Araç kademesi, satın alınacak ürün değil. Satın alma tablosunu
+    // `PRODUCTS`'tan `SKUS`'a çevirirken toplu değiştirme bu satırı da
+    // yakaladı ve sahne kademe atlayınca `undefined.body` ile çöktü —
+    // `tycoonres` yakaladı.
+    const pr = PRODUCTS[tier];
     for (const m of bays[2].bodyMats) m.color.set(pr.body);
     for (const m of bays[3].loadMats) m.color.set(pr.roof);
     CRATE_MAT[2].color.set(pr.body);
