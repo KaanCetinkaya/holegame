@@ -125,7 +125,14 @@ const COLD = Number(arg('cold', 1.2));
 // Yakın planın genişliği. Oyunun kendi genişliği 5.4; bunun yarısı devi
 // kadrajın çoğunu kaplar hâle getiriyor.
 const COLD_W = Number(arg('coldw', 2.6));
-const ONLY = arg('only', null);
+// Virgülle birden fazla klip: `--only=track,hourglass`. Tek kimlik
+// beklerken virgüllü bir liste hiçbir şeyle eşleşmiyordu ve araç sessizce
+// "0 klip çıktı" deyip çıkıyordu — `--only=jardin`'in boşluklu hâli
+// okunmadığında olanın aynısı, ters yönden.
+const ONLY = (() => {
+  const v = arg('only', null);
+  return v ? v.split(',').map(x => x.trim()).filter(Boolean) : null;
+})();
 
 // Hangi bölümler?
 //
@@ -279,6 +286,19 @@ const CLIPS = [
   // ve 2.73), o yüzden listeden çıkmıyor.
   { id: 'boss',      level: 30,            engel: 'çamur',    note: 'patron bölümü — tahtanın ucunda devasa meyve' },
 ];
+
+// Eşleşmeyen bir kimlik sessizce atlanmamalı: `--only=track,hourglass`
+// tek kimlik bekleyen bir eşitlikle karşılaşınca araç hiçbir şey çekmeden
+// "0 klip çıktı" deyip çıktı, ve bunu ancak en sonda fark ediyorsun.
+if (ONLY) {
+  const bilinen = new Set(CLIPS.map(c => c.id));
+  const yok = ONLY.filter(x => !bilinen.has(x));
+  if (yok.length) {
+    console.error(`--only: bilinmeyen klip "${yok.join('", "')}" — ` +
+      `bilinenler: ${[...bilinen].join(', ')}`);
+    process.exit(1);
+  }
+}
 
 // Engelin adını tahtadaki duruma çeviren tek yer.
 //
@@ -456,7 +476,7 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
 const dusen = [];
 let cikan = 0;
 for (const clip of CLIPS) {
-  if (ONLY && clip.id !== ONLY) continue;
+  if (ONLY && !ONLY.includes(clip.id)) continue;
   // Bir klibin düşmesi partiyi bitirmemeli: dördü çıkmışken beşincisi
   // yüzünden hepsini baştan üretmek yirmi dakika demek.
   try {
