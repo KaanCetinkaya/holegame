@@ -1546,3 +1546,32 @@ yok, dağıtımı baştan başlatmak zaten tek seçenek.
 Açıklama değişiyor: ilk hâli gün numaralıydı ("day 16 of building..."), o
 anlatı bırakıldı. Birebir aynı gönderiyi ikinci kez atmak da kopya
 işaretini gereksiz yere davet ederdi.
+
+### Yeniden atmanın sonucu — 10 Ekim
+
+`forbidden` silinip yeniden atıldı ve **149 izlenme** aldı. Önceki hâli
+0'daydı.
+
+```
+149  forbidden (yeniden atılan)
+133  track
+189  (önceki parti)
+ 95  onion
+ 90  boss
+```
+
+İki kural artık birbirinden ayrıldı ve ikisi de ölçümle duruyor:
+
+- **İzlenme alan gönderi silinmez.** `cubes` ~300'den 29'a düştü.
+- **Sıfırda kalan gönderi silinip yeniden atılır.** `forbidden` 0'dan
+  149'a çıktı.
+
+Tek koşu, ama 0 ile 149 arasında yorum payı yok. Dağıtım alamamış bir
+gönderinin kaybedecek bir şeyi olmadığı için, yeniden atmak tek seçenek
+ve işe yarıyor.
+
+**İkinci hesap birinciyi geçmeye devam ediyor.** Beş gönderinin beşi de
+90'ın üstünde; birinci hesabın son gönderileri 29 ve 12'ydi. Takipçi
+sayısıyla dağıtım arasında bir ilişki görünmüyor.
+
+Değişmeyen tek sayı yine aynı: **0 beğeni, 0 yorum.**
