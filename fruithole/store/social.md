@@ -1606,3 +1606,27 @@ yükleme anında eklenebiliyor, sonradan değil.
 Bundan sonrası telefondan ve ses eklenerek atılıyor. İlk deneme `lens`
 (11 Ekim, `@peelogame_0`). Tek değişken ses; sayı yükselirse sebebini
 biliyoruz.
+
+### Birinci hesabın sayıları düzeltildi — 11 Ekim
+
+Kayıtta `@peelogame`'in son gönderileri "29 · 12" diye duruyordu ve
+ikinci hesabın onu geçtiği sonucu buna dayanıyordu. İkisi de erken
+bakılmış sayılardı. Profilin bugünkü hâli:
+
+```
+ 28  hourglass (yeni atıldı)
+ 73  track
+300  cubes
+382  onion
+396  cube world
+212  (daha eski)
+```
+
+Yani birinci hesap 300-396 bandında, ikinci hesap 90-189. **İkinci
+hesabın birinciyi geçtiği sonucu geçersiz** — tam tersi doğru.
+
+Buradan çıkan asıl ders sayıların kendisi değil: bu dosyada iki kez
+"gönderi sıfırda kaldı / şu hesap öteki hesabı geçti" diye yazıldı ve
+ikisi de **gönderi atıldıktan birkaç saat sonra bakmaktan** geliyordu.
+TikTok dağıtımı günlere yayıyor. Bir gönderinin sayısı en erken
+**ertesi gün** okunur.
