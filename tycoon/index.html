@@ -202,6 +202,19 @@
     position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4;
   }
 
+  /* Müdür portresi. İşe alınınca istasyonun simgesinin yerine geçiyor:
+     istasyonu artık o yürütüyor, ve satıra bakınca görülen şey bu. */
+  .st .face {
+    width: 100%; height: 100%; border-radius: 12px;
+    display: block; object-fit: cover;
+  }
+  .st .ico.hired { background: none; padding: 0; overflow: hidden; }
+  /* İşe alma düğmesindeki küçük portre. */
+  .mgr .mface {
+    width: 26px; height: 26px; border-radius: 7px;
+    vertical-align: -7px; margin-right: 5px;
+  }
+
   /* Öğretici şeridi. Panelin hemen üstünde duruyor: oyuncunun bakacağı
      yer ile söylenen şey arasında mesafe olmamalı. */
   #tut {
@@ -520,6 +533,64 @@ const STATIONS = [
   { id: 'dispatch', name: 'Dispatch', icon: '🚛', unit: 'shipment',
     baseRate: 1, baseCost: 45, costGrow: 1.075, mgrCost: 8.0e5, cap: 1000, price: 10 },
 ];
+
+// Müdürlerin kimliği.
+//
+// Müdür bir anahtardı: alıyorsun, istasyon otomatikleşiyor, bitti. Türün
+// her oyununda müdürün adı ve yüzü var ve işe alınan şey bir satır değil
+// bir **kişi** oluyor — toplanacak bir şey, hatırlanacak bir isim.
+//
+// Burada verilen yalnızca kimlik: ad, yüz, bir cümle. **Hiçbir sayı
+// değişmiyor** — müdür yine `MGR_MULT = 2` veriyor. Her müdüre kendine
+// has bir bonus vermek dengeyi oynatır ve denge `scratchpad/tycoon*.mjs`
+// simülasyonlarıyla kuruldu; bonus eklemek ayrı bir iş ve ölçülerek
+// yapılır.
+//
+// Yüzler çizilerek üretiliyor, dosyadan değil: oyunun hiçbir yerinde
+// görsel dosya yok ve bu kural için bir istisna açılmıyor.
+const MGRS = [
+  { ad: 'Derya',  rol: 'runs the furnaces', ten: '#e3b88f', sac: '#2f2a28', baret: '#ff9f2e' },
+  { ad: 'Marco',  rol: 'runs the presses',  ten: '#f0cda7', sac: '#6b4a2c', baret: '#2f8be8' },
+  { ad: 'Ines',   rol: 'runs the line',     ten: '#c98a5e', sac: '#1f1b1a', baret: '#ffd23f' },
+  { ad: 'Kwame',  rol: 'runs the yard',     ten: '#8a5a3c', sac: '#15110f', baret: '#5fbf6a' },
+];
+
+// 72x72 bir portre. Kafa, saç, baret — üç şekil, ve hepsi kimliği
+// ayırmaya yetiyor. Bir kez çizilip saklanıyor: `refreshPanel` saniyede
+// sekiz kez dönüyor ve her turda tuval çizmek telefonu ısıtır.
+const _yuzler = [];
+function mgrYuz(i) {
+  if (_yuzler[i]) return _yuzler[i];
+  const m = MGRS[i], S = 72;
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const x = c.getContext('2d');
+  x.fillStyle = m.baret; x.globalAlpha = 0.22;
+  x.fillRect(0, 0, S, S); x.globalAlpha = 1;
+  // omuzlar
+  x.fillStyle = '#17c4b2';
+  x.beginPath(); x.arc(S / 2, S * 1.02, S * 0.36, Math.PI, 0); x.fill();
+  // kafa
+  x.fillStyle = m.ten;
+  x.beginPath(); x.arc(S / 2, S * 0.5, S * 0.26, 0, Math.PI * 2); x.fill();
+  // saç
+  x.fillStyle = m.sac;
+  x.beginPath(); x.arc(S / 2, S * 0.5, S * 0.27, Math.PI * 1.05, Math.PI * 1.95); x.fill();
+  // baret
+  x.fillStyle = m.baret;
+  x.beginPath(); x.arc(S / 2, S * 0.44, S * 0.29, Math.PI, 0); x.fill();
+  x.fillRect(S * 0.18, S * 0.42, S * 0.64, S * 0.06);
+  // Gözler. İlk hâlinde yoktu ve 44 piksellik kutuda portre bir yüz
+  // değil, şapkalı bir leke gibi duruyordu.
+  x.fillStyle = '#2b2522';
+  for (const dx of [-0.085, 0.085]) {
+    x.beginPath(); x.arc(S / 2 + S * dx, S * 0.56, S * 0.032, 0, Math.PI * 2); x.fill();
+  }
+  // Ağız: tek bir yay, gülümseme kadarı.
+  x.strokeStyle = '#2b2522'; x.lineWidth = S * 0.028; x.lineCap = 'round';
+  x.beginPath(); x.arc(S / 2, S * 0.60, S * 0.075, 0.25 * Math.PI, 0.75 * Math.PI); x.stroke();
+  _yuzler[i] = c.toDataURL();
+  return _yuzler[i];
+}
 const LAST = STATIONS.length - 1;
 
 // A manager doubles a station and is priced like a milestone rather than an
@@ -1823,7 +1894,7 @@ for (let i = 0; i < STATIONS.length; i++) {
   const el = document.createElement('div');
   el.className = 'st';
   el.innerHTML = `
-    <div class="ico">${s.icon}<b>0</b></div>
+    <div class="ico"><span class="emo">${s.icon}</span><img class="face" alt="" hidden><b>0</b></div>
     <div class="mid">
       <div class="nm">${s.name}</div>
       <div class="sub">—</div>
@@ -1836,6 +1907,9 @@ for (let i = 0; i < STATIONS.length; i++) {
   rows.push({
     el,
     lvl: el.querySelector('.ico b'),
+    ico: el.querySelector('.ico'),
+    emo: el.querySelector('.emo'),
+    face: el.querySelector('.face'),
     sub: el.querySelector('.sub'),
     meta: el.querySelector('.meta'),
     buf: el.querySelector('.buf i'),
@@ -1902,7 +1976,7 @@ function refreshPanel() {
     if (i === ch.neck) bits.push('<em>BOTTLENECK</em>');
     else if (blocked) bits.push(`<u>FULL — upgrade ${STATIONS[ch.neck].name}</u>`);
     if (hits) bits.push(`<b>×${fmt(Math.pow(2, hits))}</b>`);
-    if (G.mgr[i]) bits.push('manager');
+    if (G.mgr[i]) bits.push(`<b>${MGRS[i].ad}</b> ${MGRS[i].rol}`);
     // The milestone hint is dropped while blocked. It does not fit next to
     // the instruction and it is the one line that is not worth acting on:
     // levelling a station whose output has nowhere to go buys nothing.
@@ -1917,7 +1991,7 @@ function refreshPanel() {
       r.bufWrap.style.visibility = 'hidden';
     }
     if (G.lvl[i] >= s.cap) {
-      r.buy.innerHTML = 'MAKS';
+      r.buy.innerHTML = 'MAX';
       r.buy.disabled = true;
     } else {
       r.buy.innerHTML = `${fmt(cost)}<small>×${n || 1} LEVELS</small>`;
@@ -1928,8 +2002,19 @@ function refreshPanel() {
     const showMgr = !G.mgr[i] && G.lvl[i] >= 8;
     r.mgr.style.display = showMgr ? '' : 'none';
     if (showMgr) {
-      r.mgr.innerHTML = `${fmt(mgrCostOf(i))}<small>MANAGER ×2</small>`;
+      // İşe alınacak olanın yüzü ve adı düğmenin üstünde. "MANAGER ×2"
+      // bir özellik satıyordu; bu bir kişi işe alıyor.
+      r.mgr.innerHTML = `<img class="mface" src="${mgrYuz(i)}" alt="">` +
+                        `${fmt(mgrCostOf(i))}<small>HIRE ${MGRS[i].ad.toUpperCase()} ×2</small>`;
       r.mgr.disabled = G.cash < mgrCostOf(i);
+    }
+    // İşe alındıysa istasyonun simgesi yerine portresi duruyor: satıra
+    // bakınca orayı kimin yürüttüğü görünüyor.
+    if (G.mgr[i] && r.face.hidden) {
+      r.face.src = mgrYuz(i);
+      r.face.hidden = false;
+      r.emo.style.display = 'none';
+      r.ico.classList.add('hired');
     }
   }
   $('cashPill').textContent = '💰 ' + fmt(G.cash);
@@ -2575,6 +2660,11 @@ window.jeWipeProgress = () => {
   G.cash = 0; G.totalEarned = 0; G.lifetime = 0; G.branches = 0;
   G.claimed = []; G.goalVal = {}; G.res = {}; G.boosts = 0; G.boostUntil = 0;
   G.tut = 0; G.tipMgr = 0; tutYurudu = false;
+  // Portreler geri alınmalı, yoksa sıfırlanan oyunda müdürsüz istasyonun
+  // satırında hâlâ bir yüz duruyor.
+  for (const r of rows) {
+    r.face.hidden = true; r.emo.style.display = ''; r.ico.classList.remove('hired');
+  }
   G.lvl = STATIONS.map(() => 1);
   G.mgr = G.mgr.map(() => false);
   G.buf = G.buf.map(() => 0);
@@ -2614,6 +2704,18 @@ window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().
 // dışarıya veriliyor — eklenti tarayıcıda yok, ama kararı veren kod aynı.
 // Öğreticiyi bitmiş say. Dört adımı tek tek oynatmak başka testlerin
 // işi; müdür ipucunu ölçen testin ihtiyacı yalnızca "öğretici bitti".
+window.jeMgrKimlik = () => MGRS.map((m, i) => ({
+  ad: m.ad, rol: m.rol, alindi: G.mgr[i],
+  // Veri URL'sinin kendisi değil, özeti. İlk hâli ilk 22 karakteri
+  // alıyordu ve o karakterler `data:image/png;base64,` — dört yüz de
+  // aynı görünüyordu, test de kodu değil kendini ölçmüş oluyordu.
+  yuz: (() => { const d = mgrYuz(i); let h = 0;
+    for (let k = 0; k < d.length; k++) h = (h * 31 + d.charCodeAt(k)) | 0;
+    return h; })(),
+  portreGorunur: !rows[i].face.hidden,
+  dugme: rows[i].mgr.textContent,
+  meta: rows[i].meta.textContent,
+}));
 window.jeTutSkip = () => { G.tut = TUT.length; tutGuncelle(); return G.tut; };
 window.jeTut = () => ({
   adim: G.tut, id: G.tut < TUT.length ? TUT[G.tut].id : 'bitti',
