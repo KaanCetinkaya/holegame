@@ -1244,6 +1244,8 @@ const REACH = 2.6;
 // `max` ile: ilk seviyelerde üretim 6'nın altında ve taban korunuyor,
 // yani açılış hiç değişmiyor.
 const CARRY_SEC = 2;
+// Sırtta gösterilen en çok kasa. Sayıyı değil, yük taşındığını anlatıyor.
+const CARRY_SHOW = 3;
 const carryMax = (bay = 0) => Math.max(
   CARRY_BASE + resLvl('mgr') * 2,
   Math.floor(rateOf(bay) * CARRY_SEC));
@@ -1342,7 +1344,13 @@ function setCarryVisual(n, kind) {
     worker.add(m);
     carried.push(m);
   }
-  carried.forEach((m, i) => m.position.set(0, 1.6 + i * 0.26, -0.1));
+  // Yığın üç kasada duruyor ve aralığı dar.
+  //
+  // Altısı, kapasite sabit 6 iken makuldü: işçi yığını nadiren doldururdu.
+  // Kapasite üretimle büyüyünce her seferinde doluyor ve altı kasa üst
+  // üste, 1.5 birimlik figürün iki katı bir direk yapıyordu — mağaza
+  // görselinde işçi değil totem görünüyordu.
+  carried.forEach((m, i) => m.position.set(0, 1.6 + i * 0.2, -0.1));
 }
 
 // Elde ne var: hangi istasyondan alındığı ve kaç tane.
@@ -1425,7 +1433,7 @@ function stepWorker(dt) {
     const al = Math.min(carryMax(bay), Math.floor(G.pile[bay]));
     G.pile[bay] -= al;
     carryN = al; carryKind = bay;
-    setCarryVisual(Math.min(6, al), bay);
+    setCarryVisual(Math.min(CARRY_SHOW, al), bay);
     ping(520, 0.07);
     return;
   }
@@ -1437,7 +1445,7 @@ function stepWorker(dt) {
     G.buf[carryKind] += bırak;
     carryN -= bırak;
     if (carryN <= 0) { carryKind = -1; setCarryVisual(0, 0); }
-    else setCarryVisual(Math.min(6, carryN), carryKind);
+    else setCarryVisual(Math.min(CARRY_SHOW, carryN), carryKind);
     ping(300, 0.07);
   }
 }
