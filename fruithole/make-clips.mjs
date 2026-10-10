@@ -656,30 +656,6 @@ for (const clip of CLIPS) {
     // Hedef artık o daire: parçalar 3 birimlik kovalara bölünüyor, en dolu
     // kova seçiliyor. Uzaklık cezası, deliği tahtanın öbür ucuna
     // göndermemek için — yakındaki iyi yer, uzaktaki en iyi yerden değerli.
-    // Tutulan kova hedefi **burada** devreye giriyor, dev ve engel
-    // bakıldıktan sonra. İlk denemede en başa konmuştu ve engele
-    // yönelmenin önüne geçiyordu — oysa klibin engeli kadraja sokma
-    // şartı tam ona bağlı, yani düzeltme bir klibi düzeltirken
-    // ötekini bozuyordu.
-    if (!hedef) hedef = window.__kovaHedef || null;
-    // Kova hedefi **korunuyor** ve en az `KOVA_MIN` birim ötede olmak
-    // zorunda. İkisi birlikte, ve ikisi de ölçülerek
-    // (`scratchpad/holesuru.mjs`).
-    //
-    // Önceki hâlinde hedef her karede yeniden seçiliyordu ve uzaklık
-    // şartı yoktu. En kalabalık kova, delik parçaların içinde durduğu
-    // için neredeyse her zaman **deliğin kendi kovası** oluyordu:
-    // ölçülen ortalama uzaklık 47. bölümde 0.04 birim. O mesafede
-    // `dx / d` bir yön değil, kayan noktalı gürültü — delik ilerlemiyor,
-    // saniyede altmış kez ters dönüyor. Kaan kliplere bakıp "delik cin
-    // çarpmış gibi titreşiyor" dedi; ölçüm kare başına 170.5 derece yön
-    // değişimi ve %96 geri dönüş gösterdi.
-    //
-    // Şart konunca: 5.2 derece ve %1. Hedefe varılınca (2.5 birim)
-    // bırakılıyor ve yenisi seçiliyor, yani delik tahtayı geziyor.
-    const KOVA_MIN = 4, KOVA_VARDI = 2.5;
-    if (hedef && hedef.kova &&
-        Math.hypot(hedef.x - w.x, hedef.z - w.z) < KOVA_VARDI) hedef = null;
     if (!hedef) {
       const p = window.fruitHoleFruitSpots();
       const kova = new Map();
@@ -693,30 +669,39 @@ for (const clip of CLIPS) {
       for (const v of kova.values()) {
         const cx = v.x / v.n, cz = v.z / v.n;
         const d = Math.hypot(cx - w.x, cz - w.z);
-        if (d < KOVA_MIN) continue;
         const puan = v.n / (1 + d / 12);
         if (!en || puan > en.puan) en = { puan, x: cx, z: cz };
       }
-      // Tahtanın sonuna doğru 4 birim ötede kova kalmayabiliyor; o zaman
-      // şart gevşiyor, yoksa delik tamamen duruyor.
-      if (!en) {
-        for (const v of kova.values()) {
-          const cx = v.x / v.n, cz = v.z / v.n;
-          const d = Math.hypot(cx - w.x, cz - w.z);
-          if (d < 0.8) continue;
-          const puan = v.n / (1 + d / 12);
-          if (!en || puan > en.puan) en = { puan, x: cx, z: cz };
-        }
-      }
-      if (en) hedef = { x: en.x, z: en.z, kova: true };
+      if (en) hedef = { x: en.x, z: en.z };
     }
     if (!hedef) hedef = window.fruitHoleNearest();
-    window.__kovaHedef = (hedef && hedef.kova) ? hedef : null;
     if (!hedef) window.fruitHoleSteer(0, 0);
     else {
       const dx = hedef.x - w.x, dz = hedef.z - w.z;
-      const d = Math.hypot(dx, dz) || 1;
-      window.fruitHoleSteer(dx / d, dz / d);
+      const d = Math.hypot(dx, dz);
+      // Sıfıra yakın bir vektör **normalize edilmiyor**.
+      //
+      // Hedef, parçaların en kalabalık kovası; delik parçaların içinde
+      // durduğu için kendi kovası neredeyse her zaman kazanıyor ve
+      // ölçülen ortalama uzaklık 0.04 birim. O mesafede `dx / d` bir yön
+      // değil, kayan noktalı gürültü: delik ilerlemek yerine saniyede
+      // altmış kez ters dönüyor. Ölçüldü (`scratchpad/holesuru.mjs`):
+      // kare başına 170 derece, %96 geri dönüş.
+      //
+      // İlk düzeltme hedefi en az 4 birim öteye zorladı. Titreşim gitti
+      // ama delik parçaların arasından çıktı: `track` bekçiye takıldı
+      // ("çevrede 37 meyve < 50") ve `hourglass` 400 karede tek parça
+      // yemedi. Hedefin yerini değiştirmek yanlış ilaçtı.
+      //
+      // Doğrusu, hedef çok yakınken **son iyi yönü sürdürmek**: delik
+      // kalabalığın içinden düz geçiyor, yiyerek, ve öbür ucuna
+      // varınca yeni bir kova seçiliyor.
+      if (d < 1 && window.__sonYon) {
+        window.fruitHoleSteer(window.__sonYon[0], window.__sonYon[1]);
+      } else if (d > 0) {
+        window.__sonYon = [dx / d, dz / d];
+        window.fruitHoleSteer(dx / d, dz / d);
+      }
     }
     window.__step(dt);
     // `kartPay`: kartların ne kadarı tamamlandı. Av penceresinin ikinci
