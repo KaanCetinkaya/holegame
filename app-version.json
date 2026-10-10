@@ -1,0 +1,76 @@
+{
+  "_comment": "Play her yüklemede yeni bir versionCode ister ve aynısını ikinci kez kabul etmez. `uploaded` Play'e gönderilmiş kodların listesi: build-aab.mjs listedeki bir kodla derlemeyi reddediyor. Yükledikten sonra `npm run uploaded:fruithole` çalıştır — o komut kodu listeye ekler ve versionCode'u bir artırır, yani bir dahaki derleme hazır olur. Listenin doğruluğunun tek kaynağı Play Console > Release > App bundle explorer.",
+  "hole": {
+    "versionCode": 1,
+    "versionName": "1.0",
+    "uploaded": []
+  },
+  "fruithole": {
+    "versionCode": 51,
+    "versionName": "1.13",
+    "uploaded": [
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50
+    ],
+    "built": 50,
+    "builtCodes": [
+      46,
+      47,
+      48,
+      49,
+      50
+    ]
+  },
+  "slicer": {
+    "versionCode": 3,
+    "versionName": "1.0",
+    "uploaded": [
+      1,
+      2
+    ],
+    "built": 2,
+    "builtCodes": [
+      1,
+      2
+    ]
+  },
+  "tycoon": {
+    "versionCode": 4,
+    "versionName": "1.0",
+    "uploaded": [],
+    "built": 3,
+    "builtCodes": [
+      1,
+      2,
+      3
+    ]
+  }
+}
