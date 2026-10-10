@@ -1575,3 +1575,34 @@ ve işe yarıyor.
 sayısıyla dağıtım arasında bir ilişki görünmüyor.
 
 Değişmeyen tek sayı yine aynı: **0 beğeni, 0 yorum.**
+
+### Kliplerde titreşim — 11 Ekim
+
+Kaan kliplere bakıp "delik cin çarpmış gibi titreşiyor" dedi. Doğruydu ve
+sebebi klip aracının sürüşündeydi — ayrıntısı `make-clips.mjs` içinde,
+yanındaki ölçüm `scratchpad/holesuru.mjs`.
+
+Kısaca: hedef, parçaların en kalabalık kovası. Delik parçaların içinde
+durduğu için kendi kovası kazanıyordu, ölçülen ortalama uzaklık **0.04
+birim**. O mesafede yön hesabı gürültü üretiyor ve delik saniyede altmış
+kez ters dönüyor. Ölçülen: 170 derece/kare, %96 geri dönüş.
+
+Düzeltilmiş hâliyle çekilen `hourglass`: **4.2 derece/kare, %1**. Ve
+delik artık yiyor da — 22'den 70 parçaya, öncekilerde sıfırdı.
+
+Araç artık her çekimde bu sayıyı kendi yazdırıyor, yani kusur bir daha
+gözle aranmayacak.
+
+**Atılmış bütün klipler eski sürüşle çekildi** ve hepsinde bu titreşim
+var. 90-189 izlenme aldılar, yani seyirciyi kaçırdığına dair bir kanıt
+yok — ama yenileri düzgün.
+
+### Klipler sessiz — 11 Ekim
+
+Ölçüldü: mp4'lerin **hiç ses kanalı yok**. Bugüne kadar atılan her video
+sessiz gitti. TikTok sesli videoları daha çok dağıtıyor ve ses ancak
+yükleme anında eklenebiliyor, sonradan değil.
+
+Bundan sonrası telefondan ve ses eklenerek atılıyor. İlk deneme `lens`
+(11 Ekim, `@peelogame_0`). Tek değişken ses; sayı yükselirse sebebini
+biliyoruz.
