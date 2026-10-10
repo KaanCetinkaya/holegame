@@ -408,6 +408,28 @@ const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _A
 // derleme yine başarılı olur. Aradaki farkı ancak AdMob panelinde sıfır
 // görerek fark edersin.
 const AD_UNITS = { rewarded: 'ca-app-pub-2542927456156553/3308416462' };
+
+// ---------------------------------------------------------------------
+// Bildirim
+// ---------------------------------------------------------------------
+//
+// Idle oyunun bildirimi "gel oyna" demez, **depo doldu** der.
+//
+// Oyun kapalıyken üretim devam ediyor ama bir tavanı var: `offlineCap()`,
+// dört saat artı araştırma. Tavana değdikten sonra geçen her dakika
+// kaybedilmiş üretim. Oyuncunun bunu bilmesinin hiçbir yolu yok — telefonu
+// cebinde, oyun kapalı. Geri çağıran tek şey bu bildirim, ve doğru an
+// tam olarak tavana değdiği an.
+//
+// Fruit Hole'daki ile aynı iskelet (`fruithole/index.html`), ama orada
+// mesaj günlük meydan okumaydı; burada tavan.
+const _Notif = _Cap && _Cap.Plugins ? _Cap.Plugins.LocalNotifications : null;
+const NOTIF_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Notif);
+const NOTIF_ID = 1;
+
+const notif = JSON.parse(localStorage.getItem('tycoon_notif') || '{}');
+function saveNotif() { localStorage.setItem('tycoon_notif', JSON.stringify(notif)); }
+let _notifErr = '';
 const ADS_TESTING = true;
 
 async function adsInit() {
@@ -807,6 +829,99 @@ function offlineCatchUp() {
   G.cash += got;
   G.totalEarned += got;
   return got > 0 ? { gone, got } : null;
+}
+
+// --- Bildirimin ne zaman ve ne diyeceği ---
+//
+// İki durum var ve ikisi aynı şeyi söyleyemez:
+//
+//   Zincir kendi kendine dönüyorsa (`autoChain().flow > 0`) depo dolar.
+//   Haber verilecek an tavana değdiği an, ve söylenecek şey kaç saatin
+//   beklediği.
+//
+//   Dönmüyorsa — henüz müdür alınmamış — kapalıyken hiçbir şey birikmiyor.
+//   O oyuncuya "deponuz doldu" demek yalan olur. Ona ertesi akşam, eksik
+//   olanın ne olduğu söyleniyor.
+const NOTIF_HOUR = 19;          // akşamüstü: gün bitmeden oynayacak vakit var
+function notifPlan() {
+  const ch = autoChain();
+  if (ch.flow > 0) {
+    const saat = Math.round(offlineCap() / 3600);
+    return {
+      at: new Date(Date.now() + offlineCap() * 1000),
+      title: 'The yard is full',
+      body: `${saat} hours of production is waiting, and the line has stopped stacking.`,
+    };
+  }
+  // Saat tek kaynaktan: `Date.now()`. İlk hâli `new Date()` ile kuruyordu
+  // ve karşılaştırmayı da `new Date()` ile yapıyordu — oyunda doğru
+  // çalışır ama 19:00 kenarı **ölçülemez** olur, çünkü testin sahte saati
+  // yalnızca `Date.now`'u değiştirebiliyor. Ölçülemeyen kenar, kontrol
+  // edilmemiş kenardır.
+  const simdi = Date.now();
+  const at = new Date(simdi);
+  at.setHours(NOTIF_HOUR, 0, 0, 0);
+  if (at.getTime() <= simdi) at.setDate(at.getDate() + 1);
+  return {
+    at,
+    title: 'Your line is idle',
+    body: 'Nothing is made while you are away until a station has a manager.',
+  };
+}
+
+async function scheduleNotif() {
+  if (!NOTIF_ON || !notif.granted) return;
+  try {
+    // Önce eskiyi sil. Her açılışta yeniden kuruluyor, yoksa oyuncu
+    // oynadıktan sonra bile eski zamanlama duruyor ve oyun açıkken
+    // "deponuz doldu" diye haber geliyor.
+    await _Notif.cancel({ notifications: [{ id: NOTIF_ID }] });
+    const p = notifPlan();
+    await _Notif.schedule({
+      notifications: [{
+        id: NOTIF_ID, title: p.title, body: p.body,
+        schedule: { at: p.at, allowWhileIdle: true },
+      }],
+    });
+    _notifErr = '';
+  } catch (e) { _notifErr = String((e && (e.message || e.errorMessage)) || e); }
+}
+
+// İzin, oyuncunun oyunu beğendiğini gösterdikten sonra isteniyor.
+//
+// Android 13+ bildirim için çalışma anında izin soruyor ve **ne zaman
+// sorduğun kabul oranını belirliyor**. İlk açılışta soran oyun reddedilir
+// ve bir daha soramaz: Android ikinci reddi kalıcı sayıyor.
+//
+// Buradaki eşik ilk müdür ya da 10. seviye: ikisi de oyuncunun oyunu
+// anladığı ve bir şey biriktirdiği an. Fruit Hole aynı sebeple üçüncü
+// bölümü bekliyor.
+function notifEarned() {
+  return G.mgr.some(Boolean) || Math.max(...G.lvl) >= 10;
+}
+async function askNotif() {
+  if (!NOTIF_ON || notif.asked || !notifEarned()) return;
+  notif.asked = true;
+  saveNotif();
+  try {
+    const r = await _Notif.requestPermissions();
+    notif.granted = !!(r && r.display === 'granted');
+  } catch (e) {
+    notif.granted = false;
+    _notifErr = String((e && (e.message || e.errorMessage)) || e);
+  }
+  saveNotif();
+  if (notif.granted) scheduleNotif();
+}
+
+async function notifInit() {
+  if (!NOTIF_ON) return;
+  try {
+    const r = await _Notif.checkPermissions();
+    notif.granted = !!(r && r.display === 'granted');
+    saveNotif();
+  } catch (e) { _notifErr = String((e && (e.message || e.errorMessage)) || e); }
+  scheduleNotif();
 }
 
 // ---------------------------------------------------------------------
@@ -2190,7 +2305,7 @@ function tick(now) {
   camera.lookAt(0, 0, -12);
 
   sinceUI += dt;
-  if (sinceUI > 0.12) { sinceUI = 0; refreshPanel(); refreshBoost(); lockGoals(); refreshGoalDot(); }
+  if (sinceUI > 0.12) { sinceUI = 0; refreshPanel(); refreshBoost(); lockGoals(); refreshGoalDot(); askNotif(); }
   sinceFloat += dt;
   if (sinceFloat > 0.55 && floatAcc > 0) {
     sinceFloat = 0;
@@ -2207,10 +2322,10 @@ function tick(now) {
 // A phone that backgrounds the tab stops calling rAF; without this the away
 // time is only counted when the app is fully closed.
 addEventListener('visibilitychange', () => {
-  if (document.hidden) { G.seen = Date.now(); saveNow(); }
-  else { last = performance.now(); const r = offlineCatchUp(); if (r) showWelcome(r); G.seen = Date.now(); }
+  if (document.hidden) { G.seen = Date.now(); saveNow(); scheduleNotif(); }
+  else { last = performance.now(); const r = offlineCatchUp(); if (r) showWelcome(r); G.seen = Date.now(); scheduleNotif(); }
 });
-addEventListener('pagehide', () => { G.seen = Date.now(); saveNow(); });
+addEventListener('pagehide', () => { G.seen = Date.now(); saveNow(); scheduleNotif(); });
 
 function showWelcome(r) {
   pendingOffline = r.got;         // the same again, if they watch
@@ -2373,6 +2488,14 @@ window.jeGoals = () => GOALS.map(g => ({
   id: g.id, at: +g.at().toFixed(0), need: g.need,
   done: goalDone(g), taken: goalTaken(g), pay: +goalPay(g).toFixed(0) }));
 window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().toFixed(0) });
+// Bildirim: ne zaman ve ne diyecek. Cihaz olmadan ölçülebilsin diye plan
+// dışarıya veriliyor — eklenti tarayıcıda yok, ama kararı veren kod aynı.
+window.jeNotif = () => {
+  const p = notifPlan();
+  return { title: p.title, body: p.body,
+           sonra: Math.round((p.at.getTime() - Date.now()) / 1000),
+           hakEtti: notifEarned(), soruldu: !!notif.asked };
+};
 // Bir hedefi al. Düğmeye tıklamak yerine kanca, çünkü ölçülmek istenen şey
 // **sıra**: hangi hedefi ne zaman aldığın ne kadar kazandırıyor.
 window.jeClaimGoal = id => {
@@ -2410,6 +2533,7 @@ if (G.boostUntil > Date.now()) G.boostUntil = 0;
 const back = offlineCatchUp();
 if (back) showWelcome(back);
 G.seen = Date.now();
+notifInit();
 checkDaily();
 refreshPanel();
 refreshGoalDot();
