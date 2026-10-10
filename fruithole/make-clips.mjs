@@ -665,12 +665,50 @@ for (const clip of CLIPS) {
         if (v) { v.n++; v.x += f.x; v.z += f.z; }
         else kova.set(k, { n: 1, x: f.x, z: f.z });
       }
+      // Hedef en az **iki birim** ötede olmalı.
+      //
+      // Delik parçaların içinde duruyor ve puanlamanın uzaklık cezası
+      // (`n / (1 + d/12)`) yüzünden kendi kovası neredeyse her zaman
+      // kazanıyordu: ölçülen ortalama uzaklık 0.04 birim. O mesafede
+      // `dx / d` yön değil, gürültü — delik ilerlemek yerine saniyede
+      // altmış kez ters dönüyordu (170 derece/kare, %96 geri dönüş).
+      //
+      // İki birim, altı kip taranarak seçildi (`scratchpad/holesuru.mjs`):
+      //
+      //   bugünkü (taban yok)  166.7 derece    3 parça
+      //   yön tutma (d<1)        5.9 derece   24 parça
+      //   taban 1.5 birim        8.4 derece   11 parça
+      //   taban 2 birim         14.2 derece   30 parça   <- seçilen
+      //   taban 3 birim          3.1 derece   28 parça
+      //   taban 4 birim          2.0 derece   26 parça
+      //
+      // En pürüzsüzü 4 birim ama o taban deliği parçaların arasından
+      // çıkardı: `track` kendi bekçisine takıldı (çevrede 37 meyve < 50)
+      // ve `hourglass` 400 karede tek parça yemedi. Yön tutma da denendi,
+      // hızlı düzenekte en iyilerdendi, ama gerçek çekimde delik duvara
+      // dayanıp orada sabit yön sürdü — 150 karelik düzenekte duvara
+      // varmaya vakit olmadığı için görünmemişti.
+      //
+      // İki birim en çok yiyen kip, ve titreşimin onda birine iniyor.
+      const KOVA_MIN = 2;
       let en = null;
       for (const v of kova.values()) {
         const cx = v.x / v.n, cz = v.z / v.n;
         const d = Math.hypot(cx - w.x, cz - w.z);
+        if (d < KOVA_MIN) continue;
         const puan = v.n / (1 + d / 12);
         if (!en || puan > en.puan) en = { puan, x: cx, z: cz };
+      }
+      // Tahtanın sonunda iki birim ötede kova kalmayabiliyor; o zaman
+      // şart gevşiyor, yoksa delik tamamen duruyor.
+      if (!en) {
+        for (const v of kova.values()) {
+          const cx = v.x / v.n, cz = v.z / v.n;
+          const d = Math.hypot(cx - w.x, cz - w.z);
+          if (d < 0.5) continue;
+          const puan = v.n / (1 + d / 12);
+          if (!en || puan > en.puan) en = { puan, x: cx, z: cz };
+        }
       }
       if (en) hedef = { x: en.x, z: en.z };
     }
@@ -696,12 +734,7 @@ for (const clip of CLIPS) {
       // Doğrusu, hedef çok yakınken **son iyi yönü sürdürmek**: delik
       // kalabalığın içinden düz geçiyor, yiyerek, ve öbür ucuna
       // varınca yeni bir kova seçiliyor.
-      if (d < 1 && window.__sonYon) {
-        window.fruitHoleSteer(window.__sonYon[0], window.__sonYon[1]);
-      } else if (d > 0) {
-        window.__sonYon = [dx / d, dz / d];
-        window.fruitHoleSteer(dx / d, dz / d);
-      }
+      if (d > 0) window.fruitHoleSteer(dx / d, dz / d);
     }
     window.__step(dt);
     // `kartPay`: kartların ne kadarı tamamlandı. Av penceresinin ikinci
