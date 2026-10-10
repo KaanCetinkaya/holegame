@@ -904,17 +904,130 @@ function yardTexture() {
   ctx.globalAlpha = 1;
   const t = finish(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(13, 24);
+  t.repeat.set(4, 7);
   return t;
 }
 
+// Fabrikanın durduğu yer.
+//
+// Her yer betondu ve sahne "boş bir avluda duran dört platform" gibi
+// duruyordu: betonun nerede bitip neyin başladığı belli değildi, ve
+// düzlemin kenarını saklamak için 64x120'ye büyütülmüştü. Tür
+// rakiplerinin hepsinde fabrikanın bir **yeri** var — çim, bir yol,
+// kenarda ağaçlar. Beton artık yalnızca bölmelerin altında; gerisi çim.
+function grassTexture() {
+  const S = 256, [c, ctx] = newCanvas(S);
+  ctx.fillStyle = '#6aa350';
+  ctx.fillRect(0, 0, S, S);
+  // Biçilmiş şeritler. Düz bir yeşil, uzaktan boyalı kâğıt gibi duruyor;
+  // şerit ona yön ve ölçek veriyor.
+  ctx.globalAlpha = 0.16;
+  for (let i = 0; i < 8; i++) {
+    ctx.fillStyle = i % 2 ? '#7fb55f' : '#4e7e3a';
+    ctx.fillRect(0, i * 32, S, 32);
+  }
+  ctx.globalAlpha = 1;
+  for (let i = 0; i < 2200; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.1;
+    ctx.fillStyle = Math.random() < 0.5 ? '#4b7d39' : '#86bd62';
+    ctx.beginPath();
+    ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const t = finish(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(16, 30);
+  return t;
+}
+
+const grass = new THREE.Mesh(
+  new THREE.PlaneGeometry(130, 190),
+  new THREE.MeshStandardMaterial({ map: grassTexture(), roughness: 1 }));
+grass.rotation.x = -Math.PI / 2;
+grass.position.set(0, -0.02, -11);          // betonun **altında**
+grass.receiveShadow = true;
+scene.add(grass);
+
+// Beton önlük: bölmeleri ve park sırasını taşıyacak kadar, fazlası değil.
+//
+// Ölçülerek kesildi, göz kararı değil. Bölmeler z'de +1.2 ile -25.2
+// arasında ve x'te ±4.5; park eden arabalar x = -8.2'de, z = -14'ten
+// -29'a kadar iniyor. Önlük bu ikisini örtecek en küçük dikdörtgen artı
+// bir birim pay — kalan her yer çim. İlk denemede 26x40'tı ve kamera 36
+// birim gördüğü için ekranda çim neredeyse hiç kalmıyordu.
+const YARD_W = 22, YARD_D = 34, YARD_Z = -14;
 const yard = new THREE.Mesh(
-  new THREE.PlaneGeometry(64, 120),
+  new THREE.PlaneGeometry(YARD_W, YARD_D),
   new THREE.MeshStandardMaterial({ map: yardTexture(), roughness: 0.95 }));
 yard.rotation.x = -Math.PI / 2;
-yard.position.set(0, 0, -11);
+yard.position.set(0, 0, YARD_Z);
 yard.receiveShadow = true;
 scene.add(yard);
+
+// Çitin ardındaki ağaçlar.
+//
+// Silüet için. Fabrika kendi başına duruyordu ve arkasında hiçbir şey
+// yoktu; birkaç ağaç sahneye derinlik veriyor ve "burası bir yer" diyor.
+// Geometri ve malzeme paylaşılıyor — on dört ağaç için yirmi sekiz mesh
+// değil, iki geometri.
+{
+  const govde = new THREE.CylinderGeometry(0.18, 0.24, 1.1, 6);
+  const taç = new THREE.IcosahedronGeometry(1.05, 0);
+  const ahsap = new THREE.MeshStandardMaterial({ color: '#6b4a32', roughness: 0.95 });
+  const yesil = [
+    new THREE.MeshStandardMaterial({ color: '#3f7a3a', roughness: 1, flatShading: true }),
+    new THREE.MeshStandardMaterial({ color: '#4d8c3f', roughness: 1, flatShading: true }),
+    new THREE.MeshStandardMaterial({ color: '#356b34', roughness: 1, flatShading: true }),
+  ];
+  // Yerler elle verildi: rastgele dağıtmak önlüğün üstüne ağaç koyuyordu
+  // ve her açılışta başka bir yere. Sahne her seferinde aynı görünmeli.
+  // Önlük x'te ±11, z'de +3 ile -31 arası. Ağaçlar bunun hemen dışında:
+  // ilk denemede x = ±16'ya kondular ve hiçbiri kadrajda değildi — kamera
+  // 36 birim yüksekliğinde ortografik ve ekranda gördüğü şerit bundan çok
+  // daha dar. Yerler ölçülerek içeri alındı.
+  const yerler = [
+    [-12.6, 2], [-12.2, -5], [-13, -12], [-12.4, -19], [-12.8, -26], [-12.3, -32],
+    [12.5, 1], [12.9, -8], [12.3, -15], [12.7, -22], [12.2, -29], [12.6, -35],
+    [-7, 6], [6, 5.5], [-4, -35], [4, -36.5],
+  ];
+  yerler.forEach(([x, z], i) => {
+    const g = new THREE.Group();
+    const t = new THREE.Mesh(govde, ahsap);
+    t.position.y = 0.55; t.castShadow = true;
+    g.add(t);
+    const k = new THREE.Mesh(taç, yesil[i % 3]);
+    k.position.y = 1.55;
+    k.scale.set(1, 0.9 + (i % 4) * 0.08, 1);
+    k.rotation.y = i * 1.1;
+    k.castShadow = true;
+    g.add(k);
+    g.position.set(x, 0, z);
+    g.scale.setScalar(0.85 + (i % 5) * 0.12);
+    scene.add(g);
+  });
+}
+
+// Bordür. Betonla çimin arasındaki çizgi olmadan ikisi birbirine akıyor ve
+// önlük bir zemin değil, yerde bir leke gibi duruyor.
+{
+  // `MAT` bu satırın **altında** tanımlı (zemin, malzeme yardımcılarından
+  // önce kuruluyor), o yüzden malzeme doğrudan yazılıyor. İlk hâli `MAT`
+  // çağırdı ve sayfa hiç açılmadı.
+  const kerb = new THREE.MeshStandardMaterial({ color: '#cfd3d9', roughness: 0.9 });
+  const h = 0.16, t = 0.5;
+  for (const [w, d, x, z] of [
+    [YARD_W + t * 2, t, 0, YARD_Z - YARD_D / 2 - t / 2],
+    [YARD_W + t * 2, t, 0, YARD_Z + YARD_D / 2 + t / 2],
+    [t, YARD_D, -YARD_W / 2 - t / 2, YARD_Z],
+    [t, YARD_D, YARD_W / 2 + t / 2, YARD_Z],
+  ]) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), kerb);
+    m.position.set(x, h / 2, z);
+    m.receiveShadow = true;
+    scene.add(m);
+  }
+}
 
 const MAT = (col, rough = 0.6, metal = 0) =>
   new THREE.MeshStandardMaterial({ color: col, roughness: rough, metalness: metal });
