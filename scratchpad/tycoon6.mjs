@@ -42,8 +42,15 @@ console.log(`  hemen tekrar MAKS: seviye ${r2.l0} -> ${r2.l1}  ` +
 
 // 2) büyük çarpanla 30 dakika: seviyeler nereye çıkıyor?
 console.log('\nçarpan yüksekken 30 dakika (her dakika darboğaza MAKS):');
-await pg.evaluate(() => window.jeReset?.());
-await pg.waitForTimeout(400);
+// `jeReset()` sayfayı **kendisi** yeniliyor (`location.reload()`), ve
+// burada 400 ms beklenip ayrıca `goto` çağrılıyordu: iki gezinme aynı
+// anda. Yenileme 400 ms'den uzun sürdüğü gün test "Navigation ... is
+// interrupted by another navigation" ile düşüyor — ve açılışa bildirim,
+// Play Games ve satın alma katmanları eklenince o gün geldi.
+//
+// Sabit bir bekleme zaten projenin kuralına aykırıydı. Kaydı silip tek
+// bir gezinme yapmak aynı işi yapıyor ve yarışacak bir şey bırakmıyor.
+await pg.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
 await pg.goto('http://localhost:8153/', { waitUntil:'load' });
 await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 20000 });
 await pg.waitForTimeout(400);
