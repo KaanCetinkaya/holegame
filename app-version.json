@@ -65,7 +65,9 @@
   "tycoon": {
     "versionCode": 4,
     "versionName": "1.0",
-    "uploaded": [],
+    "uploaded": [
+      2
+    ],
     "built": 3,
     "builtCodes": [
       1,
