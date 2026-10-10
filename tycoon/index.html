@@ -337,6 +337,7 @@
     </div>
     <div class="stack">
       <button class="btn alt" id="goalsBtn">GOALS</button>
+      <button class="btn alt" id="boardBtn" style="display:none">🏆 LEADERBOARD</button>
       <button class="btn alt" id="resBtn">RESEARCH</button>
       <button class="btn" id="prestigeBtn">OPEN NEW BRANCH</button>
       <button class="btn alt" id="muteBtn">SOUND: ON</button>
@@ -933,6 +934,117 @@ function offlineCatchUp() {
   G.cash += got;
   G.totalEarned += got;
   return got > 0 ? { gone, got } : null;
+}
+
+// ---------------------------------------------------------------------
+// Play Games — skor tablosu
+// ---------------------------------------------------------------------
+//
+// "Fabrikam ne kadar büyük" sorusunun tek başına bir cevabı yok; tablo onu
+// bir sayıya çeviriyor. Türün her oyununda var, bizde yoktu.
+//
+// Katman **sessiz**: kimlik boşsa, eklenti yoksa ya da oyuncu girmediyse
+// 🏆 düğmesi hiç görünmüyor ve oyunun geri kalanı hiç değişmiyor.
+//
+// Eklenti kendini "PlayGames" adıyla kaydediyor. Fruit Hole'da burada
+// aylarca başka bir ad yazdı ve kimse fark etmedi: yanlış ad `_Games`'i
+// null bırakıyor, katman sessizce kapanıyor, hata da vermiyor.
+const _Games = _Cap && _Cap.Plugins ? _Cap.Plugins.PlayGames : null;
+const GAMES_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Games);
+
+// ---- Play Console'dan alınacak tek yer ----
+//
+// Play Console → Motor Works → Play Oyun Hizmetleri → Kurulum → Skor
+// tabloları → yeni tablo ("Lifetime earned", biçim: tam sayı). Oluşunca
+// verdiği kimlik buraya.
+//
+// Ayrıca `patch-manifest.mjs` içindeki `tycoon.gamesId` de doldurulmalı:
+// proje kimliği manifest'te **zorunlu** ve yoksa giriş sessizce
+// başarısız oluyor — hesap seçme ekranı hiç açılmıyor ve belirti,
+// hesabın test listesinde olmamasıyla birebir aynı görünüyor. Fruit
+// Hole'da bu günler aldı.
+const LEADERBOARD_ID = '';
+
+let _gamesIn = false;
+let _gamesErr = '';
+
+function gamesReady() { return GAMES_ON && _gamesIn && !!LEADERBOARD_ID; }
+
+// Giriş, oyuncunun bir hareketine karşılık isteniyor.
+//
+// Eklentinin `signIn()`'i varsayılan olarak **sessiz** ve bu oyuna daha
+// önce girmemiş bir hesapta her zaman `signedIn:false` dönüyor. Tek başına
+// bırakılırsa yumurta-tavuk: oyuncu giriş yapmadığı için giremiyor, ve
+// hiç istenmediği için de hiçbir zaman giriş yapmış olmuyor. Fruit
+// Hole'da 🏆 düğmesinin hiçbir cihazda çıkmamasının sebebi buydu.
+async function gamesSignIn() {
+  if (!_Games) { _gamesErr = 'PlayGames eklentisi yok'; return false; }
+  try {
+    const r = await _Games.signIn({ silent: false });
+    _gamesIn = r ? r.signedIn !== false : true;
+    _gamesErr = _gamesIn ? '' : 'oyuncu girişi tamamlamadı';
+  } catch (e) {
+    _gamesIn = false;
+    _gamesErr = String((e && (e.message || e.errorMessage)) || e);
+  }
+  return _gamesIn;
+}
+
+async function gamesInit() {
+  if (!GAMES_ON) { _gamesErr = _Games ? 'native değil' : 'PlayGames eklentisi yok'; return; }
+  try {
+    // Sessiz giriş: daha önce girmiş oyuncuda çalışıyor. Açılışta tam
+    // giriş ekranını zorlamak, oyunun ilk isteğini bir hesap sorusu
+    // yapardı.
+    const r = await _Games.signIn();
+    _gamesIn = r ? r.signedIn !== false : true;
+  } catch (e) { _gamesErr = String((e && (e.message || e.errorMessage)) || e); }
+  gamesSubmit();
+}
+
+// Tabloya giden sayı: bu fabrikanın **ömür boyu** kazancı, dallar dahil.
+// Anlık para değil — o prestijde sıfırlanıyor ve tabloyu, oyunu en son
+// ne zaman sıfırladığının sıralaması yapardı.
+//
+// `leaderboardId`, `leaderboardID` değil: eski bir eklenti büyük D'li
+// yazıyordu ve yanlışı gönderildiğinde istek sessizce reddediliyor.
+//
+// Play Games skorları 64 bit tam sayı. Üstel bir ekonomide bu taşabilir,
+// ve taşan bir skor tabloyu kalıcı olarak bozar.
+const SCORE_MAX = 9.0e18;
+async function gamesSubmit() {
+  if (!gamesReady()) return;
+  const skor = Math.min(SCORE_MAX, Math.floor(G.lifetime + G.totalEarned));
+  if (!(skor > 0) || !Number.isFinite(skor)) return;
+  try { await _Games.submitScore({ leaderboardId: LEADERBOARD_ID, score: skor }); }
+  catch (e) { _gamesErr = 'submitScore: ' + String((e && (e.message || e.errorMessage)) || e); }
+}
+
+let _boardErr = '';
+async function openLeaderboard() {
+  if (!_gamesIn && !(await gamesSignIn())) { refreshBoardBtn(); return; }
+  await gamesSubmit();
+  try {
+    await _Games.showLeaderboard({ leaderboardId: LEADERBOARD_ID });
+    _boardErr = '';
+  } catch (e) {
+    _boardErr = 'showLeaderboard: ' + String((e && (e.message || e.errorMessage)) || e);
+    // Tek tablo açılmazsa hepsini dene: kimliğin yanlış olmasıyla
+    // eklentinin hiç açamaması cihazda aynı görünüyor, bu ikisini ayırır.
+    try { await _Games.showAllLeaderboards(); _boardErr += ' · hepsi açıldı (kimlik şüpheli)'; }
+    catch (e2) { _boardErr += ' · showAllLeaderboards da düştü'; }
+  }
+  refreshBoardBtn();
+}
+
+// Düğme yalnızca açılabilecekken görünüyor. Açılmayacak bir düğme
+// göstermek, oyuncuya çalışmayan bir şey vaat etmek.
+function refreshBoardBtn() {
+  const b = $('boardBtn');
+  if (!b) return;
+  const var_ = GAMES_ON && !!LEADERBOARD_ID;
+  b.style.display = var_ ? '' : 'none';
+  b.textContent = _gamesIn ? '🏆 LEADERBOARD' : '🏆 SIGN IN FOR THE LEADERBOARD';
 }
 
 // ---------------------------------------------------------------------
@@ -2059,6 +2171,7 @@ $('menuBtn').onclick = () => {
     ? `OPEN NEW BRANCH  (+${fmt(pendingPoints())} points)`
     : `NEW BRANCH: earn ${fmt(PRESTIGE_AT())} more`;
   $('muteBtn').textContent = 'SOUND: ' + (G.muted ? 'OFF' : 'ON');
+  refreshBoardBtn();
   $('menu').classList.add('show');
 };
 $('closeMenu').onclick = () => $('menu').classList.remove('show');
@@ -2072,11 +2185,15 @@ $('prestigeBtn').onclick = () => {
   $('pNext').textContent = `+${fmt(pendingPoints())} points`;
   $('prestige').classList.add('show');
 };
+$('boardBtn').onclick = () => openLeaderboard();
 $('pNo').onclick = () => $('prestige').classList.remove('show');
 $('pGo').onclick = () => {
   if (!canPrestige()) return;
   G.branches++;
   G.lifetime += G.totalEarned;
+  // Tabloya gidecek sayı burada sıçrıyor; göndermek için bir sonraki
+  // açılışı beklemenin sebebi yok.
+  setTimeout(gamesSubmit, 0);
   G.totalEarned = 0;
   G.cash = 0;
   // "Head start" skips the opening minutes rather than paying cash for them:
@@ -2704,6 +2821,14 @@ window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().
 // dışarıya veriliyor — eklenti tarayıcıda yok, ama kararı veren kod aynı.
 // Öğreticiyi bitmiş say. Dört adımı tek tek oynatmak başka testlerin
 // işi; müdür ipucunu ölçen testin ihtiyacı yalnızca "öğretici bitti".
+window.jeGames = () => ({
+  eklenti: !!_Games, acik: GAMES_ON, girdi: _gamesIn,
+  kimlik: LEADERBOARD_ID, hazir: gamesReady(),
+  dugmeGorunur: $('boardBtn').style.display !== 'none',
+  dugme: $('boardBtn').textContent,
+  skor: Math.min(SCORE_MAX, Math.floor(G.lifetime + G.totalEarned)),
+  hata: _gamesErr,
+});
 window.jeMgrKimlik = () => MGRS.map((m, i) => ({
   ad: m.ad, rol: m.rol, alindi: G.mgr[i],
   // Veri URL'sinin kendisi değil, özeti. İlk hâli ilk 22 karakteri
@@ -2768,6 +2893,7 @@ const back = offlineCatchUp();
 if (back) showWelcome(back);
 G.seen = Date.now();
 notifInit();
+gamesInit();
 checkDaily();
 refreshPanel();
 refreshGoalDot();

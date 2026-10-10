@@ -44,6 +44,20 @@ const APPS = {
   tycoon: {
     dir: 'android-tycoon',
     appId: 'ca-app-pub-2542927456156553~3883131532',
+    // Play Games Services proje kimliği (Play Console → Motor Works →
+    // Play Oyun Hizmetleri → Yapılandırma → "Proje Kimliği").
+    //
+    // **Boş.** Skor tablosu kodu yazıldı ama Play Console tarafı henüz
+    // kurulmadı. Bu satır dolana kadar `if (app.gamesId)` atlıyor ve
+    // manifest'e hiçbir şey yazılmıyor — oyun da `LEADERBOARD_ID` boş
+    // olduğu için 🏆 düğmesini hiç göstermiyor, yani eksik kurulum
+    // oyuncuya bozuk bir düğme olarak çıkmıyor.
+    //
+    // Doldurulduğunda `tycoon/index.html` içindeki `LEADERBOARD_ID` de
+    // doldurulmalı; ikisinden biri eksikse giriş sessizce başarısız
+    // oluyor ve belirti "hesap test listesinde değil" ile birebir aynı
+    // görünüyor.
+    // gamesId: '',
   },
 };
 
