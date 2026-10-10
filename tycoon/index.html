@@ -202,6 +202,22 @@
     position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4;
   }
 
+  /* Mağaza satırı. */
+  .prod {
+    display: flex; align-items: center; gap: 10px; text-align: left;
+    background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.14);
+    border-radius: 14px; padding: 10px 12px; color: #fff;
+    font: inherit; cursor: pointer; width: 100%;
+  }
+  .prod.owned { opacity: .55; cursor: default; }
+  .prod .pico { font-size: 26px; width: 34px; text-align: center; }
+  .prod .pmid { flex: 1; min-width: 0; }
+  .prod .pnm { font-weight: 900; font-size: 15px; }
+  .prod .pds { font-size: 12px; opacity: .75; line-height: 1.3; }
+  .prod .ppr {
+    font-weight: 900; font-size: 14px; color: #ffc44d; white-space: nowrap;
+  }
+
   /* Müdür portresi. İşe alınınca istasyonun simgesinin yerine geçiyor:
      istasyonu artık o yürütüyor, ve satıra bakınca görülen şey bu. */
   .st .face {
@@ -338,10 +354,20 @@
     <div class="stack">
       <button class="btn alt" id="goalsBtn">GOALS</button>
       <button class="btn alt" id="boardBtn" style="display:none">🏆 LEADERBOARD</button>
+      <button class="btn alt" id="shopBtn">🛒 SHOP</button>
       <button class="btn alt" id="resBtn">RESEARCH</button>
       <button class="btn" id="prestigeBtn">OPEN NEW BRANCH</button>
       <button class="btn alt" id="muteBtn">SOUND: ON</button>
       <button class="btn alt" id="closeMenu">CLOSE</button>
+    </div>
+  </div>
+
+  <div class="screen" id="shop">
+    <h2>Shop 🛒</h2>
+    <div id="shopList" class="stack"></div>
+    <div class="stack">
+      <button class="btn alt" id="restoreBtn">RESTORE PURCHASES</button>
+      <button class="btn alt" id="closeShop">CLOSE</button>
     </div>
   </div>
 
@@ -622,7 +648,11 @@ const productTier = () => {
 };
 const product = () => PRODUCTS[productTier()];
 const nextProduct = () => PRODUCTS[productTier() + 1] || null;
-const unitPrice = () => STATIONS[LAST].price * product().mult * (1 + resLvl('price') * 0.05);
+// `paidMult()` satın alınan çifte gelir. Burada çarpılıyor, `rateOf`'ta
+// değil: hız darboğaza ve tampon doluluğuna giriyor, para yalnızca
+// kasaya. Satılan bir çarpan oyunun dengesini yeniden şekillendirmemeli.
+const unitPrice = () =>
+  STATIONS[LAST].price * product().mult * (1 + resLvl('price') * 0.05) * paidMult();
 
 // Milestones. Levelling a station adds one unit of rate whatever level it is
 // at, so past the first hour every purchase felt identical and the game was
@@ -934,6 +964,164 @@ function offlineCatchUp() {
   G.cash += got;
   G.totalEarned += got;
   return got > 0 ? { gone, got } : null;
+}
+
+// ---------------------------------------------------------------------
+// Satın alma
+// ---------------------------------------------------------------------
+//
+// Oyunun tek geliri ödüllü reklamdı ve o da isteğe bağlı. "Reklamları
+// kaldır" satmanın bir anlamı yok — kaldırılacak zorunlu reklam yok.
+// Satılan şey oyuncunun zaten istediği üç şey:
+//
+//   çifte gelir   — türün klasiği, kalıcı
+//   dört müdür    — Kaan'ın takıldığı duvar tam buydu; parayla aşmak
+//                   isteyen aşsın
+//   12 saat üretim — zaman atlama, tekrar alınabilir
+//
+// Ürün kimliklerini biz seçiyoruz; Play Console'da **tam bu kimliklerle**
+// açılmaları gerekiyor.
+const _Purchases = _Cap && _Cap.Plugins ? _Cap.Plugins.NativePurchases : null;
+const IAP_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Purchases);
+
+const iap = JSON.parse(localStorage.getItem('tycoon_iap') || '{}');
+function saveIap() { localStorage.setItem('tycoon_iap', JSON.stringify(iap)); }
+// Satın alınan çifte gelir. `unitPrice()` üzerinden uygulanıyor, üretim
+// hızı üzerinden değil: hız darboğaz hesabına ve tampon dolulukarına
+// giriyor, para ise yalnızca kasaya. Oyunun dengesi hızlarla kuruldu ve
+// satılan bir çarpanın o dengeyi yeniden şekillendirmemesi gerekiyor.
+function paidMult() { return iap.double ? 2 : 1; }
+
+// `key`'i olan ürün kalıcı, olmayan tüketilebilir ve tekrar alınabilir.
+// İkisi Play ile ters yönde kapatılıyor, o yüzden ayrım tek yerde.
+function isConsumable(p) { return !p.key; }
+
+// `PRODUCTS` adı alınmış: oyunun araç kademeleri (City, SUV, Pickup…)
+// o adı kullanıyor ve ikinci bir `const PRODUCTS` sayfayı hiç
+// açtırmıyor — "Identifier 'PRODUCTS' has already been declared".
+const SKUS = [
+  {
+    id: 'motorworks_double', key: 'double', icon: '💰',
+    name: 'Double income', desc: 'Every shipment pays twice as much, forever.',
+    price: '$2.99',
+    entitle() { iap.double = true; },
+  },
+  {
+    id: 'motorworks_managers', key: 'allmgr', icon: '👔',
+    name: 'All four managers', desc: 'Derya, Marco, Ines and Kwame, hired at once.',
+    price: '$4.99',
+    entitle() { iap.allmgr = true; G.mgr = G.mgr.map(() => true); saveNow(); },
+  },
+  {
+    id: 'motorworks_skip12', icon: '⏩',
+    name: '12 hours of production', desc: 'Paid in at the rate your line runs right now.',
+    price: '$1.99',
+    grant() {
+      // Elle taşınan bir fabrikanın saatlik kazancı yok; ödenen şey
+      // zincirin **kendi kendine** döndüğü hız. Müdürsüz bir oyuncuya
+      // sıfır vermemek için en az bir saatlik teorik hız veriliyor.
+      const ch = autoChain();
+      const sn = 12 * 3600;
+      const kazanc = ch.flow > 0 ? ch.income * sn : chain().income * 3600;
+      G.cash += kazanc;
+      G.totalEarned += kazanc;
+      saveNow();
+      floatCash('+' + fmt(kazanc));
+    },
+  },
+];
+const SKU_BY_ID = Object.fromEntries(SKUS.map(p => [p.id, p]));
+
+// Ürünü teslim et. `payout` false ise satın alma yalnızca **geri
+// yükleniyor**: sahiplik geri geliyor, tek seferlik içerik ikinci kez
+// verilmiyor.
+function applyProduct(p, payout) {
+  if (p.key) iap[p.key] = true;
+  if (p.entitle) p.entitle();
+  if (payout && p.grant) p.grant();
+  saveIap();
+  refreshPanel();
+}
+
+async function purchase(p) {
+  if (!IAP_ON) return true;        // tarayıcı: akış yürünebilsin
+  let tx;
+  try {
+    tx = await _Purchases.purchaseProduct({ productIdentifier: p.id, productType: 'inapp' });
+  } catch (e) {
+    // İptal de hata da buradan geliyor ve ikisini ayırmaya değmez:
+    // ikisinde de hiçbir şey verilmiyor, ve vazgeçen oyuncuya
+    // vazgeçtiğini söylemenin anlamı yok.
+    return false;
+  }
+  // Para alınmadan önce Play ile kapatılıyor. Tüketmek ve onaylamak
+  // birer çağrı, ve ikisi de "kalıcı satın alma" ile "üç gün sonra
+  // sessizce iade" arasındaki fark.
+  const token = tx && (tx.purchaseToken || (tx.transaction && tx.transaction.purchaseToken));
+  if (token) {
+    try {
+      if (isConsumable(p)) await _Purchases.consumePurchase({ purchaseToken: token });
+      else await _Purchases.acknowledgePurchase({ purchaseToken: token });
+    } catch (e) {
+      // Para zaten alındı, oyuncu aldığını alıyor. Tüketilmemiş bir
+      // tüketilebilir **bir sonraki** alımı engelliyor, onaylanmamış bir
+      // kalıcı ürünü Google iade ediyor; ikisi de açılışta ikinci şansı
+      // buluyor.
+    }
+  }
+  return true;
+}
+
+// Play'in bu hesaba ait dediği her şey kayda uygulanıyor. Açılışta ve
+// "Restore" düğmesinde çalışıyor: yeniden kurulum, ikinci cihaz ve yarıda
+// kalmış bir satın alma oyuncu hiç fark etmeden düzeliyor.
+async function syncPurchases() {
+  if (!IAP_ON) return false;
+  try {
+    await _Purchases.restorePurchases();
+    const res = await _Purchases.getPurchases({ productType: 'inapp' });
+    for (const tx of (res && res.purchases) || []) {
+      const p = SKU_BY_ID[tx.productIdentifier || tx.productId];
+      if (!p) continue;
+      if (isConsumable(p)) {
+        // Hâlâ sahip görünüyorsa tüketilmemiş demek: parası ödenmiş ama
+        // teslim edilmemiş. Ver, sonra tüket ki tekrar alınabilsin.
+        if (tx.purchaseToken) {
+          try {
+            await _Purchases.consumePurchase({ purchaseToken: tx.purchaseToken });
+            applyProduct(p, true);
+          } catch (e) { /* sahipliği bırak, bir sonraki açılış dener */ }
+        }
+      } else {
+        applyProduct(p, false);
+        if (tx.purchaseToken) {
+          try { await _Purchases.acknowledgePurchase({ purchaseToken: tx.purchaseToken }); }
+          catch (e) { }
+        }
+      }
+    }
+    return true;
+  } catch (e) { return false; }
+}
+
+// Play'den gerçek fiyatlar. Alınamazsa koddaki yazılı fiyat kalıyor —
+// yanlış para biriminde bir fiyat, hiç fiyat olmamasından iyi.
+async function loadPrices() {
+  if (!IAP_ON) return;
+  try {
+    const r = await _Purchases.getProducts({ productIdentifiers: SKUS.map(p => p.id) });
+    for (const pr of (r && r.products) || []) {
+      const p = SKU_BY_ID[pr.identifier || pr.productId];
+      if (p && pr.priceString) p.price = pr.priceString;
+    }
+  } catch (e) { }
+}
+
+async function iapInit() {
+  if (!IAP_ON) return;
+  await loadPrices();
+  await syncPurchases();
+  if ($('shop').classList.contains('show')) renderShop();
 }
 
 // ---------------------------------------------------------------------
@@ -2186,6 +2374,42 @@ $('prestigeBtn').onclick = () => {
   $('prestige').classList.add('show');
 };
 $('boardBtn').onclick = () => openLeaderboard();
+
+// --- Mağaza ekranı ---
+function renderShop() {
+  const list = $('shopList');
+  list.innerHTML = '';
+  for (const p of SKUS) {
+    const owned = !!(p.key && iap[p.key]);
+    const b = document.createElement('button');
+    b.className = 'prod' + (owned ? ' owned' : '');
+    b.innerHTML =
+      `<span class="pico">${p.icon}</span>` +
+      `<span class="pmid"><span class="pnm">${p.name}</span>` +
+      `<div class="pds">${p.desc}</div></span>` +
+      `<span class="ppr">${owned ? 'OWNED' : p.price}</span>`;
+    b.disabled = owned;
+    b.onclick = async () => {
+      if (owned) return;
+      b.disabled = true;
+      // Tarayıcıda `purchase` true dönüyor ki akış yürünebilsin; cihazda
+      // yalnızca Play onayladıysa true.
+      if (await purchase(p)) { applyProduct(p, true); ping(880, 0.22); }
+      renderShop();
+    };
+    list.appendChild(b);
+  }
+}
+$('shopBtn').onclick = () => { renderShop(); $('shop').classList.add('show'); };
+$('closeShop').onclick = () => $('shop').classList.remove('show');
+$('restoreBtn').onclick = async () => {
+  const b = $('restoreBtn');
+  b.disabled = true; b.textContent = 'RESTORING…';
+  const ok = await syncPurchases();
+  b.textContent = ok ? 'RESTORED' : 'NOTHING TO RESTORE';
+  renderShop();
+  setTimeout(() => { b.disabled = false; b.textContent = 'RESTORE PURCHASES'; }, 2500);
+};
 $('pNo').onclick = () => $('prestige').classList.remove('show');
 $('pGo').onclick = () => {
   if (!canPrestige()) return;
@@ -2540,7 +2764,7 @@ function tick(now) {
   const tier = productTier();
   if (tier !== shownTier) {
     shownTier = tier;
-    const pr = PRODUCTS[tier];
+    const pr = SKUS[tier];
     for (const m of bays[2].bodyMats) m.color.set(pr.body);
     for (const m of bays[3].loadMats) m.color.set(pr.roof);
     CRATE_MAT[2].color.set(pr.body);
@@ -2777,6 +3001,8 @@ window.jeWipeProgress = () => {
   G.cash = 0; G.totalEarned = 0; G.lifetime = 0; G.branches = 0;
   G.claimed = []; G.goalVal = {}; G.res = {}; G.boosts = 0; G.boostUntil = 0;
   G.tut = 0; G.tipMgr = 0; tutYurudu = false;
+  for (const k of Object.keys(iap)) delete iap[k];
+  saveIap();
   // Portreler geri alınmalı, yoksa sıfırlanan oyunda müdürsüz istasyonun
   // satırında hâlâ bir yüz duruyor.
   for (const r of rows) {
@@ -2821,6 +3047,22 @@ window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().
 // dışarıya veriliyor — eklenti tarayıcıda yok, ama kararı veren kod aynı.
 // Öğreticiyi bitmiş say. Dört adımı tek tek oynatmak başka testlerin
 // işi; müdür ipucunu ölçen testin ihtiyacı yalnızca "öğretici bitti".
+window.jeShop = () => ({
+  acik: IAP_ON,
+  urunler: SKUS.map(p => ({
+    id: p.id, ad: p.name, fiyat: p.price,
+    kalici: !isConsumable(p), sahip: !!(p.key && iap[p.key]),
+  })),
+  carpan: paidMult(),
+  birimFiyat: +unitPrice().toFixed(3),
+  satir: $('shopList').children.length,
+});
+window.jeBuyProduct = async id => {
+  const p = SKU_BY_ID[id];
+  if (!p) return null;
+  if (await purchase(p)) applyProduct(p, true);
+  return window.jeShop();
+};
 window.jeGames = () => ({
   eklenti: !!_Games, acik: GAMES_ON, girdi: _gamesIn,
   kimlik: LEADERBOARD_ID, hazir: gamesReady(),
@@ -2894,6 +3136,7 @@ if (back) showWelcome(back);
 G.seen = Date.now();
 notifInit();
 gamesInit();
+iapInit();
 checkDaily();
 refreshPanel();
 refreshGoalDot();

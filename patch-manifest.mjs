@@ -44,6 +44,9 @@ const APPS = {
   tycoon: {
     dir: 'android-tycoon',
     appId: 'ca-app-pub-2542927456156553~3883131532',
+    // Uygulama içi satın alma var: çifte gelir, dört müdür, 12 saatlik
+    // üretim. İzin olmadan satın alma hiç başlamıyor.
+    billing: true,
     // Play Games Services proje kimliği (Play Console → Motor Works →
     // Play Oyun Hizmetleri → Yapılandırma → "Proje Kimliği").
     //
