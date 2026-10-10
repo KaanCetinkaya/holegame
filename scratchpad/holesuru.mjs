@@ -66,6 +66,7 @@ async function olc(lv, korunan, uzak = 0) {
     let hedef = null;
     const yol = [];
     const uzakliklar = [];
+    const basYenen = window.fruitHoleWhere().eaten;
     let hedefDegisti = 0;
     for (let f = 0; f < 150; f++) {
       const w = window.fruitHoleWhere();
@@ -91,7 +92,7 @@ async function olc(lv, korunan, uzak = 0) {
           // deliğin **durduğu** kova oluyor, çünkü delik parçaların
           // içinde. Uzaklık sıfıra yakınken `dx/d` yön değil gürültü
           // veriyor ve delik yerinde titriyor.
-          if (d < UZAK) continue;
+          if (UZAK > 0 && d < UZAK) continue;
           const puan = v.n / (1 + d / 12);
           if (!en || puan > en.puan) en = { puan, x: cx, z: cz };
         }
@@ -101,8 +102,13 @@ async function olc(lv, korunan, uzak = 0) {
       if (!hedef) window.fruitHoleSteer(0, 0);
       else {
         const dx = hedef.x - w.x, dz = hedef.z - w.z;
-        const d = Math.hypot(dx, dz) || 1;
-        window.fruitHoleSteer(dx / d, dz / d);
+        const d = Math.hypot(dx, dz);
+        if (UZAK < 0 && d < 1 && window.__sonYon) {
+          window.fruitHoleSteer(window.__sonYon[0], window.__sonYon[1]);
+        } else if (d > 0) {
+          window.__sonYon = [dx / d, dz / d];
+          window.fruitHoleSteer(dx / d, dz / d);
+        }
       }
       uzakliklar.push(hedef ? Math.hypot(hedef.x - w.x, hedef.z - w.z) : 0);
       window.__step(1000 / 60);
@@ -127,45 +133,54 @@ async function olc(lv, korunan, uzak = 0) {
     return { ortDeg: ort * 180 / Math.PI,
              sert: donus.filter(d => d > Math.PI / 2).length,
              n: donus.length, hedefDegisti, hareket, kare: yol.length,
-             ortUzak: uzakliklar.reduce((a, b) => a + b, 0) / (uzakliklar.length || 1) };
+             ortUzak: uzakliklar.reduce((a, b) => a + b, 0) / (uzakliklar.length || 1),
+             yenen: window.fruitHoleWhere().eaten - basYenen,
+             // Kat edilen toplam yol: kenara dayanıp sabit yön süren bir
+             // delik "düzgün" görünüyor ama hiçbir yere gitmiyor.
+             mesafe: yol.reduce((a, _, k) => k ? a + Math.hypot(yol[k][0] - yol[k-1][0], yol[k][1] - yol[k-1][1]) : 0, 0) };
   }, [lv, korunan, uzak]);
 }
 
-let fail = 0;
-const ok = (c, ad, not = '') => { if (!c) fail++; console.log(`  ${c ? 'OK  ' : 'FAIL'} ${ad}   ${not}`); };
 
 // İki bölüm ve 150 kare: SwiftShader'da dört bölüm × 270 kare × iki kipi
 // ölçmek konteynerde zaman aşımına uğruyor. Titreşim bir tarz sorunu,
 // bölüm sayısıyla değişmiyor.
 const LVL = [47, 50];
-console.log('\n  blm  hedef her karede yeniden seçiliyor (bugünkü hâli)');
-console.log('  ----+-------------------------------------------------');
-const eski = [];
-for (const lv of LVL) {
-  const r = await olc(lv, false);
-  eski.push(r);
-  console.log(`  ${String(lv).padStart(3)}   ort yön değişimi ${r.ortDeg.toFixed(1)}° · ` +
-    `90°+ geri dönüş ${r.sert}/${r.n} (%${Math.round(r.sert / r.n * 100)}) · ` +
-    `hedefe uzaklık ort ${r.ortUzak.toFixed(2)} birim · hareketli kare ${r.hareket}/${r.kare}`);
+// Üç şey birlikte ölçülmeli, yoksa biri düzelirken öteki bozuluyor ve
+// fark edilmiyor:
+//   yön değişimi — titriyor mu
+//   yenen        — delik parçaların içinde mi, yoksa boşlukta mı geziyor
+//   mesafe       — gerçekten gidiyor mu, yoksa kenara mı dayanmış
+const KIPLER = [
+  ['bugünkü (taban yok)', 0],
+  ['yön tutma (d<1)', -1],
+  ['taban 1.5 birim', 1.5],
+  ['taban 2 birim', 2],
+  ['taban 3 birim', 3],
+  ['taban 4 birim', 4],
+];
+console.log('\n  kip                     blm   yön/kare  geri dönüş   yenen   mesafe');
+console.log('  ----------------------+-----+---------+-----------+-------+--------');
+const sonuc = [];
+for (const [ad, u] of KIPLER) {
+  const satir = [];
+  for (const lv of LVL) {
+    const r = await olc(lv, u !== 0, u);
+    satir.push(r);
+    console.log(`  ${ad.padEnd(22)} ${String(lv).padStart(3)}   ` +
+      `${r.ortDeg.toFixed(1).padStart(6)}°  ${('%' + Math.round(r.sert / r.n * 100)).padStart(9)}   ` +
+      `${String(r.yenen).padStart(5)}   ${r.mesafe.toFixed(1).padStart(6)}`);
+  }
+  sonuc.push({ ad, u, ortDeg: (satir[0].ortDeg + satir[1].ortDeg) / 2,
+    yenen: satir[0].yenen + satir[1].yenen, mesafe: satir[0].mesafe + satir[1].mesafe });
 }
 
-console.log('\n  blm  hedef en az 4 birim ötede + varılana kadar korunuyor');
-console.log('  ----+-------------------------------------------------');
-const yeni = [];
-for (const lv of LVL) {
-  const r = await olc(lv, true, 4);
-  yeni.push(r);
-  console.log(`  ${String(lv).padStart(3)}   ort yön değişimi ${r.ortDeg.toFixed(1)}° · ` +
-    `90°+ geri dönüş ${r.sert}/${r.n} (%${Math.round(r.sert / r.n * 100)}) · ` +
-    `hedefe uzaklık ort ${r.ortUzak.toFixed(2)} birim · hareketli kare ${r.hareket}/${r.kare}`);
-}
-
-const pay = a => a.reduce((s, r) => s + r.sert, 0) / a.reduce((s, r) => s + r.n, 0);
-console.log(`\n  geri dönüş payı: %${Math.round(pay(eski) * 100)} → %${Math.round(pay(yeni) * 100)}`);
-const hareketli = [...eski, ...yeni].every(r => r.hareket > r.kare * 0.8);
-ok(hareketli, 'delik gerçekten hareket etti (yoksa açı ölçümü anlamsız)');
-ok(pay(yeni) < 0.05, 'hedef korununca geri dönüş kalmıyor', `%${Math.round(pay(yeni) * 100)}`);
-ok(pay(eski) > pay(yeni) * 3, 'bugünkü hâli belirgin şekilde kötü');
+// Aranan: yön değişimi 25°'nin altında VE yenen parça bugünküne yakın.
+const bugun = sonuc[0];
+const iyi = sonuc.filter(x => x.u !== 0 && x.ortDeg < 25 && x.yenen >= bugun.yenen * 0.6);
+console.log(`\n  bugünkü: ${bugun.ortDeg.toFixed(1)}° · ${bugun.yenen} parça`);
+console.log(`  eşiği geçen kipler: ${iyi.length ? iyi.map(x => `${x.ad} (${x.ortDeg.toFixed(1)}°, ${x.yenen} parça)`).join(' · ') : 'yok'}`);
+let fail = iyi.length ? 0 : 1;
 
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;
