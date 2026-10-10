@@ -1222,7 +1222,31 @@ function dropCrate(m) { scene.remove(m); m.visible = false; cratePool.push(m); }
 const WORKER_SPEED = 7.2;
 const CARRY_BASE = 6;
 const REACH = 2.6;
-const carryMax = () => CARRY_BASE + resLvl('mgr') * 2;
+// Kapasite **parça sayısı değil, kaç saniyelik üretim**.
+//
+// Sabit 6'ydı ve istasyon üretimi seviyeyle üstel büyüyor. Ölçüldü
+// (`scratchpad/tytasi.mjs`): işçi her seviyede saniyede 3.05 parça
+// taşıyor, oysa istasyon 1. seviyede 1, 185. seviyede 2960 üretiyor.
+// Elle taşımanın üretime oranı %305'ten %0.10'a düşüyordu — yani elle
+// oynamak 40. seviyeden sonra hiçbir şey ifade etmiyordu.
+//
+// Bunun bedeli bir kilit: müdürünü almamış bir oyuncunun geliri sıfır,
+// müdür 110K, ve elle kazanması **her seviyede 180 dakika**. Kaan 60.
+// seviyede tam buraya düştü ve oradan kendi başına çıkamadı.
+//
+// İki saniye, ve müdür buna rağmen açık ara iyi kalıyor. Bir gidiş-dönüş
+// ölçülen 1.97 saniye, yani işçi durduğu halkada **müdürsüz** istasyonun
+// hızına yetişiyor. Müdür ise `MGR_MULT = 2`, yani o halkayı iki katına
+// çıkarıyor **ve** işçiyi serbest bırakıyor. Üç halka var ve işçi aynı
+// anda birinde durabiliyor: elle oynamak tam otomatik bir fabrikanın
+// altıda birine denk geliyor. Bugün bu oran binde bir.
+//
+// `max` ile: ilk seviyelerde üretim 6'nın altında ve taban korunuyor,
+// yani açılış hiç değişmiyor.
+const CARRY_SEC = 2;
+const carryMax = (bay = 0) => Math.max(
+  CARRY_BASE + resLvl('mgr') * 2,
+  Math.floor(rateOf(bay) * CARRY_SEC));
 
 const worker = new THREE.Group();
 let bacakSol, bacakSag, kolSol, kolSag;
@@ -1398,7 +1422,7 @@ function stepWorker(dt) {
 
   // Elimiz boşsa ve buradaki yığında mal varsa al.
   if (carryN === 0 && bay < LAST && G.pile[bay] >= 1) {
-    const al = Math.min(carryMax(), Math.floor(G.pile[bay]));
+    const al = Math.min(carryMax(bay), Math.floor(G.pile[bay]));
     G.pile[bay] -= al;
     carryN = al; carryKind = bay;
     setCarryVisual(Math.min(6, al), bay);
@@ -2071,6 +2095,16 @@ window.jeWalk = bay => {
 };
 // Serbest bir noktaya koy. `jeWalk` yalnızca bölmelere koyabiliyor, oysa
 // zemin yüksekliğini ölçmek için platformun **dışında** bir yer gerekiyor.
+// Dengeyi seviye seviye ölçebilmek için: seviyeyi doğrudan koy, istasyon
+// hızlarını tek tek oku, işçinin kapasitesini ve müdür fiyatını sor.
+//
+// `jeBuy` ile seviye yükseltmek aynı işi görmüyor: parayı da harcıyor ve
+// yükseltme merdiveni üstel, yani 185. seviyeye çıkmak için önce 185 kez
+// satın almak gerekiyor. Ölçüm, ekonomiyi değil **oranı** arıyor.
+window.jeSetLevel = (i, lv) => { G.lvl[i] = lv; refreshPanel(); return G.lvl[i]; };
+window.jeRates = () => STATIONS.map((_, i) => +rateOf(i).toFixed(3));
+window.jeCarryMax = (bay = 0) => carryMax(bay);
+window.jeMgrCost = i => +mgrCostOf(i).toFixed(2);
 window.jeTeleport = (x, z) => {
   worker.position.x = x;
   worker.position.z = z;
