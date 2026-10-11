@@ -475,8 +475,23 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
 
 const dusen = [];
 let cikan = 0;
+// Düşen klip **kendi kendine** yeniden deneniyor.
+//
+// Bekçinin düşürdüğü kliplerin mesajı zaten "yeniden çalıştır, tahta
+// rastgele" diyordu ve beş kliplik bir partide üçü buna takıldı. Aracın
+// kendisi söylediği şeyi kendisi yapabiliyorken, insanın saat başı
+// komutu yeniden yazması için bir sebep yok.
+//
+// Üç deneme: tahta her kuruluşta farklı diziliyor, yani ikinci ya da
+// üçüncü kuruluşta şart tutabiliyor. Sonsuz denemiyor — bir düzen
+// şartı yapısal olarak tutmuyorsa (görev bölümünde engel olmaması
+// gibi) tekrar denemek yalnızca zaman harcıyor, ve o ayrımı bekçinin
+// mesajı zaten söylüyor.
+const DENEME = Number(arg('deneme', 3));
 for (const clip of CLIPS) {
   if (ONLY && !ONLY.includes(clip.id)) continue;
+  let kalanDeneme = DENEME;
+  while (kalanDeneme-- > 0) {
   // Bir klibin düşmesi partiyi bitirmemeli: dördü çıkmışken beşincisi
   // yüzünden hepsini baştan üretmek yirmi dakika demek.
   try {
@@ -1155,9 +1170,13 @@ for (const clip of CLIPS) {
   rmSync(frameDir, { recursive: true, force: true });
   cikan++;
   console.log(`  -> ${mp4}  (${Math.round((Date.now() - t0) / 1000)} sn sürdü)`);
+  break;                       // çıktı, denemeyi bırak
   } catch (e) {
-    console.log(`  DÜŞTÜ: ${String(e).split('\n')[0]}`);
-    dusen.push(clip.id);
+    const son = kalanDeneme <= 0;
+    console.log(`  DÜŞTÜ${son ? '' : ` (${DENEME - kalanDeneme}/${DENEME}, yeniden deneniyor)`}: ` +
+      `${String(e).split('\n')[0]}`);
+    if (son) dusen.push(clip.id);
+  }
   }
 }
 
