@@ -575,12 +575,31 @@ const STATIONS = [
 //
 // Yüzler çizilerek üretiliyor, dosyadan değil: oyunun hiçbir yerinde
 // görsel dosya yok ve bu kural için bir istisna açılmıyor.
+// Her müdürün **kendine has** bir bonusu var, ve dördü ayrı sisteme
+// dokunuyor: hız, maliyet, hızlandırıcı, fiyat. Hepsi aynı şeyi yapsaydı
+// hangisini önce alacağın fark etmezdi; türün müdür ekranını bir karar
+// yapan şey bu.
+//
+// Dördü de **küçük** tutuldu. Müdürün asıl verdiği şey hâlâ `MGR_MULT`
+// (×2) ve otomasyon; bonus onun yanında bir tat, ekonomiyi yeniden
+// şekillendiren bir çarpan değil. Denge `scratchpad/tycoon*.mjs`
+// simülasyonlarıyla kuruldu ve ölçüsü `scratchpad/tymudur.mjs`.
 const MGRS = [
-  { ad: 'Derya',  rol: 'runs the furnaces', ten: '#e3b88f', sac: '#2f2a28', baret: '#ff9f2e' },
-  { ad: 'Marco',  rol: 'runs the presses',  ten: '#f0cda7', sac: '#6b4a2c', baret: '#2f8be8' },
-  { ad: 'Ines',   rol: 'runs the line',     ten: '#c98a5e', sac: '#1f1b1a', baret: '#ffd23f' },
-  { ad: 'Kwame',  rol: 'runs the yard',     ten: '#8a5a3c', sac: '#15110f', baret: '#5fbf6a' },
+  { ad: 'Derya',  rol: 'runs the furnaces', bonus: '+25% foundry speed',
+    kisa: '+25% speed',
+    ten: '#e3b88f', sac: '#2f2a28', baret: '#ff9f2e' },
+  { ad: 'Marco',  rol: 'runs the presses',  bonus: 'upgrades 8% cheaper',
+    kisa: '-8% upgrades',
+    ten: '#f0cda7', sac: '#6b4a2c', baret: '#2f8be8' },
+  { ad: 'Ines',   rol: 'runs the line',     bonus: 'boost lasts 60s longer',
+    kisa: '+60s boost',
+    ten: '#c98a5e', sac: '#1f1b1a', baret: '#ffd23f' },
+  { ad: 'Kwame',  rol: 'runs the yard',     bonus: '+12% vehicle price',
+    kisa: '+12% price',
+    ten: '#8a5a3c', sac: '#15110f', baret: '#5fbf6a' },
 ];
+// Bonuslar tek yerde, sayıları metinle birlikte dursun diye.
+const MGR_FOUNDRY = 1.25, MGR_CHEAP = 0.92, MGR_BOOST = 60, MGR_PRICE = 1.12;
 
 // 72x72 bir portre. Kafa, saç, baret — üç şekil, ve hepsi kimliği
 // ayırmaya yetiyor. Bir kez çizilip saklanıyor: `refreshPanel` saniyede
@@ -652,7 +671,9 @@ const nextProduct = () => PRODUCTS[productTier() + 1] || null;
 // değil: hız darboğaza ve tampon doluluğuna giriyor, para yalnızca
 // kasaya. Satılan bir çarpan oyunun dengesini yeniden şekillendirmemeli.
 const unitPrice = () =>
-  STATIONS[LAST].price * product().mult * (1 + resLvl('price') * 0.05) * paidMult();
+  STATIONS[LAST].price * product().mult * (1 + resLvl('price') * 0.05) * paidMult()
+  // Kwame'nin bonusu: araç fiyatı %12 yüksek.
+  * (G.mgr[3] ? MGR_PRICE : 1);
 
 // Milestones. Levelling a station adds one unit of rate whatever level it is
 // at, so past the first hour every purchase felt identical and the game was
@@ -675,7 +696,8 @@ const nextMilestone = i => MILESTONES.find(m => G.lvl[i] < m) || null;
 // for it, it runs out, they can ask again.
 const BOOST_MULT = 3;
 const BOOST_SECS = 180;
-const boostSecs = () => BOOST_SECS + resLvl('boost') * 15;
+// Ines'in bonusu: hızlandırıcı 60 saniye uzun.
+const boostSecs = () => BOOST_SECS + resLvl('boost') * 15 + (G.mgr[2] ? MGR_BOOST : 0);
 const BOOST_COOL = 900;
 const BUFFER_MAX = 40;       // how much a station may stockpile ahead
 const OFFLINE_BASE = 4 * 3600;
@@ -800,10 +822,15 @@ const rateOf = i =>
   G.lvl[i] * STATIONS[i].baseRate
   * Math.pow(2, milestonesHit(i))
   * (G.mgr[i] ? MGR_MULT : 1)
+  // Derya'nın bonusu: döküm ocağı %25 hızlı. Yalnız kendi istasyonunda.
+  * (i === 0 && G.mgr[0] ? MGR_FOUNDRY : 1)
   * branchMult() * boostMult();
 // Research discounts multiply the whole ladder, so the geometric sum and its
 // inverse below stay exact rather than needing a per-level correction.
-const cheapMult = () => 1 - resLvl('cheap') * 0.015;
+// Marco'nun bonusu: yükseltmeler %8 ucuz, **bütün** istasyonlarda.
+// Araştırmadaki indirimle çarpılıyor, toplanmıyor — ikisi de merdivenin
+// tamamını ölçeklediği için geometrik toplam ve tersi bozulmadan kalıyor.
+const cheapMult = () => (1 - resLvl('cheap') * 0.015) * (G.mgr[1] ? MGR_CHEAP : 1);
 const mgrCostOf = i => STATIONS[i].mgrCost * (1 - resLvl('mgr') * 0.04);
 const costOf = (i, n) => {
   // sum of a geometric run, so "buy 10" is one number rather than ten
@@ -2276,7 +2303,7 @@ function refreshPanel() {
     if (i === ch.neck) bits.push('<em>BOTTLENECK</em>');
     else if (blocked) bits.push(`<u>FULL — upgrade ${STATIONS[ch.neck].name}</u>`);
     if (hits) bits.push(`<b>×${fmt(Math.pow(2, hits))}</b>`);
-    if (G.mgr[i]) bits.push(`<b>${MGRS[i].ad}</b> ${MGRS[i].rol}`);
+    if (G.mgr[i]) bits.push(`<b>${MGRS[i].ad}</b> · ${MGRS[i].bonus}`);
     // The milestone hint is dropped while blocked. It does not fit next to
     // the instruction and it is the one line that is not worth acting on:
     // levelling a station whose output has nowhere to go buys nothing.
@@ -2304,8 +2331,11 @@ function refreshPanel() {
     if (showMgr) {
       // İşe alınacak olanın yüzü ve adı düğmenin üstünde. "MANAGER ×2"
       // bir özellik satıyordu; bu bir kişi işe alıyor.
+      // "HIRE" duruyor: düğmenin ne yaptığını söyleyen tek kelime o.
+      // Bonusun kısa hâli yanında; uzunu satırda, işe alındıktan sonra.
       r.mgr.innerHTML = `<img class="mface" src="${mgrYuz(i)}" alt="">` +
-                        `${fmt(mgrCostOf(i))}<small>HIRE ${MGRS[i].ad.toUpperCase()} ×2</small>`;
+                        `${fmt(mgrCostOf(i))}<small>HIRE ${MGRS[i].ad.toUpperCase()} ` +
+                        `×2 · ${MGRS[i].kisa}</small>`;
       r.mgr.disabled = G.cash < mgrCostOf(i);
     }
     // İşe alındıysa istasyonun simgesi yerine portresi duruyor: satıra
@@ -2934,6 +2964,10 @@ window.jeWalk = bay => {
 window.jeSetLevel = (i, lv) => { G.lvl[i] = lv; refreshPanel(); return G.lvl[i]; };
 window.jeRates = () => STATIONS.map((_, i) => +rateOf(i).toFixed(3));
 window.jeCarryMax = (bay = 0) => carryMax(bay);
+// Müdür bonuslarının dokunduğu üç sayı, dışarıdan okunabilsin diye.
+window.jeCost = (i, n = 1) => +costOf(i, n).toFixed(4);
+window.jeBoostSecs = () => boostSecs();
+window.jeUnitPrice = () => +unitPrice().toFixed(6);
 window.jeMgrCost = i => +mgrCostOf(i).toFixed(2);
 window.jeTeleport = (x, z) => {
   worker.position.x = x;
@@ -3076,7 +3110,7 @@ window.jeGames = () => ({
   hata: _gamesErr,
 });
 window.jeMgrKimlik = () => MGRS.map((m, i) => ({
-  ad: m.ad, rol: m.rol, alindi: G.mgr[i],
+  ad: m.ad, rol: m.rol, bonus: m.bonus, alindi: G.mgr[i],
   // Veri URL'sinin kendisi değil, özeti. İlk hâli ilk 22 karakteri
   // alıyordu ve o karakterler `data:image/png;base64,` — dört yüz de
   // aynı görünüyordu, test de kodu değil kendini ölçmüş oluyordu.

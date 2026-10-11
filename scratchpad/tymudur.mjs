@@ -57,21 +57,45 @@ ok(sonra[0].portreGorunur, 'alınınca portre istasyonun simgesinin yerine geçi
 ok(/Derya/.test(sonra[0].meta), 'satırda adı yazıyor');
 ok(!/manager/i.test(sonra[0].meta), '"manager" yerine kişi');
 
-console.log('\n3) Hiçbir sayı değişmedi');
-// Müdürün verdiği şey `MGR_MULT = 2`; kimlik onu değiştirmemeli. Aynı
-// istasyon, müdürlü ve müdürsüz, aynı seviyede ölçülüyor.
-const sayilar = await pg.evaluate(() => {
+console.log('\n3) Her bonus yalnızca kendi işine dokunuyor');
+// Dört bonus dört ayrı sisteme bağlı. Her biri **tek tek** ölçülüyor:
+// müdür alınınca kendi sayısı değişmeli, ötekiler duruyor olmalı.
+const tek = async (i) => pg.evaluate((idx) => {
   window.jeWipeProgress();
-  window.jeSetLevel(0, 20);
-  const once = window.jeRates()[0];
-  const fiyat = window.jeMgrCost(0);
-  window.jeGiveManager(0);
-  return { once, sonra: window.jeRates()[0], fiyat };
-});
-console.log(`     hız ${sayilar.once} → ${sayilar.sonra} · müdür fiyatı ${sayilar.fiyat}`);
-ok(Math.abs(sayilar.sonra / sayilar.once - 2) < 1e-6, 'müdür hâlâ tam ×2',
-   `${(sayilar.sonra / sayilar.once).toFixed(4)}`);
-ok(sayilar.fiyat === 40000, 'fiyat değişmedi', `${sayilar.fiyat}`);
+  for (let k = 0; k < 4; k++) window.jeSetLevel(k, 20);
+  const once = { hiz: window.jeRates().slice(), fiyat: window.jeCost(0, 1),
+                 boost: window.jeBoostSecs(), birim: window.jeUnitPrice() };
+  window.jeGiveManager(idx);
+  return { once, sonra: { hiz: window.jeRates().slice(), fiyat: window.jeCost(0, 1),
+                          boost: window.jeBoostSecs(), birim: window.jeUnitPrice() } };
+}, i);
+
+const d = await tek(0);
+// Derya: ×2 otomasyon **ve** %25 — yani kendi istasyonunda toplam 2.5 kat.
+const deryaKat = d.sonra.hiz[0] / d.once.hiz[0];
+console.log(`     Derya  döküm hızı ×${deryaKat.toFixed(2)} · öteki istasyonlar ${d.sonra.hiz[1] === d.once.hiz[1] ? 'sabit' : 'DEĞİŞTİ'}`);
+ok(Math.abs(deryaKat - 2.5) < 1e-6, 'Derya döküm hızını 2.5 katına çıkarıyor', `${deryaKat.toFixed(3)}`);
+ok(d.sonra.hiz[1] === d.once.hiz[1], 'öteki istasyonlara dokunmuyor');
+
+const m = await tek(1);
+const marcoKat = m.sonra.fiyat / m.once.fiyat;
+console.log(`     Marco  yükseltme fiyatı ×${marcoKat.toFixed(3)}`);
+ok(Math.abs(marcoKat - 0.92) < 1e-6, 'Marco yükseltmeleri %8 ucuzlatıyor', `${marcoKat.toFixed(4)}`);
+
+const n = await tek(2);
+console.log(`     Ines   hızlandırıcı ${n.once.boost}s → ${n.sonra.boost}s`);
+ok(n.sonra.boost - n.once.boost === 60, 'Ines hızlandırıcıya 60 saniye ekliyor');
+
+const kw = await tek(3);
+const kwameKat = kw.sonra.birim / kw.once.birim;
+console.log(`     Kwame  araç fiyatı ×${kwameKat.toFixed(3)}`);
+ok(Math.abs(kwameKat - 1.12) < 1e-6, 'Kwame araç fiyatını %12 artırıyor', `${kwameKat.toFixed(4)}`);
+
+// Dördünün toplam etkisi burada **ölçülmüyor**. İlk yazılışında bir
+// bölüm vardı ve `1.25 * 1.12 < 2` diye bir kontrol yapıyordu: testin
+// kendi yazdığı iki sabiti yine kendisi çarpıyordu, yani koda hiç
+// bakmadan geçiyordu. Dengenin asıl sınavı `scratchpad/tycoon2..6` —
+// sahte oyuncuyla saatlerce koşan simülasyonlar.
 
 console.log('\n4) Sıfırlanınca portre kalkıyor');
 const sifir = await pg.evaluate(() => {
