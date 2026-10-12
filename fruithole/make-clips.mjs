@@ -1119,9 +1119,26 @@ for (const clip of CLIPS) {
         : 'UYARI: dev yutulmadı, arama süresi bitti — ödeme yok (--search artırılabilir)') +
     (erken ? ` · ${erken} erken yutma atlandı` : ''));
 
-  // Yenen meyve sayısı sıfırsa video boş bir tarla gösteriyor demektir;
-  // sessizce bir dosya bırakmaktansa söylemek daha iyi.
-  if (son.eaten === 0) console.log('  UYARI: hiç meyve yenmemiş, klibe bakmadan yayınlama.');
+  // Ödemesiz ya da boş klip **teslim edilmiyor**.
+  //
+  // İkisi de uyarı olarak yazılıyordu ve klip yine de dosyaya çıkıyordu.
+  // Uyarıyı okumayı bana bıraktı ve okumadım: üç klip "pürüzsüz" diye
+  // gönderildi, hiçbirinde dev yutulmamıştı, biri (`cubes`) kaydedilen
+  // pencerede **sıfır** parça yiyordu. Kaan videoları açıp söyledi.
+  //
+  // Klibin sözü iki şey: tahtanın kalabalık bir anı, ve sonunda bir dev.
+  // İkisinden biri yoksa klip o sözü tutmuyor, ve tutmayan bir klibi
+  // dosyaya yazmak uyarıyı anlamsız kılıyor. Düşen klip zaten üç kez
+  // yeniden deneniyor.
+  const yendiPencere = sonYenen - ilkYenen;
+  if (yutuldu < 0) {
+    throw new Error(`${clip.id}: dev yutulmadı — klibin ödemesi yok. ` +
+      `Arama süresi doldu (--search ${SEARCH}s).`);
+  }
+  if (yendiPencere < 20) {
+    throw new Error(`${clip.id}: kaydedilen 7.8 saniyede yalnızca ` +
+      `${yendiPencere} parça yendi — tahtanın boş bir anı.`);
+  }
 
   // **Tahta gerçekten kıpırdadı mı?**
   //
