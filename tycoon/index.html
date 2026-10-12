@@ -4028,6 +4028,17 @@ window.jeMusBelir = () => { musSayac = 0; return musBelir(); };
 // gidişinde sahneden çıkıyor; sayı yirmi müşteri sonunda da aynı
 // kalmalı. Göz bunu fark etmiyor, sayı fark ediyor.
 window.jeSahne = () => scene.children.length;
+// Çizim yükü. Ucuz bir Android'de kare hızını belirleyen şey bu:
+// kaç çizim çağrısı, kaç üçgen, kaç cisim. Konteynerde GPU yok, o
+// yüzden kare hızı ölçülemiyor — ama bunlar cihazdan bağımsız.
+window.jePerf = () => {
+  const r = renderer.info.render, m = renderer.info.memory;
+  let cisim = 0;
+  scene.traverse(() => cisim++);
+  return { cagri: r.calls, ucgen: r.triangles, cisim,
+           doku: m.textures, geometri: m.geometries,
+           kasa: belts.reduce((a, b) => a + b.crates.length, 0) };
+};
 // Dil: şu anki seçim, kayıttaki seçim ve tablonun kendisi. Tabloyu
 // dışarı vermek, "her anahtarın iki karşılığı var mı" sorusunun oyunun
 // kendi verisinden cevaplanmasını sağlıyor.
