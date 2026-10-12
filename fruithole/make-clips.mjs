@@ -1097,6 +1097,18 @@ for (const clip of CLIPS) {
       console.log(`  sürüş: yön değişimi ${ort.toFixed(1)}°/kare · geri dönüş %${pay}` +
         (ort > 25 ? '  ← TİTRİYOR' : ''));
     }
+    // Kaydedilen pencerede kaç parça yendi?
+    //
+    // Titreşim uyarısı eklendiğinde yalnızca **pürüzsüzlüğe** bakıldı ve
+    // üç klip arka arkaya pürüzsüz çıkıp neredeyse hiçbir şey yemeden
+    // teslim edildi: `cubes` 594 karede 17 parça. Kaan bakıp "hiçbir şey
+    // yutmamışsın" dedi. Ölçülmeyen şey bozuluyor.
+    {
+      const yendi = sonYenen - ilkYenen;
+      const sn = adet / FPS;
+      console.log(`  yenen: ${yendi} parça (${(yendi / sn).toFixed(1)}/sn)` +
+        (yendi < 20 ? '  ← AZ' : ''));
+    }
   }
   console.log(`  gövde ${basKare}-${sonKare} arası (${(adet / FPS).toFixed(1)} sn) · ` +
     (yutuldu >= 0
