@@ -2171,14 +2171,21 @@ let carryKind = -1, carryN = 0;
 // ekranın herhangi bir yeri sürüklenebilir — arayüz düğmeleri kendi
 // tıklamalarını zaten yutuyor.
 let dragOn = false, dragX = 0, dragY = 0, moveX = 0, moveZ = 0;
+// Dokunma mı sürükleme mi: aynı yüzey ikisini de taşıyor. Ayrımı
+// başlangıç noktası ve süre veriyor — kısa, yerinde bir basış dokunuş,
+// gerisi sürükleme. Müşteri arabasına dokunmak buradan geçiyor.
+let basX = 0, basY = 0, basAn = 0, enUzak = 0;
+const TAP_PX = 12, TAP_MS = 400;
 const canvasEl = renderer.domElement;
 canvasEl.style.touchAction = 'none';
 canvasEl.addEventListener('pointerdown', e => {
   dragOn = true; dragX = e.clientX; dragY = e.clientY;
+  basX = e.clientX; basY = e.clientY; basAn = performance.now(); enUzak = 0;
   canvasEl.setPointerCapture(e.pointerId);
 });
 canvasEl.addEventListener('pointermove', e => {
   if (!dragOn) return;
+  enUzak = Math.max(enUzak, Math.hypot(e.clientX - basX, e.clientY - basY));
   const dx = e.clientX - dragX, dy = e.clientY - dragY;
   const uz = Math.hypot(dx, dy);
   if (uz < 6) { moveX = moveZ = 0; return; }
@@ -2191,7 +2198,12 @@ canvasEl.addEventListener('pointermove', e => {
   moveZ = sx * 0.707 + sy * 0.707;
 });
 const dragBitir = () => { dragOn = false; moveX = moveZ = 0; };
-canvasEl.addEventListener('pointerup', dragBitir);
+canvasEl.addEventListener('pointerup', e => {
+  const kisa = performance.now() - basAn < TAP_MS &&
+    Math.max(enUzak, Math.hypot(e.clientX - basX, e.clientY - basY)) < TAP_PX;
+  dragBitir();
+  if (kisa) musDokun(e.clientX, e.clientY);
+});
 canvasEl.addEventListener('pointercancel', dragBitir);
 
 // İşçinin bir adımı: yürü, sonra bulunduğu bölmede al ya da bırak.
@@ -3032,6 +3044,154 @@ addEventListener('visibilitychange', () => {
 });
 
 // ---------------------------------------------------------------------
+// Müşteri
+// ---------------------------------------------------------------------
+// Boş zamanda oyuncunun elinde iki şey vardı: işçiyi sürüklemek ve
+// menüdeki düğmelere basmak. Türün geri kalanında bir üçüncüsü var —
+// **ekranda beliren, dokunulması gereken** bir şey. Adventure
+// Capitalist'in altın bileti, Egg Inc'in dronu, Idle Miner'ın kamyonu:
+// hepsi aynı işi yapıyor, oyuncuya ekrana bakmak için bir sebep veriyor.
+//
+// Burada o şey önlüğe giren bir müşteri arabası. On altı saniye bekliyor;
+// dokunulursa ödüyor, dokunulmazsa sessizce gidiyor. Kaçırmanın bedeli
+// yok, çünkü ceza veren bir mekanik oyuncuyu telefonun başına zincirler.
+const MUS_ARA = [100, 190];        // iki müşteri arası, saniye
+const MUS_ILK = 40;                // açılıştan sonraki ilki
+const MUS_BEKLE = 16;              // dokunulmayı beklediği süre
+const MUS_SN = 30;                 // ödül: kaç saniyelik üretim
+const MUS_GIR = 1.5;               // önlüğe girişi ve çıkışı
+// Yerler ölçülerek seçildi ve iki şart var, ikincisi ilk denemede
+// atlandı. Ağaçlardan gelen ders birincisi: kamera 36 birim yüksekliğinde
+// ortografik, kadrajı önlükten çok daha dar, yani "önlüğün içinde" olmak
+// "ekranda" olmak değil. İkincisi bu özellikte ölçüldü — ekranda olmak da
+// **dokunulabilir** olmak değil: ilk park yeri (7.2, 1.2) ekranın 491.
+// pikseline düşüyordu, istasyon paneli 522'de başlıyor ve dokunma yarıçapı
+// 64 piksel. Parmağın yarısı panele iniyordu. Yeni yer ekranın ortasında,
+// panelin 130 piksel üstünde.
+const MUS_X_DIS = 14, MUS_X_PARK = 6.5, MUS_Z = -6;
+// Dokunma yarıçapı ekran pikseli. Parmak işaretin tam üstüne gelmiyor;
+// araba ekranda yaklaşık 70 piksel geniş, yarıçap bunun biraz üstünde.
+const MUS_DOKUN_R = 64;
+
+let mus = null, musGrup = null;
+let musSayac = MUS_ILK;
+let musGecen = 0, musAlinan = 0;    // kaç müşteri geldi, kaçına dokunuldu
+
+function musYap() {
+  const g = new THREE.Group();
+  // Önlüğün kendi arabalarından ayrılsın diye beyaz: montajdan çıkanlar
+  // ürün rengindeydi, bu misafir.
+  const govde = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.52, 3.0), MAT('#eef3f7', 0.35));
+  govde.position.y = 0.62; govde.castShadow = true; g.add(govde);
+  const cati = new THREE.Mesh(new THREE.BoxGeometry(1.32, 0.46, 1.5), MAT('#2d3a47', 0.3));
+  cati.position.set(0, 1.08, -0.15); cati.castShadow = true; g.add(cati);
+  const tekGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.22, 10);
+  const tekMat = MAT('#1b1f24', 0.9);
+  for (const [x, z] of [[-0.78, 1.0], [0.78, 1.0], [-0.78, -1.0], [0.78, -1.0]]) {
+    const t = new THREE.Mesh(tekGeo, tekMat);
+    t.rotation.z = Math.PI / 2;
+    t.position.set(x, 0.3, z);
+    g.add(t);
+  }
+  // İşaret: dokunulacak şeyin dokunulabilir göründüğü yer. Yazı yok —
+  // bu ölçekte bir harf okunmuyor; sallanan parlak bir cisim uzaktan da
+  // fark ediliyor.
+  const im = new THREE.Mesh(new THREE.OctahedronGeometry(0.42), GLOW('#ffd34d', 0.9));
+  im.position.y = 2.4;
+  g.add(im);
+  // Yerdeki halka arabayı zemine bağlıyor: halkasız hâli, sahnenin
+  // üstünde duran ayrı bir cisim gibi görünüyordu.
+  const halka = new THREE.Mesh(new THREE.RingGeometry(1.2, 1.55, 24), GLOW('#ffd34d', 0.35));
+  halka.rotation.x = -Math.PI / 2;
+  halka.position.y = 0.03;
+  g.add(halka);
+  g.rotation.y = -Math.PI / 2;      // -x yönüne bakıyor, girdiği yöne
+  g.userData.im = im;
+  g.userData.halka = halka;
+  return g;
+}
+
+// Ödül hedeflerle aynı ölçekte: oyuncunun kendi zincirinin saniyesi,
+// boost'a bölünerek. Boost'lu bir anda dokunmak ödülü iki katına
+// çıkarmamalı — hedeflerde ölçülen aynı kural.
+const musOdul = () => MUS_SN * chain().income / boostMult();
+
+function musBelir() {
+  if (mus) return false;
+  // Öğretici sürerken belirmiyor: dört adımı olan bir ders ile ekranda
+  // parlayan bir cisim aynı anda dikkat isteyemez.
+  if (G.tut < TUT.length) return false;
+  musGrup ||= musYap();
+  musGrup.position.set(MUS_X_DIS, 0, MUS_Z);
+  scene.add(musGrup);
+  // Ödül **beliriş anında** donuyor. Hedeflerde ölçülen sebep: oyuncu
+  // bekledikçe büyüyen bir ödül, beklemeyi ödüllendirir.
+  mus = { hal: 'gir', t: 0, odul: musOdul() };
+  musGecen++;
+  return true;
+}
+
+function musBitir() {
+  if (musGrup) scene.remove(musGrup);
+  mus = null;
+  musSayac = MUS_ARA[0] + Math.random() * (MUS_ARA[1] - MUS_ARA[0]);
+}
+
+function musAdim(dt) {
+  if (!mus) {
+    musSayac -= dt;
+    if (musSayac <= 0) { if (!musBelir()) musSayac = 20; }
+    return;
+  }
+  mus.t += dt;
+  const im = musGrup.userData.im, halka = musGrup.userData.halka;
+  im.rotation.y += dt * 1.8;
+  im.position.y = 2.4 + Math.sin(mus.t * 3.4) * 0.14;
+  if (mus.hal === 'gir') {
+    const k = Math.min(1, mus.t / MUS_GIR);
+    musGrup.position.x = MUS_X_DIS + (MUS_X_PARK - MUS_X_DIS) * k;
+    if (k >= 1) { mus.hal = 'bekle'; mus.t = 0; }
+  } else if (mus.hal === 'bekle') {
+    // Son üç saniyede halka hızlanıyor: süre dolmak üzere.
+    const kalan = MUS_BEKLE - mus.t;
+    halka.material.emissiveIntensity = kalan < 3 ? 0.35 + Math.abs(Math.sin(mus.t * 7)) * 0.6 : 0.35;
+    if (kalan <= 0) { mus.hal = 'cik'; mus.t = 0; }
+  } else {
+    const k = Math.min(1, mus.t / MUS_GIR);
+    musGrup.position.x = MUS_X_PARK + (MUS_X_DIS - MUS_X_PARK) * k;
+    if (k >= 1) musBitir();
+  }
+}
+
+// Arabanın ekrandaki yeri. Dokunma kontrolü için ışın atılmıyor: kamera
+// ortografik ve cisim tek, bir izdüşüm yeterli — ve ölçülebilir.
+const _musV = new THREE.Vector3();
+function musEkran() {
+  if (!mus) return null;
+  _musV.set(musGrup.position.x, 1.2, musGrup.position.z).project(camera);
+  return { x: (_musV.x * 0.5 + 0.5) * innerWidth,
+           y: (-_musV.y * 0.5 + 0.5) * innerHeight };
+}
+
+function musDokun(px, py) {
+  if (!mus || mus.hal === 'cik') return 0;
+  const e = musEkran();
+  if (!e || Math.hypot(e.x - px, e.y - py) > MUS_DOKUN_R) return 0;
+  const pay = mus.odul;
+  G.cash += pay;
+  // `G.totalEarned`'a yazılmıyor: hedeflerde ve günlük görevlerde
+  // ölçülen aynı sebep — bir ödül kendi ölçüsünü beslememeli, yoksa
+  // hiçbir şey üretmemiş bir fabrika prestij puanı biriktirir.
+  musAlinan++;
+  saveNow();
+  ping(980, 0.22);
+  floatCash('+' + fmt(pay));
+  mus.hal = 'cik';
+  mus.t = 0;
+  return pay;
+}
+
+// ---------------------------------------------------------------------
 // Frame
 // ---------------------------------------------------------------------
 let last = performance.now();
@@ -3045,6 +3205,7 @@ function tick(now) {
 
   const earned = runFactory(dt);
   floatAcc += earned;
+  musAdim(dt);
   stepWorker(dt);
 
   const ch = chain();
@@ -3404,6 +3565,35 @@ window.jeMuzik = () => ({
   ileri: actx && muzAcik ? +(muzZaman - actx.currentTime).toFixed(2) : 0,
 });
 window.jeMuzBasla = () => { muzBasla(); return window.jeMuzik(); };
+// Müşteri: durumu, ekrandaki yeri ve ödülü. `jeMusDokun` arabanın kendi
+// izdüşümüne dokunuyor, yani oyuncunun yaptığı şeyi yapıyor.
+window.jeMus = () => ({
+  var: !!mus, hal: mus ? mus.hal : null, t: mus ? +mus.t.toFixed(2) : 0,
+  odul: mus ? mus.odul : 0, sayac: +musSayac.toFixed(1),
+  gecen: musGecen, alinan: musAlinan,
+  x: musGrup ? +musGrup.position.x.toFixed(2) : null,
+  ekran: musEkran(), bekle: MUS_BEKLE, sn: MUS_SN, r: MUS_DOKUN_R,
+});
+window.jeMusBelir = () => { musSayac = 0; return musBelir(); };
+// Sahnedeki cisim sayısı. Müşteri tek bir gruptan yapılıyor ve her
+// gidişinde sahneden çıkıyor; sayı yirmi müşteri sonunda da aynı
+// kalmalı. Göz bunu fark etmiyor, sayı fark ediyor.
+window.jeSahne = () => scene.children.length;
+// Bir dünya noktası ekranda nereye düşüyor. Park yeri bununla seçildi:
+// "önlüğün içinde" olmak yetmiyor, nokta hem kadrajda olmalı hem de
+// arayüzün altında kalmamalı.
+window.jeIzdusum = (x, y, z) => {
+  const v = new THREE.Vector3(x, y, z).project(camera);
+  return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight };
+};
+window.jeMusAdim = (sn, adim = 0.05) => {
+  for (let i = 0; i < Math.round(sn / adim); i++) musAdim(adim);
+  return window.jeMus();
+};
+window.jeMusDokun = (dx = 0, dy = 0) => {
+  const e = musEkran();
+  return e ? musDokun(e.x + dx, e.y + dy) : 0;
+};
 window.jeGorev = () => ({
   gun: G.gun ? G.gun.gun : null,
   liste: G.gun ? G.gun.liste.map(id => {
