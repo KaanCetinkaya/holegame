@@ -172,6 +172,11 @@ Telefon görüntüleri 1080×1920, gerçek oynanıştan çekilmiş, bu sırayla
 yüklenmeli. Aramada yalnızca ilk ikisi görünüyor ve o ikisinin tek işi
 büyümeyi anlatmak: **1 ile 2 aynı açıdan, biri dolu biri boş.**
 
+`tr/` klasöründe aynı sekizi **Türkçe** — oyun Türkçe açılmış hâlde
+çekildi ve başlıkları da Türkçe. Play'de mağaza kaydına `tr-TR` dili
+eklenince görseller oraya ayrı yükleniyor; eklenmezse Türk oyuncu
+İngilizce kareleri görüyor. `tr/feature-1024x500.png` de Türkçe.
+
 `tablet/` klasöründe aynı sekizi 1440×2560 boyutunda — Play'in tablet
 alanlarında istediği 9:16 oranı bu, ve aynı dosyalar hem 7 inç hem 10 inç
 bölümüne konur.

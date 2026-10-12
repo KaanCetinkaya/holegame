@@ -76,23 +76,54 @@ const odul = await pg.evaluate(async () => {
   window.jeWipeProgress();
   window.jeGive(1e9);
   for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 20); window.jeGiveManager(i); }
+  // Günü **bu ölçekte** yeniden kur. Önceki bölüm istasyonları 200.
+  // seviyeye çıkarıyor; gün o sırada kurulduysa "90 saniyelik sevkiyat"
+  // hedefi 200. seviyenin sevkiyatı oluyor, sonra bu bölüm seviyeleri
+  // 20'ye indiriyor ve hedef erişilemez kalıyor. Ölçümün kendi
+  // kurduğu bir tuzaktı.
+  window.jeGunGec();
   // Günün üç görevi havuzdan **rastgele** seçiliyor. İlk hâlinde bu
   // bölüm yalnızca yükseltme görevini bitiriyordu ve o görev listeye
-  // girmediği koşularda "bir görev alındı" düşüyordu — ölçüm değil,
-  // zar atışıydı. Artık altı sayacın hepsi besleniyor.
-  window.jeBuy(0, 60);                        // yükseltme ve "seviye çıkar"
-  for (let i = 0; i < 600; i++) window.jeStep(0.1);   // sevkiyat, kazanç, tampon
-  window.jeBoost(); window.jeBoost();         // hız görevi
+  // girmediği koşularda düşüyordu — ölçüm değil, zar atışıydı.
+  //
+  // Zarı atmak yerine altı sayacın hepsi besleniyor; ve bu, oyunda
+  // bitirilmesi **imkânsız** bir görev olduğunu ortaya çıkardı:
+  // `G.gun.boost` hiçbir yerde artmıyordu.
+  window.jeBuy(0, 60);                                  // yükseltme, "seviye çıkar"
+  await window.jeBoost(); await window.jeBoost();       // hız (reklam sözünü bekle)
+  for (let i = 0; i < 1200; i++) window.jeStep(0.1);    // sevkiyat, kazanç
+  window.jeRefresh ? window.jeRefresh() : null;         // tampon sayacı panelden
+  // Üç görevden en az birinin gerçekten bittiğini önce doğrula, yoksa
+  // "ödül 0" yalnızca "hiçbiri bitmemiş" demek olur ve asıl hatayı
+  // gizler.
+  const durum = window.jeGorev();
+  const bitenSayisi = durum.liste.filter(g => g.bitti).length;
   const onceToplam = window.jeProbe().total;
   const oncePuan = window.jeProbe().points + window.jeProbe().pending;
   const alindi = window.jeClaimGorev();
-  return { alindi, toplamFark: window.jeProbe().total - onceToplam,
+  return { alindi, bitenSayisi, liste: durum.liste.map(g => `${g.id}:${g.simdi}/${g.hedef}`), toplamFark: window.jeProbe().total - onceToplam,
            puanFark: (window.jeProbe().points + window.jeProbe().pending) - oncePuan };
 });
-console.log(`     alınan ödül ${odul.alindi} · toplam kazanç değişimi ${odul.toplamFark} · puan değişimi ${odul.puanFark}`);
-ok(odul.alindi > 0, 'bir görev alındı');
+console.log(`     görevler ${odul.liste.join(' · ')}`);
+console.log(`     biten ${odul.bitenSayisi}/3 · alınan ödül ${odul.alindi} · toplam kazanç değişimi ${odul.toplamFark} · puan değişimi ${odul.puanFark}`);
+ok(odul.bitenSayisi > 0, 'en az bir görev bitti', `${odul.bitenSayisi}/3`);
+ok(odul.alindi > 0, 'biten görevin ödülü alındı');
 ok(odul.toplamFark === 0, 'ödül toplam kazanca yazılmadı', `${odul.toplamFark}`);
 ok(odul.puanFark === 0, 'ödül prestij puanı üretmedi', `${odul.puanFark}`);
+
+console.log('\n4b) Hız sayacı artıyor mu');
+// Bu sayaç hiçbir yerde artmıyordu: "Hızı N kez kullan" görevi havuzda
+// duruyor, listeye çıkıyor ama **bitirilemiyordu**. Üç görev rastgele
+// seçildiği için de yalnızca o gün çekildiğinde görülüyordu.
+const hiz = await pg.evaluate(async () => {
+  window.jeWipeProgress();
+  window.jeGunGec();
+  const once = window.jeGorev().sayac.boost;
+  await window.jeBoost();
+  return { once, sonra: window.jeGorev().sayac.boost };
+});
+console.log(`     hız sayacı ${hiz.once} → ${hiz.sonra}`);
+ok(hiz.sonra === hiz.once + 1, 'hız kullanınca sayaç arttı', `${hiz.once} → ${hiz.sonra}`);
 
 console.log('\n5) Gün dönünce');
 const gun = await pg.evaluate(() => {

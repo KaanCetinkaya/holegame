@@ -83,7 +83,8 @@
   .st .meta u { text-decoration: none; font-weight: 900; color: #e8603c; }
   .st .sub { font-size: 12px; opacity: .78; margin-top: 2px; white-space: nowrap;
              overflow: hidden; text-overflow: ellipsis; }
-  .st .meta { font-size: 11px; opacity: .6; margin-top: 1px; white-space: nowrap; }
+  .st .meta { font-size: 11px; opacity: .6; margin-top: 1px; white-space: nowrap;
+              overflow: hidden; text-overflow: ellipsis; }
   .st .meta b { color: #ffc44d; font-weight: 900; }
   .st .buf { height: 5px; border-radius: 999px; background: rgba(0,0,0,.35); margin-top: 5px; overflow: hidden; }
   .st .buf i { display: block; height: 100%; width: 0%; background: #7fd66a; border-radius: 999px; }
@@ -458,8 +459,9 @@ const $ = id => document.getElementById(id);
 const METIN = {
   // Üst şerit ve panel
   buy:        ['Buy:', 'Al:'],
-  perSec:     ['/ s', '/ sn'],
+  perSec:     ['/s', '/sn'],
   bottleneck: ['BOTTLENECK', 'DARBOĞAZ'],
+  x2at:       ['<b>×2</b> at {0}', '{0}. sv. <b>×2</b>'],
   full:       ['FULL — upgrade {0}', 'DOLU — {0} yükselt'],
   levels:     ['LEVELS', 'SEVİYE'],
   maxBtn:     ['MAX', 'MAKS'],
@@ -532,6 +534,8 @@ const METIN = {
   shop:      ['Shop 🛒', 'Mağaza 🛒'],
   restore:   ['RESTORE PURCHASES', 'SATIN ALMALARI GERİ YÜKLE'],
   restoring: ['RESTORING…', 'GERİ YÜKLENİYOR…'],
+  restored:  ['RESTORED', 'GERİ YÜKLENDİ'],
+  nothingToRestore: ['NOTHING TO RESTORE', 'GERİ YÜKLENECEK ŞEY YOK'],
   owned:     ['OWNED', 'ALINDI'],
   // Prestij
   prestige:  ['New branch 🏭', 'Yeni şube 🏭'],
@@ -608,10 +612,10 @@ const METIN = {
   mgr0b: ['+25% foundry speed', '+%25 döküm hızı'],
   mgr0k: ['+25% speed', '+%25 hız'],
   mgr1r: ['runs the presses', 'preslerin başında'],
-  mgr1b: ['upgrades 8% cheaper', 'yükseltmeler %8 ucuz'],
+  mgr1b: ['upgrades 8% cheaper', '%8 ucuz yükseltme'],
   mgr1k: ['-8% upgrades', '-%8 yükseltme'],
   mgr2r: ['runs the line', 'hattın başında'],
-  mgr2b: ['boost lasts 60s longer', 'hız 60 sn uzun sürüyor'],
+  mgr2b: ['boost lasts 60s longer', 'hız +60 sn sürüyor'],
   mgr2k: ['+60s boost', '+60 sn hız'],
   mgr3r: ['runs the yard', 'önlüğün başında'],
   mgr3b: ['+12% vehicle price', 'araç fiyatı +%12'],
@@ -2556,7 +2560,7 @@ for (let i = 0; i < STATIONS.length; i++) {
   el.innerHTML = `
     <div class="ico"><span class="emo">${s.icon}</span><img class="face" alt="" hidden><b>0</b></div>
     <div class="mid">
-      <div class="nm">${s.name}</div>
+      <div class="nm" data-t="${s.nameT}">${s.name}</div>
       <div class="sub">—</div>
       <div class="meta"></div>
       <div class="buf"><i></i></div>
@@ -2640,14 +2644,14 @@ function refreshPanel() {
       G.gun.doluDurum[i] = blocked;
     }
     const bits = [];
-    if (i === ch.neck) bits.push('<em>BOTTLENECK</em>');
-    else if (blocked) bits.push(`<u>FULL — upgrade ${STATIONS[ch.neck].name}</u>`);
+    if (i === ch.neck) bits.push(`<em>${T('bottleneck')}</em>`);
+    else if (blocked) bits.push(`<u>${T('full', T(STATIONS[ch.neck].nameT))}</u>`);
     if (hits) bits.push(`<b>×${fmt(Math.pow(2, hits))}</b>`);
     if (G.mgr[i]) bits.push(`<b>${MGRS[i].ad}</b> · ${T(MGRS[i].bonusT)}`);
     // The milestone hint is dropped while blocked. It does not fit next to
     // the instruction and it is the one line that is not worth acting on:
     // levelling a station whose output has nowhere to go buys nothing.
-    if (nxt && !blocked) bits.push(`<b>×2</b> at ${nxt}`);
+    if (nxt && !blocked) bits.push(T('x2at', nxt));
     r.meta.innerHTML = bits.join(' · ');
     if (i < LAST) {
       const p = Math.min(100, (G.buf[i] / roomOf(i)) * 100);
@@ -2777,7 +2781,7 @@ $('restoreBtn').onclick = async () => {
   const b = $('restoreBtn');
   b.disabled = true; b.textContent = T('restoring');
   const ok = await syncPurchases();
-  b.textContent = ok ? 'RESTORED' : 'NOTHING TO RESTORE';
+  b.textContent = ok ? T('restored') : T('nothingToRestore');
   renderShop();
   setTimeout(() => { b.disabled = false; b.textContent = T('restore'); }, 2500);
 };
@@ -2796,6 +2800,14 @@ $('pGo').onclick = () => {
   // a starting purse is worth a different amount every branch, a starting
   // level is worth the same thing at every scale.
   G.lvl = STATIONS.map(() => 1 + resLvl('start'));
+  // Günün görevleri yeniden kuruluyor.
+  //
+  // Hedefler bilerek donuyor: oyuncu büyüdükçe büyüyen bir hedef hiç
+  // bitmez. Ama devirde fabrika **küçülüyor** ve donmuş hedef bu kez
+  // ters yönden imkânsız hâle geliyordu — "90 saniyelik sevkiyat"
+  // eski fabrikanın 90 saniyesi, yeni fabrikanınki değil. Devirden
+  // sonra günün üç görevi yeni ölçeğe göre seçiliyor.
+  G.gun = null;
   // Managers are kept. They used to reset with everything else, and by the
   // sixth branch a manager cost a thousandth of a second of income — four
   // buttons the player had to press for free before the run could start.
@@ -3210,7 +3222,10 @@ $('wDouble').onclick = async () => {
 // gone: the ad is the cost now, which is the whole point of building it this
 // shape. Off-device showRewarded() resolves true, so the browser keeps the
 // short cooldown as its own brake.
-$('boostBtn').onclick = async () => {
+// Ayrı bir ad: `click()` bir söz döndürmüyor, yani ölçüm reklamın
+// bitmesini bekleyemiyordu ve "hız kullanıldı" sayacı hep sıfır
+// görünüyordu.
+const boostTikla = async () => {
   if (boostLeft() > 0) return;
   if (!ADS_ON && Date.now() < G.boostReady) return;
   const t = $('boostTxt');
@@ -3221,11 +3236,18 @@ $('boostBtn').onclick = async () => {
   G.boostUntil = Date.now() + secs * 1000;
   G.boostReady = Date.now() + (secs + BOOST_COOL) * 1000;
   G.boosts++;
+  // Günlük görevin sayacı. Buraya yazılmıyordu: "Hızı 2 kez kullan"
+  // görevi havuzda duruyor, listeye çıkıyor, ama sayacı hiç artmadığı
+  // için **bitirilemiyordu**. Rastgele seçilen üç görevden biri olduğu
+  // için de ancak o gün çekildiğinde görülüyordu — ölçüm bunu bir
+  // testin bazen geçip bazen düşmesi olarak gösterdi.
+  if (G.gun) G.gun.boost++;
   saveNow();
   ping(740, 0.2);
   refreshBoost();
   refreshGoalDot();
 };
+$('boostBtn').onclick = boostTikla;
 
 function refreshBoost() {
   const el = $('boostBtn'), t = $('boostTxt');
@@ -3901,7 +3923,11 @@ window.jeReset = () => { wiped = true; localStorage.removeItem(KEY); location.re
 // `jeReset` ise sayfayı yeniden yüklüyor ve ölçüm bağlamını yıkıyor.
 window.jeWipeProgress = () => {
   G.cash = 0; G.totalEarned = 0; G.lifetime = 0; G.branches = 0;
-  G.claimed = []; G.goalVal = {}; G.res = {}; G.boosts = 0; G.boostUntil = 0;
+  // `boostReady` de sıfırlanıyor: ilerlemeyi silen bir kanca hız
+  // bekleme süresini bırakırsa, silme sonrası ilk hız sessizce
+  // reddediliyor ve ölçüm "sayaç artmadı" diye yanlış sonuç veriyor.
+  G.claimed = []; G.goalVal = {}; G.res = {}; G.boosts = 0;
+  G.boostUntil = 0; G.boostReady = 0;
   G.tut = 0; G.tipMgr = 0; tutYurudu = false;
   G.gun = null; gunuKur();
   for (const k of Object.keys(iap)) delete iap[k];
@@ -3941,7 +3967,11 @@ window.jeCam = (h, shift) => {
   if (shift !== undefined) VIEW_SHIFT = shift;
   fit();
 };
-window.jeBoost = () => $('boostBtn').click();
+window.jeBoost = () => boostTikla();
+// Paneli elle tazele. Oyunun kare döngüsü bunu saniyede sekiz kez
+// yapıyor ve "tamponu doldur" görevinin sayacı orada artıyor; `jeStep`
+// paneli çağırmıyor, yani ölçümün o sayacı görmesi için bu gerekiyor.
+window.jeRefresh = () => { refreshPanel(); return window.jeProbe(); };
 window.jeGoals = () => GOALS.map(g => ({
   id: g.id, at: +g.at().toFixed(0), need: g.need,
   done: goalDone(g), taken: goalTaken(g), pay: +goalPay(g).toFixed(0) }));

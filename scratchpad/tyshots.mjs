@@ -1,6 +1,9 @@
 // Motor Works'ün mağaza ekran görüntüleri, gerçek oynanıştan.
 //
-//   node build-www.mjs && node scratchpad/tyshots.mjs
+//   node build-www.mjs && node scratchpad/tyshots.mjs [tr]
+//
+// Dil argümanı verilirse Türkçe sürüm `store/tr/` altına yazılıyor:
+// oyun Türkçe açılıyor ve başlıklar da Türkçe.
 //
 // Telefon 1080x1920, tablet 1440x2560 — Play'in istediği 9:16. Her kare
 // oyunun kendi motorundan geliyor, montaj yok: mağazada gördüğü şeyle
@@ -10,7 +13,8 @@ import { createServer } from 'http';
 import { readFileSync, mkdirSync } from 'fs';
 
 const ROOT = '/home/user/holegame';
-const OUT = `${ROOT}/tycoon/store`;
+const TR = process.argv.includes('tr');
+const OUT = TR ? `${ROOT}/tycoon/store/tr` : `${ROOT}/tycoon/store`;
 mkdirSync(OUT, { recursive: true });
 mkdirSync(`${OUT}/tablet`, { recursive: true });
 
@@ -29,29 +33,29 @@ const browser = await chromium.launch({
 // Her kare bir hikâye anlatıyor: sırayla fabrika, darboğaz, görevler,
 // çevrimdışı kazanç, hız kutusu, şube devri.
 const SHOTS = [
-  { name: '1-factory', mins: 26, cap: 'Grow the plant, speed up the line',
+  { name: '1-factory', mins: 26, cap: 'Grow the plant, speed up the line', tr: 'Fabrikayı büyüt, hattı hızlandır',
     do: async () => {} },
   // Önce/sonra: ikinci kare erken oyundan, ilkiyle aynı açıdan. İkisi de
   // olgun fabrikayı gösterdiğinde mağazada aynı resmin iki kopyası gibi
   // duruyordu ve büyüme hiç anlatılmıyordu.
-  { name: '2-early',   mins: 2, cap: 'Four stations. You start with one',
+  { name: '2-early',   mins: 2, cap: 'Four stations. You start with one', tr: 'Dört istasyon. Tekiyle başlıyorsun',
     do: async () => {} },
-  { name: '3-goals',   mins: 26, cap: 'Finish the goals, take the payout',
+  { name: '3-goals',   mins: 26, cap: 'Finish the goals, take the payout', tr: 'Hedefleri bitir, ödülü al',
     do: async pg => {
       await pg.click('#menuBtn'); await pg.waitForTimeout(150);
       await pg.click('#goalsBtn'); await pg.waitForTimeout(250);
     } },
-  { name: '4-offline', mins: 20, cap: 'It earns while the app is closed',
+  { name: '4-offline', mins: 20, cap: 'It earns while the app is closed', tr: 'Uygulama kapalıyken de kazanıyor',
     do: async pg => {
       await pg.evaluate(() => window.jeOffline(4 * 3600));
       await pg.waitForTimeout(250);
     } },
-  { name: '5-boost',   mins: 26, cap: 'The speed crate triples everything',
+  { name: '5-boost',   mins: 26, cap: 'The speed crate triples everything', tr: 'Hız kutusu her şeyi üçe katlıyor',
     do: async pg => {
       await pg.evaluate(() => window.jeBoost());
       await pg.waitForTimeout(900);
     } },
-  { name: '6-branch',  mins: 40, cap: 'Hand it on, keep the multiplier',
+  { name: '6-branch',  mins: 40, cap: 'Hand it on, keep the multiplier', tr: 'Devret, çarpanı sende kalsın',
     do: async pg => {
       await pg.evaluate(() => window.jeSetEarned(5e12));
       await pg.waitForTimeout(200);
@@ -61,12 +65,12 @@ const SHOTS = [
   // Yedinci ve sekizinci kare, oyuna sonradan giren iki şey için. İkisi de
   // mağazada "bu oyun diğerlerinden ne farklı" sorusunu cevaplayan taraf:
   // ekranda dokunulacak bir şey, ve her şubede değişen bir önlük.
-  { name: '7-customer', mins: 26, cap: 'A buyer pulls in — tap before they go',
+  { name: '7-customer', mins: 26, cap: 'A buyer pulls in — tap before they go', tr: 'Müşteri geldi — gitmeden dokun',
     do: async pg => {
       await pg.evaluate(() => { window.jeMusBelir(); window.jeMusAdim(2); });
       await pg.waitForTimeout(400);
     } },
-  { name: '8-location', mins: 30, cap: 'A new branch, a new place',
+  { name: '8-location', mins: 30, cap: 'A new branch, a new place', tr: 'Yeni şube, yeni bir yer',
     do: async pg => {
       // Tundra: beş yerin içinde çayırdan en uzak görüneni, yani tek
       // karede "yer değişiyor" diyebilen tek kare.
@@ -77,8 +81,10 @@ const SHOTS = [
 
 async function shoot(dir, w, h, scale) {
   for (const s of SHOTS) {
-    const pg = await browser.newPage({
-      viewport: { width: w / scale, height: h / scale }, deviceScaleFactor: scale });
+    const ctx = await browser.newContext({
+      viewport: { width: w / scale, height: h / scale }, deviceScaleFactor: scale,
+      locale: TR ? 'tr-TR' : 'en-US' });
+    const pg = await ctx.newPage();
     const errs = [];
     pg.on('pageerror', e => errs.push(String(e)));
     await pg.addInitScript(() => localStorage.clear());
@@ -128,7 +134,7 @@ async function shoot(dir, w, h, scale) {
         pointer-events:none;`;
       d.textContent = text;
       document.body.appendChild(d);
-    }, s.cap);
+    }, TR ? s.tr : s.cap);
     await pg.waitForTimeout(120);
     await pg.screenshot({ path: `${dir}/${s.name}.png` });
     console.log(`  ${dir.split('/').pop()}/${s.name}.png`, errs.length ? 'HATA: ' + errs[0] : '');
@@ -136,7 +142,7 @@ async function shoot(dir, w, h, scale) {
   }
 }
 
-console.log('telefon 1080x1920:');
+console.log(TR ? 'telefon 1080x1920 (Türkçe):' : 'telefon 1080x1920:');
 await shoot(OUT, 1080, 1920, 2);
 console.log('tablet 1440x2560:');
 await shoot(`${OUT}/tablet`, 1440, 2560, 2);

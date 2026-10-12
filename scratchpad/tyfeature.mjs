@@ -1,6 +1,8 @@
 // Motor Works'ün öne çıkan grafiği (1024x500), gerçek oyundan.
 //
-//   node build-www.mjs && node scratchpad/tyfeature.mjs
+//   node build-www.mjs && node scratchpad/tyfeature.mjs [tr]
+//
+// Dil argümanı verilirse Türkçe sürüm `store/tr/` altına yazılıyor.
 //
 // 2x çekilip Pillow ile küçültülüyor: doğrudan 1024'te çekince yazı ve
 // dişli kenarları kırılıyor.
@@ -19,9 +21,14 @@ const srv = createServer((req, res) => {
   } catch { res.writeHead(404); res.end('no'); }
 }).listen(8133);
 
+const TR = process.argv.includes('tr');
+const CIKTI = TR ? `${ROOT}/tycoon/store/tr/feature-1024x500.png`
+                 : `${ROOT}/tycoon/store/feature-1024x500.png`;
 const browser = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium', args: ['--use-gl=swiftshader'] });
-const pg = await browser.newPage({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 2 });
+const ctx = await browser.newContext({ viewport: { width: 1024, height: 500 },
+  deviceScaleFactor: 2, locale: TR ? 'tr-TR' : 'en-US' });
+const pg = await ctx.newPage();
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8133/', { waitUntil: 'load' });
 await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 20000 });
@@ -29,8 +36,14 @@ await pg.waitForTimeout(400);
 
 await pg.evaluate(() => {
   document.getElementById('daily').classList.remove('show');
+  // `jeAutoCarry` olmadan fabrika hiç büyümüyor: müdürsüz istasyonun
+  // malını işçi taşıyor ve `jeRun` işçiyi yürütmüyor. Ekran
+  // görüntülerinde aynı hata altı kareyi birinci seviyede bıraktı ve
+  // kimse bakmamıştı; aynısı bu görselde de vardı.
+  window.jeAutoCarry(true);
   for (let k = 0; k < 30; k++) {
     window.jeRun(60);
+    for (let i = 0; i < 4; i++) window.jeBuyManager(i);
     window.jeBuy(['Foundry', 'Stamping', 'Assembly', 'Dispatch'].indexOf(window.jeProbe().neck), 'max');
   }
   // Öne çıkan grafik oyunun arayüzünü değil, yerini göstermeli: panel ve
@@ -45,10 +58,14 @@ await pg.evaluate(() => {
   window.jeCam(21, 0.02);
 });
 await pg.waitForTimeout(1200);
+const buyudu = await pg.evaluate(() => window.jeProbe());
+if (Math.max(...buyudu.lvl) < 20)
+  throw new Error(`fabrika büyümedi — seviye ${JSON.stringify(buyudu.lvl)}. Görsel boş çıkardı.`);
+console.log(`  fabrika: seviye ${JSON.stringify(buyudu.lvl)} · ${buyudu.income.toFixed(0)}/sn`);
 
 // Başlık solda, fabrika sağda. Play bu görselin kenarlarını cihaza göre
 // kırpabiliyor, o yüzden yazı ortaya değil güvenli bölgeye yerleşiyor.
-await pg.evaluate(() => {
+await pg.evaluate(({ alt1, alt2 }) => {
   const d = document.createElement('div');
   d.style.cssText = `position:fixed;inset:0;z-index:99;pointer-events:none;
     display:flex;align-items:center;padding-left:58px;
@@ -62,11 +79,15 @@ await pg.evaluate(() => {
         <span style="color:#ff9422">WORKS</span></div>
       <div style="margin-top:18px;font-size:21px;font-weight:800;line-height:1.4;
                   color:#c9d0da;text-shadow:0 2px 10px rgba(0,0,0,.9)">
-        Foundry · Stamping · Assembly · Dispatch<br>
-        <span style="color:#ffc44d">Build the line, find the bottleneck,<br>grow the factory</span></div>
+        ${alt1}<br>
+        <span style="color:#ffc44d">${alt2}</span></div>
     </div>`;
   document.body.appendChild(d);
-});
+}, TR
+  ? { alt1: 'Döküm · Pres · Montaj · Sevkiyat',
+      alt2: 'Hattı kur, darboğazı bul,<br>fabrikayı büyüt' }
+  : { alt1: 'Foundry · Stamping · Assembly · Dispatch',
+      alt2: 'Build the line, find the bottleneck,<br>grow the factory' });
 await pg.waitForTimeout(150);
 await pg.screenshot({ path: '/tmp/tyfeature-2x.png' });
 await browser.close();
@@ -75,9 +96,12 @@ srv.close();
 const py = `
 from PIL import Image
 im = Image.open('/tmp/tyfeature-2x.png').convert('RGB')
-im.resize((1024, 500), Image.LANCZOS).save('${ROOT}/tycoon/store/feature-1024x500.png')
-print('feature-1024x500.png', im.size, '-> (1024, 500)')
+import os
+os.makedirs(os.path.dirname('${CIKTI}'), exist_ok=True)
+im.resize((1024, 500), Image.LANCZOS).save('${CIKTI}')
+print('${CIKTI}'.split('tycoon/')[1], im.size, '-> (1024, 500)')
 `;
-const r = spawnSync('python3', ['-c', py], { encoding: 'utf8' });
+const r = spawnSync('/usr/bin/python3', ['-c', py], { encoding: 'utf8' });
 process.stdout.write(r.stdout || '');
 process.stderr.write(r.stderr || '');
+if (r.status !== 0) { console.log('küçültme düştü — görsel yazılmadı'); process.exitCode = 1; }
