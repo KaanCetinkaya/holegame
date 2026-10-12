@@ -733,6 +733,8 @@ const G = Object.assign({
   // ilk turda kendini kapatıyor.
   tut: 0,
   tipMgr: 0,
+  // Günlük görevler: gün numarası, sayaçlar, seçilen üç görev.
+  gun: null,
   res: {},                // araştırma seviyeleri, puanla alınıyor
 }, load());
 if (!Array.isArray(G.claimed)) G.claimed = [];
@@ -952,6 +954,10 @@ function runFactory(dt) {
   if (!Number.isFinite(earned)) return 0;
   G.cash += earned;
   G.totalEarned += earned;
+  if (G.gun) {
+    G.gun.kazanc += earned;
+    G.gun.sevk += earned / Math.max(1e-9, unitPrice());   // kaç araç sevk edildi
+  }
   // Kasaya **gerçekten** giren para, saniye başına.
   //
   // Ekrandaki hız `chain().income` yazıyordu: zincirin teorik hızı, yani
@@ -2317,6 +2323,7 @@ function buyLevels(i) {
   if (G.cash < c) return;
   G.cash -= c;
   G.lvl[i] += n;
+  if (G.gun) G.gun.yukseltme += n;
   ping(520 + i * 90);
   refreshPanel();
   saveNow();
@@ -2348,6 +2355,12 @@ function refreshPanel() {
     // on the same screen. The bar says what is wrong; it never said what to
     // do about it, so it now names the station everything is waiting for.
     const blocked = i < LAST && G.buf[i] >= roomOf(i) * 0.92;
+    // Tampon dolması bir kez sayılıyor: dolu kaldığı her karede değil.
+    if (G.gun) {
+      if (!G.gun.doluDurum) G.gun.doluDurum = [false, false, false, false];
+      if (blocked && !G.gun.doluDurum[i]) G.gun.dolu++;
+      G.gun.doluDurum[i] = blocked;
+    }
     const bits = [];
     if (i === ch.neck) bits.push('<em>BOTTLENECK</em>');
     else if (blocked) bits.push(`<u>FULL — upgrade ${STATIONS[ch.neck].name}</u>`);
@@ -2588,6 +2601,49 @@ const lockGoals = () => { for (const g of GOALS) if (goalDone(g)) goalPay(g); };
 function renderGoals() {
   const list = $('goalList');
   list.innerHTML = '';
+  // Günlük görevler en üstte: bugün yapılabilecek olan, bir hafta sürecek
+  // olandan önce gelmeli.
+  if (G.gun) {
+    const bas = document.createElement('div');
+    bas.className = 'goal';
+    bas.innerHTML = '<div class="gi">📅</div><div class="gm"><div class="gt">' +
+      '<b>Today</b> — resets at midnight</div></div>';
+    list.appendChild(bas);
+    for (const id of G.gun.liste) {
+      const g = GOREVLER.find(x => x.id === id);
+      if (!g) continue;
+      const hedef = G.gun.hedef[id];
+      const simdi = Math.min(hedef, g.say());
+      const bitti = simdi >= hedef, alindi = !!G.gun.alindi[id];
+      const el = document.createElement('div');
+      el.className = 'goal' + (alindi ? ' done' : '');
+      el.innerHTML = `
+        <div class="gi">🎯</div>
+        <div class="gm">
+          <div class="gt">${g.ad.replace('{n}', g.para ? fmt(hedef) : fmt(Math.round(hedef)))}</div>
+          <div class="gp"><i style="width:${(simdi / hedef) * 100}%"></i></div>
+        </div>
+        <button class="gb"${bitti && !alindi ? '' : ' disabled'}>${
+          alindi ? 'ALINDI' : bitti ? 'AL<br>' + fmt(gorevOdul(g))
+                 : Math.floor((simdi / hedef) * 100) + '%'}</button>`;
+      el.querySelector('.gb').onclick = () => {
+        if (!bitti || alindi) return;
+        G.cash += gorevOdul(g);        // `totalEarned`'a yazılmıyor, hedeflerdeki sebep
+        G.gun.alindi[id] = true;
+        saveNow();
+        ping(880, 0.22);
+        floatCash('+' + fmt(gorevOdul(g)));
+        renderGoals();
+        refreshGoalDot();
+      };
+      list.appendChild(el);
+    }
+    const ayrac = document.createElement('div');
+    ayrac.className = 'goal';
+    ayrac.innerHTML = '<div class="gi">🏆</div><div class="gm"><div class="gt">' +
+      '<b>Milestones</b></div></div>';
+    list.appendChild(ayrac);
+  }
   for (const g of GOALS) {
     const done = goalDone(g), taken = goalTaken(g);
     const pct = Math.min(100, (g.at() / g.need) * 100);
@@ -2623,7 +2679,7 @@ function renderGoals() {
     list.appendChild(el);
   }
 }
-function refreshGoalDot() { $('goalDot').classList.toggle('show', goalReady()); }
+function refreshGoalDot() { $('goalDot').classList.toggle('show', goalReady() || gorevHazir()); }
 
 // The menu is dismissed rather than stacked under: both are .screen overlays
 // at the same depth, and the menu is later in the document, so it painted on
@@ -2689,6 +2745,66 @@ $('resClose').onclick = () => {
 // the streak restarts; the same day twice pays once.
 const dayNumber = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
 const dailyPay = () => chain().income / boostMult() * 1800 * Math.min(7, G.dayStreak);
+
+// ---------------------------------------------------------------------
+// Günlük görevler
+// ---------------------------------------------------------------------
+//
+// Oyunu her gün açmak için bir sebep. Idle oyunda elde tutmanın birinci
+// aracı bildirim, ikincisi bu: geri dönen oyuncuyu bekleyen, bir
+// oturumda bitirilebilir üç iş.
+//
+// Kalıbı Fruit Hole'dan (`MISSION_POOL`): havuzdan üç tanesi günlük
+// seçiliyor, gün dönünce yenileniyor. Buradaki fark hedeflerin
+// fabrikaya göre olması ve **oyuncunun ölçeğine göre** büyümesi —
+// 110. seviyedeki biri için "10 sevkiyat" diye bir görev, görev değil.
+const GOREVLER = [
+  { id: 'sevk',  ad: 'Ship {n} vehicles',        say: () => G.gun.sevk,
+    hedef: () => Math.max(50, Math.round(autoChain().flow * 90)) },
+  { id: 'yukselt', ad: 'Buy {n} upgrades',       say: () => G.gun.yukseltme,
+    hedef: () => 15 },
+  { id: 'kazan', ad: 'Earn {n} today',           say: () => G.gun.kazanc, para: true,
+    hedef: () => Math.max(1000, Math.round(chain().income * 300)) },
+  { id: 'boost', ad: 'Use the boost {n} times',  say: () => G.gun.boost,
+    hedef: () => 2 },
+  { id: 'cark',  ad: 'Take a station up {n} levels', say: () => G.gun.yukseltme,
+    hedef: () => 40 },
+  { id: 'dolu',  ad: 'Fill a buffer {n} times',  say: () => G.gun.dolu,
+    hedef: () => 5 },
+];
+// Görev ödülü, hedeflerden **ayrı** bir sayı: hedefler 900-5400 saniye
+// ödüyor, günlük görev bir oturumluk iş, 300 saniye.
+//
+// Donuyor ve `totalEarned`'a yazılmıyor — ikisi de hedeflerde ölçülerek
+// öğrenildi: ödül kendi ölçüsünü besleyince hiçbir şey üretmemiş bir
+// fabrika prestij puanı kazanıyordu.
+const GOREV_SN = 300;
+function gorevOdul(g) {
+  if (G.gun.odul[g.id] == null) G.gun.odul[g.id] = GOREV_SN * chain().income / boostMult();
+  return G.gun.odul[g.id];
+}
+function gorevBitti(g) { return g.say() >= G.gun.hedef[g.id]; }
+
+// Günü kur. Gün dönünce sayaçlar sıfırlanıyor ve üç yeni görev
+// seçiliyor; hedefler o anki ölçeğe göre hesaplanıp **donuyor**, yoksa
+// oyuncu büyüdükçe hedef de büyür ve görev hiç bitmez.
+function gunuKur() {
+  const d = dayNumber();
+  if (G.gun && G.gun.gun === d) return;
+  const secili = [...GOREVLER].sort(() => Math.random() - 0.5).slice(0, 3);
+  G.gun = { gun: d, sevk: 0, yukseltme: 0, kazanc: 0, boost: 0, dolu: 0,
+            liste: secili.map(g => g.id), hedef: {}, alindi: {}, odul: {} };
+  for (const g of secili) G.gun.hedef[g.id] = g.hedef();
+  saveNow();
+}
+
+function gorevHazir() {
+  if (!G.gun) return false;
+  return G.gun.liste.some(id => {
+    const g = GOREVLER.find(x => x.id === id);
+    return g && gorevBitti(g) && !G.gun.alindi[id];
+  });
+}
 
 function checkDaily() {
   const d = dayNumber();
@@ -2935,7 +3051,7 @@ function tick(now) {
   sinceUI += dt;
   if (sinceUI > 0.12) {
     sinceUI = 0; refreshPanel(); refreshBoost(); lockGoals(); refreshGoalDot();
-    askNotif(); tutGuncelle(); tutMudurIpucu();
+    askNotif(); tutGuncelle(); tutMudurIpucu(); gunuKur();
   }
   sinceFloat += dt;
   if (sinceFloat > 0.55 && floatAcc > 0) {
@@ -3089,6 +3205,7 @@ window.jeWipeProgress = () => {
   G.cash = 0; G.totalEarned = 0; G.lifetime = 0; G.branches = 0;
   G.claimed = []; G.goalVal = {}; G.res = {}; G.boosts = 0; G.boostUntil = 0;
   G.tut = 0; G.tipMgr = 0; tutYurudu = false;
+  G.gun = null; gunuKur();
   for (const k of Object.keys(iap)) delete iap[k];
   saveIap();
   // Portreler geri alınmalı, yoksa sıfırlanan oyunda müdürsüz istasyonun
@@ -3162,6 +3279,33 @@ window.jeGames = () => ({
 // Şubeyi doğrudan ayarla: beş yeri tek tek görmek için prestij yapmak
 // gerekmesin.
 window.jeSetBranch = n => { G.branches = n | 0; yeriUygula(); refreshPanel(); return G.branches; };
+window.jeGorev = () => ({
+  gun: G.gun ? G.gun.gun : null,
+  liste: G.gun ? G.gun.liste.map(id => {
+    const g = GOREVLER.find(x => x.id === id);
+    return { id, ad: g.ad, hedef: G.gun.hedef[id], simdi: +g.say().toFixed(1),
+             bitti: g.say() >= G.gun.hedef[id], alindi: !!G.gun.alindi[id],
+             odul: +gorevOdul(g).toFixed(0) };
+  }) : [],
+  sayac: G.gun ? { sevk: +G.gun.sevk.toFixed(1), yukseltme: G.gun.yukseltme,
+                   kazanc: +G.gun.kazanc.toFixed(0), boost: G.gun.boost, dolu: G.gun.dolu } : null,
+  nokta: $('goalDot').classList.contains('show'),
+});
+// Biten bir görevi al. Düğmeye tıklamak yerine kanca: ölçülen şey
+// ödülün nereye yazıldığı, arayüz değil.
+window.jeClaimGorev = () => {
+  if (!G.gun) return 0;
+  for (const id of G.gun.liste) {
+    const g = GOREVLER.find(x => x.id === id);
+    if (!g || G.gun.alindi[id] || g.say() < G.gun.hedef[id]) continue;
+    const p = gorevOdul(g);
+    G.cash += p;
+    G.gun.alindi[id] = true;
+    return +p.toFixed(0);
+  }
+  return 0;
+};
+window.jeGunGec = () => { if (G.gun) G.gun.gun -= 1; gunuKur(); return window.jeGorev(); };
 window.jeYer = () => ({
   sube: G.branches, ad: yerSec().ad,
   gok: '#' + scene.background.getHexString(),
@@ -3233,6 +3377,7 @@ if (G.boostUntil > Date.now()) G.boostUntil = 0;
 const back = offlineCatchUp();
 if (back) showWelcome(back);
 G.seen = Date.now();
+gunuKur();
 yeriUygula();
 notifInit();
 gamesInit();
