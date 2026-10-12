@@ -165,17 +165,26 @@ doldur.
 - `4-offline.png` — dönüş ekranı, 4 saatlik kazanç
 - `5-boost.png` — hız kutusu açık
 - `6-branch.png` — şube devri ekranı
+- `7-customer.png` — önlüğe giren müşteri arabası, dokunulmayı bekliyor
+- `8-location.png` — tundra şubesi: her prestijte önlük başka bir yere taşınıyor
 
 Telefon görüntüleri 1080×1920, gerçek oynanıştan çekilmiş, bu sırayla
 yüklenmeli. Aramada yalnızca ilk ikisi görünüyor ve o ikisinin tek işi
 büyümeyi anlatmak: **1 ile 2 aynı açıdan, biri dolu biri boş.**
 
-`tablet/` klasöründe aynı altısı 1440×2560 boyutunda — Play'in tablet
+`tablet/` klasöründe aynı sekizi 1440×2560 boyutunda — Play'in tablet
 alanlarında istediği 9:16 oranı bu, ve aynı dosyalar hem 7 inç hem 10 inç
 bölümüne konur.
 
 Görseller `scratchpad/tyshots.mjs` ve `scratchpad/tyfeature.mjs` ile
 üretiliyor; oyun değişince komutları yeniden çalıştırmak yeterli.
+
+**Oyun değişince kareleri yeniden çek.** Bir kere kaçırıldı: işçi taşıma
+düzeni değişince `jeRun` ile dönen bir fabrika hiç para kazanmaz oldu
+(müdürsüz istasyonun malını işçi taşıyor, `jeRun` işçiyi yürütmüyor) ve
+altı karenin altısı da birinci seviye, sıfır para gösterir hâle geldi —
+dosyalar yine yazıldı, kimse bakmadı. Komut artık fabrika büyümediyse
+hata verip duruyor.
 
 ## Yayın öncesi kontrol listesi
 

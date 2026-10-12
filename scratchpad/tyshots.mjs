@@ -58,6 +58,21 @@ const SHOTS = [
       await pg.click('#menuBtn'); await pg.waitForTimeout(200);
       await pg.click('#prestigeBtn'); await pg.waitForTimeout(300);
     } },
+  // Yedinci ve sekizinci kare, oyuna sonradan giren iki şey için. İkisi de
+  // mağazada "bu oyun diğerlerinden ne farklı" sorusunu cevaplayan taraf:
+  // ekranda dokunulacak bir şey, ve her şubede değişen bir önlük.
+  { name: '7-customer', mins: 26, cap: 'A buyer pulls in — tap before they go',
+    do: async pg => {
+      await pg.evaluate(() => { window.jeMusBelir(); window.jeMusAdim(2); });
+      await pg.waitForTimeout(400);
+    } },
+  { name: '8-location', mins: 30, cap: 'A new branch, a new place',
+    do: async pg => {
+      // Tundra: beş yerin içinde çayırdan en uzak görüneni, yani tek
+      // karede "yer değişiyor" diyebilen tek kare.
+      await pg.evaluate(() => window.jeSetBranch(2));
+      await pg.waitForTimeout(500);
+    } },
 ];
 
 async function shoot(dir, w, h, scale) {
@@ -76,12 +91,27 @@ async function shoot(dir, w, h, scale) {
     // fabrikanın üstünü kapatıyor. Mağazadaki kare oyunu göstermeli, ilk
     // açılış ipucunu değil.
     await pg.evaluate(() => window.jeTutSkip());
+    // Dakika dakika oynanmış bir fabrika. `jeAutoCarry` oyuncunun elle
+    // taşıdığı evreyi taklit ediyor ve **bu satır olmadan kareler boş
+    // çıkıyordu**: müdürsüz bir istasyonun malını işçi taşıyor, işçi de
+    // `jeRun` ile yürümüyor, yani zincir hiç akmıyor, para hiç gelmiyor
+    // ve "max" ile alınacak seviye hiç olmuyordu. Altı karenin altısı da
+    // birinci seviye, sıfır para gösteriyordu; kimse bakmamıştı.
     await pg.evaluate(m => {
+      window.jeAutoCarry(true);
       for (let k = 0; k < m; k++) {
         window.jeRun(60);
+        // Müdür parası çıktıkça alınıyor: gerçek bir oyuncu da bunu
+        // yapıyor ve fabrikanın kendi kendine dönmesi oradan başlıyor.
+        for (let i = 0; i < 4; i++) window.jeBuyManager(i);
         window.jeBuy(['Foundry', 'Stamping', 'Assembly', 'Dispatch'].indexOf(window.jeProbe().neck), 'max');
       }
     }, s.mins);
+    // Karede görünen fabrika gerçekten büyümüş olmalı. Sessizce boş bir
+    // kare yazmaktansa burada durulsun.
+    const d = await pg.evaluate(() => window.jeProbe());
+    if (Math.max(...d.lvl) < 5 && s.mins > 3)
+      throw new Error(`${s.name}: fabrika büyümedi — seviye ${JSON.stringify(d.lvl)}, para ${d.cash}. Kare boş çıkardı.`);
     await pg.waitForTimeout(900);
     await s.do(pg);
     await pg.waitForTimeout(300);
