@@ -2457,6 +2457,7 @@ $('menuBtn').onclick = () => {
 $('closeMenu').onclick = () => $('menu').classList.remove('show');
 $('muteBtn').onclick = () => {
   G.muted = !G.muted; saveNow();
+  if (G.muted) muzDur(); else muzBasla();
   $('muteBtn').textContent = 'SOUND: ' + (G.muted ? 'OFF' : 'ON');
 };
 $('prestigeBtn').onclick = () => {
@@ -2914,6 +2915,123 @@ function ping(freq, gain = 0.12) {
 }
 
 // ---------------------------------------------------------------------
+// Müzik
+// ---------------------------------------------------------------------
+//
+// Oyunda yalnızca tıklama sesleri vardı. Idle oyun arka planda açık
+// kalıyor ve sessizlik hissediliyor; türün her oyununda fonda bir şey
+// çalıyor.
+//
+// Dosya yok: oyunun hiçbir yerinde görsel ya da ses dosyası yok ve bu
+// kural için istisna açılmıyor. Müzik osilatörlerden üretiliyor —
+// alçak bir akor yastığı ve üstüne çok kısık bir nabız.
+//
+// Akorlar la minör etrafında dönüyor ve her dört vuruşta değişiyor.
+// Hedef dikkat çekmek değil, **fark edilmemek**: ses seviyesi tıklama
+// seslerinin altında, ve fabrika sesinin yerini tutuyor.
+const MUZ_BPM = 76;
+const MUZ_SES = 0.045;
+// Dörtlü bir döngü: Am - F - C - G. Yarım nota kökleri, üstünde beşli
+// ve oktav. Hepsi alçak kayıtta, çünkü tiz bir yastık yirmi dakika
+// sonra yorucu oluyor.
+const MUZ_AKOR = [
+  [110.00, 164.81, 220.00],   // Am
+  [ 87.31, 130.81, 174.61],   // F
+  [ 65.41, 98.00,  130.81],   // C
+  [ 98.00, 146.83, 196.00],   // G
+];
+let muzAcik = false, muzBus = null, muzZaman = 0, muzAdim = 0, muzTimer = 0;
+let muzSesler = 0;
+
+function muzKur() {
+  if (!actx || muzBus) return;
+  muzBus = actx.createGain();
+  muzBus.gain.value = MUZ_SES;
+  // Alçak geçiren süzgeç: osilatörlerin sert üst harmonikleri
+  // kesilmezse "müzik" değil "sinyal" gibi duyuluyor.
+  const lp = actx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 900;
+  muzBus.connect(lp);
+  lp.connect(actx.destination);
+}
+
+// Bir nota koy. Süre ve zaman saniye cinsinden, `actx.currentTime`'a
+// göre **ileriye** planlanıyor: tarayıcı zamanlayıcısı kaymayı affetmez,
+// ses saati affeder.
+function muzNota(frek, bas, sure, kazanc) {
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(frek, bas);
+  g.gain.setValueAtTime(0, bas);
+  g.gain.linearRampToValueAtTime(kazanc, bas + sure * 0.25);
+  g.gain.linearRampToValueAtTime(0, bas + sure);
+  o.connect(g); g.connect(muzBus);
+  o.start(bas); o.stop(bas + sure + 0.05);
+  muzSesler++;
+  o.onended = () => { muzSesler--; };
+}
+
+// İleriye doğru planlama. Her çağrıda bir buçuk saniyelik malzeme
+// koyuyor ve yarım saniyede bir uyanıyor; aradaki pay, sekmesi arka
+// planda kısılan bir zamanlayıcının müziği kesmesini önlüyor.
+function muzPlanla() {
+  if (!muzAcik || !actx || G.muted) return;
+  const vuruş = 60 / MUZ_BPM;
+  const ufuk = actx.currentTime + 1.5;
+  while (muzZaman < ufuk) {
+    const akor = MUZ_AKOR[Math.floor(muzAdim / 4) % MUZ_AKOR.length];
+    // Yastık: akorun tamamı, vuruşun dört katı kadar sürüyor ve
+    // üst üste biniyor, yani akorlar birbirine akıyor.
+    if (muzAdim % 4 === 0) {
+      for (const f of akor) muzNota(f, muzZaman, vuruş * 4.6, 0.5);
+    }
+    // Nabız: her vuruşta kök notanın oktavı, çok kısa ve çok kısık.
+    muzNota(akor[0] * 2, muzZaman, 0.12, 0.18);
+    muzZaman += vuruş;
+    muzAdim++;
+  }
+}
+
+function muzBasla() {
+  if (muzAcik || G.muted) return;
+  try {
+    actx ||= new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    muzKur();
+    muzAcik = true;
+    muzBus.gain.cancelScheduledValues(actx.currentTime);
+    muzBus.gain.setValueAtTime(MUZ_SES, actx.currentTime);
+    muzZaman = actx.currentTime + 0.1;
+    muzPlanla();
+    muzTimer = setInterval(muzPlanla, 500);
+  } catch { muzAcik = false; }
+}
+
+// Durdurmak yalnızca planlamayı kesmek değil: bir buçuk saniyelik
+// malzeme **zaten** ses saatine konmuş durumda. Sesi kapatan oyuncu
+// bir buçuk saniye daha müzik duymasın diye yolun kazancı da iniyor.
+function muzDur() {
+  muzAcik = false;
+  if (muzTimer) { clearInterval(muzTimer); muzTimer = 0; }
+  if (actx && muzBus) {
+    muzBus.gain.cancelScheduledValues(actx.currentTime);
+    muzBus.gain.setValueAtTime(muzBus.gain.value, actx.currentTime);
+    muzBus.gain.linearRampToValueAtTime(0, actx.currentTime + 0.08);
+  }
+}
+
+// Tarayıcı, kullanıcı dokunmadan ses çalmaya izin vermiyor. İlk
+// dokunuşta başlıyor; `once` ile de bir kez bağlanıyor.
+addEventListener('pointerdown', () => muzBasla(), { once: true });
+// Sekme arka plana gidince susuyor: açık kalan bir oyun, cebe giren bir
+// telefonda şarkı söylememeli.
+addEventListener('visibilitychange', () => {
+  if (document.hidden) muzDur();
+  else if (!G.muted) muzBasla();
+});
+
+// ---------------------------------------------------------------------
 // Frame
 // ---------------------------------------------------------------------
 let last = performance.now();
@@ -3279,6 +3397,13 @@ window.jeGames = () => ({
 // Şubeyi doğrudan ayarla: beş yeri tek tek görmek için prestij yapmak
 // gerekmesin.
 window.jeSetBranch = n => { G.branches = n | 0; yeriUygula(); refreshPanel(); return G.branches; };
+window.jeMuzik = () => ({
+  acik: muzAcik, sesVar: !!actx, bus: !!muzBus,
+  calan: muzSesler, bpm: MUZ_BPM, seviye: MUZ_SES,
+  kazanc: muzBus ? +muzBus.gain.value.toFixed(4) : null,
+  ileri: actx && muzAcik ? +(muzZaman - actx.currentTime).toFixed(2) : 0,
+});
+window.jeMuzBasla = () => { muzBasla(); return window.jeMuzik(); };
 window.jeGorev = () => ({
   gun: G.gun ? G.gun.gun : null,
   liste: G.gun ? G.gun.liste.map(id => {
