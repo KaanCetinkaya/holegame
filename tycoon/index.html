@@ -138,6 +138,21 @@
     padding: 14px; border: 0; border-radius: 15px; box-shadow: 0 5px 0 #c67613;
   }
   .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #c67613; }
+  /* Yedek kodu: uzun ve bölünmesi gerekiyor. `monospace` ve `break-all`,
+     kodun satır sonunda sessizce kırpılmasını değil sarmasını sağlıyor. */
+  .code {
+    width: 100%; max-width: 350px; box-sizing: border-box;
+    background: rgba(0,0,0,.35); color: #e8eef6;
+    border: 2px solid rgba(255,255,255,.16); border-radius: 14px;
+    padding: 10px 12px; margin-bottom: 12px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 11px; line-height: 1.5; letter-spacing: .3px;
+    resize: none; word-break: break-all;
+  }
+  .bumsg { width: 100%; max-width: 350px; min-height: 20px; margin: -4px 0 10px;
+           font-size: 13.5px; font-weight: 700; text-align: center; }
+  .bumsg.iyi { color: #6fe3a6; }
+  .bumsg.kotu { color: #ff8e7a; }
   .btn.alt { background: linear-gradient(180deg, #9d81f0, #7551e0); color: #fff; box-shadow: 0 5px 0 #5334ad; }
   .btn.alt:active { box-shadow: 0 2px 0 #5334ad; }
   .btn[disabled] { filter: grayscale(.7) brightness(.75); box-shadow: 0 5px 0 #6b5a45; }
@@ -340,6 +355,24 @@
     </div>
   </div>
 
+  <div class="screen" id="backup">
+    <h2>Backup 💾</h2>
+    <p>Your factory lives on this device only. Keep this code somewhere
+       safe — it rebuilds the factory on a new phone, or after a reinstall.</p>
+    <textarea id="buCode" class="code" readonly rows="4"></textarea>
+    <div class="stack">
+      <button class="btn" id="buCopy">COPY CODE</button>
+    </div>
+    <p style="margin:16px 0 8px">Paste a code here to load it. This replaces
+       everything you have now.</p>
+    <textarea id="buIn" class="code" rows="4" placeholder="MW1-…"></textarea>
+    <div id="buMsg" class="bumsg"></div>
+    <div class="stack">
+      <button class="btn alt" id="buLoad">LOAD CODE</button>
+      <button class="btn alt" id="buClose">CLOSE</button>
+    </div>
+  </div>
+
   <div class="screen" id="menu">
     <h2>Factory</h2>
     <div class="card">
@@ -357,6 +390,7 @@
       <button class="btn alt" id="shopBtn">🛒 SHOP</button>
       <button class="btn alt" id="resBtn">RESEARCH</button>
       <button class="btn" id="prestigeBtn">OPEN NEW BRANCH</button>
+      <button class="btn alt" id="backupBtn">💾 BACKUP</button>
       <button class="btn alt" id="muteBtn">SOUND: ON</button>
       <button class="btn alt" id="closeMenu">CLOSE</button>
     </div>
@@ -2751,6 +2785,62 @@ $('resClose').onclick = () => {
 };
 
 // ---------------------------------------------------------------------
+// Backup screen
+// ---------------------------------------------------------------------
+// Yükleme iki basışlı. Tek basış yeterli olsaydı, "LOAD" düğmesine
+// yanlışlıkla dokunan bir oyuncu yüz saatlik fabrikasını boş bir kutuya
+// değiştirirdi — ve geri dönüşü yok.
+let buOnay = 0;
+function buMesaj(metin, iyi) {
+  const el = $('buMsg');
+  el.textContent = metin;
+  el.className = 'bumsg' + (metin ? (iyi ? ' iyi' : ' kotu') : '');
+}
+$('backupBtn').onclick = () => {
+  saveNow();                       // koda en son hâli girsin
+  $('buCode').value = yedekKod();
+  $('buIn').value = '';
+  buOnay = 0;
+  $('buLoad').textContent = 'LOAD CODE';
+  buMesaj('');
+  $('menu').classList.remove('show');
+  $('backup').classList.add('show');
+};
+$('buCopy').onclick = async () => {
+  const ta = $('buCode');
+  // Pano izni WebView'da her zaman verilmiyor; verilmezse metin seçili
+  // bırakılıyor ve oyuncu basılı tutup kopyalayabiliyor.
+  try {
+    await navigator.clipboard.writeText(ta.value);
+    buMesaj('Code copied.', true);
+  } catch {
+    ta.focus(); ta.select();
+    buMesaj('Selected — hold to copy.', true);
+  }
+};
+$('buLoad').onclick = () => {
+  const r = yedekCoz($('buIn').value);
+  if (r.hata) { buOnay = 0; $('buLoad').textContent = 'LOAD CODE'; buMesaj(r.hata, false); return; }
+  if (!buOnay) {
+    buOnay = 1;
+    $('buLoad').textContent = 'TAP AGAIN TO REPLACE';
+    buMesaj('This erases the factory you have now.', false);
+    return;
+  }
+  const y = yedekYukle($('buIn').value);
+  if (y.hata) { buMesaj(y.hata, false); return; }
+  buMesaj('Loaded. Restarting…', true);
+  // `wiped` ile aynı tuzak: yenilenme `pagehide`'ı tetikliyor, `pagehide`
+  // kaydediyor ve az önce yazdığımız kaydın üstüne eski `G` biniyor.
+  wiped = true;
+  setTimeout(() => location.reload(), 350);
+};
+$('buClose').onclick = () => {
+  $('backup').classList.remove('show');
+  $('menuBtn').onclick();
+};
+
+// ---------------------------------------------------------------------
 // Daily reward
 // ---------------------------------------------------------------------
 // Days are counted in the player's own timezone rather than UTC: a reward
@@ -3042,6 +3132,82 @@ addEventListener('visibilitychange', () => {
   if (document.hidden) muzDur();
   else if (!G.muted) muzBasla();
 });
+
+// ---------------------------------------------------------------------
+// Yedek
+// ---------------------------------------------------------------------
+// Fabrika yalnızca `localStorage`'da duruyor. Oyuncu uygulamayı silse,
+// telefon değiştirse ya da tarayıcı verisini temizlese her şey gidiyor —
+// ve bu türde oynanan süre yüzlerce saate çıkıyor. Bulut kaydı Play
+// Games'e bağlı ve Play Console'da henüz kurulmadı; kuruluncaya kadar
+// elden taşınan bir kod, hiç yoktan iyi.
+//
+// Kod `MW1-<base64>-<damga>`. Damga bir sağlama: tek harfi eksilmiş bir
+// kodu **yüklemeden önce** reddediyor, yoksa yarım bir JSON kaydın
+// üstüne yazılır ve oyuncu hem eski hem yeni fabrikasını kaybeder.
+const YEDEK_ON = 'MW1-';
+const YEDEK_SURUM = 1;
+
+// Sağlama: base64 metninin karakterlerinden 32 bitlik bir sayı. Kriptografi
+// değil, amaç kötü niyet değil **yazım hatası** yakalamak.
+function yedekDamga(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+
+// `btoa` yalnızca Latin-1 alıyor; kayıtta Türkçe karakter yok ama şube
+// adları ileride gelirse sessizce patlamasın.
+const b64Yaz = s => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+const b64Oku = s => new TextDecoder().decode(
+  Uint8Array.from(atob(s), c => c.charCodeAt(0)));
+
+function yedekKod() {
+  // Tampon ve yığınlar taşınmıyor: bir saniyelik üretim kadar değerleri
+  // var ve kodu uzatıyorlar.
+  const temiz = { ...G };
+  delete temiz.buf;
+  delete temiz.pile;
+  const govde = b64Yaz(JSON.stringify({ v: YEDEK_SURUM, g: temiz }));
+  return YEDEK_ON + govde + '-' + yedekDamga(govde);
+}
+
+// Kodu çöz. Dönen şey ya `{ json }` ya `{ hata }` — yarım bir sonuç yok,
+// çünkü çağıran taraf kaydın üstüne yazacak.
+function yedekCoz(kod) {
+  const s = String(kod || '').trim().replace(/\s+/g, '');
+  if (!s) return { hata: 'Paste a code first.' };
+  if (!s.startsWith(YEDEK_ON)) return { hata: 'That is not a Motor Works code.' };
+  const i = s.lastIndexOf('-');
+  if (i <= YEDEK_ON.length - 1) return { hata: 'The code is incomplete.' };
+  const govde = s.slice(YEDEK_ON.length, i), damga = s.slice(i + 1);
+  if (yedekDamga(govde) !== damga) return { hata: 'The code is damaged — a character is missing or changed.' };
+  let p = null;
+  try { p = JSON.parse(b64Oku(govde)); } catch { return { hata: 'The code could not be read.' }; }
+  if (!p || typeof p !== 'object' || !p.g || typeof p.g !== 'object')
+    return { hata: 'The code could not be read.' };
+  if (!(p.v <= YEDEK_SURUM)) return { hata: 'That code is from a newer version of the game.' };
+  // Tek bir alan doğrulanıyor ve o da sayı mı diye: gerisi `Object.assign`
+  // ile varsayılanların üstüne biniyor, eksik alanı oyunun kendi göç yolu
+  // dolduruyor. Doğrulamayı burada tekrarlamak, iki yerde yaşayan bir
+  // kural demek olurdu.
+  if (typeof p.g.cash !== 'number' || !isFinite(p.g.cash))
+    return { hata: 'The code could not be read.' };
+  return { json: JSON.stringify(p.g) };
+}
+
+// Yükleme kaydı yazıp sayfayı yeniliyor. Canlı `G`'ye tek tek atamak
+// yerine bu yol seçildi: açılışta zaten bir göç kodu var (varsayılanlar,
+// kısa dizilerin doldurulması) ve eski bir kayıt o yoldan geçmeli.
+function yedekYukle(kod) {
+  const r = yedekCoz(kod);
+  if (r.hata) return r;
+  try { localStorage.setItem(KEY, r.json); } catch { return { hata: 'This device would not let the game save.' }; }
+  return { ok: true };
+}
 
 // ---------------------------------------------------------------------
 // Müşteri
@@ -3579,6 +3745,13 @@ window.jeMusBelir = () => { musSayac = 0; return musBelir(); };
 // gidişinde sahneden çıkıyor; sayı yirmi müşteri sonunda da aynı
 // kalmalı. Göz bunu fark etmiyor, sayı fark ediyor.
 window.jeSahne = () => scene.children.length;
+// Yedek: kodu üret, çöz, yükle. `jeYedekYukle` kayda yazıp yenilemiyor —
+// testin sayfayı kendisi yenilemesi gerekiyor, yoksa ölçüm kendi
+// yenilemesini bekleyemez.
+window.jeYedekKod = () => yedekKod();
+window.jeYedekCoz = k => yedekCoz(k);
+window.jeYedekYukle = k => { const r = yedekYukle(k); if (r.ok) wiped = true; return r; };
+window.jeKayit = () => localStorage.getItem(KEY);
 // Bir dünya noktası ekranda nereye düşüyor. Park yeri bununla seçildi:
 // "önlüğün içinde" olmak yetmiyor, nokta hem kadrajda olmalı hem de
 // arayüzün altında kalmamalı.
