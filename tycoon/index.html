@@ -1545,21 +1545,49 @@ function yardTexture() {
 // düzlemin kenarını saklamak için 64x120'ye büyütülmüştü. Tür
 // rakiplerinin hepsinde fabrikanın bir **yeri** var — çim, bir yol,
 // kenarda ağaçlar. Beton artık yalnızca bölmelerin altında; gerisi çim.
+// Şubenin kurulduğu **yer**.
+//
+// Prestij oyunun ana döngüsü ve şu ana kadar onu yapmanın tek ödülü
+// sayılardı: aynı fabrika, aynı avlu, baştan. Her şube artık başka bir
+// yerde kuruluyor — fabrikanın kendisi aynı, etrafı değişiyor. "Bir daha
+// devret" demenin görünür bir sebebi oluyor, ve mağaza görselleri de
+// çeşitleniyor.
+//
+// Beşi dönüyor: altıncı şube ilkine geri sarıyor. Sonsuz yer uydurmak
+// yerine beş tanesini doğru yapmak.
+const YERLER = [
+  { ad: 'Meadow',  gok: '#9fc4e4', zemin: '#6aa350', serit: ['#7fb55f', '#4e7e3a'],
+    benek: ['#4b7d39', '#86bd62'], agac: ['#3f7a3a', '#4d8c3f', '#356b34'], govde: '#6b4a32' },
+  { ad: 'Desert',  gok: '#e3c79a', zemin: '#d9b87a', serit: ['#e6cb94', '#c7a265'],
+    benek: ['#c09a5e', '#eddaa8'], agac: ['#5f8f4a', '#6fa155', '#4e7a3e'], govde: '#8a6a44' },
+  { ad: 'Tundra',  gok: '#cdd9e6', zemin: '#e8eef4', serit: ['#f4f8fb', '#d4dde6'],
+    benek: ['#cfd8e2', '#ffffff'], agac: ['#2f5742', '#3a6a4e', '#27493a'], govde: '#4a3b30' },
+  { ad: 'Harbour', gok: '#8fb9d4', zemin: '#7d93a3', serit: ['#8ba2b2', '#6b8291'],
+    benek: ['#64798a', '#9bb0bf'], agac: ['#3f7a6a', '#4d8c78', '#356b5e'], govde: '#5a4a3e' },
+  { ad: 'Ashland', gok: '#b08a7a', zemin: '#6e6260', serit: ['#7a6e6b', '#5e5452'],
+    benek: ['#574d4b', '#8b7f7c'], agac: ['#5a4a3a', '#6b5a46', '#4a3c30'], govde: '#3e342e' },
+];
+// Kayıttaki şube sayısı yeri belirliyor. `G` burada tanımlı olmak
+// zorunda değil — zemin kurulurken okunuyor ve prestijte yeniden
+// uygulanıyor.
+const yerSec = () => YERLER[(G.branches | 0) % YERLER.length];
+
 function grassTexture() {
+  const y = yerSec();
   const S = 256, [c, ctx] = newCanvas(S);
-  ctx.fillStyle = '#6aa350';
+  ctx.fillStyle = y.zemin;
   ctx.fillRect(0, 0, S, S);
   // Biçilmiş şeritler. Düz bir yeşil, uzaktan boyalı kâğıt gibi duruyor;
   // şerit ona yön ve ölçek veriyor.
   ctx.globalAlpha = 0.16;
   for (let i = 0; i < 8; i++) {
-    ctx.fillStyle = i % 2 ? '#7fb55f' : '#4e7e3a';
+    ctx.fillStyle = i % 2 ? y.serit[0] : y.serit[1];
     ctx.fillRect(0, i * 32, S, 32);
   }
   ctx.globalAlpha = 1;
   for (let i = 0; i < 2200; i++) {
     ctx.globalAlpha = 0.05 + Math.random() * 0.1;
-    ctx.fillStyle = Math.random() < 0.5 ? '#4b7d39' : '#86bd62';
+    ctx.fillStyle = Math.random() < 0.5 ? y.benek[0] : y.benek[1];
     ctx.beginPath();
     ctx.arc(Math.random() * S, Math.random() * S, 1 + Math.random() * 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -1595,6 +1623,7 @@ yard.position.set(0, 0, YARD_Z);
 yard.receiveShadow = true;
 scene.add(yard);
 
+let agacAhsap = null, agacYaprak = null;
 // Çitin ardındaki ağaçlar.
 //
 // Silüet için. Fabrika kendi başına duruyordu ve arkasında hiçbir şey
@@ -1604,12 +1633,12 @@ scene.add(yard);
 {
   const govde = new THREE.CylinderGeometry(0.18, 0.24, 1.1, 6);
   const taç = new THREE.IcosahedronGeometry(1.05, 0);
-  const ahsap = new THREE.MeshStandardMaterial({ color: '#6b4a32', roughness: 0.95 });
-  const yesil = [
-    new THREE.MeshStandardMaterial({ color: '#3f7a3a', roughness: 1, flatShading: true }),
-    new THREE.MeshStandardMaterial({ color: '#4d8c3f', roughness: 1, flatShading: true }),
-    new THREE.MeshStandardMaterial({ color: '#356b34', roughness: 1, flatShading: true }),
-  ];
+  // Malzemeler dışarıda tutuluyor: yer değişince renkleri yerinde
+  // güncelleniyor, ağaçlar yeniden kurulmuyor.
+  agacAhsap = new THREE.MeshStandardMaterial({ color: '#6b4a32', roughness: 0.95 });
+  agacYaprak = [0, 1, 2].map(() =>
+    new THREE.MeshStandardMaterial({ color: '#3f7a3a', roughness: 1, flatShading: true }));
+  const ahsap = agacAhsap, yesil = agacYaprak;
   // Yerler elle verildi: rastgele dağıtmak önlüğün üstüne ağaç koyuyordu
   // ve her açılışta başka bir yere. Sahne her seferinde aynı görünmeli.
   // Önlük x'te ±11, z'de +3 ile -31 arası. Ağaçlar bunun hemen dışında:
@@ -1636,6 +1665,26 @@ scene.add(yard);
     g.scale.setScalar(0.85 + (i % 5) * 0.12);
     scene.add(g);
   });
+}
+
+// Yeri sahneye uygula. Açılışta ve her prestijte çağrılıyor.
+//
+// Tek yerde toplandı: gökyüzü, sis, zemin dokusu ve ağaç renkleri aynı
+// tablodan okunuyor. Dağıtılsalardı bir şube değişiminde biri
+// güncellenmeden kalır ve kar üstünde yeşil ağaçlar dururdu.
+function yeriUygula() {
+  const y = yerSec();
+  scene.background.set(y.gok);
+  scene.fog.color.set(y.gok);
+  // Doku yeniden üretiliyor: renkler tuvale çizili, malzeme rengiyle
+  // değiştirilemiyor. Eskisi atılıyor, yoksa her prestij GPU'da bir
+  // doku bırakır.
+  const eskiDoku = grass.material.map;
+  grass.material.map = grassTexture();
+  grass.material.needsUpdate = true;
+  if (eskiDoku) eskiDoku.dispose();
+  if (agacAhsap) agacAhsap.color.set(y.govde);
+  if (agacYaprak) agacYaprak.forEach((m, i) => m.color.set(y.agac[i]));
 }
 
 // Bordür. Betonla çimin arasındaki çizgi olmadan ikisi birbirine akıyor ve
@@ -2372,7 +2421,7 @@ const PRESTIGE_AT = () => {
 
 $('menuBtn').onclick = () => {
   const ch = chain();
-  $('kBranch').textContent = G.branches + 1;
+  $('kBranch').textContent = `${G.branches + 1} · ${yerSec().ad}`;
   $('kBonus').textContent = `×${fmt(branchMult())}  (${fmt(freePoints())} points unspent)`;
   $('resBtn').textContent = freePoints() > 0
     ? `RESEARCH  ● ${fmt(freePoints())} POINTS`
@@ -2445,6 +2494,7 @@ $('pGo').onclick = () => {
   if (!canPrestige()) return;
   G.branches++;
   G.lifetime += G.totalEarned;
+  yeriUygula();                  // yeni şube, yeni yer
   // Tabloya gidecek sayı burada sıçrıyor; göndermek için bir sonraki
   // açılışı beklemenin sebebi yok.
   setTimeout(gamesSubmit, 0);
@@ -3109,6 +3159,17 @@ window.jeGames = () => ({
   skor: Math.min(SCORE_MAX, Math.floor(G.lifetime + G.totalEarned)),
   hata: _gamesErr,
 });
+// Şubeyi doğrudan ayarla: beş yeri tek tek görmek için prestij yapmak
+// gerekmesin.
+window.jeSetBranch = n => { G.branches = n | 0; yeriUygula(); refreshPanel(); return G.branches; };
+window.jeYer = () => ({
+  sube: G.branches, ad: yerSec().ad,
+  gok: '#' + scene.background.getHexString(),
+  sis: '#' + scene.fog.color.getHexString(),
+  yaprak: agacYaprak ? agacYaprak.map(m => '#' + m.color.getHexString()) : [],
+  govde: agacAhsap ? '#' + agacAhsap.color.getHexString() : '',
+  dokular: renderer.info.memory.textures,
+});
 window.jeMgrKimlik = () => MGRS.map((m, i) => ({
   ad: m.ad, rol: m.rol, bonus: m.bonus, alindi: G.mgr[i],
   // Veri URL'sinin kendisi değil, özeti. İlk hâli ilk 22 karakteri
@@ -3172,6 +3233,7 @@ if (G.boostUntil > Date.now()) G.boostUntil = 0;
 const back = offlineCatchUp();
 if (back) showWelcome(back);
 G.seen = Date.now();
+yeriUygula();
 notifInit();
 gamesInit();
 iapInit();
