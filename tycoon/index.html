@@ -303,120 +303,116 @@
 
   <div id="panel">
     <div id="bulk">
-      <span style="opacity:.7">Buy:</span>
+      <span style="opacity:.7" data-t="buy">Buy:</span>
       <button data-n="1" class="on">×1</button>
       <button data-n="10">×10</button>
-      <button data-n="max">MAX</button>
+      <button data-n="max" data-t="maxBtn">MAX</button>
     </div>
     <div id="stations"></div>
   </div>
 
   <div class="screen" id="welcome">
-    <h2>Welcome back! 👋</h2>
-    <p id="wSub">The factory kept running while you were away.</p>
+    <h2 data-t="welcome">Welcome back! 👋</h2>
+    <p id="wSub" data-t="welcomeSub">The factory kept running while you were away.</p>
     <div class="card">
-      <div class="row"><span>Time away</span><span id="wTime">—</span></div>
-      <div class="row"><span>Earned</span><span id="wCash">—</span></div>
+      <div class="row"><span data-t="timeAway">Time away</span><span id="wTime">—</span></div>
+      <div class="row"><span data-t="earned">Earned</span><span id="wCash">—</span></div>
     </div>
     <div class="stack">
-      <button class="btn" id="wDouble">📺 WATCH AD, TAKE ×2</button>
-      <button class="btn alt" id="wOk">COLLECT</button>
+      <button class="btn" id="wDouble" data-t="watchDouble">📺 WATCH AD, TAKE ×2</button>
+      <button class="btn alt" id="wOk" data-t="collect">COLLECT</button>
     </div>
   </div>
 
   <div class="screen" id="daily">
-    <h2>Daily reward 🎁</h2>
-    <p id="dSub">Every day in a row makes the reward bigger.</p>
+    <h2 data-t="daily">Daily reward 🎁</h2>
+    <p id="dSub" data-t="dailySub">Every day in a row makes the reward bigger.</p>
     <div class="card">
-      <div class="row"><span>Day</span><span id="dStreak">1</span></div>
-      <div class="row"><span>Reward</span><span id="dCash">—</span></div>
+      <div class="row"><span data-t="day">Day</span><span id="dStreak">1</span></div>
+      <div class="row"><span data-t="reward">Reward</span><span id="dCash">—</span></div>
     </div>
     <div class="stack">
-      <button class="btn" id="dOk">CLAIM</button>
+      <button class="btn" id="dOk" data-t="claim">CLAIM</button>
     </div>
   </div>
 
   <div class="screen" id="goals">
-    <h2>Goals</h2>
+    <h2 data-t="goals">Goals</h2>
     <div class="card" id="goalList" style="max-height:52vh;overflow-y:auto"></div>
     <div class="stack">
-      <button class="btn alt" id="goalsClose">CLOSE</button>
+      <button class="btn alt" id="goalsClose" data-t="close">CLOSE</button>
     </div>
   </div>
 
   <div class="screen" id="research">
-    <h2>Research 🔬</h2>
-    <p>Branch points are permanent. Where you spend them is up to you —<br>
-       an unspent point does nothing.</p>
-    <div class="card"><div class="row"><span>Points to spend</span><span id="rFree">0</span></div></div>
+    <h2 data-t="research">Research 🔬</h2>
+    <p data-t="researchSub">Branch points are permanent.</p>
+    <div class="card"><div class="row"><span data-t="toSpend">Points to spend</span><span id="rFree">0</span></div></div>
     <div class="card" id="resList" style="max-height:46vh;overflow-y:auto"></div>
     <div class="stack">
-      <button class="btn alt" id="resClose">CLOSE</button>
+      <button class="btn alt" id="resClose" data-t="close">CLOSE</button>
     </div>
   </div>
 
   <div class="screen" id="backup">
-    <h2>Backup 💾</h2>
-    <p>Your factory lives on this device only. Keep this code somewhere
-       safe — it rebuilds the factory on a new phone, or after a reinstall.</p>
+    <h2 data-t="backup">Backup 💾</h2>
+    <p data-t="backupP1">Your factory lives on this device only.</p>
     <textarea id="buCode" class="code" readonly rows="4"></textarea>
     <div class="stack">
-      <button class="btn" id="buCopy">COPY CODE</button>
+      <button class="btn" id="buCopy" data-t="copyCode">COPY CODE</button>
     </div>
-    <p style="margin:16px 0 8px">Paste a code here to load it. This replaces
-       everything you have now.</p>
+    <p style="margin:16px 0 8px" data-t="backupP2">Paste a code here to load it.</p>
     <textarea id="buIn" class="code" rows="4" placeholder="MW1-…"></textarea>
     <div id="buMsg" class="bumsg"></div>
     <div class="stack">
-      <button class="btn alt" id="buLoad">LOAD CODE</button>
-      <button class="btn alt" id="buClose">CLOSE</button>
+      <button class="btn alt" id="buLoad" data-t="loadCode">LOAD CODE</button>
+      <button class="btn alt" id="buClose" data-t="close">CLOSE</button>
     </div>
   </div>
 
   <div class="screen" id="menu">
-    <h2>Factory</h2>
+    <h2 data-t="factory">Factory</h2>
     <div class="card">
-      <div class="row"><span>Branch</span><span id="kBranch">1</span></div>
-      <div class="row"><span>Branch bonus</span><span id="kBonus">+0%</span></div>
-      <div class="row"><span>Total earned</span><span id="kTotal">0</span></div>
-      <div class="row"><span>Income per second</span><span id="kRate">0</span></div>
-      <div class="row"><span>Bottleneck</span><span id="kNeck">—</span></div>
-      <div class="row"><span>Product</span><span id="kProd">—</span></div>
-      <div class="row"><span>Per vehicle</span><span id="kPrice">—</span></div>
+      <div class="row"><span data-t="branch">Branch</span><span id="kBranch">1</span></div>
+      <div class="row"><span data-t="branchBon">Branch bonus</span><span id="kBonus">+0%</span></div>
+      <div class="row"><span data-t="totalEarn">Total earned</span><span id="kTotal">0</span></div>
+      <div class="row"><span data-t="perSecond">Income per second</span><span id="kRate">0</span></div>
+      <div class="row"><span data-t="neck">Bottleneck</span><span id="kNeck">—</span></div>
+      <div class="row"><span data-t="product">Product</span><span id="kProd">—</span></div>
+      <div class="row"><span data-t="perVeh">Per vehicle</span><span id="kPrice">—</span></div>
     </div>
     <div class="stack">
-      <button class="btn alt" id="goalsBtn">GOALS</button>
-      <button class="btn alt" id="boardBtn" style="display:none">🏆 LEADERBOARD</button>
-      <button class="btn alt" id="shopBtn">🛒 SHOP</button>
+      <button class="btn alt" id="goalsBtn" data-t="goalsBtn">GOALS</button>
+      <button class="btn alt" id="boardBtn" style="display:none" data-t="board">🏆 LEADERBOARD</button>
+      <button class="btn alt" id="shopBtn" data-t="shopBtn">🛒 SHOP</button>
       <button class="btn alt" id="resBtn">RESEARCH</button>
-      <button class="btn" id="prestigeBtn">OPEN NEW BRANCH</button>
-      <button class="btn alt" id="backupBtn">💾 BACKUP</button>
+      <button class="btn" id="prestigeBtn" data-t="newBranch">OPEN NEW BRANCH</button>
+      <button class="btn alt" id="backupBtn" data-t="backupBtn">💾 BACKUP</button>
       <button class="btn alt" id="muteBtn">SOUND: ON</button>
-      <button class="btn alt" id="closeMenu">CLOSE</button>
+      <button class="btn alt" id="langBtn">LANGUAGE: EN</button>
+      <button class="btn alt" id="closeMenu" data-t="close">CLOSE</button>
     </div>
   </div>
 
   <div class="screen" id="shop">
-    <h2>Shop 🛒</h2>
+    <h2 data-t="shop">Shop 🛒</h2>
     <div id="shopList" class="stack"></div>
     <div class="stack">
-      <button class="btn alt" id="restoreBtn">RESTORE PURCHASES</button>
-      <button class="btn alt" id="closeShop">CLOSE</button>
+      <button class="btn alt" id="restoreBtn" data-t="restore">RESTORE PURCHASES</button>
+      <button class="btn alt" id="closeShop" data-t="close">CLOSE</button>
     </div>
   </div>
 
   <div class="screen" id="prestige">
-    <h2>New branch 🏭</h2>
-    <p>You hand this factory on: every station resets and the cash resets.
-       In return you earn <b>branch points</b> — they are permanent and
-       they are spent on the <b>Research</b> screen.</p>
+    <h2 data-t="prestige">New branch 🏭</h2>
+    <p data-t="prestigeP">You hand this factory on.</p>
     <div class="card">
-      <div class="row"><span>Right now</span><span id="pNow">0 points unspent</span></div>
-      <div class="row"><span>From this reset</span><span id="pNext">+0 points</span></div>
+      <div class="row"><span data-t="rightNow">Right now</span><span id="pNow">0 points unspent</span></div>
+      <div class="row"><span data-t="fromReset">From this reset</span><span id="pNext">+0 points</span></div>
     </div>
     <div class="stack">
-      <button class="btn" id="pGo">HAND ON AND START</button>
-      <button class="btn alt" id="pNo">CANCEL</button>
+      <button class="btn" id="pGo" data-t="handOn">HAND ON AND START</button>
+      <button class="btn alt" id="pNo" data-t="cancel">CANCEL</button>
     </div>
   </div>
 </div>
@@ -448,6 +444,242 @@ import * as THREE from 'three';
 
 const app = document.getElementById('app');
 const $ = id => document.getElementById(id);
+
+// ---------------------------------------------------------------------
+// Dil
+// ---------------------------------------------------------------------
+// Oyunun geldiği yer TikTok ve oradan gelenlerin tamamına yakını Türkçe
+// konuşuyor. Arayüz baştan sona İngilizceydi.
+//
+// Tablo İngilizce anahtarlı değil, kısa kimlikli: aynı İngilizce sözcük
+// iki yerde başka Türkçe karşılık istiyor ("Branch" hem şube sayısı hem
+// şube açma düğmesi). Eksik bir anahtar İngilizceye düşüyor, yani
+// çevrilmemiş bir satır ekranı boş bırakmıyor.
+const METIN = {
+  // Üst şerit ve panel
+  buy:        ['Buy:', 'Al:'],
+  perSec:     ['/ s', '/ sn'],
+  bottleneck: ['BOTTLENECK', 'DARBOĞAZ'],
+  full:       ['FULL — upgrade {0}', 'DOLU — {0} yükselt'],
+  levels:     ['LEVELS', 'SEVİYE'],
+  maxBtn:     ['MAX', 'MAKS'],
+  hire:       ['HIRE', 'TUT'],
+  // İstasyonlar ve birimleri
+  st0: ['Foundry', 'Döküm'],
+  st1: ['Stamping', 'Pres'],
+  st2: ['Assembly', 'Montaj'],
+  st3: ['Dispatch', 'Sevkiyat'],
+  u0:  ['ingot', 'külçe'],
+  u1:  ['panel', 'panel'],
+  u2:  ['car', 'araba'],
+  u3:  ['shipment', 'sevkiyat'],
+  // Dönüş ekranı
+  welcome:     ['Welcome back! 👋', 'Tekrar hoş geldin! 👋'],
+  welcomeSub:  ['The factory kept running while you were away.',
+                'Sen yokken fabrika çalışmaya devam etti.'],
+  timeAway:    ['Time away', 'Uzak kalınan süre'],
+  earned:      ['Earned', 'Kazanılan'],
+  watchDouble: ['📺 WATCH AD, TAKE ×2', '📺 REKLAM İZLE, ×2 AL'],
+  collect:     ['COLLECT', 'TOPLA'],
+  // Günlük ödül
+  daily:    ['Daily reward 🎁', 'Günlük ödül 🎁'],
+  dailySub: ['Every day in a row makes the reward bigger.',
+             'Arka arkaya her gün ödülü büyütüyor.'],
+  day:      ['Day', 'Gün'],
+  topRun:   [' (top streak)', ' (en uzun seri)'],
+  reward:   ['Reward', 'Ödül'],
+  claim:    ['CLAIM', 'AL'],
+  // Hedefler
+  goals:     ['Goals', 'Hedefler'],
+  goalsBtn:  ['GOALS', 'HEDEFLER'],
+  missions:  ['Today', 'Bugün'],
+  milestones:['Milestones', 'Kilometre taşları'],
+  taken:     ['TAKEN', 'ALINDI'],
+  take:      ['TAKE', 'AL'],
+  close:     ['CLOSE', 'KAPAT'],
+  // Araştırma
+  research:    ['Research 🔬', 'Araştırma 🔬'],
+  researchBtn: ['RESEARCH', 'ARAŞTIRMA'],
+  researchSub: ['Branch points are permanent. Where you spend them is up to you —<br>an unspent point does nothing.',
+                'Şube puanları kalıcı. Nereye harcayacağın sana kalmış —<br>harcanmamış puan hiçbir şey yapmıyor.'],
+  toSpend:     ['Points to spend', 'Harcanacak puan'],
+  points:      ['points', 'puan'],
+  pointsBtn:   ['points', 'puan'],
+  // Menü
+  factory:   ['Factory', 'Fabrika'],
+  branch:    ['Branch', 'Şube'],
+  branchBon: ['Branch bonus', 'Şube çarpanı'],
+  totalEarn: ['Total earned', 'Toplam kazanç'],
+  perSecond: ['Income per second', 'Saniyedeki gelir'],
+  neck:      ['Bottleneck', 'Darboğaz'],
+  product:   ['Product', 'Ürün'],
+  perVeh:    ['Per vehicle', 'Araç başına'],
+  unspent:   ['{0} points unspent', '{0} puan harcanmadı'],
+  board:     ['🏆 LEADERBOARD', '🏆 SIRALAMA'],
+  shopBtn:   ['🛒 SHOP', '🛒 MAĞAZA'],
+  newBranch: ['OPEN NEW BRANCH', 'YENİ ŞUBE AÇ'],
+  backupBtn: ['💾 BACKUP', '💾 YEDEK'],
+  sound:     ['SOUND: {0}', 'SES: {0}'],
+  on:        ['ON', 'AÇIK'],
+  off:       ['OFF', 'KAPALI'],
+  lang:      ['LANGUAGE: {0}', 'DİL: {0}'],
+  boardIn:   ['🏆 LEADERBOARD', '🏆 SIRALAMA'],
+  boardOut:  ['🏆 SIGN IN FOR THE LEADERBOARD', '🏆 SIRALAMA İÇİN GİRİŞ YAP'],
+  resWith:   ['RESEARCH  ● {0} POINTS', 'ARAŞTIRMA  ● {0} PUAN'],
+  newBranchP:['OPEN NEW BRANCH  (+{0} points)', 'YENİ ŞUBE AÇ  (+{0} puan)'],
+  newBranchN:['NEW BRANCH: earn {0} more', 'YENİ ŞUBE: {0} daha kazan'],
+  // Mağaza
+  shop:      ['Shop 🛒', 'Mağaza 🛒'],
+  restore:   ['RESTORE PURCHASES', 'SATIN ALMALARI GERİ YÜKLE'],
+  restoring: ['RESTORING…', 'GERİ YÜKLENİYOR…'],
+  owned:     ['OWNED', 'ALINDI'],
+  // Prestij
+  prestige:  ['New branch 🏭', 'Yeni şube 🏭'],
+  prestigeP: ['You hand this factory on: every station resets and the cash resets. In return you earn <b>branch points</b> — they are permanent and they are spent on the <b>Research</b> screen.',
+              'Bu fabrikayı devrediyorsun: bütün istasyonlar ve kasa sıfırlanıyor. Karşılığında <b>şube puanı</b> kazanıyorsun — kalıcı, ve <b>Araştırma</b> ekranında harcanıyor.'],
+  rightNow:  ['Right now', 'Şu anda'],
+  fromReset: ['From this reset', 'Bu devirden'],
+  handOn:    ['HAND ON AND START', 'DEVRET VE BAŞLA'],
+  cancel:    ['CANCEL', 'VAZGEÇ'],
+  // Yedek
+  backup:    ['Backup 💾', 'Yedek 💾'],
+  backupP1:  ['Your factory lives on this device only. Keep this code somewhere safe — it rebuilds the factory on a new phone, or after a reinstall.',
+              'Fabrikan yalnızca bu cihazda duruyor. Bu kodu güvenli bir yere kaydet — yeni telefonda ya da uygulamayı yeniden kurunca fabrikayı geri getiriyor.'],
+  backupP2:  ['Paste a code here to load it. This replaces everything you have now.',
+              'Yüklemek için buraya bir kod yapıştır. Elindeki her şeyin yerine geçer.'],
+  copyCode:  ['COPY CODE', 'KODU KOPYALA'],
+  loadCode:  ['LOAD CODE', 'KODU YÜKLE'],
+  copied:    ['Code copied.', 'Kod kopyalandı.'],
+  selected:  ['Selected — hold to copy.', 'Seçildi — kopyalamak için basılı tut.'],
+  buAgain:   ['TAP AGAIN TO REPLACE', 'DEĞİŞTİRMEK İÇİN TEKRAR BAS'],
+  buWarn:    ['This erases the factory you have now.', 'Şu anki fabrikanı siler.'],
+  buDone:    ['Loaded. Restarting…', 'Yüklendi. Yeniden başlıyor…'],
+  buEmpty:   ['Paste a code first.', 'Önce bir kod yapıştır.'],
+  buForeign: ['That is not a Motor Works code.', 'Bu bir Motor Works kodu değil.'],
+  buShort:   ['The code is incomplete.', 'Kod eksik.'],
+  buBroken:  ['The code is damaged — a character is missing or changed.',
+              'Kod bozuk — bir karakter eksik ya da değişmiş.'],
+  buUnread:  ['The code could not be read.', 'Kod okunamadı.'],
+  buNewer:   ['That code is from a newer version of the game.',
+              'Bu kod oyunun daha yeni bir sürümünden.'],
+  buNoSave:  ['This device would not let the game save.', 'Bu cihaz kaydetmeye izin vermedi.'],
+  // Öğretici ve ipucu
+  tut0: ['Drag anywhere on the factory to walk your worker.',
+         'İşçiyi yürütmek için fabrikanın herhangi bir yerini sürükle.'],
+  tut1: ['Walk onto the <b>Foundry</b> pad to pick up ingots.',
+         '<b>Döküm</b> alanına yürü ve külçeleri al.'],
+  tut2: ['Carry them to <b>Stamping</b> and drop them off.',
+         'Onları <b>Pres</b>e taşı ve bırak.'],
+  tut3: ['Now spend the money: upgrade the station marked <b>BOTTLENECK</b>.',
+         'Şimdi parayı harca: <b>DARBOĞAZ</b> yazan istasyonu yükselt.'],
+  tipMgr: ['You can afford a <b>manager</b>. A station with one runs itself — and keeps running while the app is closed.',
+           'Bir <b>müdür</b> alabilirsin. Müdürü olan istasyon kendi kendine çalışıyor — hem de uygulama kapalıyken.'],
+  // Bildirim
+  notifFullT: ['The yard is full', 'Önlük doldu'],
+  notifFullB: ['{0} hours of production is waiting, and the line has stopped stacking.',
+               '{0} saatlik üretim seni bekliyor, hat artık biriktirmiyor.'],
+  notifIdleT: ['Your line is idle', 'Hattın boşta'],
+  notifIdleB: ['Nothing is made while you are away until a station has a manager.',
+               'Bir istasyonun müdürü olmadan sen yokken hiçbir şey üretilmiyor.'],
+  // Araştırma
+  res0:  ['Line speed', 'Hat hızı'],
+  res0t: ['+{0}% all stations', 'bütün istasyonlar +%{0}'],
+  res0s: ['+2% speed', '+%2 hız'],
+  res1:  ['Build quality', 'İşçilik'],
+  res1t: ['+{0}% vehicle price', 'araç fiyatı +%{0}'],
+  res1s: ['+5% price', '+%5 fiyat'],
+  res2:  ['Bulk buying', 'Toplu alım'],
+  res2t: ['-{0}% upgrades', 'yükseltmeler -%{0}'],
+  res2s: ['-1.5% cost', '-%1.5 maliyet'],
+  res3:  ['HR', 'İnsan kaynakları'],
+  res3t: ['-{0}% manager cost', 'müdür ücreti -%{0}'],
+  res3s: ['-4% manager', '-%4 müdür'],
+  res4:  ['Head start', 'Önden başla'],
+  res4t: ['new branch starts at level {0}', 'yeni şube {0}. seviyeden başlıyor'],
+  res4s: ['+1 start', '+1 seviye'],
+  res5:  ['Night shift', 'Gece vardiyası'],
+  res5t: ['{0} hours offline', '{0} saat çevrimdışı'],
+  res5s: ['+1 hour', '+1 saat'],
+  res6:  ['Turbo', 'Turbo'],
+  res6t: ['{0}s of boost', '{0} sn hız'],
+  res6s: ['+15s', '+15 sn'],
+  // Müdürler
+  mgr0r: ['runs the furnaces', 'ocakların başında'],
+  mgr0b: ['+25% foundry speed', '+%25 döküm hızı'],
+  mgr0k: ['+25% speed', '+%25 hız'],
+  mgr1r: ['runs the presses', 'preslerin başında'],
+  mgr1b: ['upgrades 8% cheaper', 'yükseltmeler %8 ucuz'],
+  mgr1k: ['-8% upgrades', '-%8 yükseltme'],
+  mgr2r: ['runs the line', 'hattın başında'],
+  mgr2b: ['boost lasts 60s longer', 'hız 60 sn uzun sürüyor'],
+  mgr2k: ['+60s boost', '+60 sn hız'],
+  mgr3r: ['runs the yard', 'önlüğün başında'],
+  mgr3b: ['+12% vehicle price', 'araç fiyatı +%12'],
+  mgr3k: ['+12% price', '+%12 fiyat'],
+  // Hedefler
+  goalEarn1: ['Earn 1M in total', 'Toplam 1M kazan'],
+  goalEarn2: ['Earn 500M in total', 'Toplam 500M kazan'],
+  goalEarn3: ['Earn 100B in total', 'Toplam 100B kazan'],
+  goalLvl50: ['Take a station to level 50', 'Bir istasyonu 50. seviyeye çıkar'],
+  goalLvl100:['Take a station to level 100', 'Bir istasyonu 100. seviyeye çıkar'],
+  goalLvl200:['Take a station to level 200', 'Bir istasyonu 200. seviyeye çıkar'],
+  goalAll100:['Take all four stations to 100', 'Dört istasyonu da 100. seviyeye çıkar'],
+  goalMgr1:  ['Hire your first manager', 'İlk müdürünü tut'],
+  goalMgr4:  ['Hire all four managers', 'Dört müdürü de tut'],
+  goalBr1:   ['Open your first branch', 'İlk şubeni aç'],
+  goalBr5:   ['Open 5 branches', '5 şube aç'],
+  goalBoost: ['Use the boost 10 times', 'Hızı 10 kez kullan'],
+  // Günlük görevler
+  gorevSevk:  ['Ship {n} vehicles', '{n} araç sevk et'],
+  gorevYuk:   ['Buy {n} upgrades', '{n} yükseltme al'],
+  gorevKazan: ['Earn {n} today', 'Bugün {n} kazan'],
+  gorevBoost: ['Use the boost {n} times', 'Hızı {n} kez kullan'],
+  gorevCark:  ['Take a station up {n} levels', 'Bir istasyonu {n} seviye çıkar'],
+  gorevDolu:  ['Fill a buffer {n} times', 'Bir tamponu {n} kez doldur'],
+  // Mağaza
+  sku0:  ['Double income', 'Çifte gelir'],
+  sku0d: ['Every shipment pays twice as much, forever.',
+          'Her sevkiyat sonsuza kadar iki katı ödüyor.'],
+  sku1:  ['All four managers', 'Dört müdür birden'],
+  sku1d: ['Derya, Marco, Ines and Kwame, hired at once.',
+          'Derya, Marco, Ines ve Kwame, hepsi bir anda.'],
+  sku2:  ['12 hours of production', '12 saatlik üretim'],
+  sku2d: ['Paid in at the rate your line runs right now.',
+          'Hattının şu anki hızından ödeniyor.'],
+  unlocked: ['🚗 {0} UNLOCKED', '🚗 {0} AÇILDI'],
+  // Şube yerleri
+  yer0: ['Meadow', 'Çayır'],
+  yer1: ['Desert', 'Çöl'],
+  yer2: ['Tundra', 'Tundra'],
+  yer3: ['Harbour', 'Liman'],
+  yer4: ['Ashland', 'Kül Ovası'],
+  // Araç kademeleri
+  pr0: ['City', 'Şehir'],
+  pr1: ['SUV', 'SUV'],
+  pr2: ['Pickup', 'Kamyonet'],
+  pr3: ['Sports', 'Spor'],
+  pr4: ['Luxury', 'Lüks'],
+  nextTier: [' · <b>{0}</b>: all at lv {1}', ' · <b>{0}</b>: hepsi {1}. seviyede'],
+  topTier:  [' · top tier', ' · en üst kademe'],
+};
+
+// Varsayılan dil cihazdan geliyor; oyuncu menüden değiştirebiliyor ve
+// seçimi kayda yazılıyor.
+let dil = 0;
+const T = (k, ...a) => {
+  const g = METIN[k];
+  if (!g) return k;
+  let s = g[dil] || g[0];
+  a.forEach((v, i) => { s = s.split('{' + i + '}').join(v); });
+  return s;
+};
+// Statik yazılar `data-t` ile işaretli. Dil değişince hepsi bir kerede
+// yeniden yazılıyor; ekranları tek tek güncellemek, ilk kaçırılan
+// ekranın İngilizce kalması demekti.
+function dilUygula() {
+  for (const el of document.querySelectorAll('[data-t]')) el.innerHTML = T(el.dataset.t);
+  document.documentElement.lang = dil === 1 ? 'tr' : 'en';
+}
 
 // ---------------------------------------------------------------------
 // Numbers
@@ -585,13 +817,13 @@ adsInit();
 // wall out far enough for a run to be worth playing. Prestige is what gets
 // past it.
 const STATIONS = [
-  { id: 'foundry',  name: 'Foundry',  icon: '🔥', unit: 'ingot',
+  { id: 'foundry',  name: 'Foundry',  icon: '🔥', unit: 'ingot', nameT: 'st0', unitT: 'u0',
     baseRate: 1, baseCost: 15, costGrow: 1.090, mgrCost: 4.0e4, cap: 1000 },
-  { id: 'stamping', name: 'Stamping', icon: '🔩', unit: 'panel',
+  { id: 'stamping', name: 'Stamping', icon: '🔩', unit: 'panel', nameT: 'st1', unitT: 'u1',
     baseRate: 1, baseCost: 22, costGrow: 1.085, mgrCost: 1.1e5, cap: 1000 },
-  { id: 'assembly', name: 'Assembly', icon: '🤖', unit: 'car',
+  { id: 'assembly', name: 'Assembly', icon: '🤖', unit: 'car', nameT: 'st2', unitT: 'u2',
     baseRate: 1, baseCost: 32, costGrow: 1.080, mgrCost: 3.0e5, cap: 1000 },
-  { id: 'dispatch', name: 'Dispatch', icon: '🚛', unit: 'shipment',
+  { id: 'dispatch', name: 'Dispatch', icon: '🚛', unit: 'shipment', nameT: 'st3', unitT: 'u3',
     baseRate: 1, baseCost: 45, costGrow: 1.075, mgrCost: 8.0e5, cap: 1000, price: 10 },
 ];
 
@@ -619,17 +851,13 @@ const STATIONS = [
 // şekillendiren bir çarpan değil. Denge `scratchpad/tycoon*.mjs`
 // simülasyonlarıyla kuruldu ve ölçüsü `scratchpad/tymudur.mjs`.
 const MGRS = [
-  { ad: 'Derya',  rol: 'runs the furnaces', bonus: '+25% foundry speed',
-    kisa: '+25% speed',
+  { ad: 'Derya',  rolT: 'mgr0r', bonusT: 'mgr0b', kisaT: 'mgr0k',
     ten: '#e3b88f', sac: '#2f2a28', baret: '#ff9f2e' },
-  { ad: 'Marco',  rol: 'runs the presses',  bonus: 'upgrades 8% cheaper',
-    kisa: '-8% upgrades',
+  { ad: 'Marco',  rolT: 'mgr1r',  bonusT: 'mgr1b', kisaT: 'mgr1k',
     ten: '#f0cda7', sac: '#6b4a2c', baret: '#2f8be8' },
-  { ad: 'Ines',   rol: 'runs the line',     bonus: 'boost lasts 60s longer',
-    kisa: '+60s boost',
+  { ad: 'Ines',   rolT: 'mgr2r',     bonusT: 'mgr2b', kisaT: 'mgr2k',
     ten: '#c98a5e', sac: '#1f1b1a', baret: '#ffd23f' },
-  { ad: 'Kwame',  rol: 'runs the yard',     bonus: '+12% vehicle price',
-    kisa: '+12% price',
+  { ad: 'Kwame',  rolT: 'mgr3r',     bonusT: 'mgr3b', kisaT: 'mgr3k',
     ten: '#8a5a3c', sac: '#15110f', baret: '#5fbf6a' },
 ];
 // Bonuslar tek yerde, sayıları metinle birlikte dursun diye.
@@ -687,11 +915,11 @@ const MGR_MULT = 2;
 // istasyonu yükselterek yeni ürün açmak, oyunun bütün öğrettiği "dengeli
 // büyüt" fikrinin tam tersi olurdu.
 const PRODUCTS = [
-  { name: 'City',     at: 0,   mult: 1,   body: '#3f7de0', roof: '#356ec9', big: 1.00 },
-  { name: 'SUV',      at: 45,  mult: 3.2, body: '#3f9a6a', roof: '#33805a', big: 1.14 },
-  { name: 'Pickup',   at: 110, mult: 10,  body: '#e8a33a', roof: '#c9861e', big: 1.26 },
-  { name: 'Sports',   at: 220, mult: 34,  body: '#d9483a', roof: '#b93a2e', big: 1.08 },
-  { name: 'Luxury',   at: 400, mult: 115, body: '#8a52d0', roof: '#7343b3', big: 1.18 },
+  { name: 'City', nameT: 'pr0',     at: 0,   mult: 1,   body: '#3f7de0', roof: '#356ec9', big: 1.00 },
+  { name: 'SUV', nameT: 'pr1',      at: 45,  mult: 3.2, body: '#3f9a6a', roof: '#33805a', big: 1.14 },
+  { name: 'Pickup', nameT: 'pr2',   at: 110, mult: 10,  body: '#e8a33a', roof: '#c9861e', big: 1.26 },
+  { name: 'Sports', nameT: 'pr3',   at: 220, mult: 34,  body: '#d9483a', roof: '#b93a2e', big: 1.08 },
+  { name: 'Luxury', nameT: 'pr4',   at: 400, mult: 115, body: '#8a52d0', roof: '#7343b3', big: 1.18 },
 ];
 const productTier = () => {
   const weakest = Math.min(...G.lvl);
@@ -770,6 +998,7 @@ const G = Object.assign({
   // Günlük görevler: gün numarası, sayaçlar, seçilen üç görev.
   gun: null,
   res: {},                // araştırma seviyeleri, puanla alınıyor
+  dil: null,              // null = cihazın dili, 0 = İngilizce, 1 = Türkçe
 }, load());
 if (!Array.isArray(G.claimed)) G.claimed = [];
 if (!G.res || typeof G.res !== 'object') G.res = {};
@@ -779,6 +1008,10 @@ while (G.lvl.length < STATIONS.length) G.lvl.push(0);
 while (G.mgr.length < STATIONS.length) G.mgr.push(false);
 while (G.buf.length < STATIONS.length - 1) G.buf.push(0);
 while (G.pile.length < STATIONS.length - 1) G.pile.push(0);
+
+// Dili kur: kayıtta oyuncunun seçimi varsa o, yoksa cihazın dili.
+dil = (G.dil === 0 || G.dil === 1) ? G.dil
+    : (navigator.language || '').toLowerCase().startsWith('tr') ? 1 : 0;
 
 // Prestige points, and the whole late game.
 //
@@ -819,20 +1052,20 @@ const pendingPoints = () => pointsFor(G.lifetime + G.totalEarned) - bankedPoints
 // is what makes them a real decision early and a solved one late: past a
 // few branches they are all maxed and `line` is the only sink left.
 const RES = [
-  { id: 'line',    name: 'Line speed',     icon: '⚙️',  cost: 1, cap: Infinity,
-    text: l => `+${(l * 2)}% all stations`,             step: '+2% speed' },
-  { id: 'price',   name: 'Build quality',  icon: '💎', cost: 3, cap: 60,
-    text: l => `+${(l * 5)}% vehicle price`,            step: '+5% price' },
-  { id: 'cheap',   name: 'Bulk buying',    icon: '🏷️', cost: 5, cap: 30,
-    text: l => `-${+(l * 1.5).toFixed(1)}% upgrades`,   step: '-1.5% cost' },
-  { id: 'mgr',     name: 'HR',             icon: '👔', cost: 4, cap: 15,
-    text: l => `-${(l * 4)}% manager cost`,             step: '-4% manager' },
-  { id: 'start',   name: 'Head start',     icon: '🏗️', cost: 6, cap: 10,
-    text: l => `new branch starts at level ${1 + l}`,   step: '+1 start' },
-  { id: 'offline', name: 'Night shift',    icon: '🌙', cost: 8, cap: 12,
-    text: l => `${4 + l} hours offline`,                step: '+1 hour' },
-  { id: 'boost',   name: 'Turbo',          icon: '🚀', cost: 6, cap: 20,
-    text: l => `${180 + l * 15}s of boost`,             step: '+15s' },
+  { id: 'line',    nameT: 'res0', icon: '⚙️',  cost: 1, cap: Infinity,
+    text: l => T('res0t', l * 2),                step: 'res0s' },
+  { id: 'price',   nameT: 'res1', icon: '💎', cost: 3, cap: 60,
+    text: l => T('res1t', l * 5),                step: 'res1s' },
+  { id: 'cheap',   nameT: 'res2', icon: '🏷️', cost: 5, cap: 30,
+    text: l => T('res2t', +(l * 1.5).toFixed(1)), step: 'res2s' },
+  { id: 'mgr',     nameT: 'res3', icon: '👔', cost: 4, cap: 15,
+    text: l => T('res3t', l * 4),                step: 'res3s' },
+  { id: 'start',   nameT: 'res4', icon: '🏗️', cost: 6, cap: 10,
+    text: l => T('res4t', 1 + l),                step: 'res4s' },
+  { id: 'offline', nameT: 'res5', icon: '🌙', cost: 8, cap: 12,
+    text: l => T('res5t', 4 + l),                step: 'res5s' },
+  { id: 'boost',   nameT: 'res6', icon: '🚀', cost: 6, cap: 20,
+    text: l => T('res6t', 180 + l * 15),         step: 'res6s' },
 ];
 const resLvl = id => G.res[id] | 0;
 const spentPoints = () => RES.reduce((a, r) => a + r.cost * resLvl(r.id), 0);
@@ -1069,19 +1302,19 @@ function isConsumable(p) { return !p.key; }
 const SKUS = [
   {
     id: 'motorworks_double', key: 'double', icon: '💰',
-    name: 'Double income', desc: 'Every shipment pays twice as much, forever.',
+    nameT: 'sku0', descT: 'sku0d',
     price: '$2.99',
     entitle() { iap.double = true; },
   },
   {
     id: 'motorworks_managers', key: 'allmgr', icon: '👔',
-    name: 'All four managers', desc: 'Derya, Marco, Ines and Kwame, hired at once.',
+    nameT: 'sku1', descT: 'sku1d',
     price: '$4.99',
     entitle() { iap.allmgr = true; G.mgr = G.mgr.map(() => true); saveNow(); },
   },
   {
     id: 'motorworks_skip12', icon: '⏩',
-    name: '12 hours of production', desc: 'Paid in at the rate your line runs right now.',
+    nameT: 'sku2', descT: 'sku2d',
     price: '$1.99',
     grant() {
       // Elle taşınan bir fabrikanın saatlik kazancı yok; ödenen şey
@@ -1299,7 +1532,7 @@ function refreshBoardBtn() {
   if (!b) return;
   const var_ = GAMES_ON && !!LEADERBOARD_ID;
   b.style.display = var_ ? '' : 'none';
-  b.textContent = _gamesIn ? '🏆 LEADERBOARD' : '🏆 SIGN IN FOR THE LEADERBOARD';
+  b.textContent = _gamesIn ? T('boardIn') : T('boardOut');
 }
 
 // ---------------------------------------------------------------------
@@ -1317,13 +1550,13 @@ function refreshBoardBtn() {
 // önce görünmüyor bile. Onun yerine tek seferlik bir ipucu var ve tam
 // parası yettiği an çıkıyor — öğretilecek şeyin işe yarayacağı an.
 const TUT = [
-  { id: 'yuru',  metin: '<b>Drag anywhere</b> on the factory to walk your worker.',
+  { id: 'yuru',  metinT: 'tut0',
     bitti: g => g.yurudu },
-  { id: 'al',    metin: 'Walk onto the <b>Foundry</b> — the worker picks up ingots on his own.',
+  { id: 'al',    metinT: 'tut1',
     bitti: g => g.carry > 0 },
-  { id: 'birak', metin: 'Now carry them up to <b>Stamping</b> and he will drop them.',
+  { id: 'birak', metinT: 'tut2',
     bitti: g => g.buf0 > 0 },
-  { id: 'al2',   metin: 'Every station can be upgraded. <b>Tap a price</b> to make one faster.',
+  { id: 'al2',   metinT: 'tut3',
     bitti: g => g.lvlToplam > 4, isaret: 0 },
 ];
 let tutYurudu = false;          // bu açılışta işçi hiç hareket etti mi
@@ -1359,7 +1592,7 @@ function tutGuncelle() {
     tutGuncelle();
     return;
   }
-  el.innerHTML = adim.metin;
+  el.innerHTML = T(adim.metinT);
   el.classList.add('show');
   for (let i = 0; i < rows.length; i++)
     rows[i].el.classList.toggle('tutPick', adim.isaret === i);
@@ -1379,8 +1612,7 @@ function tutMudurIpucu() {
   G.tipMgr = 1;
   saveNow();
   const el = $('tut');
-  el.innerHTML = 'You can afford a <b>manager</b>. A station with one runs ' +
-                 'itself — and keeps running while the app is closed.';
+  el.innerHTML = T('tipMgr');
   el.classList.add('show');
   tipUntil = Date.now() + TIP_SURE;
   setTimeout(() => { el.classList.remove('show'); }, TIP_SURE);
@@ -1404,8 +1636,8 @@ function notifPlan() {
     const saat = Math.round(offlineCap() / 3600);
     return {
       at: new Date(Date.now() + offlineCap() * 1000),
-      title: 'The yard is full',
-      body: `${saat} hours of production is waiting, and the line has stopped stacking.`,
+      title: T('notifFullT'),
+      body: T('notifFullB', saat),
     };
   }
   // Saat tek kaynaktan: `Date.now()`. İlk hâli `new Date()` ile kuruyordu
@@ -1419,8 +1651,8 @@ function notifPlan() {
   if (at.getTime() <= simdi) at.setDate(at.getDate() + 1);
   return {
     at,
-    title: 'Your line is idle',
-    body: 'Nothing is made while you are away until a station has a manager.',
+    title: T('notifIdleT'),
+    body: T('notifIdleB'),
   };
 }
 
@@ -1596,15 +1828,15 @@ function yardTexture() {
 // Beşi dönüyor: altıncı şube ilkine geri sarıyor. Sonsuz yer uydurmak
 // yerine beş tanesini doğru yapmak.
 const YERLER = [
-  { ad: 'Meadow',  gok: '#9fc4e4', zemin: '#6aa350', serit: ['#7fb55f', '#4e7e3a'],
+  { ad: 'Meadow', adT: 'yer0',  gok: '#9fc4e4', zemin: '#6aa350', serit: ['#7fb55f', '#4e7e3a'],
     benek: ['#4b7d39', '#86bd62'], agac: ['#3f7a3a', '#4d8c3f', '#356b34'], govde: '#6b4a32' },
-  { ad: 'Desert',  gok: '#e3c79a', zemin: '#d9b87a', serit: ['#e6cb94', '#c7a265'],
+  { ad: 'Desert', adT: 'yer1',  gok: '#e3c79a', zemin: '#d9b87a', serit: ['#e6cb94', '#c7a265'],
     benek: ['#c09a5e', '#eddaa8'], agac: ['#5f8f4a', '#6fa155', '#4e7a3e'], govde: '#8a6a44' },
-  { ad: 'Tundra',  gok: '#cdd9e6', zemin: '#e8eef4', serit: ['#f4f8fb', '#d4dde6'],
+  { ad: 'Tundra', adT: 'yer2',  gok: '#cdd9e6', zemin: '#e8eef4', serit: ['#f4f8fb', '#d4dde6'],
     benek: ['#cfd8e2', '#ffffff'], agac: ['#2f5742', '#3a6a4e', '#27493a'], govde: '#4a3b30' },
-  { ad: 'Harbour', gok: '#8fb9d4', zemin: '#7d93a3', serit: ['#8ba2b2', '#6b8291'],
+  { ad: 'Harbour', adT: 'yer3', gok: '#8fb9d4', zemin: '#7d93a3', serit: ['#8ba2b2', '#6b8291'],
     benek: ['#64798a', '#9bb0bf'], agac: ['#3f7a6a', '#4d8c78', '#356b5e'], govde: '#5a4a3e' },
-  { ad: 'Ashland', gok: '#b08a7a', zemin: '#6e6260', serit: ['#7a6e6b', '#5e5452'],
+  { ad: 'Ashland', adT: 'yer4', gok: '#b08a7a', zemin: '#6e6260', serit: ['#7a6e6b', '#5e5452'],
     benek: ['#574d4b', '#8b7f7c'], agac: ['#5a4a3a', '#6b5a46', '#4a3c30'], govde: '#3e342e' },
 ];
 // Kayıttaki şube sayısı yeri belirliyor. `G` burada tanımlı olmak
@@ -2394,7 +2626,7 @@ function refreshPanel() {
     r.lvl.textContent = G.lvl[i];
     r.el.classList.toggle('neck', i === ch.neck);
     const hits = milestonesHit(i), nxt = nextMilestone(i);
-    r.sub.textContent = `${fmt(rateOf(i))} ${s.unit}/s`;
+    r.sub.textContent = `${fmt(rateOf(i))} ${T(s.unitT)}${T('perSec')}`;
     // A full bar turning red was meant to be self-explanatory and it was not:
     // the first person to play it on a phone asked what red meant while three
     // stations sat blocked and the answer — buy the one marked DARBOĞAZ — was
@@ -2411,7 +2643,7 @@ function refreshPanel() {
     if (i === ch.neck) bits.push('<em>BOTTLENECK</em>');
     else if (blocked) bits.push(`<u>FULL — upgrade ${STATIONS[ch.neck].name}</u>`);
     if (hits) bits.push(`<b>×${fmt(Math.pow(2, hits))}</b>`);
-    if (G.mgr[i]) bits.push(`<b>${MGRS[i].ad}</b> · ${MGRS[i].bonus}`);
+    if (G.mgr[i]) bits.push(`<b>${MGRS[i].ad}</b> · ${T(MGRS[i].bonusT)}`);
     // The milestone hint is dropped while blocked. It does not fit next to
     // the instruction and it is the one line that is not worth acting on:
     // levelling a station whose output has nowhere to go buys nothing.
@@ -2426,10 +2658,10 @@ function refreshPanel() {
       r.bufWrap.style.visibility = 'hidden';
     }
     if (G.lvl[i] >= s.cap) {
-      r.buy.innerHTML = 'MAX';
+      r.buy.innerHTML = T('maxBtn');
       r.buy.disabled = true;
     } else {
-      r.buy.innerHTML = `${fmt(cost)}<small>×${n || 1} LEVELS</small>`;
+      r.buy.innerHTML = `${fmt(cost)}<small>×${n || 1} ${T('levels')}</small>`;
       r.buy.disabled = !(n > 0 && G.cash >= cost);
     }
     // The manager only appears once the station is worth automating; before
@@ -2442,8 +2674,8 @@ function refreshPanel() {
       // "HIRE" duruyor: düğmenin ne yaptığını söyleyen tek kelime o.
       // Bonusun kısa hâli yanında; uzunu satırda, işe alındıktan sonra.
       r.mgr.innerHTML = `<img class="mface" src="${mgrYuz(i)}" alt="">` +
-                        `${fmt(mgrCostOf(i))}<small>HIRE ${MGRS[i].ad.toUpperCase()} ` +
-                        `×2 · ${MGRS[i].kisa}</small>`;
+                        `${fmt(mgrCostOf(i))}<small>${T('hire')} ${MGRS[i].ad.toUpperCase()} ` +
+                        `×2 · ${T(MGRS[i].kisaT)}</small>`;
       r.mgr.disabled = G.cash < mgrCostOf(i);
     }
     // İşe alındıysa istasyonun simgesi yerine portresi duruyor: satıra
@@ -2460,11 +2692,11 @@ function refreshPanel() {
   // `olculenHiz`'in başında anlatıldı. Zincirin teorik hızı kayıp
   // olmuyor: istasyon satırları ve BOTTLENECK etiketi onu zaten
   // söylüyor, ve orada yanıltmıyor çünkü istasyonun kendi hızı o.
-  $('rate').textContent = fmt(olculenHiz) + ' / s';
+  $('rate').textContent = fmt(olculenHiz) + ' ' + T('perSec');
   $('branchPill').textContent = '🏭 ' + (G.branches + 1);
   const nx = nextProduct();
-  $('prodTag').innerHTML = `🚗 ${product().name}` +
-    (nx ? ` · <b>${nx.name}</b>: all at lv ${nx.at}` : ' · top tier');
+  $('prodTag').innerHTML = `🚗 ${T(product().nameT)}` +
+    (nx ? T('nextTier', T(nx.nameT), nx.at) : T('topTier'));
 }
 
 // ---------------------------------------------------------------------
@@ -2480,23 +2712,23 @@ const PRESTIGE_AT = () => {
 
 $('menuBtn').onclick = () => {
   const ch = chain();
-  $('kBranch').textContent = `${G.branches + 1} · ${yerSec().ad}`;
-  $('kBonus').textContent = `×${fmt(branchMult())}  (${fmt(freePoints())} points unspent)`;
+  $('kBranch').textContent = `${G.branches + 1} · ${T(yerSec().adT)}`;
+  $('kBonus').textContent = `×${fmt(branchMult())}  (${T('unspent', fmt(freePoints()))})`;
   $('resBtn').textContent = freePoints() > 0
-    ? `RESEARCH  ● ${fmt(freePoints())} POINTS`
-    : 'RESEARCH';
+    ? T('resWith', fmt(freePoints()))
+    : T('researchBtn');
   $('kTotal').textContent = fmt(G.totalEarned);
-  $('kRate').textContent = fmt(olculenHiz) + ' / s';
-  $('kNeck').textContent = STATIONS[ch.neck].name;
-  $('kProd').textContent = `${product().name} (×${fmt(product().mult)})`;
+  $('kRate').textContent = fmt(olculenHiz) + ' ' + T('perSec');
+  $('kNeck').textContent = T(STATIONS[ch.neck].nameT);
+  $('kProd').textContent = `${T(product().nameT)} (×${fmt(product().mult)})`;
   $('kPrice').textContent = fmt(unitPrice());
   const ok = canPrestige();
   const b = $('prestigeBtn');
   b.disabled = !ok;
   b.textContent = ok
-    ? `OPEN NEW BRANCH  (+${fmt(pendingPoints())} points)`
-    : `NEW BRANCH: earn ${fmt(PRESTIGE_AT())} more`;
-  $('muteBtn').textContent = 'SOUND: ' + (G.muted ? 'OFF' : 'ON');
+    ? T('newBranchP', fmt(pendingPoints()))
+    : T('newBranchN', fmt(PRESTIGE_AT()));
+  $('muteBtn').textContent = T('sound', G.muted ? T('off') : T('on'));
   refreshBoardBtn();
   $('menu').classList.add('show');
 };
@@ -2504,12 +2736,12 @@ $('closeMenu').onclick = () => $('menu').classList.remove('show');
 $('muteBtn').onclick = () => {
   G.muted = !G.muted; saveNow();
   if (G.muted) muzDur(); else muzBasla();
-  $('muteBtn').textContent = 'SOUND: ' + (G.muted ? 'OFF' : 'ON');
+  $('muteBtn').textContent = T('sound', G.muted ? T('off') : T('on'));
 };
 $('prestigeBtn').onclick = () => {
   if (!canPrestige()) return;
-  $('pNow').textContent = `${fmt(freePoints())} points unspent`;
-  $('pNext').textContent = `+${fmt(pendingPoints())} points`;
+  $('pNow').textContent = T('unspent', fmt(freePoints()));
+  $('pNext').textContent = `+${fmt(pendingPoints())} ${T('points')}`;
   $('prestige').classList.add('show');
 };
 $('boardBtn').onclick = () => openLeaderboard();
@@ -2524,9 +2756,9 @@ function renderShop() {
     b.className = 'prod' + (owned ? ' owned' : '');
     b.innerHTML =
       `<span class="pico">${p.icon}</span>` +
-      `<span class="pmid"><span class="pnm">${p.name}</span>` +
-      `<div class="pds">${p.desc}</div></span>` +
-      `<span class="ppr">${owned ? 'OWNED' : p.price}</span>`;
+      `<span class="pmid"><span class="pnm">${T(p.nameT)}</span>` +
+      `<div class="pds">${T(p.descT)}</div></span>` +
+      `<span class="ppr">${owned ? T('owned') : p.price}</span>`;
     b.disabled = owned;
     b.onclick = async () => {
       if (owned) return;
@@ -2543,11 +2775,11 @@ $('shopBtn').onclick = () => { renderShop(); $('shop').classList.add('show'); };
 $('closeShop').onclick = () => $('shop').classList.remove('show');
 $('restoreBtn').onclick = async () => {
   const b = $('restoreBtn');
-  b.disabled = true; b.textContent = 'RESTORING…';
+  b.disabled = true; b.textContent = T('restoring');
   const ok = await syncPurchases();
   b.textContent = ok ? 'RESTORED' : 'NOTHING TO RESTORE';
   renderShop();
-  setTimeout(() => { b.disabled = false; b.textContent = 'RESTORE PURCHASES'; }, 2500);
+  setTimeout(() => { b.disabled = false; b.textContent = T('restore'); }, 2500);
 };
 $('pNo').onclick = () => $('prestige').classList.remove('show');
 $('pGo').onclick = () => {
@@ -2590,29 +2822,29 @@ $('pGo').onclick = () => {
 // the same at both ends, so the list stays worth opening all game.
 // ---------------------------------------------------------------------
 const GOALS = [
-  { id: 'earn1',  icon: '💰', text: 'Earn 1M in total',       pay: 900,
+  { id: 'earn1',  icon: '💰', t: 'goalEarn1',       pay: 900,
     at: () => G.lifetime + G.totalEarned, need: 1e6 },
-  { id: 'earn2',  icon: '💰', text: 'Earn 500M in total',     pay: 1800,
+  { id: 'earn2',  icon: '💰', t: 'goalEarn2',     pay: 1800,
     at: () => G.lifetime + G.totalEarned, need: 5e8 },
-  { id: 'earn3',  icon: '💎', text: 'Earn 100B in total',     pay: 3600,
+  { id: 'earn3',  icon: '💎', t: 'goalEarn3',     pay: 3600,
     at: () => G.lifetime + G.totalEarned, need: 1e11 },
-  { id: 'lvl50',  icon: '🔧', text: 'Take a station to level 50', pay: 900,
+  { id: 'lvl50',  icon: '🔧', t: 'goalLvl50', pay: 900,
     at: () => Math.max(...G.lvl), need: 50 },
-  { id: 'lvl100', icon: '🔧', text: 'Take a station to level 100', pay: 1800,
+  { id: 'lvl100', icon: '🔧', t: 'goalLvl100', pay: 1800,
     at: () => Math.max(...G.lvl), need: 100 },
-  { id: 'lvl200', icon: '🏗️', text: 'Take a station to level 200', pay: 3600,
+  { id: 'lvl200', icon: '🏗️', t: 'goalLvl200', pay: 3600,
     at: () => Math.max(...G.lvl), need: 200 },
-  { id: 'all100', icon: '⚖️', text: 'Take all four stations to 100', pay: 2700,
+  { id: 'all100', icon: '⚖️', t: 'goalAll100', pay: 2700,
     at: () => Math.min(...G.lvl), need: 100 },
-  { id: 'mgr1',   icon: '👔', text: 'Hire your first manager', pay: 600,
+  { id: 'mgr1',   icon: '👔', t: 'goalMgr1', pay: 600,
     at: () => G.mgr.filter(Boolean).length, need: 1 },
-  { id: 'mgr4',   icon: '👔', text: 'Hire all four managers', pay: 2700,
+  { id: 'mgr4',   icon: '👔', t: 'goalMgr4', pay: 2700,
     at: () => G.mgr.filter(Boolean).length, need: 4 },
-  { id: 'br1',    icon: '🏭', text: 'Open your first branch', pay: 1800,
+  { id: 'br1',    icon: '🏭', t: 'goalBr1', pay: 1800,
     at: () => G.branches, need: 1 },
-  { id: 'br5',    icon: '🏭', text: 'Open 5 branches',        pay: 5400,
+  { id: 'br5',    icon: '🏭', t: 'goalBr5',        pay: 5400,
     at: () => G.branches, need: 5 },
-  { id: 'boost10',icon: '⚡', text: 'Use the boost 10 times', pay: 1200,
+  { id: 'boost10',icon: '⚡', t: 'goalBoost', pay: 1200,
     at: () => G.boosts, need: 10 },
 ];
 const goalDone  = g => g.at() >= g.need;
@@ -2667,11 +2899,11 @@ function renderGoals() {
       el.innerHTML = `
         <div class="gi">🎯</div>
         <div class="gm">
-          <div class="gt">${g.ad.replace('{n}', g.para ? fmt(hedef) : fmt(Math.round(hedef)))}</div>
+          <div class="gt">${T(g.adT).replace('{n}', g.para ? fmt(hedef) : fmt(Math.round(hedef)))}</div>
           <div class="gp"><i style="width:${(simdi / hedef) * 100}%"></i></div>
         </div>
         <button class="gb"${bitti && !alindi ? '' : ' disabled'}>${
-          alindi ? 'ALINDI' : bitti ? 'AL<br>' + fmt(gorevOdul(g))
+          alindi ? T('taken') : bitti ? T('take') + '<br>' + fmt(gorevOdul(g))
                  : Math.floor((simdi / hedef) * 100) + '%'}</button>`;
       el.querySelector('.gb').onclick = () => {
         if (!bitti || alindi) return;
@@ -2699,11 +2931,11 @@ function renderGoals() {
     el.innerHTML = `
       <div class="gi">${g.icon}</div>
       <div class="gm">
-        <div class="gt">${g.text}</div>
+        <div class="gt">${T(g.t)}</div>
         <div class="gp"><i style="width:${pct}%"></i></div>
       </div>
       <button class="gb"${done && !taken ? '' : ' disabled'}>${
-        taken ? 'ALINDI' : done ? 'AL<br>' + fmt(goalPay(g)) : Math.floor(pct) + '%'}</button>`;
+        taken ? T('taken') : done ? T('take') + '<br>' + fmt(goalPay(g)) : Math.floor(pct) + '%'}</button>`;
     el.querySelector('.gb').onclick = () => {
       if (!goalDone(g) || goalTaken(g)) return;
       const pay = goalPay(g);
@@ -2757,10 +2989,10 @@ function renderResearch() {
     el.innerHTML = `
       <div class="ri">${r.icon}</div>
       <div class="rm">
-        <div class="rt">${r.name} · ${lvl}${r.cap === Infinity ? '' : '/' + r.cap}</div>
+        <div class="rt">${T(r.nameT)} · ${lvl}${r.cap === Infinity ? '' : '/' + r.cap}</div>
         <div class="rd">${r.text(lvl)}</div>
       </div>
-      <button class="rb"${can ? '' : ' disabled'}>${r.cost} puan<small>${r.step}</small></button>`;
+      <button class="rb"${can ? '' : ' disabled'}>${r.cost} ${T('points')}<small>${T(r.step)}</small></button>`;
     const b = el.querySelector('.rb');
     if (b) b.onclick = () => {
       if (resLvl(r.id) >= r.cap || freePoints() < r.cost) return;
@@ -2801,7 +3033,7 @@ $('backupBtn').onclick = () => {
   $('buCode').value = yedekKod();
   $('buIn').value = '';
   buOnay = 0;
-  $('buLoad').textContent = 'LOAD CODE';
+  $('buLoad').textContent = T('loadCode');
   buMesaj('');
   $('menu').classList.remove('show');
   $('backup').classList.add('show');
@@ -2812,24 +3044,24 @@ $('buCopy').onclick = async () => {
   // bırakılıyor ve oyuncu basılı tutup kopyalayabiliyor.
   try {
     await navigator.clipboard.writeText(ta.value);
-    buMesaj('Code copied.', true);
+    buMesaj(T('copied'), true);
   } catch {
     ta.focus(); ta.select();
-    buMesaj('Selected — hold to copy.', true);
+    buMesaj(T('selected'), true);
   }
 };
 $('buLoad').onclick = () => {
   const r = yedekCoz($('buIn').value);
-  if (r.hata) { buOnay = 0; $('buLoad').textContent = 'LOAD CODE'; buMesaj(r.hata, false); return; }
+  if (r.hata) { buOnay = 0; $('buLoad').textContent = T('loadCode'); buMesaj(r.hata, false); return; }
   if (!buOnay) {
     buOnay = 1;
-    $('buLoad').textContent = 'TAP AGAIN TO REPLACE';
-    buMesaj('This erases the factory you have now.', false);
+    $('buLoad').textContent = T('buAgain');
+    buMesaj(T('buWarn'), false);
     return;
   }
   const y = yedekYukle($('buIn').value);
   if (y.hata) { buMesaj(y.hata, false); return; }
-  buMesaj('Loaded. Restarting…', true);
+  buMesaj(T('buDone'), true);
   // `wiped` ile aynı tuzak: yenilenme `pagehide`'ı tetikliyor, `pagehide`
   // kaydediyor ve az önce yazdığımız kaydın üstüne eski `G` biniyor.
   wiped = true;
@@ -2837,6 +3069,27 @@ $('buLoad').onclick = () => {
 };
 $('buClose').onclick = () => {
   $('backup').classList.remove('show');
+  $('menuBtn').onclick();
+};
+
+// Dil düğmesi. Varsayılan cihazdan geliyor; oyuncu değiştirirse seçimi
+// kayda yazılıyor ve bir daha cihaza bakılmıyor — bir kere Türkçeye alan
+// oyuncu, telefonunu İngilizceye çevirince oyunu İngilizce bulmamalı.
+function dilYaz() {
+  $('langBtn').textContent = T('lang', dil === 1 ? 'TR' : 'EN');
+}
+$('langBtn').onclick = () => {
+  dil = dil === 1 ? 0 : 1;
+  G.dil = dil;
+  saveNow();
+  dilUygula();
+  dilYaz();
+  // Açık olan listeler kendi yazılarını kendileri kuruyor: yeniden çiz.
+  refreshPanel();
+  renderGoals();
+  renderResearch();
+  renderShop();
+  tutGuncelle();
   $('menuBtn').onclick();
 };
 
@@ -2862,17 +3115,17 @@ const dailyPay = () => chain().income / boostMult() * 1800 * Math.min(7, G.daySt
 // fabrikaya göre olması ve **oyuncunun ölçeğine göre** büyümesi —
 // 110. seviyedeki biri için "10 sevkiyat" diye bir görev, görev değil.
 const GOREVLER = [
-  { id: 'sevk',  ad: 'Ship {n} vehicles',        say: () => G.gun.sevk,
+  { id: 'sevk',  adT: 'gorevSevk', say: () => G.gun.sevk,
     hedef: () => Math.max(50, Math.round(autoChain().flow * 90)) },
-  { id: 'yukselt', ad: 'Buy {n} upgrades',       say: () => G.gun.yukseltme,
+  { id: 'yukselt', adT: 'gorevYuk', say: () => G.gun.yukseltme,
     hedef: () => 15 },
-  { id: 'kazan', ad: 'Earn {n} today',           say: () => G.gun.kazanc, para: true,
+  { id: 'kazan', adT: 'gorevKazan', say: () => G.gun.kazanc, para: true,
     hedef: () => Math.max(1000, Math.round(chain().income * 300)) },
-  { id: 'boost', ad: 'Use the boost {n} times',  say: () => G.gun.boost,
+  { id: 'boost', adT: 'gorevBoost', say: () => G.gun.boost,
     hedef: () => 2 },
-  { id: 'cark',  ad: 'Take a station up {n} levels', say: () => G.gun.yukseltme,
+  { id: 'cark',  adT: 'gorevCark', say: () => G.gun.yukseltme,
     hedef: () => 40 },
-  { id: 'dolu',  ad: 'Fill a buffer {n} times',  say: () => G.gun.dolu,
+  { id: 'dolu',  adT: 'gorevDolu', say: () => G.gun.dolu,
     hedef: () => 5 },
 ];
 // Görev ödülü, hedeflerden **ayrı** bir sayı: hedefler 900-5400 saniye
@@ -2915,7 +3168,7 @@ function checkDaily() {
   G.dayStreak = (d - G.dayLast === 1) ? G.dayStreak + 1 : 1;
   G.dayLast = d;
   saveNow();
-  $('dStreak').textContent = 'Day ' + G.dayStreak + (G.dayStreak >= 7 ? ' (top streak)' : '');
+  $('dStreak').textContent = T('day') + ' ' + G.dayStreak + (G.dayStreak >= 7 ? T('topRun') : '');
   $('dCash').textContent = fmt(dailyPay());
   $('daily').classList.add('show');
 }
@@ -3179,23 +3432,23 @@ function yedekKod() {
 // çünkü çağıran taraf kaydın üstüne yazacak.
 function yedekCoz(kod) {
   const s = String(kod || '').trim().replace(/\s+/g, '');
-  if (!s) return { hata: 'Paste a code first.' };
-  if (!s.startsWith(YEDEK_ON)) return { hata: 'That is not a Motor Works code.' };
+  if (!s) return { hata: T('buEmpty') };
+  if (!s.startsWith(YEDEK_ON)) return { hata: T('buForeign') };
   const i = s.lastIndexOf('-');
-  if (i <= YEDEK_ON.length - 1) return { hata: 'The code is incomplete.' };
+  if (i <= YEDEK_ON.length - 1) return { hata: T('buShort') };
   const govde = s.slice(YEDEK_ON.length, i), damga = s.slice(i + 1);
-  if (yedekDamga(govde) !== damga) return { hata: 'The code is damaged — a character is missing or changed.' };
+  if (yedekDamga(govde) !== damga) return { hata: T('buBroken') };
   let p = null;
-  try { p = JSON.parse(b64Oku(govde)); } catch { return { hata: 'The code could not be read.' }; }
+  try { p = JSON.parse(b64Oku(govde)); } catch { return { hata: T('buUnread') }; }
   if (!p || typeof p !== 'object' || !p.g || typeof p.g !== 'object')
-    return { hata: 'The code could not be read.' };
-  if (!(p.v <= YEDEK_SURUM)) return { hata: 'That code is from a newer version of the game.' };
+    return { hata: T('buUnread') };
+  if (!(p.v <= YEDEK_SURUM)) return { hata: T('buNewer') };
   // Tek bir alan doğrulanıyor ve o da sayı mı diye: gerisi `Object.assign`
   // ile varsayılanların üstüne biniyor, eksik alanı oyunun kendi göç yolu
   // dolduruyor. Doğrulamayı burada tekrarlamak, iki yerde yaşayan bir
   // kural demek olurdu.
   if (typeof p.g.cash !== 'number' || !isFinite(p.g.cash))
-    return { hata: 'The code could not be read.' };
+    return { hata: T('buUnread') };
   return { json: JSON.stringify(p.g) };
 }
 
@@ -3205,7 +3458,7 @@ function yedekCoz(kod) {
 function yedekYukle(kod) {
   const r = yedekCoz(kod);
   if (r.hata) return r;
-  try { localStorage.setItem(KEY, r.json); } catch { return { hata: 'This device would not let the game save.' }; }
+  try { localStorage.setItem(KEY, r.json); } catch { return { hata: T('buNoSave') }; }
   return { ok: true };
 }
 
@@ -3415,7 +3668,7 @@ function tick(now) {
     CRATE_MAT[2].color.set(pr.body);
     for (const c of bays[2].cars) c.m.scale.setScalar(pr.big);
     ping(560 + tier * 80, 0.2);
-    if (tier > 0) floatCash('🚗 ' + pr.name.toUpperCase() + ' UNLOCKED');
+    if (tier > 0) floatCash(T('unlocked', T(pr.nameT).toUpperCase()));
   }
 
   // bays reveal their extra units as the station levels up
@@ -3700,7 +3953,7 @@ window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().
 window.jeShop = () => ({
   acik: IAP_ON,
   urunler: SKUS.map(p => ({
-    id: p.id, ad: p.name, fiyat: p.price,
+    id: p.id, ad: T(p.nameT), fiyat: p.price,
     kalici: !isConsumable(p), sahip: !!(p.key && iap[p.key]),
   })),
   carpan: paidMult(),
@@ -3745,6 +3998,13 @@ window.jeMusBelir = () => { musSayac = 0; return musBelir(); };
 // gidişinde sahneden çıkıyor; sayı yirmi müşteri sonunda da aynı
 // kalmalı. Göz bunu fark etmiyor, sayı fark ediyor.
 window.jeSahne = () => scene.children.length;
+// Dil: şu anki seçim, kayıttaki seçim ve tablonun kendisi. Tabloyu
+// dışarı vermek, "her anahtarın iki karşılığı var mı" sorusunun oyunun
+// kendi verisinden cevaplanmasını sağlıyor.
+window.jeDil = () => ({
+  dil, kayit: G.dil,
+  tablo: Object.fromEntries(Object.entries(METIN).map(([k, v]) => [k, { en: v[0], tr: v[1] }])),
+});
 // Yedek: kodu üret, çöz, yükle. `jeYedekYukle` kayda yazıp yenilemiyor —
 // testin sayfayı kendisi yenilemesi gerekiyor, yoksa ölçüm kendi
 // yenilemesini bekleyemez.
@@ -3771,7 +4031,7 @@ window.jeGorev = () => ({
   gun: G.gun ? G.gun.gun : null,
   liste: G.gun ? G.gun.liste.map(id => {
     const g = GOREVLER.find(x => x.id === id);
-    return { id, ad: g.ad, hedef: G.gun.hedef[id], simdi: +g.say().toFixed(1),
+    return { id, ad: T(g.adT), hedef: G.gun.hedef[id], simdi: +g.say().toFixed(1),
              bitti: g.say() >= G.gun.hedef[id], alindi: !!G.gun.alindi[id],
              odul: +gorevOdul(g).toFixed(0) };
   }) : [],
@@ -3803,7 +4063,7 @@ window.jeYer = () => ({
   dokular: renderer.info.memory.textures,
 });
 window.jeMgrKimlik = () => MGRS.map((m, i) => ({
-  ad: m.ad, rol: m.rol, bonus: m.bonus, alindi: G.mgr[i],
+  ad: m.ad, rol: T(m.rolT), bonus: T(m.bonusT), kisa: T(m.kisaT), alindi: G.mgr[i],
   // Veri URL'sinin kendisi değil, özeti. İlk hâli ilk 22 karakteri
   // alıyordu ve o karakterler `data:image/png;base64,` — dört yüz de
   // aynı görünüyordu, test de kodu değil kendini ölçmüş oluyordu.
@@ -3861,6 +4121,11 @@ window.jeResBuy = (id, n = 1) => {
 // chain's rate at the moment of return, and a boost still ticking would pay
 // triple for hours nobody watched.
 if (G.boostUntil > Date.now()) G.boostUntil = 0;
+
+// Statik yazılar önce: `showWelcome` ve `checkDaily` kendi ekranlarını
+// açıyor ve açıldıkları anda doğru dilde olmaları gerekiyor.
+dilUygula();
+dilYaz();
 
 const back = offlineCatchUp();
 if (back) showWelcome(back);

@@ -72,12 +72,17 @@ console.log(`     hedefler ${JSON.stringify(don.once)} → ${JSON.stringify(don.
 ok(JSON.stringify(don.once) === JSON.stringify(don.sonra), 'ölçek büyüyünce hedef sabit kaldı');
 
 console.log('\n4) Ödül kendi ölçüsünü beslemiyor');
-const odul = await pg.evaluate(() => {
+const odul = await pg.evaluate(async () => {
   window.jeWipeProgress();
   window.jeGive(1e9);
   for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 20); window.jeGiveManager(i); }
-  // Yükseltme görevini bitir.
-  window.jeBuy(0, 60);
+  // Günün üç görevi havuzdan **rastgele** seçiliyor. İlk hâlinde bu
+  // bölüm yalnızca yükseltme görevini bitiriyordu ve o görev listeye
+  // girmediği koşularda "bir görev alındı" düşüyordu — ölçüm değil,
+  // zar atışıydı. Artık altı sayacın hepsi besleniyor.
+  window.jeBuy(0, 60);                        // yükseltme ve "seviye çıkar"
+  for (let i = 0; i < 600; i++) window.jeStep(0.1);   // sevkiyat, kazanç, tampon
+  window.jeBoost(); window.jeBoost();         // hız görevi
   const onceToplam = window.jeProbe().total;
   const oncePuan = window.jeProbe().points + window.jeProbe().pending;
   const alindi = window.jeClaimGorev();
