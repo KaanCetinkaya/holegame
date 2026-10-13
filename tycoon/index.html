@@ -664,6 +664,8 @@ const METIN = {
   pr3: ['Sports', 'Spor'],
   pr4: ['Luxury', 'Lüks'],
   nextTier: [' · <b>{0}</b>: all at lv {1}', ' · <b>{0}</b>: hepsi {1}. seviyede'],
+  nextTierOne: [' · <b>{0}</b>: {1} at lv {2}', ' · <b>{0}</b>: {1} {2}. seviyede'],
+  tierHold:    ['<u>HOLDING BACK {0}</u>', '<u>{0} BEKLİYOR</u>'],
   topTier:  [' · top tier', ' · en üst kademe'],
 };
 
@@ -922,8 +924,8 @@ const PRODUCTS = [
   { name: 'City', nameT: 'pr0',     at: 0,   mult: 1,   body: '#3f7de0', roof: '#356ec9', big: 1.00 },
   { name: 'SUV', nameT: 'pr1',      at: 45,  mult: 3.2, body: '#3f9a6a', roof: '#33805a', big: 1.14 },
   { name: 'Pickup', nameT: 'pr2',   at: 110, mult: 10,  body: '#e8a33a', roof: '#c9861e', big: 1.26 },
-  { name: 'Sports', nameT: 'pr3',   at: 220, mult: 34,  body: '#d9483a', roof: '#b93a2e', big: 1.08 },
-  { name: 'Luxury', nameT: 'pr4',   at: 400, mult: 115, body: '#8a52d0', roof: '#7343b3', big: 1.18 },
+  { name: 'Sports', nameT: 'pr3',   at: 175, mult: 34,  body: '#d9483a', roof: '#b93a2e', big: 1.08 },
+  { name: 'Luxury', nameT: 'pr4',   at: 240, mult: 115, body: '#8a52d0', roof: '#7343b3', big: 1.18 },
 ];
 const productTier = () => {
   const weakest = Math.min(...G.lvl);
@@ -932,6 +934,22 @@ const productTier = () => {
   return t;
 };
 const product = () => PRODUCTS[productTier()];
+// Bir sonraki kademeyi hangi istasyonlar tutuyor?
+//
+// Kademe kapısı **en zayıf** istasyona bakıyor, oyunun yönlendirmesi ise
+// darboğaza. İkisi aynı istasyon olmak zorunda değil ve ölçüldü
+// (üç saatlik oyun, altı şube devri): Derya'nın +%25 döküm hızı yeteneği
+// Dökümü 37 seviye geride olmasına rağmen darboğaz olmaktan çıkarıyor,
+// oyuncu hiç yükseltmiyor, Döküm 200'de çakılıyor ve Sports (220) ile
+// Luxury (400) kademeleri **hiç açılmıyor**. Beş araç modelinden ikisi,
+// ×34 ve ×115 çarpanlarıyla birlikte, ölü içerikti.
+//
+// Ekran artık kapıyı tutan istasyonu adıyla söylüyor.
+const tierHolders = () => {
+  const nx = nextProduct();
+  if (!nx) return [];
+  return G.lvl.map((l, i) => (l < nx.at ? i : -1)).filter(i => i >= 0);
+};
 const nextProduct = () => PRODUCTS[productTier() + 1] || null;
 // `paidMult()` satın alınan çifte gelir. Burada çarpılıyor, `rateOf`'ta
 // değil: hız darboğaza ve tampon doluluğuna giriyor, para yalnızca
@@ -2623,6 +2641,7 @@ function buyManager(i) {
 
 function refreshPanel() {
   const ch = chain();
+  const tutanlar = tierHolders();
   for (let i = 0; i < STATIONS.length; i++) {
     const s = STATIONS[i], r = rows[i];
     const n = buyCount(i);
@@ -2652,6 +2671,12 @@ function refreshPanel() {
     // the instruction and it is the one line that is not worth acting on:
     // levelling a station whose output has nowhere to go buys nothing.
     if (nxt && !blocked) bits.push(T('x2at', nxt));
+    // Kademeyi tutan istasyon: darboğaz değilse oyuncunun onu
+    // yükseltmesi için hiçbir sebebi yok ve kapı orada kilitli kalıyor.
+    // Sebep buraya yazılıyor.
+    if (tutanlar.length && tutanlar.length < STATIONS.length &&
+        tutanlar.includes(i) && i !== ch.neck && !blocked)
+      bits.push(T('tierHold', T(nextProduct().nameT)));
     r.meta.innerHTML = bits.join(' · ');
     if (i < LAST) {
       const p = Math.min(100, (G.buf[i] / roomOf(i)) * 100);
@@ -2699,8 +2724,12 @@ function refreshPanel() {
   $('rate').textContent = fmt(olculenHiz) + ' ' + T('perSec');
   $('branchPill').textContent = '🏭 ' + (G.branches + 1);
   const nx = nextProduct();
+  const tut = tierHolders();
   $('prodTag').innerHTML = `🚗 ${T(product().nameT)}` +
-    (nx ? T('nextTier', T(nx.nameT), nx.at) : T('topTier'));
+    (nx ? (tut.length === 1
+            ? T('nextTierOne', T(nx.nameT), T(STATIONS[tut[0]].nameT), nx.at)
+            : T('nextTier', T(nx.nameT), nx.at))
+        : T('topTier'));
 }
 
 // ---------------------------------------------------------------------
@@ -4028,6 +4057,15 @@ window.jeMusBelir = () => { musSayac = 0; return musBelir(); };
 // gidişinde sahneden çıkıyor; sayı yirmi müşteri sonunda da aynı
 // kalmalı. Göz bunu fark etmiyor, sayı fark ediyor.
 window.jeSahne = () => scene.children.length;
+// Kademe kapısı: şu anki kademe, sonraki ve onu tutan istasyonlar.
+// Ekrandaki uyarı da bu listeden çiziliyor, yani ölçüm oyuncunun
+// gördüğü şeyi okuyor.
+window.jeTier = () => {
+  const nx = nextProduct();
+  return { kademe: productTier(), ad: T(product().nameT),
+           sonraki: nx ? T(nx.nameT) : null, esik: nx ? nx.at : null,
+           tutan: tierHolders(), lvl: [...G.lvl] };
+};
 // Çizim yükü. Ucuz bir Android'de kare hızını belirleyen şey bu:
 // kaç çizim çağrısı, kaç üçgen, kaç cisim. Konteynerde GPU yok, o
 // yüzden kare hızı ölçülemiyor — ama bunlar cihazdan bağımsız.
