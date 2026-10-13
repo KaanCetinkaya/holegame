@@ -480,6 +480,7 @@ const METIN = {
   buy:        ['Buy:', 'Al:'],
   perSec:     ['/s', '/sn'],
   bottleneck: ['BOTTLENECK', 'DARBOĞAZ'],
+  nezaret:    ['<i>YOU ×{0}</i>', '<i>SEN ×{0}</i>'],
   x2at:       ['<b>×2</b> at {0}', '{0}. sv. <b>×2</b>'],
   full:       ['FULL — upgrade {0}', 'DOLU — {0} yükselt'],
   levels:     ['LEVELS', 'SEVİYE'],
@@ -608,6 +609,8 @@ const METIN = {
          'Şimdi parayı harca: <b>DARBOĞAZ</b> yazan istasyonu yükselt.'],
   tipMgr: ['You can afford a <b>manager</b>. A station with one runs itself — and keeps running while the app is closed.',
            'Bir <b>müdür</b> alabilirsin. Müdürü olan istasyon kendi kendine çalışıyor — hem de uygulama kapalıyken.'],
+  tipNez: ['Your worker has nothing left to carry. Park him on the station marked <b>BOTTLENECK</b> — it runs ×{0} while he stands there.',
+           'İşçinin taşıyacak malı kalmadı. Onu <b>DARBOĞAZ</b> yazan istasyonun başına park et — orada durduğu sürece o istasyon ×{0} çalışıyor.'],
   // Bildirim
   notifFullT: ['The yard is full', 'Önlük doldu'],
   notifFullB: ['{0} hours of production is waiting, and the line has stopped stacking.',
@@ -1061,6 +1064,7 @@ const G = Object.assign({
   // ilk turda kendini kapatıyor.
   tut: 0,
   tipMgr: 0,
+  tipNez: 0,              // nezaret ipucu gösterildi mi
   // Günlük görevler: gün numarası, sayaçlar, seçilen üç görev.
   gun: null,
   res: {},                // araştırma seviyeleri, puanla alınıyor
@@ -1170,12 +1174,25 @@ const freePoints  = () => Math.max(0, bankedPoints() - spentPoints());
 const branchMult = () => 1 + resLvl('line') * 0.02;
 const boostLeft = () => Math.max(0, (G.boostUntil - Date.now()) / 1000);
 const boostMult = () => (boostLeft() > 0 ? BOOST_MULT : 1);
+// İşçinin başında durduğu istasyon daha hızlı çalışıyor.
+//
+// Dört müdür alındıktan sonra önlükteki figürün hiçbir işi kalmıyordu:
+// oyunun tek yapısal farkı o figür (PAZAR.md'deki "arcade idle" hattı,
+// D1 ~%50) ve oyunun geri kalanında dekora dönüşüyordu. Nezaret, ona
+// kalıcı bir iş veriyor — hem de yoklukta hiçbir şey eksilmeden,
+// çünkü kimse kimsenin başında durmuyorken çarpan zaten 1.
+//
+// Tek istasyon: işçi bir anda tek yerde durabiliyor, yani bu bir
+// seçim. Nereye koyacağın darboğaza bağlı ve darboğaz değişiyor.
+const SUPERVISE = 1.25;
+let nezaret = -1;                      // işçinin başında durduğu bölme
 const rateOf = i =>
   G.lvl[i] * STATIONS[i].baseRate
   * Math.pow(tasGucu(resLvl('tas')), milestonesHit(i))
   * (G.mgr[i] ? MGR_MULT : 1)
   // Derya'nın bonusu: döküm ocağı %25 hızlı. Yalnız kendi istasyonunda.
   * (i === 0 && G.mgr[0] ? MGR_FOUNDRY : 1)
+  * (i === nezaret ? SUPERVISE : 1)
   * branchMult() * boostMult();
 // Research discounts multiply the whole ladder, so the geometric sum and its
 // inverse below stay exact rather than needing a per-level correction.
@@ -1710,6 +1727,25 @@ function tutMudurIpucu() {
   saveNow();
   const el = $('tut');
   el.innerHTML = T('tipMgr');
+  el.classList.add('show');
+  tipUntil = Date.now() + TIP_SURE;
+  setTimeout(() => { el.classList.remove('show'); }, TIP_SURE);
+}
+
+// Nezaret ipucu. Müdür ipucuyla aynı kalıp: bir kez, ve ancak o ders
+// anlamlı olduğunda.
+//
+// Zamanı önemli — işçinin taşıyacak malı kalmadığı an. Daha erken
+// söylenirse oyuncu taşımayı bırakıp bir köşede bekler; o an gelmeden
+// nezaret, elle taşımanın yerine geçen yanlış bir ders olur.
+function tutNezaretIpucu() {
+  if (G.tipNez || G.tut < TUT.length) return;
+  if (!G.mgr.slice(0, LAST).every(Boolean)) return;   // hâlâ taşıyacak mal var
+  if (Date.now() < tipUntil) return;                  // şerit şu an başkasının
+  G.tipNez = 1;
+  saveNow();
+  const el = $('tut');
+  el.innerHTML = T('tipNez', SUPERVISE);
   el.classList.add('show');
   tipUntil = Date.now() + TIP_SURE;
   setTimeout(() => { el.classList.remove('show'); }, TIP_SURE);
@@ -2465,6 +2501,7 @@ let tabanY = DECK_TOP;
 // kasalar turuncu / çelik / kırmızı, şeritler sarı. Baret sarı kalıyor,
 // "işçi" okunurluğunu veren şey o.
 const VEST = '#17c4b2';
+let halkaMat = null;
 {
   const gövde = new THREE.Mesh(
     new THREE.CapsuleGeometry(0.28, 0.5, 4, 10), MAT(VEST, 0.6, 0.1));
@@ -2511,7 +2548,9 @@ const VEST = '#17c4b2';
   // yapışık parlak bir halka, figür makinelerin arkasına girse bile
   // "oyuncu burada" diyor. Idle oyunların elle oynanan kısmı bu figür,
   // bulunamayan bir figür oyunun yarısını götürüyor.
-  const halka = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 24), GLOW(VEST, 0.85));
+  // Malzeme dışarıda tutuluyor: nezaret varken rengi değişiyor.
+  halkaMat = GLOW(VEST, 0.85);
+  const halka = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 24), halkaMat);
   halka.rotation.x = -Math.PI / 2;
   halka.position.y = 0.02;
   worker.add(halka);
@@ -2620,6 +2659,20 @@ function stepWorker(dt) {
   // Geçiş yumuşatılıyor. Sert bir 0.3 sıçraması kenardan geçerken figürü
   // ışınlanmış gibi gösteriyordu; bu hızda göz basamağı görüyor ama
   // sıçramayı görmüyor.
+  // Nezaret: işçi hangi bölmenin başındaysa o istasyon hızlanıyor.
+  // Taşımanın kullandığı `REACH` ile aynı mesafe — oyuncunun "bu
+  // istasyonun başındayım" dediği yer bir tane olmalı, iki farklı
+  // yarıçap iki farklı kural demek olurdu.
+  nezaret = -1;
+  for (let i = 0; i < BAY_Z.length; i++) {
+    if (Math.abs(worker.position.z - BAY_Z[i]) < REACH &&
+        Math.abs(worker.position.x) < DECK_YARI_X + 1) { nezaret = i; break; }
+  }
+  // Ayağının altındaki halka nezaret varken sarıya dönüyor: çarpanın
+  // nereden geldiği görünür olmalı.
+  halkaMat.color.set(nezaret >= 0 ? '#ffd34d' : VEST);
+  halkaMat.emissive.set(nezaret >= 0 ? '#ffd34d' : VEST);
+
   const platformda = Math.abs(worker.position.x) < DECK_YARI_X &&
     BAY_Z.some(z => Math.abs(worker.position.z - z) < DECK_YARI_Z);
   tabanY += ((platformda ? DECK_TOP : 0) - tabanY) * Math.min(1, dt * 14);
@@ -2755,6 +2808,7 @@ function refreshPanel() {
       G.gun.doluDurum[i] = blocked;
     }
     const bits = [];
+    if (i === nezaret) bits.push(T('nezaret', SUPERVISE));
     if (i === ch.neck) bits.push(`<em>${T('bottleneck')}</em>`);
     else if (blocked) bits.push(`<u>${T('full', T(STATIONS[ch.neck].nameT))}</u>`);
     if (hits) bits.push(`<b>×${fmt(Math.pow(2, hits))}</b>`);
@@ -3933,7 +3987,7 @@ function tick(now) {
   sinceUI += dt;
   if (sinceUI > 0.12) {
     sinceUI = 0; refreshPanel(); refreshBoost(); lockGoals(); refreshGoalDot();
-    askNotif(); tutGuncelle(); tutMudurIpucu(); gunuKur();
+    askNotif(); tutGuncelle(); tutMudurIpucu(); tutNezaretIpucu(); gunuKur();
   }
   sinceFloat += dt;
   if (sinceFloat > 0.55 && floatAcc > 0) {
@@ -4209,6 +4263,13 @@ window.jeBoostMult = () => BOOST_MULT;
 window.jeBranchMult = () => +branchMult().toFixed(2);
 window.jeMusAra = () => musAra();
 window.jeTasSayisi = () => milestonesHit(0);
+// Nezaret: hangi bölmenin başındayız, çarpan ne, bölmeler nerede, ve
+// halkanın rengi. Çarpanın görünür olup olmadığı da ölçülüyor.
+window.jeNezaret = () => nezaret;
+window.jeTutNezaret = () => { tutNezaretIpucu(); return !!G.tipNez; };
+window.jeSupervise = () => SUPERVISE;
+window.jeBayZ = () => [...BAY_Z];
+window.jeHalkaRengi = () => halkaMat ? '#' + halkaMat.color.getHexString() : null;
 window.jeCarryMax = () => [0, 1, 2, 3].map(i => carryMax(i));
 // Ağacın şekli: hangi dal kaça ve nereye kadar. "Ağaç hâlâ bir seçim
 // mi" sorusu ancak tavanların toplam bedeliyle cevaplanıyor.

@@ -38,10 +38,12 @@ Her tezgâhın arkasında bir depo var. Bir tezgâh, ancak önündeki kadar hız
 İşin püf noktası bu. Oyun sana hangi tezgâhı yükselteceğini söylemiyor,
 gösteriyor. Yanlış tezgâhı büyütürsen para harcarsın ama gelirin kımıldamaz.
 
-🦺 BAŞTA MALI SEN TAŞIYORSUN
+🦺 İŞÇİ SENİN
 Müdürü olmayan tezgâhın malını önlükteki işçi taşıyor, onu da sen
 sürüklüyorsun. Oyun elle başlıyor ve para biriktikçe kendi kendine dönen
-bir fabrikaya dönüşüyor.
+bir fabrikaya dönüşüyor. Taşıyacak mal kalmadığında da işi bitmiyor:
+başında durduğu tezgâh %25 hızlı çalışıyor, yani darboğazın yanında
+beklemek işe yarıyor.
 
 📈 KİLOMETRE TAŞLARI
 10, 25, 50, 100, 200, 350, 500, 750, 1000. Her biri o tezgâhı bir anda
@@ -123,10 +125,12 @@ red.
 That's the whole game. It never tells you what to upgrade — it shows you.
 Pour money into the wrong station and your income doesn't move.
 
-🦺 AT FIRST YOU CARRY IT YOURSELF
+🦺 THE WORKER IS YOURS
 A station without a manager needs its output walked to the next one, and
 the worker on the yard is yours to drag. The game starts by hand and turns
-into a plant that runs itself.
+into a plant that runs itself. He is not finished when the carrying is:
+whichever station he stands at runs 25% faster, so parking him on the
+bottleneck is worth doing.
 
 📈 MILESTONES
 10, 25, 50, 100, 200, 350, 500, 750, 1000. Each one doubles that station
