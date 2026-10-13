@@ -479,6 +479,8 @@ const METIN = {
   welcome:     ['Welcome back! 👋', 'Tekrar hoş geldin! 👋'],
   welcomeSub:  ['The factory kept running while you were away.',
                 'Sen yokken fabrika çalışmaya devam etti.'],
+  welcomeFull: ['The factory holds at most {0} hours of stock, and it is full.',
+                'Fabrika en çok {0} saatlik mal tutuyor ve dolmuş durumda.'],
   timeAway:    ['Time away', 'Uzak kalınan süre'],
   earned:      ['Earned', 'Kazanılan'],
   watchDouble: ['📺 WATCH AD, TAKE ×2', '📺 REKLAM İZLE, ×2 AL'],
@@ -3828,8 +3830,8 @@ function showWelcome(r) {
   $('wTime').textContent = fmtTime(r.gone);
   $('wCash').textContent = fmt(r.got);
   $('wSub').textContent = r.gone >= offlineCap()
-    ? 'The factory holds at most 4 hours of stock, and it is full.'
-    : 'The factory kept running while you were away.';
+    ? T('welcomeFull', Math.round(offlineCap() / 3600))
+    : T('welcomeSub');
   $('welcome').classList.add('show');
 }
 

@@ -37,6 +37,7 @@ keystore.properties
 # öyle değil: her üretimde dosyanın tamamı değişiyor ve bir megabaytın
 # üstünde, yani depoda tutmak geçmişi her seferinde şişirirdi.
 fruithole/store/clips/
+tycoon/store/clips/
 
 # Mağazaya yapıştırılacak metinler: store-paste.mjs üretiyor, kaynağı
 # listing-en.md ve tek gerçek kaynak da o.
