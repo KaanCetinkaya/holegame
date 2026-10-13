@@ -38,36 +38,55 @@ Her tezgâhın arkasında bir depo var. Bir tezgâh, ancak önündeki kadar hız
 İşin püf noktası bu. Oyun sana hangi tezgâhı yükselteceğini söylemiyor,
 gösteriyor. Yanlış tezgâhı büyütürsen para harcarsın ama gelirin kımıldamaz.
 
+🦺 BAŞTA MALI SEN TAŞIYORSUN
+Müdürü olmayan tezgâhın malını önlükteki işçi taşıyor, onu da sen
+sürüklüyorsun. Oyun elle başlıyor ve para biriktikçe kendi kendine dönen
+bir fabrikaya dönüşüyor.
+
 📈 KİLOMETRE TAŞLARI
-50., 100., 200. seviye… Her biri o tezgâhı bir anda ikiye katlıyor. Sıradaki
-taşa ne kadar kaldığını her zaman görüyorsun, ve oraya varmak her seferinde
-kayda değer bir sıçrama.
+10, 25, 50, 100, 200, 350, 500, 750, 1000. Her biri o tezgâhı bir anda
+ikiye katlıyor. Sıradakine ne kadar kaldığını her zaman görüyorsun.
 
 👔 MÜDÜRLER
-Bir tezgâha müdür tuttuğunda kalıcı olarak iki katı hızda çalışıyor. Pahalı,
-ama biriktirmeye değer.
+Derya ocakların, Marco preslerin, Ines hattın, Kwame önlüğün başında.
+Müdür tuttuğun tezgâh iki kat hızlanıyor ve **kendi kendine çalışmaya**
+başlıyor — asıl idle oyun orada açılıyor. Dördünün de kendi yeteneği var.
+
+🚗 BEŞ ARAÇ KADEMESİ
+Şehir, SUV, Kamyonet, Spor, Lüks. Bütün tezgâhlar belli bir seviyeye
+geldiğinde hattan çıkan araba değişiyor ve araç başına aldığın para
+katlanıyor.
+
+🙋 MÜŞTERİ GELİYOR
+Arada bir önlüğe bir müşteri arabası giriyor ve kısa süre bekliyor.
+Gitmeden dokunursan yarım dakikalık üretimin kadar ödüyor. Kaçırırsan
+hiçbir şey kaybetmiyorsun.
 
 🌙 SEN YOKKEN DE ÇALIŞIR
-Oyunu kapattığında fabrika durmuyor. Dört saate kadar üretmeye devam ediyor;
-döndüğünde ne kadar kazandığını gösteren bir ekran karşılıyor seni. İstersen
-kısa bir video izleyip iki katını alabilirsin.
+Oyunu kapattığında fabrika durmuyor — müdürü olan tezgâhlar üretmeye devam
+ediyor. Dört saate kadar biriktiriyor (araştırmayla daha fazlası), ve
+döndüğünde ne kazandığını gösteren bir ekran karşılıyor seni. İstersen kısa
+bir video izleyip iki katını alıyorsun.
 
 ⚡ HIZ KUTUSU
-Üç dakika boyunca bütün hat üç kat hızlı. İstediğinde açabilirsin.
+Üç dakika boyunca bütün hat üç kat hızlı.
 
 🏭 YENİ ŞUBE
 Fabrikan tavana vurduğunda devredebilirsin: her şey sıfırlanır ama kalıcı
-bir gelir çarpanı kazanırsın. Bir sonraki tur çok daha hızlı ilerler, çok
-daha ileri gider, ve daha büyük bir çarpanla biter. Asıl oyun burada
+şube puanı kazanırsın ve onları araştırmaya harcarsın. Her şube başka bir
+yerde kuruluyor — çayır, çöl, tundra, liman, kül ovası. Asıl oyun burada
 başlıyor.
 
-📋 GÖREVLER
-On iki hedef: kazanç eşikleri, tezgâh seviyeleri, müdürler, şubeler. Ödüller
-kendi gelirinden hesaplanıyor, yani ilk gün de onuncu gün de işine yarıyor.
+📋 HEDEFLER VE GÜNLÜK GÖREVLER
+On iki kalıcı hedef, ve her gün yenilenen üç görev. Ödüller senin kendi
+gelirinden hesaplanıyor, yani ilk gün de onuncu gün de işine yarıyor.
+
+💾 YEDEK KODU
+Fabrikanı bir koda çeviriyorsun, yeni telefonda yapıştırıyorsun. Kaydın
+sana ait.
 
 ⚡ TEK PARMAK, İNTERNETSİZ
-Dokun, yükselt, izle. Hepsi bu. Bağlantı gerektirmiyor, kayıtların
-telefonunda duruyor.
+Dokun, yükselt, izle. Bağlantı gerektirmiyor. Türkçe ve İngilizce.
 
 Hattı kurmaya hazır mısın?
 ```
@@ -104,35 +123,52 @@ red.
 That's the whole game. It never tells you what to upgrade — it shows you.
 Pour money into the wrong station and your income doesn't move.
 
+🦺 AT FIRST YOU CARRY IT YOURSELF
+A station without a manager needs its output walked to the next one, and
+the worker on the yard is yours to drag. The game starts by hand and turns
+into a plant that runs itself.
+
 📈 MILESTONES
-Level 50, 100, 200… each one doubles that station outright. You can always
-see how far the next one is, and reaching it is a jump you feel.
+10, 25, 50, 100, 200, 350, 500, 750, 1000. Each one doubles that station
+outright, and you can always see how far the next one is.
 
 👔 MANAGERS
-Hire one and that station runs at double speed, permanently. Expensive, and
-worth saving for.
+Derya runs the furnaces, Marco the presses, Ines the line, Kwame the yard.
+A station with a manager works at double speed and **runs itself** — that
+is where the idle game opens up. All four bring a perk of their own.
+
+🚗 FIVE VEHICLE TIERS
+City, SUV, Pickup, Sports, Luxury. Take every station past a level and the
+car coming off the line changes, and so does what each one pays.
+
+🙋 A BUYER PULLS IN
+Every so often a customer car drives onto the yard and waits a moment. Tap
+it before it leaves and it pays you half a minute of production. Miss it
+and you lose nothing.
 
 🌙 IT RUNS WHILE YOU'RE GONE
-Close the app and the plant keeps working — up to four hours of it. Come
-back to a screen showing what it made. Watch a short video and take twice
-as much.
+Close the app and the stations with managers keep working. It stockpiles up
+to four hours (more with research), and you come back to a screen showing
+what it made. Watch a short video and take twice as much.
 
 ⚡ SPEED CRATE
-Three minutes at triple output, whenever you want it.
+Three minutes at triple output.
 
 🏭 NEW BRANCH
-When the plant tops out, hand it in: everything resets, and you keep a
-permanent income multiplier. The next run climbs faster, reaches further,
-and ends with a bigger multiplier still. This is where the real game is.
+When the plant tops out, hand it in: everything resets, you keep permanent
+branch points, and you spend them on research. Every branch opens somewhere
+new — meadow, desert, tundra, harbour, ashland. This is where the real game
+is.
 
-📋 GOALS
-Twelve of them, across earnings, station levels, managers and branches.
-Rewards are paid from your own income, so they matter on day one and on day
-ten.
+📋 GOALS AND DAILY MISSIONS
+Twelve standing goals, plus three that change every day. Rewards are paid
+from your own income, so they matter on day one and on day ten.
+
+💾 BACKUP CODE
+Turn your plant into a code and paste it on a new phone. The save is yours.
 
 ⚡ ONE FINGER, FULLY OFFLINE
-Tap, upgrade, watch. That's it. No connection needed, and your save lives on
-your phone.
+Tap, upgrade, watch. No connection needed. English and Turkish.
 
 Ready to start the line?
 ```
@@ -141,12 +177,27 @@ Ready to start the line?
 
 - Kategori: **Oyunlar → Simülasyon** (Play'de idle oyunların çoğu burada)
 - Etiketler: idle, fabrika, tycoon, simülasyon, araba, üretim, offline, boş zaman
+- Diller: **Türkçe (tr-TR) ve İngilizce (en-US)**. Oyun telefonun dilini
+  kendi seçiyor, menüden değiştirilebiliyor. Türkçe mağaza kaydı
+  eklenmezse Türk oyuncu İngilizce kareleri görüyor — görseller
+  `store/tr/` altında hazır.
+
+## Doğruluk
+
+Buradaki sayılar oyundan geliyor ve `scratchpad/tylisting.mjs` hepsini
+oyunun kendi değerleriyle karşılaştırıyor. Oyun değişince o komut düşer.
+Elle yazılmış bir sayının sessizce yaşlanması bu depoda birkaç kez oldu:
+ekran görüntüleri boş bir fabrika gösterdi, dönüş ekranı "4 saat" dedi
+ama araştırma onu uzatıyordu, ve bu dosya "satın alma yok" yazdığı sırada
+mağazada üç ürün vardı.
 
 ## İçerik derecelendirmesi
 
 Şiddet, korku, kumar ve kullanıcılar arası etkileşim yok. **Reklam içeriyor**
-(yalnızca ödüllü video). Uygulama içi satın alma **yok** — anketi buna göre
-doldur.
+(yalnızca ödüllü video). **Uygulama içi satın alma var** — üç ürün:
+`motorworks_double`, `motorworks_managers`, `motorworks_skip12`. Anketi buna
+göre doldur; ilk hâlinde burada "satın alma yok" yazıyordu ve mağaza
+eklendikten sonra güncellenmemişti.
 
 ## Veri güvenliği formu
 

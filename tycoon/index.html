@@ -4059,6 +4059,17 @@ window.jeMusBelir = () => { musSayac = 0; return musBelir(); };
 // gidişinde sahneden çıkıyor; sayı yirmi müşteri sonunda da aynı
 // kalmalı. Göz bunu fark etmiyor, sayı fark ediyor.
 window.jeSahne = () => scene.children.length;
+// Mağaza metnindeki sayılar bu kancalardan doğrulanıyor
+// (`scratchpad/tylisting.mjs`): elle yazılmış bir sayı oyun değişince
+// sessizce yaşlanıyor ve Play'de aylarca öyle duruyor.
+window.jeTaslar = () => [...MILESTONES];
+window.jeBoostMult = () => BOOST_MULT;
+window.jeProbeSabit = () => ({ offline: OFFLINE_BASE, boostCool: BOOST_COOL,
+  mgrMult: MGR_MULT, carryBase: CARRY_BASE, musSn: MUS_SN, gorevSn: GOREV_SN });
+window.jeUrunler = () => ({ en: PRODUCTS.map(p => p.name),
+                            tr: PRODUCTS.map(p => METIN[p.nameT][1]) });
+window.jeYerler = () => ({ en: YERLER.map(y => y.ad),
+                           tr: YERLER.map(y => METIN[y.adT][1]) });
 // Kademe kapısı: şu anki kademe, sonraki ve onu tutan istasyonlar.
 // Ekrandaki uyarı da bu listeden çiziliyor, yani ölçüm oyuncunun
 // gördüğü şeyi okuyor.
