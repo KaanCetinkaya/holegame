@@ -4060,6 +4060,8 @@ window.jeSahne = () => scene.children.length;
 // Kademe kapısı: şu anki kademe, sonraki ve onu tutan istasyonlar.
 // Ekrandaki uyarı da bu listeden çiziliyor, yani ölçüm oyuncunun
 // gördüğü şeyi okuyor.
+// Devir düğmesi açık mı. Ekrandaki düğmenin okuduğu şeyin aynısı.
+window.jeCanPrestige = () => canPrestige();
 window.jeTier = () => {
   const nx = nextProduct();
   return { kademe: productTier(), ad: T(product().nameT),
