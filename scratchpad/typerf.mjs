@@ -97,8 +97,17 @@ const kasa = await pg.evaluate(async () => {
   return say;
 });
 console.log(`     kasa sayısı: ${kasa.join(' ')}`);
+// Sayı 3 ile 42 arasında salınıyor: kasalar bandın ucunda toplu
+// halde siliniyor, yani örneklemenin hangi ana denk geldiği sonucu
+// belirliyor. İlk hâli iki tek örneği karşılaştırıyordu (`kasa[2]` ile
+// `kasa[9]`) ve koşudan koşuya bazen geçip bazen düşüyordu — ölçüm
+// değil, zar atışı. Trend iki yarının ortalamasından okunuyor.
+const ort = a => a.reduce((x, y) => x + y, 0) / a.length;
+const ilkYari = ort(kasa.slice(0, 5)), sonYari = ort(kasa.slice(5));
+console.log(`     ilk yarı ortalama ${ilkYari.toFixed(1)} · son yarı ${sonYari.toFixed(1)}`);
 ok(Math.max(...kasa) < 400, 'kasa sayısı sınırlı', `en çok ${Math.max(...kasa)}`);
-ok(kasa[9] < kasa[2] * 2 + 20, 'kasa sayısı sürekli büyümüyor', `${kasa[2]} → ${kasa[9]}`);
+ok(sonYari < ilkYari * 1.5 + 5, 'kasa sayısı zamanla büyümüyor',
+   `${ilkYari.toFixed(1)} → ${sonYari.toFixed(1)}`);
 
 console.log('\n4) Otuz şube devri');
 // Her devirde zemin dokusu yeniden üretiliyor ve ağaç renkleri
