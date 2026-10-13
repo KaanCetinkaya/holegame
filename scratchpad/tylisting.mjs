@@ -26,7 +26,12 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
 
-const MD = readFileSync('/home/user/holegame/tycoon/store/listing.md', 'utf8');
+const MD_HAM = readFileSync('/home/user/holegame/tycoon/store/listing.md', 'utf8');
+// Satır sonlarını boşluğa çeviriyoruz. Metin mağazaya tek blok olarak
+// yapıştırılıyor, yani "kanyon,\nyayla" ile "kanyon, yayla" aynı şey —
+// ama düz bir `includes` ikisini ayırıyor ve doğru yazılmış bir listeyi
+// eksik sanıyordu.
+const MD = MD_HAM.replace(/\s+/g, ' ');
 
 const srv = createServer((q, r) => {
   const p = q.url === '/' ? '/index.html' : q.url.split('?')[0];
@@ -80,7 +85,7 @@ const oyun = await pg.evaluate(() => {
 });
 
 console.log('\n1) Karakter sınırları');
-const bloklar = [...MD.matchAll(/```\n([\s\S]*?)\n```/g)].map(m => m[1]);
+const bloklar = [...MD_HAM.matchAll(/```\n([\s\S]*?)\n```/g)].map(m => m[1]);
 const adlar = bloklar.filter(b => b.length < 60 && /Motor Works/.test(b));
 const kisalar = bloklar.filter(b => b.length >= 60 && b.length <= 200 && !b.includes('\n'));
 const tamlar = bloklar.filter(b => b.length > 1000);

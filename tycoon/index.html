@@ -696,6 +696,11 @@ const METIN = {
   yer2: ['Tundra', 'Tundra'],
   yer3: ['Harbour', 'Liman'],
   yer4: ['Ashland', 'Kül Ovası'],
+  yer5: ['Wetland', 'Sazlık'],
+  yer6: ['Canyon', 'Kanyon'],
+  yer7: ['Highland', 'Yayla'],
+  yer8: ['Saltpan', 'Tuz Gölü'],
+  yer9: ['Nightworks', 'Gece Vardiyası'],
   // Araç kademeleri
   pr0: ['City', 'Şehir'],
   pr1: ['SUV', 'SUV'],
@@ -1930,6 +1935,20 @@ const YERLER = [
     benek: ['#64798a', '#9bb0bf'], agac: ['#3f7a6a', '#4d8c78', '#356b5e'], govde: '#5a4a3e' },
   { ad: 'Ashland', adT: 'yer4', gok: '#b08a7a', zemin: '#6e6260', serit: ['#7a6e6b', '#5e5452'],
     benek: ['#574d4b', '#8b7f7c'], agac: ['#5a4a3a', '#6b5a46', '#4a3c30'], govde: '#3e342e' },
+  // Beş yer, altıncı şubede başa dönüyordu. On beş devir oynayan bir
+  // oyuncu aynı çayırı üç kez görüyor — ölçüldü (`scratchpad/tyuzun.mjs`),
+  // on beş devir uzak bir hedef değil. Beş tane daha: her biri yalnızca
+  // bir renk tablosu, yani en ucuz görünür içerik.
+  { ad: 'Wetland', adT: 'yer5', gok: '#a8c9b4', zemin: '#4f7a5e', serit: ['#5d8a6a', '#3d6249'],
+    benek: ['#3a6650', '#7aa882'], agac: ['#2f6b4a', '#3d7d58', '#27583d'], govde: '#5a4a38' },
+  { ad: 'Canyon', adT: 'yer6', gok: '#e0a985', zemin: '#b5705a', serit: ['#c47f66', '#95584a'],
+    benek: ['#9c5c4c', '#d98f72'], agac: ['#7a8a4a', '#8c9c57', '#66773d'], govde: '#7a4a32' },
+  { ad: 'Highland', adT: 'yer7', gok: '#b7c6d8', zemin: '#7f8f6a', serit: ['#8d9c76', '#6a7a58'],
+    benek: ['#67774f', '#9fae84'], agac: ['#4a6b3a', '#577a45', '#3d5a30' ], govde: '#5e4e3a' },
+  { ad: 'Saltpan', adT: 'yer8', gok: '#dcd3c2', zemin: '#d8d2c4', serit: ['#e8e3d7', '#c4beb0'],
+    benek: ['#bdb6a6', '#f0ece2'], agac: ['#8a9a6a', '#9aa877', '#78875a'], govde: '#6b5a44' },
+  { ad: 'Nightworks', adT: 'yer9', gok: '#2e3a52', zemin: '#39445c', serit: ['#434f69', '#2c3648'],
+    benek: ['#2a3345', '#555f78'], agac: ['#2a4a3e', '#35594a', '#223c33'], govde: '#3a3028' },
 ];
 // Kayıttaki şube sayısı yeri belirliyor. `G` burada tanımlı olmak
 // zorunda değil — zemin kurulurken okunuyor ve prestijte yeniden

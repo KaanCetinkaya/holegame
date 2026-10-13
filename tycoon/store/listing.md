@@ -74,8 +74,8 @@ bir video izleyip iki katını alıyorsun.
 🏭 YENİ ŞUBE
 Fabrikan tavana vurduğunda devredebilirsin: her şey sıfırlanır ama kalıcı
 şube puanı kazanırsın ve onları araştırmaya harcarsın. Her şube başka bir
-yerde kuruluyor — çayır, çöl, tundra, liman, kül ovası. Asıl oyun burada
-başlıyor.
+yerde kuruluyor — çayır, çöl, tundra, liman, kül ovası, sazlık, kanyon,
+yayla, tuz gölü, gece vardiyası. Asıl oyun burada başlıyor.
 
 📋 HEDEFLER VE GÜNLÜK GÖREVLER
 On iki kalıcı hedef, ve her gün yenilenen üç görev. Ödüller senin kendi
@@ -157,8 +157,8 @@ Three minutes at triple output.
 🏭 NEW BRANCH
 When the plant tops out, hand it in: everything resets, you keep permanent
 branch points, and you spend them on research. Every branch opens somewhere
-new — meadow, desert, tundra, harbour, ashland. This is where the real game
-is.
+new — meadow, desert, tundra, harbour, ashland, wetland, canyon, highland,
+saltpan, nightworks. This is where the real game is.
 
 📋 GOALS AND DAILY MISSIONS
 Twelve standing goals, plus three that change every day. Rewards are paid
@@ -217,7 +217,8 @@ eklendikten sonra güncellenmemişti.
 - `5-boost.png` — hız kutusu açık
 - `6-branch.png` — şube devri ekranı
 - `7-customer.png` — önlüğe giren müşteri arabası, dokunulmayı bekliyor
-- `8-location.png` — tundra şubesi: her prestijte önlük başka bir yere taşınıyor
+- `8-location.png` — tundra şubesi: her prestijte önlük başka bir yere
+  taşınıyor (on ayrı yer var)
 
 Telefon görüntüleri 1080×1920, gerçek oynanıştan çekilmiş, bu sırayla
 yüklenmeli. Aramada yalnızca ilk ikisi görünüyor ve o ikisinin tek işi

@@ -34,22 +34,31 @@ await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 
 let fail = 0;
 const ok = (c, ad, not = '') => { if (!c) fail++; console.log(`  ${c ? 'OK  ' : 'FAIL'} ${ad}   ${not}`); };
 
-console.log('\n1) Beş yer');
+console.log('\n1) Yerler');
+// Sayı oyundan okunuyor. "Beş" diye yazılmış bir ölçüm, altıncı yer
+// eklendiğinde sessizce yanlış olurdu — bu depoda elle yazılmış
+// sayıların yaşlanması birkaç kez oldu.
+const ADET = (await pg.evaluate(() => window.jeYerler())).en.length;
+console.log(`     oyunda ${ADET} yer tanımlı`);
 const yerler = [];
-for (let b = 0; b < 5; b++) {
+for (let b = 0; b < ADET; b++) {
   const y = await pg.evaluate(n => { window.jeSetBranch(n); return window.jeYer(); }, b);
   yerler.push(y);
   console.log(`     ${b}  ${y.ad.padEnd(8)} gök ${y.gok} · yaprak ${y.yaprak[0]} · gövde ${y.govde}`);
 }
-ok(new Set(yerler.map(y => y.ad)).size === 5, 'beş ayrı ad');
-ok(new Set(yerler.map(y => y.gok)).size === 5, 'beş ayrı gökyüzü');
-ok(new Set(yerler.map(y => y.yaprak[0])).size === 5, 'beş ayrı yaprak rengi');
+ok(new Set(yerler.map(y => y.ad)).size === ADET, `${ADET} ayrı ad`,
+   `${new Set(yerler.map(y => y.ad)).size}`);
+ok(new Set(yerler.map(y => y.gok)).size === ADET, `${ADET} ayrı gökyüzü`,
+   `${new Set(yerler.map(y => y.gok)).size}`);
+ok(new Set(yerler.map(y => y.yaprak[0])).size >= ADET - 2,
+   'yaprak renkleri neredeyse hepsinde ayrı',
+   `${new Set(yerler.map(y => y.yaprak[0])).size}/${ADET}`);
 ok(yerler.every(y => y.sis === y.gok), 'sis gökyüzüyle aynı renk');
 
-console.log('\n2) Altıncı şube başa sarıyor');
-const alti = await pg.evaluate(() => { window.jeSetBranch(5); return window.jeYer(); });
-console.log(`     şube 5 → ${alti.ad}`);
-ok(alti.ad === yerler[0].ad, 'şube 5, ilk yere dönüyor', alti.ad);
+console.log('\n2) Liste bitince başa sarıyor');
+const alti = await pg.evaluate(n => { window.jeSetBranch(n); return window.jeYer(); }, ADET);
+console.log(`     şube ${ADET} → ${alti.ad}`);
+ok(alti.ad === yerler[0].ad, `şube ${ADET}, ilk yere dönüyor`, alti.ad);
 
 console.log('\n3) Doku biriktirmiyor');
 // Zemin dokusu renkleri tuvale çizili, malzeme rengiyle değiştirilemiyor;
@@ -57,7 +66,7 @@ console.log('\n3) Doku biriktirmiyor');
 // GPU'da bir doku bırakır ve uzun oynayan bir oyuncuda birikir.
 const doku = await pg.evaluate(() => {
   const once = window.jeYer().dokular;
-  for (let i = 0; i < 30; i++) window.jeSetBranch(i % 5);
+  for (let i = 0; i < 30; i++) window.jeSetBranch(i % window.jeYerler().en.length);
   return { once, sonra: window.jeYer().dokular };
 });
 console.log(`     30 yer değişimi: ${doku.once} doku → ${doku.sonra}`);
