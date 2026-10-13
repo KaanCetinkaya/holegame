@@ -609,6 +609,15 @@ const METIN = {
   res6:  ['Turbo', 'Turbo'],
   res6t: ['{0}s of boost', '{0} sn hız'],
   res6s: ['+15s', '+15 sn'],
+  res7:  ['Tooling', 'Kalıphane'],
+  res7t: ['milestones give ×{0}', 'kilometre taşları ×{0} veriyor'],
+  res7s: ['stronger ×2', 'daha güçlü ×2'],
+  res8:  ['Sales desk', 'Satış masası'],
+  res8t: ['a buyer every {0}-{1}s', '{0}-{1} saniyede bir müşteri'],
+  res8s: ['sooner', 'daha sık'],
+  res9:  ['Hand truck', 'Taşıma arabası'],
+  res9t: ['worker carries {0}s of output', 'işçi {0} sn üretim taşıyor'],
+  res9s: ['+1s load', '+1 sn yük'],
   // Müdürler
   mgr0r: ['runs the furnaces', 'ocakların başında'],
   mgr0b: ['+25% foundry speed', '+%25 döküm hızı'],
@@ -1090,7 +1099,24 @@ const RES = [
     text: l => T('res5t', 4 + l),                step: 'res5s' },
   { id: 'boost',   nameT: 'res6', icon: '🚀', cost: 6, cap: 20,
     text: l => T('res6t', 180 + l * 15),         step: 'res6s' },
+  // Geç oyun için üçü. Ölçüldü (`scratchpad/tyarastirma.mjs`): yedi
+  // devirde oyuncunun puanı 554'ten 1.2 milyona çıkıyor, ama ağaçtaki
+  // yedi seçeneğin altısının tavanı toplam 666 puanla doluyor. İkinci
+  // devirden sonra ekranda tek bir düğme kalıyordu — seçim değil, para
+  // yatırma kutusu. Bu üçü oyunun **davranışına** dokunuyor, bir
+  // yüzdeye değil.
+  { id: 'tas',     nameT: 'res7', icon: '🏗️', cost: 25, cap: 10,
+    text: l => T('res7t', tasGucu(l).toFixed(2)), step: 'res7s' },
+  { id: 'satis',   nameT: 'res8', icon: '🤝', cost: 12, cap: 10,
+    text: l => T('res8t', MUS_ARA[0] - l * 5, MUS_ARA[1] - l * 9), step: 'res8s' },
+  { id: 'elaraba', nameT: 'res9', icon: '🛒', cost: 8, cap: 10,
+    text: l => T('res9t', CARRY_SEC + l),        step: 'res9s' },
 ];
+// Kilometre taşının gücü. Taban iki; her seviye onda bir ekliyor ve
+// **üsse** giriyor, yani yirmi taşı geçmiş bir fabrikada fark büyük.
+// Geç oyunun seviyeyi yeniden ilerletebilen tek kolu bu: gelir çarpanı
+// doğrusal, maliyet üstel, ve üstel olana ancak üstel cevap veriyor.
+const tasGucu = l => 2 + l * 0.05;
 const resLvl = id => G.res[id] | 0;
 const spentPoints = () => RES.reduce((a, r) => a + r.cost * resLvl(r.id), 0);
 const freePoints  = () => Math.max(0, bankedPoints() - spentPoints());
@@ -1113,7 +1139,7 @@ const boostLeft = () => Math.max(0, (G.boostUntil - Date.now()) / 1000);
 const boostMult = () => (boostLeft() > 0 ? BOOST_MULT : 1);
 const rateOf = i =>
   G.lvl[i] * STATIONS[i].baseRate
-  * Math.pow(2, milestonesHit(i))
+  * Math.pow(tasGucu(resLvl('tas')), milestonesHit(i))
   * (G.mgr[i] ? MGR_MULT : 1)
   // Derya'nın bonusu: döküm ocağı %25 hızlı. Yalnız kendi istasyonunda.
   * (i === 0 && G.mgr[0] ? MGR_FOUNDRY : 1)
@@ -2347,9 +2373,12 @@ const REACH = 2.6;
 const CARRY_SEC = 2;
 // Sırtta gösterilen en çok kasa. Sayıyı değil, yük taşındığını anlatıyor.
 const CARRY_SHOW = 3;
+// Taşıma arabası araştırması saniye ekliyor: kapasite parça sayısı
+// değil, **kaç saniyelik üretim** — sebebi yukarıda.
+const carrySec = () => CARRY_SEC + resLvl('elaraba');
 const carryMax = (bay = 0) => Math.max(
   CARRY_BASE + resLvl('mgr') * 2,
-  Math.floor(rateOf(bay) * CARRY_SEC));
+  Math.floor(rateOf(bay) * carrySec()));
 
 const worker = new THREE.Group();
 let bacakSol, bacakSag, kolSol, kolSag;
@@ -3545,6 +3574,13 @@ const MUS_X_DIS = 14, MUS_X_PARK = 6.5, MUS_Z = -6;
 // araba ekranda yaklaşık 70 piksel geniş, yarıçap bunun biraz üstünde.
 const MUS_DOKUN_R = 64;
 
+// Satış masası araştırması müşteriyi sıklaştırıyor. Alt ve üst sınır
+// ayrı iniyor: yalnızca üstü indirmek aralığı daraltıp beklemeyi
+// öngörülebilir yapıyordu, ikisi birden inince hem sık hem rastgele
+// kalıyor.
+const musAra = () => [MUS_ARA[0] - resLvl('satis') * 5,
+                      MUS_ARA[1] - resLvl('satis') * 9];
+
 let mus = null, musGrup = null;
 let musSayac = MUS_ILK;
 let musGecen = 0, musAlinan = 0;    // kaç müşteri geldi, kaçına dokunuldu
@@ -3606,7 +3642,8 @@ function musBelir() {
 function musBitir() {
   if (musGrup) scene.remove(musGrup);
   mus = null;
-  musSayac = MUS_ARA[0] + Math.random() * (MUS_ARA[1] - MUS_ARA[0]);
+  const [en, ec] = musAra();
+  musSayac = en + Math.random() * (ec - en);
 }
 
 function musAdim(dt) {
@@ -4065,6 +4102,13 @@ window.jeSahne = () => scene.children.length;
 window.jeTaslar = () => [...MILESTONES];
 window.jeBoostMult = () => BOOST_MULT;
 window.jeBranchMult = () => +branchMult().toFixed(2);
+window.jeMusAra = () => musAra();
+window.jeTasSayisi = () => milestonesHit(0);
+window.jeCarryMax = () => [0, 1, 2, 3].map(i => carryMax(i));
+// Ağacın şekli: hangi dal kaça ve nereye kadar. "Ağaç hâlâ bir seçim
+// mi" sorusu ancak tavanların toplam bedeliyle cevaplanıyor.
+window.jeResTavan = () => RES.map(r => ({ id: r.id, cost: r.cost,
+  cap: r.cap === Infinity ? null : r.cap }));
 window.jeFree = () => freePoints();
 window.jeProbeSabit = () => ({ offline: OFFLINE_BASE, boostCool: BOOST_COOL,
   mgrMult: MGR_MULT, carryBase: CARRY_BASE, musSn: MUS_SN, gorevSn: GOREV_SN });
