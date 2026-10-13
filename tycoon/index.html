@@ -313,15 +313,15 @@
   </div>
 
   <div class="screen" id="welcome">
-    <h2 data-t="welcome">Welcome back! 👋</h2>
-    <p id="wSub" data-t="welcomeSub">The factory kept running while you were away.</p>
+    <h2 id="wTitle">Welcome back! 👋</h2>
+    <p id="wSub">The factory kept running while you were away.</p>
     <div class="card">
       <div class="row"><span data-t="timeAway">Time away</span><span id="wTime">—</span></div>
       <div class="row"><span data-t="earned">Earned</span><span id="wCash">—</span></div>
     </div>
     <div class="stack">
       <button class="btn" id="wDouble" data-t="watchDouble">📺 WATCH AD, TAKE ×2</button>
-      <button class="btn alt" id="wOk" data-t="collect">COLLECT</button>
+      <button class="btn alt" id="wOk">COLLECT</button>
     </div>
   </div>
 
@@ -476,11 +476,20 @@ const METIN = {
   u2:  ['car', 'araba'],
   u3:  ['shipment', 'sevkiyat'],
   // Dönüş ekranı
-  welcome:     ['Welcome back! 👋', 'Tekrar hoş geldin! 👋'],
   welcomeSub:  ['The factory kept running while you were away.',
                 'Sen yokken fabrika çalışmaya devam etti.'],
   welcomeFull: ['The factory holds at most {0} hours of stock, and it is full.',
                 'Fabrika en çok {0} saatlik mal tutuyor ve dolmuş durumda.'],
+  welcomeT:     ['Welcome back! 👋', 'Tekrar hoş geldin! 👋'],
+  welcomeStopT: ['The line stopped 🛑', 'Hat durdu 🛑'],
+  // Tekil ve çoğul ayrı: İngilizcede "Foundry, Stamping, Assembly still
+  // needs" yanlış. Türkçede fiil değişmiyor ama iki anahtar tutmak
+  // ileride başka bir dil eklenirse de doğru kalıyor.
+  welcomeStop:  ['Nothing was made while you were away. <b>{0}</b> still need managers — a station without one has nobody to move its output, so the line stops the moment you close the app.',
+                 'Sen yokken hiçbir şey üretilmedi. <b>{0}</b> hâlâ müdür bekliyor — müdürü olmayan istasyonun malını taşıyacak kimse yok, yani uygulamayı kapattığın anda hat duruyor.'],
+  welcomeStop1: ['Nothing was made while you were away. <b>{0}</b> still needs a manager — a station without one has nobody to move its output, so the line stops the moment you close the app.',
+                 'Sen yokken hiçbir şey üretilmedi. <b>{0}</b> hâlâ müdür bekliyor — müdürü olmayan istasyonun malını taşıyacak kimse yok, yani uygulamayı kapattığın anda hat duruyor.'],
+  gotIt:        ['GOT IT', 'ANLADIM'],
   timeAway:    ['Time away', 'Uzak kalınan süre'],
   earned:      ['Earned', 'Kazanılan'],
   watchDouble: ['📺 WATCH AD, TAKE ×2', '📺 REKLAM İZLE, ×2 AL'],
@@ -1313,7 +1322,21 @@ function offlineCatchUp() {
   for (let i = 0; i < G.buf.length; i++) G.buf[i] = i < ch.neck ? roomOf(i) : 0;
   G.cash += got;
   G.totalEarned += got;
-  return got > 0 ? { gone, got } : null;
+  // Kazanç sıfırken de dönülüyor, ve sebebi önemli.
+  //
+  // Eskiden `null` dönüyordu: müdürü olmayan oyuncu geri geldiğinde
+  // **hiçbir şey** görmüyordu. Oysa ona söylenecek tek şey tam da
+  // buydu — fabrika durmuştu ve neden durduğu belliydi. Kaan'ın 60.
+  // seviyeye kadar elle taşıyıp idle oyunu hiç görmemesinin sebebi bu
+  // sessizlik.
+  //
+  // `duran` müdürü eksik istasyonları veriyor. Sevkiyat listede yok:
+  // müdürün işi malı bir sonrakine taşımak, Sevkiyat'ın bir sonrakisi
+  // yok, satmak zaten kendi işi — ölçülerek bulundu
+  // (`scratchpad/tycevrimdisi.mjs`), yarı hızda da olsa satıyor.
+  const duran = [];
+  for (let i = 0; i < STATIONS.length - 1; i++) if (!G.mgr[i]) duran.push(i);
+  return { gone, got, duran };
 }
 
 // ---------------------------------------------------------------------
@@ -3866,9 +3889,17 @@ function showWelcome(r) {
   pendingOffline = r.got;         // the same again, if they watch
   $('wTime').textContent = fmtTime(r.gone);
   $('wCash').textContent = fmt(r.got);
-  $('wSub').textContent = r.gone >= offlineCap()
-    ? T('welcomeFull', Math.round(offlineCap() / 3600))
-    : T('welcomeSub');
+  const durdu = r.got <= 0;
+  $('wTitle').textContent = durdu ? T('welcomeStopT') : T('welcomeT');
+  $('wSub').innerHTML = durdu
+    ? T(r.duran.length === 1 ? 'welcomeStop1' : 'welcomeStop',
+        r.duran.map(i => T(STATIONS[i].nameT)).join(', '))
+    : r.gone >= offlineCap()
+      ? T('welcomeFull', Math.round(offlineCap() / 3600))
+      : T('welcomeSub');
+  // Sıfırın iki katı sıfır: reklam düğmesi kazanç varken görünüyor.
+  $('wDouble').style.display = durdu ? 'none' : '';
+  $('wOk').textContent = durdu ? T('gotIt') : T('collect');
   $('welcome').classList.add('show');
 }
 
@@ -3981,6 +4012,9 @@ window.jeOffline = sec => {
 };
 window.jeBuy = (i, n) => { const b = bulk; bulk = n; buyLevels(i); bulk = b; };
 window.jeBuyManager = i => { buyManager(i); return G.mgr[i]; };
+// Müdürü geri al. "Tek istasyonun müdürü eksik" durumunu kurmanın
+// başka yolu yok: `jeWipeProgress` hepsini birden siliyor.
+window.jeTakeManager = i => { G.mgr[i] = false; refreshPanel(); return G.mgr[i]; };
 window.jeReset = () => { wiped = true; localStorage.removeItem(KEY); location.reload(); };
 // Sayfayı yeniden yüklemeden **her şeyi** sıfırla.
 //
