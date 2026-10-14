@@ -149,6 +149,53 @@ ok(halka.kez <= 1, 'ödül yeni hedef açmıyor', `${halka.kez} hedef alındı`)
 ok(halka.sonraPuan - halka.oncePuan < 1, 'ödül prestij puanı üretmiyor',
    `+${(halka.sonraPuan - halka.oncePuan).toFixed(0)} puan`);
 
+console.log('\n6) Tümünü al');
+// Devirden ya da uzun bir yokluktan sonra sekiz ödül birden bekliyor
+// olabiliyor; sekiz düğmeye tek tek basmak ödülü angaryaya çeviriyor.
+// Ölçülen: tek düğme hepsini ödüyor, **aynı** parayı ödüyor, ve iki
+// kere ödemiyor.
+const hepsi = await pg.evaluate(() => {
+  const kur = () => {
+    window.jeWipeProgress(); window.jeTutSkip();
+    window.jeGive(1e9);
+    for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 210); window.jeGiveManager(i); }
+    window.jeStep(0.1);
+    document.getElementById('goalsBtn').onclick();
+  };
+  // a) tek tek alınca ne ödeniyor
+  kur();
+  const dugme = document.getElementById('goalsAll');
+  const sayi = dugme.textContent;
+  const gorunur = !dugme.hidden;
+  let teker = 0, adet = 0;
+  const once = window.jeProbe().cash;
+  for (const b of [...document.querySelectorAll('#goalList .gb')])
+    if (!b.disabled) { b.click(); adet++; }
+  teker = window.jeProbe().cash - once;
+  // b) aynı kurulumda tek düğmeyle
+  kur();
+  const once2 = window.jeProbe().cash;
+  document.getElementById('goalsAll').click();
+  const toplu = window.jeProbe().cash - once2;
+  // c) ikinci basış bir şey ödememeli
+  const once3 = window.jeProbe().cash;
+  document.getElementById('goalsAll').click();
+  const ikinci = window.jeProbe().cash - once3;
+  return { sayi, gorunur, adet, teker, toplu, ikinci,
+           gizli: document.getElementById('goalsAll').hidden,
+           kalan: [...document.querySelectorAll('#goalList .gb')].filter(b => !b.disabled).length };
+});
+console.log(`     düğme "${hepsi.sayi}" · görünür ${hepsi.gorunur} · hazır ödül ${hepsi.adet}`);
+console.log(`     tek tek ${hepsi.teker.toExponential(4)} · toplu ${hepsi.toplu.toExponential(4)}`);
+ok(hepsi.gorunur && hepsi.adet >= 2, 'birden çok ödül beklerken düğme görünüyor', `${hepsi.adet}`);
+ok(hepsi.sayi.includes(String(hepsi.adet)), 'düğme kaç tane olduğunu yazıyor', hepsi.sayi);
+ok(Math.abs(hepsi.toplu - hepsi.teker) / hepsi.teker < 1e-9,
+   'toplu alım tek tek almakla aynı parayı ödüyor',
+   `${hepsi.toplu.toExponential(4)} / ${hepsi.teker.toExponential(4)}`);
+ok(hepsi.ikinci === 0, 'ikinci basış hiçbir şey ödemiyor', `${hepsi.ikinci}`);
+ok(hepsi.kalan === 0, 'alınmamış ödül kalmadı', `${hepsi.kalan}`);
+ok(hepsi.gizli, 'ödül kalmayınca düğme saklanıyor');
+
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;
 await br.close(); srv.close();

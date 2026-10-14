@@ -393,6 +393,7 @@
     <h2 data-t="goals">Goals</h2>
     <div class="card" id="goalList" style="max-height:52vh;overflow-y:auto"></div>
     <div class="stack">
+      <button class="btn" id="goalsAll" hidden>TAKE ALL</button>
       <button class="btn alt" id="goalsClose" data-t="close">CLOSE</button>
     </div>
   </div>
@@ -547,6 +548,7 @@ const METIN = {
   welcomeStop1: ['Nothing was made while you were away. <b>{0}</b> still needs a manager — a station without one has nobody to move its output, so the line stops the moment you close the app.',
                  'Sen yokken hiçbir şey üretilmedi. <b>{0}</b> hâlâ müdür bekliyor — müdürü olmayan istasyonun malını taşıyacak kimse yok, yani uygulamayı kapattığın anda hat duruyor.'],
   gotIt:        ['GOT IT', 'ANLADIM'],
+  takeAll:      ['TAKE ALL ({0})', 'TÜMÜNÜ AL ({0})'],
   timeAway:    ['Time away', 'Uzak kalınan süre'],
   earned:      ['Earned', 'Kazanılan'],
   watchDouble: ['📺 WATCH AD, TAKE ×2', '📺 REKLAM İZLE, ×2 AL'],
@@ -3346,6 +3348,45 @@ const goalPay = g => {
 // yapmalı, yoksa test oyunun yapmadığı bir şeyi ölçer.
 const lockGoals = () => { for (const g of GOALS) if (goalDone(g)) goalPay(g); };
 
+// Ödül almanın tek yeri. Satırın kendi düğmesi de, "tümünü al" da
+// buradan geçiyor: iki ayrı kopya olsaydı biri `G.claimed`'a yazmayı ya
+// da donmuş değeri okumayı unuturdu, ve fark ancak kasada görünürdü.
+function hedefAl(g) {
+  if (!goalDone(g) || goalTaken(g)) return 0;
+  const pay = goalPay(g);
+  G.cash += pay;            // `totalEarned`'a yazılmıyor — aşağıdaki gerekçe
+  G.claimed.push(g.id);
+  return pay;
+}
+function gorevAl(id) {
+  if (!G.gun) return 0;
+  const g = GOREVLER.find(x => x.id === id);
+  if (!g || G.gun.alindi[id] || g.say() < G.gun.hedef[id]) return 0;
+  const pay = gorevOdul(g);
+  G.cash += pay;
+  G.gun.alindi[id] = true;
+  return pay;
+}
+// Alınmayı bekleyen ödül sayısı. Devirden ya da uzun bir yokluktan sonra
+// sekiz tane birden bekliyor olabiliyor ve sekiz düğmeye tek tek basmak
+// ödülün kendisini angaryaya çeviriyor.
+function hazirOdulSayisi() {
+  let n = 0;
+  if (G.gun) for (const id of G.gun.liste) {
+    const g = GOREVLER.find(x => x.id === id);
+    if (g && !G.gun.alindi[id] && g.say() >= G.gun.hedef[id]) n++;
+  }
+  for (const g of GOALS) if (goalDone(g) && !goalTaken(g)) n++;
+  return n;
+}
+function odulSonrasi(pay) {
+  saveNow();
+  ping(880, 0.22);
+  floatCash('+' + fmt(pay));
+  renderGoals();
+  refreshGoalDot();
+}
+
 function renderGoals() {
   const list = $('goalList');
   list.innerHTML = '';
@@ -3375,14 +3416,8 @@ function renderGoals() {
           alindi ? T('taken') : bitti ? T('take') + '<br>' + fmt(gorevOdul(g))
                  : Math.floor((simdi / hedef) * 100) + '%'}</button>`;
       el.querySelector('.gb').onclick = () => {
-        if (!bitti || alindi) return;
-        G.cash += gorevOdul(g);        // `totalEarned`'a yazılmıyor, hedeflerdeki sebep
-        G.gun.alindi[id] = true;
-        saveNow();
-        ping(880, 0.22);
-        floatCash('+' + fmt(gorevOdul(g)));
-        renderGoals();
-        refreshGoalDot();
+        const pay = gorevAl(id);
+        if (pay) odulSonrasi(pay);
       };
       list.appendChild(el);
     }
@@ -3406,9 +3441,8 @@ function renderGoals() {
       <button class="gb"${done && !taken ? '' : ' disabled'}>${
         taken ? T('taken') : done ? T('take') + '<br>' + fmt(goalPay(g)) : Math.floor(pct) + '%'}</button>`;
     el.querySelector('.gb').onclick = () => {
-      if (!goalDone(g) || goalTaken(g)) return;
-      const pay = goalPay(g);
-      G.cash += pay;
+      const pay = hedefAl(g);
+      if (pay) odulSonrasi(pay);
       // `G.totalEarned`'a **eklenmiyor**.
       //
       // O sayı fabrikanın ürettiğini ölçüyor ve iki şeyi besliyor: "toplam
@@ -3417,16 +3451,22 @@ function renderGoals() {
       // (`scratchpad/tyodul.mjs`): hiçbir şey üretmemiş bir fabrika
       // yalnızca hedef alarak 27.65M para ve 105 prestij puanı kazanıyordu,
       // ve aldığı ödül bir sonraki hedefi açıyordu.
-      G.claimed.push(g.id);
-      saveNow();
-      ping(880, 0.22);
-      floatCash('+' + fmt(pay));
-      renderGoals();
-      refreshGoalDot();
     };
     list.appendChild(el);
   }
+  // Tek düğme yalnızca iki ve üstü ödül beklerken görünüyor: bir tane
+  // için zaten satırın kendi düğmesi var ve ikinci bir düğme gürültü.
+  const hazir = hazirOdulSayisi();
+  const hepsi = $('goalsAll');
+  hepsi.hidden = hazir < 2;
+  hepsi.textContent = T('takeAll', hazir);
 }
+$('goalsAll').onclick = () => {
+  let pay = 0;
+  if (G.gun) for (const id of [...G.gun.liste]) pay += gorevAl(id);
+  for (const g of [...GOALS]) pay += hedefAl(g);
+  if (pay) odulSonrasi(pay);
+};
 function refreshGoalDot() { $('goalDot').classList.toggle('show', goalReady() || gorevHazir()); }
 
 // The menu is dismissed rather than stacked under: both are .screen overlays
