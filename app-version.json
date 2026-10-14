@@ -63,20 +63,22 @@
     ]
   },
   "tycoon": {
-    "versionCode": 7,
+    "versionCode": 8,
     "versionName": "1.0",
     "uploaded": [
       2,
-      6
+      6,
+      7
     ],
-    "built": 6,
+    "built": 7,
     "builtCodes": [
       1,
       2,
       3,
       4,
       5,
-      6
+      6,
+      7
     ]
   }
 }
