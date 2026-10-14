@@ -8,7 +8,35 @@ altında; karakter sayıları başlıkların yanında.
 
 ---
 
-## Bu sürüm (dahili test)
+## Bu sürüm (sürüm kodu 8)
+
+### İngilizce — `en-US` (436 karakter)
+
+```
+Your factory is harder to lose, and the return screen no longer rounds twenty hours down to four.
+
+• A damaged save falls back to a backup instead of starting you over
+• The game says so if it cannot save at all — a full phone used to be silent
+• Time away is the real time, and names the production the yard had no room for
+• Store rows say when a purchase is unavailable instead of doing nothing
+• Turkish text that had stayed English
+```
+
+### Türkçe — `tr-TR` (377 karakter)
+
+```
+Fabrikanı kaybetmek zorlaştı, ve dönüş ekranı yirmi saati dörde yuvarlamıyor artık.
+
+• Bozulan kayıt seni sıfırdan başlatmıyor, yedekten dönüyor
+• Oyun hiç kaydedemiyorsa söylüyor — dolu telefon eskiden sessizdi
+• "Uzak kalınan süre" gerçek süre; önlüğe sığmayan üretimi de yazıyor
+• Mağazada alınamayan ürün bunu söylüyor, sessizce beklemiyor
+• Türkçe kalmış İngilizce yazılar
+```
+
+---
+
+## Önceki sürüm (sürüm kodu 7)
 
 ### İngilizce — `en-US` (415 karakter)
 
@@ -36,41 +64,14 @@ Müdürler geldikten sonra işçinin nihayet bir işi var, ve hiç açılmayan i
 
 ---
 
-## Önceki sürüm (dahili test)
-### İngilizce — `en-US` (368 karakter)
-
-```
-Everything that makes a factory feel alive, in one update.
-
-• Background music and a yard that changes with every branch
-• A customer car drives in — tap it before it leaves
-• Daily missions, a tutorial, and managers with names and perks
-• A backup code, so your factory survives a new phone
-• Brighter lighting, grass, and a worker you can actually see
-```
-
-### Türkçe — `tr-TR` (382 karakter)
-
-```
-Fabrikayı canlı hissettiren her şey tek güncellemede.
-
-• Arka plan müziği ve her şubede değişen bir önlük
-• Önlüğe müşteri arabası giriyor — gitmeden dokun
-• Günlük görevler, öğretici, adı ve yeteneği olan müdürler
-• Yedek kodu: fabrikan yeni telefonda da duruyor
-• Daha aydınlık ışık, çim, ve görülebilen bir işçi
-```
-
----
-
 ## Kısa sürüm (tek satır isteyen yerler için)
 
 ```
-Music, daily missions, a customer to tap, manager perks, and a backup code.
+A damaged save no longer costs you the factory, and time away is the real time.
 ```
 
 ```
-Müzik, günlük görevler, dokunulacak müşteri, müdür yetenekleri ve yedek kodu.
+Bozulan kayıt artık fabrikaya mal olmuyor, ve uzak kalınan süre gerçek süre.
 ```
 
 ---
@@ -79,20 +80,23 @@ Müzik, günlük görevler, dokunulacak müşteri, müdür yetenekleri ve yedek 
 
 Dahili testte bakılacak şeyler:
 
-1. **Müzik** — ilk dokunuşta başlıyor, SOUND: OFF susturuyor, telefon
-   cebe girince kesiliyor.
-2. **Müşteri arabası** — 2-3 dakikada bir geliyor, 16 saniye bekliyor.
-   Dokununca 30 saniyelik üretim kadar para veriyor. Kaçırmanın cezası yok.
-3. **Günlük görevler** — hedefler ekranının üstünde üç görev, gün dönünce
-   yenileniyor.
-4. **Şube yerleri** — her prestijte başka bir yer: çayır, çöl, tundra,
-   liman, kül. Gökyüzü, zemin ve ağaç renkleri değişiyor.
-5. **Müdürler** — dördünün adı, rolü ve bir yeteneği var.
-6. **Öğretici** — dört adım, her biri oyuncunun hareketiyle kapanıyor.
-7. **Yedek kodu** — Menü → BACKUP. Kodu kopyala, başka bir cihaza yapıştır.
-8. **Bildirim** — depo dolunca ya da hat boşta kalınca.
-9. **Mağaza** — üç ürün. **Play Console'da ürün kimlikleri açılmadan
-   satın alma çalışmaz**, mağaza ekranı boş görünür:
+1. **Kayıt güvenliği** — her yazma bir öncekini ikinci bir yuvaya itiyor
+   (`motorworks_save_bak`). Ana yuva bozulursa oyun ondan dönüyor ve
+   kırmızı şeritle söylüyor. Bozuk veri silinmiyor,
+   `motorworks_save_bozuk`'a alınıyor.
+2. **Kaydedilemiyor uyarısı** — telefonun depolaması doluysa artık
+   sessiz kalmıyor. (Denemek için: tarayıcıda `jeKayitBoz()`.)
+3. **Dönüş ekranı** — tavanı aşan yoklukta "Uzak kalınan süre" gerçek
+   süreyi yazıyor, alt satır önlüğe sığmayan üretimi söylüyor.
+4. **Mağaza** — Play ürün kimliklerini tanımadığı sürece satırlar
+   "KAPALI" görünüyor ve dokunulmuyor. **Ürünler Play Console'da
+   açılınca** fiyatlar oradan gelecek:
    `motorworks_double`, `motorworks_managers`, `motorworks_skip12`.
-10. **Liderlik tablosu** — Play Games bağlanmadan düğme görünmüyor; bu
-    beklenen davranış.
+5. **Türkçe** — hedefler ekranının başlıkları, reklam düğmesinin
+   reklamdan sonraki hâli, saat birimleri ("2sa 0dk"), kademe bildirimi.
+6. **Liderlik tablosu** — Play Games bağlanmadan düğme görünmüyor; bu
+   beklenen davranış.
+
+Bir önceki sürümden devam eden kontroller: müzik, müşteri arabası,
+günlük görevler, şube yerleri, müdür yetenekleri, öğretici, yedek kodu,
+depo bildirimi.

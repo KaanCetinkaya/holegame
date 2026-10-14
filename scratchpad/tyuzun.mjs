@@ -66,7 +66,11 @@ const kosu = await pg.evaluate(() => {
     // Bütün dalları doldur: en hızlı büyüyen oyuncu bu.
     for (const id of ['tas', 'price', 'cheap', 'mgr', 'start', 'offline', 'boost', 'satis', 'elaraba'])
       window.jeResBuy(id, 100);
-    window.jeResBuy('line', 100000);
+    // Kalan bütün puanı hatta yatır. Burada bir sayı yazmak ölçümü
+    // kendi tavanına sıkıştırıyordu: 100000 seviye = +2000 çarpan, ve
+    // devir başına tam olarak +2000 görünüyordu — oyunun platosu değil,
+    // testin tavanı. Döngü puan bitene kadar alıyor.
+    while (window.jeFree() >= 1) window.jeResBuy('line', 100000);
   }
   return satir;
 });
