@@ -239,6 +239,14 @@
     position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4;
   }
 
+  /* Hangi derlemenin telefonda olduğunu söyleyen tek satır. Fruit
+     Hole'da var, burada yoktu — ve "bu güncel sürüm mü" sorusunun
+     cevabı yalnızca bu satır. */
+  #verLine {
+    text-align: center; font-size: 11px; opacity: .45;
+    padding: 6px 0 2px; letter-spacing: .4px;
+  }
+
   /* Kayıt uyarısı. Oyuncunun kaybedebileceği tek şeyle ilgili, o yüzden
      bir saniyede kaybolan bir yazı değil: dokunulana kadar duruyor. */
   #kayitBar {
@@ -437,6 +445,7 @@
       <button class="btn alt" id="langBtn">LANGUAGE: EN</button>
       <button class="btn alt" id="closeMenu" data-t="close">CLOSE</button>
     </div>
+    <div id="verLine">dev</div>
   </div>
 
   <div class="screen" id="shop">
@@ -946,6 +955,10 @@ const notif = JSON.parse(localStorage.getItem('tycoon_notif') || '{}');
 function saveNotif() { localStorage.setItem('tycoon_notif', JSON.stringify(notif)); }
 let _notifErr = '';
 const ADS_TESTING = true;
+// Telefondaki derlemenin numarası. Kaynakta 'dev' duruyor; gerçek numara
+// derlemede `app-version.json`'dan giriyor (bkz. build-www.mjs), yani tek
+// bir doğru kaynak var ve elle iki yere yazılmıyor.
+const APP_VERSION = 'dev';
 
 async function adsInit() {
   if (!ADS_ON) return;
@@ -3163,6 +3176,7 @@ $('menuBtn').onclick = () => {
     ? T('newBranchP', fmt(pendingPoints()))
     : T('newBranchN', fmt(PRESTIGE_AT()));
   $('muteBtn').textContent = T('sound', G.muted ? T('off') : T('on'));
+  $('verLine').textContent = APP_VERSION === 'dev' ? 'dev' : 'v' + APP_VERSION;
   refreshBoardBtn();
   $('menu').classList.add('show');
 };

@@ -151,8 +151,17 @@ tycoon = swap(tycoon,
   '"three": "https://esm.sh/three@0.161.0"',
   '"three": "./three.module.js"', 'tycoon/index.html');
 
-// Motor Works'te de aynı anahtar var ve o da çevrilmiyordu. Sürüm yazısı
-// burada yok (oyunun menüsünde yeri yok), reklam anahtarı var.
+// Sürüm yazısı: menünün altında, hangi derlemenin telefonda olduğunu
+// söylüyor. Burada yoktu ve "bu güncel sürüm mü" sorusunun başka bir
+// cevabı yok — telefondaki paketin numarasını dışarıdan görmenin yolu
+// yok, ve yanlış cevap "düzeltme gelmemiş" ile "düzeltme işe yaramamış"
+// arasındaki farkı kaybettiriyor.
+const TV = JSON.parse(readFileSync(r('app-version.json'), 'utf8')).tycoon;
+tycoon = swap(tycoon, "const APP_VERSION = 'dev';",
+  `const APP_VERSION = '${TV.versionName} (${TV.versionCode})';`,
+  'tycoon/index.html (APP_VERSION)');
+
+// Motor Works'te de aynı reklam anahtarı var ve o da çevrilmiyordu.
 if (LIVE_ADS) {
   tycoon = swap(tycoon, 'const ADS_TESTING = true;', 'const ADS_TESTING = false;',
     'tycoon/index.html (LIVE_ADS)');

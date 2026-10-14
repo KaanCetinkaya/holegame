@@ -114,6 +114,7 @@ const SERBEST = [
   /^MW1-/,                                    // yedek kodu
   /^(EN|TR)$/,                                // dil düğmesinin kendisi
   /^Turbo( ·.*)?$/,                           // iki dilde de "Turbo"
+  /^(dev|v[\d.]+ \(\d+\))$/,                  // derleme numarası
 ];
 const serbest = s => SERBEST.some(r => r.test(s));
 
