@@ -4705,7 +4705,11 @@ window.jePerf = () => {
   scene.traverse(() => cisim++);
   return { cagri: r.calls, ucgen: r.triangles, cisim,
            doku: m.textures, geometri: m.geometries,
-           kasa: belts.reduce((a, b) => a + b.crates.length, 0) };
+           kasa: belts.reduce((a, b) => a + b.crates.length, 0),
+           // Görünen otopark sırası: prestijin tek görünür ödülü.
+           // Çizim çağrısından çıkarmaya çalışmak, banttaki kasa sayısı
+           // devirde sıfırlandığı için yanıltıyor.
+           park: parked.filter(r => r.visible).length };
 };
 // Dil: şu anki seçim, kayıttaki seçim ve tablonun kendisi. Tabloyu
 // dışarı vermek, "her anahtarın iki karşılığı var mı" sorusunun oyunun

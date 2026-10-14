@@ -10,28 +10,30 @@ altında; karakter sayıları başlıkların yanında.
 
 ## Bu sürüm (sürüm kodu 8)
 
-### İngilizce — `en-US` (436 karakter)
+### İngilizce — `en-US` (451 karakter)
 
 ```
 Your factory is harder to lose, and the return screen no longer rounds twenty hours down to four.
 
 • A damaged save falls back to a backup instead of starting you over
 • The game says so if it cannot save at all — a full phone used to be silent
-• Time away is the real time, and names the production the yard had no room for
-• Store rows say when a purchase is unavailable instead of doing nothing
-• Turkish text that had stayed English
+• Time away is the real time, and names the production the yard lost
+• One button collects every finished goal
+• Store rows say when a purchase cannot be made
+• The menu names the build that is on the phone
 ```
 
-### Türkçe — `tr-TR` (377 karakter)
+### Türkçe — `tr-TR` (396 karakter)
 
 ```
 Fabrikanı kaybetmek zorlaştı, ve dönüş ekranı yirmi saati dörde yuvarlamıyor artık.
 
 • Bozulan kayıt seni sıfırdan başlatmıyor, yedekten dönüyor
 • Oyun hiç kaydedemiyorsa söylüyor — dolu telefon eskiden sessizdi
-• "Uzak kalınan süre" gerçek süre; önlüğe sığmayan üretimi de yazıyor
-• Mağazada alınamayan ürün bunu söylüyor, sessizce beklemiyor
-• Türkçe kalmış İngilizce yazılar
+• "Uzak kalınan süre" gerçek süre; boşa giden üretimi de yazıyor
+• Biten bütün ödüller tek düğmeyle alınıyor
+• Mağazada alınamayan ürün bunu söylüyor
+• Menünün altında derleme numarası
 ```
 
 ---

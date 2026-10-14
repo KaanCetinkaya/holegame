@@ -157,6 +157,67 @@ ok(sabit(uzunSonra) === sabit(uzunOnce), 'sahne büyümedi',
 ok(uzunSonra.geometri <= uzunOnce.geometri + 2, 'geometri sızmadı', `${uzunOnce.geometri} → ${uzunSonra.geometri}`);
 ok(uzunSonra.doku <= uzunOnce.doku + 1, 'doku sızmadı', `${uzunOnce.doku} → ${uzunSonra.doku}`);
 
+console.log('\n6) Şube devirleri — otopark');
+// Yük buraya kadar yalnızca **seviyeye** karşı ölçülüyordu. Oysa
+// prestijin tek görünür ödülü otoparka eklenen sıra, ve her sıra iki
+// araba artı bir bordür demek: on şube, sahnedeki çizim çağrısının
+// iki katından fazlası.
+//
+// İki şey ölçülüyor: sıralar gerçekten görünüyor mu (prestijin ödülü
+// bu; ekranda olmayan bir ödül yok demektir), ve PARK_MAX'ta duruyor
+// mu — durmazsa yirminci devirde ucuz telefon dibi görür.
+//
+// İlk denemede hepsi düz çıkmıştı: ölçüm prestijden sonra bir kare
+// beklemeden okuyordu, ve `renderer.info.render` son **çizilen** kareyi
+// anlatıyor. Görünmeyen bir değişikliği ölçmek, değişiklik yok sanmak.
+// Önceki bölümler fabrikayı büyütüp devir attı; bu bölüm sıfırdan
+// başlamalı, yoksa "ilk devir" dördüncü devir olur.
+await pg.evaluate(() => { window.jeWipeProgress(); window.jeTutSkip(); });
+const park = [];
+for (let tur = 0; tur <= 12; tur++) {
+  park.push(await pg.evaluate(async () => {
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const p = window.jePerf();
+    return { sube: window.jeProbe().branches, cagri: p.cagri, ucgen: p.ucgen,
+             geometri: p.geometri, doku: p.doku, park: p.park };
+  }));
+  await pg.evaluate(() => {
+    window.jeGive(1e14); window.jeSetEarned(1e12);
+    for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 60); window.jeGiveManager(i); }
+    // `jeSetLifetime` ile prestij açılmıyor: `pendingPoints()` ömür boyu
+    // kazanca değil **bu turda** kazanılana bakıyor. Bu tuzak bu depoda
+    // defalarca yakalandı.
+    window.jePrestige();
+  });
+}
+console.log('     şube  sıra  çağrı  üçgen   geometri doku');
+for (const s of park)
+  console.log(`     ${String(s.sube).padStart(4)}  ${String(s.park).padStart(4)}  ` +
+    `${String(s.cagri).padStart(5)}  ${String(s.ucgen).padStart(6)}   ` +
+    `${String(s.geometri).padStart(6)} ${String(s.doku).padStart(4)}`);
+const sifir = park[0], onuncu = park.find(s => s.sube === 10), son = park[park.length - 1];
+ok(sifir.sube === 0, 'ölçüm sıfırıncı şubeden başladı', `${sifir.sube}`);
+// Çizim çağrısıyla ölçmek yanıltıyor: devir bandı boşaltıyor, yani
+// kaybolan kasalar otoparkın eklediğini örtüyor. Görünen sıra sayısı
+// doğrudan okunuyor.
+ok(park.every(s => s.park === Math.min(s.sube, 10)),
+   'her devirde doğru sayıda sıra görünüyor',
+   park.map(s => `${s.sube}:${s.park}`).join(' '));
+ok(park.find(s => s.sube === 5).cagri > park.find(s => s.sube === 1).cagri,
+   'sıralar çizime gerçekten giriyor',
+   `${park.find(s => s.sube === 1).cagri} → ${park.find(s => s.sube === 5).cagri}`);
+ok(Math.abs(son.cagri - onuncu.cagri) <= 4, 'onuncu şubeden sonra büyümüyor',
+   `${onuncu.cagri} → ${son.cagri}`);
+ok(son.cagri < 420, 'en kalabalık hâlde bile çizim çağrısı makul', `${son.cagri}`);
+// Geometri sayısı burada artıyor ve bu bir sızıntı **değil**: sıralar
+// açılışta kuruluyor ama Three.js onları GPU'ya ilk çizildiklerinde
+// yüklüyor. Doğru soru "arttı mı" değil, "PARK_MAX'ta durdu mu".
+ok(onuncu.geometri > sifir.geometri, 'sıralar göründükçe GPU\'ya yükleniyor',
+   `${sifir.geometri} → ${onuncu.geometri}`);
+ok(son.geometri === onuncu.geometri, 'onuncu şubeden sonra geometri sabit',
+   `${onuncu.geometri} → ${son.geometri}`);
+ok(son.doku <= sifir.doku + 1, 'doku sızmadı', `${sifir.doku} → ${son.doku}`);
+
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;
 await br.close(); srv.close();
