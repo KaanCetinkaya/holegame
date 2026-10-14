@@ -284,27 +284,100 @@ AdMob'da uygulama açıp `AD_UNITS` içindeki kimliği değiştirmek ve
 
 ## Kayıt
 
-Tek anahtar: `motorworks_save`. İçinde kasa, ömür boyu kazanç, şube sayısı,
-seviyeler, müdürler, tamponlar, araştırma seviyeleri, boost zamanlayıcıları
-ve son görülme zamanı var. Eski bir kayıt eksik dizi elemanıyla gelebilir; eksik seviye sessizce
-`NaN` olup bütün ekonomiyi sıfırladığı için yükleme sırasında tamamlanıyor.
+Üç anahtar:
+
+- `motorworks_save` — oyunun hâli: kasa, ömür boyu kazanç, şube sayısı,
+  seviyeler, müdürler, tamponlar, araştırma seviyeleri, boost
+  zamanlayıcıları, son görülme zamanı
+- `motorworks_save_bak` — **bir önceki** kayıt. Her yazma, bir öncekini
+  buraya itiyor
+- `motorworks_save_bozuk` — okunamayan veri buraya alınıyor, silinmiyor
+
+Eski bir kayıt eksik dizi elemanıyla gelebilir; eksik seviye sessizce `NaN`
+olup bütün ekonomiyi sıfırladığı için yükleme sırasında tamamlanıyor.
+
+### Bozuk kayıt fabrikayı götürüyordu
+
+Yükleme tek satırdı: `try { JSON.parse(...) } catch { return {} }`. Yani
+yarım yazılmış bir kayıt oyunu sıfırdan açıyor, oyuncuya hiçbir şey
+söylemiyor, ve ilk otomatik kayıt bozuk veriyi sıfırla eziyordu. 90.
+seviyedeki bir fabrika, tek bir kesintili yazma yüzünden, geri dönüşsüz
+gidiyordu — ve bu oyunda oyuncunun kaybedebileceği tek şey o.
+
+Üç şey değişti:
+
+1. Kayıt, `JSON.parse` patlamadığı için değil, **kendi alanları tuttuğu**
+   için geçerli sayılıyor. `JSON.parse('5')` patlamıyor ama kayıt da
+   değil. Kontrol bilerek hoşgörülü: eksik alan sebep değil, çünkü eski
+   bir yapımın kaydında `totalEarned` yok ve `Object.assign` onu zaten
+   dolduruyor. Çalışan bir kaydı atmak, bozuğu kabul etmekten pahalı.
+2. Yedek yuva **bir önceki kayıt**. Ana yuva bozuksa oyun ondan dönüyor:
+   bir otomatik kayıt kaybediliyor, hepsi değil.
+3. Oyuncuya söyleniyor — dokunulana kadar duran kırmızı bir şeritle, iki
+   dilde. Üç hâl var: yedekten dönüldü, okunacak bir şey kalmadı, ve
+   **hiç kaydedilemiyor**. Sonuncusu da sessizdi: telefon doluysa oyun
+   saatlerce oynanıyor ve hiçbiri yazılmıyordu.
+
+`jeReset` üç yuvayı da siliyor. Yalnızca anayı silmek, yenilemede
+yedekten dönmek demekti — yani sıfırlama sıfırlamıyordu.
+
+## Sürüm ve reklam anahtarı
+
+Menünün altında `v1.0 (8)` yazıyor. Numara `app-version.json`'dan
+derlemede giriyor, kaynakta `'dev'` duruyor: elle yazılan ikinci bir yer
+yok. "Bu güncel sürüm mü" sorusunun başka cevabı yok ve bilinmeyince
+"düzeltme gelmemiş" ile "düzeltme işe yaramamış" birbirine karışıyor.
+
+`ADS_TESTING` kaynakta **her zaman** `true`. Yalnızca
+`npm run release:tycoon` (yani `LIVE_ADS=1`) onu `false` yapıyor. Kendi
+canlı reklamına tıklamak AdMob hesabını kapattırıyor ve kapatılan
+yayıncı yeni hesap açamıyor. İkisi de `scratchpad/tysurum.mjs` ile
+ölçülüyor.
 
 ## Test
 
-    node build-www.mjs
-    node scratchpad/tycoon.mjs     # işlevsel: zincir, darboğaz, çevrimdışı, sayı biçimi
-    node scratchpad/tycoon2.mjs    # üç saatlik ilerleme eğrisi
-    node scratchpad/tycoon3.mjs    # altı şubelik prestij döngüsü
-    node scratchpad/tycoon4.mjs    # görevler, günlük ödül, çevrimdışı x2
-    node scratchpad/tycoon5.mjs    # ürün kademeleri ve fiyat
-    node scratchpad/tycoon6.mjs    # MAKS alımı ve yüksek çarpanla 30 dakika
-    node scratchpad/tycoonres.mjs  # araştırma: puan muhasebesi ve yedi etki
-    node scratchpad/tyblock.mjs    # tıkalı hat: kırmızı çubuk ve yönlendirme
+Hepsi Playwright ve gerçek sayfa; hiçbiri zamanlamaya bağlı değil.
+Önce `node build-www.mjs`, sonra:
 
-`window.jeProbe()` oyunun bütün durumunu döndürür; `jeGive`, `jeRun`, `jeBuy`,
-`jeOffline`, `jeBoost`, `jePrestige`, `jeGoals`, `jeDaily`, `jeRes`,
-`jeResBuy`, `jeSetLifetime`, `jeSetEarned`, `jeReset` testlerin oyunu
-parmaksız oynamasını sağlar.
+    for f in scratchpad/ty*.mjs; do node "$f"; done
+
+`tyshots` ve `tyfeature` ölçüm değil, mağaza görseli üretiyor; onları
+listenin dışında tut.
+
+**Ekonomi ve zincir** — `tycoon` (zincir, darboğaz, sayı biçimi),
+`tycoon2` (üç saatlik eğri), `tycoon3` (prestij döngüsü), `tycoon5`
+(ürün kademeleri ve fiyat), `tycoon6` (MAKS alımı), `tyhiz` (ekrandaki
+hız kasayla uyuşuyor mu), `tyduvar` (devir ne zaman açılıyor),
+`tykademe` (araç kademeleri ulaşılabilir mi), `tyuzun` (on beş devir:
+NaN, taşma, tavan), `tytasi` (elle taşımanın sınırı), `tyblock` (tıkalı
+hat).
+
+**Çevrimdışı ve zaman** — `tycevrimdisi` (kapalıyken kazanılan, açıkken
+kazanılanla aynı mı), `tydurdu` (fabrika durduysa oyuncu öğreniyor mu),
+`tyhizkutusu` (×3 gerçekten üç kat mı), `tybildirim` (depo dolunca).
+
+**Oyuncunun ilk saatleri** — `tyacilis` (ilk on dakika), `tyogretici`,
+`tygorev` (günlük görevler), `tyodul` (hedef ödülleri), `tymudur`,
+`tyisci` / `tyworker` (işçi yürüyor mu, taşıyor mu), `tynezaret`,
+`tymusteri`, `tymuzik` (müzik ve susması), `tyyer`, `tyarastirma`,
+`tycoonres`, `tycoon4`.
+
+**Kayıt ve taşınma** — `tykayit` (bozuk kayıt, yedek yuva, yazma
+hatası), `tyyedek` (yedek kodu), `tygoc` (eski kayıt yeni sürümde).
+
+**Arayüz ve paket** — `tyekran` (küçük telefonlar), `tydil` (çeviri
+tablosu), `tyingilizce` (Türkçe açıkken ekranda İngilizce kalmış metin),
+`typerf` (ucuz telefonda yük), `tymagaza` (Play ürünü tanımıyorken
+mağaza), `tysatin` (satın alınan teslim ediliyor mu), `typlaygames`,
+`tysurum` (sürüm numarası ve reklam anahtarı), `tylisting` (mağaza metni
+oyunla uyuşuyor mu), `tybelge` (bu dosya oyunla aynı şeyi mi anlatıyor).
+
+`window.jeProbe()` oyunun bütün durumunu döndürür. Oyunu parmaksız
+oynatanlar: `jeGive`, `jeRun`, `jeStep`, `jeBuy`, `jeSetLevel`,
+`jeGiveManager`, `jeTakeManager`, `jeOffline`, `jeBoost`, `jePrestige`,
+`jeResBuy`, `jeSetLifetime`, `jeSetEarned`, `jeWipeProgress`, `jeReset`.
+Ekranı kuranlar: `jeTutSkip`, `jeGunGoster`, `jeIapSim`, `jeKayitBoz`,
+`jeKayitDur`, `jeSave`.
 
 ## Mağaza
 
@@ -399,6 +472,15 @@ otoparka gidiyordu — üstelik yakın sütun montaj bandının üstüne biniyor
 
 ## Eksikler
 
-- AdMob uygulaması açılmadı; test reklam kimlikleri kullanılıyor
-- Uygulama içi satın alma yok
-- Telefonda hiç denenmedi
+Oyunun kendisinde değil, Play tarafında duranlar:
+
+- **Play Games liderlik tablosu**: `LEADERBOARD_ID` hâlâ boş. Kimlik
+  girilene kadar 🏆 düğmesi hiç görünmüyor — bu beklenen davranış, ama
+  tablo da yok demek
+- **Uygulama içi ürünler Play Console'da açılmadı**. Kod hazır ve üç
+  kimliği bekliyor: `motorworks_double`, `motorworks_managers`,
+  `motorworks_skip12`. Açılana kadar mağaza satırları "KAPALI" görünüyor
+- **Kapalı test**: 12 test kullanıcısı, 14 gün. Üretime başvurmanın
+  şartı bu
+- **Ad araması yapılmadı**: "Motor Works" adı Play'de aranmadı. Fruit
+  Hole bu adım atlandığı için 13 bin yorumlu bir rakiple çarpıştı
