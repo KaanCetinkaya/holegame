@@ -141,6 +141,60 @@ for (const dil of ['tr-TR', 'en-US']) {
                    kaydirilir: getComputedStyle(m).overflowY === 'auto' ||
                                getComputedStyle(m).overflowY === 'scroll' };
       m.classList.remove('show');
+      // 5b. Bütün ekranlar: hiçbir yazı kutusundan taşmamalı ve her
+      // ekranın altına erişilebilmeli.
+      //
+      // Buraya kadar yalnızca ana görünüm ve menü ölçülüyordu. Hedefler
+      // ekranında on iki hedef ve üç günlük görev, araştırmada on dal
+      // var — ve Türkçe karşılıklar İngilizceden uzun.
+      out.ekranlar = [];
+      const ekranAc = id => {
+        for (const x of document.querySelectorAll('.screen')) x.classList.remove('show');
+        const el = document.getElementById(id);
+        el.classList.add('show');
+        return el;
+      };
+      renderGoalsVarMi: {
+        // Ekranlar kendi içeriklerini açılırken kuruyor; doğrudan
+        // `.show` eklemek listeyi boş bırakıyor, yani boş bir ekranı
+        // ölçmüş oluruz. Düğmelerinden açılıyor.
+        const yollar = [
+          ['goals',    () => { document.getElementById('menuBtn').click(); document.getElementById('goalsBtn').click(); }],
+          ['research', () => { document.getElementById('menuBtn').click(); document.getElementById('resBtn').click(); }],
+          ['shop',     () => { document.getElementById('menuBtn').click(); document.getElementById('shopBtn').click(); }],
+          ['backup',   () => { document.getElementById('menuBtn').click(); document.getElementById('backupBtn').click(); }],
+          // Devir düğmesi `canPrestige()` olmadan kapalı ve menü
+          // açılmadan `disabled` da güncellenmiyor — bu depoda daha
+          // önce iki kez yakalanan tuzak. Önce eşiği geç.
+          ['prestige', () => {
+            window.jeSetEarned(5e12);
+            document.getElementById('menuBtn').click();
+            document.getElementById('prestigeBtn').click();
+          }],
+        ];
+        for (const [id, ac] of yollar) {
+          for (const x of document.querySelectorAll('.screen')) x.classList.remove('show');
+          try { ac(); } catch (e) { out.ekranlar.push({ id, hata: String(e) }); continue; }
+          const el = document.getElementById(id);
+          const kacan = [];
+          for (const c of el.querySelectorAll('*')) {
+            const r2 = c.getBoundingClientRect();
+            if (!r2.width || !r2.height) continue;
+            if (r2.right > innerWidth + 1 || r2.left < -1)
+              kacan.push(`${c.className || c.tagName} ${Math.round(r2.left)}..${Math.round(r2.right)}`);
+            if (c.children.length === 0 && c.scrollWidth > c.clientWidth + 1 &&
+                getComputedStyle(c).overflow !== 'visible')
+              kacan.push(`kırpık "${c.textContent.trim().slice(0, 24)}"`);
+          }
+          out.ekranlar.push({
+            id, acik: el.classList.contains('show'),
+            ic: el.scrollHeight, dis: el.clientHeight,
+            kaydirilir: ['auto', 'scroll'].includes(getComputedStyle(el).overflowY),
+            kacan: kacan.slice(0, 2),
+          });
+        }
+        for (const x of document.querySelectorAll('.screen')) x.classList.remove('show');
+      }
       // 6. Müşteri arabasının dokunma alanı
       window.jeMusBelir();
       window.jeMusAdim(2);
@@ -165,6 +219,13 @@ for (const dil of ['tr-TR', 'en-US']) {
     if (d.adKirpik.length) sorun.push(`kırpılan ad: ${d.adKirpik[0]}`);
     const menuOk = d.menu.ic <= d.menu.dis + 1 || d.menu.kaydirilir;
     if (!menuOk) sorun.push(`menüye erişilemiyor ${d.menu.ic}>${d.menu.dis}`);
+    for (const e of d.ekranlar) {
+      if (e.hata) { ok(false, `${b.ad}: ${e.id} ekranı açıldı`, e.hata); continue; }
+      ok(e.acik, `${b.ad}: ${e.id} ekranı açıldı`);
+      ok(e.kacan.length === 0, `${b.ad}: ${e.id} ekranında taşma yok`, e.kacan.join(' · '));
+      ok(e.ic <= e.dis + 1 || e.kaydirilir, `${b.ad}: ${e.id} ekranının altına erişiliyor`,
+         `${e.ic}/${e.dis}`);
+    }
     const musOk = d.musteri && ['merkez', 'alt', 'ust'].every(k => d.musteri[k] === 'CANVAS');
     if (!musOk) sorun.push(`müşteri alanı: ${d.musteri ? JSON.stringify(d.musteri) : 'yok'}`);
     const gorunenSatir = d.satir.filter(s => s.gorunur).length;
