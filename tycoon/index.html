@@ -1057,6 +1057,7 @@ const G = Object.assign({
   pile: [0, 0, 0],
   muted: false,
   seen: Date.now(),
+  boostFrom: 0,          // kutunun basıldığı an; çevrimdışı kesişimi buna bakıyor
   boostUntil: 0,
   boostReady: 0,
   dayLast: 0,             // gün numarası, ardışıklığı bundan buluyoruz
@@ -1358,15 +1359,46 @@ function offlineCatchUp() {
   if (gone < 60) return null;
   // Yokken yalnızca otomatik zincir dönüyor: müdürü olmayan bir istasyonun
   // malını yerden alacak kimse yok.
-  const ch = autoChain();
-  const got = ch.flow * unitPrice() * gone;
+  //
+  // Hız kutusu yokluğun **üstüne binmiyor**, kesiştiği kadarıyla
+  // sayılıyor. Eski hâli dönüş anındaki çarpanı bütün yokluğa
+  // uyguluyordu ve bu iki yönde birden yanlıştı: kutu dönerken
+  // dönüldüyse geçmiş saatlerin tamamı üç katına çıkıyordu, kutu
+  // yoklukta bittiyse gerçekten boost'lu geçen dakikalar hiç
+  // sayılmıyordu. Ölçüm ilkini yakaladı (`scratchpad/tyhizkutusu.mjs`),
+  // ikincisi de aynı satırın öteki ucuydu.
+  const simdi = Date.now();
+  const basladi = simdi - gone * 1000;
+  // Kutunun **başlangıcı** da gerekiyor. Yalnızca bitişi bilinince
+  // kesişim "yokluğun tamamı" çıkıyordu: biten zaman gelecekte, yokluk
+  // geçmişte, ve aradaki her saniye kutunun içindeymiş gibi sayılıyordu.
+  // Ölçüm bunu bir saatlik yoklukta ×3 olarak gösterdi.
+  const boostMs = Math.max(0,
+    Math.min(G.boostUntil, simdi) - Math.max(G.boostFrom || 0, basladi));
+  // İki hız: kutusuz ve kutulu. İkisi de zincire **sorularak**
+  // bulunuyor, `income / boostMult()` ile bölünerek değil — tamponlar
+  // doluyken akış hızla doğrusal değil.
+  //
+  // Kutulu hızı "şu anki çarpan" sanmak da olmuyor: kutu yoklukta
+  // bitmişse şu an çarpan 1'dir, oysa geçmişteki o dakikalar üç
+  // katındaydı. Ölçüm bunu üç pencerenin üçünde de ×1 olarak gösterdi.
+  const eskiUntil = G.boostUntil;
+  G.boostUntil = 0;
+  const sade = autoChain();
+  G.boostUntil = simdi + 1000;
+  const hizli = autoChain();
+  G.boostUntil = eskiUntil;
+  const boostSn = boostMs / 1000;
+  const got = unitPrice() * (sade.flow * (gone - boostSn) + hizli.flow * boostSn);
   // Elle çalışan bağın gerisinde mal yerde birikiyor — döndüğünde oyuncuyu
   // bekleyen iş bu. Tavanına kadar, yoksa bir gecelik yokluk sınırsız mal
   // yaratırdı.
   for (let i = 0; i < G.pile.length; i++) {
     if (!G.mgr[i]) G.pile[i] = Math.min(pileMax(i), G.pile[i] + rateOf(i) * gone);
   }
-  for (let i = 0; i < G.buf.length; i++) G.buf[i] = i < ch.neck ? roomOf(i) : 0;
+  // Darboğaz çarpansız zincirden okunuyor: kutu darboğazı
+  // değiştirmiyor, bütün istasyonları aynı oranda hızlandırıyor.
+  for (let i = 0; i < G.buf.length; i++) G.buf[i] = i < sade.neck ? roomOf(i) : 0;
   G.cash += got;
   G.totalEarned += got;
   // Kazanç sıfırken de dönülüyor, ve sebebi önemli.
@@ -3473,6 +3505,7 @@ const boostTikla = async () => {
   const ok = await showRewarded();
   if (!ok) { refreshBoost(); return; }
   const secs = boostSecs();
+  G.boostFrom = Date.now();
   G.boostUntil = Date.now() + secs * 1000;
   G.boostReady = Date.now() + (secs + BOOST_COOL) * 1000;
   G.boosts++;
@@ -4260,6 +4293,20 @@ window.jeCam = (h, shift) => {
   fit();
 };
 window.jeBoost = () => boostTikla();
+// Boost'u bitir: süresi `Date.now()` ile dolduğu için ölçüm saati
+// ileri alamıyor, bitişi doğrudan istiyor.
+window.jeBoostBitir = () => { G.boostUntil = 0; G.boostFrom = 0; refreshBoost(); refreshPanel(); return boostMult(); };
+// Kutunun penceresini doğrudan kur: ölçüm gerçek zamanı ileri
+// alamıyor, oysa kesişimi sınamak için kutunun yoklukla farklı
+// biçimlerde örtüştüğü durumlar gerekiyor. Oyunun yazdığı iki alanın
+// aynısı yazılıyor.
+window.jeBoostPencere = (baslaMsOnce, bitMsOnce) => {
+  const t = Date.now();
+  G.boostFrom = t - baslaMsOnce;
+  G.boostUntil = t - bitMsOnce;
+  refreshBoost(); refreshPanel();
+  return { from: G.boostFrom - t, until: G.boostUntil - t };
+};
 // Paneli elle tazele. Oyunun kare döngüsü bunu saniyede sekiz kez
 // yapıyor ve "tamponu doldur" görevinin sayacı orada artıyor; `jeStep`
 // paneli çağırmıyor, yani ölçümün o sayacı görmesi için bu gerekiyor.
