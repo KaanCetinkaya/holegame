@@ -1431,12 +1431,23 @@ const SKUS = [
     nameT: 'sku2', descT: 'sku2d',
     price: '$1.99',
     grant() {
-      // Elle taşınan bir fabrikanın saatlik kazancı yok; ödenen şey
-      // zincirin **kendi kendine** döndüğü hız. Müdürsüz bir oyuncuya
-      // sıfır vermemek için en az bir saatlik teorik hız veriliyor.
+      // Ürünün adı "12 saatlik üretim" ve ödediği de o olmalı.
+      //
+      // Eski hâli, zincir kendi kendine dönmüyorsa **bir** saatlik
+      // teorik hız veriyordu. Ölçüldü: dört müdürü olan oyuncuya 12
+      // saatin tamamını ödüyor (oran 1.001), ama bir müdürü eksik olana
+      // on iki saatte kazanacağının **%8.3'ünü** ödüyordu. Yani ürün,
+      // tam da onu almaya en yatkın oyuncuya — otomasyonu bitmemiş,
+      // takılmış oyuncuya — adının onda birini veriyordu. Para alınan
+      // bir şeyde yapılabilecek en kötü şey.
+      //
+      // Ödenen hız artık zincirin hızı: kendi kendine dönüyorsa o,
+      // dönmüyorsa oyuncunun elle çalıştırdığında ulaştığı hız. İkisi
+      // tam otomatik bir fabrikada zaten aynı sayı.
       const ch = autoChain();
       const sn = 12 * 3600;
-      const kazanc = ch.flow > 0 ? ch.income * sn : chain().income * 3600;
+      const hiz = ch.flow > 0 ? ch.income : chain().income;
+      const kazanc = hiz * sn;
       G.cash += kazanc;
       G.totalEarned += kazanc;
       saveNow();

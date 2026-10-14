@@ -96,6 +96,43 @@ ok(Math.abs(atla.ikinci - atla.ilk) < 1, 'ikinci alım da aynısını ödüyor')
 ok(Math.abs(atla.ilk - atla.gelir * 12 * 3600) / atla.ilk < 0.01,
    '12 saatlik üretim kadar', `${(atla.ilk / atla.gelir / 3600).toFixed(2)} saat`);
 
+console.log('\n5b) Ödenen, oyuncunun gerçekten kazanacağı kadar mı');
+// Yukarıdaki kontrol ürünün ödediğini `income` ile karşılaştırıyor ve
+// ikisi de aynı formülden geliyor — kendi kendini ölçüyor. Asıl soru
+// şu: oyuncu o on iki saati **oynasaydı** ne kazanırdı?
+//
+// Ölçüm bir hata buldu. Ürün, zincir kendi kendine dönmüyorsa bir
+// saatlik teorik hız ödüyordu: dört müdürlü oyuncuya on iki saatin
+// tamamı, bir müdürü eksik olana **%8.3'ü**. Yani ürün adının onda
+// birini, hem de tam onu almaya en yatkın oyuncuya veriyordu.
+const dogru = await pg.evaluate(async () => {
+  const kur = mudurler => {
+    window.jeWipeProgress(); window.jeTutSkip(); window.jeAutoCarry(true);
+    window.jeGive(1e6);
+    for (let i = 0; i < 4; i++) window.jeSetLevel(i, 40);
+    for (const i of mudurler) window.jeGiveManager(i);
+  };
+  const olc = async mudurler => {
+    kur(mudurler);
+    const a = window.jeProbe().cash;
+    await window.jeBuyProduct('motorworks_skip12');
+    const odenen = window.jeProbe().cash - a;
+    // Aynı durumdan, on dakika gerçekten oynanmış hâli.
+    kur(mudurler);
+    const b = window.jeProbe().total;
+    for (let i = 0; i < 6000; i++) window.jeStep(0.1);
+    const onDk = window.jeProbe().total - b;
+    return { odenen, onIkiSaat: onDk * 6 * 12 };
+  };
+  return { hepsi: await olc([0, 1, 2, 3]), ucu: await olc([0, 1, 3]), hicbiri: await olc([]) };
+});
+for (const [ad, d] of Object.entries(dogru))
+  console.log(`     ${ad.padEnd(8)} ödenen ${d.odenen.toExponential(2)} · on iki saatte kazanılacak ${d.onIkiSaat.toExponential(2)} · oran ${(d.odenen / d.onIkiSaat).toFixed(3)}`);
+for (const [ad, d] of Object.entries(dogru))
+  ok(Math.abs(d.odenen / d.onIkiSaat - 1) < 0.05,
+     `${ad}: ödenen gerçekten on iki saatlik üretim`,
+     `oran ${(d.odenen / d.onIkiSaat).toFixed(3)}`);
+
 console.log('\n6) Müdürsüz oyuncuya sıfır verilmiyor');
 // Zincir dönmüyorsa 12 saatlik otomatik kazanç sıfır. Para ödeyip sıfır
 // almak, satılabilecek en kötü şey.
