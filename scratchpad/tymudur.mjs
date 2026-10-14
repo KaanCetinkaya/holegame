@@ -54,7 +54,25 @@ await pg.waitForTimeout(300);
 const sonra = await pg.evaluate(() => window.jeMgrKimlik());
 console.log(`     satır: "${sonra[0].meta.trim()}"`);
 ok(sonra[0].portreGorunur, 'alınınca portre istasyonun simgesinin yerine geçiyor');
-ok(/Derya/.test(sonra[0].meta), 'satırda adı yazıyor');
+// Adın satırda **her zaman** yazması beklenmiyor artık. Alt satır
+// önceliğe göre doldurulyor ve en çok üç parça alıyor: talimat,
+// kademe uyarısı, nezaret, taş çarpanı, sonra müdür. Yoğun bir satırda
+// ad düşüyor — ve düşmesi doğru, çünkü "bu istasyonun müdürü var"
+// bilgisini portre zaten koşulsuz veriyor (yukarıda ölçüldü).
+// Ölçülmesi gereken şey adın **yer varken** yazması.
+const sakin = await pg.evaluate(() => {
+  // Sakin satır: darboğaz değil, nezaret yok, taş geçilmemiş.
+  window.jeWipeProgress();
+  for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 1); window.jeGiveManager(i); }
+  window.jeSetLevel(1, 9);                 // darboğaz Pres'e geçsin
+  window.jeTeleport(0, -5);                // kimsenin başında durma
+  window.jeStep(0.1);
+  window.jeRefresh();
+  return window.jeMgrKimlik();
+});
+console.log(`     sakin satır: "${sakin[0].meta.trim()}"`);
+ok(/Derya/.test(sakin[0].meta), 'yer varken adı yazıyor', sakin[0].meta.trim());
+ok(sakin[0].portreGorunur, 'portre her hâlükârda duruyor');
 ok(!/manager/i.test(sonra[0].meta), '"manager" yerine kişi');
 
 console.log('\n3) Her bonus yalnızca kendi işine dokunuyor');

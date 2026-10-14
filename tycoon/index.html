@@ -2784,7 +2784,28 @@ function buyManager(i) {
   saveNow();
 }
 
+// Alt satıra kaç parça sığıyor.
+//
+// Sabit üç parça 412 pikselde sığıyor, 360'ta sığmıyordu (161 piksellik
+// yazı, 152 piksellik kutu). Sayı ekrandan ölçülüyor: kutunun genişliği
+// bölü bir parçanın ortalama eni. Eşiği elle yazmak, bu depoda
+// yaşlanan sayılar listesine bir tane daha eklemek olurdu.
+// Ölçüm `refreshPanel`'in içinde, genişlik değiştiğinde. `fit()`
+// içinden çağırmak denendi ve sayfa hiç açılmadı: `fit()` ilk kez
+// `rows` tanımlanmadan önce çalışıyor ve `rows`'a dokunmak ölümcül
+// bölgede hata veriyor.
+const META_PARCA = 55;                 // ölçülen ortalama: üç parça ≈ 161 piksel
+let metaYer = 3, metaOlculen = -1;
+function metaYerOlc() {
+  if (metaOlculen === innerWidth) return;
+  const el = rows[0] && rows[0].meta;
+  if (!el || !el.clientWidth) return;
+  metaOlculen = innerWidth;
+  metaYer = Math.max(2, Math.min(3, Math.floor(el.clientWidth / META_PARCA)));
+}
+
 function refreshPanel() {
+  metaYerOlc();
   const ch = chain();
   const tutanlar = tierHolders();
   for (let i = 0; i < STATIONS.length; i++) {
@@ -2807,23 +2828,46 @@ function refreshPanel() {
       if (blocked && !G.gun.doluDurum[i]) G.gun.dolu++;
       G.gun.doluDurum[i] = blocked;
     }
+    // Alt satır, önceliğe göre ve **en çok üç parça**.
+    //
+    // Satıra her şey sırayla ekleniyordu: darboğaz, nezaret, müdür adı,
+    // müdür yeteneği, kilometre taşı, kademe uyarısı. 360 piksellik bir
+    // ekranda Türkçe yazıyla bunun sonu "yükseltmeler %8 ucu" diye
+    // kesilmiş bir satır oldu — kendi mağaza karelerimde görüldü.
+    // Kırpma en sondakini yiyor, yani en değerli parça başta olmalı ve
+    // gerisi hiç yazılmamalı.
+    //
+    // Sıra, oyuncuya ne kadar iş gördüğüne göre:
+    //   1. talimat     — ne alacağını söylüyor (DARBOĞAZ / DOLU)
+    //   2. kademe      — nadiren çıkıyor ve çıktığında en değerlisi
+    //   3. nezaret     — o anda olan bir şeyin geri bildirimi
+    //   4. taş çarpanı — hedef
+    //   5. müdür       — bir kez okunur, sonra dekor
     const bits = [];
-    if (i === nezaret) bits.push(T('nezaret', SUPERVISE));
     if (i === ch.neck) bits.push(`<em>${T('bottleneck')}</em>`);
     else if (blocked) bits.push(`<u>${T('full', T(STATIONS[ch.neck].nameT))}</u>`);
-    if (hits) bits.push(`<b>×${fmt(Math.pow(2, hits))}</b>`);
-    if (G.mgr[i]) bits.push(`<b>${MGRS[i].ad}</b> · ${T(MGRS[i].bonusT)}`);
-    // The milestone hint is dropped while blocked. It does not fit next to
-    // the instruction and it is the one line that is not worth acting on:
-    // levelling a station whose output has nowhere to go buys nothing.
-    if (nxt && !blocked) bits.push(T('x2at', nxt));
     // Kademeyi tutan istasyon: darboğaz değilse oyuncunun onu
     // yükseltmesi için hiçbir sebebi yok ve kapı orada kilitli kalıyor.
-    // Sebep buraya yazılıyor.
     if (tutanlar.length && tutanlar.length < STATIONS.length &&
         tutanlar.includes(i) && i !== ch.neck && !blocked)
       bits.push(T('tierHold', T(nextProduct().nameT)));
-    r.meta.innerHTML = bits.join(' · ');
+    if (i === nezaret) bits.push(T('nezaret', SUPERVISE));
+    // Taş çarpanı tabandan değil, araştırmanın büyüttüğü **gerçek**
+    // tabandan: `Math.pow(2, hits)` yazıyordu ve kalıphane alındıktan
+    // sonra ekrandaki sayı hızın karşılığı olmaktan çıkıyordu.
+    if (hits) bits.push(`<b>×${fmt(Math.pow(tasGucu(resLvl('tas')), hits))}</b>`);
+    // Kilometre taşı ipucu tampon doluyken düşüyor: talimatın yanına
+    // sığmıyor ve üstelik üzerine basılacak tek satır o değil —
+    // malı gidecek yeri olmayan bir istasyonu yükseltmek hiçbir şey almıyor.
+    if (nxt && !blocked) bits.push(T('x2at', nxt));
+    // Müdür en sonda ve yeri kalmışsa: adı bir kez okunuyor, yeteneği
+    // de öyle. Yer varsa ikisi, yoksa yalnızca adı.
+    if (G.mgr[i]) {
+      bits.push(bits.length < 2
+        ? `<b>${MGRS[i].ad}</b> · ${T(MGRS[i].bonusT)}`
+        : `<b>${MGRS[i].ad}</b>`);
+    }
+    r.meta.innerHTML = bits.slice(0, metaYer).join(' · ');
     if (i < LAST) {
       const p = Math.min(100, (G.buf[i] / roomOf(i)) * 100);
       r.buf.style.width = p + '%';

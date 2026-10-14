@@ -97,6 +97,16 @@ for (const dil of ['tr-TR', 'en-US']) {
         if (r.height < TAP - 6 || r.width < TAP - 20)
           out.kucuk.push(`${el.id || el.className} ${Math.round(r.width)}x${Math.round(r.height)}`);
       }
+      // 3b. İstasyon alt satırı kırpılıyor mu?
+      //
+      // `overflow:hidden` ile üç nokta koyduk, yani taşma artık
+      // görünmüyor — ama görünmemesi okunabildiği anlamına gelmiyor.
+      // Kırpılan her satır, oyuncuya söylenmeyen bir şey.
+      out.kirpik = [];
+      for (const el of document.querySelectorAll('.st .meta')) {
+        if (el.scrollWidth > el.clientWidth + 1)
+          out.kirpik.push(`${el.textContent.trim().slice(0, 40)} (${el.scrollWidth}>${el.clientWidth})`);
+      }
       // 4. Üst şerit: haplar birbirine girmemeli
       const kutu = id => document.getElementById(id).getBoundingClientRect();
       const sol = kutu('leftWrap'), orta = kutu('cashWrap'), sag = kutu('menuBtn');
@@ -132,6 +142,7 @@ for (const dil of ['tr-TR', 'en-US']) {
     if (d.tasma.length) sorun.push(`taşma: ${d.tasma.slice(0, 2).join(', ')}`);
     if (d.kucuk.length) sorun.push(`küçük hedef: ${d.kucuk.slice(0, 2).join(', ')}`);
     if (d.cakisma.length) sorun.push(`çakışma: ${d.cakisma.join(', ')}`);
+    if (d.kirpik.length) sorun.push(`kırpılan satır: ${d.kirpik[0]}`);
     const menuOk = d.menu.ic <= d.menu.dis + 1 || d.menu.kaydirilir;
     if (!menuOk) sorun.push(`menüye erişilemiyor ${d.menu.ic}>${d.menu.dis}`);
     const musOk = d.musteri && ['merkez', 'alt', 'ust'].every(k => d.musteri[k] === 'CANVAS');
@@ -144,6 +155,8 @@ for (const dil of ['tr-TR', 'en-US']) {
     if (sorun.length) console.log(`           ${sorun.join(' · ')}`);
     ok(d.tasma.length === 0, `${b.ad}: yatay taşma yok`, d.tasma.slice(0, 1).join(''));
     ok(d.cakisma.length === 0, `${b.ad}: üst şerit çakışmıyor`, d.cakisma.join(''));
+    ok(d.kirpik.length === 0, `${b.ad}: istasyon alt satırı kırpılmıyor`,
+       d.kirpik.slice(0, 1).join(''));
     ok(d.kucuk.length === 0, `${b.ad}: dokunma hedefleri parmak boyutunda`, d.kucuk.slice(0, 1).join(''));
     ok(gorunenSatir === 4, `${b.ad}: dört istasyon da görünür`, `${gorunenSatir}/4`);
     ok(menuOk, `${b.ad}: menünün altına erişiliyor`,
