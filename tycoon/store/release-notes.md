@@ -8,8 +8,35 @@ altında; karakter sayıları başlıkların yanında.
 
 ---
 
-## versionCode 4 — v1.0 (dahili test)
+## Bu sürüm (dahili test)
 
+### İngilizce — `en-US` (415 karakter)
+
+```
+Your worker finally has a job after the managers arrive, and two vehicle tiers that were unreachable are now reachable.
+
+• Stand your worker at a station — it runs 25% faster while he is there
+• Sports and Luxury now actually unlock, and the panel names what is holding them back
+• Three new research branches for the long game
+• Ten branch locations instead of five
+• Turkish, and a smaller-screen layout that fits
+```
+
+### Türkçe — `tr-TR` (370 karakter)
+
+```
+Müdürler geldikten sonra işçinin nihayet bir işi var, ve hiç açılmayan iki araç kademesi artık açılıyor.
+
+• İşçiyi bir istasyonun başına park et — orada durduğu sürece %25 hızlı
+• Spor ve Lüks gerçekten açılıyor; panel onları neyin beklettiğini söylüyor
+• Uzun oyun için üç yeni araştırma dalı
+• Beş yerine on şube yeri
+• Türkçe arayüz ve küçük ekranlara sığan bir düzen
+```
+
+---
+
+## Önceki sürüm (dahili test)
 ### İngilizce — `en-US` (368 karakter)
 
 ```
