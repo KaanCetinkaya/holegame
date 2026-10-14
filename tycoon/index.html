@@ -239,6 +239,16 @@
     position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4;
   }
 
+  /* Kayıt uyarısı. Oyuncunun kaybedebileceği tek şeyle ilgili, o yüzden
+     bir saniyede kaybolan bir yazı değil: dokunulana kadar duruyor. */
+  #kayitBar {
+    position: fixed; left: 8px; right: 8px; top: 8px; z-index: 40;
+    background: #7a2b18; color: #fff; border: 2px solid #c0603c;
+    border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.35;
+    box-shadow: 0 6px 18px rgba(0,0,0,.45); cursor: pointer;
+  }
+  #kayitBar[hidden] { display: none; }
+
   /* Mağaza satırı. */
   .prod {
     display: flex; align-items: center; gap: 10px; text-align: left;
@@ -334,6 +344,7 @@
 
   <div id="float"></div>
   <div id="tut"></div>
+  <div id="kayitBar" hidden></div>
 
   <div id="panel">
     <div id="bulk">
@@ -740,11 +751,28 @@ const METIN = {
   nextTierOne: [' · <b>{0}</b>: {1} at lv {2}', ' · <b>{0}</b>: {1} {2}. seviyede'],
   tierHold:    ['<u>HOLDING BACK {0}</u>', '<u>{0} BEKLİYOR</u>'],
   topTier:  [' · top tier', ' · en üst kademe'],
+  tier0:    ['iron', 'demir'],
+  tier1:    ['steel', 'çelik'],
+  tier2:    ['polished steel', 'parlak çelik'],
+  tier3:    ['chrome', 'krom'],
+  tier4:    ['gold', 'altın'],
+  tierFit:  ['{0} {1}: {2} FITTINGS', '{0} {1}: {2} DONANIM'],
+  kurtarildi: ['Your save was damaged, so the game went back to a backup from a few minutes ago. Tap to dismiss.',
+               'Kaydın bozulmuştu; oyun birkaç dakika önceki yedekten devam etti. Kapatmak için dokun.'],
+  bozuk:      ['Your save could not be read and there was no usable backup. If you kept a backup code, load it from Menu.',
+               "Kaydın okunamadı ve kullanılabilir bir yedek yoktu. Yedek kodun varsa Menü'den geri yükle."],
+  yazilamadi: ['The game cannot save right now -- the phone storage may be full. Progress from here may be lost.',
+               'Oyun şu an kaydedemiyor — telefonun depolaması dolu olabilir. Bundan sonrası kaybolabilir.'],
 };
 
 // Varsayılan dil cihazdan geliyor; oyuncu menüden değiştirebiliyor ve
 // seçimi kayda yazılıyor.
 let dil = 0;
+// Türkçede 'i' harfinin büyüğü 'İ'. Varsayılan yerelle büyütmek
+// "ŞEHİR" yerine "ŞEHIR", "SEVKİYAT" yerine "SEVKIYAT" yazıyor. Yalnızca
+// **çevrilen** kelimelerde kullanılıyor; müdürlerin adları yabancı özel
+// ad ve onlar olduğu gibi kalıyor.
+const buyuk = s => String(s).toLocaleUpperCase(dil === 1 ? 'tr-TR' : 'en-US');
 const T = (k, ...a) => {
   const g = METIN[k];
   if (!g) return k;
@@ -787,15 +815,88 @@ function fmtTime(sec) {
 // Save
 // ---------------------------------------------------------------------
 const KEY = 'motorworks_save';
-const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+const KEY_YEDEK = 'motorworks_save_bak';
+const KEY_BOZUK = 'motorworks_save_bozuk';
+
+// Kaydın bozulması, oyuncunun kaybedebileceği tek şey.
+//
+// Eski hâli `catch { return {}; }` idi: `JSON.parse` patlarsa oyun
+// sıfırdan açılıyor, oyuncuya hiçbir şey söylenmiyor ve ilk `saveNow`
+// bozuk veriyi yeni bir sıfır kaydıyla eziyor. Yani 90. seviyedeki bir
+// fabrika, tek bir yarım yazma yüzünden, geri dönüşsüz gidiyor.
+//
+// Üç şey değişti:
+//   1. Kayıt yalnızca `JSON.parse` geçtiği için değil, **kendi
+//      alanları tuttuğu** için geçerli sayılıyor. `JSON.parse('5')`
+//      patlamıyor ama kayıt da değil.
+//   2. Beş dakikada bir ikinci bir kopya yazılıyor. Ana yuva bozuksa
+//      oyun ondan dönüyor: en fazla beş dakika kaybediliyor, hepsi değil.
+//   3. Bozuk veri silinmiyor, `KEY_BOZUK`'a alınıyor. İçinden yedek
+//      kodu çıkarmak hâlâ mümkün.
+// Kontrol **ihtiyatlı**: eksik alan bir sebep değil, çünkü eski bir
+// yapımın kaydında `totalEarned` yok ve `Object.assign` onu zaten
+// dolduruyor. Burada aranan şey, kaydın tanınabilir olması ve içindeki
+// sayıların sayı olması. Ters hata — çalışan bir kaydı atmak — bozuk
+// kaydı kabul etmekten daha pahalı.
+const sayiTamam = v => v === undefined || Number.isFinite(v);
+function kayitGecerli(o) {
+  return !!o && typeof o === 'object' && !Array.isArray(o)
+    && Array.isArray(o.lvl) && o.lvl.length > 0
+    && o.lvl.every(n => Number.isFinite(n) && n >= 0)
+    && sayiTamam(o.cash) && sayiTamam(o.totalEarned) && sayiTamam(o.lifetime);
+}
+// Açılışta oyuncuya söylenecek şey: '' yok, 'kurtarildi' yedekten
+// dönüldü, 'bozuk' ikisi de gitti.
+let kayitDurum = '';
+function kayitOku(k) {
+  let ham = null;
+  try { ham = localStorage.getItem(k); } catch { return null; }
+  if (ham === null) return null;
+  let o = null;
+  try { o = JSON.parse(ham); } catch { o = null; }
+  if (kayitGecerli(o)) return o;
+  // Üstüne yazmadan önce bir kenara koy.
+  try { localStorage.setItem(KEY_BOZUK, ham.slice(0, 60000)); } catch {}
+  return null;
+}
+const load = () => {
+  const ana = kayitOku(KEY);
+  if (ana) return ana;
+  const yedek = kayitOku(KEY_YEDEK);
+  if (yedek) { kayitDurum = 'kurtarildi'; return yedek; }
+  let vardi = false;
+  try { vardi = localStorage.getItem(KEY) !== null; } catch {}
+  if (vardi) kayitDurum = 'bozuk';
+  return {};
+};
+
 // `wiped` exists for jeReset. Clearing the key and reloading was not enough:
 // the reload fires pagehide, pagehide saves, and the state that was just
 // deleted is written straight back. Every test that thought it started from
 // a clean save was inheriting the one before it.
 let wiped = false;
+// Yazma hatası da sessizdi. Kota dolduğunda oyun saatlerce oynanıyor ve
+// hiçbiri kaydedilmiyor; oyuncu bunu ancak oyunu kapatınca öğreniyor.
+let kayitYazamadi = false;
+// Son başarıyla yazılan metin. Yedek yuvaya giden şey bu: yani yedek
+// her zaman **bir önceki kayıt**. Beş dakikada bir kopyalamak da
+// denenebilirdi ama o, kurtarıldığında beş dakikayı çöpe atmak demek;
+// iki `setItem` birkaç yüz baytla bedava sayılır.
+let sonMetin = null;
 const saveNow = () => {
   if (wiped) return;
-  try { localStorage.setItem(KEY, JSON.stringify(G)); } catch {}
+  let metin;
+  try { metin = JSON.stringify(G); } catch { return; }
+  if (metin === sonMetin) return;              // değişmediyse yazma
+  try {
+    if (sonMetin !== null) localStorage.setItem(KEY_YEDEK, sonMetin);
+    localStorage.setItem(KEY, metin);
+  } catch (e) {
+    if (!kayitYazamadi) { kayitYazamadi = true; kayitUyar('yazilamadi'); }
+    return;
+  }
+  kayitYazamadi = false;
+  sonMetin = metin;
 };
 
 // ---------------------------------------------------------------------
@@ -1105,6 +1206,10 @@ while (G.lvl.length < STATIONS.length) G.lvl.push(0);
 while (G.mgr.length < STATIONS.length) G.mgr.push(false);
 while (G.buf.length < STATIONS.length - 1) G.buf.push(0);
 while (G.pile.length < STATIONS.length - 1) G.pile.push(0);
+
+// Açılıştaki hâl, yedek zincirinin ilk halkası: ilk kayıt bunu yedeğe
+// iter, yani oturum içindeki ilk yazmada bile geri dönülecek bir yer var.
+try { sonMetin = JSON.stringify(G); } catch {}
 
 // Dili kur: kayıtta oyuncunun seçimi varsa o, yoksa cihazın dili.
 dil = (G.dil === 0 || G.dil === 1) ? G.dil
@@ -2405,11 +2510,11 @@ function dispatchBay() {
 // editor: there is no environment map in this scene, so a metal surface has
 // nothing to reflect and renders near black.
 const TIERS = [
-  { col: '#8a929c', rough: 0.62, metal: 0.10, name: 'iron' },
-  { col: '#a6b0bb', rough: 0.50, metal: 0.16, name: 'steel' },
-  { col: '#c4cdd8', rough: 0.38, metal: 0.22, name: 'polished steel' },
-  { col: '#e4ebf3', rough: 0.26, metal: 0.28, name: 'chrome' },
-  { col: '#f0c85a', rough: 0.30, metal: 0.30, name: 'gold' },
+  { col: '#8a929c', rough: 0.62, metal: 0.10, name: 'iron',           adT: 'tier0' },
+  { col: '#a6b0bb', rough: 0.50, metal: 0.16, name: 'steel',          adT: 'tier1' },
+  { col: '#c4cdd8', rough: 0.38, metal: 0.22, name: 'polished steel', adT: 'tier2' },
+  { col: '#e4ebf3', rough: 0.26, metal: 0.28, name: 'chrome',         adT: 'tier3' },
+  { col: '#f0c85a', rough: 0.30, metal: 0.30, name: 'gold',           adT: 'tier4' },
 ];
 // Nine milestones, five fittings: a re-fit every second milestone, and the
 // last one is where a long-running branch ends up rather than a place
@@ -3592,6 +3697,16 @@ function refreshBoost() {
 
 // floating "+money" over the dispatch bay, so income has a place it comes from
 const floatEl = $('float');
+// Kayıtla ilgili uyarı. `floatCash` bir saniyede kayboluyor ve bu
+// mesajların okunması gerekiyor.
+function kayitUyar(k) {
+  const el = $('kayitBar');
+  if (!el) return;
+  el.textContent = T(k);
+  el.hidden = false;
+  el.onclick = () => { el.hidden = true; };
+}
+
 function floatCash(text) {
   const d = document.createElement('div');
   d.className = 'fl';
@@ -4061,7 +4176,7 @@ function tick(now) {
     CRATE_MAT[2].color.set(pr.body);
     for (const c of bays[2].cars) c.m.scale.setScalar(pr.big);
     ping(560 + tier * 80, 0.2);
-    if (tier > 0) floatCash(T('unlocked', T(pr.nameT).toUpperCase()));
+    if (tier > 0) floatCash(T('unlocked', buyuk(T(pr.nameT))));
   }
 
   // bays reveal their extra units as the station levels up
@@ -4078,15 +4193,20 @@ function tick(now) {
     if (tr === shownTiers[i]) continue;
     const first = shownTiers[i] < 0;
     shownTiers[i] = tr;
-    const T = TIERS[tr];
+    // Yerel ad `T` idi ve çeviri işlevini gölgeliyordu: `T.name` bir
+    // kademenin adı değil, işlevin kendi adıydı — ve aşağıdaki satır
+    // İngilizce istasyon kimliğiyle Türkçe bir kelimeyi yan yana
+    // yazıyordu ("STAMPING: STEEL DONANIM"), iki dilde de yanlış.
+    const kad = TIERS[tr];
     for (const m of bays[i].tierMats) {
-      m.color.set(T.col);
-      m.roughness = T.rough;
-      m.metalness = T.metal;
+      m.color.set(kad.col);
+      m.roughness = kad.rough;
+      m.metalness = kad.metal;
     }
     if (!first && tr > 0) {
       ping(700 + tr * 60, 0.18);
-      floatCash(`${STATIONS[i].icon} ${STATIONS[i].name.toUpperCase()}: ${T.name.toUpperCase()} DONANIM`);
+      floatCash(T('tierFit', STATIONS[i].icon,
+                  buyuk(T(STATIONS[i].nameT)), buyuk(T(kad.adT))));
     }
   }
 
@@ -4295,7 +4415,13 @@ window.jeBuyManager = i => { buyManager(i); return G.mgr[i]; };
 // Müdürü geri al. "Tek istasyonun müdürü eksik" durumunu kurmanın
 // başka yolu yok: `jeWipeProgress` hepsini birden siliyor.
 window.jeTakeManager = i => { G.mgr[i] = false; refreshPanel(); return G.mgr[i]; };
-window.jeReset = () => { wiped = true; localStorage.removeItem(KEY); location.reload(); };
+// Üç yuvayı da sil: yalnızca anayı silmek, yenilemede yedekten dönmek
+// demekti — yani sıfırlama artık sıfırlamıyordu.
+window.jeReset = () => {
+  wiped = true;
+  for (const k of [KEY, KEY_YEDEK, KEY_BOZUK]) localStorage.removeItem(k);
+  location.reload();
+};
 // Sayfayı yeniden yüklemeden **her şeyi** sıfırla.
 //
 // `jeSoftReset` parayı ve tamponları sıfırlıyor ama `totalEarned`'ı,
@@ -4371,6 +4497,27 @@ window.jeRefresh = () => { refreshPanel(); return window.jeProbe(); };
 window.jeGoals = () => GOALS.map(g => ({
   id: g.id, at: +g.at().toFixed(0), need: g.need,
   done: goalDone(g), taken: goalTaken(g), pay: +goalPay(g).toFixed(0) }));
+window.jeSave = () => { saveNow(); return true; };
+// Kaydı durdur. Testin bozuk bir kayıt kurup sayfayı yenilemesi gerekiyor
+// ve yenileme `pagehide` ile sağlam hâli geri yazıyor — yani bozulma,
+// ölçülmeden önce kendiliğinden onarılıyordu.
+window.jeKayitDur = () => { wiped = true; return true; };
+window.jeKayit2 = () => ({
+  durum: kayitDurum, yazamadi: kayitYazamadi,
+  barAcik: !$('kayitBar').hidden, barYazi: $('kayitBar').textContent,
+  anaVar: localStorage.getItem(KEY) !== null,
+  yedekVar: localStorage.getItem(KEY_YEDEK) !== null,
+  bozukVar: localStorage.getItem(KEY_BOZUK) !== null,
+  gecerli: kayitGecerli(JSON.parse(localStorage.getItem(KEY) || 'null')),
+});
+// Yazmayı bozmanın yolu: kotayı doldurmak yerine `setItem`'ı patlat.
+window.jeKayitBoz = () => {
+  const esk = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = () => { throw new Error('QuotaExceededError'); };
+  saveNow();
+  localStorage.setItem = esk;
+  return window.jeKayit2();
+};
 window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().toFixed(0) });
 // Günlük ödül ekranını aç. Gerçek yolu bir gün beklemek; test bunu
 // bekleyemez ve ekranı elle kurarsa kendi kurduğunu ölçmüş olur.
@@ -4633,6 +4780,9 @@ notifInit();
 gamesInit();
 iapInit();
 checkDaily();
+// Kayıtla ilgili bir şey olduysa en sona: dönüş ve günlük ödül ekranları
+// kurulduktan sonra, şerit onların üstünde dursun.
+if (kayitDurum) kayitUyar(kayitDurum);
 refreshPanel();
 refreshGoalDot();
 requestAnimationFrame(tick);
