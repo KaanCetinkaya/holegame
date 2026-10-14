@@ -287,7 +287,14 @@
     width: 100%; height: 100%; border-radius: 12px;
     display: block; object-fit: cover;
   }
-  .st .ico.hired { background: none; padding: 0; overflow: hidden; }
+  /* `overflow: hidden` buradan kaldırıldı. Portreyi yuvarlatmak için
+     konmuştu ama resmin kendi `border-radius`'u zaten yuvarlatıyor —
+     kestiği tek şey seviye rozetiydi: rozet kutunun dışında duruyor
+     (`right:-4px; bottom:-4px`) ve müdür işe alınır alınmaz sayının son
+     hanesi gidiyordu. "123" ekranda "12" artı bir dilim olarak
+     duruyordu, dört satırın dördünde birden, ve mağaza karelerinde de
+     öyle. */
+  .st .ico.hired { background: none; padding: 0; }
   /* İşe alma düğmesindeki küçük portre. */
   .mgr .mface {
     width: 26px; height: 26px; border-radius: 7px;
@@ -4788,6 +4795,15 @@ window.jeMgrKimlik = () => MGRS.map((m, i) => ({
   meta: rows[i].meta.textContent,
 }));
 window.jeTutSkip = () => { G.tut = TUT.length; tutGuncelle(); return G.tut; };
+// Tek seferlik ipuçlarını görülmüş say ve şeridi kapat. `jeTutSkip`
+// bunu yapmıyor, bilerek: öğreticiyi bitirmiş bir oyuncu nezaret
+// ipucunu **görmeli**. Ama mağaza karesi için o kutu, aramada görünen
+// tek karenin ortasına oturan dört satırlık siyah bir dikdörtgen.
+window.jeTipSus = () => {
+  G.tipMgr = 1; G.tipNez = 1;
+  $('tut').classList.remove('show');
+  return true;
+};
 window.jeTut = () => ({
   adim: G.tut, id: G.tut < TUT.length ? TUT[G.tut].id : 'bitti',
   gorunur: $('tut').classList.contains('show'),

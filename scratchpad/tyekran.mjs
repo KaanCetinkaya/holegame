@@ -121,6 +121,42 @@ for (const dil of ['tr-TR', 'en-US']) {
       // yani müdür düğmesi hiç görünmüyordu. Oyuncunun ilk oturumunda
       // ise o düğme orada duruyor ve "TUT DERYA ×2 · +%25 hız" yazıyor:
       // ad sütununu otuz piksele indirip "Döl", "Mo", "S" bırakıyordu.
+      // 3d. Seviye rozeti **tam** görünüyor mu?
+      //
+      // Rozet simge kutusunun dışında duruyor (`right:-4px`). Müdür işe
+      // alınınca kutuya `overflow:hidden` geliyordu — portreyi
+      // yuvarlatmak için, ama kestiği şey rozetti: "123" ekranda "12"
+      // artı bir dilim kalıyordu, dört satırın dördünde, ve mağaza
+      // karelerinde de öyle. Kırpılma `getBoundingClientRect` ile
+      // görünmüyor; sağ kenarın bir piksel içine dokunup oranın hâlâ
+      // rozet olup olmadığına bakılıyor.
+      out.rozet = [];
+      {
+        // 360x640'ta dördüncü satır katlamanın altında kalıyor ve panel
+        // kaydırılabilir; ölçüm önce satırı görünür alana getiriyor.
+        // Getirmeden bakmak, kaydırarak çözülen bir şeyi hata saymaktı.
+        // Kırpma yalnızca müdür alınınca oluyordu: `.hired` sınıfı
+        // simge kutusuna `overflow:hidden` koyuyor. Bu ölçüm bilerek
+        // müdürsüz bakıyor, yani rozeti o hâlde yoklamak hatanın
+        // olmadığı durumu ölçmek olurdu — bu depoda birkaç kez olan şey.
+        // Dördü işe alınıp ölçülüyor, sonra geri alınıyor.
+        const vardi = window.jeProbe().mgr.slice();
+        for (let i = 0; i < 4; i++) window.jeGiveManager(i);
+        window.jeRefresh();
+        const panel = document.getElementById('panel');
+        const eski = panel.scrollTop;
+        for (const el of document.querySelectorAll('.st .ico b')) {
+          el.closest('.st').scrollIntoView({ block: 'nearest' });
+          const r = el.getBoundingClientRect();
+          if (r.width < 1) continue;
+          const ust = document.elementFromPoint(r.right - 2, r.top + r.height / 2);
+          if (ust !== el && !el.contains(ust))
+            out.rozet.push(`${el.textContent} sağ kenarı ${ust ? ust.className || ust.tagName : 'görünmüyor'}`);
+        }
+        panel.scrollTop = eski;
+        for (let i = 0; i < 4; i++) if (!vardi[i]) window.jeTakeManager(i);
+        window.jeRefresh();
+      }
       out.adKirpik = [];
       for (const el of document.querySelectorAll('.st .nm')) {
         if (el.scrollWidth > el.clientWidth + 1)
@@ -240,6 +276,8 @@ for (const dil of ['tr-TR', 'en-US']) {
        d.kirpik.slice(0, 1).join(''));
     ok(d.adKirpik.length === 0, `${b.ad}: istasyon adı kırpılmıyor`,
        d.adKirpik.slice(0, 1).join(''));
+    ok(d.rozet.length === 0, `${b.ad}: seviye rozeti kırpılmıyor`,
+       d.rozet.slice(0, 1).join(''));
     ok(d.kucuk.length === 0, `${b.ad}: dokunma hedefleri parmak boyutunda`, d.kucuk.slice(0, 1).join(''));
     ok(gorunenSatir === 4, `${b.ad}: dört istasyon da görünür`, `${gorunenSatir}/4`);
     ok(menuOk, `${b.ad}: menünün altına erişiliyor`,

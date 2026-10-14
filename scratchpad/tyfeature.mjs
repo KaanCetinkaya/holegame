@@ -41,6 +41,9 @@ await pg.evaluate(() => {
   // görüntülerinde aynı hata altı kareyi birinci seviyede bıraktı ve
   // kimse bakmamıştı; aynısı bu görselde de vardı.
   window.jeAutoCarry(true);
+  // Tek seferlik ipuçları: müdürler işe alınınca nezaret ipucu şeridi
+  // açılıyor ve kareyi ortadan kesiyor.
+  window.jeTipSus();
   for (let k = 0; k < 30; k++) {
     window.jeRun(60);
     for (let i = 0; i < 4; i++) window.jeBuyManager(i);
@@ -48,7 +51,7 @@ await pg.evaluate(() => {
   }
   // Öne çıkan grafik oyunun arayüzünü değil, yerini göstermeli: panel ve
   // rozetler burada yalnızca yazının önünü kapatıyor.
-  for (const id of ['panel', 'top', 'boostBtn', 'goalDot', 'float']) {
+  for (const id of ['panel', 'top', 'boostBtn', 'goalDot', 'float', 'tut']) {
     const e = document.getElementById(id);
     if (e) e.style.display = 'none';
   }

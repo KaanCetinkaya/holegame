@@ -96,7 +96,7 @@ async function shoot(dir, w, h, scale) {
     // Öğretici şeridi de öyle: taze kayıtta birinci adımda duruyor ve
     // fabrikanın üstünü kapatıyor. Mağazadaki kare oyunu göstermeli, ilk
     // açılış ipucunu değil.
-    await pg.evaluate(() => window.jeTutSkip());
+    await pg.evaluate(() => { window.jeTutSkip(); window.jeTipSus(); });
     // Dakika dakika oynanmış bir fabrika. `jeAutoCarry` oyuncunun elle
     // taşıdığı evreyi taklit ediyor ve **bu satır olmadan kareler boş
     // çıkıyordu**: müdürsüz bir istasyonun malını işçi taşıyor, işçi de
