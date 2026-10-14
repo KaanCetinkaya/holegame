@@ -247,6 +247,14 @@
     font: inherit; cursor: pointer; width: 100%;
   }
   .prod.owned { opacity: .55; cursor: default; }
+  /* Satılamayan satır: Play ürünü tanımıyor ya da mağazaya
+     ulaşılamıyor. Dokunulabilir görünmemesi gerekiyor. */
+  .prod.off { opacity: .4; cursor: default; }
+  .prod.off .ppr { color: #cfd6dd; font-weight: 700; font-size: 12px; }
+  #shopNote {
+    font-size: 12px; line-height: 1.4; opacity: .8; text-align: center;
+    padding: 2px 6px 6px;
+  }
   .prod .pico { font-size: 26px; width: 34px; text-align: center; }
   .prod .pmid { flex: 1; min-width: 0; }
   .prod .pnm { font-weight: 900; font-size: 15px; }
@@ -574,6 +582,9 @@ const METIN = {
   restored:  ['RESTORED', 'GERİ YÜKLENDİ'],
   nothingToRestore: ['NOTHING TO RESTORE', 'GERİ YÜKLENECEK ŞEY YOK'],
   owned:     ['OWNED', 'ALINDI'],
+  skuOff:    ['UNAVAILABLE', 'KAPALI'],
+  shopOff:   ['The store could not be reached. Check your connection and try again later — nothing was charged.',
+              'Mağazaya ulaşılamadı. Bağlantını kontrol edip sonra tekrar dene — hiçbir ücret alınmadı.'],
   // Prestij
   prestige:  ['New branch 🏭', 'Yeni şube 🏭'],
   prestigeP: ['You hand this factory on: every station resets and the cash resets. In return you earn <b>branch points</b> — they are permanent and they are spent on the <b>Research</b> screen.',
@@ -1434,7 +1445,15 @@ function offlineCatchUp() {
 // Ürün kimliklerini biz seçiyoruz; Play Console'da **tam bu kimliklerle**
 // açılmaları gerekiyor.
 const _Purchases = _Cap && _Cap.Plugins ? _Cap.Plugins.NativePurchases : null;
-const IAP_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Purchases);
+// `IAP_NATIVE` cihazda mıyız, `IAP_ON` cihazda **ve** eklenti yüklü mü.
+// İkisini ayırmanın sebebi: `purchase()` tarayıcıda true dönüyor ki
+// akış yürünebilsin, ama bu "eklenti yok" ile "tarayıcı" aynı sayılırsa
+// eklentisi derlemenin dışında kalmış bir APK üç ürünü de bedava
+// dağıtır. Capacitor eklentileri `node_modules`'tan okunuyor ve
+// kurulmamış bir eklenti derlemeyi bozmadan sessizce dışarıda kalıyor —
+// yani bu, olmayacak bir kaza değil, bir kere olmuş bir kaza.
+let IAP_NATIVE = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform());
+let IAP_ON = !!(IAP_NATIVE && _Purchases);
 
 const iap = JSON.parse(localStorage.getItem('tycoon_iap') || '{}');
 function saveIap() { localStorage.setItem('tycoon_iap', JSON.stringify(iap)); }
@@ -1507,7 +1526,9 @@ function applyProduct(p, payout) {
 }
 
 async function purchase(p) {
-  if (!IAP_ON) return true;        // tarayıcı: akış yürünebilsin
+  // Tarayıcıda akış yürünebilsin; cihazda eklenti yoksa hiçbir şey
+  // verilmiyor.
+  if (!IAP_ON) return !IAP_NATIVE;
   let tx;
   try {
     tx = await _Purchases.purchaseProduct({ productIdentifier: p.id, productType: 'inapp' });
@@ -1567,18 +1588,32 @@ async function syncPurchases() {
   } catch (e) { return false; }
 }
 
-// Play'den gerçek fiyatlar. Alınamazsa koddaki yazılı fiyat kalıyor —
-// yanlış para biriminde bir fiyat, hiç fiyat olmamasından iyi.
+// Play'den gerçek fiyatlar — ve asıl önemlisi, Play'in o ürünü **tanıyıp
+// tanımadığı**. Konsolda kimlikler açılmadan, ülke listesinde yokken ya
+// da internet yokken `getProducts` boş dönüyor; o hâlde satın alma
+// çağrısı hata veriyor ve oyuncunun dokunuşu hiçbir şey yapmıyor.
+// Tanınmayan ürün satırı artık satılabilir görünmüyor (`p.canli`).
+//
+// Fiyat da Play'den geliyorsa oradan: koddaki `$2.99` yazılı fiyat
+// yalnızca hiç cevap alınamadığında kalıyor ve zaten o satır da kapalı
+// gösteriliyor, çünkü yanlış para biriminde bir fiyat, satın alınabilir
+// görünen ama alınamayan bir satırdan daha kötü.
 async function loadPrices() {
   if (!IAP_ON) return;
   try {
     const r = await _Purchases.getProducts({ productIdentifiers: SKUS.map(p => p.id) });
     for (const pr of (r && r.products) || []) {
       const p = SKU_BY_ID[pr.identifier || pr.productId];
-      if (p && pr.priceString) p.price = pr.priceString;
+      if (!p) continue;
+      p.canli = true;
+      if (pr.priceString) p.price = pr.priceString;
     }
   } catch (e) { }
 }
+
+// Satır satın alınabilir mi? Tarayıcıda hepsi (akış yürünsün), cihazda
+// yalnızca Play'in tanıdığı ürünler.
+function skuSatilabilir(p) { return IAP_ON ? !!p.canli : !IAP_NATIVE; }
 
 async function iapInit() {
   if (!IAP_ON) return;
@@ -3026,18 +3061,21 @@ $('boardBtn').onclick = () => openLeaderboard();
 function renderShop() {
   const list = $('shopList');
   list.innerHTML = '';
+  let kapali = 0;
   for (const p of SKUS) {
     const owned = !!(p.key && iap[p.key]);
+    const off = !owned && !skuSatilabilir(p);
+    if (off) kapali++;
     const b = document.createElement('button');
-    b.className = 'prod' + (owned ? ' owned' : '');
+    b.className = 'prod' + (owned ? ' owned' : '') + (off ? ' off' : '');
     b.innerHTML =
       `<span class="pico">${p.icon}</span>` +
       `<span class="pmid"><span class="pnm">${T(p.nameT)}</span>` +
       `<div class="pds">${T(p.descT)}</div></span>` +
-      `<span class="ppr">${owned ? T('owned') : p.price}</span>`;
-    b.disabled = owned;
+      `<span class="ppr">${owned ? T('owned') : off ? T('skuOff') : p.price}</span>`;
+    b.disabled = owned || off;
     b.onclick = async () => {
-      if (owned) return;
+      if (owned || off) return;
       b.disabled = true;
       // Tarayıcıda `purchase` true dönüyor ki akış yürünebilsin; cihazda
       // yalnızca Play onayladıysa true.
@@ -3045,6 +3083,16 @@ function renderShop() {
       renderShop();
     };
     list.appendChild(b);
+  }
+  // Kapalı satır varsa sebebini yaz — hepsi kapalı olmasa da. Birini
+  // almış oyuncu diğer ikisinin neden tıklanmadığını daha da çok merak
+  // ediyor. Tıklanmayan bir mağaza ekranı, oyuncunun "oyun bozuk" diye
+  // kapattığı ekrandır.
+  if (kapali > 0) {
+    const n = document.createElement('div');
+    n.id = 'shopNote';
+    n.textContent = T('shopOff');
+    list.appendChild(n);
   }
 }
 $('shopBtn').onclick = () => { renderShop(); $('shop').classList.add('show'); };
@@ -4320,15 +4368,32 @@ window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().
 // Öğreticiyi bitmiş say. Dört adımı tek tek oynatmak başka testlerin
 // işi; müdür ipucunu ölçen testin ihtiyacı yalnızca "öğretici bitti".
 window.jeShop = () => ({
-  acik: IAP_ON,
+  acik: IAP_ON, cihaz: IAP_NATIVE,
   urunler: SKUS.map(p => ({
     id: p.id, ad: T(p.nameT), fiyat: p.price,
     kalici: !isConsumable(p), sahip: !!(p.key && iap[p.key]),
+    satilabilir: skuSatilabilir(p),
   })),
   carpan: paidMult(),
   birimFiyat: +unitPrice().toFixed(3),
-  satir: $('shopList').children.length,
+  satir: $('shopList').querySelectorAll('.prod').length,
+  kapaliSatir: $('shopList').querySelectorAll('.prod.off').length,
+  pasif: [...$('shopList').querySelectorAll('.prod')].filter(b => b.disabled).length,
+  not: $('shopNote') ? $('shopNote').textContent : null,
 });
+// Cihazdaki üç hâli tarayıcıda yürüyebilmek için. Mağaza ekranının
+// bozulduğu yer cihaz, ve orada ölçüm yapılamıyor.
+//   tarayici  — eklenti yok, cihaz değil (geliştirme)
+//   eklentisiz— cihaz, ama eklenti derlemenin dışında kalmış
+//   urunsuz   — cihaz ve eklenti var, Play ürünleri tanımıyor
+//   hazir     — her şey yerinde
+window.jeIapSim = mod => {
+  IAP_NATIVE = mod !== 'tarayici';
+  IAP_ON = mod === 'urunsuz' || mod === 'hazir';
+  for (const p of SKUS) p.canli = mod === 'hazir';
+  renderShop();
+  return window.jeShop();
+};
 window.jeBuyProduct = async id => {
   const p = SKU_BY_ID[id];
   if (!p) return null;
