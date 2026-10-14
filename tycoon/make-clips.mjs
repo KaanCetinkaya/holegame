@@ -131,16 +131,70 @@ const KLIPLER = [
     kare: async (pg, f, toplam) => pg.evaluate(({ f, toplam }) => {
       window.jeRun(0.5);
       // Beş yer, klibe eşit bölünmüş.
-      const yer = Math.min(4, Math.floor(f / (toplam / 5)));
+      // On yer var; sekiz saniyeye hepsi sığmıyor, altısı sığıyor.
+      const yer = Math.min(5, Math.floor(f / (toplam / 6)));
       if (yer !== window.jeYer().sube) window.jeSetBranch(yer);
       return { yer, gok: window.jeYer().gok };
     }, { f, toplam }),
     kanit: (s, W, H) => {
       const gokler = [...new Set(s.map(x => x.gok))];
       return {
-        ok: gokler.length >= 4,
+        ok: gokler.length >= 5,
         yazi: `${gokler.length} ayrı gökyüzü: ${gokler.join(' ')}`,
-        neden: `şube klibi yer değiştirmiyor: yalnızca ${gokler.length} ayrı gökyüzü görüldü (en az 4)`,
+        neden: `şube klibi yer değiştirmiyor: yalnızca ${gokler.length} ayrı gökyüzü görüldü (en az 5)`,
+      };
+    },
+  },
+  {
+    id: 'nezaret',
+    ad: 'İşçiyi darboğaza park et',
+    // İşçinin oyunun tamamında bir işi olmasını sağlayan şey. Klip
+    // bunu tek cümlede anlatıyor: figür yürüyor, bir istasyonun
+    // başında duruyor, o satırın hızı zıplıyor.
+    kur: async pg => pg.evaluate(() => {
+      window.jeWipeProgress();
+      window.jeTutSkip();
+      window.jeGive(1e9);
+      for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 70); window.jeGiveManager(i); }
+      // Belirgin bir darboğaz: Montaj geride. Nezaret ancak tek ve
+      // belli bir darboğaz varken kazandırıyor — ölçülerek bulundu.
+      window.jeSetLevel(2, 34);
+      window.jeRefresh();
+      window.jeCam(15, 0.04);
+      // Başlangıç noktası iki kez ölçülerek bulundu. Kamera köşeden
+      // bakıyor, yani z'de geriye gitmek ekranda **sağa** kayıyor:
+      // 1. bölme (z=-8.5) panelin altında kalıyor (y=572), 3. bölme
+      // (z=-21.5) ekranın sağından taşıyor (x=549, ekran 540). İkisinin
+      // arası hem kadrajda hem panelin üstünde.
+      window.jeTeleport(1.5, -11.0);
+    }),
+    kare: async (pg, f, toplam) => pg.evaluate(({ f, toplam }) => {
+      document.getElementById('tut').classList.remove('show');
+      window.jeRun(0.3);
+      // İlk üçte bir yürüyüş, gerisi darboğazın başında.
+      const hedefZ = f < toplam * 0.34 ? -11.0 : window.jeBayZ()[2];
+      const p = window.jeProbe();
+      window.jeMove(-p.wx * 0.6, Math.max(-1, Math.min(1, (hedefZ - p.wz) * 0.8)));
+      window.jeStep(1 / 30);
+      window.jeRefresh();
+      const q = window.jeProbe();
+      return { nez: window.jeNezaret(), hiz: q.income, wz: q.wz,
+               ekran: window.jeIzdusum(q.wx, 1.2, q.wz) };
+    }, { f, toplam }),
+    kanit: (s, W, H) => {
+      const once = s.slice(0, 20).reduce((a, x) => a + x.hiz, 0) / 20;
+      const sonra = s.slice(-20).reduce((a, x) => a + x.hiz, 0) / 20;
+      const nezKare = s.filter(x => x.nez === 2).length;
+      const gorunur = s.filter(x => x.ekran.y > 60 && x.ekran.y < H * 0.55 &&
+                                    x.ekran.x > 20 && x.ekran.x < W - 20).length;
+      return {
+        ok: nezKare >= s.length * 0.4 && sonra > once * 1.15 &&
+            gorunur >= s.length * 0.8,
+        yazi: `işçi ${gorunur}/${s.length} karede kadrajda · ` +
+              `${nezKare} karede darboğazın başında · ` +
+              `hız ${once.toFixed(0)} → ${sonra.toFixed(0)} (×${(sonra / once).toFixed(2)})`,
+        neden: `nezaret klibi işini yapmıyor: kadrajda ${gorunur}/${s.length}, ` +
+               `başında ${nezKare}, hız ×${(sonra / once).toFixed(2)}`,
       };
     },
   },
