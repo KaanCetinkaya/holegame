@@ -624,6 +624,7 @@ const METIN = {
   uM:        ['m', 'dk'],
   uS:        ['s', 'sn'],
   skuOff:    ['UNAVAILABLE', 'KAPALI'],
+  alreadyYours: ['ALREADY YOURS', 'ZATEN SENDE'],
   shopOff:   ['The store could not be reached. Check your connection and try again later — nothing was charged.',
               'Mağazaya ulaşılamadı. Bağlantını kontrol edip sonra tekrar dene — hiçbir ücret alınmadı.'],
   // Prestij
@@ -1626,6 +1627,12 @@ const SKUS = [
     id: 'motorworks_managers', key: 'allmgr', icon: '👔',
     nameT: 'sku1', descT: 'sku1d',
     price: '$4.99',
+    // Dördünü zaten işe almış oyuncuya satılacak bir şey kalmıyor.
+    // Müdürler devirde korunuyor, yani bu bir kere olunca kalıcı: ürün
+    // o andan sonra parası alınıp karşılığında hiçbir şey verilmeyen
+    // bir satır oluyor. Para alınan bir şeyde yapılabilecek en kötü
+    // ikinci şey (birincisi adının onda birini ödemekti).
+    gereksiz: () => G.mgr.every(Boolean),
     entitle() { iap.allmgr = true; G.mgr = G.mgr.map(() => true); saveNow(); },
   },
   {
@@ -1671,6 +1678,10 @@ function applyProduct(p, payout) {
 }
 
 async function purchase(p) {
+  // Verilecek bir şeyi kalmamış ürün hiçbir yerden satılmıyor — düğme
+  // zaten kapalı ama `jeBuyProduct` gibi başka bir yol da buradan
+  // geçiyor ve para alınan bir şeyde tek kapı bırakmak doğru.
+  if (p.gereksiz && p.gereksiz()) return false;
   // Tarayıcıda akış yürünebilsin; cihazda eklenti yoksa hiçbir şey
   // verilmiyor.
   if (!IAP_ON) return !IAP_NATIVE;
@@ -3210,18 +3221,23 @@ function renderShop() {
   let kapali = 0;
   for (const p of SKUS) {
     const owned = !!(p.key && iap[p.key]);
-    const off = !owned && !skuSatilabilir(p);
+    // "Zaten sende" kapalı sayılmıyor: mağazaya ulaşılamadığı için
+    // değil, verilecek bir şey kalmadığı için satılmıyor, ve alttaki
+    // "bağlantını kontrol et" notu burada yanlış olurdu.
+    const bos = !owned && !!p.gereksiz && p.gereksiz();
+    const off = !owned && !bos && !skuSatilabilir(p);
     if (off) kapali++;
     const b = document.createElement('button');
-    b.className = 'prod' + (owned ? ' owned' : '') + (off ? ' off' : '');
+    b.className = 'prod' + (owned || bos ? ' owned' : '') + (off ? ' off' : '');
     b.innerHTML =
       `<span class="pico">${p.icon}</span>` +
       `<span class="pmid"><span class="pnm">${T(p.nameT)}</span>` +
       `<div class="pds">${T(p.descT)}</div></span>` +
-      `<span class="ppr">${owned ? T('owned') : off ? T('skuOff') : p.price}</span>`;
-    b.disabled = owned || off;
+      `<span class="ppr">${owned ? T('owned') : bos ? T('alreadyYours')
+                                 : off ? T('skuOff') : p.price}</span>`;
+    b.disabled = owned || off || bos;
     b.onclick = async () => {
-      if (owned || off) return;
+      if (owned || off || bos) return;
       b.disabled = true;
       // Tarayıcıda `purchase` true dönüyor ki akış yürünebilsin; cihazda
       // yalnızca Play onayladıysa true.
@@ -4604,6 +4620,7 @@ window.jeShop = () => ({
     id: p.id, ad: T(p.nameT), fiyat: p.price,
     kalici: !isConsumable(p), sahip: !!(p.key && iap[p.key]),
     satilabilir: skuSatilabilir(p),
+    gereksiz: !!(p.gereksiz && p.gereksiz()),
   })),
   carpan: paidMult(),
   birimFiyat: +unitPrice().toFixed(3),

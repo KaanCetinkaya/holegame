@@ -144,7 +144,43 @@ ok(metin.en && metin.tr && metin.en !== metin.tr, 'iki dilde ayrı metin');
 ok(!/[şçğıİöü]/.test(metin.en || 'ş'), 'İngilizce metinde Türkçe harf yok');
 ok(/[şçğıİöü]/.test(metin.tr || ''), 'Türkçe metin gerçekten Türkçe');
 
-console.log('\n6) Not ekrana sığıyor');
+console.log('\n6) Verecek şeyi kalmamış ürün');
+// "Dört müdür" ürünü, dördünü zaten işe almış oyuncuya satılmaya devam
+// ediyordu: para alınıyor, karşılığında hiçbir şey verilmiyor. Müdürler
+// devirde korunduğu için bu bir kere olunca kalıcı.
+const bos = await pg.evaluate(async () => {
+  const kur = kac => {
+    window.jeWipeProgress(); window.jeTutSkip();
+    window.jeIapSim('tarayici');
+    window.jeGive(1e12);
+    for (let i = 0; i < kac; i++) window.jeGiveManager(i);
+    document.getElementById('shopBtn').click();
+    window.jeIapSim('tarayici');            // yeniden çiz
+    const s = window.jeShop();
+    const u = s.urunler.find(x => x.id === 'motorworks_managers');
+    const i = s.urunler.findIndex(x => x.id === 'motorworks_managers');
+    const b = document.querySelectorAll('#shopList .prod')[i];
+    return { gereksiz: u.gereksiz, pasif: b.disabled, sinif: b.className,
+             yazi: b.querySelector('.ppr').textContent, not: s.not };
+  };
+  const uc = kur(3);
+  const dort = kur(4);
+  // Satın almayı zorlamak da işe yaramamalı.
+  const once = window.jeProbe().cash;
+  await window.jeBuyProduct('motorworks_managers');
+  const sahip = window.jeShop().urunler.find(x => x.id === 'motorworks_managers').sahip;
+  return { uc, dort, sahip, kasa: window.jeProbe().cash - once };
+});
+console.log(`     üç müdür : gereksiz ${bos.uc.gereksiz} · "${bos.uc.yazi}" · pasif ${bos.uc.pasif}`);
+console.log(`     dört müdür: gereksiz ${bos.dort.gereksiz} · "${bos.dort.yazi}" · pasif ${bos.dort.pasif}`);
+ok(!bos.uc.gereksiz && !bos.uc.pasif, 'üç müdürle hâlâ satılıyor');
+ok(bos.dort.gereksiz && bos.dort.pasif, 'dördü varken satılmıyor');
+ok(bos.dort.yazi !== bos.uc.yazi && !bos.dort.yazi.includes('$'),
+   'fiyat yerine sebebi yazıyor', bos.dort.yazi);
+ok(bos.dort.not === null, '"bağlantını kontrol et" notu çıkmıyor', String(bos.dort.not));
+ok(!bos.sahip, 'zorla satın alma da reddediliyor');
+
+console.log('\n7) Not ekrana sığıyor');
 const tasma = await pg.evaluate(() => {
   window.jeWipeProgress(); window.jeTutSkip();
   window.jeIapSim('urunsuz');
