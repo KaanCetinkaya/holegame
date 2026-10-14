@@ -151,20 +151,39 @@ const reklam = await pg.evaluate(async () => {
 console.log(`     önce "${reklam.once}"`);
 console.log(`     açılırken "${reklam.sirasinda}"`);
 console.log(`     sonra "${reklam.sonra}"`);
-const trce = s => /[şçğıİöüŞÇĞÖÜ]/.test(s);
-ok(trce(reklam.once), 'başta Türkçe');
-ok(trce(reklam.sirasinda), 'reklam açılırken Türkçe');
-ok(trce(reklam.sonra), 'reklamdan SONRA da Türkçe');
+// "Türkçe mi" sorusu `ş, ç, ğ` harfi arayarak cevaplanmıyor artık:
+// tam Türkçe bir cümlede o harflerden hiçbiri olmayabiliyor
+// ("Bir tamponu 5 kez doldur") ve ölçüm rastgele düşüyordu. Karşılık
+// doğrudan çeviri tablosundan okunuyor.
+const tablo = await pg.evaluate(() => window.jeDil().tablo);
+ok(reklam.once === tablo.watchDouble.tr, 'başta Türkçe', reklam.once);
+ok(reklam.sirasinda === tablo.openingAd.tr || reklam.sirasinda === tablo.watchDouble.tr,
+   'reklam açılırken Türkçe', reklam.sirasinda);
+ok(reklam.sonra === tablo.watchDouble.tr, 'reklamdan SONRA da Türkçe', reklam.sonra);
 
 console.log('\n4) Hedefler ekranının başlıkları');
+// İlk hâli listenin ilk iki `.gt`'sine bakıyordu; ikincisi başlık değil,
+// o günün rastgele seçilmiş ilk göreviydi. Başlıklar simgelerinden
+// bulunuyor ve beklenen metin tablodan geliyor.
 const basliklar = await pg.evaluate(() => {
   window.jeWipeProgress(); window.jeTutSkip();
   window.jeGive(1e9);
   document.getElementById('goalsBtn').onclick();
-  return [...document.querySelectorAll('#goalList .gt')].slice(0, 2).map(e => e.textContent.trim());
+  const soy = s => s.replace(/<[^>]*>/g, '');
+  const t = window.jeDil().tablo;
+  const bul = simge => {
+    const el = [...document.querySelectorAll('#goalList .goal')]
+      .find(e => e.querySelector('.gi') && e.querySelector('.gi').textContent.trim() === simge);
+    return el ? el.querySelector('.gt').textContent.trim() : null;
+  };
+  return { bugun: bul('📅'), hedef: bul('🏆'),
+           beklenenBugun: soy(t.todayHdr.tr), beklenenHedef: soy(t.milesHdr.tr) };
 });
-console.log(`     ${basliklar.join(' | ')}`);
-ok(basliklar.every(trce), 'iki başlık da Türkçe', basliklar.join(' | '));
+console.log(`     "${basliklar.bugun}" | "${basliklar.hedef}"`);
+ok(basliklar.bugun === basliklar.beklenenBugun, 'günlük başlığı Türkçe',
+   `${basliklar.bugun} / ${basliklar.beklenenBugun}`);
+ok(basliklar.hedef === basliklar.beklenenHedef, 'hedefler başlığı Türkçe',
+   `${basliklar.hedef} / ${basliklar.beklenenHedef}`);
 
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;
