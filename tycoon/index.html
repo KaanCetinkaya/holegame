@@ -582,6 +582,15 @@ const METIN = {
   restored:  ['RESTORED', 'GERİ YÜKLENDİ'],
   nothingToRestore: ['NOTHING TO RESTORE', 'GERİ YÜKLENECEK ŞEY YOK'],
   owned:     ['OWNED', 'ALINDI'],
+  todayHdr:  ['<b>Today</b> — resets at midnight', '<b>Bugün</b> — gece yarısı yenileniyor'],
+  milesHdr:  ['<b>Milestones</b>', '<b>Hedefler</b>'],
+  openingAd: ['OPENING AD…', 'REKLAM AÇILIYOR…'],
+  // Süre birimleri. `fmtTime` dönüş ekranında ve hız kutusunun geri
+  // sayımında kullanılıyor; "2h 0m" Türkçe ekranda, "45sn" İngilizce
+  // ekranda duruyordu — ikisi de aynı hatanın iki yönü.
+  uH:        ['h', 'sa'],
+  uM:        ['m', 'dk'],
+  uS:        ['s', 'sn'],
   skuOff:    ['UNAVAILABLE', 'KAPALI'],
   shopOff:   ['The store could not be reached. Check your connection and try again later — nothing was charged.',
               'Mağazaya ulaşılamadı. Bağlantını kontrol edip sonra tekrar dene — hiçbir ücret alınmadı.'],
@@ -769,9 +778,9 @@ function fmt(n) {
 function fmtTime(sec) {
   sec = Math.floor(sec);
   const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
-  if (h) return `${h}h ${m}m`;
-  if (m) return `${m}m ${s}s`;
-  return `${s}s`;
+  if (h) return `${h}${T('uH')} ${m}${T('uM')}`;
+  if (m) return `${m}${T('uM')} ${s}${T('uS')}`;
+  return `${s}${T('uS')}`;
 }
 
 // ---------------------------------------------------------------------
@@ -3218,7 +3227,7 @@ function renderGoals() {
     const bas = document.createElement('div');
     bas.className = 'goal';
     bas.innerHTML = '<div class="gi">📅</div><div class="gm"><div class="gt">' +
-      '<b>Today</b> — resets at midnight</div></div>';
+      T('todayHdr') + '</div></div>';
     list.appendChild(bas);
     for (const id of G.gun.liste) {
       const g = GOREVLER.find(x => x.id === id);
@@ -3252,7 +3261,7 @@ function renderGoals() {
     const ayrac = document.createElement('div');
     ayrac.className = 'goal';
     ayrac.innerHTML = '<div class="gi">🏆</div><div class="gm"><div class="gt">' +
-      '<b>Milestones</b></div></div>';
+      T('milesHdr') + '</div></div>';
     list.appendChild(ayrac);
   }
   for (const g of GOALS) {
@@ -3523,7 +3532,7 @@ $('wDouble').onclick = async () => {
   const btn = $('wDouble');
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'OPENING AD…';
+  btn.textContent = T('openingAd');
   const ok = await showRewarded();
   if (ok && pendingOffline > 0) {
     G.cash += pendingOffline;
@@ -3534,7 +3543,7 @@ $('wDouble').onclick = async () => {
   }
   pendingOffline = 0;
   btn.disabled = false;
-  btn.textContent = '📺 WATCH AD, TAKE ×2';
+  btn.textContent = T('watchDouble');
   $('welcome').classList.remove('show');
 };
 
@@ -3576,7 +3585,7 @@ function refreshBoost() {
   const cool = Math.max(0, (G.boostReady - Date.now()) / 1000);
   el.classList.toggle('on', left > 0);
   el.classList.toggle('cool', left <= 0 && cool > 0);
-  if (left > 0) t.textContent = Math.ceil(left) + 'sn';
+  if (left > 0) t.textContent = Math.ceil(left) + T('uS');
   else if (!ADS_ON && cool > 0) t.textContent = fmtTime(cool);
   else t.textContent = '×' + BOOST_MULT;
 }
@@ -4363,6 +4372,9 @@ window.jeGoals = () => GOALS.map(g => ({
   id: g.id, at: +g.at().toFixed(0), need: g.need,
   done: goalDone(g), taken: goalTaken(g), pay: +goalPay(g).toFixed(0) }));
 window.jeDaily = () => ({ day: G.dayLast, streak: G.dayStreak, pay: +dailyPay().toFixed(0) });
+// Günlük ödül ekranını aç. Gerçek yolu bir gün beklemek; test bunu
+// bekleyemez ve ekranı elle kurarsa kendi kurduğunu ölçmüş olur.
+window.jeGunGoster = () => { G.dayLast = dayNumber() - 1; checkDaily(); return $('daily').classList.contains('show'); };
 // Bildirim: ne zaman ve ne diyecek. Cihaz olmadan ölçülebilsin diye plan
 // dışarıya veriliyor — eklenti tarayıcıda yok, ama kararı veren kod aynı.
 // Öğreticiyi bitmiş say. Dört adımı tek tek oynatmak başka testlerin
