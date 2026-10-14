@@ -58,7 +58,9 @@ for (const dil of ['tr-TR', 'en-US']) {
       document.getElementById('dOk')?.click();
       window.jeTutSkip();
       window.jeGive(1e12);
-      for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 120); window.jeGiveManager(i); }
+      // Müdürler **alınmadan**: ilk oturumun görüntüsü bu, ve müdür
+      // düğmesi satırın yarısını istiyor.
+      for (let i = 0; i < 4; i++) window.jeSetLevel(i, 14);
       window.jeRefresh();
     });
     await pg.waitForTimeout(300);
@@ -102,10 +104,27 @@ for (const dil of ['tr-TR', 'en-US']) {
       // `overflow:hidden` ile üç nokta koyduk, yani taşma artık
       // görünmüyor — ama görünmemesi okunabildiği anlamına gelmiyor.
       // Kırpılan her satır, oyuncuya söylenmeyen bir şey.
+      // İşçiyi bir bölmenin başına koy: nezaret satıra bir parça daha
+      // ekliyor ve en dar hâl bu. İlk hâlinde ölçüm işçiyi uzakta
+      // bırakıyordu ve "DARBOĞAZ · SEN ×1.25" kırpılması gözden kaçtı.
+      window.jeTeleport(0, window.jeBayZ()[0]);
+      window.jeStep(0.1);
+      window.jeRefresh();
       out.kirpik = [];
       for (const el of document.querySelectorAll('.st .meta')) {
         if (el.scrollWidth > el.clientWidth + 1)
           out.kirpik.push(`${el.textContent.trim().slice(0, 40)} (${el.scrollWidth}>${el.clientWidth})`);
+      }
+      // 3c. İstasyon **adı** okunabiliyor mu?
+      //
+      // Bu ölçüm başta dört müdürü de alınmış bir fabrikaya bakıyordu,
+      // yani müdür düğmesi hiç görünmüyordu. Oyuncunun ilk oturumunda
+      // ise o düğme orada duruyor ve "TUT DERYA ×2 · +%25 hız" yazıyor:
+      // ad sütununu otuz piksele indirip "Döl", "Mo", "S" bırakıyordu.
+      out.adKirpik = [];
+      for (const el of document.querySelectorAll('.st .nm')) {
+        if (el.scrollWidth > el.clientWidth + 1)
+          out.adKirpik.push(`${el.textContent.trim()} (${el.scrollWidth}>${el.clientWidth})`);
       }
       // 4. Üst şerit: haplar birbirine girmemeli
       const kutu = id => document.getElementById(id).getBoundingClientRect();
@@ -143,6 +162,7 @@ for (const dil of ['tr-TR', 'en-US']) {
     if (d.kucuk.length) sorun.push(`küçük hedef: ${d.kucuk.slice(0, 2).join(', ')}`);
     if (d.cakisma.length) sorun.push(`çakışma: ${d.cakisma.join(', ')}`);
     if (d.kirpik.length) sorun.push(`kırpılan satır: ${d.kirpik[0]}`);
+    if (d.adKirpik.length) sorun.push(`kırpılan ad: ${d.adKirpik[0]}`);
     const menuOk = d.menu.ic <= d.menu.dis + 1 || d.menu.kaydirilir;
     if (!menuOk) sorun.push(`menüye erişilemiyor ${d.menu.ic}>${d.menu.dis}`);
     const musOk = d.musteri && ['merkez', 'alt', 'ust'].every(k => d.musteri[k] === 'CANVAS');
@@ -157,6 +177,8 @@ for (const dil of ['tr-TR', 'en-US']) {
     ok(d.cakisma.length === 0, `${b.ad}: üst şerit çakışmıyor`, d.cakisma.join(''));
     ok(d.kirpik.length === 0, `${b.ad}: istasyon alt satırı kırpılmıyor`,
        d.kirpik.slice(0, 1).join(''));
+    ok(d.adKirpik.length === 0, `${b.ad}: istasyon adı kırpılmıyor`,
+       d.adKirpik.slice(0, 1).join(''));
     ok(d.kucuk.length === 0, `${b.ad}: dokunma hedefleri parmak boyutunda`, d.kucuk.slice(0, 1).join(''));
     ok(gorunenSatir === 4, `${b.ad}: dört istasyon da görünür`, `${gorunenSatir}/4`);
     ok(menuOk, `${b.ad}: menünün altına erişiliyor`,

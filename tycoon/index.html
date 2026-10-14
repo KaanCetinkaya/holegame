@@ -78,7 +78,12 @@
     background: #ffc44d; color: #3a2a08; font-size: 11px; font-weight: 900;
     border-radius: 8px; padding: 1px 5px; border: 2px solid #1a1d24;
   }
-  .st .mid { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  /* İstasyonun adı, hızı ve alt satırı buraya giriyor ve **her zaman**
+     okunabilir kalmalı. Müdür düğmesi işe alınmadan önce görünüyor ve
+     içinde "TUT DERYA ×2 · +%25 hız" yazıyor; esnemeyen bir düğme bu
+     sütunu otuz piksele indiriyordu ve ekranda "Döl", "Mo", "S" kalıyordu
+     — Kaan'ın telefonunda böyle görüldü. */
+  .st .mid { flex: 1 1 auto; min-width: 104px; overflow: hidden; }
   .st .nm { font-weight: 800; font-size: 15px; white-space: nowrap; }
   /* The bottleneck marker lives on the line below rather than beside the
      name: on a 412px screen the name, a badge and two buttons do not fit,
@@ -99,7 +104,7 @@
   .st .buf i { display: block; height: 100%; width: 0%; background: #7fd66a; border-radius: 999px; }
   .st .buf i.full { background: #e8603c; }
   .buy {
-    flex: 0 0 auto; min-width: 96px; text-align: center; cursor: pointer;
+    flex: 0 1 auto; min-width: 88px; max-width: 42%; text-align: center; cursor: pointer;
     background: linear-gradient(180deg, #ffc44d, #f59321);
     color: #40260a; font-weight: 900; font-size: 14px; line-height: 1.15;
     padding: 9px 10px; border: 0; border-radius: 12px;
@@ -107,7 +112,8 @@
   }
   .buy:active { transform: translateY(2px); box-shadow: 0 2px 0 #c67613; }
   .buy[disabled] { filter: grayscale(.75) brightness(.75); box-shadow: 0 4px 0 #6b5a45; }
-  .buy small { display: block; font-size: 11px; font-weight: 800; opacity: .8; }
+  .buy small { display: block; font-size: 11px; font-weight: 800; opacity: .8;
+               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .buy.mgr { background: linear-gradient(180deg, #9d81f0, #7551e0); color: #fff; box-shadow: 0 4px 0 #5334ad; }
   .buy.mgr:active { box-shadow: 0 2px 0 #5334ad; }
 
@@ -2801,22 +2807,23 @@ function buyManager(i) {
 // yazı, 152 piksellik kutu). Sayı ekrandan ölçülüyor: kutunun genişliği
 // bölü bir parçanın ortalama eni. Eşiği elle yazmak, bu depoda
 // yaşlanan sayılar listesine bir tane daha eklemek olurdu.
-// Ölçüm `refreshPanel`'in içinde, genişlik değiştiğinde. `fit()`
-// içinden çağırmak denendi ve sayfa hiç açılmadı: `fit()` ilk kez
-// `rows` tanımlanmadan önce çalışıyor ve `rows`'a dokunmak ölümcül
-// bölgede hata veriyor.
-const META_PARCA = 55;                 // ölçülen ortalama: üç parça ≈ 161 piksel
-let metaYer = 3, metaOlculen = -1;
-function metaYerOlc() {
-  if (metaOlculen === innerWidth) return;
-  const el = rows[0] && rows[0].meta;
-  if (!el || !el.clientWidth) return;
-  metaOlculen = innerWidth;
-  metaYer = Math.max(2, Math.min(3, Math.floor(el.clientWidth / META_PARCA)));
+// Alt satırı sığdır.
+//
+// Önce bir tahmin denendi: kutunun genişliği bölü "bir parça ortalama
+// 55 piksel". İki kere yanıldı — parçalar eşit uzunlukta değil
+// ("DARBOĞAZ" tek başına 75 piksel), ve kutunun genişliği müdür
+// düğmesi işe alınınca ekran hiç değişmeden büyüyor. Tahmini
+// düzeltmek yerine tahmin atıldı: yazılıyor, taşıyorsa sondan bir
+// parça atılıyor, tekrar bakılıyor. Taşma yoksa tek okuma.
+function metaSigdir(el, bits) {
+  el.innerHTML = bits.join(' · ');
+  while (bits.length > 1 && el.scrollWidth > el.clientWidth + 1) {
+    bits.pop();
+    el.innerHTML = bits.join(' · ');
+  }
 }
 
 function refreshPanel() {
-  metaYerOlc();
   const ch = chain();
   const tutanlar = tierHolders();
   for (let i = 0; i < STATIONS.length; i++) {
@@ -2878,7 +2885,7 @@ function refreshPanel() {
         ? `<b>${MGRS[i].ad}</b> · ${T(MGRS[i].bonusT)}`
         : `<b>${MGRS[i].ad}</b>`);
     }
-    r.meta.innerHTML = bits.slice(0, metaYer).join(' · ');
+    metaSigdir(r.meta, bits);
     if (i < LAST) {
       const p = Math.min(100, (G.buf[i] / roomOf(i)) * 100);
       r.buf.style.width = p + '%';
@@ -2904,8 +2911,11 @@ function refreshPanel() {
       // "HIRE" duruyor: düğmenin ne yaptığını söyleyen tek kelime o.
       // Bonusun kısa hâli yanında; uzunu satırda, işe alındıktan sonra.
       r.mgr.innerHTML = `<img class="mface" src="${mgrYuz(i)}" alt="">` +
-                        `${fmt(mgrCostOf(i))}<small>${T('hire')} ${MGRS[i].ad.toUpperCase()} ` +
-                        `×2 · ${T(MGRS[i].kisaT)}</small>`;
+                        // Düğme kısaldı: içinde "TUT DERYA ×2 · +%25 hız"
+                        // yazıyordu ve satırın yarısını alıp istasyon
+                        // adını otuz piksele indiriyordu. Yetenek zaten
+                        // işe alındıktan sonra alt satırda yazıyor.
+                        `${fmt(mgrCostOf(i))}<small>${T('hire')} ${MGRS[i].ad.toUpperCase()}</small>`;
       r.mgr.disabled = G.cash < mgrCostOf(i);
     }
     // İşe alındıysa istasyonun simgesi yerine portresi duruyor: satıra
