@@ -163,6 +163,33 @@ ok(yuzde(tas.formul, tas.adim) < 3, 'araştırma iki yolu da aynı oranda büyü
 ok(tas.formul > tam.formul * 5, 'araştırma çevrimdışı kazancı gerçekten büyüttü',
    `${tam.formul.toExponential(2)} → ${tas.formul.toExponential(2)}`);
 
+console.log('\n6) Dönüş ekranı gerçek süreyi söylüyor');
+// "Uzak kalınan süre" kesilmiş süreyi yazıyordu: yirmi saat sonra
+// dönen oyuncu "4sa 0dk" görüyordu. Ekranda duran ve gerçekle
+// uyuşmayan bir sayı — ve bu sefer oyuncunun kaybını gizliyordu.
+const ekran = await pg.evaluate(() => {
+  const olc = sn => {
+    window.jeWipeProgress(); window.jeTutSkip();
+    window.jeGive(1e9);
+    for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 40); window.jeGiveManager(i); }
+    const r = window.jeOffline(sn);
+    return { sure: document.getElementById('wTime').textContent,
+             alt: document.getElementById('wSub').textContent,
+             gercek: Math.round(r.gercek), odenen: Math.round(r.gone),
+             kesilen: Math.round(r.kesilen) };
+  };
+  return { kisa: olc(2 * 3600), uzun: olc(20 * 3600) };
+});
+for (const [ad, d] of Object.entries(ekran))
+  console.log(`     ${ad.padEnd(5)} ekranda "${d.sure}" · gerçek ${d.gercek}sn · ödenen ${d.odenen}sn`);
+console.log(`     uzun yokluğun alt satırı: ${ekran.uzun.alt.slice(0, 72)}`);
+ok(ekran.kisa.kesilen === 0, 'tavanın altında kesilen yok');
+ok(/^2/.test(ekran.kisa.sure), 'kısa yoklukta süre doğru', ekran.kisa.sure);
+ok(/^20/.test(ekran.uzun.sure), 'uzun yoklukta GERÇEK süre yazıyor', ekran.uzun.sure);
+ok(ekran.uzun.kesilen > 15 * 3600, 'kesilen süre hesaplanıyor', `${ekran.uzun.kesilen}sn`);
+ok(ekran.uzun.alt !== ekran.kisa.alt && ekran.uzun.alt.length > 30,
+   'alt satır kaybı söylüyor');
+
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;
 await br.close(); srv.close();

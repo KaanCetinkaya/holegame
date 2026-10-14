@@ -523,8 +523,11 @@ const METIN = {
   // Dönüş ekranı
   welcomeSub:  ['The factory kept running while you were away.',
                 'Sen yokken fabrika çalışmaya devam etti.'],
-  welcomeFull: ['The factory holds at most {0} hours of stock, and it is full.',
-                'Fabrika en çok {0} saatlik mal tutuyor ve dolmuş durumda.'],
+  // Tavan artık yalnızca "doldu" demiyor, **ne kadarının gittiğini** de
+  // söylüyor. Kayıp görünmezse depo süresini uzatan araştırmanın neye
+  // yaradığı da görünmüyor.
+  welcomeFull: ['The yard holds {0} of stock and it filled up — <b>{1}</b> of production was lost after that. Research extends the yard.',
+                'Önlük {0} kadar mal tutuyor ve dolmuş — sonrasındaki <b>{1}</b> üretim boşa gitti. Araştırma önlüğü genişletiyor.'],
   welcomeT:     ['Welcome back! 👋', 'Tekrar hoş geldin! 👋'],
   welcomeStopT: ['The line stopped 🛑', 'Hat durdu 🛑'],
   // Tekil ve çoğul ayrı: İngilizcede "Foundry, Stamping, Assembly still
@@ -1480,7 +1483,13 @@ function runFactory(dt) {
 // closed form, and stepping four hours a second at a time gave the same
 // answer for fourteen thousand times the work.
 function offlineCatchUp() {
-  const gone = Math.min(offlineCap(), Math.max(0, (Date.now() - G.seen) / 1000));
+  // `gercek` gerçekten geçen süre, `gone` bunun **ödenen** kısmı. İkisi
+  // ayrı tutuluyor çünkü dönüş ekranı "uzak kalınan süre" diye kesilmiş
+  // olanı yazıyordu: on iki saat sonra dönen oyuncuya "4sa 0dk"
+  // deniyordu. Ekranda duran ve gerçekle uyuşmayan bir sayı, bu depoda
+  // birkaç kez aynı yerden çıktı.
+  const gercek = Math.max(0, (Date.now() - G.seen) / 1000);
+  const gone = Math.min(offlineCap(), gercek);
   if (gone < 60) return null;
   // Yokken yalnızca otomatik zincir dönüyor: müdürü olmayan bir istasyonun
   // malını yerden alacak kimse yok.
@@ -1540,7 +1549,7 @@ function offlineCatchUp() {
   // (`scratchpad/tycevrimdisi.mjs`), yarı hızda da olsa satıyor.
   const duran = [];
   for (let i = 0; i < STATIONS.length - 1; i++) if (!G.mgr[i]) duran.push(i);
-  return { gone, got, duran };
+  return { gone, got, duran, gercek, kesilen: Math.max(0, gercek - gone) };
 }
 
 // ---------------------------------------------------------------------
@@ -4287,15 +4296,17 @@ addEventListener('pagehide', () => { G.seen = Date.now(); saveNow(); scheduleNot
 
 function showWelcome(r) {
   pendingOffline = r.got;         // the same again, if they watch
-  $('wTime').textContent = fmtTime(r.gone);
+  // Gerçek süre yazılıyor; ödenen kısmı zaten "Kazanılan" satırı
+  // söylüyor, ve kaybedilen kısım alt satırda açıkça duruyor.
+  $('wTime').textContent = fmtTime(r.gercek || r.gone);
   $('wCash').textContent = fmt(r.got);
   const durdu = r.got <= 0;
   $('wTitle').textContent = durdu ? T('welcomeStopT') : T('welcomeT');
   $('wSub').innerHTML = durdu
     ? T(r.duran.length === 1 ? 'welcomeStop1' : 'welcomeStop',
         r.duran.map(i => T(STATIONS[i].nameT)).join(', '))
-    : r.gone >= offlineCap()
-      ? T('welcomeFull', Math.round(offlineCap() / 3600))
+    : r.kesilen >= 60
+      ? T('welcomeFull', fmtTime(offlineCap()), fmtTime(r.kesilen))
       : T('welcomeSub');
   // Sıfırın iki katı sıfır: reklam düğmesi kazanç varken görünüyor.
   $('wDouble').style.display = durdu ? 'none' : '';
