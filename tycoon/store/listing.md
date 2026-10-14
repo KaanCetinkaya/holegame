@@ -261,8 +261,11 @@ hata verip duruyor.
 5. `app-version.json` → yükledikten sonra `npm run uploaded:tycoon`
 6. Gizlilik politikası: `docs/privacy-motorworks.html` (8 Ekim'de yazıldı)
    → `https://kaancetinkaya.github.io/holegame/privacy-motorworks.html`
-   Fruit Hole'unki **kullanılmaz**: o sayfa banner, geçiş reklamı ve
-   uygulama içi satın almadan bahsediyor, Motor Works'te üçü de yok.
+   Fruit Hole'unki **kullanılmaz**: o sayfa banner ve geçiş reklamından
+   bahsediyor, Motor Works'te ikisi de yok — yalnızca ödüllü video var.
+   (Bu madde bir ara "uygulama içi satın alma da yok" diyordu; mağaza
+   eklendikten sonra güncellenmemişti. Gizlilik sayfasının kendisinde
+   satın alma bölümü zaten var.)
 
 ## Dil — 8 Ekim 2026
 
