@@ -109,6 +109,42 @@ ok(sureler[sureler.length - 1] <= sureler[0] * 3 + 5,
    'üçüncü koşu birincinin üç katını geçmiyor',
    `${sureler[0].toFixed(1)} → ${sureler[sureler.length - 1].toFixed(1)}`);
 
+console.log('\n5) Devir ekranı ne kaldığını söylüyor');
+// Devretmeden önce sorulan asıl soru "ne kaybediyorum" değil, "ne
+// kalıyor". Ekran yalnızca sıfırlananı yazıyordu, oysa kalan şey
+// müdürler — oyuncunun saatlerce biriktirip aldığı dört düğme. Bunu
+// bilmeyen devretmiyor, devretmeyen oyunun ikinci yarısını görmüyor.
+//
+// Satırın kendisi kadar önemli olan: yazdığı şey **doğru** mu. Bir gün
+// müdürler devirde sıfırlanmaya başlarsa, bu satır yalan söyleyen bir
+// satır olur.
+const ekran = await pg.evaluate(() => {
+  window.jeWipeProgress(); window.jeTutSkip();
+  window.jeGive(1e9);
+  for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 60); window.jeGiveManager(i); }
+  window.jeSetLifetime(1e6);
+  window.jeOffline(86400);
+  document.getElementById('wOk').click();
+  document.getElementById('menuBtn').onclick();
+  document.getElementById('prestigeBtn').onclick();
+  const once = window.jePrestijEkran();
+  document.getElementById('pGo').click();
+  return { once, sonraMudur: window.jeProbe().mgr.filter(Boolean).length,
+           sonraLvl: Math.max(...window.jeProbe().lvl),
+           sonraRes: window.jeRes().lvl.start };
+});
+console.log(`     "${ekran.once.kalan}"`);
+console.log(`     devirden sonra: ${ekran.sonraMudur} müdür · en yüksek seviye ${ekran.sonraLvl}`);
+ok(ekran.once.acik, 'devir ekranı açıldı');
+ok(ekran.once.kalan.includes(String(ekran.once.mudur)),
+   'kaç müdür kaldığını yazıyor', ekran.once.kalan);
+ok(ekran.sonraMudur === ekran.once.mudur,
+   'yazdığı kadar müdür gerçekten kaldı',
+   `${ekran.once.mudur} → ${ekran.sonraMudur}`);
+ok(ekran.sonraLvl === ekran.once.baslangic,
+   'yazdığı başlangıç seviyesi doğru',
+   `${ekran.once.baslangic} → ${ekran.sonraLvl}`);
+
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;
 await br.close(); srv.close();

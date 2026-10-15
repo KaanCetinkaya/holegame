@@ -471,6 +471,7 @@
     <div class="card">
       <div class="row"><span data-t="rightNow">Right now</span><span id="pNow">0 points unspent</span></div>
       <div class="row"><span data-t="fromReset">From this reset</span><span id="pNext">+0 points</span></div>
+      <div class="row"><span data-t="keepRow">You keep</span><span id="pKeep">—</span></div>
     </div>
     <div class="stack">
       <button class="btn" id="pGo" data-t="handOn">HAND ON AND START</button>
@@ -632,6 +633,14 @@ const METIN = {
   prestigeP: ['You hand this factory on: every station resets and the cash resets. In return you earn <b>branch points</b> — they are permanent and they are spent on the <b>Research</b> screen.',
               'Bu fabrikayı devrediyorsun: bütün istasyonlar ve kasa sıfırlanıyor. Karşılığında <b>şube puanı</b> kazanıyorsun — kalıcı, ve <b>Araştırma</b> ekranında harcanıyor.'],
   rightNow:  ['Right now', 'Şu anda'],
+  // Devretmeden önce sorulan asıl soru "ne kaybediyorum" değil, "ne
+  // kalıyor". Ekran yalnızca sıfırlananı söylüyordu ve kalan şey
+  // müdürler — yani oyuncunun saatlerce biriktirip aldığı dört düğme.
+  // Bunu bilmeyen oyuncu devretmiyor, devretmeyen oyuncu oyunun ikinci
+  // yarısını hiç görmüyor.
+  keepRow:   ['You keep', 'Kalan'],
+  keepVal:   ['{0} managers · research · start at lv {1}',
+              '{0} müdür · araştırma · {1}. seviyeden'],
   fromReset: ['From this reset', 'Bu devirden'],
   handOn:    ['HAND ON AND START', 'DEVRET VE BAŞLA'],
   cancel:    ['CANCEL', 'VAZGEÇ'],
@@ -3210,6 +3219,8 @@ $('prestigeBtn').onclick = () => {
   if (!canPrestige()) return;
   $('pNow').textContent = T('unspent', fmt(freePoints()));
   $('pNext').textContent = `+${fmt(pendingPoints())} ${T('points')}`;
+  $('pKeep').textContent = T('keepVal', G.mgr.filter(Boolean).length,
+                             1 + resLvl('start'));
   $('prestige').classList.add('show');
 };
 $('boardBtn').onclick = () => openLeaderboard();
@@ -4714,6 +4725,15 @@ window.jeYerler = () => ({ en: YERLER.map(y => y.ad),
 // gördüğü şeyi okuyor.
 // Devir düğmesi açık mı. Ekrandaki düğmenin okuduğu şeyin aynısı.
 window.jeCanPrestige = () => canPrestige();
+// Devir ekranında ne yazıyor — ve yazan şey devirden sonra gerçekten
+// duruyor mu? İkincisi önemli: "müdürler kalıyor" diyen bir satır, bir
+// gün müdürler sıfırlanmaya başlarsa yalan söyleyen bir satır olur.
+window.jePrestijEkran = () => ({
+  acik: $('prestige').classList.contains('show'),
+  simdi: $('pNow').textContent, sonraki: $('pNext').textContent,
+  kalan: $('pKeep').textContent,
+  mudur: G.mgr.filter(Boolean).length, baslangic: 1 + resLvl('start'),
+});
 window.jeTier = () => {
   const nx = nextProduct();
   return { kademe: productTier(), ad: T(product().nameT),
