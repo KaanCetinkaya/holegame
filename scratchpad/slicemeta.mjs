@@ -18,15 +18,10 @@ await pg.goto('http://localhost:8143/', { waitUntil:'load' });
 await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
 await pg.waitForTimeout(400);
 
-async function playUntilDone(max = 400) {
-  for (let i = 0; i < max; i++) {
-    await pg.evaluate(() => window.sliceAutoPlay());
-    await pg.waitForTimeout(50);
-    const p = await pg.evaluate(() => window.sliceProbe());
-    if (p.state !== 'playing') return p;
-  }
-  return await pg.evaluate(() => window.sliceProbe());
-}
+// Tur kare beklemeden oynanıyor: `sliceRun` `tick`'in çağırdığı
+// benzetimin aynısını sabit adımla yürütüyor. Kare başına bir karar
+// sormak bu ölçümü dört dakikaya çıkarıyordu.
+const playUntilDone = () => pg.evaluate(() => window.sliceRun());
 
 // --- 1. bir bölümü bitir, parayı al ---
 await pg.evaluate(() => window.sliceStart(1));
