@@ -48,6 +48,18 @@ Bars hang from above and stand up from the floor. The gap they leave is
 where the blade has to be. Hit one and the run is over — start again, or
 watch a short video and carry on from where you were.
 
+💣 MINES, AND WORSE
+From the eighth level there is something you must not cut. A mine sits on
+the very line the fruit is running along, so the only answer is to leave the
+line and come back. Further in, the corridor asks harder questions: a clamp
+with one narrow window, three gates alternating floor and ceiling, two
+windows at different heights, and — last of all — a window with a mine
+waiting just past it.
+
+🌄 SIX EVENINGS
+The corridor changes every four levels: twilight, desert, ice, forest,
+volcano, night. Sky, hills, fog and the floor under the blade.
+
 🗡️ SIX BLADES
 Every cut earns coins. Steel, copper, emerald, sapphire, gold, obsidian —
 each reaches a little further than the last, which is worth having in the

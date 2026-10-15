@@ -76,5 +76,42 @@ const ads = (oyun.match(/const ADS_TESTING = ([^;]+);/) || [])[1];
 console.log(`     ADS_TESTING ${ads}`);
 ok(ads === 'true', 'kaynakta reklamlar test', String(ads));
 
+console.log('\n6) Mağaza metni oyunla uyuşuyor mu');
+// Oyuncunun indirmeden önce okuduğu tek metin bu, ve içindeki her sayı
+// elle yazılmış. Bıçak eklenip metin güncellenmezse mağaza eksik söz
+// verir; bıçak çıkarılıp metin kalırsa **tutulmayan** bir söz verir ve
+// ikincisi iade ve yorum demek.
+const liste = readFileSync(KOK + '/slicer/store/listing.md', 'utf8');
+const SAYI = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
+               seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
+const kelime = n => Object.keys(SAYI).find(k => SAYI[k] === n);
+
+// Düzenleyicinin iki tuzağı burada ödendi: `'Obsidian',steel:` satırında
+// virgülden sonra boşluk yok (altıncı bıçak sayılmıyordu), ve metin
+// adları küçük harfle sayıyor ("Steel, copper, emerald…").
+const bicaklar = [...oyun.matchAll(/\{ name: '([A-Za-z]+)',\s*steel:/g)].map(m => m[1]);
+const kucuk = liste.toLowerCase();
+const eksikBicak = bicaklar.filter(b => !kucuk.includes(b.toLowerCase()));
+console.log(`     ${bicaklar.length} bıçak: ${bicaklar.join(', ')}`);
+ok(bicaklar.length > 0, 'bıçak listesi okunabildi');
+ok(eksikBicak.length === 0, 'her bıçağın adı mağaza metninde', eksikBicak.join(', '));
+ok(new RegExp(`${kelime(bicaklar.length)} blades`, 'i').test(liste),
+   'bıçak sayısı metinle aynı', `kodda ${bicaklar.length}`);
+
+const hedefSayisi = (oyun.match(/const GOALS = \[[\s\S]*?\n\];/) || [''])[0]
+  .split('id: \'').length - 1;
+console.log(`     ${hedefSayisi} hedef`);
+ok(new RegExp(`${kelime(hedefSayisi)} of them`, 'i').test(liste),
+   'hedef sayısı metinle aynı', `kodda ${hedefSayisi}`);
+
+const temaSayisi = (oyun.match(/const TEMALAR = \[[\s\S]*?\n\];/) || [''])[0]
+  .split('ad: \'').length - 1;
+console.log(`     ${temaSayisi} tema`);
+ok(new RegExp(`${kelime(temaSayisi)} evenings`, 'i').test(liste),
+   'tema sayısı metinle aynı', `kodda ${temaSayisi}`);
+// Metin "dört bölümde bir" diyor; kod da öyle demeli.
+ok(/every four levels/i.test(liste) && /\/ 4\) % TEMALAR\.length/.test(oyun),
+   'tema sıklığı metinle aynı');
+
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;
