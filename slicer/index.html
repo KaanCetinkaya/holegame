@@ -1368,6 +1368,56 @@ const PIECES = [
       }
       return son;
     } },
+  // Dokuma: arka arkaya iki pencere, farklı yüksekliklerde.
+  //
+  // `squeeze` tek pencere: bir doğru yükseklik var ve orada kalınıyor.
+  // Burada iki tane var ve ikincisi başka bir yerde — yani cevap "şu
+  // yüksekliğe git" değil, "şuraya git, sonra şuraya". Şeridin ucuna
+  // kaçarak geçilemeyen ilk parça.
+  { id: 'weave', minLevel: 23, weight: 2, build(c) {
+      const orta = (LANE_LOW + LANE_HIGH) / 2;
+      const bir = c.clamp(orta + (Math.random() < 0.5 ? -0.9 : 0.9));
+      if (!c.window(bir)) { for (let k = 0; k < 4; k++) c.fruit(c.y); return c.y; }
+      for (let k = 0; k < 3; k++) c.fruit(bir);
+      // İkincisi öbür tarafta — ama bıçağın aradaki parkurda
+      // tırmanabileceği kadar. `window()` zaten ulaşılamazsa false
+      // dönüyor; bu hesap parçanın o yüzden boşa düşmesini azaltıyor.
+      const yer = c.reach(SPACING * 4) * 0.8;
+      const iki = c.clamp(bir + (bir > orta ? -1 : 1) * Math.min(1.8, yer));
+      if (!c.window(iki)) { for (let k = 0; k < 3; k++) c.fruit(bir); return bir; }
+      for (let k = 0; k < 3; k++) c.fruit(iki);
+      return iki;
+    } },
+  // Kapan: dar pencere, hemen arkasında aynı hizada mayın.
+  //
+  // Pencere "tam şu yükseklikte ol" diyor, mayın "tam orada kalma" diyor.
+  // İkisi tek tek var; arka arkaya gelmesi oyunun sorduğu en zor soru, ve
+  // 28. bölümden önce sorulmuyor.
+  { id: 'gauntlet', minLevel: 28, weight: 2, build(c) {
+      const GEREKEN = MINE_R + 0.22 + 0.34;
+      const yer = c.reach(SPACING * 2) * 0.85;
+      // Mayın parçasındaki iki kural aynen burada da geçerli: kaçacak yer
+      // yoksa mayın konmaz, ve arkasından kaçış hattı gelemeyecekse parça
+      // hiç başlamaz. Geçilemez bir tahta zorluk değil, hata.
+      if (yer < GEREKEN || c.kalan() < 9) {
+        for (let k = 0; k < 4; k++) c.fruit(c.y);
+        return c.y;
+      }
+      const orta = (LANE_LOW + LANE_HIGH) / 2;
+      const gap = c.clamp(orta + (Math.random() < 0.5 ? -0.8 : 0.8));
+      const yön = gap > orta ? -1 : 1;
+      const kaçış = c.clamp(gap + yön * Math.min(yer, GEREKEN + 0.5));
+      if (Math.abs(kaçış - gap) < GEREKEN) {
+        for (let k = 0; k < 4; k++) c.fruit(c.y);
+        return c.y;
+      }
+      if (!c.window(gap)) { for (let k = 0; k < 4; k++) c.fruit(c.y); return c.y; }
+      for (let k = 0; k < 2; k++) c.fruit(gap);
+      c.skip(1);                       // tırmanacak yer
+      if (!c.mine(gap)) { for (let k = 0; k < 3; k++) c.fruit(gap); return gap; }
+      for (let k = 0; k < 3 + ((Math.random() * 3) | 0); k++) c.fruit(kaçış);
+      return kaçış;
+    } },
   // Nefes: kısa bir boşluk. Her yuvası dolu bir parkur okunmuyor.
   { id: 'rest', minLevel: 1, weight: 1, build(c) {
       c.skip(1 + ((Math.random() * 2) | 0));
@@ -1539,12 +1589,30 @@ function buildCourse(n) {
   // öğrettiği ilk şey kaybetmek oluyor.
   for (let k = 0; k < 4; k++) c.fruit(c.y);
 
+  // Havuz dolduktan sonra da karışım değişmeye devam ediyor.
+  //
+  // Üç ayarın üçü de sonlu: boy 12'de, hız 17'de, havuz 28'de duruyor
+  // (ölçüm: scratchpad/slicewall.mjs). Onlar durduktan sonra bölüm
+  // numarasının bir anlamı kalmıyordu — 30. bölüm 17. bölümden ayırt
+  // edilemiyordu, ama harita sonsuz bölüm gösterdiği için oyuncu
+  // tırmandığını sanıyordu. Ağırlıkların kaymasının sebebi bu: yeni
+  // parça yazmadan da geç bölüm başka bir tahta olmalı.
+  //
+  // `SERT` 17'de 0, 32'de 1. Kolay dolgu parçaları seyreliyor, karar
+  // gerektirenler sıklaşıyor; hiçbiri sıfıra inmiyor, çünkü yalnızca zor
+  // parçalardan kurulu bir parkur okunmuyor.
+  const sert = Math.max(0, Math.min(1, (n - 17) / 15));
+  const KOLAY = new Set(['run', 'stair', 'rest']);
+  const ZOR = new Set(['mine', 'squeeze', 'sweep', 'weave', 'gauntlet']);
+  const agirlik = p => KOLAY.has(p.id) ? p.weight * (1 - 0.55 * sert)
+                     : ZOR.has(p.id)   ? p.weight * (1 + 0.80 * sert)
+                     : p.weight;
   const pool = PIECES.filter(p => n >= p.minLevel);
-  const total = pool.reduce((a, p) => a + p.weight, 0);
+  const total = pool.reduce((a, p) => a + agirlik(p), 0);
   let guard = 0;
   while (slot < slots && guard++ < 200) {
     let roll = Math.random() * total, pick = pool[0];
-    for (const p of pool) { roll -= p.weight; if (roll <= 0) { pick = p; break; } }
+    for (const p of pool) { roll -= agirlik(p); if (roll <= 0) { pick = p; break; } }
     c.y = c.clamp(pick.build(c));
   }
 

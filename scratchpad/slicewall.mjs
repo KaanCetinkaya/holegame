@@ -102,6 +102,23 @@ console.log(`parça havuzu ${enGec}. bölümde doluyor ` +
 console.log(`son sekiz bölümde meyve sayısı sabit mi: ${durdu('meyve', 6) ? 'EVET' : 'hayır'}`);
 console.log(`son sekiz bölümde demir sayısı sabit mi: ${durdu('demir', 3) ? 'EVET' : 'hayır'}`);
 
+// 17 ile 30 arasında gerçekten bir fark var mı?
+//
+// Bu dosyanın asıl sorusu buydu ve cevabı uzun süre "yok"tu: üç tavan da
+// dolduktan sonra bölüm numarası bir şey ifade etmiyordu, ama harita
+// sonsuz bölüm gösterdiği için oyuncu tırmandığını sanıyordu. Rapor
+// olmaktan çıkıp bir kontrol olması gereken yer burası — yoksa duvar geri
+// gelir ve kimse fark etmez.
+const ort = (a, k) => a.reduce((t, r) => t + r[k], 0) / a.length;
+const erken = satır.filter(r => r.n >= 15 && r.n <= 18);
+const gec = satır.filter(r => r.n >= 27 && r.n <= 30);
+const d1 = ort(erken, 'demir'), d2 = ort(gec, 'demir');
+console.log(`\n15-18 ort. demir ${d1.toFixed(1)} · 27-30 ort. demir ${d2.toFixed(1)}` +
+  `  (×${(d2 / Math.max(0.1, d1)).toFixed(2)})`);
+const ayri = d2 >= d1 * 1.4;
+console.log(`geç bölüm erken bölümden ayırt edilebiliyor mu: ${ayri ? 'EVET' : 'HAYIR'}`);
+if (!ayri) errs.push('17 ile 30 arasında ölçülebilir fark yok — duvar geri geldi');
+
 console.log('\nerrors:', errs.length ? errs : 'none');
 await br.close(); srv.close();
 process.exitCode = errs.length ? 1 : 0;

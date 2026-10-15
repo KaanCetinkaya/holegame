@@ -199,27 +199,46 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
 `sliceDouble`, `sliceSetDay`, `sliceReset` testlerin oyunu parmaksız
 oynamasını sağlar.
 
-## İçerik 17. bölümde tükeniyor
+## İçerik 17. bölümde tükeniyordu
 
 Bölüm üretimi sonsuz — `buildCourse(n)` her n için parkur kuruyor. Ama üç
 ayarın üçü de sonlu ve `scratchpad/slicewall.mjs` nerede durduklarını ölçtü:
 
 | ölçü | tavana çıktığı bölüm | tavan |
 |---|---|---|
-| parça havuzu (`PIECES`) | **18** | dokuz parça, en yüksek `minLevel` 18 |
+| parça havuzu (`PIECES`) | **28** | on bir parça, en yüksek `minLevel` 28 |
 | parkur boyu | **12** | `Math.min(24 + n * 2, 48)` yuva → 165.8 |
 | hız | **17** | `Math.min(8 + (n - 1) * 0.45, 15)` |
 
-Havuz 5'te doluyordu; mayın (8), mengene (12) ve salınım (18) eklenerek 18'e
-taşındı. Boy ve hız tavanları yerinde — oradan sonrası hâlâ aynı, ama artık
-üç parça daha geç geliyor.
+Boy ve hız tavanları yerinde: daha uzun bir tur yorucu, daha hızlı bir
+bıçak okunmuyor. Yani duvarı iten şey o ikisi olamazdı.
 
-17'den sonra meyve ~43, demir ~3.5, boy 165.8, hız 15. Ölçüm 30. bölüme
-kadar gidiyor ve son sekiz bölümün hepsi aynı bantta: **30. bölüm 17.
-bölümden ayırt edilemiyor.**
+**Havuz.** 5'te doluyordu; mayın (8), mengene (12), salınım (18), dokuma
+(23) ve kapan (28) eklendi. Son ikisi bu türün sorduğu iki yeni soru:
 
-Bu, harita sonsuz bölüm gösterdiği için görünmüyor. Oyuncu tırmanmaya devam
-ettiğini sanıyor, oysa 17'den sonra aynı bölümü farklı numarayla oynuyor.
+- **dokuma** — arka arkaya iki pencere, farklı yüksekliklerde. Mengene tek
+  pencere, yani "şu yüksekliğe git ve orada kal". Burada ikinci pencere
+  başka bir yerde: cevap bir yükseklik değil, bir sıra.
+- **kapan** — dar pencere, hemen arkasında aynı hizada mayın. Pencere "tam
+  şurada ol", mayın "tam orada kalma" diyor. İkisi tek tek vardı.
+
+**Karışım.** Havuz dolduktan sonra bile bölüm numarasının bir anlamı
+olmalı. Ağırlıklar artık bölümle kayıyor: 17'de 0, 32'de 1 olan bir
+sertlik katsayısı kolay dolgu parçalarını (`run`, `stair`, `rest`)
+seyreltiyor, karar gerektirenleri (`mine`, `squeeze`, `sweep`, `weave`,
+`gauntlet`) sıklaştırıyor. Hiçbiri sıfıra inmiyor — yalnızca zor
+parçalardan kurulu bir parkur okunmuyor.
+
+Ölçülen sonuç: 15-18. bölümlerde tur başına ortalama **4.4** demir,
+27-30. bölümlerde **9.2** — iki katından fazla. `slicewall.mjs` bunu artık
+rapor etmekle kalmıyor, **kontrol ediyor**: fark 1.4 katının altına
+düşerse hata veriyor, yani duvar geri gelirse sessiz kalmıyor.
+
+Geçilebilirlik ayrı ölçülüyor ve bozulmadı: `slicegaps.mjs` 30. bölüme
+kadar her engel dizisini geçilebilir buluyor, `slicemine.mjs` mayınlı
+bölümlerin bitirilebildiğini gösteriyor. Otomatik sürücü 26 ve 30'da
+ölüyor ama bu değişiklikten önce de ölüyordu — ölçüldü, iki sürüm yan yana
+koşturuldu.
 
 ## Kesimin geri bildirimi
 
@@ -290,6 +309,13 @@ böyle unutuldu ve testler bunu görmedi, çünkü hepsi probe okuyordu.
 
 ## Eksikler
 
-- AdMob uygulaması açılmadı; test reklam kimlikleri kullanılıyor
-  (`AD_UNITS.rewarded` ve `patch-manifest.mjs` → `slicer.appId`)
-- Telefonda hiç denenmedi
+Oyunun kendisinde değil, Play tarafında duranlar:
+
+- **Kapalı test**: 12 test kullanıcısı, 14 gün. Üretime başvurmanın şartı
+  bu ve şu an kayıtlı testçi sayısı sıfır
+- Gizlilik politikası sayfasının yayında olduğu **doğrulanmadı**
+  (`docs/privacy-slicerush.html`); konteynerden GitHub Pages'e çıkış kapalı
+- "Slice Rush" adı Play'de aratılmadı
+
+AdMob tarafı tamam: kendi ödüllü birimi ve uygulama kimliği 7 Ekim 2026'da
+girildi, sürüm 1 ve 2 `release:slicer` ile derlenip yüklendi.
