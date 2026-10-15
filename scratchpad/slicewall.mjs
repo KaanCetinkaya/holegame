@@ -22,7 +22,7 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
 
-const ÖRNEK = 5;
+const ÖRNEK = 24;
 const SON = 30;
 
 const srv = createServer((req, res) => {
@@ -115,6 +115,12 @@ const gec = satır.filter(r => r.n >= 27 && r.n <= 30);
 const d1 = ort(erken, 'demir'), d2 = ort(gec, 'demir');
 console.log(`\n15-18 ort. demir ${d1.toFixed(1)} · 27-30 ort. demir ${d2.toFixed(1)}` +
   `  (×${(d2 / Math.max(0.1, d1)).toFixed(2)})`);
+// Eşik ölçülerek kondu. İlk hâlinde bölüm başına beş tahta kuruluyordu
+// ve oran beş koşuda ×1.69 ile ×3.27 arasında geziniyordu — yani kontrol
+// oyunun değişmesini değil kendi gürültüsünü ölçüyordu ve takımda
+// rastgele düşüyordu. Örneklem yirmi dörde çıkınca üç koşu ×1.93, ×1.94
+// ve ×2.32 verdi. 1.4, bunun epey altında ve gerçek duvarı (iki taraf da
+// aynı, ×1.0 civarı) hâlâ yakalıyor.
 const ayri = d2 >= d1 * 1.4;
 console.log(`geç bölüm erken bölümden ayırt edilebiliyor mu: ${ayri ? 'EVET' : 'HAYIR'}`);
 if (!ayri) errs.push('17 ile 30 arasında ölçülebilir fark yok — duvar geri geldi');
