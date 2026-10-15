@@ -203,7 +203,12 @@ await pg.screenshot({ path: '/tmp/slfeature-2x.png' });
 await browser.close();
 srv.close();
 
-const r = spawnSync('python3', ['-c', `
+// Pillow, yoldaki `python3`'te (3.11) değil `/usr/bin/python3`'te (3.13)
+// duruyor. Yol adıyla çağrılınca `ModuleNotFoundError` veriyor, betik onu
+// yazdırıp **sıfır kodla** çıkıyordu: öne çıkan grafik ve ikon hiç
+// üretilmemiş oluyor ve çıktı "hazır" diyor. Aynı tuzak Motor Works'ün
+// kare betiğinde de vardı.
+const r = spawnSync('/usr/bin/python3', ['-c', `
 from PIL import Image
 Image.open('/tmp/slfeature-2x.png').convert('RGB') \\
   .resize((1024, 500), Image.LANCZOS).save('${OUT}/feature-1024x500.png')
@@ -213,3 +218,8 @@ print('feature-1024x500.png + icon-512.png')
 `], { encoding: 'utf8' });
 process.stdout.write(r.stdout || '');
 process.stderr.write(r.stderr || '');
+// Sessiz başarısızlık burada bitiyor: ölçek adımı düşerse betik de düşsün.
+if (r.status !== 0) {
+  console.error('\nölçekleme başarısız — öne çıkan grafik ve ikon üretilmedi');
+  process.exitCode = 1;
+}
