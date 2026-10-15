@@ -682,6 +682,12 @@ function temaUygula(n) {
   sky.material.map = skyTexture(t);
   sky.material.needsUpdate = true;
   if (eski) eski.dispose();
+  // Gökyüzü düzleminin dışında kalan yer. Dikey telefonda düzlem
+  // kadrajı dolduruyor ama geniş bir kadrajda (öne çıkan grafik) kenarı
+  // görünüyordu: sol üstte koyu bir dikdörtgen, mağazanın en çok bakılan
+  // görselinde. Arka plan temanın en koyu gök tonu olunca dikiş kapanıyor.
+  if (!scene.background) scene.background = new THREE.Color(t.gok[0]);
+  else scene.background.set(t.gok[0]);
   scene.fog.color.set(t.sis);
   beyond.material.color.set(t.oteki);
   RAIL_MAT.color.set(t.ray);
