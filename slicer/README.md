@@ -247,7 +247,27 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
 
 `slicerush_level`, `slicerush_stars`, `slicerush_combo`, `slicerush_coins`,
 `slicerush_blades`, `slicerush_blade`, `slicerush_dayLast`,
-`slicerush_dayStreak`.
+`slicerush_dayStreak`, `slicerush_stats`, `slicerush_goals`,
+`slicerush_muted`.
+
+Anahtarların ayrı olması bir şans: bozulan biri ötekileri götürmüyor.
+
+### Tek bozuk anahtar oyunu öldürüyordu
+
+Okuma tek satırdı: `JSON.parse` patlarsa varsayılan, patlamazsa **ne
+gelirse**. Patlamamak yetmiyor — `JSON.parse('"muz"')` sorunsuz çalışıyor.
+Ölçüldü (`scratchpad/slkayit.mjs`) ve üç şey çıktı:
+
+- `slicerush_blade: 99` → `BLADES[99]` tanımsız, oyun **hiç açılmıyor**.
+  Kayıt her açılışta okunduğu için kendiliğinden de düzelmiyor: siyah
+  ekran kalıcı ve oyuncunun yapabileceği tek şey uygulamayı silmek
+- `slicerush_level: -5` → hiçbir parça seçilemiyor, bölüm kurma patlıyor
+- `slicerush_coins: "muz"` → menüde "🪙 muz", sonraki her hesap NaN
+
+`store.sayi/dizi/nesne` okunan şeyin ne olduğuna da bakıyor ve
+olmadığında varsayılana dönüyor: tek alan kayboluyor, ilerlemenin geri
+kalanı duruyor. Bıçak kimlikleri `BLADES.length`'e göre kırpılıyor —
+elle yazılmış bir "6" yedinci bıçak eklendiği gün yalan olurdu.
 
 ## Test
 
@@ -270,6 +290,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/sldon.mjs      # uzun oynandıkça sahne büyüyor mu
     node scratchpad/sltema.mjs     # bölümler birbirinden farklı görünüyor mu
     node scratchpad/slegri.mjs     # zorluk düzgün mü artıyor, uçurum var mı
+    node scratchpad/slkayit.mjs    # bozuk kayıt anahtarı oyunu öldürüyor mu
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
 Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik

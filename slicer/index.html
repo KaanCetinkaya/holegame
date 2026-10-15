@@ -334,6 +334,34 @@ const $ = id => document.getElementById(id);
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  // Okunan şeyin **ne olduğu** de kontrol ediliyor, yalnızca
+  // `JSON.parse` patlamaması değil.
+  //
+  // Ölçüldü: bozuk tek bir anahtar oyunu öldürüyordu. `slicerush_blade`
+  // aralık dışı bir sayı tutuyorsa `BLADES[99]` tanımsız oluyor ve oyun
+  // hiç açılmıyor — kayıt her açılışta yeniden okunduğu için de
+  // kendiliğinden düzelmiyor, yani siyah ekran kalıcı. `level: -5`
+  // bölüm kurmayı patlatıyordu (hiçbir parça seçilemiyor), ve
+  // `coins: "muz"` menüye "🪙 muz" yazıp sonraki her hesabı NaN
+  // yapıyordu.
+  //
+  // Varsayılana dönmek doğru davranış: tek bir alan kayboluyor,
+  // oyuncunun geri kalan ilerlemesi duruyor. Anahtarlar ayrı tutulduğu
+  // için bozulan biri ötekileri götürmüyor.
+  sayi(k, d, enAz = 0, enCok = Infinity) {
+    const v = this.get(k, d);
+    return Number.isFinite(v) ? Math.min(enCok, Math.max(enAz, v)) : d;
+  },
+  dizi(k, d, gecerli = () => true) {
+    const v = this.get(k, d);
+    if (!Array.isArray(v)) return d;
+    const t = v.filter(gecerli);
+    return t.length ? t : d;
+  },
+  nesne(k, d) {
+    const v = this.get(k, d);
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : d;
+  },
 };
 // ---------------------------------------------------------------------
 // Ads
@@ -394,13 +422,14 @@ adsInit();
 // level 3 to chase a third star rewound a player who was on level 30.
 // `slicerush_level` keeps its old meaning (the first level not yet cleared),
 // so existing saves carry over untouched.
-let maxLevel   = store.get('slicerush_level', 1);
+let maxLevel   = store.sayi('slicerush_level', 1, 1);
 let level      = maxLevel;
-let starsByLvl = store.get('slicerush_stars', {});
-let bestCombo  = store.get('slicerush_combo', 0);
-let coins      = store.get('slicerush_coins', 0);
-let ownedBlades = store.get('slicerush_blades', [0]);
-let activeBlade = store.get('slicerush_blade', 0);
+let starsByLvl = store.nesne('slicerush_stars', {});
+let bestCombo  = store.sayi('slicerush_combo', 0, 0);
+let coins      = store.sayi('slicerush_coins', 0, 0);
+// Bıçak listesi aşağıda tanımlı; sınır orada kontrol ediliyor.
+let ownedBlades = store.dizi('slicerush_blades', [0], n => Number.isInteger(n) && n >= 0);
+let activeBlade = store.sayi('slicerush_blade', 0, 0);
 
 // What the coins buy. `reach` is how far in front of its centre the blade
 // cuts: a longer blade meets a stack sooner, which is worth something in the
@@ -414,6 +443,13 @@ const BLADES = [
   { name: 'Gold',   steel: '#ffd257', edge: '#fff2b8', grip: '#6b4a10', price: 5000, reach: 0.17 },
   { name: 'Obsidian',steel: '#4a4f5c', edge: '#ff7ad1', grip: '#1c1f26', price: 11000, reach: 0.22 },
 ];
+// Bıçak kimlikleri listeye göre kırpılıyor. Buradan önce yapılamıyor:
+// `BLADES` bu satırın üstünde tanımlanıyor ve aralık ondan okunuyor —
+// elle yazılmış bir "6" bir gün yedinci bıçak eklendiğinde yalan olurdu.
+ownedBlades = ownedBlades.filter(i => i < BLADES.length);
+if (!ownedBlades.length) ownedBlades = [0];
+if (!ownedBlades.includes(activeBlade)) activeBlade = ownedBlades[0];
+
 const totalStars = () => Object.values(starsByLvl).reduce((a, b) => a + b, 0);
 
 // ---------------------------------------------------------------------
@@ -1873,12 +1909,14 @@ const dayNumber = () => Math.floor((Date.now() - new Date().getTimezoneOffset() 
 //
 // Ömür boyu sayaçlar. Tur içi sayaçlardan ayrı: `cutCount` bir turun,
 // `stats.cuts` hepsinin.
-let stats = store.get('slicerush_stats', { cuts: 0, runs: 0, cleared: 0, coins: 0 });
+let stats = store.nesne('slicerush_stats', { cuts: 0, runs: 0, cleared: 0, coins: 0 });
+for (const k of ['cuts', 'runs', 'cleared', 'coins'])
+  if (!Number.isFinite(stats[k])) stats[k] = 0;
 const saveStats = () => store.set('slicerush_stats', stats);
 
 // Alınmış hedefler. Ödül iki kez ödenmesin diye ayrı tutuluyor — hedefin
 // kendisi sağlanmış olarak kalıyor, ödülü bir kez veriliyor.
-let goalTaken = store.get('slicerush_goals', {});
+let goalTaken = store.nesne('slicerush_goals', {});
 const saveGoals = () => store.set('slicerush_goals', goalTaken);
 
 // Hedefler. Her biri bir sayıyı okuyor ve para ödüyor.
@@ -1914,8 +1952,8 @@ const goalDone = g => g.at() >= g.goal;
 const goalClaimable = g => goalVisible(g) && goalDone(g) && !goalTaken[g.id];
 const anyGoalClaimable = () => GOALS.some(goalClaimable);
 
-let dayLast    = store.get('slicerush_dayLast', 0);
-let dayStreak  = store.get('slicerush_dayStreak', 0);
+let dayLast    = store.sayi('slicerush_dayLast', 0, 0);
+let dayStreak  = store.sayi('slicerush_dayStreak', 0, 0, 7);
 let dayPending = 0;
 
 function checkDaily() {
