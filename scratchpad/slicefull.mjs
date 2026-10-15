@@ -20,12 +20,14 @@ await pg.waitForTimeout(500);
 for (let lvl = 1; lvl <= 3; lvl++) {
   await pg.evaluate(n => window.sliceStart(n), lvl);
   await pg.waitForTimeout(300);
+  // Tur kare beklemeden oynanıyor: `sliceRun` `tick`'in çağırdığı
+  // benzetimin aynısını sabit adımla yürütüyor. Kare beklemek bu
+  // konteynerde turu dakikalara çıkarıyordu ve dt'yi 0.05'e sabitliyordu
+  // — telefonun çevirdiği altmış kare değil, yirmi kare.
   let guard = 0;
-  while (guard++ < 400) {
-    await pg.evaluate(() => window.sliceAutoPlay());
-    await pg.waitForTimeout(55);
-    const p = await pg.evaluate(() => window.sliceProbe());
-    if (p.state !== 'playing') {
+  while (guard++ < 3) {
+    const p = await pg.evaluate(() => window.sliceRun());
+    {
       const shown = await pg.evaluate(() => ({
         clear: document.getElementById('clear').classList.contains('show'),
         over:  document.getElementById('over').classList.contains('show'),

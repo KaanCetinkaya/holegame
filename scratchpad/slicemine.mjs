@@ -137,17 +137,13 @@ const mayinOlum = [];
 for (const n of [8, 11, 14, 17, 21, 26, 30]) {
   let temiz = 0, mayinaOldu = 0, demire = 0, mayinSay = 0;
   for (let k = 0; k < TUR; k++) {
-    const r = await pg.evaluate(async lvl => {
+    const r = await pg.evaluate(lvl => {
       window.sliceStart(lvl);
       const mayin = window.sliceMines().length;
-      await new Promise(res => {
-        const t = setInterval(() => {
-          window.sliceAutoPlay();
-          if (window.sliceProbe().state !== 'playing') { clearInterval(t); res(); }
-        }, 16);
-        setTimeout(() => { clearInterval(t); res(); }, 40000);
-      });
-      const p = window.sliceProbe();
+      // Kare beklemeden: `sliceRun` oyunun kendi benzetimini sabit
+      // adımla yürütüyor. Eskiden tur başına 16 ms'lik bir zamanlayıcı
+      // vardı ve yedi bölüm × üç tur dakikalar sürüyordu.
+      const p = window.sliceRun();
       return { mayin, state: p.state,
                baslik: document.getElementById('overTitle').textContent };
     }, n);
