@@ -337,9 +337,13 @@ yayıncı yeni hesap açamıyor. İkisi de `scratchpad/tysurum.mjs` ile
 ## Test
 
 Hepsi Playwright ve gerçek sayfa; hiçbiri zamanlamaya bağlı değil.
-Önce `node build-www.mjs`, sonra:
 
-    for f in scratchpad/ty*.mjs; do node "$f"; done
+    npm run test:tycoon
+
+Bu komut önce `build-www.mjs`'i, sonra bütün `ty*` ölçümlerini sırayla
+koşturuyor ve tek bir özet yazıyor. Elle yazılan kabuk döngüsünün yerine
+geldi: o döngü PowerShell'de çalışmıyordu, yani ölçümleri yazan onları
+koşturabiliyor, oyunu derleyen koşturamıyordu.
 
 `tyshots` ve `tyfeature` ölçüm değil, mağaza görseli üretiyor; onları
 listenin dışında tut.

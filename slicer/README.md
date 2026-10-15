@@ -251,6 +251,11 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
 
 ## Test
 
+    npm run test:slicer
+
+Bütün `sl*` ölçümlerini sırayla koşturup tek özet yazıyor (`npm test`
+ikisini birden). Tek tek de koşturulabilir:
+
     node build-www.mjs
     node scratchpad/slice.mjs      # açılış + bir turda kesme
     node scratchpad/slicefull.mjs  # üç bölümü baştan sona bitir
