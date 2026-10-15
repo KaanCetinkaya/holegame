@@ -1414,12 +1414,30 @@ const PIECES = [
   // Şimdiye kadarki bütün demirler tek taraflıydı — tavandan ya da yerden —
   // ve cevap hep "öteki uca git"ti. Karşılıklı iki demir bunu bozuyor: tek
   // doğru yükseklik var ve o da şeridin ortasında.
-  { id: 'squeeze', minLevel: 12, weight: 2, build(c) {
+  // Ağırlık da bölümle açılıyor: 12'de 0.6, 18'de 2.
+  //
+  // Açıklığı genişletmek tek başına yetmedi — ölçüm 12-14'te hâlâ 27-39
+  // puanlık bir düşüş gösterdi, oyunun en sert basamağı. Oyuncu yeni bir
+  // soruyu ilk gün seyrek görmeli: bir parkurda bir mengene bir şey
+  // öğretir, üç mengene bir duvardır.
+  { id: 'squeeze', minLevel: 12, weight: 2,
+    weightAt: n => Math.min(2, 0.6 + (n - 12) * 0.23),
+    build(c) {
       const orta = (LANE_LOW + LANE_HIGH) / 2;
       // Açıklık şeridin tam ortasında değil, kaydırılmış: ortada olsa
       // oyuncu hiç kıpırdamadan geçer ve parça bir şey sormamış olur.
       const yer = c.clamp(orta + (Math.random() < 0.5 ? -0.7 : 0.7));
-      if (!c.window(yer)) { for (let k = 0; k < 4; k++) c.fruit(c.y); return c.y; }
+      // Açıklık bölümle daralıyor.
+      //
+      // Zorluk eğrisi ölçüldü (`scratchpad/slegri.mjs`) ve oyunun en sert
+      // basamağı buydu: 9-11. bölümlerde kesilen oran %85, 12-14'te %42.
+      // Mengene o güne kadarki bütün demirlerden farklı bir şey istiyor —
+      // "öteki uca kaç" değil, "tam şu yükseklikte ol" — ve bunu ilk
+      // sorduğu gün son hâlindeki darlıkla soruyordu. Açıklık 12'de
+      // 2.15, 22'de eski değeri olan 1.6; yani geç bölümler aynı kaldı,
+      // yalnızca tanışma yumuşadı.
+      const acik = Math.max(1.6, 2.15 - (c.lvl - 12) * 0.055);
+      if (!c.window(yer, acik)) { for (let k = 0; k < 4; k++) c.fruit(c.y); return c.y; }
       for (let k = 0; k < 3 + ((Math.random() * 3) | 0); k++) c.fruit(yer);
       return yer;
     } },
@@ -1678,9 +1696,13 @@ function buildCourse(n) {
   const sert = Math.max(0, Math.min(1, (n - 17) / 15));
   const KOLAY = new Set(['run', 'stair', 'rest']);
   const ZOR = new Set(['mine', 'squeeze', 'sweep', 'weave', 'gauntlet']);
-  const agirlik = p => KOLAY.has(p.id) ? p.weight * (1 - 0.55 * sert)
-                     : ZOR.has(p.id)   ? p.weight * (1 + 0.80 * sert)
-                     : p.weight;
+  // Parçanın kendi bölüm eğrisi varsa o, yoksa sabit ağırlığı; sonra
+  // karışımın sertlik katsayısı. İkisi ayrı şeyler: biri "bu parça ne
+  // zaman olgunlaşıyor", öteki "geç bölümde karışım nereye kayıyor".
+  const temel = p => (p.weightAt ? p.weightAt(n) : p.weight);
+  const agirlik = p => KOLAY.has(p.id) ? temel(p) * (1 - 0.55 * sert)
+                     : ZOR.has(p.id)   ? temel(p) * (1 + 0.80 * sert)
+                     : temel(p);
   const pool = PIECES.filter(p => n >= p.minLevel);
   const total = pool.reduce((a, p) => a + agirlik(p), 0);
   let guard = 0;
@@ -2168,10 +2190,23 @@ function collide(d0, y0, d1, y1) {
 // ---------------------------------------------------------------------
 // Frame
 // ---------------------------------------------------------------------
-function tick(now) {
-  const dt = Math.min(0.05, (now - last) / 1000);
-  last = now;
-
+// Kare ile benzetim ayrıldı.
+//
+// Sebep ölçüm: bu konteynerde GPU yok ve SwiftShader'la bir kare 300-450
+// ms sürüyor (`sldon.mjs`). Bir turu oynatmak için gerçek kare beklemek
+// zorunda olan her ölçüm, çizim yüzünden dakikalarca sürüyordu — zorluk
+// eğrisini otuz bölümde ölçmek yarım saati buluyor. Motor Works'te bu
+// sorun yok, çünkü orada `jeStep` var.
+//
+// `adim(dt)` oyunun **bütün** benzetimi; `tick` onu çağırıp çiziyor.
+// Tek kopya olmasının sebebi tycoon'daki ile aynı: iki ayrı yürütme
+// yolu olsaydı ölçüm oyunun yapmadığı bir şeyi ölçerdi.
+// `simdi` oyunun kendi saati: menüdeki bıçağın salınımı buna bakıyor.
+// `tick` kareden geleni veriyor, `sliceStep` kendi biriktirdiğini —
+// yoksa `now` kare dışında tanımsız kalıyor ve menü her adımda patlıyor.
+let simdi = 0;
+function adim(dt) {
+  simdi += dt * 1000;
   if (state === 'playing') {
     const d0 = dist, y0 = bladeY;
     dist += speed * dt;
@@ -2197,7 +2232,7 @@ function tick(now) {
     // than telling before a button is pressed
     dist += dt * 1.6;
     if (dist > courseEnd) dist = START_D;
-    bladeY = 2.6 + Math.sin(now / 900) * 1.0;
+    bladeY = 2.6 + Math.sin(simdi / 900) * 1.0;
     targetY = bladeY;
   }
 
@@ -2251,6 +2286,13 @@ function tick(now) {
   floor.material.map.offset.y = dist * 0.05;
   sky.position.z = -dist - 58;
 
+}
+
+function tick(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  simdi = now - dt * 1000;        // `adim` kendi payını ekliyor
+  adim(dt);
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
@@ -2287,6 +2329,21 @@ window.sliceAll = () => items.map(i => ({
   kind: i.kind, d: +i.d.toFixed(2), y: +i.y.toFixed(2), cut: !!i.cut,
 })).sort((a, b) => a.d - b.d);
 window.sliceSetTarget = y => { targetY = Math.max(LANE_LOW, Math.min(LANE_HIGH, y)); };
+// Oyunu kare beklemeden ilerlet. `tick`'in çağırdığı işlevin aynısını
+// çağırıyor, yani ölçüm oyunun kendi yürütmesini ölçüyor; farkı yalnızca
+// çizim yapılmaması.
+window.sliceStep = (dt = 1 / 60) => { adim(Math.min(0.05, dt)); return window.sliceProbe(); };
+// Bir turu sonuna kadar oynat: her adımda otomatik sürücü yönlendiriyor.
+// Kare beklenmediği için otuz bölümlük bir ölçüm dakikalar değil saniyeler
+// sürüyor.
+window.sliceRun = (max = 4000) => {
+  for (let i = 0; i < max; i++) {
+    window.sliceAutoPlay();
+    adim(1 / 60);
+    if (state !== 'playing') break;
+  }
+  return window.sliceProbe();
+};
 window.sliceAutoPlay = () => {
   // Steer for whatever is next, so a run can be played without a finger.
   //

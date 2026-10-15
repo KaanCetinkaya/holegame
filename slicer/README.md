@@ -159,6 +159,41 @@ atılıyor. `scratchpad/sltema.mjs` elli bölüm açılışı yapıp doku sayıs
 sabit kaldığını doğruluyor — atılmasa bu tam da `sldon.mjs`'in aradığı
 türden sessiz bir birikme olurdu.
 
+## Zorluk eğrisi
+
+`slicewall.mjs` geç bölümlerin erken bölümlerden farklı olduğunu,
+`slicegaps.mjs` her engel dizisinin geçilebilir olduğunu söylüyor. İkisi
+de "düzgün artıyor mu" sorusunu cevaplamıyor — bir bölüm ötekinin iki
+katı zorlaşıyorsa oyuncu orada bırakır ve iki ölçüm de bunu görmez.
+
+`slegri.mjs` her bölümde on altı tur oynatıp kesilen oranını çıkarıyor.
+Ölçtüğü ilk şey oyunun gerçek duvarıydı ve kimsenin beklediği yerde
+değildi: **12. bölüm**, mengenenin girdiği yer. 9-11'de %85, 12-14'te
+%42. Oyunun başka hiçbir basamağı bu kadar sert değil.
+
+İki ayar yumuşattı: açıklık 12'de 2.15 ve 22'de eski değeri olan 1.6
+(geç bölümler aynı kaldı, yalnızca tanışma yumuşadı), ve ağırlık 12'de
+0.6'dan 18'de 2'ye çıkıyor. Bir parkurda bir mengene bir şey öğretir,
+üç mengene bir duvardır.
+
+Ölçü **puan farkı**, oran değil. İlk hâli göreliydi ve kuyrukta çöktü:
+oran zaten %20'ye inmişken %23'ten %11'e düşmek "−%53" yazıyor, ve üç
+koşunun ikisi rastgele düşüyordu. Eşik de seçilerek değil ölçülerek
+kondu — aynı yapım üç kez koşturulup gürültünün beş puan olduğu görüldü.
+
+## Hızlı yürütme
+
+`sliceStep(dt)` ve `sliceRun()` oyunu kare beklemeden ilerletiyor.
+`tick` artık iki parça: `adim(dt)` benzetimin tamamı, `tick` onu çağırıp
+çiziyor. Tek kopya olması şart — iki ayrı yürütme yolu olsaydı ölçüm
+oyunun yapmadığı bir şeyi ölçerdi.
+
+Sebep: konteynerde GPU yok ve bir kare 300-450 ms sürüyor, yani bir turu
+gerçek karelerle oynatmak dakikalar alıyordu; otuz bölümlük bir ölçüm
+yarım saati geçiyordu. Şimdi bir tur 200 ms. Üstelik **daha doğru**:
+kare beklendiğinde dt 0.05'e dayanıyor (yirmi kare), oysa telefon altmış
+kare çeviriyor ve bıçağın hedefi takip hızı dt'ye bağlı.
+
 ## Otomatik oyuncu
 
 `sliceAutoPlay()` testlerin oyunu parmaksız oynamasını sağlıyor. İlk hali
@@ -229,6 +264,7 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
     node scratchpad/slicecut.mjs   # kesim sayısı: çıkıyor mu, birikiyor mu
     node scratchpad/sldon.mjs      # uzun oynandıkça sahne büyüyor mu
     node scratchpad/sltema.mjs     # bölümler birbirinden farklı görünüyor mu
+    node scratchpad/slegri.mjs     # zorluk düzgün mü artıyor, uçurum var mı
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
 Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik

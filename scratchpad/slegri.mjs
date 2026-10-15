@@ -20,7 +20,7 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
 
-const ÖRNEK = 4;
+const ÖRNEK = 16;
 const SON = 30;
 
 const srv = createServer((q, r) => {
@@ -50,12 +50,13 @@ for (let n = 1; n <= SON; n++) {
     let bitti = 0, oran = 0, demir = 0, mayin = 0;
     for (let t = 0; t < k; t++) {
       window.sliceStart(n);
-      for (let i = 0; i < 600; i++) {
-        window.sliceAutoPlay();
-        await new Promise(res => requestAnimationFrame(res));
-        if (window.sliceProbe().state !== 'playing') break;
-      }
-      const p = window.sliceProbe();
+      // `sliceRun` kare beklemiyor: `tick`'in çağırdığı benzetimin
+      // aynısını sabit 1/60 adımla yürütüyor. Hem hızlı — otuz bölüm
+      // yarım saat değil saniyeler — hem de **daha doğru**: kare
+      // beklendiğinde bu konteynerde dt 0.05'e dayanıyor (yirmi kare),
+      // oysa telefon altmış kare çeviriyor ve bıçağın hedefi takip
+      // hızı dt'ye bağlı.
+      const p = window.sliceRun();
       if (p.state === 'clear') bitti++;
       oran += p.total ? p.cut / p.total : 0;
       demir += window.sliceBars().length;
@@ -80,31 +81,44 @@ console.log(`     1-6 %${(bas * 100).toFixed(0)} · 13-18 %${(orta * 100).toFixe
 ok(son < bas, 'geç bölümler erken bölümlerden zor', `%${(bas * 100).toFixed(0)} → %${(son * 100).toFixed(0)}`);
 
 console.log('\n2) Uçurum yok');
-// Komşu iki bölüm arasında kesilen oranının yarıya inmesi, oyuncunun
-// "bir anda duvara çarptım" dediği şey. Tek turluk gürültüyü saymamak
-// için üçer bölümlük pencereler karşılaştırılıyor.
+// Komşu pencereler arasındaki düşüş. Tek turluk gürültüyü saymamak için
+// üçer bölümlük pencereler karşılaştırılıyor.
+//
+// Ölçü **puan farkı**, oran değil. İlk hâli göreliydi ve kuyrukta
+// çöktü: oran zaten %20'ye inmişken %23'ten %11'e düşmek "−%53" yazıyor
+// ve üç koşunun ikisi rastgele düşüyordu. Sıfıra yaklaşan bir büyüklükte
+// göreli değişim, tanımı gereği kararsız. Oyuncunun hissettiği şey de
+// zaten yüzdenin yüzdesi değil: %85'ten %42'ye inmek duvar, %23'ten
+// %11'e inmek zaten zor olan bir yerde biraz daha zor.
 const pencere = n => satir.filter(s => s.n >= n && s.n <= n + 2)
   .reduce((t, s) => t + s.oran, 0) / 3;
-let enKotu = { n: 0, dusus: 0 };
+let enKotu = { n: 0, puan: 0 };
 for (let n = 1; n + 5 <= SON; n++) {
   const a = pencere(n), b = pencere(n + 3);
-  const dusus = a > 0 ? (a - b) / a : 0;
-  if (dusus > enKotu.dusus) enKotu = { n, dusus, a, b };
+  const puan = (a - b) * 100;
+  if (puan > enKotu.puan) enKotu = { n, puan, a, b };
 }
 console.log(`     en sert düşüş ${enKotu.n}-${enKotu.n + 2} → ${enKotu.n + 3}-${enKotu.n + 5}: ` +
-  `%${(enKotu.a * 100).toFixed(0)} → %${(enKotu.b * 100).toFixed(0)} (−%${(enKotu.dusus * 100).toFixed(0)})`);
-ok(enKotu.dusus < 0.45, 'hiçbir yerde üç bölümde yarıdan fazla düşüş yok',
-   `−%${(enKotu.dusus * 100).toFixed(0)} @ ${enKotu.n}`);
+  `%${(enKotu.a * 100).toFixed(0)} → %${(enKotu.b * 100).toFixed(0)} (${enKotu.puan.toFixed(0)} puan)`);
+// Eşik ölçülerek kondu, seçilerek değil: aynı yapım üç kez koşturuldu ve
+// en sert düşüş 23, 26 ve 28 puan çıktı — yani örneklem gürültüsü beş
+// puan civarı. 32, bunun üstünde dört puan pay bırakıyor ve düzeltmeden
+// önceki gerçek duvarı (43 puan, 12. bölüm) hâlâ yakalıyor.
+ok(enKotu.puan < 32, 'hiçbir yerde üç bölümde 32 puandan sert düşüş yok',
+   `${enKotu.puan.toFixed(0)} puan @ ${enKotu.n}`);
 
 console.log('\n3) Yeni parçaların girdiği bölümler ayrı bir duvar değil');
 // Dokuma 23'te, kapan 28'de giriyor. Yeni bir parçanın girdiği bölüm,
 // bir öncekine göre tek başına çökmemeli.
+// Burada da puan farkı: tek bölümün örneklemi küçük ve oran zaten
+// düşükken göreli fark gürültüden ibaret.
 for (const n of [23, 28]) {
   const once = satir.find(s => s.n === n - 1).oran;
   const simdi = satir.find(s => s.n === n).oran;
-  const d = once > 0 ? (once - simdi) / once : 0;
-  console.log(`     ${n - 1} → ${n}: %${(once * 100).toFixed(0)} → %${(simdi * 100).toFixed(0)}`);
-  ok(d < 0.5, `${n}. bölüm tek başına çökmüyor`, `−%${(d * 100).toFixed(0)}`);
+  const puan = (once - simdi) * 100;
+  console.log(`     ${n - 1} → ${n}: %${(once * 100).toFixed(0)} → %${(simdi * 100).toFixed(0)}` +
+    ` (${puan.toFixed(0)} puan)`);
+  ok(puan < 25, `${n}. bölüm tek başına çökmüyor`, `${puan.toFixed(0)} puan`);
 }
 
 console.log('\n4) Sayfa hatası');
