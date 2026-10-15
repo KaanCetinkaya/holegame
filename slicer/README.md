@@ -134,6 +134,31 @@ var mı diye kontrol ediliyor; yoksa o yuvaya engel yerine meyve konuyor.
 `scratchpad/slicegaps.mjs` her bölümü on iki kez üretip en dar geçişi
 ölçüyor.
 
+## Akşamlar
+
+Koridor her bölümde aynı mordu. Karışım bölümle sertleştikten sonra 30.
+bölüm 17'den farklı **oynuyor** ama aynı **görünüyordu**, ve oyuncunun
+ilerlediğini ilk hisseden yer göz.
+
+Altı tema, dört bölümde bir değişiyor: alacakaranlık (oyunun bilinen
+yüzü, 1. bölüm değişmedi), çöl, buz, orman, volkan, gece. Her biri
+gökyüzü gradyanını, tepeleri, diski, sisi, koridorun ötesindeki zemini,
+ray rengini ve koridorun kendi tonunu değiştiriyor.
+
+Zemin dokusu mor çizilmiş ve tema başına yeniden çizmek bölüm açılışına
+ikinci bir tuval koyardı; malzemenin rengi dokuyla çarpılıyor, tek
+satırla aynı iş. İlk denemede bu atlanmıştı ve buz temasında mavi gök
+altında mor bir koridor duruyordu — tema oradan çöküyordu.
+
+`scene.environment` yerinde bırakılıyor: her temada PMREM'i yeniden
+çalıştırmak bölüm açılışında duraklama demek, yansımadaki ton farkı ise
+bıçağın üstünde zar zor görülüyor. Pahalı olan görünmüyor, görünen ucuz.
+
+Gökyüzü dokusu her tema değişiminde yeniden üretiliyor ve eskisi
+atılıyor. `scratchpad/sltema.mjs` elli bölüm açılışı yapıp doku sayısının
+sabit kaldığını doğruluyor — atılmasa bu tam da `sldon.mjs`'in aradığı
+türden sessiz bir birikme olurdu.
+
 ## Otomatik oyuncu
 
 `sliceAutoPlay()` testlerin oyunu parmaksız oynamasını sağlıyor. İlk hali
@@ -203,6 +228,7 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
     node scratchpad/slicegoals.mjs # hedefler: sayma, ödeme, zincir, ekran
     node scratchpad/slicecut.mjs   # kesim sayısı: çıkıyor mu, birikiyor mu
     node scratchpad/sldon.mjs      # uzun oynandıkça sahne büyüyor mu
+    node scratchpad/sltema.mjs     # bölümler birbirinden farklı görünüyor mu
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
 Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik

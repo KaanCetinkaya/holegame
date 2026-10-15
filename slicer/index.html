@@ -514,14 +514,51 @@ function floorTexture() {
 // The backdrop is one tall gradient with two bands of hills, drawn once. A
 // skybox would have cost six faces to say the same thing, and only one of
 // them is ever on screen.
-function skyTexture() {
+// Akşamlar.
+//
+// Koridor her bölümde aynı mordu. Bugün karışım bölümle sertleşmeye
+// başladı — 30. bölüm 17'den ölçülebilir biçimde farklı oynuyor — ama
+// **aynı** görünüyordu, ve oyuncunun ilerlediğini hissettiği şey ilk
+// olarak göz. Motor Works'te aynı soruna on şube yeri konmuştu.
+//
+// Dört bölümde bir değişiyor: her bölümde değişse yanıp sönerdi, hiç
+// değişmese zaten şimdiki hâli. Altı tema, yani yirmi dört bölümde bir
+// başa dönüyor — içeriğin bittiği yere (28) yakın, tesadüf değil.
+//
+// Birincisi şimdiki palet: 1. bölümü değiştirmenin bir sebebi yok,
+// oyunun bilinen yüzü o.
+const TEMALAR = [
+  { ad: 'alacakaranlık', zemin: '#ffffff',
+    gok: ['#150e28', '#3d2670', '#8a4394', '#e0708a', '#ffb36b'],
+    disk: '#ffe9a8', tepe: ['#4a2f72', '#2f1e4e'],
+    sis: '#6b4a7a', oteki: '#2a1f4a', ray: '#7c5cff' },
+  { ad: 'çöl', zemin: '#d8a878',
+    gok: ['#2a1206', '#6b2c10', '#c05a1e', '#f09a3c', '#ffd98a'],
+    disk: '#fff1c0', tepe: ['#6a3a18', '#43240e'],
+    sis: '#9a5a2c', oteki: '#3a1f0c', ray: '#ffa23d' },
+  { ad: 'buz', zemin: '#9fd0e8',
+    gok: ['#05121f', '#0d3350', '#1f6f96', '#6fc0d4', '#d8f3f7'],
+    disk: '#eaffff', tepe: ['#1d4a63', '#112c3d'],
+    sis: '#4e8aa4', oteki: '#0d2233', ray: '#59e0ff' },
+  { ad: 'orman', zemin: '#a8d59a',
+    gok: ['#08190f', '#12401f', '#2b7a3a', '#7bc05a', '#e8f0a0'],
+    disk: '#f2ffd0', tepe: ['#1d4a24', '#102c16'],
+    sis: '#4e8a52', oteki: '#0e2412', ray: '#6ee07a' },
+  { ad: 'volkan', zemin: '#e0907c',
+    gok: ['#160405', '#3f0a0c', '#8c1a16', '#d44320', '#ff9a3c'],
+    disk: '#ffd6a0', tepe: ['#4a1210', '#2a0a09'],
+    sis: '#8c3a28', oteki: '#2a0b0a', ray: '#ff5a3d' },
+  { ad: 'gece', zemin: '#8f9ec4',
+    gok: ['#04060f', '#0b1328', '#1d2a4e', '#3e4f7a', '#7f8fb8'],
+    disk: '#dfe8ff', tepe: ['#1a2340', '#0e1426'],
+    sis: '#3c4a6e', oteki: '#0a0f1c', ray: '#8aa0ff' },
+];
+
+function skyTexture(t = TEMALAR[0]) {
   const W = 512, H = 512, [c, ctx] = newCanvas(W, H);
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, '#150e28');
-  g.addColorStop(0.40, '#3d2670');
-  g.addColorStop(0.68, '#8a4394');
-  g.addColorStop(0.86, '#e0708a');
-  g.addColorStop(1, '#ffb36b');
+  const dur = [0, 0.40, 0.68, 0.86, 1];
+  t.gok.forEach((renk, i) => g.addColorStop(dur[i], renk));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
   for (let i = 0; i < 150; i++) {
@@ -531,10 +568,10 @@ function skyTexture() {
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
   }
   ctx.globalAlpha = 0.9;
-  ctx.fillStyle = '#ffe9a8';
+  ctx.fillStyle = t.disk;
   ctx.beginPath(); ctx.arc(W * 0.72, H * 0.30, 26, 0, Math.PI * 2); ctx.fill();
   ctx.globalAlpha = 1;
-  for (const [base, col] of [[0.86, '#4a2f72'], [0.93, '#2f1e4e']]) {
+  for (const [base, col] of [[0.86, t.tepe[0]], [0.93, t.tepe[1]]]) {
     ctx.fillStyle = col;
     ctx.beginPath();
     ctx.moveTo(0, H);
@@ -624,6 +661,37 @@ const sky = new THREE.Mesh(
   new THREE.MeshBasicMaterial({ map: skyTexture(), depthWrite: false, fog: false }));
 sky.position.y = SKY_H / 2;
 scene.add(sky);
+
+// Temayı uygula: gökyüzü dokusu, sis, koridorun ötesi ve ray rengi.
+//
+// `scene.environment` yerinde bırakılıyor. Onu da her temada yeniden
+// üretmek PMREM'i bölüm başına bir kez çalıştırmak demek ve ucuz
+// telefonda bölüm açılışına takılan bir duraklama, yansımadaki ton farkı
+// ise bıçağın üstünde zar zor görülüyor. Pahalı olan şey görünmüyor,
+// görünen şey ucuz.
+//
+// Eski doku atılıyor: her bölüm başında bir tane üretip bırakmak, tam da
+// `sldon.mjs`'in aradığı türden sessiz bir birikme olurdu.
+let temaNo = -1;
+function temaUygula(n) {
+  const i = Math.floor((n - 1) / 4) % TEMALAR.length;
+  if (i === temaNo) return TEMALAR[i];
+  temaNo = i;
+  const t = TEMALAR[i];
+  const eski = sky.material.map;
+  sky.material.map = skyTexture(t);
+  sky.material.needsUpdate = true;
+  if (eski) eski.dispose();
+  scene.fog.color.set(t.sis);
+  beyond.material.color.set(t.oteki);
+  RAIL_MAT.color.set(t.ray);
+  // Zemin dokusu mor çizilmiş ve her tema için yeniden çizmek bölüm
+  // başına ikinci bir tuval demek. Malzemenin rengi dokuyla çarpılıyor,
+  // yani tek satırla aynı iş: buz temasında mavi gök altında mor bir
+  // koridor duruyordu ve tema oradan çöküyordu.
+  floor.material.color.set(t.zemin);
+  return t;
+}
 
 // ---------------------------------------------------------------------
 // The blade
@@ -1849,6 +1917,7 @@ $('dOk').onclick = () => {
 };
 
 function startLevel() {
+  temaUygula(level);
   totalCuts = buildCourse(level);
   cutCount = 0; streak = 0; runBest = 0;
   runCoins = 0; revived = false; hitItem = null; paidOut = false;
@@ -2278,6 +2347,16 @@ window.sliceAutoPlay = () => {
 // Parça havuzu: hangi parça hangi bölümden itibaren ve hangi ağırlıkta.
 // İçerik duvarını ölçen araç bunu elle yazıyordu ("havuz 5. bölümde doluyor")
 // ve mayın 8. bölümde eklenince sessizce yanlış oldu.
+// Hangi tema açık ve ekrandaki renkler gerçekten ona mı ait?
+window.sliceTheme = () => ({
+  no: temaNo, ad: temaNo >= 0 ? TEMALAR[temaNo].ad : null,
+  sayi: TEMALAR.length,
+  sis: '#' + scene.fog.color.getHexString(),
+  oteki: '#' + beyond.material.color.getHexString(),
+  zemin: '#' + floor.material.color.getHexString(),
+  ray: '#' + RAIL_MAT.color.getHexString(),
+  doku: renderer.info.memory.textures,
+});
 window.slicePieces = () => PIECES.map(p => ({
   id: p.id, minLevel: p.minLevel, weight: p.weight,
 }));
