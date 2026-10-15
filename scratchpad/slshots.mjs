@@ -52,8 +52,28 @@ const SHOTS = [
     } },
   // Demire yapışık bir kare kırmızı bir duvardan ibaret. Bir engelin
   // ilerisini, aradaki boşluk görünürken yakala.
+  // Koşul "34 birim ilerle"ydi ve bıçağın demirin yüzüne yapışıp
+  // yapışmadığına bakmıyordu: çekilen kare ekranın alt yarısı düz kırmızı
+  // bir duvar oldu, ve altında "kırmızı demirlere çarpma" yazıyordu.
+  // Demir **görünmeli** ama merceği kaplamamalı — en yakın demir sekiz ile
+  // yirmi birim arasındayken yakalanıyor.
   { name: '3-bars', lvl: 9, cap: 'Do not hit the red bars',
-    run: pg => drive(pg, p => p.dist > 34, 160) },
+    run: async pg => {
+      let p = await pg.evaluate(() => window.sliceProbe());
+      for (let i = 0; i < 220; i++) {
+        await pg.evaluate(() => window.sliceAutoPlay());
+        await pg.waitForTimeout(50);
+        const q = await pg.evaluate(() => {
+          const pr = window.sliceProbe();
+          const onde = window.sliceBars()
+            .map(b => b.d - pr.dist).filter(x => x > 0).sort((a, b) => a - b)[0];
+          return { ...pr, onde: onde == null ? 999 : +onde.toFixed(1) };
+        });
+        if (q.state !== 'playing') return q;
+        if (q.dist > 30 && q.onde >= 8 && q.onde <= 20) return q;
+      }
+      return p;
+    } },
   // drive() oyun bittiği anda dönüyor — 'clear' beklemek yetmiyor, çarpınca
   // da dönüyor ve kare "üç yıldız al" başlığıyla çarpma ekranını gösteriyordu.
   // Bitene kadar tekrar dene.
