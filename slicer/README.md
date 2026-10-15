@@ -97,14 +97,23 @@ yapıyordu — hep aynı dağınık yığın, hatırlanacak hiçbir an yok. Art�
 |---|---|---|
 | **run** | 5-8 nesne aynı hizada — kombonun kurulduğu yer | 1 |
 | **stair** | tek yönde düzenli tırmanış/iniş | 1 |
-| **zig** | yukarı-aşağı, her adım bıçağın yetişebileceği kadar | 3 |
-| **gate** | bir demir, ardından boşluk hizasında meyveler | 2 |
-| **tunnel** | iki demir aynı taraftan, arada uzun düz koşu | 5 |
 | **rest** | kısa boşluk; her yuvası dolu parkur okunmuyor | 1 |
+| **gate** | bir demir, ardından boşluk hizasında meyveler | 2 |
+| **zig** | yukarı-aşağı, her adım bıçağın yetişebileceği kadar | 3 |
+| **tunnel** | iki demir aynı taraftan, arada uzun düz koşu | 5 |
+| **mine** | hattın üstünde kesilmemesi gereken şey; hat bırakılıyor | 8 |
+| **squeeze** | karşılıklı iki demir, aralarında dar pencere | 12 |
+| **sweep** | sırayla tavandan ve yerden üç kapı | 18 |
+| **weave** | arka arkaya iki pencere, farklı yüksekliklerde | 23 |
+| **gauntlet** | dar pencere, hemen arkasında aynı hizada mayın | 28 |
 
 Her parça nereden başladığını ve nerede bittiğini biliyor, bir sonraki
 oradan devam ediyor. Yeni bir parça türünün açılması da bir ilerleme
-biçimi: zikzak 3., tünel 5. bölümde giriyor.
+biçimi: zikzak 3., tünel 5., kapan 28. bölümde giriyor.
+
+Bu tablo elle yazılıyor ve iki kez bayatladı — mayın, mengene ve salınım
+eklendiğinde kimse buraya dokunmadı. `scratchpad/slbelge.mjs` artık
+kodda olup burada yazmayan bir parça kalırsa hata veriyor.
 
 Parçalar `c` kalemiyle çiziyor — `fruit`, `bar`, `skip`, `clamp`, `reach`.
 Yuva sayacı ve engel aralığı kuralı orada tutuluyor, yani bir parça
@@ -193,6 +202,12 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
     node scratchpad/slblade.mjs    # bıçak nasıl görünüyor (kare çeker)
     node scratchpad/slicegoals.mjs # hedefler: sayma, ödeme, zincir, ekran
     node scratchpad/slicecut.mjs   # kesim sayısı: çıkıyor mu, birikiyor mu
+    node scratchpad/sldon.mjs      # uzun oynandıkça sahne büyüyor mu
+    node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
+
+Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik
+listesi, anılan kancalar, tavan ifadeleri ve reklam anahtarı. Tarayıcı
+açmıyor, bir saniyenin altında bitiyor.
 
 `window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceMap`, `sliceDaily`,
 `sliceStart`, `sliceSetTarget`, `sliceAutoPlay`, `sliceGive`, `sliceRevive`,
