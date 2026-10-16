@@ -158,7 +158,17 @@ console.log('\n--- oynanırken ---');
   // basıyordu ne bitiyordu: kırk dakika boyunca beş saniye işlemci harcayıp
   // bekledi. Hiç bitmeyen bir test, hata basan testten de kötü — en azından
   // o bir şey söylüyor. Takılan bölüm artık **adıyla** rapor ediliyor.
-  const SINIR = 25000;
+  // Sınırın işi hızı ölçmek değil, **asılı kalmayı** yakalamak: takılan
+  // bir bölüm sonsuza kadar sürer, yani doksan saniye de otuz saniye
+  // kadar iyi bir tuzak.
+  //
+  // 25 saniye gürültünün tam içindeydi. Döngü sahte saatle altmış adım
+  // atıyor ama her adım bir kare çizdiriyor, ve bu konteynerde GPU yok:
+  // kare 300-450 ms, yani altmış adım ~24 saniye. Test bu yüzden bazen
+  // geçip bazen düşüyordu — 13, 29, 44, 51 gibi bölümler koşudan koşuya
+  // değişiyordu. Deponun kendi kuralı testlerin zamanlamaya bağlı
+  // olmamasını söylüyor ve bu satır onu çiğniyordu.
+  const SINIR = 90000;
   for (let lvl = 1; lvl <= TUR; lvl++) {
     let r;
     // Yarışı kaybeden `evaluate` askıda kalıyor ve sayfa kapanınca reddediyor.
