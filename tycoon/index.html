@@ -618,6 +618,10 @@ const METIN = {
   todayHdr:  ['<b>Today</b> — resets at midnight', '<b>Bugün</b> — gece yarısı yenileniyor'],
   milesHdr:  ['<b>Milestones</b>', '<b>Hedefler</b>'],
   openingAd: ['OPENING AD…', 'REKLAM AÇILIYOR…'],
+  // Reklam açılmadığında. Sessiz kalmak, oyuncunun dokunduğu düğmenin
+  // hiçbir şey yapmaması demekti — ve dönüş ekranında bundan beteri
+  // oluyordu: ekran kapanıyor ve ikiye katlama hakkı yanıyordu.
+  adFailed:  ['AD DID NOT OPEN', 'REKLAM AÇILMADI'],
   // Süre birimleri. `fmtTime` dönüş ekranında ve hız kutusunun geri
   // sayımında kullanılıyor; "2h 0m" Türkçe ekranda, "45sn" İngilizce
   // ekranda duruyordu — ikisi de aynı hatanın iki yönü.
@@ -983,7 +987,12 @@ async function adsInit() {
   if (!ADS_ON) return;
   try { await _AdMob.initialize({ initializeForTesting: ADS_TESTING }); } catch (e) {}
 }
+// Ölçüm için reklamın sonucunu dışarıdan dayatmak. Telefonda reklamın
+// açılmadığı hâl sık — ağ yok, envanter boş — ve o hâlde oyuncunun ne
+// gördüğü ancak buradan zorlanarak ölçülebiliyor.
+let reklamSim = null;
 function showRewarded() {
+  if (reklamSim !== null) return Promise.resolve(reklamSim);
   if (!ADS_ON) return Promise.resolve(true);
   return new Promise(async resolve => {
     let got = false, subR = null, subD = null;
@@ -3736,7 +3745,20 @@ $('wDouble').onclick = async () => {
   btn.disabled = true;
   btn.textContent = T('openingAd');
   const ok = await showRewarded();
-  if (ok && pendingOffline > 0) {
+  // Reklam açılmazsa ekran **kapanmıyor** ve hak yanmıyor.
+  //
+  // Eskiden bu yol da ekranı kapatıp `pendingOffline`ı sıfırlıyordu:
+  // ağı olmayan ya da reklam envanteri boş olan oyuncu düğmeye
+  // dokunuyor, ekran kayboluyor, ikiye katlama bir daha gelmiyor ve
+  // bunun söylendiği hiçbir yer yok. Reklamın açılmaması oyuncunun
+  // hatası değil.
+  if (!ok) {
+    btn.disabled = false;
+    btn.textContent = T('adFailed');
+    setTimeout(() => { if (!btn.disabled) btn.textContent = T('watchDouble'); }, 2500);
+    return;
+  }
+  if (pendingOffline > 0) {
     G.cash += pendingOffline;
     G.totalEarned += pendingOffline;
     floatCash('+' + fmt(pendingOffline));
@@ -3762,7 +3784,11 @@ const boostTikla = async () => {
   const t = $('boostTxt');
   t.textContent = '…';
   const ok = await showRewarded();
-  if (!ok) { refreshBoost(); return; }
+  // Reklam açılmazsa söylenmesi gerekiyor. Hap "×3"e dönüp susuyordu
+  // ve oyuncunun gördüğü şey, dokunduğu düğmenin hiçbir şey
+  // yapmaması. Yazı hapa sığmıyor — o yüzden kasanın üstünde
+  // beliren metni kullanıyor, paranın göründüğü yerin aynısı.
+  if (!ok) { refreshBoost(); floatCash(T('adFailed')); return; }
   const secs = boostSecs();
   G.boostFrom = Date.now();
   G.boostUntil = Date.now() + secs * 1000;
@@ -4646,6 +4672,17 @@ window.jeShop = () => ({
 //   eklentisiz— cihaz, ama eklenti derlemenin dışında kalmış
 //   urunsuz   — cihaz ve eklenti var, Play ürünleri tanımıyor
 //   hazir     — her şey yerinde
+// Reklamın sonucunu dayat: `true` izlendi, `false` açılmadı, `null`
+// oyunun kendi yoluna bırak.
+window.jeReklamSim = s => { reklamSim = s; return reklamSim; };
+// Dönüş ekranında bekleyen ikiye katlama ve o ekranın açık olup
+// olmadığı. Reklam açılmayınca ekranın kapanmaması ölçülebilsin diye.
+window.jeDonus = () => ({
+  acik: $('welcome').classList.contains('show'),
+  bekleyen: pendingOffline,
+  dugme: $('wDouble').textContent.trim(),
+  kapali: $('wDouble').disabled,
+});
 window.jeIapSim = mod => {
   IAP_NATIVE = mod !== 'tarayici';
   IAP_ON = mod === 'urunsuz' || mod === 'hazir';

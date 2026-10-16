@@ -275,6 +275,17 @@ zaten türün para kazandığı yer, çünkü oyuncu kendi istiyor.
   artık bedeli reklam. Zaten bu şekilde kurulmuştu.
 - **Çevrimdışı kazanç ×2** — dönüş ekranındaki ikinci düğme.
 
+**Reklam açılmazsa.** Ağ yoksa ya da envanter boşsa `showRewarded()`
+`false` dönüyor, ve bu hâl ikisinde de sessizdi. Dönüş ekranındaki
+düğme daha kötüsünü yapıyordu: ekranı kapatıp `pendingOffline`ı
+sıfırlıyordu, yani hiçbir reklam izlenmeden ikiye katlama hakkı
+yanıyordu ve bir daha gelmiyordu. Artık ekran açık kalıyor, hak
+duruyor ve düğmede "REKLAM AÇILMADI" yazıyor. Hız kutusunda aynı
+cümle kasanın üstünde beliriyor — hapa sığmıyor.
+
+Ölçüm: `scratchpad/tyreklam.mjs`, reklamın sonucunu `jeReklamSim` ile
+dayatıyor.
+
 Cihaz dışında `showRewarded()` `true` dönüyor, yani tarayıcıda akış
 yürünebiliyor; orada hız kutusu eski beklemesini fren olarak koruyor.
 
@@ -372,7 +383,8 @@ hatası), `tyyedek` (yedek kodu), `tygoc` (eski kayıt yeni sürümde).
 **Arayüz ve paket** — `tyekran` (küçük telefonlar), `tydil` (çeviri
 tablosu), `tyingilizce` (Türkçe açıkken ekranda İngilizce kalmış metin),
 `typerf` (ucuz telefonda yük), `tymagaza` (Play ürünü tanımıyorken
-mağaza), `tysatin` (satın alınan teslim ediliyor mu), `typlaygames`,
+mağaza), `tysatin` (satın alınan teslim ediliyor mu), `tyreklam`
+(reklam açılmazsa oyuncu ne görüyor), `typlaygames`,
 `tysurum` (sürüm numarası ve reklam anahtarı), `tylisting` (mağaza metni
 oyunla uyuşuyor mu), `tybelge` (bu dosya oyunla aynı şeyi mi anlatıyor).
 
@@ -380,8 +392,8 @@ oyunla uyuşuyor mu), `tybelge` (bu dosya oyunla aynı şeyi mi anlatıyor).
 oynatanlar: `jeGive`, `jeRun`, `jeStep`, `jeBuy`, `jeSetLevel`,
 `jeGiveManager`, `jeTakeManager`, `jeOffline`, `jeBoost`, `jePrestige`,
 `jeResBuy`, `jeSetLifetime`, `jeSetEarned`, `jeWipeProgress`, `jeReset`.
-Ekranı kuranlar: `jeTutSkip`, `jeGunGoster`, `jeIapSim`, `jeKayitBoz`,
-`jeKayitDur`, `jeSave`.
+Ekranı kuranlar: `jeTutSkip`, `jeGunGoster`, `jeIapSim`, `jeReklamSim`,
+`jeDonus`, `jeKayitBoz`, `jeKayitDur`, `jeSave`.
 
 ## Mağaza
 
