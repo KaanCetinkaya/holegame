@@ -1257,6 +1257,13 @@ function gorevTuru() { return dailyRun ? null : missionKindFor(tahtaLvl()); }
 // tek sızdıran girdi bölümdü. Eşikler 12 ve 20'de çıktı — dikenin ve
 // mancınığın açıldığı yerler, yani engeller oyuncunun temasından
 // seçiliyordu.
+// Tanımı burada, `tahtaLvl`'in yanında. Başta `startDailyRun`'ın yanına
+// konmuştu — yirmi üç bin satır aşağıda — ve orada kaldığı sürece
+// `tahtaLvl` kendi değişkenini ileriden okuyordu. Şu an patlamıyor
+// (`dailyRun` false iken `dailyLvl` hiç değerlendirilmiyor) ama bu bir
+// kısa devrenin yan etkisi, kural değil: ifadeyi iki dalı da hesaplar
+// hâle getiren biri TDZ hatası alırdı ve sebebini aramak uzun sürerdi.
+let dailyLvl = 1;
 function tahtaLvl() { return dailyRun ? dailyLvl : level; }
 function missionKindFor(n) {
   if (isPuzzleLevel(n)) return 'puzzle';
@@ -24250,7 +24257,6 @@ function dailyPlan() {
 // Günün kendi sayısı kullanılıyor: gün gün değişiyor ama o gün herkeste
 // aynı. Sıradan bölümlerin dolaştığı aralıkta kalıyor ki yerleşim
 // stilleri aynı çeşitlilikte dağılsın.
-let dailyLvl = 1;
 function startDailyRun() {
   ensureChall();
   const plan = dailyPlan();
