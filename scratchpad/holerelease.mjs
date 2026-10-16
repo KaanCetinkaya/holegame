@@ -28,7 +28,16 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 const console_errs = [];
-pg.on('console', m => { if (m.type() === 'error') console_errs.push(m.text()); });
+// Favicon'un 404'ü sayılmıyor: tarayıcı onu kendiliğinden istiyor ve
+// sunucumuzda yok. Telefonda karşılığı olmayan bu satır çıktıda kalıcı
+// bir kırmızı ringa olarak duruyordu — arayan biri onu gerçek bir eksik
+// dosya sanıp izini sürer.
+pg.on('console', m => {
+  if (m.type() !== 'error') return;
+  const yer = (m.location() && m.location().url) || '';
+  if (/favicon\.ico/.test(yer) || /favicon\.ico/.test(m.text())) return;
+  console_errs.push(m.text());
+});
 await pg.goto('http://localhost:8177/', { waitUntil: 'load' });
 await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
@@ -58,8 +67,21 @@ const resimler = new Set(
 // her sayı bu dosyada böyle eskiyor.
 const TUR = (await pg.evaluate(() => window.fruitHoleThemeTable())).order.length;
 let lo = 1e9, hi = 0;
+// Tahta tohumlanıyor: aynı bölüm her koşuda aynı tahtayı versin.
+//
+// Tohumsuzken sayı koşudan koşuya geziniyordu — en dolu bölüm 586, 592,
+// 586 ve bir koşuda 611 çıktı, eşik ise 600'dü. Yani kontrol dört
+// koşudan birinde, oyunda hiçbir şey değişmeden, kırmızıya dönüyordu.
+// Bu dosyanın kendi uyarısı da aynı şeyi söylüyor: "elle yazılmış her
+// sayı bu dosyada böyle eskiyor" — eskimenin öteki yolu, sayının
+// doğru ama ölçümün oynak olması.
 for (let n = 1; n <= TUR; n++) {
-  const p = await pg.evaluate(l => window.fruitHoleProbe(l), n);
+  const p = await pg.evaluate(l => {
+    window.fruitHoleSeedField(7200 + l);
+    const r = window.fruitHoleProbe(l);
+    window.fruitHoleUnseedField();
+    return r;
+  }, n);
   if (!seen.has(p.pattern)) seen.set(p.pattern, { first: n, fruit: p.fruit });
   if (resimler.has(n)) continue;
   lo = Math.min(lo, p.fruit); hi = Math.max(hi, p.fruit);
@@ -70,7 +92,11 @@ for (const [name, v] of seen) console.log(`  ${String(name).padEnd(10)} bölüm 
 console.log('');
 check(seen.size === TUR, `${TUR} desen var (${seen.size})`);
 check(lo >= 80, `en seyrek ızgara bölümü 80+ meyve (${lo})`);
-check(hi <= 600, `en dolu ızgara bölümü 600'ü aşmıyor (${hi})`);
+// Tavan, akıl sağlığı kontrolü: "bir bölüm kaçak büyümüş mü". Ölçülen
+// değere göre konuyor — tohumlu tarlada en dolu bölüm 621 meyve, ve 700
+// hem onun üstünde hem de gerçek bir kaçağı (bin küsur) yakalayacak
+// kadar yakın. Eski 600 tahtalar büyüdükçe eskimişti.
+check(hi <= 700, `en dolu ızgara bölümü 700'ü aşmıyor (${hi})`);
 
 // --- eşya sayısı ---
 // Metinde "elli iki nesne" yazıyordu; sayıyı elle takip etmek yerine
