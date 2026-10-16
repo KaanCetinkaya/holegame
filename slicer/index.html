@@ -2188,6 +2188,12 @@ $('clearQuitBtn').onclick = () => { leaveRun(); state = 'menu'; refreshMenu(); s
 // the height it was when it passed.
 const REACH = 0.55;
 
+// Bir kesimin değeri. Ayrı bir işlev, çünkü iki yerden soruluyor:
+// çarpışma onu kesim başına kullanıyor, `sliceEnCok` ise parkurun
+// tamamı kesilseydi ne çıkacağını buradan hesaplıyor. İki kopya
+// olsaydı, formül değişince ölçüm eski formülü ölçmeye devam ederdi.
+function kesimDegeri(streak) { return 1 + Math.floor(streak / 4); }
+
 function collide(d0, y0, d1, y1) {
   for (const it of items) {
     if (it.kind === 'fruit' && it.cut) continue;
@@ -2231,7 +2237,7 @@ function collide(d0, y0, d1, y1) {
       // A cut is worth more inside a run than on its own: the combo is the
       // only thing in the game that rewards steering well rather than
       // steering safely.
-      const kazanc = 1 + Math.floor(streak / 4);
+      const kazanc = kesimDegeri(streak);
       runCoins += kazanc;
       spark(yAt, -it.d, it.spec.flesh);
       cutPop(yAt, -it.d, kazanc);
@@ -2398,6 +2404,16 @@ window.sliceProbe = () => ({
 });
 // Parkurun tamamı. sliceBars/sliceMines tek tür veriyor; kaçış hattının
 // ulaşılabilirliği için meyvelerle mayınların birlikte görülmesi gerekiyor.
+// Bu parkurun **en büyük** sayıları: her meyve kesilse, kombo hiç
+// kırılmasa. Arayüz ölçümü bunu soruyor, çünkü sürücünün bir koşuda
+// ulaştığı sayı en kötü hâl değil: 60. bölümde sürücü doksan parada
+// kalıyor, meyveyi kaçırdığı için — oyuncu üç haneye çıkıyor ve
+// haplar o zaman 360 piksele sığmayabiliyor.
+window.sliceEnCok = () => {
+  let kesim = 0, para = 0;
+  for (const it of items) if (it.kind === 'fruit') { kesim++; para += kesimDegeri(kesim); }
+  return { kesim, para };
+};
 window.sliceAll = () => items.map(i => ({
   kind: i.kind, d: +i.d.toFixed(2), y: +i.y.toFixed(2), cut: !!i.cut,
 })).sort((a, b) => a.d - b.d);

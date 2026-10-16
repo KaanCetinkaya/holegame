@@ -160,32 +160,77 @@ for (const b of BOYUTLAR) {
     if (dert.length) sorun.push(`${b.ad} ${ekran}: ${dert.join(' · ')}`);
   }
 
-  // HUD: oyun içindeyken dört hap tek satırda. Paralar altı haneyken
-  // en geniş hâlinde.
-  await pg.evaluate(() => { window.sliceStart(60); window.sliceRun(120); });
-  await pg.waitForTimeout(200);
+  // HUD: oyun içindeyken dört hap tek satırda.
+  //
+  // Koşunun **başında** değil, en geniş olduğu anda bakılıyor. Hap
+  // genişlikleri yazıyla büyüyor: 60. bölümde kesim sayısı üç haneye,
+  // para da öyle çıkıyor, ve tam o anda dört hap 360 pikseli
+  // zorluyor. Koşu başlar başlamaz bakmak "🔪 0 · 🪙 0" ölçmek, yani
+  // rahat olanı ölçmek.
   const hud = await pg.evaluate(() => {
     const ids = ['levelTag', 'scoreTag', 'coinTag', 'pauseBtn'];
-    // HUD görünür değilse aşağıdaki bütün kutular sıfır genişlikte
-    // ölçülür ve ölçüm hiçbir şey ölçmeden "tamam" der. Bu satır o
-    // yüzden var: ilk yazılışında koşu bitmiş oluyordu ve dört hap da
-    // 0+0+0+0 çıkıyordu.
+    const olc = () => ids.map(i => {
+      const e = document.getElementById(i);
+      const b = e.getBoundingClientRect();
+      // Hap küçülüyor mu: `.pill` esnek bir öğe ve `flex-shrink`
+      // kapatılmamış, yani satıra sığmayan yazı hapın yuvarlak
+      // zeminini taşıyor. Ekranda görünen şey rakamın kenarlığın
+      // dışına taşması.
+      return { i, l: b.left, r: b.right, w: b.width, yazi: e.textContent.trim(),
+               tasan: e.scrollWidth > e.clientWidth + 1 ? e.scrollWidth - e.clientWidth : 0 };
+    });
+    window.sliceStart(60);
+    // HUD görünür değilse bütün kutular sıfır genişlikte ölçülür ve
+    // ölçüm hiçbir şey ölçmeden "tamam" der. İlk yazılışında tam bu
+    // oldu: koşu bitmiş oluyordu ve dört hap 0+0+0+0 çıkıyordu.
     if (!document.getElementById('hud').classList.contains('show'))
       return { gizli: window.sliceProbe().state };
-    const r = ids.map(i => { const e = document.getElementById(i); const b = e.getBoundingClientRect();
-      return { i, l: b.left, r: b.right, t: b.top, b: b.bottom, w: b.width }; });
+    // Satıra kalan yer, HUD **görünürken** ölçülüyor: koşu bittiğinde
+    // `#hud` display:none oluyor ve kutusu sıfır genişlik veriyor.
+    const kutu = document.getElementById('hud').getBoundingClientRect();
+    const cs = getComputedStyle(document.getElementById('hud'));
+    const ic = kutu.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    let enGenis = olc(), enGenisW = 0;
+    for (let i = 0; i < 4000; i++) {
+      window.sliceAutoPlay();
+      const p = window.sliceStep(1 / 60);
+      if (p.state !== 'playing') break;
+      if (i % 20) continue;
+      const r = olc();
+      const w = r[3].r - r[0].l;
+      if (w > enGenisW) { enGenisW = w; enGenis = r; }
+    }
+    // Sürücünün o koşuda ulaştığı sayı en büyük sayı değil: 60.
+    // bölümde doksan parada kalıyor çünkü meyvenin yarısını kaçırıyor,
+    // oyuncu ise üç haneye çıkıyor. En büyük sayıları oyunun kendisi
+    // söylüyor (`sliceEnCok`) — testin kesim başına kazancı kendi
+    // hesaplaması, formül değiştiğinde ölçümün eski formülü ölçmesi
+    // olurdu.
+    window.sliceStart(60);
+    const enc = window.sliceEnCok();
+    document.getElementById('scoreTag').textContent = '🔪 ' + enc.kesim;
+    document.getElementById('coinTag').textContent = '🪙 ' + enc.para;
+    document.getElementById('hud').classList.add('show');
+    const r2 = olc();
+    if (r2.reduce((a, x) => a + x.w, 0) > enGenis.reduce((a, x) => a + x.w, 0)) enGenis = r2;
+    const r = enGenis;
     const cakisma = [];
     for (let i = 1; i < r.length; i++)
       if (r[i].l < r[i - 1].r - 1) cakisma.push(`${r[i - 1].i}|${r[i].i}`);
     const disari = r.filter(x => x.l < -1 || x.r > innerWidth + 1).map(x => x.i);
-    return { cakisma, disari, genislik: r.map(x => Math.round(x.w)).join('+'),
-             toplam: Math.round(r[3].r - r[0].l), ekran: innerWidth };
+    const tasan = r.filter(x => x.tasan).map(x => `${x.i} +${Math.round(x.tasan)}px`);
+    const toplamW = r.reduce((a, x) => a + x.w, 0);
+    return { cakisma, disari, tasan, genislik: r.map(x => Math.round(x.w)).join('+'),
+             yazi: r.map(x => x.yazi).join(' '),
+             toplam: Math.round(toplamW), yer: Math.round(ic),
+             pay: Math.round(ic - toplamW), ekran: innerWidth };
   });
   const hd = [];
   if (hud.gizli) hd.push(`HUD görünmüyor (state ${hud.gizli}) — ölçülemedi`);
   if (hud.cakisma?.length) hd.push(`çakışma: ${hud.cakisma.join(', ')}`);
   if (hud.disari?.length) hd.push(`dışarıda: ${hud.disari.join(', ')}`);
-  console.log(`  hud    ${hud.gizli ? '-' : hud.genislik + ' = ' + hud.toplam + ' / ' + hud.ekran}` +
+  if (hud.tasan?.length) hd.push(`yazı hapı taşıyor: ${hud.tasan.join(', ')}`);
+  console.log(`  hud    ${hud.gizli ? '-' : `${hud.genislik} = ${hud.toplam} / ${hud.yer}  pay ${hud.pay}px  "${hud.yazi}"`}` +
     (hd.length ? '  ' + hd.join(' · ') : '  tamam'));
   if (hd.length) sorun.push(`${b.ad} hud: ${hd.join(' · ')}`);
 
