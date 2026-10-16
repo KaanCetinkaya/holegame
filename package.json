@@ -48,7 +48,8 @@
     "test": "node build-www.mjs && node scratchpad/kosu.mjs",
     "test:tycoon": "node build-www.mjs && node scratchpad/kosu.mjs ty",
     "test:slicer": "node build-www.mjs && node scratchpad/kosu.mjs sl slice",
-    "test:fruithole": "node build-www.mjs && node scratchpad/kosu.mjs hole giants",
+    "test:fruithole": "node build-www.mjs && node scratchpad/kosu.mjs holeaudit holedaily holekayit holeboot holeecon holecoll holeiap holerate holeperf holeawards holechest",
+    "test:fruithole:tam": "node build-www.mjs && node scratchpad/kosu.mjs hole giants",
     "test:all": "node build-www.mjs && node scratchpad/kosu.mjs ty sl slice hole giants"
   },
   "dependencies": {

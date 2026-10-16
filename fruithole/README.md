@@ -520,6 +520,21 @@ mıknatıs ve gölgeler meyvenin kendi nesnesine dokunuyor, yani bu oyunun çizi
 yolunu baştan kurmak demek. Ölçüm burada duruyor; karar, gerçek telefonda
 takılma görülürse verilecek.
 
+## Ölçümler
+
+    npm run test:fruithole        # yükleme öncesi küme, ~10 dakika
+    npm run test:fruithole:tam    # doksan üç betik, saatler
+
+Kümenin ayrı olmasının sebebi ölçülerek öğrenildi. Günlük meydan okuma
+**1 Ekim'den beri** herkese aynı tahtayı vermiyordu (aşağıda) ve bunu
+yakalayan test 6 Eylül'den beri depoda duruyordu. İki hafta boyunca,
+üretime giden sürümlerde, kimse onu koşturmadı — çünkü bütün takımı
+koşturmak saatler sürüyor. Koşulmayan bir test, test değil.
+
+Kümede olanlar: geniş tarama (`holeaudit`), günlük meydan okuma, kayıt
+dayanıklılığı, her kayıtlı bölümden açılış, ekonomi, koleksiyon, satın
+alma, puanlama, başarımlar, sandık.
+
 ## Kayıt
 
 İlerleme ondan fazla ayrı `fruithole_*` anahtarında duruyor: bölüm, para,
