@@ -134,6 +134,25 @@ var mı diye kontrol ediliyor; yoksa o yuvaya engel yerine meyve konuyor.
 `scratchpad/slicegaps.mjs` her bölümü on iki kez üretip en dar geçişi
 ölçüyor.
 
+**Geçilen engel öldürmüyor.** Çarpışma, kareyi başlatan noktanın bir
+birim gerisindeki her şeye de bakıyordu ve geride kalanı o karenin
+başındaki yükseklikle yargılıyordu. Onbeş birim hızda bir birim altmış
+yedi milisaniye: temiz geçtiğin demir, sen bir sonraki boşluğa inmeye
+başlarken arkandan öldürüyordu — ve oyuncunun bundan öğreneceği hiçbir
+şey yok, çünkü ekranda görünen şey engelin geçilmiş olması.
+
+Geriye bakış meyvede kaldı (biraz geç kesilen meyve hediyedir), demirle
+mayında kalktı. Ölçüldü (`scratchpad/slsurucu.mjs`): 234 turluk bir
+taramada 85 tur geride kalmış bir engelle bitiyordu, yani her beş
+ölümün dördü; aynı tarama eski kuralla turların %55'ini, yenisiyle
+%92'sini bitiriyor.
+
+O ölçüm aynı zamanda **bölümün bitirilebilirliğini** soruyor.
+`slicegaps` parkurun geometrisine bakıyor — iki demir arası yetişilir
+mi, pencere bıçağa yer bırakıyor mu — ama geometrinin tamamı doğruyken
+bölüm yine de bitirilemeyebilir, çünkü engeller tek tek değil arka
+arkaya çözülüyor.
+
 ## Akşamlar
 
 Koridor her bölümde aynı mordu. Karışım bölümle sertleştikten sonra 30.

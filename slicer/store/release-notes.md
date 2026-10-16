@@ -11,11 +11,12 @@ beri değişti, ve kapalı testteki kişinin neye bakacağını söyleyen tek
 
 ## Bu sürüm (sürüm kodu 3)
 
-### İngilizce — `en-US` (411 karakter)
+### İngilizce — `en-US` (473 karakter)
 
 ```
 The corridor keeps asking new questions past level 17, and it stops looking the same while it does.
 
+• An obstacle you have already cleared can no longer kill you
 • Six sceneries, changing every four levels
 • Two new obstacles: twin windows at different heights, and a mine waiting just past a narrow gap
 • The clamp at level 12 no longer arrives at its full difficulty
@@ -23,11 +24,12 @@ The corridor keeps asking new questions past level 17, and it stops looking the 
 • Less memory held on to after a long session
 ```
 
-### Türkçe — `tr-TR` (393 karakter)
+### Türkçe — `tr-TR` (442 karakter)
 
 ```
 Koridor 17. bölümden sonra da yeni şeyler soruyor, ve bunu yaparken aynı görünmüyor.
 
+• Temiz geçtiğin engel artık arkandan öldürmüyor
 • Altı manzara, dört bölümde bir değişiyor
 • İki yeni engel: farklı yüksekliklerde iki pencere, ve dar bir geçidin hemen ardında bekleyen mayın
 • 12. bölümdeki mengene artık ilk günden son zorluğunda gelmiyor
@@ -40,11 +42,11 @@ Koridor 17. bölümden sonra da yeni şeyler soruyor, ve bunu yaparken aynı gö
 ## Kısa sürüm (tek satır isteyen yerler için)
 
 ```
-Six sceneries, two new obstacles, and a gentler first clamp.
+No more deaths from an obstacle you already cleared, six sceneries, two new obstacles.
 ```
 
 ```
-Altı manzara, iki yeni engel, ve daha yumuşak bir ilk mengene.
+Geçtiğin engel artık arkandan öldürmüyor; altı manzara, iki yeni engel.
 ```
 
 ---
@@ -67,4 +69,9 @@ Kapalı testte bakılacak şeyler:
 5. **17 sonrası** — karışım bölümle sertleşiyor: tur başına ortalama
    demir 15-18. bölümlerde 4.4, 27-30'da 9.2.
 
-Ölçümler: `npm run test:slicer` (on dört ölçüm betiği).
+6. **Arkadan ölüm** — çarpışma, geçilen engele altmış yedi milisaniye
+   daha bakıyordu ve bir sonraki boşluğa inerken öldürüyordu. Ölçüldü:
+   234 turun 85'i böyle bitiyordu, yani her beş ölümün dördü. Denemek
+   için: bir demiri temiz geç ve hemen öteki uca kaç.
+
+Ölçümler: `npm run test:slicer` (on altı ölçüm betiği).
