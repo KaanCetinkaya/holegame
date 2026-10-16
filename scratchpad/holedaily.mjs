@@ -92,6 +92,13 @@ console.log(`   A (bölüm 3, yükseltmesiz):   ${a.n} meyve, ${a.hash}, delik $
 console.log(`   B (bölüm 44, hepsi dolu):    ${b.n} meyve, ${b.hash}, delik ${b.startR} ile açıldı`);
 check(a.hash === b.hash, 'tarla birebir aynı', `${a.hash} / ${b.hash}`);
 check(a.n === b.n, 'meyve sayısı aynı', `${a.n} / ${b.n}`);
+// Saat de iddianın parçası. Tahta aynı olup süre farklıysa günlük yine
+// adil değil, ve skor liderlik tablosuna yazılıyor. Ölçüldü: tahta
+// eşitlendikten sonra 1. bölümdeki oyuncu 348 saniye, 5. bölümdeki 240
+// saniye alıyordu — acemiye tanınan saat payı (`ease()`) günlükte de
+// uygulanıyordu.
+console.log(`   saat: ${a.timeFull}sn / ${b.timeFull}sn`);
+check(a.timeFull === b.timeFull, 'saat aynı', `${a.timeFull} / ${b.timeFull}`);
 // holeR değil startR: koşu başladıktan saniyeler sonra bakılıyor ve delik
 // o sırada çoktan meyve yiyip büyümüş oluyor. İddia açılış genişliği hakkında.
 check(Math.abs(a.startR - b.startR) < 0.0005, 'delik aynı boyda açılıyor',

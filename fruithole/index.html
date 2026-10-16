@@ -23921,6 +23921,15 @@ function levelTime() {
 // Zorluk kaldırılmıyor, geciktiriliyor: beşinci bölümde çarpan 1'e iniyor ve
 // tasarlanan sıkılık aynen geri geliyor.
 function ease() {
+  // Yeni oyuncuya tanınan saat payı — ilk dört bölümde, azalarak.
+  //
+  // Günlük koşuda uygulanmıyor. Tahtanın herkeste aynı olması
+  // düzeltildikten sonra saat kalmıştı: 1. bölümdeki oyuncu aynı günlük
+  // tahtaya 348 saniyeyle, 5. bölümdeki 240 saniyeyle giriyordu — %45
+  // fark, ve skor liderlik tablosuna yazılıyor. Acemiye tanınan pay
+  // kendi bölümlerinde anlamlı; herkesin aynı tahtayı paylaştığı bir
+  // koşuda o pay bir avantaj.
+  if (dailyRun) return 1;
   const EK = [1.45, 1.30, 1.18, 1.08];
   return level <= EK.length ? EK[level - 1] : 1;
 }
@@ -26143,6 +26152,9 @@ window.fruitHoleTimeUp = () => onTimeUp();
 // the whole design rests on — what upg() is reporting while it runs.
 window.fruitHoleDailyState = () => ({
   dailyRun,
+  // Saat de "herkese aynı" iddiasının parçası: tahta aynı olup süre
+  // farklıysa günlük yine adil değil.
+  timeFull: Math.round(timeFull),
   pattern: currentPattern && currentPattern.name,
   holeR: +holeRadius.toFixed(4),
   // What the hole opened at, before a single fruit went in. This is the
