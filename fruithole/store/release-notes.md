@@ -319,3 +319,39 @@ kuralı değil sonucunu görüyor — "çakışma bitti" maddesi o), tür desenl
 (şerit, dama, halka — tahtaların tek renk görünmemesinin sebebi ama
 oyuncunun okuyacağı bir cümle değil), boy merdiveninin basamakları,
 `HIDDEN_SHAPES` bekçisi, ve bütün ölçüm betikleri.
+
+---
+
+## 51 (1.13) — 308 karakter
+
+```
+Picture levels are shapes you can actually read, and the daily is one board for everyone again.
+
+- Puzzle boards are filled in, not outlines
+- Nothing is left sitting where the hole cannot reach it
+- The daily challenge hands every player the same board
+- A damaged save no longer keeps the game from opening
+```
+
+Sürüm adı (yalnızca panoda görünür): `51 (1.13)`
+
+47-50 arası notsuz yüklendi; bu metin 46'dan beri biriken on sekiz
+değişikliğin oyuncunun göreceği kısmı.
+
+Dört madde, çünkü ikisi **oyuncunun başına gelmiş** şeyler ve bu dosyanın
+kuralı onları içeri alıyor:
+
+- **Günlük meydan okuma** 1 Ekim'den beri herkese aynı tahtayı vermiyordu.
+  3. bölümdeki oyuncu 274 meyve görüyordu, 44. bölümdeki 240 — aynı gün,
+  aynı tohum. Günlüğün tek vaadi buydu ve tutulmuyordu.
+- **Bozuk kayıt** oyunu hiç açtırmıyordu: tek bir anahtarın bozulması
+  betiği yüklenirken patlatıyor, ekran siyah kalıyordu. Kalıcı, çünkü
+  kayıt her açılışta yeniden okunuyor.
+
+Nota **girmeyenler**: iri parçaların kutup tahtalarında sırayla
+dizilmesi, dolgu stillerinin elle seçilebilmesi, büyüme yayının rayı,
+ölçüm betiklerinin parça payını oyunun kendi bayrağından okuması. Hiçbiri
+oyuncunun bakıp "bu değişmiş" diyeceği şey değil.
+
+İlk satır bulmaca tahtaları, çünkü oyunu açan birinin ilk fark edeceği
+görsel değişiklik o: aynı desenler, artık içi dolu.
