@@ -87,9 +87,22 @@
   #hint.show { opacity: .92; }
 
   /* ---- full screens -------------------------------------------------- */
+  /* `safe center` ile `overflow-y`, ikisi birden.
+     İçerik ekrandan uzunsa düz `center` taşan kısmı **iki uçtan birden**
+     kırpıyor ve ortalanmış bir kutu kaydırılarak da getirilemiyor: alttaki
+     düğme ekranın dışında kalıyor, oyuncu onu ne görüyor ne de
+     dokunabiliyor. Ölçüldü (`scratchpad/slekran.mjs`): 360×568'de menünün
+     GOALS düğmesi 519-573 arasında, yani son beş pikseli ekranın altında.
+     360×640 tasarım boyutu değil ama oyuncunun telefonu da 412×915 değil —
+     16:9 bir cihazda durum ve gezinme çubukları düştükten sonra WebView'a
+     kalan yükseklik bu.
+     `safe center` tanımayan eski WebView bütün satırı atıyor ve
+     `flex-start`a düşüyor: içerik yukarıdan başlıyor ve kaydırılıyor,
+     yani kırpılmıyor. İki durumda da ulaşılamayan düğme kalmıyor. */
   .screen {
     position: absolute; inset: 0; display: none;
-    flex-direction: column; align-items: center; justify-content: center;
+    flex-direction: column; align-items: center; justify-content: safe center;
+    overflow-y: auto;
     padding: 26px 24px calc(env(safe-area-inset-bottom, 0px) + 26px);
     background: rgba(20,12,38,.82); backdrop-filter: blur(3px);
   }
@@ -2178,7 +2191,21 @@ const REACH = 0.55;
 function collide(d0, y0, d1, y1) {
   for (const it of items) {
     if (it.kind === 'fruit' && it.cut) continue;
-    if (it.d < d0 - 1 || it.d > d1 + REACH + 0.2) continue;
+    // Geride kalan bir **tehlike** artık öldürmüyor.
+    //
+    // Bu satır herkese bir birimlik geriye bakış veriyordu ve meyve için
+    // doğru: biraz geç kesilen meyve hediyedir. Demirle mayın için aynı
+    // şey hediyenin tersi — geçtiğin engel, onbeş birim hızda altmış
+    // yedi milisaniye boyunca arkandan öldürebiliyordu, üstelik `yAt`
+    // kareyi başlattığın yüksekliğe sabitlendiği için **boşluktan
+    // çıktığın anki** yükseklikle.
+    //
+    // Ölçüldü (iz kaydı, 25. bölüm): bıçak 74.8'deki demiri 4.25'te
+    // temiz geçiyor, sonra bir sonraki boşluğa inmeye başlıyor ve
+    // 75.75'te — demir bir birim geride kalmışken — ölüyor. Ekranda
+    // görünen şey, geçtiğin demirin arkandan canını alması.
+    const geri = it.kind === 'fruit' ? 1 : 0;
+    if (it.d < d0 - geri || it.d > d1 + REACH + 0.2) continue;
 
     const span = d1 - d0;
     const t = span > 1e-4 ? (it.d - d0) / span : 0;
@@ -2354,6 +2381,14 @@ window.sliceCost = () => ({
 });
 window.sliceProbe = () => ({
   state, level, maxLevel, dist: +dist.toFixed(2), bladeY: +bladeY.toFixed(2),
+  // Bıçağın **gitmek istediği** yükseklik. Bıçağın nerede olduğunu
+  // bilmek, oraya neden gittiğini söylemiyor: sürücü yanlış yere mi
+  // sürdü, yoksa doğru yere yetişemedi mi — ikisi başka hatalar.
+  hedefY: +targetY.toFixed(2),
+  // Koşuyu bitiren şey. Hangi engele çarpıldığını bilmeden "haksız
+  // ölüm" diye bir ölçü yazılamıyor: ölümün yeri ile engelin yeri
+  // karşılaştırılamıyor.
+  vurulan: hitItem ? { kind: hitItem.kind, d: +hitItem.d.toFixed(2), y: +hitItem.y.toFixed(2) } : null,
   cut: cutCount, total: totalCuts, streak, shards: shards.length,
   items: items.length, courseEnd: +courseEnd.toFixed(1),
   // Hız dışarıdan okunabilir olmalı: ulaşılabilirlik hesabının paydası o ve
@@ -2394,7 +2429,20 @@ window.sliceAutoPlay = () => {
   const LOOK = Math.max(10, speed * 1.1);
   let bar = null, mine = null, fruit = null;
   for (const it of items) {
-    if (it.d < dist + 0.6) continue;
+    // Engel, **geçilene kadar** engeldir.
+    //
+    // Burada tek bir eşik vardı — `dist + 0.6` — ve meyve için doğru
+    // olan o eşik demir için yanlış: çarpışma bıçak `it.d`'yi geçerken
+    // bakılıyor, yani 0.6 birim önceden boşluğu bırakmak tam da demire
+    // girmek demek. Onbeş birim hızda 0.6 birim 40 milisaniye, ama
+    // bıçak o sırada saniyede beş birim tırmanıyor.
+    //
+    // Ölçüldü (iz kaydı, 40. bölüm): bıçak pencerenin tam ortasında,
+    // 1.90'da duruyor; 33.4'te pencere "geçilmiş" sayılıyor, hedef bir
+    // sonraki engele atlıyor ve bıçak 34'teki pencereye 2.44'te
+    // giriyor. Güvenli şerit 1.3-2.5. Kaza, boşluktan erken çıkmak.
+    const esik = it.kind === 'fruit' ? dist + 0.6 : dist;
+    if (it.d < esik) continue;
     if (it.kind === 'bar') {
       if (it.d < dist + LOOK && (!bar || it.d < bar.d)) bar = it;
     } else if (it.kind === 'mine') {
@@ -2402,7 +2450,25 @@ window.sliceAutoPlay = () => {
     } else if (!it.cut && (!fruit || it.d < fruit.d)) fruit = it;
   }
   if (bar) {
-    window.sliceSetTarget(bar.fromTop ? LANE_LOW + 0.25 : LANE_HIGH - 0.25);
+    // Demirin bıraktığı boşluk **demirin kendisinde yazıyor**: `gapY`,
+    // üretecin o demiri koyarken ulaşılabilirliği hesapladığı yükseklik.
+    // Burası eskiden onu okumuyor, "tavandan geliyorsa dibe kaç" diyordu.
+    //
+    // Tek demirde ikisi aynı şeye çıkıyor. Mengene'de (12. bölümden
+    // itibaren) çıkmıyor: mengene aynı hizada biri tavandan biri yerden
+    // iki demir kuruyor ve ikisinin de `gapY`si **aradaki pencere**.
+    // Dibe kaçmak o pencerenin altındaki demire girmek demekti.
+    //
+    // Ölçüldü (`scratchpad/slsurucu.mjs`): sürücü 1-12. bölümleri
+    // geçiyor, 13'ten sonra neredeyse hiçbirini bitiremiyordu — 25 ile
+    // 60 arasında üç koşudan sıfırı. Ölümlerin çoğu parkurun ilk
+    // yüzde onunda, aynı hizadaki iki demirin arasında.
+    //
+    // Bu bir oyun hatası değil, **ölçüm aracının** hatası; ama sliceRun
+    // 12. bölümün üstünde ne ölçerse ölçsün, ölçtüğü şey oyun değil
+    // sürücünün kendi kusuru oluyordu.
+    window.sliceSetTarget(bar.gapY != null ? bar.gapY
+      : (bar.fromTop ? LANE_LOW + 0.25 : LANE_HIGH - 0.25));
     return 'dodge';
   }
   // Mayın meyveden önce geliyor, aynı gerekçeyle: bu döngü eskiden meyve
@@ -2419,7 +2485,7 @@ window.sliceAutoPlay = () => {
     // ikincinin üstüne sürmek demekti. Ölçüldü — mayınları bilen sürücü
     // 14, 17, 26 ve 30. bölümlerde mayına öldü, demire değil.
     const yakinlar = items.filter(it =>
-      it.kind === 'mine' && it.d >= dist + 0.6 && it.d < dist + LOOK);
+      it.kind === 'mine' && it.d >= dist && it.d < dist + LOOK);
     const güvenli = y => yakinlar.every(m => Math.abs(y - m.y) > tehlike);
 
     let sonraki = null;
