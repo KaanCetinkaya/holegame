@@ -72,7 +72,14 @@ const r = await pg.evaluate(({ BOLUMLER, KOSU }) => {
       const v = p.vurulan;
       // Bıçak `dist`te; öldüren şey `v.d`'de. Geride kalmış bir
       // tehlikenin öldürmesi haksız ölüm.
-      if (v && v.d < p.dist - 0.05)
+      //
+      // Pay bir karelik yol: `dist` adım **sonrası** okunuyor ve bıçak
+      // o adımda `hiz/60` birim ilerledi, yani kuralına uygun bir
+      // çarpışmada bile engel o kadar geride görünür. Pay elle
+      // seçilmiyor, oyunun hızından geliyor — 0.05 yazılmıştı ve 234
+      // turda bir kez yanlış alarm verdi.
+      const birKare = p.hiz / 60;
+      if (v && v.d < p.dist - birKare - 0.01)
         haksiz.push({ n, k, kind: v.kind, engel: v.d, dist: p.dist, geri: +(p.dist - v.d).toFixed(2) });
     }
     sonuc.push({ n, gecti, olum });

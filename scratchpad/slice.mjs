@@ -55,13 +55,19 @@ for (let i = 0; i < 60; i++) {
 const durak = await pg.evaluate(() => {
   for (const el of document.querySelectorAll('.screen')) el.classList.remove('show');
   window.sliceStart(3);
-  for (let i = 0; i < 120; i++) window.sliceStep();
+  // Otomatik sürücüyle sürülüyor. Bıçak eskiden 2.8'de sabit duruyordu
+  // ve parkur her koşuda yeniden üretildiği için bu ölçüm zar atıyordu:
+  // duraklatmanın çalışıp çalışmadığına bakacakken, araya bir demir
+  // düştüğü koşularda "devam etmedi: over" diye düşüyordu. Ölçülen şey
+  // duraklat/devam, bıçağın şansı değil.
+  const sur = n => { for (let i = 0; i < n; i++) { window.sliceAutoPlay(); window.sliceStep(); } };
+  sur(120);
   document.getElementById('pauseBtn').click();
   const a = window.sliceProbe();
-  for (let i = 0; i < 120; i++) window.sliceStep();
+  sur(120);
   const b = window.sliceProbe();
   document.getElementById('resumeBtn').click();
-  for (let i = 0; i < 60; i++) window.sliceStep();
+  sur(60);
   const c = window.sliceProbe();
   return { durum: a.state, durakta: +(b.dist - a.dist).toFixed(2),
            devamDurum: c.state, devam: +(c.dist - b.dist).toFixed(2) };

@@ -148,7 +148,7 @@ taramada 85 tur geride kalmış bir engelle bitiyordu, yani her beş
 %92'sini bitiriyor.
 
 O ölçüm aynı zamanda **bölümün bitirilebilirliğini** soruyor.
-`slicegaps` parkurun geometrisine bakıyor — iki demir arası yetişilir
+`slicegaps.mjs` parkurun geometrisine bakıyor — iki demir arası yetişilir
 mi, pencere bıçağa yer bırakıyor mu — ama geometrinin tamamı doğruyken
 bölüm yine de bitirilemeyebilir, çünkü engeller tek tek değil arka
 arkaya çözülüyor.
@@ -310,6 +310,8 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/sltema.mjs     # bölümler birbirinden farklı görünüyor mu
     node scratchpad/slegri.mjs     # zorluk düzgün mü artıyor, uçurum var mı
     node scratchpad/slkayit.mjs    # bozuk kayıt anahtarı oyunu öldürüyor mu
+    node scratchpad/slsurucu.mjs   # bölüm bitirilebiliyor mu, geçilen engel öldürüyor mu
+    node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
 Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik
