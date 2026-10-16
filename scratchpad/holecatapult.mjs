@@ -54,7 +54,8 @@ const K = await pg.evaluate(() => {
   const c = window.fruitHoleCatapults();
   const g = window.fruitHoleGrow();
   return { ilk: c.ilkBolum, uyari: c.uyari, arasi: c.arasi, capi: c.capi,
-           bedel: c.bedel, agiz: window.fruitHoleRocks().agizTavani, max: g.max };
+           bedel: c.bedel, agiz: window.fruitHoleRocks().agizTavani, max: g.max,
+           okumaPayi: c.okumaPayi };
 });
 console.log(`\nmancınık ${K.ilk}. bölümde başlıyor · uyarı ${K.uyari}sn · ` +
             `atış arası ${K.arasi}sn · çap ${K.capi} · bedel ${K.bedel}sn`);
@@ -127,8 +128,20 @@ console.log('\n2. tahtayı kapatmıyor');
   // Kayayla arası: geçilmesi değil, **ayırt edilmesi** ölçülüyor. Birbirine
   // yapışmış bir kaya ile mancınık yukarıdan tek bir kütle okunuyor ve
   // oyuncu hangisinin ne yaptığını göremiyor. Bir ağız boyu yetiyor.
+  // Eşik oyundan okunuyor, elle yazılmıyor.
+  //
+  // Burada `K.agiz` (bir tam ağız, 2.75) yazıyordu ama yerleştirme kuralı
+  // hiç onu vaat etmiyor: `CATAPULT_READ_GAP` yarım ağız, yani 1.375.
+  // Yani ölçüm, oyunun vermediği bir sözü ölçüyordu ve 32, 40, 42.
+  // bölümlerde kırmızı duruyordu — kuralın ihlali olduğu için değil,
+  // iki sayı birbirinden ayrı yazıldığı için. Bu depoda defalarca görülen
+  // şey: elle yazılmış bir sayı, kod değişince ya da hiç değişmeden,
+  // yanlış yeri gösteriyor.
+  //
+  // Pay yetersizse değiştirilecek yer `CATAPULT_READ_GAP`, ve ölçüm onu
+  // takip ediyor.
   const yapisik = mancinikli.filter(r => r.c.katiyaEnYakin != null
-    && r.c.katiyaEnYakin < K.agiz - 0.01);
+    && r.c.katiyaEnYakin < K.okumaPayi - 0.01);
   check(!yapisik.length, 'kaya ile mancınık birbirine yapışmıyor',
     yapisik.map(r => `${r.n}:${r.c.katiyaEnYakin}`).join(' ') ||
     `en yakını ${Math.min(...mancinikli.filter(r => r.c.katiyaEnYakin != null)

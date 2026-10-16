@@ -27071,6 +27071,10 @@ window.fruitHoleCatapults = () => ({
   sayi: catapults.length,
   ilkBolum: CATAPULT_FROM,
   uyari: SHOT_WARN, arasi: SHOT_EVERY, capi: SHOT_R, bedel: SHOT_COST,
+  // Katı bir komşudan bırakılan görsel pay. Ölçüm bunu **oyundan**
+  // okumalı: elle yazılmış bir eşik, kuralın değişmediği hâlde testi
+  // kırmızıya çeviriyor ve kimse bakmaz oluyor.
+  okumaPayi: +CATAPULT_READ_GAP.toFixed(2),
   isabet: shotHits,
   yerler: catapults.map(c => ({
     x: +c.x.toFixed(2), z: +c.z.toFixed(2), r: +c.r.toFixed(2),
