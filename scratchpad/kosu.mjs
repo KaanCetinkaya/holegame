@@ -19,15 +19,23 @@ import { fileURLToPath } from 'url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 
-// Ölçüm değil, üretim: mağaza görselleri ve klipler.
-const URETEN = ['tyshots', 'tyfeature', 'slshots', 'slframe', 'slblade', 'kosu'];
+// Ölçüm değil, üretim: mağaza görselleri ve klipler. Çalıştırılırsa
+// dakikalar harcayıp dosya yazıyorlar ve hiçbir şey ölçmüyorlar.
+const URETEN = ['tyshots', 'tyfeature', 'slshots', 'slframe', 'slblade',
+                'holeshot', 'kosu'];
 
-const onek = process.argv.slice(2).filter(a => !a.startsWith('-'));
+// Önek verilmezse **yalnızca geliştirilen iki oyun**: Motor Works ve
+// Slice Rush, yaklaşık yirmi dakika. Fruit Hole'un doksan üç betiği
+// ayrı bir komutta (`npm run test:fruithole`) ve saatler sürüyor —
+// `npm test` yazan birinin beklediği şey o değil.
+const VARSAYILAN = ['ty', 'sl', 'slice'];
+const arg = process.argv.slice(2).filter(a => !a.startsWith('-'));
+const onek = arg.length ? arg : VARSAYILAN;
 const hepsi = readdirSync(HERE)
   .filter(f => f.endsWith('.mjs'))
   .map(f => f.replace(/\.mjs$/, ''))
   .filter(n => !URETEN.includes(n))
-  .filter(n => onek.length === 0 || onek.some(p => n.startsWith(p)))
+  .filter(n => onek.some(p => n.startsWith(p)))
   .sort();
 
 if (!hepsi.length) {

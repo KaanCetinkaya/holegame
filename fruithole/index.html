@@ -1235,6 +1235,29 @@ function isPuzzleLevel(n) { return n >= PUZZLE_FIRST && n % PUZZLE_EVERY === PUZ
 // ekleniyor. Dördü bedava, beşincisinden sonra saat yetmiyor.
 const MINE_RATE = 0.07;
 const MINE_ALLOW = 4;
+// Günlük koşuda görev yoktur.
+//
+// `missionKindFor(level)` tahta kurulurken beş yerde daha okunuyordu ve
+// hiçbiri `dailyRun` ile kapatılmamıştı: görev tipine göre dev,
+// mancınık, rakip, rüzgâr ve çamur yerleşimi atlanıyor. Yani 44.
+// bölümdeki oyuncu bir görev bölümündeyse günlük tahtası 3. bölümdeki
+// oyuncununkinden farklı kuruluyordu — ölçüldü, 274 meyveye karşı 240.
+// Kurulum zaten `if (!dailyRun)` ile görev **atamıyor**; eksik olan,
+// geri kalan yerlerin de aynı şeyi varsaymasıydı.
+function gorevTuru() { return dailyRun ? null : missionKindFor(tahtaLvl()); }
+// Tahta kurulurken okunan "bölüm".
+//
+// Günlük koşuda oyuncunun kendi bölümü değil, günün kendi sayısı. Sıradan
+// oyunda ikisi aynı şey (`dailyRun` false), yani bu değişiklik normal
+// bölümlerde tek bir piksel bile oynatmıyor — yalnızca günlükte herkesi
+// aynı tahtaya getiriyor.
+//
+// Ölçülerek bulundu (`scratchpad/holedaily.mjs` + yalıtma):
+// yükseltmeler masumdu, aynı profil iki kez aynı tahtayı veriyordu, ve
+// tek sızdıran girdi bölümdü. Eşikler 12 ve 20'de çıktı — dikenin ve
+// mancınığın açıldığı yerler, yani engeller oyuncunun temasından
+// seçiliyordu.
+function tahtaLvl() { return dailyRun ? dailyLvl : level; }
 function missionKindFor(n) {
   if (isPuzzleLevel(n)) return 'puzzle';
   if (!isOrderLevel(n)) return null;
@@ -12808,8 +12831,9 @@ function themeObstacles(themeId) {
 // Yerin imzası başka bir engelse tanıtım hiç yapılmaz ve oyuncu o engeli
 // ilk kez hiçbir açıklama olmadan görür.
 function obstacleHere(ad, ilkBolum) {
-  if (level === ilkBolum) return true;
-  return themeObstacles(themeIdForLevel(level)).includes(ad);
+  const lv = tahtaLvl();
+  if (lv === ilkBolum) return true;
+  return themeObstacles(themeIdForLevel(lv)).includes(ad);
 }
 const WIND_FROM = 34;
 const WIND_SPEED = 1.5;
@@ -20251,7 +20275,7 @@ function buildField() {
 
   let stil = zorlaStil ||
     ((currentPattern.noFill || (isPuzzleLevel(level) && !dailyRun))
-      ? 'dolu' : yerlesimStili(level));
+      ? 'dolu' : yerlesimStili(tahtaLvl()));
   stilSecilen = stil;
   if (stil !== 'dolu' && !currentPattern.polar && izinli.size < 150) stil = 'dolu';
   for (const cell of (resim || serit) ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
@@ -20320,7 +20344,8 @@ function buildField() {
       // sayısı 28'den 35'e çıktı: yanlış teşhis, geri alındı. Sorun öbeğin
       // boyu değil, her tahtada aynı yerde olmasıydı.
       const big = (currentPattern.big ? currentPattern.big(a, b) : false)
-        || (desenKat <= BIG_MAX_STACK && blob(a, b, 0.16, 777 + level * 37) > 0.62);
+        || (desenKat <= BIG_MAX_STACK
+            && blob(a, b, 0.16, 777 + tahtaLvl() * 37) > 0.62);
       // İri parçaların bir kısmı bir üst basamakta.
       //
       // Boy merdiveni iki basamaklıydı — 0.46 ve 0.72 — ve delik 0.63'le
@@ -20804,7 +20829,7 @@ function placeSpikes() {
   // koymak, oyuncuya kendi cezasıyla bölümü kaybettirmek olurdu. Öteki
   // görevlerde böyle bir bağ yok — mayında saat, siparişte renk, rush'ta
   // yine saat.
-  if (missionKindFor(level) === 'giants') return;
+  if (gorevTuru() === 'giants') return;
   // Kaç tane: satır sayısı **ve** tahtanın verebileceği büyüme.
   //
   // Önce yalnızca satır sayısıydı ve satır sayısı tahtanın boyu, doluluğu
@@ -20931,7 +20956,7 @@ function placeCatapults() {
   // kendi kuralı var; üstüne bir de atış eklemek iki kuralı aynı anda
   // öğretmek olurdu. Rush'ta saat on iki saniyeden başlıyor, yani beş
   // saniyelik bir isabet bölümün yarısı; mayında tahta zaten bomba dolu.
-  if (missionKindFor(level)) return;
+  if (gorevTuru()) return;
   const kac = CATAPULT_COUNT;
   // Kenar payı **kayanınki**: mancınık katı, yani arkasında kenarla arasında
   // ağzın giremeyeceği bir şerit bırakıyor. Diken bu payı almıyordu çünkü
@@ -21218,7 +21243,7 @@ function placeWind() {
   // İkisi bir aradayken oyuncu bir bombadan kaçıyor ve rüzgâr onu içine
   // sokuyor — kaçındığı şeye, kaçındığı için çarpmak. Ceza hak edilmemiş
   // olduğunda oyun bozuk okunuyor, ve bu birleşim tam olarak onu üretiyor.
-  const gorev = missionKindFor(level);
+  const gorev = gorevTuru();
   if (gorev === 'rush' || gorev === 'mines') return;
   if (!obstacleHere('wind', WIND_FROM)) return;
   const yari = WIND_BAND / 2;
@@ -21333,7 +21358,7 @@ function placeRival() {
   clearRival();
   rivalAte = 0;
   if (dailyRun || level < RIVAL_FROM) return;
-  if (missionKindFor(level)) return;
+  if (gorevTuru()) return;
   // Tahtanın öbür ucunda doğuyor: oyuncuyla aynı yerde başlarsa ilk saniye
   // iki delik üst üste duruyor ve hangisinin kendisi olduğu belirsiz.
   const x = -SPAWN_X, z = -spawnZ();
@@ -21441,7 +21466,7 @@ function placeMuds() {
   // 12 saniyede başlıyor ve yalnızca yenen meyveyle büyüyor, yani yavaşlık
   // doğrudan saatten yeniyor. Öbür görevlerde saat sabit, çamur yalnızca
   // yolu uzatıyor.
-  if (missionKindFor(level) === 'rush') return;
+  if (gorevTuru() === 'rush') return;
   if (!obstacleHere('mud', MUD_FROM)) return;
   // Tahtanın kaçta kaçı çamur olabilir: pay aşılırsa duruyor. Sayıyı değil
   // **alanı** sınırlamak doğru olan — üç büyük leke, beş küçüğünden çok yer
@@ -22359,7 +22384,7 @@ function placeGiants() {
 const LANDMARK_MAX = 2.0;
 const LANDMARK_AT = 18;
 function placeLandmarks() {
-  if (level < LANDMARK_AT) return;
+  if (tahtaLvl() < LANDMARK_AT) return;
   const birim = fruits.reduce((s, f) =>
     s + (f.eaten || f.bomb ? 0 : f.giant ? 9 : f.big ? 3 : 1), 0);
   const uc = 0.92 * (BASE_HOLE_R + 0.75 * birim * growthUnit());
@@ -22482,7 +22507,7 @@ const TOWER_R = 1.05;
 // öğrensin.
 const TOWER_AT = 14;
 function placeTowers() {
-  if (level < TOWER_AT) return;
+  if (tahtaLvl() < TOWER_AT) return;
   const aday = fruits.filter(f => !f.eaten && !f.big &&
     Math.hypot(f.x - SPAWN_X, f.z - spawnZ()) >= 3.4);
   if (!aday.length) return;
@@ -24202,10 +24227,26 @@ function dailyPlan() {
   };
 }
 
+// Günlük koşunun "bölüm numarası".
+//
+// Tahta kurulurken iki yer oyuncunun **kendi** bölümüne bakıyordu ve
+// ikisi de günlük koşuda kapatılmamıştı: yerleşim stili
+// (`yerlesimStili(level)`) ve doku gürültüsünün tohumu
+// (`777 + level * 37`). Tohum herkeste aynı olduğu hâlde bu iki girdi
+// farklı olduğu için tahtalar ayrışıyordu — ölçüldü
+// (`scratchpad/holedaily.mjs`): 3. bölümdeki oyuncu 282 meyve, 44.
+// bölümdeki 277 meyve görüyordu, aynı gün. Günlük meydan okumanın tek
+// vaadi herkese aynı tahta, ve o vaat tutulmuyordu.
+//
+// Günün kendi sayısı kullanılıyor: gün gün değişiyor ama o gün herkeste
+// aynı. Sıradan bölümlerin dolaştığı aralıkta kalıyor ki yerleşim
+// stilleri aynı çeşitlilikte dağılsın.
+let dailyLvl = 1;
 function startDailyRun() {
   ensureChall();
   const plan = dailyPlan();
   dailyRun = true;
+  dailyLvl = 1 + (plan.seed >>> 16) % 40;
   forcedPattern = plan.pattern;
   seedField(plan.seed);
   // sizeStage drives the per-level head start on the hole. Fixed at 1 so

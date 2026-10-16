@@ -47,7 +47,9 @@
     "uploaded:tycoon": "node mark-uploaded.mjs tycoon",
     "test": "node build-www.mjs && node scratchpad/kosu.mjs",
     "test:tycoon": "node build-www.mjs && node scratchpad/kosu.mjs ty",
-    "test:slicer": "node build-www.mjs && node scratchpad/kosu.mjs sl slice"
+    "test:slicer": "node build-www.mjs && node scratchpad/kosu.mjs sl slice",
+    "test:fruithole": "node build-www.mjs && node scratchpad/kosu.mjs hole giants",
+    "test:all": "node build-www.mjs && node scratchpad/kosu.mjs ty sl slice hole giants"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.1.0",
