@@ -48,10 +48,43 @@ dokunulamaz.
 
 ## Testler
 
-`scratchpad/hole*.mjs`. Hepsi Playwright + gerçek sayfa. Konteynerde GPU yok,
-SwiftShader'la çiziliyor — yük altında zaman aşımı olabiliyor, bu bir hata
-değil. Testler zamanlamaya bağlı yazılmamalı; gerekiyorsa olay sayfanın
-içinden gönderilir.
+```
+cd C:\Users\HP\holegame
+npm test
+```
+
+Bu, geliştirilen iki oyunu koşturuyor: Motor Works (`ty*`) ve Slice Rush
+(`sl*`), yaklaşık yirmi dakika. Tek tek: `npm run test:tycoon`,
+`npm run test:slicer`. Fruit Hole ayrı, çünkü doksan üç betiği var:
+`npm run test:fruithole` yükleme öncesi bakılacak on bir ölçüm (~19
+dakika), `npm run test:fruithole:tam` hepsi (saatler). Hepsi birden:
+`npm run test:all`.
+
+Önce `build-www.mjs` çalışıyor, sonra betikler sırayla; sonunda tek bir
+özet, hangisi kaç saniye sürdü ve düşen varsa onun FAIL satırları.
+
+Hepsi Playwright + gerçek sayfa. Konteynerde GPU yok, SwiftShader'la
+çiziliyor ve bir kare 300-450 ms sürüyor.
+
+**Testler zamanlamaya bağlı yazılmamalı**, ve bu kural kendi eşiklerini de
+kapsıyor. Bir günde dördü birden çıktı:
+
+- `holeboot`'un bölüm başına 25 saniyelik sınırı, altmış karelik bir
+  döngünün ~24 saniye sürdüğü yerde duruyordu: koşudan koşuya başka
+  bölümler düşüyordu. Sınırın işi hızı ölçmek değil asılı kalmayı
+  yakalamaktı; doksan saniyeye çıktı.
+- `slicewall` bölüm başına beş tahta kurup iki pencereyi oranlıyordu ve
+  oran beş koşuda ×1.69 ile ×3.27 arasında geziniyordu. Örneklem yirmi
+  dörde çıkınca sabitlendi.
+- `slegri` kuyrukta **göreli** düşüşe bakıyordu: oran %20'ye inmişken
+  %23'ten %11'e düşmek "−%53" yazıyor. Puan farkına çevrildi.
+- `holecatapult` elle yazılmış bir eşiği ölçüyordu ve o eşik oyunun
+  verdiği sözden iki kat büyüktü. Artık eşiği oyundan okuyor.
+
+Kural: eşik **seçilmez, ölçülür**. Aynı yapımı üç kez koşturup gürültüyü
+gör, eşiği onun üstüne koy. Ve ölçümü bir kere de **hatayı geri koyarak**
+çalıştır — geçmesi gereken yerde geçmek yetmez, düşmesi gereken yerde
+düşmeli.
 
 ## Dil
 
