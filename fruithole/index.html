@@ -1870,17 +1870,53 @@ let rows = 22;
 // yazılmıyor (onCleared'daki ilerleme yazısı da bu derlemede atlanıyor). Yoksa
 // test için kurulan bir APK, sonradan mağaza sürümü üstüne gelince gerçek
 // ilerlemeyi 24'e sıçratmış olurdu.
+// Kaydı okumanın tek yolu.
+//
+// Ondokuz yerde `JSON.parse(localStorage.getItem(...))` duruyordu ve
+// yalnızca biri try/catch içindeydi. Yani **bozuk tek bir anahtar**
+// betiği yüklenirken patlatıyor, oyun hiç açılmıyordu: canvas bile
+// oluşmuyor, ekran siyah kalıyor, ve kayıt her açılışta yeniden
+// okunduğu için kendiliğinden de düzelmiyor. Oyuncunun yapabileceği tek
+// şey uygulama verisini silmek — yani 90. bölümdeki ilerlemeyi atmak.
+//
+// Ölçüldü (`scratchpad/fhkayit.mjs`): yarım yazılmış bir `currency`,
+// `"muz"` olmuş bir `upgrades`, `undefined` olmuş bir `stars` — üçü de
+// siyah ekran.
+//
+// Tür de kontrol ediliyor, yalnızca `JSON.parse` patlamaması değil:
+// `JSON.parse('"muz"')` sorunsuz çalışıyor ve geriye bir kelime
+// veriyor, sonra `'speed' in upgrades` orada patlıyor.
+//
+// Anahtarlar ayrı olduğu için varsayılana dönmek doğru davranış: tek
+// alan kayboluyor, oyuncunun geri kalan ilerlemesi duruyor.
+function fhOku(anahtar, varsayilan) {
+  let ham = null;
+  try { ham = localStorage.getItem(anahtar); } catch (e) { return varsayilan; }
+  if (ham === null) return varsayilan;
+  let v;
+  try { v = JSON.parse(ham); } catch (e) { return varsayilan; }
+  if (v === null || v === undefined) return varsayilan;
+  if (Array.isArray(varsayilan) !== Array.isArray(v)) return varsayilan;
+  if (typeof varsayilan === 'object' && typeof v !== 'object') return varsayilan;
+  if (typeof varsayilan === 'number' && !Number.isFinite(v)) return varsayilan;
+  return v;
+}
 const START_LEVEL = 0;
-let level = START_LEVEL || parseInt(localStorage.getItem('fruithole_level') || '1', 10);
+let level = START_LEVEL || (() => {
+  // `parseInt('abc')` NaN veriyor ve NaN bir bölüm numarası olarak
+  // bütün alan kurulumunu patlatıyordu.
+  const n = parseInt(localStorage.getItem('fruithole_level') || '1', 10);
+  return Number.isFinite(n) && n >= 1 ? n : 1;
+})();
 let sizeStage = level;
 let currentPattern = null;   // set by buildField()
 
-const currency = JSON.parse(localStorage.getItem('fruithole_currency') || '{}');
+const currency = fhOku('fruithole_currency', {});
 TYPES.forEach(t => { if (!(t.id in currency)) currency[t.id] = 0; });
 function saveCurrency() { localStorage.setItem('fruithole_currency', JSON.stringify(currency)); }
 
 // Best star rating per level, so a replay can improve it but never lose it.
-const stars = JSON.parse(localStorage.getItem('fruithole_stars') || '{}');
+const stars = fhOku('fruithole_stars', {});
 function saveStars() { localStorage.setItem('fruithole_stars', JSON.stringify(stars)); }
 
 // ---------------------------------------------------------------------
@@ -1947,7 +1983,7 @@ const upgMax = u => u.max || UPG_MAX;
 // ---------------------------------------------------------------------
 let dailyRun = false;
 let forcedPattern = null;
-const chall = JSON.parse(localStorage.getItem('fruithole_chall') || '{}');
+const chall = fhOku('fruithole_chall', {});
 function saveChall() { localStorage.setItem('fruithole_chall', JSON.stringify(chall)); }
 function challKey() { return dayKey(new Date()); }
 function ensureChall() {
@@ -1975,7 +2011,7 @@ function recordChall(score) {
   return best;
 }
 
-const upgrades = JSON.parse(localStorage.getItem('fruithole_upgrades') || '{}');
+const upgrades = fhOku('fruithole_upgrades', {});
 UPGRADES.forEach(u => { if (!(u.id in upgrades)) upgrades[u.id] = 0; });
 function saveUpgrades() { localStorage.setItem('fruithole_upgrades', JSON.stringify(upgrades)); }
 // Upgrades are switched off for the whole of a daily run.
@@ -2066,7 +2102,7 @@ const SKINS = [
     level: 15 },
 ];
 
-const skinStore = JSON.parse(localStorage.getItem('fruithole_skins') || 'null') || {};
+const skinStore = fhOku('fruithole_skins', {});
 let ownedSkins = new Set(skinStore.owned || ['classic']);
 let activeSkin = skinStore.active || 'classic';
 function saveSkins() {
@@ -2080,7 +2116,7 @@ function skinOwned(s) {
   return ownedSkins.has(s.id) || (s.level !== undefined && level >= s.level);
 }
 
-const boosterStore = JSON.parse(localStorage.getItem('fruithole_boosters') || 'null');
+const boosterStore = fhOku('fruithole_boosters', null);
 const boosters = boosterStore || Object.fromEntries(BOOSTERS.map(b => [b.id, b.free]));
 BOOSTERS.forEach(b => { if (!(b.id in boosters)) boosters[b.id] = b.free; });
 function saveBoosters() { localStorage.setItem('fruithole_boosters', JSON.stringify(boosters)); }
@@ -2093,7 +2129,7 @@ function boosterUnlocked(b) { return level >= b.unlock; }
 // rather than diffing lifetime totals against a snapshot -- that way a
 // mission cannot be completed by progress made before it was handed out.
 // ---------------------------------------------------------------------
-const stats = JSON.parse(localStorage.getItem('fruithole_stats') || '{}');
+const stats = fhOku('fruithole_stats', {});
 // bestStreak, bestCombo'nun ölçemediği şeyi ölçüyor. Çarpan `Math.min(5, …)`
 // ile tavanlı, yani bestCombo asla 5'i geçmiyor ve üstüne basamak
 // kurulamıyor — "x8 kombo yap" diye bir hedef sonsuza kadar ulaşılamaz
@@ -2116,7 +2152,7 @@ const MISSION_BY_ID = Object.fromEntries(MISSION_POOL.map(m => [m.id, m]));
 // that are now ten times what they were.
 const MISSION_REWARD = 250;
 
-const daily = JSON.parse(localStorage.getItem('fruithole_daily') || '{}');
+const daily = fhOku('fruithole_daily', {});
 function saveDaily() { localStorage.setItem('fruithole_daily', JSON.stringify(daily)); }
 
 function ensureDaily() {
@@ -2205,7 +2241,7 @@ function achVisible(a) {
   const p = ACH_BY_ID[a.after];
   return !p || !!achClaimed[p.id] || p.at() >= p.goal;
 }
-const achClaimed = JSON.parse(localStorage.getItem('fruithole_ach') || '{}');
+const achClaimed = fhOku('fruithole_ach', {});
 function saveAch() { localStorage.setItem('fruithole_ach', JSON.stringify(achClaimed)); }
 
 // how far along a daily mission is, capped at its goal
@@ -2611,7 +2647,7 @@ const NOTIF_ID = 1;
 const NOTIF_HOUR = 19;          // akşamüstü: gün bitmeden oynayacak vakit var
 const NOTIF_AFTER = 3;          // izin, üçüncü bölümden önce sorulmuyor
 
-const notif = JSON.parse(localStorage.getItem('fruithole_notif') || '{}');
+const notif = fhOku('fruithole_notif', {});
 function saveNotif() { localStorage.setItem('fruithole_notif', JSON.stringify(notif)); }
 let _notifErr = '';
 
@@ -2684,7 +2720,7 @@ async function notifInit() {
 notifInit();
 
 
-const iap = JSON.parse(localStorage.getItem('fruithole_iap') || '{}');
+const iap = fhOku('fruithole_iap', {});
 function saveIap() { localStorage.setItem('fruithole_iap', JSON.stringify(iap)); }
 function adsRemoved() { return !!iap.remove_ads; }
 
@@ -4024,7 +4060,7 @@ function takeDailyFree(id) {
 // ---------------------------------------------------------------------
 const CHEST_GAP = 4 * 3600 * 1000;
 const CHEST_BASE = 110, CHEST_STEP = 6, CHEST_CAP = 25;
-const tchest = JSON.parse(localStorage.getItem('fruithole_tchest') || '{}');
+const tchest = fhOku('fruithole_tchest', {});
 function saveTchest() { localStorage.setItem('fruithole_tchest', JSON.stringify(tchest)); }
 
 // Kaç milisaniye kaldı. 0 ise sandık hazır.
@@ -12836,7 +12872,7 @@ const GIANT_PROPS = Object.keys(PROPS).filter(k => PROPS[k].only !== 'small');
 // bir ekran onu amaca çeviriyor — ve tema döngüsüyle birlikte her nesne
 // artık farklı yerlerde çıktığı için kalanları aramak gerçek bir sebep.
 // ---------------------------------------------------------------------
-const found = new Set(JSON.parse(localStorage.getItem('fruithole_found') || '[]'));
+const found = new Set(fhOku('fruithole_found', []));
 function saveFound() {
   localStorage.setItem('fruithole_found', JSON.stringify([...found]));
 }
@@ -24548,7 +24584,7 @@ function onCleared() {
 // Ne zaman: üç yıldızla bir bölüm bitince, yani oyuncunun iyi hissettiği an.
 // En erken beşinci bölümden sonra, en çok üç kez, ve iki istem arası en az
 // üç gün. Puan verildiyse bir daha hiç.
-const rate = JSON.parse(localStorage.getItem('fruithole_rate') || '{}');
+const rate = fhOku('fruithole_rate', {});
 function saveRate() { localStorage.setItem('fruithole_rate', JSON.stringify(rate)); }
 const RATE_MAX = 3, RATE_GAP = 3 * 86400000, RATE_AFTER = 5;
 const STORE_URL = 'https://play.google.com/store/apps/details?id=com.kaancetinkaya.fruithole';
@@ -27716,7 +27752,7 @@ let lastT = performance.now();
 //
 // Maliyeti bir toplama ve bir karşılaştırma; ölçen şeyin kendisi ölçtüğünü
 // bozmasın diye başka hiçbir şey yapmıyor.
-const perf = JSON.parse(localStorage.getItem('fruithole_perf') || '{}');
+const perf = fhOku('fruithole_perf', {});
 let perfN = 0, perfSum = 0, perfWorst = 0, perfWorstLv = 0, perfSlow = 0;
 function savePerf() {
   try { localStorage.setItem('fruithole_perf', JSON.stringify(perf)); } catch (e) {}
