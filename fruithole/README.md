@@ -520,6 +520,35 @@ mıknatıs ve gölgeler meyvenin kendi nesnesine dokunuyor, yani bu oyunun çizi
 yolunu baştan kurmak demek. Ölçüm burada duruyor; karar, gerçek telefonda
 takılma görülürse verilecek.
 
+## Kayıt
+
+İlerleme ondan fazla ayrı `fruithole_*` anahtarında duruyor: bölüm, para,
+yıldızlar, yükseltmeler, kaplamalar, güçlendiriciler, günlük, başarımlar,
+koleksiyon, sandık, satın almalar. Ayrı olmaları bir şans — bozulan biri
+ötekileri götürmüyor.
+
+### Bozuk tek bir anahtar oyunu açılmaz hâle getiriyordu
+
+Ondokuz yerde `JSON.parse(localStorage.getItem(...))` duruyordu ve
+yalnızca biri try/catch içindeydi. Yani bozuk tek bir anahtar betiği
+**yüklenirken** patlatıyor ve oyun hiç açılmıyordu: canvas bile
+oluşmuyor, ekran siyah kalıyor. Kayıt her açılışta yeniden okunduğu için
+kendiliğinden de düzelmiyor — oyuncunun yapabileceği tek şey uygulama
+verisini silmek, yani doksanıncı bölümdeki ilerlemeyi atmak. Oyun
+mağazada, yani bu gerçek oyuncuların başına gelebilecek bir şeydi.
+
+Ölçüldü (`scratchpad/holekayit.mjs`): yarım yazılmış bir `currency`,
+`undefined` olmuş bir `stars`, `"muz"` olmuş bir `upgrades`, yarım bir
+`skins` — dördü de siyah ekran. `fruithole_level: 'abc'` ayrı bir yoldan
+aynı yere çıkıyordu: `parseInt` NaN veriyor, NaN bir bölüm numarası alan
+kurulumunu patlatıyor.
+
+Okumaların hepsi `fhOku(anahtar, varsayılan)`'dan geçiyor artık. Tür de
+kontrol ediliyor, yalnızca `JSON.parse` patlamaması değil:
+`JSON.parse('"muz"')` sorunsuz çalışıyor ve patlayan yer sonrası,
+`'speed' in upgrades`. Bozuk alan varsayılana dönüyor, oyuncunun geri
+kalan ilerlemesi duruyor.
+
 ## Teknik notlar
 
 - **Grafikler tamamen prosedürel.** Her meyve tipinin kendi geometrisi ve
