@@ -45,6 +45,34 @@ for (let i = 0; i < 60; i++) {
   }
   if (p.state !== 'playing') { console.log('ended  ', JSON.stringify(p)); break; }
 }
+// Duraklat ve devam et.
+//
+// `tick` ikiye bölündü (`adim(dt)` benzetim, `tick` onu çağırıp
+// çiziyor) ve duraklatmanın bütün dayanağı `adim`'in ilk satırındaki
+// durum kontrolü. O satır bir gün kayarsa oyun duraklatılmışken
+// ilerlemeye devam eder: oyuncu menüye bakarken bıçağı demire girer ve
+// bunun hiçbir uyarısı olmaz.
+const durak = await pg.evaluate(() => {
+  for (const el of document.querySelectorAll('.screen')) el.classList.remove('show');
+  window.sliceStart(3);
+  for (let i = 0; i < 120; i++) window.sliceStep();
+  document.getElementById('pauseBtn').click();
+  const a = window.sliceProbe();
+  for (let i = 0; i < 120; i++) window.sliceStep();
+  const b = window.sliceProbe();
+  document.getElementById('resumeBtn').click();
+  for (let i = 0; i < 60; i++) window.sliceStep();
+  const c = window.sliceProbe();
+  return { durum: a.state, durakta: +(b.dist - a.dist).toFixed(2),
+           devamDurum: c.state, devam: +(c.dist - b.dist).toFixed(2) };
+});
+console.log(`duraklat: ${durak.durum} · 120 adımda ilerleme ${durak.durakta}` +
+  ` · devam: ${durak.devamDurum} · 60 adımda ${durak.devam}`);
+if (durak.durum !== 'paused') errs.push('duraklat çalışmadı: ' + durak.durum);
+if (durak.durakta !== 0) errs.push('duraklatılmışken ilerledi: ' + durak.durakta);
+if (durak.devamDurum !== 'playing' || durak.devam <= 0)
+  errs.push('devam etmedi: ' + durak.devamDurum + ' / ' + durak.devam);
+
 const end = await pg.evaluate(() => window.sliceProbe());
 console.log('final  ', JSON.stringify(end));
 await pg.screenshot({ path: `${OUT}/slice_end.png` });
