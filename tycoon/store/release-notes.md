@@ -10,7 +10,7 @@ altında; karakter sayıları başlıkların yanında.
 
 ## Bu sürüm (sürüm kodu 8)
 
-### İngilizce — `en-US` (500 karakter)
+### İngilizce — `en-US` (492 karakter)
 
 ```
 Your factory is harder to lose, and the return screen no longer rounds twenty hours down to four.
@@ -21,7 +21,7 @@ Your factory is harder to lose, and the return screen no longer rounds twenty ho
 • A failed ad no longer costs you the offline x2
 • Time away is the real time, and names the production the yard lost
 • One button collects every finished goal
-• The menu names the build that is on the phone
+• The menu shows the build on the phone
 ```
 
 ### Türkçe — `tr-TR` (469 karakter)
