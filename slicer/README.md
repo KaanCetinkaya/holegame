@@ -494,9 +494,17 @@ düşerse hata veriyor, yani duvar geri gelirse sessiz kalmıyor.
 
 Geçilebilirlik ayrı ölçülüyor ve bozulmadı: `slicegaps.mjs` 30. bölüme
 kadar her engel dizisini geçilebilir buluyor, `slicemine.mjs` mayınlı
-bölümlerin bitirilebildiğini gösteriyor. Otomatik sürücü 26 ve 30'da
-ölüyor ama bu değişiklikten önce de ölüyordu — ölçüldü, iki sürüm yan yana
+bölümlerin bitirilebildiğini gösteriyor. Otomatik sürücü o gün 26 ve 30'da
+ölüyordu ama bu değişiklikten önce de ölüyordu — ölçüldü, iki sürüm yan yana
 koşturuldu.
+
+O satır artık geçerli değil ve sebebi karışım değil **arkadan ölüm**
+hatasıydı (`slsurucu.mjs`'in başında yazılı: çarpışma, geçilmiş bir demiri
+bıçağın arkasından öldürüyordu). Düzeltildikten sonra ölçüm: her bölüm en az
+bir kez bitiyor, turların **%94'ü** bitiyor, 26. bölüm altı koşuda beş.
+Bitirme oranı bölümle düşüyor — 40'ta 4/6, 55'te 3/6 — ve zorluk eğrisinin
+istediği şey tam olarak bu; kapı "turların çoğu bitiyor" diyor, "hepsi"
+demiyor.
 
 ## Kesimin geri bildirimi
 
