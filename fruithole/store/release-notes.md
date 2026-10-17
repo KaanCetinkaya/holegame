@@ -322,15 +322,16 @@ oyuncunun okuyacağı bir cümle değil), boy merdiveninin basamakları,
 
 ---
 
-## 51 (1.13) — 308 karakter
+## 51 (1.13) — 397 karakter
 
 ```
 Picture levels are shapes you can actually read, and the daily is one board for everyone again.
 
 - Puzzle boards are filled in, not outlines
 - Nothing is left sitting where the hole cannot reach it
-- The daily challenge hands every player the same board
+- The daily challenge hands every player the same board, and the same clock
 - A damaged save no longer keeps the game from opening
+- Bigger buy buttons, and the fourth counter fits the menu row again
 ```
 
 Sürüm adı (yalnızca panoda görünür): `51 (1.13)`
@@ -343,7 +344,9 @@ kuralı onları içeri alıyor:
 
 - **Günlük meydan okuma** 1 Ekim'den beri herkese aynı tahtayı vermiyordu.
   3. bölümdeki oyuncu 274 meyve görüyordu, 44. bölümdeki 240 — aynı gün,
-  aynı tohum. Günlüğün tek vaadi buydu ve tutulmuyordu.
+  aynı tohum. Günlüğün tek vaadi buydu ve tutulmuyordu. Saat de öyle:
+  aynı tahtaya 291, 271 ve 250 saniye veriliyordu, ve o skor liderlik
+  tablosuna yazılıyor.
 - **Bozuk kayıt** oyunu hiç açtırmıyordu: tek bir anahtarın bozulması
   betiği yüklenirken patlatıyor, ekran siyah kalıyordu. Kalıcı, çünkü
   kayıt her açılışta yeniden okunuyor.
