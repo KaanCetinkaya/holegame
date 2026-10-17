@@ -53,12 +53,19 @@ cd C:\Users\HP\holegame
 npm test
 ```
 
-Bu, geliştirilen iki oyunu koşturuyor: Motor Works (`ty*`) ve Slice Rush
-(`sl*`), yaklaşık yirmi beş dakika. Tek tek: `npm run test:tycoon`,
-`npm run test:slicer`. Fruit Hole ayrı, çünkü doksan üç betiği var:
-`npm run test:fruithole` yükleme öncesi bakılacak on altı ölçüm (~35
-dakika), `npm run test:fruithole:tam` hepsi (saatler). Hepsi birden:
+Bu, geliştirilen iki oyunu koşturuyor: Motor Works (39 ölçüm) ve Slice Rush
+(21), toplam **60 ölçüm, ~23 dakika**. Tek tek: `npm run test:tycoon`,
+`npm run test:slicer`. Fruit Hole ayrı, çünkü 90 ölçümü var:
+`npm run test:fruithole` yükleme öncesi bakılacak **16 ölçüm, ~24 dakika**,
+`npm run test:fruithole:tam` hepsi (saatler). Hepsi birden:
 `npm run test:all`.
+
+Sayılar ölçülerek yazıldı ve bir gecede değişti: çizim kapatılınca Fruit
+Hole'un yükleme öncesi takımı 37 dakikadan 24'e indi, ve hiçbir şey iddia
+etmeyen 22 betik takımdan çıkarıldı (ayrıntısı `scratchpad/kosu.mjs`
+içindeki `URETEN` listesinde). Onlar silinmedi, elle koşturuluyor:
+`holesheet` bütün düzenleri tek sayfaya diziyor, `tycoon`…`tycoon6` denge
+denemelerinin ham çıktısı.
 
 Önce `build-www.mjs` çalışıyor, sonra betikler sırayla; sonunda tek bir
 özet, hangisi kaç saniye sürdü ve düşen varsa onun FAIL satırları.
