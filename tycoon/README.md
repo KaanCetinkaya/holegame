@@ -293,6 +293,26 @@ yürünebiliyor; orada hız kutusu eski beklemesini fren olarak koruyor.
 AdMob'da uygulama açıp `AD_UNITS` içindeki kimliği değiştirmek ve
 `ADS_TESTING = false` yapmak gerekiyor.
 
+## Geri tuşu oyundan çıkarıyordu
+
+Android'de geri tuşu, WebView'ın geçmişi boşsa uygulamayı kapatıyor.
+Bu oyun tek sayfa ve hiç gezinmiyor, yani geçmiş hep boştu:
+araştırma perdesini kapatmak için geri basan oyuncu oyundan
+çıkıyordu.
+
+Burada "ev" fabrikanın kendisi — hiçbir perde açık değilken geri tuşu
+uygulamadan çıkmalı. Bir perde açıkken geçmişe bir girdi konuyor; geri
+tuşu önce onu açıyor ve oyun o perdeyi **kendi kapatma düğmesiyle**
+kapatıyor, çünkü bazılarının kapanışında yapılacak iş var (dönüş
+ekranı bekleyen parayı sıfırlıyor). Perdeler onlarca yerden
+açıldığı için `show` sınıfı bir `MutationObserver` ile izleniyor.
+
+Geri tuşu `goBack()` çağırmayan bir yapıda hiçbir şey değişmiyor.
+
+Ölçüm: `scratchpad/tygeri.mjs`. En önemlisi ilk kontrol — perde
+yokken yığında bizim girdimiz olmamalı, yoksa oyuncu uygulamadan
+çıkamaz.
+
 ## Kayıt
 
 Üç anahtar:
@@ -384,7 +404,8 @@ hatası), `tyyedek` (yedek kodu), `tygoc` (eski kayıt yeni sürümde).
 tablosu), `tyingilizce` (Türkçe açıkken ekranda İngilizce kalmış metin),
 `typerf` (ucuz telefonda yük), `tymagaza` (Play ürünü tanımıyorken
 mağaza), `tysatin` (satın alınan teslim ediliyor mu), `tyreklam`
-(reklam açılmazsa oyuncu ne görüyor), `typlaygames`,
+(reklam açılmazsa oyuncu ne görüyor), `tygeri` (donanım geri tuşu
+perdeyi mi kapatıyor), `typlaygames`,
 `tysurum` (sürüm numarası ve reklam anahtarı), `tylisting` (mağaza metni
 oyunla uyuşuyor mu), `tybelge` (bu dosya oyunla aynı şeyi mi anlatıyor).
 

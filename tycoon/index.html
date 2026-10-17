@@ -3820,6 +3820,74 @@ const boostTikla = async () => {
 };
 $('boostBtn').onclick = boostTikla;
 
+// ---------------------------------------------------------------------
+// Donanım geri tuşu
+// ---------------------------------------------------------------------
+// Android'de geri tuşu, WebView'ın geçmişi boşsa uygulamayı
+// kapatıyor. Bu oyun tek sayfa ve hiç gezinmiyor, yani geçmiş hep
+// boştu: araştırma ekranını kapatmak için geri basan oyuncu
+// **oyundan çıkıyordu**.
+//
+// Burada "ev" fabrikanın kendisi: hiçbir perde açık değilken geri
+// tuşu uygulamadan çıkmalı, Android'in beklediği şey bu. Bir perde
+// açıkken geçmişe bir girdi konuyor ve geri tuşu önce onu açıyor;
+// oyun o perdeyi **kendi kapatma düğmesiyle** kapatıyor, çünkü bazı
+// perdelerin kapanışında yapılacak başka iş var (dönüş ekranı
+// bekleyen parayı sıfırlıyor, prestij ekranı hiçbir şeyi).
+//
+// Geri tuşu `goBack()` çağırmayan bir yapıda hiçbir şey değişmiyor.
+const GERI_PERDE = {
+  welcome: 'wOk',
+  daily: 'dOk',
+  prestige: 'pNo',
+  backup: 'buClose',
+  research: 'resClose',
+  goals: 'goalsClose',
+  shop: 'closeShop',
+  menu: 'closeMenu',
+};
+let geriDerin = false, geriAtiyor = false;
+function geriAcikPerde() {
+  for (const id in GERI_PERDE) {
+    const e = document.getElementById(id);
+    if (e && e.classList.contains('show')) return id;
+  }
+  return null;
+}
+function geriGuncelle() {
+  const derin = !!geriAcikPerde();
+  if (derin === geriDerin) return;
+  if (derin) {
+    geriDerin = true;
+    try { window.history.pushState({ mw: 1 }, ''); } catch (e) { geriDerin = false; }
+  } else {
+    geriDerin = false;
+    geriAtiyor = true;
+    try { window.history.back(); } catch (e) { geriAtiyor = false; }
+  }
+}
+addEventListener('popstate', () => {
+  if (geriAtiyor) { geriAtiyor = false; return; }
+  geriDerin = false;
+  const id = geriAcikPerde();
+  if (id) {
+    const b = document.getElementById(GERI_PERDE[id]);
+    if (b && !b.disabled) b.click();
+    else document.getElementById(id).classList.remove('show');
+  }
+  geriGuncelle();
+});
+{
+  // Perdeler tek bir yerden açılmıyor; `show` sınıfı onlarca yerde
+  // ekleniyor. Sınıfı izlemek, her çağrı yerine dokunmaktan hem kısa
+  // hem de ileride eklenecek perdeyi kendiliğinden kapsıyor.
+  const mo = new MutationObserver(() => geriGuncelle());
+  for (const id of Object.keys(GERI_PERDE)) {
+    const e = document.getElementById(id);
+    if (e) mo.observe(e, { attributes: true, attributeFilter: ['class'] });
+  }
+}
+
 function refreshBoost() {
   const el = $('boostBtn'), t = $('boostTxt');
   const left = boostLeft();
