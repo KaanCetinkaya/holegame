@@ -1280,6 +1280,16 @@ function cutPop(y, z, n) {
     (-_vec.y * 0.5 + 0.5) * innerHeight)) + 'px';
   document.body.appendChild(el);
   el.addEventListener('animationend', () => el.remove());
+  // İkinci bir yol, çünkü `animationend` **gelmeyebiliyor**: animasyon
+  // hiç başlamazsa (cihazda animasyonlar kapalıysa, ya da öğe
+  // çizilmeden önce sekme arkaya atılırsa) olay hiç doğmuyor ve
+  // etiket ekranda kalıcı oluyor. Bir turda yüzlerce kesim var, yani
+  // "kalıcı" burada birikme demek.
+  //
+  // Ölçüm bunu yük altında gösterdi (`slicecut`): tur bittikten 1.2
+  // saniye sonra ekranda bir etiket duruyordu. Kendi kendini silen
+  // şeyin iki yolu olmalı.
+  setTimeout(() => el.remove(), 2000);
 }
 
 // Kameranın kesimde aldığı küçük tepki.
@@ -2637,6 +2647,13 @@ window.sliceGive = n => { coins += n; store.set('slicerush_coins', coins); refre
 // takas. O takasın bölümü geçilemez hâle getirip getirmediği ancak
 // bıçak değiştirilerek ölçülebiliyor, ve tek yol dükkândan satın
 // almaktı.
+// Dükkânın tamamı: ad, fiyat, menzil, sahiplik. Ekonomi ölçümü
+// fiyatları elle yazmasın diye — fiyat değiştiğinde ölçüm eski
+// fiyatı ölçmeye devam ederdi.
+window.sliceShop = () => BLADES.map((b, i) => ({
+  i, ad: b.name, fiyat: b.price, menzil: b.reach,
+  sahip: ownedBlades.includes(i), acik: i === activeBlade,
+}));
 window.sliceBlade = i => {
   if (i == null) return activeBlade;
   activeBlade = Math.max(0, Math.min(BLADES.length - 1, i | 0));

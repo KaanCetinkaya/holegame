@@ -97,9 +97,25 @@ const tur = await pg.evaluate(async () => {
   });
   return { kesildi: window.sliceProbe().cut };
 });
-await pg.waitForTimeout(1200);
-const kalan = await pg.evaluate(() => document.querySelectorAll('.cutpop').length);
-console.log(`  ${tur.kesildi} kesim yapıldı, 1.2 saniye sonra ekranda ${kalan} etiket`);
+// Sabit bir bekleme değil, **boşalana kadar** bekleme.
+//
+// Burada 1.2 saniye yazıyordu ve ölçüm yük altında düştü: etiketi
+// silen şey animasyonun bitmesi, ve konteynerde bir kare 300-450 ms
+// sürerken animasyon da gecikiyor. Ölçülmek istenen şey hız değil,
+// birikme — yani sayının sıfıra **inip inmediği**. Sınır o yüzden
+// bol: on saniye.
+//
+// (Aynı ölçüm oyunda da bir eksik buldu: etiket yalnızca
+// `animationend` ile siliniyordu, ve o olay her zaman gelmiyor.
+// Artık bir zamanlayıcı da siliyor.)
+let kalan = -1, bekledi = 0;
+for (let i = 0; i < 100; i++) {
+  kalan = await pg.evaluate(() => document.querySelectorAll('.cutpop').length);
+  if (kalan === 0) break;
+  await pg.waitForTimeout(100);
+  bekledi += 100;
+}
+console.log(`  ${tur.kesildi} kesim yapıldı, ${bekledi} ms sonra ekranda ${kalan} etiket`);
 check(kalan === 0, 'etiketler kendini siliyor (birikmiyor)', `${kalan} kaldı`);
 
 if (errs.length) fails.push('sayfa hatası: ' + errs[0]);

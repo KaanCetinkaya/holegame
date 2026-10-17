@@ -165,6 +165,35 @@ Steel 59/66, Obsidian 56/66. Fark üç koşuda +5, +3 ve **-3** puan, yani
 gürültünün içinde. Menzil 0.9'a çıkarıldığında oran hâlâ %82 — bugünkü
 0.22 sınırın çok altında. 2.0'da ölçüm düşüyor: 60. bölüm hiç bitmiyor.
 
+## Dükkân kaç bölümde bitiyor
+
+Altı bıçak satılıyor — 0, 300, 900, 2200, 5000, 11000 — ve bir turun kaç
+para verdiği fiyatlarla hiç karşılaştırılmamıştı. Ölçüldü
+(`scratchpad/slekonomi.mjs`): oyunun kendi sürücüsü her bölümü bir kez
+oynuyor, hedef ödüllerini de alıyor.
+
+| bıçak | fiyat | alınabildiği bölüm |
+|---|---|---|
+| Copper | 300 | 1 |
+| Emerald | 900 | 2 |
+| Sapphire | 2200 | 7 |
+| Gold | 5000 | 19 |
+| Obsidian | 11000 | 94 |
+
+Kuyruğun uzunluğu kasadan okunuyor: 30. bölümde 7100, 60'ta 9495,
+120'de 12592. Yani **hedefler bitince tur başına gelir ~50 paraya
+düşüyor** ve en pahalı bıçak oradan sonra 180 tur uzakta. Üstelik bu
+sayı iyimser — sürücü hiçbir şey satın almıyor, oysa gerçek oyuncu
+ondan önce 8400 para harcamış oluyor.
+
+Sürücü temkinli oynuyor: demirden kaçmayı meyve kesmeye tercih ediyor
+ve tarlanın yaklaşık %60'ını kesiyor. İyi bir oyuncu tur başına iki-üç
+kat kazanır, yani Obsidian onda 60 tur civarı. İki ucu da uzun.
+
+Ölçüm bir fiyat önermiyor; ulaşılamaz bir şey kalmadığını ve dükkânın
+ilk beş bölümde bitmediğini kontrol ediyor. Eğri burada yazılı olduğu
+için fiyat değişince nereye oturduğu da görülüyor.
+
 ## Telefonu kulağına götürüp geri gelmek
 
 `requestAnimationFrame` arka planda çağrılmıyor, yani oyun orada devam
@@ -357,6 +386,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slsurucu.mjs   # bölüm bitirilebiliyor mu, geçilen engel öldürüyor mu
     node scratchpad/slses.mjs      # ses kapatılabiliyor mu, kapanınca susuyor mu
     node scratchpad/slgizle.mjs    # ekran elden gidince tur duruyor mu
+    node scratchpad/slekonomi.mjs  # bıçaklar kaç bölümde alınabiliyor
     node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
