@@ -2611,6 +2611,19 @@ window.sliceTakeGoal = id => {
   return window.sliceGoals();
 };
 window.sliceGive = n => { coins += n; store.set('slicerush_coins', coins); refreshMenu(); };
+// Bıçağı değiştir. Dükkân bıçağın **menzilini** satıyor ve menzil
+// mayına da erken değdiriyor — yani satın alınan şey saf kazanç değil,
+// takas. O takasın bölümü geçilemez hâle getirip getirmediği ancak
+// bıçak değiştirilerek ölçülebiliyor, ve tek yol dükkândan satın
+// almaktı.
+window.sliceBlade = i => {
+  if (i == null) return activeBlade;
+  activeBlade = Math.max(0, Math.min(BLADES.length - 1, i | 0));
+  if (!ownedBlades.includes(activeBlade)) ownedBlades.push(activeBlade);
+  store.set('slicerush_blade', activeBlade);
+  store.set('slicerush_blades', ownedBlades);
+  return activeBlade;
+};
 window.sliceRevive = () => $('reviveBtn').click();
 window.sliceDouble = () => $('dblBtn').click();
 window.sliceMap = () => ({

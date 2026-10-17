@@ -112,6 +112,72 @@ ok(bos.length === 0, 'her bölüm en az bir kez bitirildi',
 // bitmiyor.
 ok(oran >= 0.70, 'turların çoğu bitiyor', `%${(oran * 100).toFixed(0)}`);
 
+console.log('\n3) En uzun bıçakla da bitirilebiliyor mu');
+// Dükkân bıçağın **menzilini** satıyor: uzun bıçak yığına daha erken
+// değiyor, ve aynı kural mayına da uygulanıyor (oyunun kendi yorumu:
+// "yükseltme artık saf kazanç değil, takas. Bu bilerek böyle").
+//
+// Takasın bilerek olması, bölümü geçilemez yapmadığı anlamına
+// gelmiyor, ve bunu kimse ölçmemişti: bütün ölçümler yeni bir
+// tarayıcıda, yani **en kısa** bıçakla koşuyor. En pahalı şeyi satın
+// alan oyuncunun oyunu bozulamaz olmalı.
+//
+// Ölçüm hatayı geri koyarak da çalıştırıldı — bir kere geçmesi
+// gereken yerde geçmek yetmiyor. En uzun bıçağın menzili 0.22 yerine
+// 0.9 yapıldığında oran hâlâ %82: yani bugünkü değer sınırın çok
+// altında ve dükkâna daha uzun bir bıçak konabilir. 2.0'da ölçüm
+// düşüyor — 60. bölüm altı koşunun hiçbirinde bitmiyor, oran %30.
+// Bıçak sayısını oyun söylüyor: dükkâna bir bıçak eklenince bu ölçüm
+// yine **sonuncusunu** denesin, elle yazılmış bir indise takılı
+// kalmasın. `sliceBlade` sınırı kendi kırpıyor.
+const BLADE_SON = await pg.evaluate(() => {
+  const simdi = window.sliceBlade();
+  const son = window.sliceBlade(999);
+  window.sliceBlade(simdi);
+  return son;
+});
+const BICAKLAR = [0, BLADE_SON];
+const MAYINLI = [10, 14, 17, 20, 24, 28, 31, 35, 40, 50, 60];
+const bicak = await pg.evaluate(({ BICAKLAR, MAYINLI, KOSU }) => {
+  const out = [];
+  for (const b of BICAKLAR) {
+    window.sliceBlade(b);
+    let gecti = 0; const bos = [];
+    for (const n of MAYINLI) {
+      let g = 0;
+      for (let k = 0; k < KOSU; k++) {
+        window.sliceStart(n);
+        if (window.sliceRun(8000).state === 'clear') g++;
+      }
+      gecti += g;
+      if (!g) bos.push(n);
+    }
+    out.push({ b, menzil: window.sliceMeta().reach, gecti, toplam: MAYINLI.length * KOSU, bos });
+  }
+  return out;
+}, { BICAKLAR, MAYINLI, KOSU });
+for (const x of bicak)
+  console.log(`     bıçak ${x.b} (menzil ${x.menzil}): ${x.gecti}/${x.toplam}` +
+    (x.bos.length ? `  hiç bitmeyen: ${x.bos.join(', ')}` : ''));
+const kisa = bicak[0], uzun = bicak[1];
+ok(uzun.menzil > kisa.menzil, 'iki bıçağın menzili gerçekten farklı',
+   `${kisa.menzil} / ${uzun.menzil}`);
+ok(uzun.bos.length === 0, 'en uzun bıçakla her bölüm en az bir kez bitti',
+   uzun.bos.join(', '));
+ok(uzun.gecti / uzun.toplam >= 0.70, 'en uzun bıçakla da turların çoğu bitiyor',
+   `%${((uzun.gecti / uzun.toplam) * 100).toFixed(0)}`);
+// Takas bir bedel, ama bir uçurum değil.
+//
+// Ölçüldü: aynı tarama üç kez koşturulduğunda iki bıçak arasındaki
+// fark +5, +3 ve **-3** puan çıktı — yani bu örneklemde uzun bıçağın
+// bedeli gürültünün içinde kalıyor, bir kez de ters işaretli. Sınır o
+// yüzden bol: on beş puan bir eğilimi değil, bir uçurumu yakalar.
+// Asıl iş yukarıdaki iki satırda — hiçbir bölümün geçilemez hâle
+// gelmemesi ve oranın %70'in altına düşmemesi.
+const fark = (kisa.gecti - uzun.gecti) / kisa.toplam;
+ok(fark <= 0.15, 'uzun bıçak bölümleri uçuruma çevirmiyor',
+   `${(fark * 100).toFixed(0)} puan`);
+
 ok(!hata.length, 'sayfa hatası yok', hata[0] || '');
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;

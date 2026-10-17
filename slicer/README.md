@@ -153,6 +153,18 @@ mi, pencere bıçağa yer bırakıyor mu — ama geometrinin tamamı doğruyken
 bölüm yine de bitirilemeyebilir, çünkü engeller tek tek değil arka
 arkaya çözülüyor.
 
+## Uzun bıçak bölümü geçilemez yapıyor mu
+
+Dükkân bıçağın **menzilini** satıyor, ve aynı menzil mayına da erken
+değdiriyor: yükseltme saf kazanç değil, takas. Takasın bilerek olması
+bölümü geçilemez yapmadığı anlamına gelmiyor, ve bütün ölçümler yeni
+bir tarayıcıda — yani en kısa bıçakla — koşuyordu.
+
+Ölçüldü (`scratchpad/slsurucu.mjs`, 3. bölüm): mayınlı on bir bölümde
+Steel 59/66, Obsidian 56/66. Fark üç koşuda +5, +3 ve **-3** puan, yani
+gürültünün içinde. Menzil 0.9'a çıkarıldığında oran hâlâ %82 — bugünkü
+0.22 sınırın çok altında. 2.0'da ölçüm düşüyor: 60. bölüm hiç bitmiyor.
+
 ## Sesi kapatmanın yolu yoktu
 
 `muted` değişkeni vardı, `tone()` ona bakıyordu, kayda yazılıyordu — ve

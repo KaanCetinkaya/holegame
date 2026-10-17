@@ -833,10 +833,23 @@ function fmt(n) {
   if (!isFinite(n)) return '∞';
   if (n < 0) return '-' + fmt(-n);
   if (n < 1000) return n < 10 ? (Math.round(n * 10) / 10).toString() : Math.floor(n).toString();
-  const tier = Math.min(Math.floor(Math.log10(n) / 3), SUFFIX.length - 1);
-  const s = SUFFIX[tier];
-  const v = n / Math.pow(1000, tier);
-  return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v).toString()) + s;
+  // Basamak ve ondalık, **yuvarlandıktan sonra** seçiliyor.
+  //
+  // Eskiden önce seçiliyor sonra yuvarlanıyordu ve sınırda ikisi aynı
+  // şeyi söylemiyordu: 9999 "10.00K" (altı karakter) ama 10000 "10.0K"
+  // (beş); 99999 "100.0K" (altı) ama 100000 "100K" (dört). Yani sayı
+  // **büyüdükçe kısalıyordu**, ve kasa hapının en geniş hâli tam da o
+  // hiç denenmemiş iki sayıydı. Aynı kusur Fruit Hole'un cüzdan
+  // satırında dördüncü sayacı ekrandan atmıştı.
+  //
+  // `Math.floor` da ayrı bir yerden yanlıştı: 999999 "999K" yazıyordu,
+  // "1.00M" değil — sayı bir üst basamağa geçmişken bir öncekinde
+  // kalıyordu.
+  let tier = Math.min(Math.floor(Math.log10(n) / 3), SUFFIX.length - 1);
+  let v = n / Math.pow(1000, tier);
+  if (v >= 999.5 && tier < SUFFIX.length - 1) { tier++; v = n / Math.pow(1000, tier); }
+  const basamak = v < 9.995 ? 2 : v < 99.95 ? 1 : 0;
+  return v.toFixed(basamak) + SUFFIX[tier];
 }
 function fmtTime(sec) {
   sec = Math.floor(sec);
