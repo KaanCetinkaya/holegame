@@ -110,7 +110,17 @@ check(await pg.isVisible('#playBtn'), 'ekranlardan sonra menüye dönülüyor');
 console.log('\n3. bütün desenler kuruluyor');
 const bad = [];
 const stats = [];
-for (let lvl = 1; lvl <= 40; lvl++) {
+// 1-40 tek tek, sonra 120'ye kadar üçer üçer.
+//
+// Kırkta duruyordu ve tur çevirmeleri orada bitmiyor: `tier()` yirmi
+// dört bölümde bir artıyor, yani 2. tur 49'da, 3. tur 73'te
+// başlıyor. Kaan'ın kendi kaydı 90'ın üstünde — yani oyunun en çok
+// oynanan bandı, hiçbir ölçümün kurmadığı banttı. Çok ileri bölümler
+// (100, 250, 999) aşağıda zaten var ama onlar üç örnek, tarama değil.
+const BOLUMLER = [];
+for (let n = 1; n <= 40; n++) BOLUMLER.push(n);
+for (let n = 43; n <= 120; n += 3) BOLUMLER.push(n);
+for (const lvl of BOLUMLER) {
   const before = errs.length;
   const r = await pg.evaluate((n) => {
     const p = window.fruitHoleProbe(n);
@@ -129,7 +139,7 @@ for (let lvl = 1; lvl <= 40; lvl++) {
   if (!r.seconds || r.seconds < enAz) bad.push(`${lvl} (${r.pattern}) saat ${r.seconds}sn`);
   stats.push(r);
 }
-check(bad.length === 0, '1-40 arası her bölüm kuruldu, tarlası ve saati var',
+check(bad.length === 0, '1-120 arası her bölüm kuruldu, tarlası ve saati var',
   bad.length ? bad.join(', ') : `${stats.length} bölüm`);
 
 const names = [...new Set(stats.map(s => s.pattern))];

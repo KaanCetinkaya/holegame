@@ -169,7 +169,18 @@ console.log('\n--- oynanırken ---');
   // değişiyordu. Deponun kendi kuralı testlerin zamanlamaya bağlı
   // olmamasını söylüyor ve bu satır onu çiğniyordu.
   const SINIR = 90000;
-  for (let lvl = 1; lvl <= TUR; lvl++) {
+  // Tema tablosunun boyu kadar bölüm, **artı** ileriden birkaç örnek.
+  //
+  // Tablo 55'te bitiyor ve tarama orada duruyordu; Kaan'ın kendi kaydı
+  // 90'ın üstünde, yani oyunun en çok oynanan bandı hiç oynanmıyordu.
+  // Tur çevirmeleri yirmi dört bölümde bir değişiyor (3. tur 73'te
+  // başlıyor), yani oradaki tahtalar buradakilerin aynısı değil.
+  // Hepsini oynatmak bu konteynerde yarım saat; beş örnek yeterli bir
+  // ağ.
+  const OYNANACAK = [];
+  for (let lvl = 1; lvl <= TUR; lvl++) OYNANACAK.push(lvl);
+  for (const lvl of [60, 75, 90, 105, 120]) OYNANACAK.push(lvl);
+  for (const lvl of OYNANACAK) {
     let r;
     // Yarışı kaybeden `evaluate` askıda kalıyor ve sayfa kapanınca reddediyor.
     // Yakalayan kimse olmayınca bu "unhandled rejection" oluyor ve node testi
@@ -202,7 +213,7 @@ console.log('\n--- oynanırken ---');
     } finally { clearTimeout(saat); }
     if (r.hata) bozuk.push(`${lvl}: ${r.hata}`);
   }
-  console.log(`  ${bozuk.length ? 'FAIL' : 'OK  '} ${TUR} bölümün hepsi oynanırken hata atmıyor` +
+  console.log(`  ${bozuk.length ? 'FAIL' : 'OK  '} ${OYNANACAK.length} bölümün hepsi oynanırken hata atmıyor` +
     (bozuk.length ? `   ${bozuk.slice(0, 3).join(' · ')}` : ''));
   for (const b of bozuk) fails.push(`oynanırken patladı — ${b}`);
   await ctx.close();

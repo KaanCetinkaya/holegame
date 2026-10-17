@@ -37,6 +37,13 @@ const ctx = await br.newContext({ viewport: { width: 412, height: 915 } });
 // Simgenin değişmesi sesin kesildiğini söylemiyor.
 await ctx.addInitScript(() => {
   window.__ses = 0;
+  // Titreşim de sayılıyor: ses tuşu telefonun **sessiz** kalmasını
+  // sağlamalı, ve titreyen bir telefon sessiz değil.
+  window.__titre = 0;
+  try {
+    Object.defineProperty(navigator, 'vibrate',
+      { configurable: true, value: () => { window.__titre++; return true; } });
+  } catch (e) { navigator.vibrate = () => { window.__titre++; return true; }; }
   const C = window.AudioContext || window.webkitAudioContext;
   const asil = C.prototype.createOscillator;
   C.prototype.createOscillator = function (...a) { window.__ses++; return asil.apply(this, a); };
@@ -91,27 +98,30 @@ ok(y.sessiz === true, 'yenilemeden sonra da kapalı');
 console.log('\n3) Kapalıyken gerçekten susuyor');
 // Bir tur oynanıyor: kesim, çarpma ve bitiş sesleri bu yoldan çıkıyor.
 const kapali = await pg.evaluate(() => {
-  window.__ses = 0;
+  window.__ses = 0; window.__titre = 0;
   window.sliceStart(3);
   window.sliceRun(3000);
-  return { ses: window.__ses, kesim: window.sliceProbe().cut };
+  return { ses: window.__ses, titre: window.__titre, kesim: window.sliceProbe().cut };
 });
-console.log(`     sessizken ${kapali.kesim} kesim · üretilen osilatör ${kapali.ses}`);
+console.log(`     sessizken ${kapali.kesim} kesim · osilatör ${kapali.ses} · titreşim ${kapali.titre}`);
 ok(kapali.kesim > 0, 'turda gerçekten kesim oldu — ölçülecek bir şey vardı',
    `${kapali.kesim}`);
 ok(kapali.ses === 0, 'sessizken hiç ses üretilmedi', `${kapali.ses}`);
+ok(kapali.titre === 0, 'sessizken telefon titremedi', `${kapali.titre}`);
 
 console.log('\n4) Açınca geri geliyor');
 const acik = await pg.evaluate(() => {
   document.getElementById('muteBtn').click();
-  window.__ses = 0;
+  window.__ses = 0; window.__titre = 0;
   window.sliceStart(3);
   window.sliceRun(3000);
-  return { ses: window.__ses, kesim: window.sliceProbe().cut, sessiz: window.sliceMeta().sessiz };
+  return { ses: window.__ses, titre: window.__titre,
+           kesim: window.sliceProbe().cut, sessiz: window.sliceMeta().sessiz };
 });
-console.log(`     açıkken ${acik.kesim} kesim · üretilen osilatör ${acik.ses}`);
+console.log(`     açıkken ${acik.kesim} kesim · osilatör ${acik.ses} · titreşim ${acik.titre}`);
 ok(acik.sessiz === false, 'ikinci basışta açıldı');
 ok(acik.ses > 0, 'açıkken ses üretildi', `${acik.ses}`);
+ok(acik.titre > 0, 'açıkken telefon titredi', `${acik.titre}`);
 
 console.log('\n5) Duraklat ekranındaki ikizi');
 const d = await pg.evaluate(() => {

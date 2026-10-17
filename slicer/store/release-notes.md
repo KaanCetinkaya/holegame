@@ -11,28 +11,30 @@ beri değişti, ve kapalı testteki kişinin neye bakacağını söyleyen tek
 
 ## Bu sürüm (sürüm kodu 3)
 
-### İngilizce — `en-US` (467 karakter)
+### İngilizce — `en-US` (497 karakter)
 
 ```
 The corridor keeps asking new questions past level 17, and it stops looking the same while it does.
 
 • An obstacle you have already cleared can no longer kill you
+• The blade buzzes when it cuts
 • Leaving the app pauses the run
-• A sound toggle, in the menu and on the pause screen
+• A sound toggle, in the menu and on pause — it mutes the buzz too
 • Six sceneries, changing every four levels
-• Two new obstacles: twin windows, and a mine past a narrow gap
-• The clamp at level 12 is gentler on first meeting
+• Two new obstacles: twin windows, and a mine past a gap
+• The clamp at level 12 is gentler at first
 • A damaged save can no longer stop the game from opening
 ```
 
-### Türkçe — `tr-TR` (438 karakter)
+### Türkçe — `tr-TR` (489 karakter)
 
 ```
 Koridor 17. bölümden sonra da yeni şeyler soruyor, ve bunu yaparken aynı görünmüyor.
 
 • Temiz geçtiğin engel artık arkandan öldürmüyor
+• Kesimde telefon titriyor
 • Uygulamadan çıkınca tur duruyor
-• Ses açma/kapama tuşu (menüde ve duraklat ekranında)
+• Ses açma/kapama tuşu (menüde ve duraklat ekranında), titreşimi de kapatıyor
 • Altı manzara, dört bölümde bir değişiyor
 • İki yeni engel: iki pencere, ve dar bir geçidin ardındaki mayın
 • 12. bölümdeki mengene ilk karşılaşmada daha yumuşak

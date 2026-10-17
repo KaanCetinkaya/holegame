@@ -1349,12 +1349,20 @@ function tone(freq, dur, type = 'triangle', gain = 0.16, slideTo = null) {
     o.start(); o.stop(a.currentTime + dur);
   } catch {}
 }
+// Dokunsal geri bildirim. Ses tuşuna bağlı: sesi kapatan kişi
+// telefonun sessiz kalmasını istiyor, titremesini değil.
+// Fruit Hole'da aynı yerde aynı biçimde duruyor.
+function titre(p) { try { if (!muted && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
 const sfx = {
   // pitch climbs with the combo, so a long run sounds like one
-  slice: n => tone(520 + Math.min(n, 12) * 44, 0.11, 'triangle', 0.14, 880 + Math.min(n, 12) * 60),
-  crash: () => { tone(140, 0.34, 'sawtooth', 0.24, 55); tone(90, 0.4, 'square', 0.16, 40); },
-  clear: () => [0, 120, 240, 400].forEach((d, i) =>
-    setTimeout(() => tone([523, 659, 784, 1047][i], 0.22, 'triangle', 0.18), d)),
+  slice: n => { tone(520 + Math.min(n, 12) * 44, 0.11, 'triangle', 0.14, 880 + Math.min(n, 12) * 60);
+                titre(8); },
+  crash: () => { tone(140, 0.34, 'sawtooth', 0.24, 55); tone(90, 0.4, 'square', 0.16, 40);
+                 titre(70); },
+  clear: () => { [0, 120, 240, 400].forEach((d, i) =>
+    setTimeout(() => tone([523, 659, 784, 1047][i], 0.22, 'triangle', 0.18), d));
+    titre([20, 40, 25]); },
 };
 
 // ---------------------------------------------------------------------

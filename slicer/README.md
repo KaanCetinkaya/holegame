@@ -222,9 +222,14 @@ Menünün sağ üstünde bir tuş, duraklat ekranında da ikizi — sesi
 kapatmak isteyen çoğu zaman oynarken istiyor. İkisi aynı duruma
 bakıyor, biri çevirince ötekinin yazısı da değişiyor.
 
+Tuş titreşimi de kapatıyor. Kesimde kısa bir tık, çarpmada uzun bir
+buzz var (`navigator.vibrate`, Fruit Hole'daki ile aynı biçim) ve
+sesi kapatan kişi telefonun sessiz kalmasını istiyor — titremesini
+değil.
+
 `scratchpad/slses.mjs` yalnızca simgeye bakmıyor: `AudioContext`in
-osilatör üretimini sayıyor. Simge değişip sesin devam etmesi, düğmenin
-hiç olmamasından beter olurdu.
+osilatör üretimini ve `navigator.vibrate` çağrılarını sayıyor. Simge
+değişip sesin devam etmesi, düğmenin hiç olmamasından beter olurdu.
 
 ## Akşamlar
 
