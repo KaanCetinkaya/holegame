@@ -152,10 +152,20 @@ for (const lv of BOLUMLER) {
              state: w.state, kare, gl: window.fruitHoleGl().logged };
   }, [lv, FPS, KAT]);
   await ctx.close();
-  // Bulmacada saat yok (9999) — payın anlamı da yok.
-  const saatsiz = o.mission === 'puzzle';
-  const pay = saatsiz ? null : o.kalan / Math.max(1, o.saat);
-  const yildiz = pay == null ? '-' : pay >= 0.45 ? 3 : pay >= 0.2 ? 2 : 1;
+  // Pay, **oyunun kullandığı** bölenle hesaplanıyor.
+  //
+  // Burada başlangıç saati bölen alınıyordu ve rush bölümünde saçmalıyordu:
+  // orada saat 12 saniyede başlayıp her meyveyle doluyor, yani kalan saat
+  // başlangıçtan büyük olabiliyor ve tablo "%184" yazıyordu. Oyun o bölümde
+  // tavana bölüyor (`RUSH_CAP`), ölçüm başlangıca — iki ayrı birim.
+  //
+  // Bulmacada saat yok (9999), rush'ta oranın karşılığı burada yok: ikisinde
+  // de pay boş bırakılıp **oyunun kendi yıldızı** yazılıyor.
+  const saatsiz = o.mission === 'puzzle' || o.mission === 'rush';
+  const bolen = o.yildizOyun && o.yildizOyun.verilen > 1 ? o.yildizOyun.verilen : o.saat;
+  const pay = saatsiz ? null : o.kalan / Math.max(1, bolen);
+  const yildiz = pay != null ? (pay >= 0.45 ? 3 : pay >= 0.2 ? 2 : 1)
+    : (o.yildizOyun ? o.yildizOyun.yildiz : '-');
   satir.push({ lv, ...o, pay, yildiz, saatsiz });
   // Modelin tahmini ile botun gerçek süresi: oran, modelin ne kadar
   // şişirdiğini söylüyor.
