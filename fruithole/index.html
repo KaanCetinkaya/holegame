@@ -23903,6 +23903,27 @@ let revivedThisLevel = false;
 // hole clears a lane of its own diameter and that diameter grows as it eats,
 // so the area is integrated rather than divided by one average radius — the
 // first pass is made with a small hole and is by far the slowest part.
+// Süpürülecek alan: tarlanın tamamı. Bir kez değiştirildi ve ölçüm geri
+// çevirdi — gerekçesi de, geri alınması da burada duruyor.
+//
+// **Gerekçe doğruydu.** Bu fonksiyonun bir sayı verdiği sanılıyordu;
+// ölçülünce **tek** bir sayı verdiği çıktı. Büyüme `fruits.length`e
+// bölünüyor (`growthUnit`) ve süpürülen miktar `levelGoal` ile çarpılıyor,
+// yani ikisi sadeleşiyor: yarıçap eğrisi her tahtada aynı, alan da tarlanın
+// sabit ölçüsü. Yirmi ızgara bölümünün hepsinde model 103.9 saniye diyor
+// (`scratchpad/holesaat.mjs`).
+//
+// **Ama tahmin doğruydu.** Alan, doluluk payıyla ölçeklendi (seyrek tahtada
+// oyuncu boş bölgeleri atlıyor diye) ve mayın bölümleri ölçüldü: botun
+// tarlayı gerçekten süpürme süresi üç mayın tahtasında da 60-70 saniye —
+// 596 parçalık tahtada da, 229 parçalıkta da. Yani süpürme süresi parça
+// sayısına değil **alana** bağlı, tam da bu modelin dediği gibi. Doluluk
+// ölçeklemesi 35. bölümün saatini 297'den 510'a çıkardı ve o bölüm üç
+// yıldıza döndü: düzeltme, düzeltmeye çalıştığı şeyi büyüttü.
+//
+// Geriye duran gerçek sorun model değil **kat sayısı**: 65 saniyelik bir işe
+// 270 saniye saat veriliyor. Ölçümü holesaat.mjs'in sonunda yazılı ve o
+// karar bir denge kararı, bir hata düzeltmesi değil.
 function sweepSeconds() {
   const area = fieldHalfX * 2 * fieldHalfZ * 2;
   const steps = 60, dA = area / steps;
@@ -27124,6 +27145,15 @@ window.fruitHoleBoardCells = () => {
 // Siluetin kurmadığı tahtalarda null dönüyor ve ölçüm atlıyor: kutupsal
 // desenler hücre ızgarasında kurulmuyor, resim ve şerit tahtalarını da
 // kendi haritaları kuruyor (bkz. `sonSiluet`).
+// Çizimi kapat: bot oynatan ölçümler için.
+//
+// Oyun mantığı aynen işliyor — fizik, çarpışma, saat, büyüme — yalnızca
+// `renderer.render` atlanıyor. Konteynerde GPU yok ve bir kare 300-450 ms;
+// kareyi tek tek ilerleten bir ölçüm bu bayrak olmadan saatler sürüyor.
+//
+// Açan ölçüm kendi kapatmalı demiyoruz: sayfa ölçümün kendi sayfası ve
+// kapanınca bayrak da gidiyor.
+window.fruitHoleDrawOff = (v) => { _cizme = v !== false; return _cizme; };
 window.fruitHoleDesignCells = () => {
   if (!sonSiluet) return null;
   const eskiSeed = _seed, eskiSeeded = _seeded;
@@ -28151,6 +28181,40 @@ window.fruitHoleOrderNearest = () => {
                 eatable: en.r <= holeRadius * 0.92, dist: +Math.sqrt(ed).toFixed(2) } : null;
 };
 
+// Saatin nereden geldiği: modelin kendi sayıları.
+//
+// `levelTime` tek bir sayı veriyor ve o sayının içinde üç şey var: süpürme
+// modelinin tahmini, görev tipine göre kat sayısı, ve turun sıkıştırması.
+// Ölçüm "saat bol mu" diye sorduğunda cevap bu üçünden hangisinde olduğunu
+// bilmek zorunda — yoksa elinde yalnızca bir toplam oluyor ve o toplamla
+// model düzeltilemiyor.
+//
+// `alan` ile `doluAlan` yan yana duruyor çünkü modelin varsayımı şu:
+// süpürülecek şey tarlanın **tamamı**. Seyrek bir tahtada oyuncu boş
+// bölgeleri atlıyor ve ikisinin oranı o atlamanın ölçüsü.
+window.fruitHoleClock = () => {
+  const canli = fruits.filter(f => !f.eaten && !f.bomb);
+  const hucre = new Set(canli.map(f => Math.round(f.z / CELL) + ',' + Math.round(f.x / CELL)));
+  return {
+    sweep: +sweepSeconds().toFixed(1),
+    time: levelTime(),
+    goal: levelGoal,
+    alan: +(fieldHalfX * 2 * fieldHalfZ * 2).toFixed(1),
+    doluAlan: +(hucre.size * CELL * CELL).toFixed(1),
+    hucre: hucre.size,
+    canli: canli.length,
+    unit: +growthUnit().toFixed(4),
+    r0: +holeRadius.toFixed(3),
+    rMax: +HOLE_MAX.toFixed(2),
+    hiz: BASE_MOVE_SPEED,
+    // Saatin hangi daldan geldiği. Dört dal var ve üçü `sweepSeconds`a hiç
+    // uğramıyor: görev tipleri kendi turlarından, kart bölümü kartların
+    // turundan. Ölçüm bunu bilmezse "saat bol" dediği yerin hangi formül
+    // olduğunu da bilmiyor — ve yanlış formülü düzeltir.
+    dal: missionKind ? missionKind : (cards.length ? 'kart' : 'süpürme'),
+    kart: cards.length,
+  };
+};
 window.fruitHoleGrow = () => {
   const live = fruits.filter(f => !f.eaten);
   const giants = live.filter(f => f.giant);
@@ -28356,6 +28420,8 @@ function flushPerf() {
   savePerf();
 }
 
+// Çizimi kapatan bayrak — yalnızca ölçüm için, bkz. `tick`'in son satırı.
+let _cizme = false;
 function tick(now) {
   const elapsed = (now - lastT) / 1000;
   const dt = Math.min(0.05, elapsed);   // movement stays stable on frame spikes
@@ -28581,7 +28647,19 @@ function tick(now) {
   // Drawing into a lost context does nothing but burn a frame's worth of
   // work; the loop keeps turning so that the moment it comes back the next
   // frame paints.
-  if (!glLost) renderer.render(scene, camera);
+  //
+  // `_cizme` yalnızca ölçüm için ve oyunda hiçbir şey açmıyor (hook'u
+  // `fruitHoleDrawOff`). Sebebi: bot oynatan ölçümler kareyi tek tek
+  // ilerletiyor ve konteynerde GPU yok — bir kare SwiftShader'la 300-450 ms,
+  // yani `holemayin`in on iki koşusu bir saati geçiyor ve `holeorderplay`in
+  // tek bir mayın bölümü dokuz bin kare. Ölçülen şey oyunun **mantığı**:
+  // nereye gittiği, ne yediği, saatin ne kadarını kullandığı. Çizim o
+  // cevabın hiçbirine girmiyor.
+  //
+  // Ekrana bakan ölçümler (ekran görüntüsü alan, piksel sayan, kare süresi
+  // ölçen) bunu açmıyor ve açmamalı — bayrak kapalıyken dosya eskisi gibi
+  // çalışıyor.
+  if (!glLost && !_cizme) renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
 applyIcons();

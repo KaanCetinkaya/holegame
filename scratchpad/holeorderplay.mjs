@@ -72,10 +72,17 @@ for (const lvl of LEVELS) {
   }, lvl);
   await pg.goto('http://localhost:8274/', { waitUntil: 'domcontentloaded' });
   await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
+  // Çizim kapalı: ölçülen şey turun kendisi, ekrandaki görüntü değil.
+  // Mayın bölümü dokuz bin kare sürüyor ve her kare GPU'suz 300-450 ms —
+  // bu dosya toplu koşuda 1282 saniye aldı. Bayrak `renderer.render`ı
+  // atlıyor, oyun mantığı aynen işliyor (denendi: aynı tohumla 600 kare,
+  // çizimli ve çizimsiz sonuç birebir aynı). Perde, düğmeler ve tıklamalar
+  // DOM tarafında, yani onlar da eskisi gibi çalışıyor.
   // Yükleme perdesi kalkana kadar bekle. `fruitHoleWhere` dosyanın ortasında
   // tanımlanıyor, perdeyi kaldıran satır ise en sonda: ikisinin arasında
   // Play düğmesi görünür ama tıklanamaz durumda, ve tıklama otuz saniye
   // deneyip düşüyor. Yük altında bu aralık büyüyor.
+  await pg.evaluate(() => window.fruitHoleDrawOff(true));
   await pg.waitForFunction(() => {
     const l = document.getElementById('loading');
     return !l || getComputedStyle(l).display === 'none';
