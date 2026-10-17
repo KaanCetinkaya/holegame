@@ -1437,13 +1437,25 @@ const TYPES = [
 //
 // 17359 yerine 17.4k: hem sığıyor hem bir bakışta okunuyor. Dört basamağa
 // kadar tam sayı kalıyor, çünkü orada tek tek meyve sayısı hâlâ anlamlı.
+// Basamak, **yuvarlandıktan sonra** seçiliyor.
+//
+// Eski hâli önce basamağı seçiyor sonra yuvarlıyordu, ve sınırda ikisi
+// aynı şeyi söylemiyordu: 99999 "100.0k" çıkıyordu (altı karakter)
+// ama 100001 "100k" (dört). Yani sayı **büyüdükçe kısalıyordu**, ve
+// en geniş yazı tam da hiç denenmemiş olan 99999'du. 999999 da "1000k"
+// yazıyordu, "1.0M" değil.
+//
+// Menünün cüzdan satırı dört sayacı yan yana taşıyor ve genişlik orada
+// piksel piksel hesaplanıyor (`scratchpad/holetop.mjs`): bir karakter
+// fazlası dördüncü sayacı satırın dışına itiyor. Şimdi en geniş hâl
+// her basamakta beş karakter — "99.9k", "12.3M".
 function fmtCount(n) {
   if (n < 10000) return String(n);
-  if (n < 1000000) {
-    const k = n / 1000;
-    return (k < 100 ? k.toFixed(1) : Math.round(k)) + 'k';
-  }
-  return (n / 1000000).toFixed(1) + 'M';
+  // 99.95 ve üstü üç haneye yuvarlanıyor; ondalık ancak altında anlamlı.
+  const bas = (v, s) => (v < 99.95 ? v.toFixed(1) : Math.round(v)) + s;
+  if (n < 999500) return bas(n / 1000, 'k');
+  if (n < 999500000) return bas(n / 1000000, 'M');
+  return bas(n / 1000000000, 'B');
 }
 function dotFill(t) {
   return `radial-gradient(circle at 34% 30%, ${t.uiLight || t.light}, ${t.uiBase || t.base} 58%, ${t.uiDark || t.dark})`;
@@ -26247,6 +26259,11 @@ window.fruitHoleDailyState = () => ({
 window.fruitHoleSeedField = (n) => { seedField(n); };
 window.fruitHoleUnseedField = () => { unseedField(); };
 window.fruitHoleWallet = () => ({ ...currency });
+// Sayacın biçimi. Ölçüm "en geniş bakiye hangisi" diye soruyor ve
+// cevabı kendi hesaplamamalı: biçim değişince ölçüm eski biçimi
+// ölçmeye devam ederdi. En geniş yazıyı veren değer de en büyük değer
+// değil — 99999 "99.9k"den uzun, 123456 ise "123k" ile daha kısa.
+window.fruitHoleFmt = n => fmtCount(n);
 // Sayaçların kendisi. Başarımlar bunların üstünde duruyor ve bir sayacın
 // hiç artmaması, tabloya bakarak anlaşılmıyor: hedef orada durur, ilerleme
 // sonsuza kadar 0/10 kalır.

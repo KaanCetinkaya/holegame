@@ -3502,6 +3502,13 @@ basılabilsin diye var.
 - **Dört basamağı geçen sayı kısaltılıyor** (`fmtCount`): 17359 yerine
   17.4k, 123456 yerine 123k. Dört basamağa kadar tam sayı kalıyor, orada tek
   tek meyve sayısı hâlâ anlamlı.
+
+  Basamak artık **yuvarlandıktan sonra** seçiliyor. Eskiden önce basamak
+  seçiliyor sonra yuvarlanıyordu ve sınırda ikisi aynı şeyi söylemiyordu:
+  99999 "100.0k" (altı karakter), 100001 ise "100k" (dört) — yani sayı
+  büyüdükçe kısalıyordu, ve satırın en çok zorlandığı yer hiç denenmemiş
+  olan 99999'du. 999999 da "1000k" yazıyordu, "1.0M" değil. Artık her
+  basamakta en geniş hâl beş karakter.
 - **385px altında tuşlar 38px'e iniyor.** Parmakla basılabilir en küçük
   ölçünün altına inilmiyor; dar telefonda dört sayacın dördünü birden
   göstermenin başka yolu yoktu.

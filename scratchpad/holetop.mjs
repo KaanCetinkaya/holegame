@@ -37,6 +37,15 @@ mkdirSync('/tmp/top', { recursive: true });
 
 // Kaan'ın telefonundaki gerçek bakiyeler, ve bir de daha da büyüğü: oyun
 // sonsuz, biri er geç altı haneye çıkacak.
+//
+// **En büyük sayı en geniş yazı değil.** `fmtCount` üç basamakta bir
+// kısaltıyor: 17359 "17.4k" (beş karakter), 123456 ise "123k" (dört).
+// Yani altı hane beşten dar, ve yalnızca "en büyüğü" denenirse satırın
+// gerçekten zorlandığı yer hiç denenmemiş olur — menüdeki dördüncü
+// sayaç tam da orada kayboldu.
+//
+// En geniş olanı bu dosya hesaplamıyor, oyuna soruyor
+// (`fruitHoleFmt`): biçim değişirse ölçüm onunla birlikte değişsin.
 const PURSES = {
   'yeni oyuncu': { berry: 0, lychee: 0, banana: 0, melon: 0 },
   'beş hane': { berry: 17359, lychee: 18269, banana: 21583, melon: 22560 },
@@ -100,15 +109,37 @@ for (const w of [360, 412]) {
 // Oyun içindeki sayaçlar da aynı dörtlü. Menüdeki taşmayı düzeltmek onları
 // düzeltmiyor: HUD kartları sabit 36px ve sayı kartın içinde, yani buradaki
 // risk ekrandan taşmak değil, sayının kendi kartına sığmaması.
-console.log('\n--- oyun içi HUD ---');
+//
+// Hangi bakiyenin en geniş yazdığı oyuna soruluyor: her büyüklükten
+// birkaç örnek `fruitHoleFmt`ten geçiriliyor ve en uzun metni veren
+// alınıyor.
+const enGenisDeger = await (async () => {
+  const pg = await br.newPage({ viewport: { width: 412, height: 800 } });
+  await pg.goto('http://localhost:8220/', { waitUntil: 'load' });
+  await pg.waitForFunction(() => window.fruitHoleFmt, { timeout: 25000 });
+  const v = await pg.evaluate(() => {
+    const aday = [999, 9999, 10000, 17359, 99499, 99999, 100001, 123456,
+                  999499, 999999, 1234567, 12345678, 999999999, 1234567890];
+    let enIyi = aday[0], enUzun = -1;
+    for (const n of aday) {
+      const t = window.fruitHoleFmt(n);
+      if (t.length > enUzun) { enUzun = t.length; enIyi = n; }
+    }
+    return enIyi;
+  });
+  await pg.close();
+  return v;
+})();
+console.log(`\n--- oyun içi HUD --- (en geniş bakiye ${enGenisDeger})`);
 for (const w of [360, 412]) {
   const pg = await br.newPage({ viewport: { width: w, height: 800 } });
   pg.on('pageerror', e => { console.log('  SAYFA HATASI: ' + e); fails.push(String(e)); });
-  await pg.addInitScript(() => {
+  // HUD'a da en geniş yazıyı veren bakiye konuyor, en büyüğü değil.
+  await pg.addInitScript(v => {
     localStorage.setItem('fruithole_level', '44');
     localStorage.setItem('fruithole_currency',
-      JSON.stringify({ berry: 123456, lychee: 234567, banana: 345678, melon: 456789 }));
-  });
+      JSON.stringify({ berry: v, lychee: v, banana: v, melon: v }));
+  }, enGenisDeger);
   await pg.goto('http://localhost:8220/', { waitUntil: 'load' });
   await pg.waitForFunction(() => window.fruitHoleWallet, { timeout: 25000 });
   await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
@@ -126,7 +157,7 @@ for (const w of [360, 412]) {
     return { n: cards.length, over, right: Math.round(box.right), win: innerWidth,
              texts: cards.map(c => c.querySelector('.n').textContent) };
   });
-  console.log(`\n${w}px · altı hane`);
+  console.log(`\n${w}px · en geniş (${enGenisDeger})`);
   check(h.n === 4, 'dört sayaç da çizildi', `${h.n}`);
   check(h.over.length === 0, 'sayı kartından taşmıyor', h.over.join(', ') || h.texts.join(' '));
   check(h.right <= h.win + 0.5, 'cüzdan ekranın içinde', `${h.right} / ${h.win}`);
