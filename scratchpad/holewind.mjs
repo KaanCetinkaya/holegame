@@ -51,7 +51,18 @@ const K = await pg.evaluate(() => {
 });
 console.log(`\nrüzgâr ${K.ilk}. bölümde başlıyor · hız ${K.hiz} (delik ${K.delik})`);
 
-const SON = 60;
+// Tarama 200 bölüm, 60 değil.
+//
+// 60 bölümde rüzgâra uygun görev bölümü **iki** tane: 45 (sipariş) ve 55
+// (devler). Rush ve mayın dışlanıyor, bulmaca zaten ızgara değil. Yani
+// "görev bölümlerinde de rüzgâr var" satırı iki örnekle karar veriyordu ve
+// rüzgâr tahtaların %15inde çıkıyor — o satırın düşmesi için iki bölümün
+// temasının rüzgârsız olması yetiyor, ki bugün öyle. Hata oyunun değil,
+// örneklemin.
+//
+// 200 bölümde aynı soruya on beş örnek düşüyor ve cevap bir şey anlatıyor.
+// Bedeli: tarama 21 saniyeden ~70 saniyeye çıkıyor.
+const SON = 200;
 const satir = [];
 console.log('\nblm  düzen       tahta    görev   | rüzgâr  yön  doğuşa');
 console.log('----+-----------+--------+--------+--------+-----+-------');
