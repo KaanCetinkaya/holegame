@@ -1,0 +1,142 @@
+# Build a signed .aab (or .apk) without a computer.
+#
+# The point of this is that a release can be cut from a phone: open the repo
+# on github.com, Actions -> "Build signed bundle" -> Run workflow, wait a few
+# minutes, download the file from the run's Artifacts, upload it to Play
+# Console in the browser. Nothing here needs a local checkout.
+#
+# One-time setup, in Settings -> Secrets and variables -> Actions:
+#
+#   KEYSTORE_BASE64     the .jks file, base64 encoded (see README)
+#   KEYSTORE_PASSWORD   store password
+#   KEY_ALIAS           key alias, e.g. fruithole
+#   KEY_PASSWORD        key password (often the same as the store password)
+#
+# The native Android project is not in the repo (.gitignore), so it is
+# generated here with `cap add` on every run. That is also why the AdMob
+# manifest patch has to run: `cap add` writes a fresh manifest each time.
+
+name: Build signed bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: Which game
+        type: choice
+        default: fruithole
+        options: [fruithole, hole]
+      format:
+        description: aab for Play, apk to sideload and test
+        type: choice
+        default: aab
+        options: [aab, apk]
+      versionCode:
+        description: Override versionCode (leave empty to use app-version.json)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Capacitor 8 wants Java 21 or newer; Gradle 8.14 refuses anything past
+      # 24. build-aab.mjs picks a JDK in that range itself, and this is the
+      # one it will find.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Restore the keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::KEYSTORE_BASE64 is not set. See the header of this workflow."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          # build-aab.mjs reads this from the repo root. It is written here and
+          # never committed — .gitignore already covers it.
+          {
+            echo "storeFile=$RUNNER_TEMP/release.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > keystore.properties
+
+      # The override goes in through the environment, not spliced into the
+      # shell line: a workflow_dispatch string is free text, and interpolating
+      # it straight into `run:` is how you hand someone a shell.
+      - name: Set versionCode
+        if: inputs.versionCode != ''
+        env:
+          APP: ${{ inputs.app }}
+          CODE: ${{ inputs.versionCode }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const f = "app-version.json";
+            const v = JSON.parse(fs.readFileSync(f, "utf8"));
+            const code = Number(process.env.CODE);
+            if (!Number.isInteger(code) || code < 1) throw new Error("versionCode must be a positive integer");
+            v[process.env.APP].versionCode = code;
+            fs.writeFileSync(f, JSON.stringify(v, null, 2) + "\n");
+            console.log(process.env.APP, "-> versionCode", code);
+          '
+
+      - name: Generate the native project
+        env:
+          APP: ${{ inputs.app }}
+        run: npm run add:${{ inputs.app }}
+
+      - name: Generate launcher icons and splash
+        env:
+          APP: ${{ inputs.app }}
+        run: npm run assets:${{ inputs.app }}
+
+      - name: Build
+        env:
+          APP: ${{ inputs.app }}
+        run: npm run ${{ inputs.format }}:${{ inputs.app }}
+
+      - name: Name the file after the version it is
+        id: out
+        run: |
+          APP=${{ inputs.app }}
+          DIR=$([ "$APP" = fruithole ] && echo android-fruithole || echo android)
+          CODE=$(node -p "require('./app-version.json')['$APP'].versionCode")
+          NAME=$(node -p "require('./app-version.json')['$APP'].versionName")
+          if [ "${{ inputs.format }}" = aab ]; then
+            SRC="$DIR/app/build/outputs/bundle/release/app-release.aab"
+          else
+            SRC="$DIR/app/build/outputs/apk/release/app-release.apk"
+          fi
+          DEST="$APP-$NAME-$CODE.${{ inputs.format }}"
+          mv "$SRC" "$DEST"
+          echo "path=$DEST" >> "$GITHUB_OUTPUT"
+          echo "name=$DEST" >> "$GITHUB_OUTPUT"
+          ls -lh "$DEST"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.out.outputs.name }}
+          path: ${{ steps.out.outputs.path }}
+          retention-days: 30
+          if-no-files-found: error

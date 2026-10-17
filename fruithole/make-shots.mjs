@@ -1,0 +1,356 @@
+// Fruit Hole'un mağaza ekran görüntüleri, gerçek oynanıştan.
+//
+//   node build-www.mjs && node fruithole/make-shots.mjs
+//   -> fruithole/store/*.png ve fruithole/store/tablet/*.png
+//
+// Elde çekilmiş bir set vardı ve meyveler voxel olunca hepsi bir anda oyunu
+// göstermez oldu. Bunun bir betik olmasının sebebi bu: görünüm her
+// değiştiğinde yedi kareyi yeniden çekmek bir komut olmalı.
+//
+// Kareler oyunun kendisinden alınıyor, çizilmiyor. Delik büyütülmüş kare
+// için de gerçekten oynanıyor — parmak sürükleniyor, tarlada bir yol
+// açılıyor — çünkü "büyümüş delik" temiz zemin demek ve temiz zemini ancak
+// oynayarak elde edersin.
+
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import { createServer } from 'http';
+import { readFileSync, mkdirSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(HERE, '..');
+const WWW = join(ROOT, 'www-fruithole');
+const OUT = join(HERE, 'store');
+const PORT = 8185;
+
+mkdirSync(OUT, { recursive: true });
+mkdirSync(join(OUT, 'tablet'), { recursive: true });
+
+const srv = createServer((req, res) => {
+  const p = req.url === '/' ? '/index.html' : req.url.split('?')[0];
+  try {
+    const b = readFileSync(join(WWW, p));
+    res.writeHead(200, { 'content-type': p.endsWith('.js') ? 'text/javascript' : 'text/html' });
+    res.end(b);
+  } catch { res.writeHead(404); res.end('no'); }
+}).listen(PORT);
+
+const browser = await chromium.launch({
+  executablePath: '/opt/pw-browsers/chromium',
+  args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'],
+});
+
+// Parmağı bir yöne bas ve tut. Oyun sanal joystick kullanıyor: basılan nokta
+// merkez, sürüklenen nokta yön. Yani tek bir move yetmiyor, basılı kalması
+// gerekiyor.
+async function sweep(pg, w, h, legs) {
+  await pg.mouse.move(w / 2, h / 2);
+  await pg.mouse.down();
+  for (const [dx, dy, ms] of legs) {
+    await pg.mouse.move(w / 2 + dx, h / 2 + dy);
+    await pg.waitForTimeout(ms);
+  }
+  await pg.mouse.up();
+}
+
+// Sıra önemli: Play arama sonucunda ilk iki-üç görseli gösteriyor, ve
+// indirme kararını çoğunlukla onlar veriyor. Bir süre ilk sırada menü
+// duruyordu — başlık, bir "10. bölümde açılır" uyarısı ve bir Play düğmesi.
+// Yani en değerli slot oyunun ne olduğunu hiç göstermiyordu. Oynanış öne
+// alındı, menü aşağı indi.
+// Oynanış görselleri bölümü **düzenin adıyla** istiyor, numarasıyla değil.
+//
+// Numaralar bir kez kaydı: beş yeni düzen eklenince 8. bölüm Snow Day
+// olmaktan çıktı, 9. bölüm de voxel tahtası olmaktan. Dosya yine çalışıyor,
+// yine sekiz resim üretiyordu — sadece "3-snow.png" artık karı göstermiyordu
+// ve bunu ancak resme bakan biri fark edebilirdi. Adla arandığında düzen
+// nereye taşınırsa taşınsın doğru tahta bulunuyor, bulunamazsa gürültüyle
+// duruyor.
+const SHOTS = [
+  // Yukarı sürükleme **saniyelerle** ölçülüyor, ve sebebi burada yazılı
+  // olmazsa bir daha kısaltılır. Delik doğduğu yerde duruyorsa kare de orada
+  // duruyor: kamera deliği takip ediyor, delik tahtanın alt kenarındayken
+  // ekranın alt üçte biri boş zemin oluyor — mağazanın ilk karesinde, en
+  // değerli slotun üçte birini hiçbir şeye vermek.
+  //
+  // İlk iki düzeltme 1200'ü önce 1500'e, sonra 4000'e çıkarmaktı ve kare pek
+  // değişmedi. Sebep şuymuş: konteynerde GPU yok, SwiftShader'la delik
+  // saniyede **0.85 birim** gidiyor, tahtanın yarı boyu ise 11.55. Yani 4
+  // saniye 3.4 birim, ve Pyramid'in yakın ucu zaten boş — kamera deliği
+  // takip ettiği için ekranın altı o boşlukla doluyordu.
+  //
+  // Süre gözle değil ölçüyle seçildi: z 6.35'ten başlıyor, 8 saniyede 0.74'e,
+  // 12 saniyede -4.7'ye geliyor. 12 saniye fazla — delik desenin öbür ucuna
+  // çıkıyor ve bu sefer ekranın **üstü** boşalıyor.
+  //
+  // 8 saniyede de altta bir zemin şeridi kalıyor, ve ölçerken kullanılan
+  // 412x915 penceresinde kalmıyordu: mağaza karesi 1080x1920, yani daha
+  // geniş bir açı ve daha çok yakın zemin. Şerit kovalanmadı, çünkü alt
+  // yazı tam oraya oturuyor — meyvenin üstünde değil zeminin üstünde
+  // okunuyor. Kalan boşluk kareye zarar veren şey değil, yazının yeri.
+  { name: '1-play', pattern: 'Pyramid', cap: 'Steer the hole, swallow the field',
+    play: (pg, w, h) => sweep(pg, w, h, [[0, -260, 8000], [80, -120, 900]]) },
+  // Resim tahtası, ve ikinci sırada.
+  //
+  // Sekiz görselin sekizi de ızgara düzeniydi. Oyunun en ayırt edici şeyi —
+  // 1440 ile 1848 parça arasında, meyveyle çizilmiş bir resim — mağazada
+  // hiç görünmüyordu. Play aramada ilk iki-üç kareyi gösteriyor ve kurulum
+  // kararının çoğu orada veriliyor; rakiplerin ilk karesinde mısır koçanı,
+  // oyuncak ayı, Eyfel Kulesi var, bizimkilerde meyve ızgarası.
+  //
+  // Mantar (3. bölüm, kumsal) seçildi, üç resim denendikten sonra. Dondurma
+  // da okunuyor ama zemini kahverengi toprak; mantarın kumsalında üstte ve
+  // altta turkuaz deniz şeritleri var ve onlar kadrajın boşluğunu
+  // dolduruyor. Kamera ortografik ve ekran dar: resim genişlikten sınırlı,
+  // yani dikeyde her hâlükârda yer artıyor — o yerin ne olduğu önemli.
+  //
+  // 3. bölüm olması ayrıca dürüst: bu kare "ilerde bir yerde" değil, oyunun
+  // ilk beş dakikasında görülen bir şey.
+  { name: '2-picture', level: 3, kind: 'resim', fit: true,
+    cap: async pg => {
+      const n = await pg.evaluate(() => window.fruitHoleWhere().total);
+      return `Some levels are a picture, drawn in ${n.toLocaleString('en-US')} pieces`;
+    } },
+  // Adı da değişti: `3-snow` kar demekti ve kare artık karda değil. Yanlış
+  // adlandırılmış bir dosya, bir sonraki bakanı yanıltacak tek şey.
+  //
+  // Condor (Nazca): düzen yukarıdan bakılmak için çizilmiş bir geoglif ve bu
+  // oyunun kamerası da orada — "her bölüm bir şekil" cümlesini kanıtlayan
+  // kare bu. Zemin de pampa, yani öteki yedi karenin hiçbirine benzemiyor.
+  { name: '3-place', pattern: 'Condor', cap: 'Every level is a shape — and a place',
+    play: (pg, w, h) => sweep(pg, w, h, [[0, -140, 1300], [-90, -90, 500]]) },
+  // Blocks'tan Patches'a: Blocks 15. bölüme düştü ve orası **devler görevi**,
+  // yani görsel sıradan bir tahta göstermiyordu. Patches (Savanna) hem ızgara
+  // hem de oyunun en tanınır düzenlerinden — zürafa deseni tek karede
+  // "buranın bir şekli var" diyor.
+  { name: '4-grown', pattern: 'Patches', cap: 'Eat enough and the giants are yours',
+    play: async (pg, w, h) => {
+      await pg.evaluate(() => window.fruitHoleSetSize(0.75));
+      await sweep(pg, w, h, [[0, -120, 900], [110, -60, 900], [0, 120, 700]]);
+    } },
+  // Görev bölümü. Sekiz görselin sekizi de "tarlayı süpür" diyordu, oysa
+  // oyunun beşinci bölümünden itibaren bazı bölümler başka bir şey istiyor —
+  // ve mağazada görünmeyen bir şey, indirme kararında yok demektir.
+  //
+  // Halkalar (Orbits) buradan çıktı: metin onları zaten anlatıyor, ve Play
+  // sekiz telefon görseliyle sınırlı. Bölüm 5 sipariş bölümü; üst satırda
+  // "📋 STRAWBERRIES 6/47" gibi bir sayaç duruyor, yani görsel kuralı kendi
+  // söylüyor.
+  // Sürüş hedefe göre: sabit yönlerle sürmek sayacı 0/45'te bırakıyordu ve
+  // "bir meyveyi kovala" diyen bir görselde sıfır, kuralı anlatmıyor. Tarla
+  // her çalıştırmada farklı olduğu için yön de her çalıştırmada hesaplanıyor —
+  // oyunun kendi "en yakın hedef" cevabına bakılıp o tarafa çekiliyor.
+  { name: '5-mission', level: 5, cap: 'Some levels want one fruit, not the field',
+    play: async (pg, w, h) => {
+      await pg.mouse.move(w / 2, h / 2);
+      await pg.mouse.down();
+      for (let i = 0; i < 6; i++) {
+        const yon = await pg.evaluate(() => {
+          const o = window.fruitHoleOrder();
+          if (o.done >= 8) return null;                 // sayaç konuşuyor, yeter
+          const t = window.fruitHoleOrderNearest();
+          const me = window.fruitHoleWhere();
+          if (!t) return null;
+          // Kamera tepeden bakıyor: dünyada +x sağ, +z ekranda aşağı.
+          const dx = t.x - me.x, dz = t.z - me.z;
+          const d = Math.hypot(dx, dz) || 1;
+          return { x: dx / d, y: dz / d };
+        });
+        if (!yon) break;
+        await pg.mouse.move(w / 2 + yon.x * 140, h / 2 + yon.y * 140);
+        await pg.waitForTimeout(600);
+      }
+      await pg.mouse.up();
+    } },
+  // Menü, boş bir cüzdanla değil. localStorage temizlendiği için sayaçlar
+  // sıfır çıkıyordu ve mağaza görselinde sıfır, oyunun bitmemiş olduğunu
+  // ima ediyor — oysa orada görülmesi gereken şey birkaç bölüm oynamış bir
+  // oyuncunun gördüğü ekran.
+  // Alt yazı yok: menüde ekranın altı Play düğmesi ve gezinme çubuğu, ve
+  // yazı şeridi tam onların üstüne biniyordu. Menünün zaten kendi yazısı var.
+  //
+  // Yıldızlar da tohumlanıyor. Sadece bölüm 12 verilince menüdeki şerit
+  // "0 stars collected — everything unlocked" diyordu: 12. bölümdeki bir
+  // oyuncunun sıfır yıldızı olamaz, ve kendi içinde çelişen bir cümle
+  // mağaza görselinde oyunun bozuk olduğunu düşündürür.
+  { name: '6-menu', level: 12, menu: true,
+    purse: { berry: 4820, lychee: 3960, banana: 5140, melon: 2730 },
+    stars: Object.fromEntries(Array.from({ length: 11 }, (_, i) => [i + 1, i < 6 ? 3 : 2])) },
+  { name: '7-skins', level: 12, screen: 'upgBtn' },
+  // Koleksiyon. 12. bölümdeki bir oyuncunun gerçekten sahip olabileceği
+  // dağılımla tohumlanıyor: ilk temalar neredeyse dolu, sonrakiler boş —
+  // çünkü temalar bölüm sırasına göre geliyor ve o oyuncu Orbit'i henüz
+  // görmedi. Görselin anlatmak istediği şey tam olarak bu: üst sıralar
+  // renkli, alt sıralar siluet, yani daha bulunacak çok şey var.
+  { name: '8-collection', level: 12, screen: 'goalsBtn',
+    found: [
+      'starfish', 'shell', 'shades', 'flipflop', 'bucket', 'cone',
+      'parasol', 'swimring', 'ball', 'lolly',
+      'football', 'boot', 'marker', 'shirt', 'goal',
+      'donut', 'mug', 'car', 'duck',
+      'snowman', 'mitten', 'candycane', 'penguin', 'igloo',
+      'bitcoin', 'euro',
+    ],
+    after: async pg => {
+      await pg.click('#collBtn');
+      // Küçük resimler tek geçişte üretiliyor; GPU'suz konteynerde bu
+      // birkaç saniye sürüyor ve erken çekilen görsel boş kutular oluyor.
+      await pg.waitForFunction(() => window.fruitHoleCollection().thumbs > 0, { timeout: 90000 });
+      await pg.waitForTimeout(600);
+    } },
+];
+
+// Düzen adı -> bölüm numarası. Oyunun kendi sırasından okunuyor.
+async function levelIndex() {
+  const pg = await browser.newPage({ viewport: { width: 412, height: 915 } });
+  await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
+  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
+    { timeout: 25000 });
+  const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);
+  // Çözülen bölümün tahtası gerçekten o düzen mi?
+  //
+  // Düzen adıyla istemek bölüm numarasının eskimesini çözüyor ama ikinci bir
+  // eskime var: resim, şerit ve bulmaca tahtaları tahtayı **desenden değil
+  // bölüm numarasından** alıyor. Bir düzen o yuvalardan birine kayarsa görsel
+  // yine üretiliyor — ama içinde istenen düzen yok.
+  //
+  // Tam olarak oldu: bölüm sırası kırk sekiz düzene göre yeniden kurulduğunda
+  // `Walls` 48'e (bulmaca) düştü ve `3-snow.png` bir bulmaca tahtası
+  // gösterecekti, altındaki yazı "Every level is a shape — and a place"
+  // derken. `make-clips.mjs` aynı güvenceyi taşıyor; ikisi de mağazaya giden
+  // dosya üretiyor.
+  const tahta = await pg.evaluate(o => o.map((_, i) => window.fruitHoleProbe(i + 1).kind), order);
+  await pg.close();
+  const map = {};
+  order.forEach((name, i) => { if (!(name in map)) map[name] = i + 1; });
+  for (const s of SHOTS) {
+    if (s.pattern && !map[s.pattern]) {
+      throw new Error(`düzen bulunamadı: ${s.pattern} — oyundakiler: ${order.join(', ')}`);
+    }
+    if (s.pattern && tahta[map[s.pattern] - 1] !== 'ızgara') {
+      throw new Error(`${s.name}: ${s.pattern} düzeni ${map[s.pattern]}. bölümde ve o bölüm ` +
+        `bir ${tahta[map[s.pattern] - 1]} tahtası — düzen görselde hiç görünmüyor.`);
+    }
+  }
+  return map;
+}
+const LEVEL_OF = await levelIndex();
+
+async function shoot(dir, width, height, scale) {
+  const w = width / scale, h = height / scale;
+  for (const s of SHOTS) {
+    if (s.pattern) s.level = LEVEL_OF[s.pattern];
+    const pg = await browser.newPage({
+      viewport: { width: w, height: h }, deviceScaleFactor: scale });
+    const errs = [];
+    pg.on('pageerror', e => errs.push(String(e)));
+    await pg.addInitScript(a => {
+      localStorage.clear();
+      localStorage.setItem('fruithole_level', a.level);
+      if (a.purse) localStorage.setItem('fruithole_currency', JSON.stringify(a.purse));
+      if (a.stars) localStorage.setItem('fruithole_stars', JSON.stringify(a.stars));
+      if (a.found) localStorage.setItem('fruithole_found', JSON.stringify(a.found));
+    }, { level: String(s.level || 1), purse: s.purse || null, stars: s.stars || null,
+         found: s.found || null });
+    await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
+    await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 25000 });
+    // Günlük ödül penceresi ilk açılışta her şeyin önüne geliyor.
+    await pg.waitForSelector('#dailyBtn', { state: 'visible', timeout: 8000 }).catch(() => {});
+    await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
+    await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
+    // Sürüm yazısı geliştirici için var ("güncelleme indi mi"). Mağaza
+    // görselinde işi yok: gürültü, ve çekildiği andaki numarayı sonsuza
+    // kadar taşıyor — 1-menu.png aylarca "v1.8 (20)" diye durdu.
+    await pg.evaluate(() => {
+      const v = document.getElementById('verTag');
+      if (v) v.style.display = 'none';
+    });
+    await pg.waitForTimeout(400);
+
+    if (s.screen) {
+      await pg.click('#' + s.screen);
+      await pg.waitForTimeout(500);
+      if (s.name === '7-skins') {
+        // Görünümler yükseltmeler ekranının dibinde.
+        await pg.evaluate(() => {
+          const el = document.getElementById('skinShop');
+          if (el) el.scrollIntoView({ block: 'center' });
+        });
+        await pg.waitForTimeout(300);
+      }
+      if (s.after) await s.after(pg);
+    } else if (!s.menu) {
+      await pg.click('#playBtn');
+      await pg.waitForTimeout(1400);
+      await pg.evaluate(() => {
+        const hint = document.getElementById('hint');
+        if (hint) hint.style.opacity = '0';
+      });
+      // Bölüm numarasıyla istenen kareler için tahta türü güvencesi.
+      //
+      // Düzen adıyla istenenler `levelIndex` içinde kontrol ediliyor, ama
+      // numarayla istenenlerin böyle bir koruması yoktu: `isPictureLevel`
+      // bugün `n % 10 === 3` diyor ve bu kural bir gün değişirse `2-picture`
+      // sessizce sıradan bir ızgara çeker — mağazadaki en değerli ikinci
+      // slotta, "bir resim" diyen bir yazının altında.
+      if (s.kind) {
+        const gercek = await pg.evaluate(l => window.fruitHoleProbe(l).kind, s.level);
+        if (gercek !== s.kind) {
+          throw new Error(`${s.name}: ${s.level}. bölüm ${s.kind} olmalıydı, ${gercek} çıktı.`);
+        }
+      }
+      // Tahtanın tamamını kadraja al.
+      //
+      // Resimde şart: yarısı görünen bir çizim, çizim değil gürültü. Kamera
+      // ortografik ve yarı genişlikten kuruluyor; yükseklik en-boy oranından
+      // türüyor, yani ikisinden hangisi daha çok yer istiyorsa o belirliyor.
+      // %6 pay, kenardaki meyvenin kadrajı tam teğet geçmemesi için.
+      if (s.fit) {
+        await pg.evaluate(oran => {
+          const o = window.fruitHoleWhere();
+          window.fruitHoleZoom(Math.max(o.halfX, o.halfZ * oran) * 1.06);
+        }, w / h);
+        await pg.waitForTimeout(400);
+      }
+      if (s.play) await s.play(pg, w, h);
+      await pg.waitForTimeout(300);
+    }
+
+    // Yazı bir işlev olabiliyor: içindeki sayı oyundan okunsun diye.
+    //
+    // Elle yazılan sayı çürüyor ve bu depoda birkaç kez çürüdü. "1.800
+    // parçayla çizilmiş" cümlesi, resim bir gün büyüyüp küçüldüğünde
+    // sessizce yalan olurdu — üstelik aynı karede oyunun kendi sayacı doğru
+    // sayıyı gösterirken.
+    const yazi = typeof s.cap === 'function' ? await s.cap(pg) : s.cap;
+    if (yazi) {
+      await pg.evaluate(text => {
+        const d = document.createElement('div');
+        d.style.cssText = `position:fixed;left:0;right:0;bottom:0;z-index:99;
+          padding:64px 22px calc(env(safe-area-inset-bottom,0px) + 118px);
+          font-size:27px;font-weight:900;line-height:1.25;letter-spacing:-.4px;
+          font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+          color:#fff;text-align:center;
+          text-shadow:0 3px 14px rgba(0,0,0,.9), 0 1px 0 rgba(0,0,0,.7);
+          background:linear-gradient(0deg,rgba(12,20,32,.88),rgba(12,20,32,0));
+          pointer-events:none;`;
+        d.textContent = text;
+        document.body.appendChild(d);
+      }, yazi);
+      await pg.waitForTimeout(120);
+    }
+
+    await pg.screenshot({ path: join(dir, `${s.name}.png`) });
+    console.log(`  ${s.name}.png`, errs.length ? 'HATA: ' + errs[0] : '');
+    await pg.close();
+  }
+}
+
+console.log(`telefon 1080x1920 -> ${OUT}`);
+await shoot(OUT, 1080, 1920, 2);
+console.log(`tablet 1440x2560 -> ${OUT}/tablet`);
+await shoot(join(OUT, 'tablet'), 1440, 2560, 2);
+
+await browser.close();
+srv.close();
