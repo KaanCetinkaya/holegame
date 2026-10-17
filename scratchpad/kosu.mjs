@@ -36,8 +36,10 @@ mkdirSync(CIKTI, { recursive: true });
 // Çalıştırılırsa dakikalar harcayıp dosya yazıyorlar ve hiçbir şey
 // ölçmüyorlar.
 //
-// Son beşi bu listeye sonradan eklendi ve sebebi tek satırla: hiçbirinde
-// bir `check` yok. Yani takımda "OK" yazıyorlar ve o OK bir şey
+// Bu liste sonradan büyüdü ve sebebi tek satırla: adı geçenlerde bir
+// `check` yok. (`holefirst` bir süre buradaydı ve çıkarıldı — ona üç kapı
+// yazıldı: ilk ekranda kilitli öğe yok, oynamak için en çok iki dokunuş,
+// ve ilk on lokmada delik bir rozet kademesi büyüyor.) Yani takımda "OK" yazıyorlar ve o OK bir şey
 // söylemiyor — sayfa açıldı, görüntü alındı, çıkış kodu sıfır. Bir şey
 // iddia etmeyen bir satırın geçmesi, geçmek değil.
 //
@@ -58,7 +60,7 @@ mkdirSync(CIKTI, { recursive: true });
 // (`tycoon2` tek başına 57 saniye).
 const URETEN = ['tyshots', 'tyfeature', 'slshots', 'slframe', 'slblade',
                 'holeshot', 'kosu',
-                'holesheet', 'holekare', 'holefirst', 'holesecim', 'holediagbtn',
+                'holesheet', 'holekare', 'holesecim', 'holediagbtn',
                 'tycoon', 'tycoon2', 'tycoon3', 'tycoon4', 'tycoon5', 'tycoon6'];
 
 // Önek verilmezse **yalnızca geliştirilen iki oyun**: Motor Works ve

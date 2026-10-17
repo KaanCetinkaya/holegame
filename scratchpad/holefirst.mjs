@@ -20,6 +20,7 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { createServer } from 'http';
 import { readFileSync, mkdirSync } from 'fs';
 
+const PORT = 8237;
 const srv = createServer((q, r) => {
   const p = q.url === '/' ? '/index.html' : q.url.split('?')[0];
   try {
@@ -27,7 +28,7 @@ const srv = createServer((q, r) => {
     r.writeHead(200, { 'content-type': p.endsWith('.js') ? 'text/javascript' : 'text/html' });
     r.end(b);
   } catch { r.writeHead(404); r.end('no'); }
-}).listen(8237);
+}).listen(PORT);
 
 const br = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium',
@@ -217,11 +218,100 @@ const ipucu = await pg.evaluate(() => {
 });
 not('ipucu', ipucu);
 
+// --- ilk on lokma: rozet dönüyor mu ---
+//
+// Bu bölüm **ayrı bir sayfada** ve kendi ölçüsü kare hızına bağlı değil.
+//
+// Yukarıdaki örnekler saniyeye göre alınıyor ve o doğru: oyuncunun yaşadığı
+// şey saniye. Ama bir **kapı** için saniye kullanılamaz — konteynerde bir
+// kare 300-450 ms, yani "beşinci saniyede rozet döndü" cümlesi burada
+// cihazdaki anlamını taşımıyor. Deponun kuralı da bunu söylüyor: ölçüm
+// zamanlamaya bağlı yazılmaz.
+//
+// O yüzden ölçü **lokma** cinsinden: ilk on meyveden sonra delik bir rozet
+// kademesi (0.2 yarıçap) büyümüş olmalı. `EARLY_CAP` tam bunu veriyor ve
+// README'nin "oyuncu her bölümde tam bir rozet kademesi hediye alıyor —
+// büyük tahtada dokuz meyvede, küçükte dörtte" satırının kapısı bu.
+//
+// Neden önemli: ölçülmüş hâli şuydu — yeni oyuncu on saniyede tahtanın
+// %6'sını yiyor, delik %4 büyüyor, rozet hâlâ "Size 1" diyor. Bırakma
+// kararının verildiği yer tam orası, ve o hâl üç kez yanlış ayarlandı.
+const ctx2 = await br.newContext({ viewport: { width: 412, height: 915 } });
+const pg2 = await ctx2.newPage();
+// Sahte saat: kareyi elle ilerletmek için. Yukarıdaki bölüm gerçek zamanda
+// koşuyor çünkü ölçtüğü şey oyunun temposu; buradaki ölçü lokma cinsinden,
+// yani kareyi kendimiz sayabiliriz ve sayfanın kendi hızına bağlı kalmayız.
+await pg2.addInitScript(() => {
+  let t = 0; const q = [];
+  window.requestAnimationFrame = cb => { q.push(cb); return q.length; };
+  window.cancelAnimationFrame = () => {};
+  try { Object.defineProperty(window.performance, 'now', { configurable: true, value: () => t }); }
+  catch (e) { window.performance.now = () => t; }
+  window.__step = ms => { t += ms; for (const cb of q.splice(0, q.length)) { try { cb(t); } catch (e) {} } };
+});
+await pg2.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
+await pg2.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 60000 });
+// Çizim kapalı: bu ölçü lokma başına, saniye başına değil.
+await pg2.evaluate(() => window.fruitHoleDrawOff(true));
+const onLokma = await pg2.evaluate(() => {
+  window.fruitHoleProbe(1);
+  window.fruitHoleStartLevel();
+  for (let i = 0; i < 60; i++) window.__step(1000 / 30);   // tarla düşerken oynanmıyor
+  const bas = window.fruitHoleWhere();
+  const basBoyut = +(document.getElementById('sizeN') || {}).textContent || 1;
+  let guard = 0;
+  while (window.fruitHoleWhere().eaten < 10 && guard++ < 4000) {
+    const w = window.fruitHoleWhere();
+    const n = window.fruitHoleNearest();
+    if (n) {
+      const dx = n.x - w.x, dz = n.z - w.z, d = Math.hypot(dx, dz) || 1;
+      window.fruitHoleSteer(dx / d, dz / d);
+    }
+    window.__step(1000 / 30);
+  }
+  const son = window.fruitHoleWhere();
+  return { basR: bas.r, sonR: son.r, yenen: son.eaten, guard,
+           basBoyut, sonBoyut: +(document.getElementById('sizeN') || {}).textContent || 1,
+           kademe: window.fruitHoleGrow().kademe ?? null };
+});
+await ctx2.close();
+
+const fails = [];
+const check = (ok, ne, ek = '') => {
+  console.log(`  ${ok ? 'OK  ' : 'FAIL'} ${ne}${ek ? '   ' + ek : ''}`);
+  if (!ok) fails.push(`${ne} ${ek}`);
+};
+
 console.log('\n=== YENİ OYUNCUNUN İLK DAKİKASI ===\n');
 console.log(gunluk.join('\n'));
 console.log(`\ntoplam dokunuş (oynamaya başlamak için): ${dokunus}`);
 console.log(hatalar.length ? `\nSAYFA HATALARI:\n${hatalar.join('\n')}` : '\nsayfa hatası yok');
 console.log(`\ngörüntüler: ${OUT}/`);
+
+console.log('\nkapılar');
+// 1) İlk ekran "bu sende yok" demiyor. Altı kilitli öğe vardı: bir kilit
+//    rozeti, "Time booster unlocks at level 4" yazısı ve dört gri raf
+//    yuvası. Yeni oyuncunun gördüğü ilk ekran oyunun ne olmadığını
+//    anlatıyordu; düzeltildi, ve bu satır onu koruyor.
+check(karsilama.kilitliMetin.length === 0, 'ilk ekranda kilitli öğe yok',
+  karsilama.kilitliMetin.join(' | ') || '0 öğe');
+// 2) Oynamaya başlamak için iki dokunuştan fazlası istenmiyor (günlük
+//    ödül ekranı bir, Play bir). 2.34 saniyede kaydırılan bir videodan
+//    gelen insan üçüncü dokunuşu yapmıyor.
+check(dokunus <= 2, 'oynamak için en çok iki dokunuş', `${dokunus} dokunuş`);
+// 3) İlk on lokmada delik bir rozet kademesi büyüyor.
+const buyume = +(onLokma.sonR - onLokma.basR).toFixed(3);
+console.log(`     ilk on lokma: r ${onLokma.basR} -> ${onLokma.sonR} (+${buyume}) · ` +
+  `rozet Size ${onLokma.basBoyut} -> ${onLokma.sonBoyut} · ${onLokma.yenen} meyve`);
+check(onLokma.yenen >= 10, 'on lokma ölçülebildi', `${onLokma.yenen} meyve`);
+check(buyume >= 0.2, 'ilk on lokmada delik bir rozet kademesi büyüyor',
+  `+${buyume} yarıçap (kademe 0.2)`);
+check(onLokma.sonBoyut > onLokma.basBoyut, 'rozetin yazdığı sayı ilk on lokmada değişiyor',
+  `Size ${onLokma.basBoyut} -> ${onLokma.sonBoyut}`);
+
+if (hatalar.length) fails.push('sayfa hatası: ' + hatalar[0]);
+console.log(fails.length ? `\n${fails.length} HATA:\n  ` + fails.join('\n  ') : '\nhepsi geçti');
+process.exitCode = fails.length ? 1 : 0;
 
 await pg.close();
 await br.close();
