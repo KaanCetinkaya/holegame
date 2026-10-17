@@ -2451,6 +2451,45 @@ Testi de elle yazılmış üç bölüme bakıyor (415, 545, 1125), çünkü
 `holeboss.mjs`'in 1..120 taraması hiçbirini görmüyor ve "çakışma yok" diye
 geçerdi.
 
+#### İki şart doğruydu ve bir turun finalini birden siliyordu
+
+Yukarıdaki iki şart yerinde: kupa ızgara olmayan tahtaya konamıyor, görev
+bölümüne de konmamalı. Ama ikisi birlikte sormadıkları bir soru bırakmış —
+*"o bölüm elenirse o turda final kim?"*
+
+Cevap: kimse. Cup Night turda **bir kez** geliyor; elli beş desen, elli dört
+tema ve turda üç yer kayma, yani her turun tam bir bölümü 'ucl'. O bir bölüm
+resim, şerit, sipariş ya da bulmaca tahtasına denk gelirse `isFinalLevel`
+hayır diyor ve turun tamamı — elli beş bölüm — finalsiz geçiyor.
+
+Ölçüldü (`holeboss.mjs`, "en az iki Cup Night ızgara tahtası — **1 / 2**"):
+ilk 120 bölümde Cup Night'lar 10 ve 88, ve 88 bir bulmaca tahtası
+(`n % 10 === 8`). Yani 56-110 turunun finali yok. **Kaan'ın kaydı 90'ın
+üstünde**: oyunun rozetinde FINAL yazdığı şeyi o tur boyunca bir kere bile
+görmedi.
+
+Test bunu söylüyordu ve satır bir süredir "1 / 2" yazıyordu. Düşen bir
+ölçümü "eşik sıkı" diye okumak ile "özellik ölü" diye okumak arasındaki
+fark bu: ikisi de aynı satır.
+
+**Çözüm temayı kaydırmak, takvimi değiştirmek değil.** Finalin doğal yeri
+kullanılamıyorsa tema, turun içinde ileriye doğru ilk kullanılabilir bölümle
+**takas** ediliyor (`finalTakasi`). Görev, sipariş, resim, şerit ve bulmaca
+sırası yerinde kalıyor — oyuncu onları sayıyor, ve `n % 10 === 8` diyen on
+yer aynı şeyi söylemeye devam ediyor. Kayan tek şey iki bölümün teması: 88
+bulmacasını koruyor, 89 final oluyor.
+
+Tur başına bir kez hesaplanıp saklanıyor: bölüm listesi her bölüm için tema
+soruyor ve her soruda elli beş bölüm taramak listeyi gözle görülür
+yavaşlatırdı.
+
+Bir de ikinci bir kopya kapatıldı. Tema formülü iki yerde yazılıydı —
+`themeIdForLevel` ve `themeForLevel` — ve ikisi aynı sayıyı veriyordu, ta ki
+biri değişene kadar. Kaydırma yalnızca birine eklenseydi oyun şu ikisini
+aynı anda söylerdi: rozet "FINAL", tahta bulmacanın temasında, ve ortada
+kupa yok. `themeForLevel` artık formülü taşımıyor, `themeIdForLevel`e
+soruyor; ikisinin ayrıldığı tek yer günlük koşu ve o yukarıda ayrılıyor.
+
 #### Ve altıncı kez aynı tuzak
 
 "Hangi bölüm final" sorusunun cevabı bölüm numarasında değil: tema tur
@@ -5465,6 +5504,105 @@ Bir de iri meyveler şeritlerin **üstüne** biniyordu: halkanın yarıçapı ne
 iri meyve de oraya konuyordu, yani bir sıra boncuğu eziyordu. Hepsi şeritler
 arasına alındı (`+ RIBBON_GAP * 0.5`); şeritler arası 1.9, iri meyve 1.44
 eninde, tam ortaya sığıyor.
+
+### Dağılım ölçümü tasarımın kendisini hata sayıyordu
+
+`holedagilim.mjs` tahtayı 3×5 bloğa bölüp "bir blok dengeli payın 2.5
+katından çoğunu taşımasın" diyordu. Elli beş desenin altısı düşüyordu:
+Pyramid (3.4x), Island (3.3x), Circuit (2.9x), Bubbles (3.5x), Checkers
+(3.9x), Blast (2.9x).
+
+Altısı da **siluetli** desen. Pyramid bir kademeli piramit — karşı ucu
+tanımı gereği boş, kütlesi tanımı gereği tabanda. O tahtaların boş köşesi
+kusur değil, şeklin kendisi. Ve altı satır FAIL yazan bir ölçüm, bir satır
+daha FAIL yazdığında kimsenin dikkatini çekmiyor: Kaan'ın şikâyet ettiği
+gerçek yığın da aynı listede saklanıyordu.
+
+Eşiği yükseltmek çözüm değildi (Checkers 3.9 ile geçsin diye sınırı 4'e
+çekmek, gerçek bir yığının da altına girmesi demek). Ölçümün tasarımı
+görmesi gerekiyordu, ve bunun için yeni bir hook: `fruitHoleDesignCells` —
+tahtanın kurulduğu siluet ve desenin her hücrede istediği kat sayısı. "Oyun
+şekli bozdu mu" ile "şekil böyle" ancak ikisi yan yana konunca ayrılıyor.
+
+**Sonra üç istatistik denendi ve üçü de ölçülüp bırakıldı.** Hepsi dosyanın
+başında yazılı, denenmemiş gibi yeniden denenmesinler diye:
+
+| istatistik | ölçülen | neden olmadı |
+|---|---|---|
+| blok başına `olan / tasarım`, en yüksek ÷ ortanca | 0.85 – **161** | tasarımın tek hücre koyduğu bloğa oyun bir dev koyarsa oran dokuz katı — bu bir yığın değil, bir devin boyu |
+| pay farkı ve toplamı (`tv`) | %5 – %55 | oyun tasarımın dediği yerden kütlenin yarısını zaten taşıyor: kaya alıyor, dev birleştiriyor, dolgu seyreltiyor |
+| tasarıma göre yoğunluk | 0.85 – 2.33 | dağılım güzel toplandı ama **sahte yığınla denenince kör çıktı**: 49 tahtanın 31'i, kütlesinin dörtte biri bir bloğa yığıldığı hâlde geçti |
+
+Üçünün ortak cevabı: desenin siluetı, oynanan tahtanın kütlesini ±20 puandan
+daha iyi tahmin etmiyor. Bu oyunda tasarım bir taslak; tahtayı kuran şey
+onun üstündeki beş katman. "Tasarıma uy" diye bir kapı kurulamıyor — kurulsa
+ya hiçbir şeyi yakalamaz ya her şeyi yakalar.
+
+Üçüncüsünün körlüğü nasıl görüldü: ölçüm, tahtanın kütlesinin dörtte birini
+bir bloğa taşıyan bir **sahte yığın** modu kazandı. Eski ölçümün hatası tam
+buydu — eşiği siluetli desenlerin üstüne kurmuş ve o eşiğin bir yığını
+yakalayıp yakalamadığı hiç denenmemişti. *Geçmesi gereken yerde geçmek
+yetmez.*
+
+Kalan kapı tek ve iddiası dar: **tasarımın kayda değer doldurduğu bir blokta
+oyunda o payın onda biri bile yoksa**, şeklin bir parçası ekranda yok. Onun
+da kendi denemesi var (`holedagilim.mjs bosalt`, tasarımın en dolu bloğunu
+ölçümde boşaltıyor) ve o deneme kapının ilk hâlini de yakaladı: "tasarım
+payının %10'undan çoğu" diyen mutlak eşik, on beş blok arasında eşit dağılan
+bir tasarımda en dolu bloğu bile göremiyordu — 49 tahtanın 45'i boşaltılmış
+hâlde geçiyordu. İki yan da oransal oldu.
+
+Geri kalan sayılar tabloya yazılıyor, kapıya değil: değişiklik öncesi/sonrası
+karşılaştırmak için duruyorlar.
+
+#### Ve ölçüm dört hata uydurdu
+
+İlk koşuda on tahta "tasarımın parçası ekranda yok" dedi. Üçü gerçek değildi
+ve sebebi hook'un kendisiydi: `sonSiluet`, resim ve şerit tahtalarında da
+desenin siluetini bildiriyordu. O iki tahtada hücre döngüsü hiç çalışmıyor —
+tahtayı harita kuruyor — yani ölçüm, tahtanın hiç bakmadığı bir şekle "bu
+tahtanın tasarımı" diyordu. 36. bölüm (Anchor) bir **şerit** tahtası ve
+"dört blok boş" denen bloklar hiç var olmamış bir şeklin blokları.
+
+Düzeltme hook'ta: siluet yalnızca kullanıldığı tahtalarda bildiriliyor.
+Bulmaca tahtaları da ölçümün dışında — siluetı kullanıyorlar ama sonra taş
+duvarlarla odalara bölünüyorlar, yani düzeni veren şey desen değil odalar.
+
+Kalanı da yalan çıktı: üç tahtada (`halka` biçimi) bir bölgenin silinmesine
+karşı yerel bir onarım yazıldı — tahta 3×5 bloğa bölünüp, siluetin kayda
+değer doldurduğu bir blokta hücrelerin beşte birinden azı sağ kalıyorsa o
+blok seyreltmeden muaf. Sonra ölçüldü: onarımlı ve onarımsız hâl **birebir
+aynı**. Otuz dört ızgara tahtasında öyle bir blok yok. Kod geri alındı ve
+yerine sebebi yazıldı; canlı bir oyunun tahta kurulumunu, hiçbir ölçümün
+göstermediği bir ihtimal için değiştirmek kötü bir takas.
+
+Bugünkü hâli: otuz dört ızgara tahtası, üç tohum, yoğunluk oranı 0.86 – 1.75
+ve boşalan blok yok. Yani oyun tahtayı tasarımının yoğunluğunda kuruyor.
+
+### Bombanın nereye düştüğü ölçülmüyordu
+
+`holebomb.mjs` bombanın **yerini** üç kez ölçüyordu: hücresinin tepesinde mi,
+kuleyi paylaşıyor mu, önü açık mı. Dağılımını hiç ölçmüyordu, ve eksik olanın
+ne olduğu seçim satırı değiştirilirken görüldü.
+
+Kapanma sorusu "daha büyük z'de önünü aşan bir şey var mı" demek, ve kamera
++z'de duruyor. Yani o soruya **hayır** diyen hücrelerin tarlanın ön bandı
+olması akla yatkın: "önü açık hücreleri küme olarak ayır" kuralı bombaları
+deliğin önüne bir duvar hâlinde dizebilirdi — ve bu dosyadaki ölçümlerin
+hepsi geçerdi, çünkü duvarın her bombasının önü açık.
+
+Ölçüldü ve öyle değil: derinlik bantlarına dağılım 0.67 – 1.55 katı, yani
+bombalar meyveyi izliyor. Kod masum çıktı; ölçümün olmaması değil.
+
+Bu arada bir de alternatif denendi ve ölçüm geri çevirdi: **turnuva seçimi**
+(üç aday çek, en açığını koy). Gerekçesi yukarıdaki korkuydu. Dağılım iki
+seçimde aynı çıktı (0.48 – 1.33 karşı 0.67 – 1.55) ama kapanma turnuvayla
+%0'dan %25'e çıkıyor — yani turnuva hiçbir şey kazanmadan görünürlüğü
+bozuyordu. Geri alındı.
+
+Yeni ölçü iki yönlü (bir bandın şişmesi de, boşalması da aynı bozulma) ve
+kendi denemesi var: `holebomb.mjs duvar` bombaların hepsini son banda taşıyor
+ve iki kontrolün de düşmesini bekliyor — 0.00 – 4.65 katı, düşüyor.
 
 ## Dizilerin geçtiği dört yer
 
