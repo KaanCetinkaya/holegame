@@ -32,10 +32,26 @@ const CIKTI = join(HERE, 'ciktilar');
 try { rmSync(CIKTI, { recursive: true, force: true }); } catch {}
 mkdirSync(CIKTI, { recursive: true });
 
-// Ölçüm değil, üretim: mağaza görselleri ve klipler. Çalıştırılırsa
-// dakikalar harcayıp dosya yazıyorlar ve hiçbir şey ölçmüyorlar.
+// Ölçüm değil, üretim: mağaza görselleri, klipler, ve **bakılan** testler.
+// Çalıştırılırsa dakikalar harcayıp dosya yazıyorlar ve hiçbir şey
+// ölçmüyorlar.
+//
+// Son beşi bu listeye sonradan eklendi ve sebebi tek satırla: hiçbirinde
+// bir `check` yok. Yani takımda "OK" yazıyorlar ve o OK bir şey
+// söylemiyor — sayfa açıldı, görüntü alındı, çıkış kodu sıfır. Bir şey
+// iddia etmeyen bir satırın geçmesi, geçmek değil.
+//
+// İkinci bedeli süre: `holesheet` otuz dört kareyi tek tek açıp ffmpeg ile
+// diziyor ve toplu koşuda yarım saati geçti; `holekare` ile `holefirst`
+// ekran görüntüsü alıyor. Tam takımın koşturulabilir olması, içinde ölçüm
+// olmayan şeyin bulunmamasına bağlı.
+//
+// Hâlâ elle koşturuluyorlar ve işleri o: `node scratchpad/holesheet.mjs`
+// bütün düzenleri tek sayfaya diziyor, Kaan "şu bölüm yamuk duruyor"
+// dediğinde bakılan şey o.
 const URETEN = ['tyshots', 'tyfeature', 'slshots', 'slframe', 'slblade',
-                'holeshot', 'kosu'];
+                'holeshot', 'kosu',
+                'holesheet', 'holekare', 'holefirst', 'holesecim', 'holediagbtn'];
 
 // Önek verilmezse **yalnızca geliştirilen iki oyun**: Motor Works ve
 // Slice Rush, yaklaşık yirmi dakika. Fruit Hole'un doksan üç betiği
