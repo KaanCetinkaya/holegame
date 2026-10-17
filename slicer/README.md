@@ -316,6 +316,19 @@ de "düzgün artıyor mu" sorusunu cevaplamıyor — bir bölüm ötekinin iki
 katı zorlaşıyorsa oyuncu orada bırakır ve iki ölçüm de bunu görmez.
 
 `slegri.mjs` her bölümde on altı tur oynatıp kesilen oranını çıkarıyor.
+
+`slyildiz.mjs` aynı sürücüyle otuz bölüm oynayıp **yıldızı** ölçüyor, ve
+eşikleri buraya kopyalamıyor: "Earn 30 stars" hedefi toplam yıldızı veriyor,
+bölüm başına fark alınıyor. Ölçüldü (üç koşu — parkur `Math.random()` ile
+kurulduğu için sayılar oynuyor): 27-30 bölüm bitiyor, kesim oranı %33-100,
+üç kademenin üçü de çıkıyor, otuz bölümde ~54 yıldız — yani "Earn 30 stars"
+hedefi 17. bölüm civarında doluyor.
+
+Kapılar performans değil **ulaşılabilirlik** soruyor: üç yıldız alınabiliyor
+mu, ve üç kademenin üçü de çıkıyor mu. Bir kapı yazılıp geri alındı
+("bitirilen her bölüm en az bir yıldız verir") — oyunun iddiası değilmiş:
+eşikler 0.9/0.7/0.4, yani meyvenin %40'ından azını keserek bitirmek bilerek
+sıfır yıldız veriyor.
 Ölçtüğü ilk şey oyunun gerçek duvarıydı ve kimsenin beklediği yerde
 değildi: **12. bölüm**, mengenenin girdiği yer. 9-11'de %85, 12-14'te
 %42. Oyunun başka hiçbir basamağı bu kadar sert değil.
@@ -446,6 +459,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slekonomi.mjs  # bıçaklar kaç bölümde alınabiliyor
     node scratchpad/slgeri.mjs     # donanım geri tuşu ekranı mı kapatıyor
     node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
+    node scratchpad/slyildiz.mjs   # yıldız ekonomisi: üç yıldız alınabiliyor mu
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
 Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik
