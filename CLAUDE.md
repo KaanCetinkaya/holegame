@@ -56,7 +56,7 @@ npm test
 Bu, geliştirilen iki oyunu koşturuyor: Motor Works (`ty*`) ve Slice Rush
 (`sl*`), yaklaşık yirmi beş dakika. Tek tek: `npm run test:tycoon`,
 `npm run test:slicer`. Fruit Hole ayrı, çünkü doksan üç betiği var:
-`npm run test:fruithole` yükleme öncesi bakılacak on beş ölçüm (~25
+`npm run test:fruithole` yükleme öncesi bakılacak on beş ölçüm (~35
 dakika), `npm run test:fruithole:tam` hepsi (saatler). Hepsi birden:
 `npm run test:all`.
 
