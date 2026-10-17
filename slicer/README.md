@@ -196,6 +196,32 @@ kat kazanır, yani Obsidian onda 60 tur civarı. İki ucu da uzun.
 ilk beş bölümde bitmediğini kontrol ediyor. Eğri burada yazılı olduğu
 için fiyat değişince nereye oturduğu da görülüyor.
 
+## İlk bölümler ne kadar bağışlayıcı — ve neden ölçüsü yok
+
+Fruit Hole'da yeni oyuncunun ilk altmış saniyesi ölçülmüş ve orada
+gerçek bir hata çıkmıştı: tasarlanan zorluk birinci bölüme uygulanınca
+oyuncu parmağını nasıl süreceğini öğrenmeden kaybediyordu. Aynı soru
+burada da soruldu, ve **sorulamadı**.
+
+İki acemi modeli denendi, ikisi de hiçbir şey ölçmedi:
+
+- **Tepki gecikmesi** (sürücü her karede değil, k karede bir karar
+  versin). 300 ms gecikmeyle 1-5. bölümlerin hepsi 12/12 bitti, ve
+  denetim olarak konan 30. bölümde fark 11'e karşı 10 — yani gürültü.
+  Sebebi oyunun kendisi: parmağın yaptığı tek şey bir yükseklik
+  seçmek, bıçak son verilen hedefe gitmeye devam ediyor ve hedef
+  doğruysa seyrek karar vermek bir şey kaybettirmiyor.
+- **Nişan hatası** (hedef ±0.5 birim kaydırılsın, altı karede bir
+  yenilensin). 30. bölümde 12'ye karşı 11, ve 0.30 sapmada 10,
+  0.50'de 11 — sıralama bile tutmuyor.
+
+Yani ilk beş bölüm, kurulabilen her oynayış biçimine açık: kesilen
+oran acemide de %90'ın üstünde. Bu iyi haber, ama **ölçü olarak
+yazılamaz**: denetimi geçemeyen bir ölçüm, geçtiğinde de bir şey
+söylemiyor. Deponun kuralı bunu zaten söylüyor — ölçümü hatayı geri
+koyarak çalıştır, düşmesi gereken yerde düşsün. Düşmedi, ve dosya
+silindi. Zorluk eğrisinin ölçüsü `slegri`de duruyor.
+
 ## Geri tuşu oyundan çıkarıyordu
 
 Android'de geri tuşu, WebView'ın geçmişi boşsa uygulamayı kapatıyor.

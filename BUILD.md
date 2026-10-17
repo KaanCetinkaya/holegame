@@ -165,6 +165,21 @@ oluşturulduğunda bu satır kayboluyor.
 
 **Çözüm:** `patch-manifest.mjs` bunu `add:*` ve `sync:*` sırasında yazıyor.
 
+Aynı dosya manifeste üç şey daha koyuyor, hepsi aynı sebeple — manifest
+üretilen bir dosya ve her `cap add`'de sıfırlanıyor:
+
+- **Faturalandırma izni** (Fruit Hole, Motor Works). Yoksa satın alma
+  hiç başlamıyor.
+- **Titreşim izni** (Fruit Hole, Slice Rush). Yoksa
+  `navigator.vibrate()` WebView'da **sessizce** hiçbir şey yapmıyor:
+  çağrı başarılı dönüyor, telefon kıpırdamıyor, hata da yok.
+- **Dikey kilit** (dördünde de). Yoksa telefon yan çevrilince WebView
+  de dönüyor ve dikey için çizilmiş menü perdenin altına kayıyor.
+
+Üçünü de `scratchpad/holepatch.mjs` kontrol ediyor: sahte bir native
+proje kurup betiği iki kez çalıştırıyor, çünkü `cap sync` her
+derlemede koşuyor.
+
 ### 7. Windows'ta `bash: command not found` / `APP=... tanınmıyor`
 `APP=x komut` sözdizimi ve `bash script.sh` PowerShell'de çalışmıyor.
 
