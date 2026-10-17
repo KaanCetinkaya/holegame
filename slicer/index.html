@@ -214,6 +214,14 @@
              min-width: 44px; height: 44px; justify-content: center;
              padding: 0 12px; font-size: 20px; cursor: pointer; }
 
+  /* Dar ekranda başlık küçülüyor: 42 piksellik yazı 360 pikselde ses
+     tuşunun altına giriyor (ölçüldü — yazının son harfleri 291'de
+     başlayan tuşun içinde kalıyordu). Aynı değişiklik kısa ekranda
+     dikey sığmaya da yarıyor. */
+  @media (max-width: 385px) {
+    .screen h1 { font-size: 33px; }
+  }
+
   #verTag { position: absolute; left: 12px; bottom: 12px;
             font-size: 10px; font-weight: 700; letter-spacing: .04em;
             color: rgba(255,255,255,.45); }

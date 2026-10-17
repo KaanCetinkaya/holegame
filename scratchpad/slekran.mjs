@@ -234,6 +234,38 @@ for (const b of BOYUTLAR) {
     (hd.length ? '  ' + hd.join(' · ') : '  tamam'));
   if (hd.length) sorun.push(`${b.ad} hud: ${hd.join(' · ')}`);
 
+  // Köşedeki ses tuşu başlığın üstüne binmiyor.
+  //
+  // Tuş menünün sağ üstünde ve başlık ortalanmış: 360 pikselde 42
+  // piksellik "🔪 Slice Rush" yazısının son harfleri tuşun altına
+  // giriyordu (ölçüldü — yazı 291'e kadar, tuş 291'de başlıyor).
+  // Öğenin kutusuna değil **yazının kendisine** bakılıyor: ortalanmış
+  // bir başlığın kutusu satırın tamamı, harfler ortada.
+  await pg.evaluate(() => {
+    for (const s of ['levels', 'map', 'shop', 'goals', 'collection', 'over', 'clear', 'pause'])
+      document.getElementById(s)?.classList.remove('show');
+    document.getElementById('menu').classList.add('show');
+  });
+  await pg.waitForTimeout(200);
+  const bas = await pg.evaluate(() => {
+    const m = document.getElementById('muteBtn');
+    const h = document.querySelector('#menu h1');
+    if (!m || !h) return { yok: true };
+    const rg = document.createRange(); rg.selectNodeContents(h);
+    const a = m.getBoundingClientRect(), t = rg.getBoundingClientRect();
+    const kesis = !(a.right <= t.left || a.left >= t.right || a.bottom <= t.top || a.top >= t.bottom);
+    // Dikeyde ayrıysa yatay pay bir şey ifade etmiyor: başlık ekranın
+    // ortasındayken tuşun altından geçmiyor.
+    const ayniBant = !(a.bottom <= t.top || a.top >= t.bottom);
+    return { kesis, ayniBant, pay: ayniBant ? Math.round(a.left - t.right) : null,
+             tuş: [Math.round(a.left), Math.round(a.right)],
+             yazi: [Math.round(t.left), Math.round(t.right)] };
+  });
+  console.log(`  başlık yazı ${bas.yazi?.join('..')} · ses tuşu ${bas.tuş?.join('..')} · ` +
+    (bas.ayniBant ? `aynı bantta, pay ${bas.pay}px` : 'ayrı bantta'));
+  if (bas.yok || bas.kesis)
+    sorun.push(`${b.ad} ses tuşu başlığın üstünde (pay ${bas.pay}px)`);
+
   if (hata.length) { sorun.push(`${b.ad} sayfa hatası: ${hata[0]}`); console.log(`  HATA ${hata[0]}`); }
   await ctx.close();
 }
