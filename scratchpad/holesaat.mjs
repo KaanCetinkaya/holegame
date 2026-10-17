@@ -162,7 +162,15 @@ for (const lv of BOLUMLER) {
   // Bulmacada saat yok (9999), rush'ta oranın karşılığı burada yok: ikisinde
   // de pay boş bırakılıp **oyunun kendi yıldızı** yazılıyor.
   const saatsiz = o.mission === 'puzzle' || o.mission === 'rush';
-  const bolen = o.yildizOyun && o.yildizOyun.verilen > 1 ? o.yildizOyun.verilen : o.saat;
+  // `--kat` modunda bölen **verilen** saat, `timeFull` değil.
+  //
+  // `fruitHoleGiveTime` saati düşürüyor ama `timeFull`'u düşürmüyor:
+  // `Math.max(timeFull, s)` yazıyor ve bu bilerek öyle (hook'un işi "bol
+  // saatle süpürtüp süre tutmak"). Yani deneme modunda oyunun yıldız böleni
+  // hâlâ eski, bol saat; oranı ona bölmek denemenin ölçtüğü şeyi yok eder —
+  // kat sayısını kıstığın hâlde pay değişmemiş görünür.
+  const bolen = KAT ? o.saat
+    : (o.yildizOyun && o.yildizOyun.verilen > 1 ? o.yildizOyun.verilen : o.saat);
   const pay = saatsiz ? null : o.kalan / Math.max(1, bolen);
   const yildiz = pay != null ? (pay >= 0.45 ? 3 : pay >= 0.2 ? 2 : 1)
     : (o.yildizOyun ? o.yildizOyun.yildiz : '-');
@@ -268,13 +276,18 @@ if (siradan.length) {
 // hesaplanan yıldızla aynı olmalı. Rush ve bulmaca dışarıda — ikisinin
 // yıldızı saatten okunmuyor (biri tavana, öteki deneme sayısına göre).
 {
-  const saatli = bitti.filter(r => r.yildizOyun && !['rush', 'puzzle'].includes(r.mission));
+  // `--kat` denemesinde bu kapı kapalı: oyunun yıldızı eski `timeFull`'a
+  // bölünüyor (yukarıda yazılı), yani ölçümün hesabıyla ayrılması beklenen
+  // bir şey — hata değil, denemenin kendisi.
+  const saatli = KAT ? []
+    : bitti.filter(r => r.yildizOyun && !['rush', 'puzzle'].includes(r.mission));
   const ayrilan = saatli.filter(r => {
     const o = r.yildizOyun.kalan / Math.max(1, r.yildizOyun.verilen);
     const bizim = o >= 0.45 ? 3 : o >= 0.2 ? 2 : 1;
     return bizim !== r.yildizOyun.yildiz;
   });
-  check(saatli.length > 0 && ayrilan.length === 0,
+  if (KAT) console.log('  --   oyunun yıldız kapısı deneme modunda kapalı (bkz. bölen notu)');
+  else check(saatli.length > 0 && ayrilan.length === 0,
     'oyunun yıldızı verilen saate göre',
     ayrilan.length
       ? ayrilan.slice(0, 6).map(r => `${r.lv}: oyun ${r.yildizOyun.yildiz}, ` +
