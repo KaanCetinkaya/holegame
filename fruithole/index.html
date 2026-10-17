@@ -1218,10 +1218,14 @@ function finalOlabilir(n) {
 // final **hiç olmuyor**. Turun tamamı, elli beş bölüm, finalsiz.
 //
 // Ölçüldü (`scratchpad/holeboss.mjs`, "1 / 2"): ilk 120 bölümde iki Cup Night
-// var — 51 ve 88 — ve 88 bir bulmaca tahtası (`n % 10 === 8`). Yani 56-110
+// var — 10 ve 88 — ve 88 bir bulmaca tahtası (`n % 10 === 8`). Yani 56-110
 // turunun finali yok. Kaan'ın kaydı 90'ın üstünde: oyunun rozetinde "FINAL"
 // yazdığı şeyi o tur boyunca bir kere bile görmüyor. Yazılmış ama sessizce
-// ölü bir özellik, ve bu dosyada aynı cinsten yedinci.
+// ölü bir özellik — bu deponun en sık tekrar eden hata cinsi.
+//
+// (Numaralar elle değil ölçümle: ilk hesap "51 ve 88" demişti ve 51 yanlış
+// çıktı. Tema döngüsünü kafadan çözmek, tam da bu fonksiyonun var olma
+// sebebi olan şeyi elle yapmak oluyor.)
 //
 // Çözüm temayı **kaydırmak**, takvimi değiştirmek değil: finalin doğal yeri
 // kullanılamıyorsa tema turun içinde ileriye doğru ilk kullanılabilir bölümle
@@ -20607,19 +20611,17 @@ function buildField() {
   // (`izinli.has`), ve her tahta kurulumunda üç yüz dizgi kopyalamak ölçüm
   // için oyunu yavaşlatmak olurdu. Kat sayıları da burada hesaplanmıyor,
   // soran olursa hesaplanıyor (bkz. `fruitHoleDesignCells`).
-  // Siluet yalnızca **kullanıldığı** tahtalarda bildiriliyor.
   //
-  // Burada `currentPattern.polar ? null : izinli` yazıyordu ve resim ile
-  // şerit tahtalarında yanlış cevap veriyordu: o ikisinde aşağıdaki hücre
-  // döngüsü hiç çalışmıyor (`(resim || serit) ? [] : ...`), tahtayı desenin
-  // siluetı değil haritanın kendisi kuruyor. Yani hook, tahtanın hiç
-  // bakmadığı bir şekli "bu tahtanın tasarımı" diye veriyordu.
-  //
-  // Bedeli ölçüldü: `holedagilim` 36. bölümü (Anchor, bir **şerit** tahtası)
-  // "tasarımın doldurduğu dört blok oyunda boş" diye işaretledi ve o dört
-  // blok hiç var olmamış bir şeklin blokları. Olmayan bir hatayı kovalamak,
-  // olan bir hatayı kaçırmakla aynı kaynaktan geliyor — ölçüme yanlış
-  // söyleyen bir hook.
+  // Ve yalnızca siluetin **kullanıldığı** tahtalarda bildiriliyor. Burada
+  // `currentPattern.polar ? null : izinli` yazıyordu ve resim ile şerit
+  // tahtalarında yanlış cevap veriyordu: o ikisinde aşağıdaki hücre döngüsü
+  // hiç çalışmıyor (`(resim || serit) ? [] : ...`), tahtayı desenin siluetı
+  // değil haritanın kendisi kuruyor. Yani hook, tahtanın hiç bakmadığı bir
+  // şekli "bu tahtanın tasarımı" diye veriyordu — ve bedeli ölçüldü:
+  // `holedagilim` 36. bölümü (Anchor, bir **şerit** tahtası) "tasarımın
+  // doldurduğu dört blok oyunda boş" diye işaretledi, o dört blok da hiç var
+  // olmamış bir şeklin blokları. Olmayan bir hatayı kovalamak, olan bir
+  // hatayı kaçırmakla aynı kaynaktan geliyor: ölçüme yanlış söyleyen bir hook.
   sonSiluet = (currentPattern.polar || resim || serit) ? null : izinli;
   sonBak = bak;
 
@@ -27119,8 +27121,9 @@ window.fruitHoleBoardCells = () => {
 // kuracak akışı ilerletir ve ölçtüğü şeyi değiştirirdi (`doluSay` ile aynı
 // tuzak).
 //
-// Kutupsal tahtalarda siluet yok (`polar` desenler hücre ızgarasında
-// kurulmuyor): o bölümlerde null dönüyor ve ölçüm atlıyor.
+// Siluetin kurmadığı tahtalarda null dönüyor ve ölçüm atlıyor: kutupsal
+// desenler hücre ızgarasında kurulmuyor, resim ve şerit tahtalarını da
+// kendi haritaları kuruyor (bkz. `sonSiluet`).
 window.fruitHoleDesignCells = () => {
   if (!sonSiluet) return null;
   const eskiSeed = _seed, eskiSeeded = _seeded;
