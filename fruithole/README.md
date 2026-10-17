@@ -6172,6 +6172,102 @@ yok; ve her birinin tanıtıldığı bölüm sıradan bir ızgara tahtası olmak
 zorunda — bu sonuncusu silindirde yanlış yapıldı ve artık her biri için
 ölçülüyor.
 
+## Saat, yapması gereken işin üç buçuk katı
+
+`levelTime`in yanındaki yorum bir söz veriyordu: *"2.6x leaves roughly a
+third of the clock unused on a clean run and none at all on a wandering
+one."* O cümle bir ölçümden gelmişti ama ölçüm bir dosyada durmuyordu — yani
+bugün hâlâ doğru olup olmadığını kimse bilmiyordu. Bu deponun en sık tekrar
+eden hata cinsi, ve bu sefer en pahalısı.
+
+`scratchpad/holesaat.mjs` artık onu ölçüyor: her bölümde bot sonuna kadar
+oynuyor, kalan saatin payı yazılıyor. Kırk bölüm:
+
+| ölçü | sonuç |
+|---|---|
+| botun bitirdiği bölüm | 35 / 36 |
+| kalan saat payı | %59 – %90 (ortanca %69) |
+| **üç yıldız alan sıradan bölüm** | **23 / 23** |
+| saat / botun gerçek işi | **3.3 kat** |
+
+Bot kusursuz bir oyuncu değil — en yakın meyveye gidiyor, plan yapmıyor.
+Yani payının "üçte bir"den **yüksek** olması beklenmez; ölçülen %69.
+
+Üç yıldız `timeLeft / levelTime() >= 0.45` istiyor. Yani bugün oyunun yıldız
+ekonomisinin tamamı — sandık, görev sayacı, başarımlar — bedava: her bölüm üç
+yıldızla bitiyor. Aynı sebeple **"+15 saniye" ödüllü reklamı hiç çıkmıyor**,
+çünkü kimsenin on beş saniyeye ihtiyacı olmuyor. İki yıl önce 2.6 kat sayısı
+tam bu hâli düzeltmek için konmuştu ("the old formula left 42-82% spare
+everywhere: no level could be lost, every level scored three stars").
+
+### Model suçlu değil, kat sayısı suçlu — ve bu ölçülerek anlaşıldı
+
+İlk tahmin modeldeydi, çünkü ölçüm modelin **tek bir sayı** verdiğini
+gösterdi: yirmi ızgara bölümünün hepsinde `sweepSeconds()` 103.9 saniye.
+Sebebi aritmetik — büyüme `fruits.length`e bölünüyor (`growthUnit`),
+süpürülen miktar `levelGoal` ile çarpılıyor, ikisi sadeleşiyor. Yani saat,
+tahtanın ne istediğini hiç bilmiyor.
+
+Düzeltme yazıldı: süpürülecek alan, meyvenin gerçekten durduğu hücrelerin
+payıyla ölçeklendi (seyrek tahtada oyuncu boş bölgeleri atlıyor). Sonra
+mayın bölümleri ölçüldü — ve düzeltme geri alındı:
+
+| bölüm | parça | botun süpürme işi | eski saat | doluluk ölçeklemeli saat |
+|---|---|---|---|---|
+| 35 | 596 | ~69 sn | 297 | **510** |
+| 75 | 229 | ~60 sn | 277 | 166 |
+| 115 | 249 | ~62 sn | 255 | 230 |
+
+Botun tarlayı süpürme süresi üç tahtada da 60-70 saniye — 596 parçalıkta da,
+229 parçalıkta da. Yani süpürme süresi parça sayısına değil **alana** bağlı,
+tam da eski modelin dediği gibi. Ölçekleme 35. bölümün saatini neredeyse iki
+katına çıkardı ve o bölüme kaybettirmesi gereken üç yıldızı geri verdi.
+Gerekçe doğru, tahmin yanlıştı; ikisi aynı şey değil.
+
+Geriye duran şey kat sayıları: süpürmede 2.6, kartlı bölümde 2.8
+(`CARD_SLACK`). Ve sıradan ızgara bölümlerinin **hepsi** kartlı, yani
+oyuncunun gördüğü saati asıl veren sayı ikincisi.
+
+### Neden bu gece düzeltilmedi
+
+Kat sayısını kısmak canlı bir oyunu herkes için zorlaştırmak demek, ve
+dayanağı bir bot. Bot sweep işinde fena değil ama telefonda parmakla oynayan
+birinin yerine geçmiyor; %60 kısılmış bir saat, bugün üç yıldız alan
+oyuncunun yarın bölümü kaybetmesi olabilir. Bu bir hata düzeltmesi değil, bir
+denge kararı — ve kararın sahibi Kaan.
+
+`holesaat.mjs` o yüzden **kırmızı duruyor** ve çıktısında bunu kendi
+söylüyor: "bu kırmızı bir arıza değil, verilmemiş bir karar". Kararın iki
+sayısı hazır: süpürme 2.6 ve kart 2.8. Ölçüm, yeni sayılarla tek komutta
+tekrar koşuyor (155 saniye) ve hem yıldızı hem bitirilebilirliği birden
+söylüyor — yani denemesi pahalı değil, sonucu geri almak da.
+
+### Bu ölçüm ancak çizim kapatılınca mümkün oldu
+
+Bot oynatan ölçümler konteynerde saatler sürüyordu: `holemayin` toplu koşuda
+3483 saniye, `holeorderplay` 1282. Kare başına 300-450 ms, ve ölçülen şeyin
+çizimle ilgisi yok. `fruitHoleDrawOff` yalnızca `renderer.render`ı atlıyor —
+fizik, çarpışma, saat, büyüme aynen işliyor.
+
+Kullanmadan önce denendi: aynı tohumlu tahta, 600 kare, çizimli ve çizimsiz —
+yenen parça, kalan bomba, saat, deliğin yeri ve yarıçapı **birebir aynı**;
+süre 366 saniyeden 1.1 saniyeye indi. İki dosya artık 44 ve 24 saniye, ve
+kırk bölümü bot oynatan yeni ölçüm iki buçuk dakika.
+
+Ekrana bakan ölçümler (görüntü alan, piksel sayan, kare süresi ölçen) bu
+bayrağı açmıyor.
+
+### Yan ürün: bağlam kaybı "oyuncu kaybetti" diye okunuyordu
+
+`holemayin`in on iki koşusu tek sayfayı paylaşıyordu ve altıncıdan sonra
+WebGL bağlamı düşüyordu. Oyun bunu doğru karşılıyor — saati durduruyor,
+`pauseGame` — ama ölçüm bunu bilmiyordu: bot boşluğa oynuyor, tablo "0 yenen,
+paused" yazıyor, ve dosya "12 koşunun 5'i kazandı" diye **olmayan bir oyun
+hatası** anlatıyordu. Ölçülebilen beş koşunun beşi de kazanmıştı.
+
+Artık her koşu kendi sayfasında (çizim kapalı olduğu için bedeli saniyenin
+altında) ve bağlamı düşen bir koşu "ölçüm yapılamadı" diye ayrı yazılıyor.
+
 ## İlk otuz saniye
 
 TikTok panelindeki *"çoğu izleyici 0:01'de bıraktı"* yıllardır bu depoda
