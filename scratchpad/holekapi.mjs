@@ -83,4 +83,22 @@ console.log(`  %25 yenince %${Math.round(ort.c25 / ort.n * 100)}`);
 console.log(`  %50 yenince %${Math.round(ort.c50 / ort.n * 100)}`);
 console.log(`  %75 yenince %${Math.round(ort.c75 / ort.n * 100)}`);
 
+
+// ## Çıkış kodu — gerileme kapısı
+//
+// Bu dosya bulduğu sayıyı basıp çıkış kodu **sıfır** dönüyordu, yani takımda
+// ne olursa olsun "OK" yazıyordu. Aşağıdaki sınır "doğru değer" iddiası
+// değil: ölçüm tohumlu ve iki koşu aynı sayıyı veriyor, yani bugünkü sayı
+// bilinen bir yer. Sınır onun bir tık üstünde duruyor ve işi tek: sayı
+// kötüye giderse haber vermek. Doğru değerin ne olduğu ayrı bir soru ve
+// cevabı ölçümle gelmeli, eşik seçerek değil.
+// Ölçülen: %25 yenince kalanın %99'u, %50'de %99, %75'te %100'ü yutulabilir.
+// İddia bir tavan, yani uydurulmuş bir sayı değil: tahtanın dörtte üçü
+// yenmişken geriye yutulamayan bir şey kalmamalı — kalırsa oyuncu tarlayı
+// süpürdüğü hâlde bölümü bitiremiyor demektir.
+const kapi75 = ort.c75 / ort.n;
+console.log((kapi75 >= 0.99 ? '  OK  ' : '  FAIL') +
+  `  tahtanın dörtte üçü yenince kalan her şey yutulabiliyor   %${Math.round(kapi75 * 100)}`);
+process.exitCode = kapi75 >= 0.99 ? 0 : 1;
+
 await br.close(); srv.close();

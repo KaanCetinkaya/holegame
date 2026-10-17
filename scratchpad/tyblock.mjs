@@ -25,4 +25,7 @@ console.log('kırmızı:', red);
 console.log('darboğaz:', (await pg.evaluate(()=>jeProbe())).neck);
 await pg.screenshot({path:OUT+'/t_block.png'});
 console.log('errors:', errs.length?errs:'none');
+// Çıkış kodu: bu dosyanın tek keskin bulgusu sayfa hatası, ve onu basıp
+// sıfır dönüyordu.
+process.exitCode = errs.length ? 1 : 0;
 await b.close(); srv.close();

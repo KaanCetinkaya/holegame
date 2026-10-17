@@ -94,4 +94,22 @@ console.log(`ortalama kaplama          %${Math.round(ort(hepsi.map(x => x.kapOrt
 console.log(`ekran siluet (en)         %${Math.round(ort(hepsi.map(x => x.ekEn)) * 100)}`);
 console.log(`ekran siluet              %${Math.round(ort(hepsi.map(x => x.ekOrt)) * 100)}`);
 console.log(`zemini görünmeyen tahta   ${hepsi.filter(x => x.ekEn > 0.9).length} / ${hepsi.length}`);
+
+// ## Çıkış kodu — gerileme kapısı
+//
+// Bu dosya bulduğu sayıyı basıp çıkış kodu **sıfır** dönüyordu, yani takımda
+// ne olursa olsun "OK" yazıyordu. Aşağıdaki sınır "doğru değer" iddiası
+// değil: ölçüm tohumlu ve iki koşu aynı sayıyı veriyor, yani bugünkü sayı
+// bilinen bir yer. Sınır onun bir tık üstünde duruyor ve işi tek: sayı
+// kötüye giderse haber vermek. Doğru değerin ne olduğu ayrı bir soru ve
+// cevabı ölçümle gelmeli, eşik seçerek değil.
+// Ölçülen (iki koşu aynı): zemini görünmeyen tahta 7 / 50, ekran siluetinin
+// ortalaması %57. Kaan'ın "birbirine yapışık yapıyorsun" dediği şey halı
+// tahtalar, ve sınır bugünkü yedinin üstünde duruyor.
+const HALI_SINIR = 10;
+const hali = hepsi.filter(x => x.ekEn > 0.9).length;
+console.log((hali <= HALI_SINIR ? '  OK  ' : '  FAIL') +
+  `  halı tahta sayısı sınırın altında   ${hali} / ${hepsi.length} (sınır ${HALI_SINIR})`);
+process.exitCode = hali <= HALI_SINIR ? 0 : 1;
+
 await br.close(); srv.close();

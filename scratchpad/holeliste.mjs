@@ -210,4 +210,10 @@ if (eksik.length) {
   console.log('  her yerin açıklaması var');
 }
 
+// Çıkış kodu: eksik açıklama bir bulgu, ve bu dosya onu basıyordu ama
+// sinyale çevirmiyordu — yani takımda ne bulursa bulsun "OK" yazıyordu.
+// Belge oyundan üretiliyor (iki dosya elle yazılıydı ve bir tur 48 bölümken
+// doğruydu); açıklaması olmayan bir yer, mağaza metninde boş satır demek.
+process.exitCode = eksik.length ? 1 : 0;
+
 await br.close(); srv.close();

@@ -61,6 +61,18 @@ mkdirSync(CIKTI, { recursive: true });
 const URETEN = ['tyshots', 'tyfeature', 'slshots', 'slframe', 'slblade',
                 'holeshot', 'kosu',
                 'holesheet', 'holekare', 'holesecim', 'holediagbtn',
+                // Bakılan raporlar: şerit haritaları gözle okunur,
+                // `holeyogun` klibe uygun tahtaları sıralıyor, `holetemasay`
+                // ise `holetheme`in zaten kapı yaptığı şeyi ikinci kez
+                // yazıyor ("her tema ilk turda çıkıyor").
+                'holeserit', 'holeyogun', 'holetemasay',
+                // Taban raporları: kendi metinleri öyle diyor. `holeinstance`
+                // "o işten önceki **taban**" (çizim çağrısı ve üçgen sayısı),
+                // `holegrow` deliğin büyüme tablosu — ikisi de bir sayı
+                // veriyor, bir iddia vermiyor, ve `holegrow` tek başına 318
+                // saniye. Doğru değerin ne olduğu ölçümle gelmeli; eşik
+                // seçerek kapı kurmak bu deponun yasakladığı şey.
+                'holeinstance', 'holegrow',
                 'tycoon', 'tycoon2', 'tycoon3', 'tycoon4', 'tycoon5', 'tycoon6'];
 
 // Önek verilmezse **yalnızca geliştirilen iki oyun**: Motor Works ve

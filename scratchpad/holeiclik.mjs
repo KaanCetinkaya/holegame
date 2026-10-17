@@ -59,4 +59,22 @@ for (const x of hepsi) {
 const ort = hepsi.reduce((a, x) => a + x.pay, 0) / hepsi.length;
 console.log(`\nortalama iç payı  %${Math.round(ort * 100)}`);
 console.log(`çizgi gibi (%25 altı)  ${hepsi.filter(x => x.pay < 0.25).length} / ${hepsi.length}`);
+
+// ## Çıkış kodu — gerileme kapısı
+//
+// Bu dosya bulduğu sayıyı basıp çıkış kodu **sıfır** dönüyordu, yani takımda
+// ne olursa olsun "OK" yazıyordu. Aşağıdaki sınır "doğru değer" iddiası
+// değil: ölçüm tohumlu ve iki koşu aynı sayıyı veriyor, yani bugünkü sayı
+// bilinen bir yer. Sınır onun bir tık üstünde duruyor ve işi tek: sayı
+// kötüye giderse haber vermek. Doğru değerin ne olduğu ayrı bir soru ve
+// cevabı ölçümle gelmeli, eşik seçerek değil.
+// Ölçülen (iki koşu aynı): çizgi gibi duran düzen 20 / 50, ortalama iç payı
+// %26. Kalınlaştırma bu sayıyı elli düzenin otuz altısından buraya indirdi
+// (oyunun kendi yorumunda yazılı); sınır bugünkü yirminin üstünde duruyor.
+const CIZGI_SINIR = 24;
+const cizgi = hepsi.filter(x => x.pay < 0.25).length;
+console.log((cizgi <= CIZGI_SINIR ? '  OK  ' : '  FAIL') +
+  `  çizgi gibi duran düzen sayısı sınırın altında   ${cizgi} / ${hepsi.length} (sınır ${CIZGI_SINIR})`);
+process.exitCode = cizgi <= CIZGI_SINIR ? 0 : 1;
+
 await br.close(); srv.close();
