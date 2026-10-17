@@ -62,8 +62,8 @@ volcano, night. Sky, hills, fog and the floor under the blade.
 
 🗡️ SIX BLADES
 Every cut earns coins. Steel, copper, emerald, sapphire, gold, obsidian —
-each reaches a little further than the last, which is worth having in the
-tight gaps late on.
+each reaches a little further than the last. That is worth having in the
+tight gaps late on, and it means you meet the mines sooner too.
 
 🎯 GOALS
 Nine of them, and every one pays coins: a hundred cuts, an unbroken chain, a

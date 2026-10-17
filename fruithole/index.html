@@ -735,7 +735,7 @@
   /* The shop no longer takes a slot in the nav bar — it only exists when a
      billing plugin is wired, and a tab that vanishes on the phone left the
      bar lopsided. It sits up here beside the sound key instead. */
-  .topKey { pointer-events: auto; cursor: pointer;
+  .topKey { pointer-events: auto; cursor: pointer; position: relative;
     width: 44px; height: 44px; border-radius: 14px; border: 3px solid #fff;
     font-size: 19px; line-height: 1; color: #fff; flex: none;
     background: linear-gradient(180deg,#7a68d8,#5444ab);
@@ -790,6 +790,15 @@
   #menuNav .nav .ic.icon3d { width: 60px; height: 60px; }
   #menuNav .nav.mid .ic.icon3d { width: 70px; height: 70px; }
   #menuSound.icon3d { background-size: 62%; }
+  /* Kapalıyken: soluk ve üstünde bir çapraz çizgi. 3B simge tek bir
+     hoparlör, yani durumu simgenin kendisi söyleyemiyor. */
+  #menuSound.kapali { opacity: .6; }
+  #menuSound.kapali::after {
+    content: ''; position: absolute; left: 16%; right: 16%; top: 48%;
+    height: 3px; border-radius: 2px; background: #fff;
+    transform: rotate(-32deg);
+    box-shadow: 0 1px 0 rgba(0,0,0,.45);
+  }
   #menuShelf .slot2 .ic.icon3d { background-size: 72%; }
   .slot .ic3 { width: 40px; height: 40px; background-repeat: no-repeat;
     background-position: center; background-size: contain; }
@@ -3072,7 +3081,18 @@ const music = {
 // change the same flag, so both labels are redrawn from it.
 function refreshMuteBtn() {
   const b = document.getElementById('menuSound');
-  if (b) b.textContent = muted ? '🔇' : '🔊';
+  if (!b) return;
+  // Tuş telefonda emoji değil: açılışta çizilen 3B hoparlör simgesi
+  // onun yerini alıyor (`textContent = ''`, arka plan resmi). O
+  // hâldeyken buraya emoji yazmak iki şeyi üst üste bindiriyor ve
+  // daha kötüsü, **arka plan resmi hep aynı** — yani sesin kapalı
+  // olduğu hiçbir yerde görünmüyordu. Oyuncunun sesi kapattığını
+  // anlamasının tek yolu kulağıydı.
+  if (b.classList.contains('icon3d')) {
+    b.classList.toggle('kapali', muted);
+  } else {
+    b.textContent = muted ? '🔇' : '🔊';
+  }
 }
 document.addEventListener('pointerdown', (e) => {
   ensureAudio();
@@ -25679,6 +25699,12 @@ function applyIcons() {
     sound.textContent = '';
     sound.classList.add('icon3d');
     sound.style.backgroundImage = `url(${ICONS.speaker})`;
+    // Durumu yeniden çiz. Simgeler **açılıştan sonra** çiziliyor, yani
+    // bu satır `refreshMuteBtn`ten sonra koşuyor ve onun yazdığı
+    // emojiyi siliyordu: sesi kapalı açılan oyuncu, tuşu açık
+    // görüyordu. Ölçüldü (`holeses`) — yenilemeden sonra kayıt '1'
+    // ama tuşta hiçbir iz yok.
+    refreshMuteBtn();
   }
 }
 
