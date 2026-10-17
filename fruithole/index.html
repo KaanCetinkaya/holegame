@@ -3849,6 +3849,23 @@ document.getElementById('levelsBtn').addEventListener('click', () => {
   renderLevels();
   menuEl.classList.remove('show');
   document.getElementById('levels').classList.add('show');
+  // Harita oyuncunun durduğu yerden açılıyor.
+  //
+  // Liste bölüm 1'den başlıyor ve asla kaydırılmıyordu: 90. bölümdeki
+  // oyuncu LEVELS'a basınca 2300 piksel yukarıda, hiç oynamadığı
+  // bölümlerin başında buluyordu kendini. Ölçüldü — `scrollTop` her
+  // bölümde 0; 999'da liste 24 bin piksel.
+  //
+  // **Ekran göründükten sonra** hesaplanıyor: `display:none` bir
+  // kutunun yüksekliği sıfır ve ortalama hesabı oradan sıfır çıkıyor.
+  // Slice Rush'ın haritasında tam bu hata yapılmıştı ve her oyuncuyu
+  // 1. bölümde bırakıyordu.
+  const g = document.getElementById('levelGrid');
+  const simdi = g.querySelector('.lvBtn.now');
+  if (g && simdi) {
+    const gk = g.getBoundingClientRect(), sk = simdi.getBoundingClientRect();
+    g.scrollTop += (sk.top - gk.top) - (gk.height - sk.height) / 2;
+  }
 });
 document.getElementById('levelsClose').addEventListener('click', () => {
   document.getElementById('levels').classList.remove('show');

@@ -140,6 +140,33 @@ for (const b of BOYUTLAR) {
     if (dert.length) sorun.push(`${b.ad} ${e.id}: ${dert.join(' · ')}`);
   }
 
+  // Bölüm haritası oyuncunun durduğu yerden açılıyor mu?
+  //
+  // Kayıt 90. bölümde ve liste 1'den başlıyor: kaydırılmazsa oyuncu
+  // 2300 piksel yukarıda, hiç oynamadığı bölümlerin başında açılıyor.
+  // Ölçüm kutunun **görünen** alanına bakıyor, `scrollTop`un sıfırdan
+  // büyük olmasına değil: ekran kısa olduğunda ikisi aynı şey değil.
+  await pg.evaluate(() => {
+    for (const s of ['levels', 'upgrades', 'goals', 'shop', 'collection'])
+      document.getElementById(s)?.classList.remove('show');
+    document.getElementById('menu')?.classList.add('show');
+    document.getElementById('levelsBtn').click();
+  });
+  await pg.waitForTimeout(300);
+  const hrt = await pg.evaluate(() => {
+    const g = document.getElementById('levelGrid');
+    const n = g && g.querySelector('.lvBtn.now');
+    if (!g || !n) return { yok: true };
+    const gk = g.getBoundingClientRect(), sk = n.getBoundingClientRect();
+    return { icinde: sk.top >= gk.top - 1 && sk.bottom <= gk.bottom + 1,
+             kaydi: Math.round(g.scrollTop), yuk: g.scrollHeight,
+             yazi: n.textContent.replace(/\s+/g, ' ').trim().slice(0, 10) };
+  });
+  console.log(`  harita     "${hrt.yazi}" · kaydırma ${hrt.kaydi}/${hrt.yuk} · ` +
+    (hrt.yok ? 'bulunamadı' : hrt.icinde ? 'görünür' : 'GÖRÜNMÜYOR'));
+  if (hrt.yok || !hrt.icinde)
+    sorun.push(`${b.ad} harita: durulan bölüm açılışta görünmüyor (kaydırma ${hrt.kaydi}/${hrt.yuk})`);
+
   if (hata.length) { sorun.push(`${b.ad} sayfa hatası: ${hata[0]}`); console.log(`  HATA ${hata[0]}`); }
   await ctx.close();
 }

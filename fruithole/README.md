@@ -3479,6 +3479,22 @@ eklentilerle ayrı ayrı kuruluyor ve üçünün çıktısının **birbirinden f
 olduğu doğrulanıyor. Ekran üçüne de aynı şeyi yazsaydı hiçbir işe yaramazdı,
 ve bunu "ekran açılıyor mu" diye bakarak fark edemezdin.
 
+## Bölüm haritası hep 1. bölümden açılıyordu
+
+Liste birinci bölümden başlıyor ve hiç kaydırılmıyordu: 90. bölümdeki
+oyuncu LEVELS'a basınca 2300 piksel yukarıda, hiç oynamadığı
+bölümlerin başında buluyordu kendini. Ölçüldü — `scrollTop` her
+bölümde sıfır; 999. bölümde liste 24 bin piksel.
+
+Artık durulan bölüm ortaya geliyor. Hesap **ekran göründükten sonra**
+yapılıyor: `display:none` bir kutunun yüksekliği sıfır ve ortalama
+oradan sıfır çıkıyor — Slice Rush'ın haritasında tam bu hata yapılmış
+ve her oyuncuyu 1. bölümde bırakmıştı.
+
+`scratchpad/holekucuk.mjs` kutunun **görünen alanına** bakıyor,
+`scrollTop`un sıfırdan büyük olmasına değil: kısa ekranda ikisi aynı
+şey değil.
+
 ## Telefon yan çevrilince
 
 Manifest yönelim hakkında hiçbir şey söylemiyordu, yani WebView de yan
