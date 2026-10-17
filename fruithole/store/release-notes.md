@@ -322,17 +322,44 @@ oyuncunun okuyacağı bir cümle değil), boy merdiveninin basamakları,
 
 ---
 
-## 51 (1.13) — 397 karakter
+## 51 (1.13) — 464 karakter
 
 ```
 Picture levels are shapes you can actually read, and the daily is one board for everyone again.
 
 - Puzzle boards are filled in, not outlines
-- Nothing is left sitting where the hole cannot reach it
+- The back button closes what you opened, instead of the game
+- Bombs sit where you can see them, not behind the fruit in front
 - The daily challenge hands every player the same board, and the same clock
 - A damaged save no longer keeps the game from opening
-- Bigger buy buttons, and the fourth counter fits the menu row again
+- Bigger buy buttons, and the level map opens where you left off
 ```
+
+### 51 yüklenmeden önce iki madde daha girdi
+
+Not yazıldıktan sonra sürüm hâlâ gönderilmemişti ve araya oyuncunun
+**başına gelen** iki şey girdi, yani bu dosyanın kuralı ikisini de içeri
+alıyor:
+
+- **Donanım geri tuşu** oyundan çıkarıyordu. Android'de WebView'ın geçmişi
+  boşsa geri tuşu uygulamayı kapatıyor, ve bu oyun tek sayfa: dükkânı
+  kapatmak için geri tuşuna basan oyuncu oyundan çıkıyordu, tur
+  ortasındaysa turu da gidiyordu.
+- **Bomba önündeki meyvenin arkasında kalıyordu.** Kaan'ın cümlesi: "bir
+  şeye dokununca süreden gidiyor ama neye anlayamadım." Ölçüldü,
+  bombaların %63'ünün önünde onu aşan bir parça vardı; şimdi %0.
+
+Yerlerini ikisi açtı: "nothing is left sitting where the hole cannot reach
+it" (47-50 arasında yüklenmişti ve oyuncu için görünmez) ve dördüncü
+sayacın menü satırına sığması — onun yerine aynı satırda bölüm haritası
+duruyor, çünkü haritanın kaldığın yerde açılması her oyuncunun her
+açılışta göreceği şey.
+
+Nota girmeyen, ama bu sürümde olan: bir turun **finali** hiç çıkmayabiliyordu
+(55 bölümde bir gelen Cup Night bir bulmaca ya da görev bölümüne denk
+gelirse o turda final yok — 56-110 turu böyleydi). 90'ın üstündeki bir
+oyuncu için gerçek bir eksikti ama notun beş satırında kendine yer
+açamadı: oyuncuların çoğu ilk turda ve orada final yerinde.
 
 Sürüm adı (yalnızca panoda görünür): `51 (1.13)`
 
