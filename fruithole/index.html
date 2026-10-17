@@ -1196,12 +1196,78 @@ const FINAL_THEME = 'ucl';
 // bölümü yok sayılıyor; liste zaten her bölüm değişiminde yeniden çiziliyor,
 // yani oyuncunun gördüğü ilk listede bile işaret yerinde oluyor.
 let _patternsReady = false;
-function themeIdForLevel(n) {
+// Temanın **ham** yeri: kaydırma öncesi, formülün söylediği.
+function hamThemeId(n) {
   const p = patternForLevel(n);
   const t = Math.floor((n - 1) / PATTERNS.length);
   if (t === 0) return p.theme || 'mixed';
   const i = PATTERNS.indexOf(p);
   return THEME_IDS[((i < 0 ? 0 : i) + t * 3) % THEME_IDS.length];
+}
+// Kolos konulabilen tahta: ızgara (resim/şerit değil) ve görevsiz
+// (bulmaca da bir görev). `isFinalLevel`in şartlarının aynısı — ama tema
+// sorulmadan, çünkü tema bu cevaba göre yerleştiriliyor.
+function finalOlabilir(n) {
+  return !isPictureLevel(n) && !isRibbonLevel(n) && !missionKindFor(n);
+}
+// Finali bir görev ya da bulmaca tahtasına denk gelmekten kurtaran takas.
+//
+// Cup Night turda bir kez geliyor: elli beş desen, elli dört tema, turda üç
+// kayma — yani her turda tam bir bölüm 'ucl'. O bölüm resim, şerit, görev ya
+// da bulmaca tahtasına denk gelirse `isFinalLevel` hayır diyor ve o turda
+// final **hiç olmuyor**. Turun tamamı, elli beş bölüm, finalsiz.
+//
+// Ölçüldü (`scratchpad/holeboss.mjs`, "1 / 2"): ilk 120 bölümde iki Cup Night
+// var — 51 ve 88 — ve 88 bir bulmaca tahtası (`n % 10 === 8`). Yani 56-110
+// turunun finali yok. Kaan'ın kaydı 90'ın üstünde: oyunun rozetinde "FINAL"
+// yazdığı şeyi o tur boyunca bir kere bile görmüyor. Yazılmış ama sessizce
+// ölü bir özellik, ve bu dosyada aynı cinsten yedinci.
+//
+// Çözüm temayı **kaydırmak**, takvimi değiştirmek değil: finalin doğal yeri
+// kullanılamıyorsa tema turun içinde ileriye doğru ilk kullanılabilir bölümle
+// takas ediliyor. Görev, sipariş, resim, şerit ve bulmaca sırası yerinde
+// kalıyor — oyuncu onları sayıyor, ve `n % 10 === 8` diyen on yerin hepsi
+// aynı şeyi söylemeye devam ediyor. Kayan tek şey iki bölümün teması.
+//
+// Tur başına bir kez hesaplanıp saklanıyor: `themeIdForLevel` bölüm
+// listesinde yüz kere çağrılıyor ve her çağrıda elli beş bölüm taramak
+// listeyi gözle görülür yavaşlatırdı.
+const _finalTakas = new Map();
+function finalTakasi(t) {
+  if (_finalTakas.has(t)) return _finalTakas.get(t);
+  const bas = t * PATTERNS.length + 1;
+  // Bir turda iki doğal 'ucl' olabiliyor: desen sayısı (55) tema sayısından
+  // (54) bir fazla, yani turun ilk ve son deseni aynı temaya düşebiliyor.
+  // O yüzden liste, tek bir numara değil.
+  const dogallar = [];
+  for (let n = bas; n < bas + PATTERNS.length; n++) {
+    if (hamThemeId(n) === FINAL_THEME) dogallar.push(n);
+  }
+  let r = null;
+  // Doğal yerlerden **biri bile** kullanılabiliyorsa takas yok: o turun
+  // zaten gerçek bir finali var.
+  if (dogallar.length && !dogallar.some(finalOlabilir)) {
+    for (let k = 1; k < PATTERNS.length; k++) {
+      const n = bas + ((dogallar[0] - bas + k) % PATTERNS.length);
+      // Hedef bölümün kendisi 'ucl' olmasın: iki doğal yer varken ikincisiyle
+      // takas, temayı hiç kıpırdatmamak olurdu.
+      if (finalOlabilir(n) && hamThemeId(n) !== FINAL_THEME) {
+        r = { dogal: dogallar[0], final: n };
+        break;
+      }
+    }
+  }
+  _finalTakas.set(t, r);
+  return r;
+}
+function themeIdForLevel(n) {
+  const t = Math.floor((n - 1) / PATTERNS.length);
+  const s = finalTakasi(t);
+  if (s) {
+    if (n === s.dogal) return hamThemeId(s.final);
+    if (n === s.final) return FINAL_THEME;
+  }
+  return hamThemeId(n);
 }
 // İki şart daha, ve ikisi de ölçülerek eklendi.
 //
@@ -17241,10 +17307,28 @@ function themeForLevel() {
   // meydan okuma için verdiği tek söz buydu: aynı gün, aynı tarla, herkese.
   // `scratchpad/holedaily.mjs` yakaladı.
   if (dailyRun) return THEMES[currentPattern.theme] || THEMES.mixed;
-  const t = tier();
-  if (t === 0) return THEMES[currentPattern.theme] || THEMES.mixed;
-  const i = PATTERNS.indexOf(currentPattern);
-  return THEMES[THEME_IDS[((i < 0 ? 0 : i) + t * 3) % THEME_IDS.length]] || THEMES.mixed;
+  // Formülün ikinci kopyası değil, `themeIdForLevel`in kendisi.
+  //
+  // Buraya kadar iki yerde iki kez yazılıydı ve ikisi aynı sayıyı veriyordu —
+  // ta ki biri değişene kadar. Final kaydırması (bkz. `finalTakasi`) yalnızca
+  // `themeIdForLevel`e eklenseydi oyun şu ikisini aynı anda söylerdi: rozet
+  // "FINAL", tahta ise bulmacanın temasında, kupa da ortada yok. Rozeti ve
+  // tahtayı aynı satır söylüyor.
+  //
+  // `currentPattern` ile `patternForLevel(level)` normal oyunda aynı şey,
+  // yani bu değişiklik kaydırma olmayan bölümlerde tek bir pikseli bile
+  // oynatmıyor. İkisinin ayrıldığı tek yer `forcedPattern` ve onu kuran tek
+  // şey `startDailyRun` — orada `dailyRun` da açılıyor, yani yukarıdaki
+  // satır o hâli zaten alıyor.
+  //
+  // Alttaki satır o eşleşmeye **güvenmiyor**: biri ileride deseni günlük
+  // koşu dışında da zorlarsa, tema tahtada olmayan bir desenin teması
+  // olurdu — zemin bir yer, nesneler başka bir yer. Eşleşme bozulursa tema
+  // desenin kendisinden okunuyor.
+  if (currentPattern !== patternForLevel(level)) {
+    return THEMES[currentPattern.theme] || THEMES.mixed;
+  }
+  return THEMES[themeIdForLevel(level)] || THEMES.mixed;
 }
 
 let currentTheme = THEMES.beach;
@@ -20382,6 +20466,11 @@ function buildPicture(pic) {
   }
 }
 
+// Son kurulan tahtanın siluet hücreleri ve o tahtanın desen indisi çevirici
+// — ölçüm hooku için (bkz. buildField, `fruitHoleDesignCells`). Çevirici de
+// saklanıyor çünkü tur çevirmesi tahtaya özel: hooktan yeniden hesaplamak,
+// ölçülen tahtadan başka bir tahtanın şeklini sormak olurdu.
+let sonSiluet = null, sonBak = null;
 function buildField() {
   // Önceki bölümün yığınları. `fieldGroup.clear()` onları sahneden çıkarıyor
   // ama GPU'daki matris tamponunu bırakmıyor — 3000 parçalık bir yığın 192 KB
@@ -20503,11 +20592,69 @@ function buildField() {
     }
   }
 
+  // Tahtanın **tasarımı** ölçüme bırakılıyor: siluet burada son hâlini aldı
+  // (desenin `empty`si, varsa tur çevirmesi, varsa kalınlaştırma) ve bundan
+  // sonra tahtaya eklenen her şey — dolgu biçimi, taban iri payı, kaya, dev,
+  // nesne — oyunun siluetin üstüne koyduğu şey.
+  //
+  // `holedagilim` eskiden tahtanın **düzgün** dağılmasını bekliyordu ve
+  // Pyramid'i, Island'ı, Bubbles'ı dengesiz sayıyordu: oysa o tahtaların boş
+  // köşesi kusur değil şeklin kendisi. Ayrımı yapabilmek için ölçümün
+  // tasarımı da görmesi gerekiyor — "oyun şekli bozdu mu" ile "şekil böyle"
+  // ancak ikisi yan yana konunca ayrılıyor.
+  //
+  // Küme kopyalanmıyor, referansı tutuluyor: bundan sonra yalnızca okunuyor
+  // (`izinli.has`), ve her tahta kurulumunda üç yüz dizgi kopyalamak ölçüm
+  // için oyunu yavaşlatmak olurdu. Kat sayıları da burada hesaplanmıyor,
+  // soran olursa hesaplanıyor (bkz. `fruitHoleDesignCells`).
+  // Siluet yalnızca **kullanıldığı** tahtalarda bildiriliyor.
+  //
+  // Burada `currentPattern.polar ? null : izinli` yazıyordu ve resim ile
+  // şerit tahtalarında yanlış cevap veriyordu: o ikisinde aşağıdaki hücre
+  // döngüsü hiç çalışmıyor (`(resim || serit) ? [] : ...`), tahtayı desenin
+  // siluetı değil haritanın kendisi kuruyor. Yani hook, tahtanın hiç
+  // bakmadığı bir şekli "bu tahtanın tasarımı" diye veriyordu.
+  //
+  // Bedeli ölçüldü: `holedagilim` 36. bölümü (Anchor, bir **şerit** tahtası)
+  // "tasarımın doldurduğu dört blok oyunda boş" diye işaretledi ve o dört
+  // blok hiç var olmamış bir şeklin blokları. Olmayan bir hatayı kovalamak,
+  // olan bir hatayı kaçırmakla aynı kaynaktan geliyor — ölçüme yanlış
+  // söyleyen bir hook.
+  sonSiluet = (currentPattern.polar || resim || serit) ? null : izinli;
+  sonBak = bak;
+
   let stil = zorlaStil ||
     ((currentPattern.noFill || (isPuzzleLevel(level) && !dailyRun))
       ? 'dolu' : yerlesimStili(tahtaLvl()));
-  stilSecilen = stil;
   if (stil !== 'dolu' && !currentPattern.polar && izinli.size < 150) stil = 'dolu';
+  // Kayıt, geri düşmeden **sonra**: bu satır yukarıdaydı ve biçimin
+  // seçilen hâlini değil istenen hâlini saklıyordu. Siluet yüz elli
+  // hücrenin altında kalıp 'dolu'ya düşen bir tahta, kendini hâlâ 'halka'
+  // sanıyordu — `placeRingCores` bu değişkene bakıyor (kendi güvencesi var,
+  // "ortasının çevresinde yeterince parça yok" diyip geçiyor, yani ekranda
+  // bir şey bozulmuyordu) ve ölçüm de buna bakıyor.
+  stilSecilen = stil;
+  // Yerel bir onarım denendi ve ölçüm gereksiz dedi.
+  //
+  // Mekanizma gerçek: `halka` biçimi çemberleri yedi hücrelik bir ızgaraya
+  // koyuyor ve hem çemberin ortasını hem köşelerini atıyor, yani şeklin ince
+  // bir kolu o atılan yerlere denk gelirse o kol ekranda hiç olmayabilir.
+  // Yukarıdaki güvence tüm tahta ölçeğinde (siluet yüz elli hücrenin
+  // altındaysa seyreltme bırakılıyor), bir **bölgenin** silinmesini
+  // görmüyor.
+  //
+  // Yazıldı: tahta 3x5 bloğa bölünüp, siluetin kayda değer doldurduğu bir
+  // blokta hücrelerin beşte birinden azı sağ kalıyorsa o blok seyreltmeden
+  // muaf tutuluyordu. Sonra ölçüldü — otuz dört ızgara tahtası, üç tohum —
+  // ve onarımlı hâl ile onarımsız hâl **birebir aynı** çıktı: hiçbir ızgara
+  // tahtasında öyle bir blok yok.
+  //
+  // Onarımı gerektiren üç bölüm diye işaretlenen şeyler ölçüm hatasıydı:
+  // 23. ve 53. bölüm resim, 36. bölüm şerit tahtası, ve o üçünde tahtayı
+  // desenin siluetı kurmuyor (bkz. `sonSiluet`). Canlı bir oyunun tahta
+  // kurulumunu, hiçbir ölçümün göstermediği bir ihtimal için değiştirmek
+  // kötü bir takas; mekanizma bir gün bir tahtada görünürse `holedagilim`
+  // onu "tasarımın doldurduğu blok oyunda boş" diye söyleyecek.
   for (const cell of (resim || serit) ? [] : (currentPattern.polar ? polarCells() : gridCells())) {
       const { x, z } = cell;
       const [a, b] = bak(cell.a, cell.b);
@@ -22416,6 +22563,20 @@ function placeBombs() {
   // Önü hiç kapalı olmayanlar yetiyorsa yalnızca onlar; yetmiyorsa en
   // az kapalı olanlarla tamamlanıyor. Sıra içinde seçim yine rastgele,
   // yani tahtalar birbirinin aynısı olmuyor.
+  //
+  // Bir şey denendi ve ölçüm geri çevirdi: "turnuva seçimi" — üç aday
+  // çekip en açığını koymak. Gerekçe, en açık hücreleri küme olarak
+  // ayırmanın bombaları tahtanın kameraya yakın kenarına dizmesi
+  // korkusuydu (kapanma sorusu "daha büyük z'de bir şey var mı" diyor, ve
+  // kamera +z'de duruyor — yani önü hiç kapalı olmayan hücrelerin tarlanın
+  // ön bandı olması akla yatkındı). Ölçüldü ve öyle değil: bombaların
+  // derinlik bantlarına dağılımı iki seçimde de aynı (0.67–1.55 katı karşı
+  // 0.48–1.33), ama kapanma turnuvayla %0'dan %25'e çıkıyor. Yani turnuva
+  // hiçbir şey kazanmadan görünürlüğü bozuyordu.
+  //
+  // Dağılım artık ölçülüyor (`scratchpad/holebomb.mjs`): o ölçü olmadan
+  // buradaki takas görünmezdi — kapanma düzelirken dağılımın bozulması da,
+  // bozulmaması da.
   const olcu = hepsi.map(f => ({ f, k: kapanmaMiktari(f) })).sort((a, b) => a.k - b.k);
   const temiz = olcu.filter(o => o.k <= 0);
   const aday = (temiz.length >= kac ? temiz
@@ -26697,6 +26858,11 @@ window.fruitHoleForceLayout = (s) => { zorlaStil = s || null; return zorlaStil; 
 // Bu bölümün yerleşim biçimi.
 window.fruitHoleLayout = () => ({
   stil: yerlesimStili(level),
+  // Bölüm numarasının seçtiği biçim ile tahtanın **kullandığı** biçim ayrı
+  // şeyler: siluet yüz elli hücrenin altındaysa, desen `noFill` diyorsa ya
+  // da tahta bulmacaysa seyreltme bırakılıp 'dolu'ya düşülüyor. `stil` o
+  // kararın girdisi, `secilen` çıktısı — ve ölçüm çıktıyı sormalı.
+  secilen: stilSecilen,
   hepsi: YERLESIM,
 });
 window.fruitHoleSizes = () => {
@@ -26939,6 +27105,33 @@ window.fruitHoleBoardCells = () => {
                     giant: !!f.giant, prop: f.prop || null, bomb: !!f.bomb });
   }
   return { rows, cols: COLS, cell: CELL, hucre: [...h.values()] };
+};
+// Tahtanın tasarımı: siluetin hücreleri ve desenin o hücrede istediği kat.
+//
+// `fruitHoleBoardCells` tahtanın **olmuş** hâlini veriyor, bu ise
+// **istenen** hâlini. İkisinin oranı, oyunun şekli bozup bozmadığını
+// söylüyor; tek başına ikisi de söylemiyor — düzgünlük beklemek siluetli
+// desenleri haksız yere dengesiz sayıyor (bkz. `scratchpad/holedagilim.mjs`).
+//
+// Kat sayıları burada hesaplanıyor çünkü `stack` ucuz değil ve her tahta
+// kurulumunda yapılırsa oyun için boşa iş olur. Bazı desenlerin `stack`i
+// `rnd()` çağırıyor — tohum saklanıp geri konuyor, yoksa bu ölçüm tahtayı
+// kuracak akışı ilerletir ve ölçtüğü şeyi değiştirirdi (`doluSay` ile aynı
+// tuzak).
+//
+// Kutupsal tahtalarda siluet yok (`polar` desenler hücre ızgarasında
+// kurulmuyor): o bölümlerde null dönüyor ve ölçüm atlıyor.
+window.fruitHoleDesignCells = () => {
+  if (!sonSiluet) return null;
+  const eskiSeed = _seed, eskiSeeded = _seeded;
+  const h = [];
+  for (const k of sonSiluet) {
+    const [r, c] = k.split(',').map(Number);
+    const [a, b] = sonBak ? sonBak(r, c) : [r, c];
+    h.push({ r, c, kat: currentPattern.stack ? Math.max(1, currentPattern.stack(a, b)) : 1 });
+  }
+  _seed = eskiSeed; _seeded = eskiSeeded;
+  return { rows, cols: COLS, hucre: h };
 };
 // Oyun kamerasının bir ekranda gösterdiği alan — hücre cinsinden.
 //

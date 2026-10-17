@@ -65,7 +65,11 @@ for (const n of BOLUMLER) for (const t of TOHUM) {
     window.fruitHoleSeedField(th * 1000 + lv);
     const p = window.fruitHoleProbe(lv);
     const r = { kind: p.kind, ...window.fruitHoleBombs(),
-                ustunde: window.fruitHoleBombUstunde(), hucre: window.fruitHoleBombHucre() };
+                ustunde: window.fruitHoleBombUstunde(), hucre: window.fruitHoleBombHucre(),
+                // Bomba ve meyve aynı kaynaktan, aynı birimde: bomba
+                // hücresini tek başına tuttuğu için `hucre` listesinde
+                // `bomb` işaretli bir hücre olarak duruyor.
+                hucreler: window.fruitHoleBoardCells() };
     window.fruitHoleUnseedField();
     return r;
   }, [n, t]);
@@ -173,6 +177,79 @@ check(cakisan.length === 0, 'iki bomba aynı hücrede değil',
   const ort = kap.reduce((a, b) => a + b, 0) / kap.length;
   check(ort < 0.6, 'ortalama kapanma bombanın çapının altında',
     `${ort.toFixed(2)} birim`);
+}
+
+// Bombalar tarlaya dağılıyor mu, yoksa bir bant hâlinde mi diziliyor?
+//
+// Bu dosya bombanın **yerini** üç kez ölçtü (hücresinin tepesinde mi, kuleyi
+// paylaşıyor mu, önü açık mı) ve dağılımını hiç ölçmedi. Eksik olanın ne
+// olduğu `placeBombs` değiştirilirken görüldü: "bombayı önü açık hücrelere
+// koy" kuralı hücreleri küme olarak ayırıyor, ve kapanma sorusu "daha büyük
+// z'de önünü aşan bir şey var mı" demek — kamera +z'de olduğu için o soruya
+// hayır diyen hücrelerin tarlanın ön bandı olması akla yatkın. Öyle olsaydı
+// bombalar deliğin önüne bir duvar hâlinde dizilirdi **ve bu dosyadaki
+// ölçümlerin hepsi geçerdi**, çünkü duvarın her bombasının önü açık.
+//
+// Ölçüldü ve öyle değil (0.67 – 1.55 katı; aşağıdaki sayılar). Yani kod
+// masum çıktı, ama ölçümün olmaması değil: masum olduğunu söyleyen şey bu
+// satırlar, ve onlar yoktu.
+//
+// Ölçü: bombaların derinlik ve genişlik bantlarına dağılımı, tahtanın
+// **kendi** parça dağılımıyla karşılaştırılıyor. Düzgünlük beklenmiyor —
+// desenin kütlesi nereye düştüyse bomba da oraya düşebilir; beklenen şey
+// bombanın meyveyi izlemesi. Yirmi dört tahtanın bombaları birlikte
+// sayılıyor, çünkü tek tahtada on beş bomba bir dağılım için az.
+//
+//   node scratchpad/holebomb.mjs duvar   # ölçümü sahte duvarla dene
+{
+  // Sahte duvar: ölçümün gerçekten duvar gördüğünü kanıtlamak için.
+  //
+  // Geçmesi gereken yerde geçmek yetmez. `duvar` modunda bombaların hepsi
+  // son banda taşınıyor (ölçümde, oyunda değil) ve iki kontrolün de düşmesi
+  // bekleniyor.
+  const DUVAR = process.argv[2] === 'duvar';
+  const bantla = (satir, n, eksen) => {
+    const bomba = new Array(n).fill(0), meyve = new Array(n).fill(0);
+    for (const r of satir) {
+      if (!r.hucreler) continue;
+      const { rows, cols, hucre } = r.hucreler;
+      for (const h of hucre) {
+        const i = eksen === 'z'
+          ? Math.min(n - 1, Math.floor(h.r / (rows / n)))
+          : Math.min(n - 1, Math.floor(h.c / (cols / n)));
+        if (h.bomb) bomba[DUVAR ? n - 1 : i]++; else meyve[i] += h.kat;
+      }
+    }
+    return { bomba, meyve };
+  };
+  // Eşik ölçülerek kondu. Dört derinlik bandı, üç genişlik bandı, yirmi
+  // dört tahta: en sapan bandın oranı koşudan koşuya (tohumlu olduğu için
+  // aynı) ölçülüp yazıldı. Duvar hâlinde bu oran 3'ün üstüne çıkıyor —
+  // bütün bombalar tek bantta, yani o bandın oranı bant sayısı kadar.
+  // İki yönlü: bir bandın şişmesi de, boşalması da aynı bozulma. Duvar
+  // hâlinde bombalar tek banda yığılıyor, yani o bant eşiğin üstüne, geri
+  // kalan üçü tabanın altına düşüyor — ölçüm ikisini de söylesin.
+  //
+  // Ölçülen değerler (tohumlu, yirmi dört tahta): z yönünde 0.48 – 1.33,
+  // x yönünde 0.90 – 1.17. En düşük bant tarlanın **uzak** ucu ve sebebi
+  // yapısal: uzaktaki bir hücrenin önünde daha çok parça var, yani turnuva
+  // oraya daha seyrek koyuyor. İki katlık bir eğilim; duvar ise dört
+  // katlıydı ve üç bandı tamamen boşaltıyordu.
+  const ESIK = 2.0, TABAN = 0.3;
+  for (const [eksen, n] of [['z', 4], ['x', 3]]) {
+    const { bomba, meyve } = bantla(gec, n, eksen);
+    const tb = bomba.reduce((a, b) => a + b, 0), tm = meyve.reduce((a, b) => a + b, 0);
+    if (!tb || !tm) { check(false, `${eksen} bandı ölçülebiliyor`, `${tb} bomba`); continue; }
+    const oran = bomba.map((b, i) => (meyve[i] ? (b / tb) / (meyve[i] / tm) : (b ? Infinity : 1)));
+    console.log(`\nbombanın ${eksen} dağılımı (${tb} bomba, ${n} bant):`);
+    for (let i = 0; i < n; i++) {
+      console.log(`  bant ${i}: ${String(bomba[i]).padStart(3)} bomba / ` +
+        `${String(meyve[i]).padStart(4)} parça — meyvenin ${oran[i].toFixed(2)} katı`);
+    }
+    check(Math.max(...oran) < ESIK && Math.min(...oran) > TABAN,
+      `bombalar ${eksen} yönünde meyveyi izliyor`,
+      `bantlar ${Math.min(...oran).toFixed(2)} – ${Math.max(...oran).toFixed(2)} katı`);
+  }
 }
 
 // Mayın bölümü: tahta gerçekten dolu mu?
