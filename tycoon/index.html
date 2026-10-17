@@ -4330,6 +4330,19 @@ let sinceSave = 0, sinceUI = 0, sinceFloat = 0, floatAcc = 0;
 let shownTier = -1;
 let spawnAcc = [0, 0, 0];
 
+// Çizimi kapatan bayrak — yalnızca ölçüm için (hook: window.jeDrawOff).
+//
+// Konteynerde GPU yok ve bir kare SwiftShader'la 300-450 ms. Kareyi tek tek
+// ilerleterek bot oynatan ölçümler bu yüzden saatler sürüyordu — yani
+// koşmuyordu. Fruit Hole'da ölçüldü: aynı tohumlu tahta, 600 kare, çizimli
+// ve çizimsiz; yenen parça, saat ve deliğin yeri birebir aynı, süre 366
+// saniyeden 1.1 saniyeye indi.
+//
+// Oyun bu bayrağı hiç açmıyor. Ekrana bakan ölçümler de açmamalı:
+// görüntü alan, piksel sayan, kare süresi ölçen bir betik için çizim
+// ölçtüğü şeyin kendisi.
+let _cizme = false;
+window.jeDrawOff = (v) => { _cizme = v !== false; return _cizme; };
 function tick(now) {
   const dt = Math.min(0.25, (now - last) / 1000);
   last = now;
@@ -4477,7 +4490,7 @@ function tick(now) {
   sinceSave += dt;
   if (sinceSave > 5) { sinceSave = 0; G.seen = Date.now(); saveNow(); }
 
-  renderer.render(scene, camera);
+  if (!_cizme) renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
 
