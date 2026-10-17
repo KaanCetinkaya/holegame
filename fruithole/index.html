@@ -3734,6 +3734,90 @@ function resumeGame() {
   refreshMusic();
 }
 
+// ---------------------------------------------------------------------
+// Donanım geri tuşu
+// ---------------------------------------------------------------------
+// Android'de geri tuşu, WebView'ın geçmişi boşsa uygulamayı kapatıyor.
+// Bu oyun tek sayfa ve hiç gezinmiyor, yani geçmiş hep boştu:
+// dükkânı kapatmak için geri basan oyuncu **oyundan çıkıyordu**, tur
+// ortasındaysa o turu da kaybediyordu.
+//
+// Eklentisiz çözüm: menüden başka bir yerdeyken geçmişe bir girdi
+// konuyor, geri tuşu önce onu açıyor (`popstate`) ve oyun o ekranı
+// kendi kapatma düğmesiyle kapatıyor. Menüdeyken girdi yok, yani
+// oradaki geri tuşu uygulamadan çıkıyor — Android'in beklediği şey.
+//
+// Ekranlar bu dosyada tek bir yerden açılmıyor; `.show` sınıfı on
+// ayrı yerde ekleniyor. Her çağrı yerine dokunmak yerine sınıf
+// değişimi izleniyor, yani yarın eklenecek bir ekran da kendiliğinden
+// kapsama giriyor.
+//
+// Geri tuşu `goBack()` çağırmayan bir yapıda hiçbir şey değişmiyor.
+const GERI_EKRAN = {
+  pause: 'resumeBtn',
+  levels: 'levelsClose',
+  shop: 'shopClose',
+  goals: 'goalsClose',
+  upgrades: 'upgClose',
+  collection: 'collClose',
+  daily: 'dailyBtn',
+  tchest: 'tchestClose',
+  rate: 'rateLater',
+  diag: 'diagClose',
+  // Bitiş perdesi: oyunun kendi "ana menü" düğmesi. Perdeyi elle
+  // kapatmak turu yarım bırakırdı.
+  overlay: 'toMenuBtn',
+};
+let geriDerin = false, geriAtiyor = false;
+function geriAcikEkran() {
+  for (const id in GERI_EKRAN) {
+    const e = document.getElementById(id);
+    if (e && e.classList.contains('show')) return id;
+  }
+  return null;
+}
+function geriDerinMi() {
+  return state === 'playing' || state === 'paused' || !!geriAcikEkran();
+}
+function geriGuncelle() {
+  const derin = geriDerinMi();
+  if (derin === geriDerin) return;
+  if (derin) {
+    geriDerin = true;
+    try { window.history.pushState({ fh: 1 }, ''); } catch (e) { geriDerin = false; }
+  } else {
+    // Ekran normal yoldan kapandı: koyduğumuz girdiyi geri al, yoksa
+    // menüdeki ilk geri basışı yutuluyor.
+    geriDerin = false;
+    geriAtiyor = true;
+    try { window.history.back(); } catch (e) { geriAtiyor = false; }
+  }
+}
+function geriBas() {
+  const id = geriAcikEkran();
+  if (id) {
+    const b = document.getElementById(GERI_EKRAN[id]);
+    if (b && !b.disabled && !b.hidden) { b.click(); return; }
+    document.getElementById(id).classList.remove('show');
+    showMenu();
+    return;
+  }
+  if (state === 'playing') { pauseGame(); return; }
+}
+addEventListener('popstate', () => {
+  if (geriAtiyor) { geriAtiyor = false; return; }
+  geriDerin = false;
+  geriBas();
+  geriGuncelle();
+});
+{
+  const mo = new MutationObserver(() => geriGuncelle());
+  for (const id of Object.keys(GERI_EKRAN).concat('menu')) {
+    const e = document.getElementById(id);
+    if (e) mo.observe(e, { attributes: true, attributeFilter: ['class'] });
+  }
+}
+
 function refreshPauseMute() {
   document.getElementById('pauseMute').textContent = muted ? '🔇 Sound' : '🔊 Sound';
 }

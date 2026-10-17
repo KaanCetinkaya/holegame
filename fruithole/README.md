@@ -3479,6 +3479,33 @@ eklentilerle ayrı ayrı kuruluyor ve üçünün çıktısının **birbirinden f
 olduğu doğrulanıyor. Ekran üçüne de aynı şeyi yazsaydı hiçbir işe yaramazdı,
 ve bunu "ekran açılıyor mu" diye bakarak fark edemezdin.
 
+## Geri tuşu oyundan çıkarıyordu
+
+Android'de geri tuşu, WebView'ın geçmişi boşsa uygulamayı kapatıyor.
+Bu oyun tek sayfa ve hiç gezinmiyor, yani geçmiş hep boştu: dükkânı
+kapatmak için geri basan oyuncu oyundan çıkıyordu, tur ortasındaysa o
+turu da kaybediyordu. Oyun mağazada — bu, gerçek oyuncuların başına
+gelen bir şey.
+
+Eklentisiz çözüm: menüden başka bir yerdeyken geçmişe bir girdi
+konuyor, geri tuşu önce onu açıyor (`popstate`) ve oyun o ekranı
+**kendi kapatma düğmesiyle** kapatıyor — perdeyi elle kapatmak turu
+yarım bırakırdı. Oynarken duraklatıyor. Menüdeyken girdi yok, yani
+oradaki geri uygulamadan çıkıyor.
+
+Ekranlar tek bir yerden açılmıyor; `.show` sınıfı on ayrı yerde
+ekleniyor. Her çağrı yerine dokunmak yerine sınıf değişimi bir
+`MutationObserver` ile izleniyor, yani yarın eklenecek bir ekran da
+kendiliğinden kapsama giriyor.
+
+Geri tuşu `goBack()` çağırmayan bir yapıda hiçbir şey değişmiyor:
+`pushState` zararsız, `popstate` hiç gelmiyor, uygulama eskisi gibi
+kapanıyor. Yani en kötü ihtimalle bugünkü davranış.
+
+`scratchpad/holegeri.mjs` beş şeyi ölçüyor, en önemlisi birincisi:
+menüdeyken yığında bizim girdimiz **olmamalı**, yoksa oyuncu geri
+tuşuyla uygulamadan çıkamaz.
+
 ## Bölüm haritası hep 1. bölümden açılıyordu
 
 Liste birinci bölümden başlıyor ve hiç kaydırılmıyordu: 90. bölümdeki
