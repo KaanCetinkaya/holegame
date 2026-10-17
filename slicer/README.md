@@ -156,7 +156,9 @@ arkaya çözülüyor.
 ## Uzun bıçak bölümü geçilemez yapıyor mu
 
 Dükkân bıçağın **menzilini** satıyor, ve aynı menzil mayına da erken
-değdiriyor: yükseltme saf kazanç değil, takas. Takasın bilerek olması
+değdiriyor: yükseltme saf kazanç değil, takas. Dükkân bunu artık
+söylüyor da — eskiden yalnızca "daha erken ulaşır" yazıyordu, yani
+oyuncuya satılan şeyin yarısı gizliydi. Takasın bilerek olması
 bölümü geçilemez yapmadığı anlamına gelmiyor, ve bütün ölçümler yeni
 bir tarayıcıda — yani en kısa bıçakla — koşuyordu.
 

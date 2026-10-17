@@ -33,6 +33,8 @@ const APPS = {
     appId: 'ca-app-pub-2542927456156553~4653695871',
     // Uygulama içi satın alma yalnızca burada var.
     billing: true,
+    // Oyun `navigator.vibrate` çağırıyor (her yutmada kısa bir tık).
+    vibrate: true,
     // Play Games Services proje kimliği (Play Console → Play Oyun
     // Hizmetleri → Yapılandırma → "Proje Kimliği").
     gamesId: '501004425745',
@@ -40,6 +42,8 @@ const APPS = {
   slicer: {
     dir: 'android-slicer',
     appId: 'ca-app-pub-2542927456156553~2923303466',
+    // Kesimde tık, çarpmada buzz.
+    vibrate: true,
   },
   tycoon: {
     dir: 'android-tycoon',
@@ -153,6 +157,29 @@ if (app.billing && !xml.includes('com.android.vending.BILLING')) {
   xml = xml.replace('<application', `    ${BILLING}\n\n    <application`);
   changed = true;
   console.log(`Faturalandırma izni eklendi -> ${app.dir}`);
+}
+
+// --- titreşim izni ---
+//
+// `navigator.vibrate()` WebView'da **sessizce** çalışmıyor: izin yoksa
+// çağrı `true` dönüyor ve hiçbir şey olmuyor, hata da atmıyor. Yani
+// titreşim yazılmış, gönderilmiş ve telefonda hiç çalışmamış olabilir
+// ve bunu söyleyecek hiçbir şey yok — bu deponun tanıdık sınıfı.
+//
+// Faturalandırma izniyle aynı gerekçe: izni koyacak bir eklenti yok
+// (kurulu beş eklentinin hiçbiri dokunsal değil) ve manifest `cap add`
+// ile her yeniden üretildiğinde sıfırlanıyor.
+const VIBRATE = '<uses-permission android:name="android.permission.VIBRATE" />';
+if (app.vibrate && !xml.includes('android.permission.VIBRATE')) {
+  if (!xml.includes('<application')) {
+    console.error('HATA: manifest içinde <application yok, beklenmeyen biçim.');
+    process.exit(1);
+  }
+  xml = xml.replace('<application', `    ${VIBRATE}
+
+    <application`);
+  changed = true;
+  console.log(`Titreşim izni eklendi -> ${app.dir}`);
 }
 
 // --- AdMob App ID ---

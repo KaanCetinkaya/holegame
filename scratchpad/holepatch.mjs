@@ -99,6 +99,13 @@ if (existsSync(devStr)) {
 check(manifest().includes('com.google.android.gms.ads.APPLICATION_ID'), 'AdMob kimliği yazıldı');
 check(manifest().includes('com.google.android.gms.games.APP_ID'), 'Play Games kimliği yazıldı');
 check(manifest().includes('com.android.vending.BILLING'), 'faturalandırma izni yazıldı');
+// Titreşim izni olmadan `navigator.vibrate()` WebView'da sessizce
+// hiçbir şey yapmıyor: çağrı başarılı dönüyor, telefon kıpırdamıyor,
+// hata da yok. Yani eksikliği ancak telefonu elinde tutan biri fark
+// eder — ya da buradaki satır.
+check(manifest().includes('android.permission.VIBRATE'), 'titreşim izni yazıldı');
+check((manifest().match(/android\.permission\.VIBRATE/g) || []).length === 1,
+  'titreşim izni bir kez yazıldı');
 
 console.log('\n2) ikinci koşu (her cap sync bunu tekrar çalıştırıyor)');
 const g1 = gradle(), m1 = manifest(), d1 = readFileSync(devStr, 'utf8');

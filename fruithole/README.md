@@ -3479,6 +3479,22 @@ eklentilerle ayrı ayrı kuruluyor ve üçünün çıktısının **birbirinden f
 olduğu doğrulanıyor. Ekran üçüne de aynı şeyi yazsaydı hiçbir işe yaramazdı,
 ve bunu "ekran açılıyor mu" diye bakarak fark edemezdin.
 
+## Titreşim, izin olmadan sessizce çalışmıyor
+
+Oyun her yutmada kısa bir tık, kaybedince uzun bir buzz veriyor
+(`navigator.vibrate`). WebView'da bu çağrı `android.permission.VIBRATE`
+olmadan **sessizce** düşüyor: çağrı `true` dönüyor, telefon kıpırdamıyor,
+hata da atmıyor.
+
+Kurulu beş eklentinin hiçbiri dokunsal değil, yani izni koyacak kimse
+yoktu, ve manifest `cap add` ile her yeniden üretildiğinde sıfırlanıyor.
+`patch-manifest.mjs` artık faturalandırma izniyle aynı yerde onu da
+yazıyor; `scratchpad/holepatch.mjs` iki satırla kontrol ediyor (yazıldı
+mı, iki kez yazılmadı mı).
+
+Yani titreşim yazılmış, gönderilmiş ve telefonda hiç çalışmamış
+olabilir — bunu söyleyecek hiçbir şey yoktu.
+
 ## Menünün üst satırı beş haneli bakiyede taşıyordu
 
 Kaan'ın telefonundan gelen fotoğrafta dört sayaç 17359, 18269, 21583 ve
