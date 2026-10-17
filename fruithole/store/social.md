@@ -1630,3 +1630,34 @@ Buradan çıkan asıl ders sayıların kendisi değil: bu dosyada iki kez
 ikisi de **gönderi atıldıktan birkaç saat sonra bakmaktan** geliyordu.
 TikTok dağıtımı günlere yayıyor. Bir gönderinin sayısı en erken
 **ertesi gün** okunur.
+
+### Gün 16 — bloom.mp4  *(hazır, atılmadı)*
+
+Stokta atılmamış iki klip kaldı (`bloom`, `cogs`) ve sıradaki `bloom`,
+çünkü ölçülmüş kural "ilk üçü en yoğun tarlalar" diyor: Bloom listenin en
+kalabalık tahtası, 516 meyve.
+
+Gün numarası kayıttan: `cubes` gün 13 (6 Ekim), sonra `track` ve
+`hourglass` gitti, yani sıradaki **16**. Kural "son gönderi + 1" ve
+profilden bir bakışta doğrulanır.
+
+Klip kare kare doğrulandı (dosyanın kuralı: açıklamayı klibe bakarak
+doğrula). 42. bölüm, Bloom tarlası: ilk karede delik **Size 2** ve
+kadrajdaki dev karpuzlara dokunamıyor, son karede **Size 5** ve üç karpuz
+ağzında. Açıklamanın tuttuğu söz bu.
+
+Dosya 11 Ekim'deki sürüş düzeltmesinden sonra çekildi (14 Ekim), yani
+titreşim yok.
+
+Ekran yazısı: `level 42. the melons are bigger than me`
+
+```
+day 16 of building my own mobile game 🕳️
+
+the hole only grows by eating, and it starts too small for a single watermelon. nine seconds later it takes three at once.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+**Telefondan ve ses ekleyerek.** Ölçüldü (11 Ekim): atılmış her videonun
+hiç ses kanalı yok ve ses ancak yükleme anında eklenebiliyor.
