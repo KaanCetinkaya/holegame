@@ -56,8 +56,16 @@ const shot = async (name) => {
     clip: { x: 40, y: 300, width: 330, height: 330 } });
   return name;
 };
+// `python3` değil `/usr/bin/python3`.
+//
+// PATH'teki python 3.11 ve Pillow onda yok; Pillow 3.13'te, yani
+// `/usr/bin/python3`te. Bu betik PATH'tekini çağırıyordu ve ölçüm
+// "yapılamadı" diye duruyordu — oyunla ilgisi olmayan bir sebeple,
+// ve tam koşuda bir düşen betik olarak görünüyordu. Aynı tuzak
+// `slshots`ta da bir kez yaşandı.
+const PY = '/usr/bin/python3';
 const colours = (name) => {
-  const r = spawnSync('python3', ['-c',
+  const r = spawnSync(PY, ['-c',
     `from PIL import Image\nprint(len(Image.open('/tmp/ctx-${name}.png').convert('RGB').getcolors(999999) or []))`],
     { encoding: 'utf8' });
   // Ölçüm yapılamadıysa bunu "tarla boş" diye raporlamak, olmayan bir hatayı
@@ -68,7 +76,7 @@ const colours = (name) => {
   const n = Number((r.stdout || '').trim());
   if (r.status !== 0 || !(r.stdout || '').trim() || !Number.isFinite(n)) {
     console.error('\nÖLÇÜM YAPILAMADI — bu bir oyun hatası değil.');
-    console.error('python3/Pillow çalışmıyor: ' + ((r.stderr || '').trim() || `çıkış ${r.status}`));
+    console.error(PY + '/Pillow çalışmıyor: ' + ((r.stderr || '').trim() || `çıkış ${r.status}`));
     console.error('Kurulum:  pip install pillow');
     process.exit(2);
   }

@@ -234,7 +234,7 @@
 
   /* upgrades */
   #upgrades { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
-    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; touch-action: pan-y; }
   #upgWallet { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
   #upgWallet .counter { display: flex; align-items: center; gap: 5px; background: rgba(90,50,140,.88);
     border: 2px solid rgba(255,255,255,.32); border-radius: 999px; padding: 4px 10px 4px 4px; }
@@ -337,17 +337,17 @@
   .menuRow .btn { margin-top: 0; }
 
   #goals { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
-    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; touch-action: pan-y; }
   /* Same backdrop as the other secondary screens — without it the map sat
      transparent over the playfield and nothing on it could be read. */
   #levels { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
-    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; touch-action: pan-y; }
   /* Koleksiyonun zemini ötekilerden koyu, çünkü üstündeki şey siluet: bulunmayan
      nesneler kararmış çiziliyor ve arkadan vuran menü sahnesi onları yutuyordu.
      .72 ile ilk denemede arkadaki meyve halkası ızgaranın içinden okunuyordu. */
   #collection { background: rgba(46,26,6,.94); backdrop-filter: blur(8px);
     justify-content: flex-start;
-    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; touch-action: pan-y; }
   /* A clean slab, not a brick wall. The bars these menus use are one light
      periwinkle surface with a lit top edge — the stone courses I had put on
      it were the loudest thing on the screen and nothing in the reference has
@@ -398,7 +398,7 @@
   /* Level map: every level you have reached, with the stars you took. The
      locked ones are shown too, so there is something to climb towards. */
   #levelGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px;
-    width: min(94vw, 420px); max-height: 56vh; overflow-y: auto; padding: 4px; }
+    width: min(94vw, 420px); max-height: 56vh; overflow-y: auto; touch-action: pan-y; padding: 4px; }
   .lvBtn { pointer-events: auto; cursor: pointer; border: 3px solid #fff; border-radius: 16px;
     padding: 8px 0 6px; background: linear-gradient(180deg,#8ce063,#4fb63a);
     box-shadow: inset 0 2px 0 rgba(255,255,255,.4), 0 4px 0 #2f7d24; }
@@ -448,7 +448,7 @@
     box-shadow: inset 0 2px 0 rgba(255,255,255,.35), 0 4px 0 rgba(40,24,110,.45); }
 
   #shop { background: rgba(60,35,10,.72); backdrop-filter: blur(3px); justify-content: flex-start;
-    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; }
+    padding-top: calc(env(safe-area-inset-top,0px) + 26px); overflow-y: auto; touch-action: pan-y; }
   #shopList { display: flex; flex-direction: column; gap: 9px; width: min(94vw, 420px); margin-bottom: 4px; }
   .screen .muted { font-size: 12px; opacity: .7; max-width: min(94vw, 420px); }
   .upg .buy.owned { background: rgba(126,231,135,.3); color: #eaffef; box-shadow: none; }
@@ -595,7 +595,7 @@
     background:
       linear-gradient(180deg, rgba(10,60,70,.5) 0, rgba(10,60,70,0) 20%),
       linear-gradient(0deg, rgba(10,60,70,.42) 0, rgba(10,60,70,0) 16%);
-    overflow-x: hidden; overflow-y: auto; }
+    overflow-x: hidden; overflow-y: auto; touch-action: pan-y; }
   #menu > * { position: relative; z-index: 1; }
 
   /* the hole, with the level you are about to play sitting inside it */
@@ -790,6 +790,15 @@
   #menuNav .nav .ic.icon3d { width: 60px; height: 60px; }
   #menuNav .nav.mid .ic.icon3d { width: 70px; height: 70px; }
   #menuSound.icon3d { background-size: 62%; }
+  /* Kaydırılabilir her kutuda `touch-action: pan-y`.
+     `#app` üstünde `touch-action: none` var (oyun içi sürükleme
+     tarayıcıya kapılmasın diye) ve iç içe kuralın hangi öğede
+     durduğu tarayıcıdan tarayıcıya tartışmalı. Bu satır iki ihtimalin
+     ikisinde de doğru: kural kutuda duruyorsa kaydırmayı açıyor,
+     atada duruyorsa hiçbir şey yapmıyor. Bölüm haritası artık
+     oyuncunun durduğu yerden açıldığı için erken bölümlere dönmenin
+     tek yolu kaydırmak — yani bu kutunun kaydırılabildiğinden emin
+     olmak gerekiyor. */
   /* Kapalıyken: soluk ve üstünde bir çapraz çizgi. 3B simge tek bir
      hoparlör, yani durumu simgenin kendisi söyleyemiyor. */
   #menuSound.kapali { opacity: .6; }
@@ -855,7 +864,7 @@
   #diag { position: fixed; inset: 0; z-index: 90; display: none;
     background: rgba(10,12,18,.94); color: #e8ecf4;
     font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace;
-    overflow-y: auto; -webkit-user-select: text; user-select: text;
+    overflow-y: auto; touch-action: pan-y; -webkit-user-select: text; user-select: text;
     /* Alt boşluk reklam şeridini ve sistem çubuğunu hesaba katıyor.
        Düz 18px'ti ve ekranın en altındaki düğmeler — "Sign in again",
        "Open leaderboard", "Copy" — banner'ın ve gezinme çubuğunun altında
@@ -22311,18 +22320,49 @@ function placeBombs() {
   // eskisi gibi hepsinden seçiliyor. Aday havuzunu daraltmanın bedeli bu
   // fonksiyonda zaten bir kez ödendi — tek parçalık hücre kuralı mayın
   // bölümünü %7'den %2.9'a düşürmüştü.
-  const onuKapali = bm => {
-    const ust = (bm.baseY || 0) + bm.r;
+  // Hücrenin **en alt** parçasının yüksekliği: bomba oraya oturuyor.
+  //
+  // `onuKapali` bunu bilmiyordu ve hücrenin **tepesindeki** parçanın
+  // yüksekliğiyle bakıyordu — oysa seçimden sonra hücrenin öbür
+  // parçaları siliniyor ve bomba en alta iniyor. Yani filtre, bombanın
+  // hiç sahip olmayacağı bir yükseklikten "önü açık mı" diye soruyordu:
+  // kulenin tepesinden açık görünen bir hücre, bomba yere indiğinde
+  // önündeki tek parçalık yığının arkasında kalıyor.
+  //
+  // Ölçüldü (`scratchpad/holebomb.mjs`, tohumlanmış altmış altı bomba):
+  // önü kapalı bomba oranı %35. Bu dosyadaki aynı hatanın üçüncüsü —
+  // ilki `f.mesh.position.y`yi nesneler kurulmadan okumaktı, ikincisi
+  // bombayı yükselterek görünür kılmaya çalışmaktı.
+  const altY = new Map();
+  for (const f of fruits) {
+    if (f.eaten || f.bomb) continue;
+    const k = f.x + ',' + f.z;
+    const v = altY.get(k);
+    if (v === undefined || (f.baseY || 0) < v) altY.set(k, f.baseY || 0);
+  }
+  // Kapanma bir evet/hayır değil, bir **miktar**: önündeki en yüksek
+  // parça bombanın tepesini ne kadar aşıyor.
+  //
+  // Eskiden evet/hayırdı ve havuz kuruduğunda (açık hücreler hepsinin
+  // dörtte birinden azsa) filtre tamamen bırakılıyordu — yani en
+  // ihtiyaç duyulan tahtalarda hiç çalışmıyordu. Ölçüldü: yükseklik
+  // düzeltilince açık hücre sayısı düştü, yedek yol devreye girdi ve
+  // sonuç **kötüleşti** (%35 → %42). Doğrusu havuzu bırakmak değil,
+  // adayları kapanmaya göre sıralayıp en temizlerinden seçmek: havuz
+  // hiç kurumuyor ve her tahtada eldeki en iyi yerler kullanılıyor.
+  const kapanmaMiktari = bm => {
+    const taban = altY.get(bm.x + ',' + bm.z);
+    const ust = (taban === undefined ? (bm.baseY || 0) : taban) + BOMB_R;
+    let en = 0;
     for (const f of fruits) {
       if (f.eaten || f === bm) continue;
       if (f.z <= bm.z || f.z - bm.z > NORMAL_R * 6) continue;
       if (Math.abs(f.x - bm.x) > NORMAL_R * 1.2) continue;
-      if ((f.baseY || 0) + f.r > ust) return true;
+      const fazla = (f.baseY || 0) + f.r - ust;
+      if (fazla > en) en = fazla;
     }
-    return false;
+    return en;
   };
-  const acik = hepsi.filter(f => !onuKapali(f));
-  const aday = acik.length >= hepsi.length * 0.25 ? acik : hepsi.slice();
   // Mayın bölümünde tahta bomba dolu.
   //
   // `missionKind` henüz atanmadı — buildField onu bombalardan sonra kuruyor —
@@ -22331,6 +22371,13 @@ function placeBombs() {
   // bağımlı yapardı ve o bağ yanlış yönde.
   const mayin = missionKindFor(level) === 'mines';
   const kac = Math.round(fruits.length * (mayin ? MINE_RATE : BOMB_RATE));
+  // Önü hiç kapalı olmayanlar yetiyorsa yalnızca onlar; yetmiyorsa en
+  // az kapalı olanlarla tamamlanıyor. Sıra içinde seçim yine rastgele,
+  // yani tahtalar birbirinin aynısı olmuyor.
+  const olcu = hepsi.map(f => ({ f, k: kapanmaMiktari(f) })).sort((a, b) => a.k - b.k);
+  const temiz = olcu.filter(o => o.k <= 0);
+  const aday = (temiz.length >= kac ? temiz
+    : olcu.slice(0, Math.max(kac, Math.ceil(olcu.length * 0.25)))).map(o => o.f);
   // Bomba kulenin parçası değil: hücreyi tek başına tutuyor.
   //
   // Bu kural iki yanlış denemeden sonra yazıldı ve ikisi de aynı oyuncudan

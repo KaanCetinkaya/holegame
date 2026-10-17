@@ -3479,6 +3479,30 @@ eklentilerle ayrı ayrı kuruluyor ve üçünün çıktısının **birbirinden f
 olduğu doğrulanıyor. Ekran üçüne de aynı şeyi yazsaydı hiçbir işe yaramazdı,
 ve bunu "ekran açılıyor mu" diye bakarak fark edemezdin.
 
+## Bombanın önü: filtre bombanın olmayacağı yükseklikten bakıyordu
+
+Bombanın görünmesi bu dosyada üç kez yazıldı ve üçünde de yanlış bir
+şey ölçülüyordu. Üçüncüsü bu: `onuKapali`, hücrenin **tepesindeki**
+parçanın yüksekliğinden "önü açık mı" diye soruyordu — oysa seçimden
+sonra hücrenin öbür parçaları siliniyor ve bomba **en alta** iniyor.
+Yani kulenin tepesinden açık görünen bir hücre, bomba yere indiğinde
+önündeki tek parçalık yığının arkasında kalıyordu.
+
+Yüksekliği düzeltmek tek başına işe yaramadı, **kötüleştirdi** (%35 →
+%42): açık hücre sayısı düşünce "havuz kurursa filtreyi bırak" yedeği
+devreye giriyor ve filtre tam ihtiyaç duyulan tahtalarda hiç
+çalışmıyordu. Doğrusu havuzu bırakmak değil, adayları kapanma
+**miktarına** göre sıralayıp en temizlerinden seçmek. Havuz hiç
+kurumuyor.
+
+Sonuç: önü kapalı bomba oranı %35'ten **%0'a**, ortalama kapanma
+0.23 birimden 0.00'a. (Tarihçe: ilk ölçümde %63'tü.)
+
+Ölçümün kendisi de yazı tura atıyordu: dokuz bölümü bir kez kurup on
+dört ila on yedi bomba topluyordu ve oran üç koşuda %50, %18, %50
+çıkmıştı — eşik %30, yani gürültünün tam içinde. Artık dört tohumla
+altmış altı bomba bakıyor ve her koşuda aynı sayıyı veriyor.
+
 ## Geri tuşu oyundan çıkarıyordu
 
 Android'de geri tuşu, WebView'ın geçmişi boşsa uygulamayı kapatıyor.

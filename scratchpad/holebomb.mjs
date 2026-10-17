@@ -45,13 +45,31 @@ const check = (ok, ad, not = '') => {
 };
 
 // 1-5: bombasız bölümler. 6 ve sonrası: bombalı.
+//
+// Tahtalar **tohumlanıyor**, ve dokuz bölüm yerine yirmi dört örnek
+// alınıyor. Sebebi ölçüldü: eski hâli dokuz bölümü bir kez kuruyor
+// ve geriye on dört ila on yedi bomba kalıyordu; "önü kapalı bomba
+// oranı" üç koşuda %50, %18 ve %50 çıktı, eşik ise %30 — yani eşik
+// gürültünün tam içinde ve ölçüm yazı tura atıyordu. Deponun kendi
+// kuralı: eşik seçilmez, ölçülür, ve ölçüm koşudan koşuya aynı şeyi
+// söylemeli.
+//
+// Tohum bölüm numarasından türetiliyor; aynı bölümün dört ayrı
+// tahtası bakılıyor, yani örneklem hem büyük hem her koşuda aynı.
 console.log('bölüm başına bomba:');
 const satir = [];
-for (const n of [1, 3, 5, 6, 10, 14, 19, 24, 35]) {
-  const d = await pg.evaluate(lv => {
+const BOLUMLER = [1, 3, 5, 6, 10, 14, 19, 24, 35];
+const TOHUM = [11, 2027, 90210, 777];
+for (const n of BOLUMLER) for (const t of TOHUM) {
+  const d = await pg.evaluate(([lv, th]) => {
+    window.fruitHoleSeedField(th * 1000 + lv);
     const p = window.fruitHoleProbe(lv);
-    return { kind: p.kind, ...window.fruitHoleBombs(), ustunde: window.fruitHoleBombUstunde(), hucre: window.fruitHoleBombHucre() };
-  }, n);
+    const r = { kind: p.kind, ...window.fruitHoleBombs(),
+                ustunde: window.fruitHoleBombUstunde(), hucre: window.fruitHoleBombHucre() };
+    window.fruitHoleUnseedField();
+    return r;
+  }, [n, t]);
+  if (t !== TOHUM[0]) { satir.push({ n, ...d }); continue; }
   satir.push({ n, ...d });
   console.log(`  ${String(n).padStart(2)}. bölüm — ${String(d.sayi).padStart(2)} bomba / ` +
     `${String(d.toplam).padStart(3)} parça · hedef ${d.hedef} · ` +
