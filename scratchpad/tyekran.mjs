@@ -57,7 +57,29 @@ for (const dil of ['tr-TR', 'en-US']) {
     await pg.evaluate(() => {
       document.getElementById('dOk')?.click();
       window.jeTutSkip();
-      window.jeGive(1e12);
+      // En **büyük** sayı en **geniş** yazı değil. `fmt` üç basamakta
+      // bir ek harf koyuyor ve ondalık gösterip göstermemesi eşiğe
+      // göre değişiyor: 1e12 "1.00T" (beş karakter), 1.23e15 ise
+      // "1.23aa" (altı). Ölçüldü — 360 pikselde kasa hapı 116 ve 127
+      // piksel; yani 1e12 ile bakmak on bir pikselik payı hiç
+      // denememek. Aynı tuzak Fruit Hole'un cüzdan satırında dördüncü
+      // sayacı kaybettirmişti.
+      //
+      // Değer elle seçilmiyor: bütün büyüklükler taranıp hapı en geniş
+      // yapan değer alınıyor.
+      {
+        const aday = [999, 1234, 12345, 1.234e6, 1.234e9, 1.234e12,
+                      1.234e15, 1.234e18, 1.234e30, 9.99e35];
+        let enIyi = aday[0], enGenis = -1;
+        const hap = document.getElementById('cashPill');
+        for (const v of aday) {
+          window.jeSetCash ? window.jeSetCash(v) : window.jeGive(v - window.jeProbe().cash);
+          window.jeRefresh();
+          const w = hap.getBoundingClientRect().width;
+          if (w > enGenis) { enGenis = w; enIyi = v; }
+        }
+        window.jeSetCash ? window.jeSetCash(enIyi) : window.jeGive(enIyi - window.jeProbe().cash);
+      }
       // Müdürler **alınmadan**: ilk oturumun görüntüsü bu, ve müdür
       // düğmesi satırın yarısını istiyor.
       for (let i = 0; i < 4; i++) window.jeSetLevel(i, 14);

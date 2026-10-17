@@ -2392,7 +2392,16 @@ async function showInterstitial() {
 // dismissal, both failure events, and a watchdog for the case where the
 // plugin reports nothing at all. Whatever happens, this resolves once.
 const REWARD_WATCHDOG_MS = 90000;
+// Reklamın sonucunu dışarıdan dayatmak. Tarayıcıda `showRewarded()`
+// her zaman `true` dönüyor, yani **reklamın açılmadığı hâl** hiçbir
+// ölçümde denenmemişti — ve o hâlde ödülün yanıp yanmadığı, ekranın
+// kapanıp kapanmadığı, düğmenin tekrar basılabilir kalıp kalmadığı
+// yalnızca koda bakarak biliniyordu. Motor Works'te aynı yer
+// ölçülünce, dönüş ekranının ikiye katlama hakkını sessizce yaktığı
+// çıktı.
+let adSim = null;
 async function showRewarded() {
+  if (adSim !== null) return adSim;
   if (!ADS_ON) return true;
   return new Promise(async (resolve) => {
     let got = false, done = false, timer = null;
@@ -17199,7 +17208,8 @@ let levelGoal = 0;   // fruit that must be eaten to finish the level
 
 // Levels keep going after the pattern list runs out; each full cycle is a
 // harder tier with less time on the clock.
-function tier() { return Math.floor((level - 1) / PATTERNS.length); }
+const tierOf = n => Math.floor((n - 1) / PATTERNS.length);
+function tier() { return tierOf(level); }
 
 // Tur 2 ve sonrası: aynı düzen, çevrilmiş tahta.
 //
@@ -17397,7 +17407,17 @@ function shapeCoords(r, c) {
     // tahtasının ortalamasında sütun payları %33.6 / %43.0 / %23.4 çıkıyor;
     // birbirinden bağımsız kırk şeklin ortalaması böyle eğik olmaz, ortak
     // bir sebep olmadıkça.
-    wob: (blob(r, c, 0.45, 91 + level * 29) - 0.5) * 0.22,
+    // `level` değil `tahtaLvl()`: günlük koşuda tahtanın bölümü günün
+    // kendi sayısı, oyuncunun kaçıncı bölümde olduğu değil.
+    //
+    // Bu satır gözden kaçmıştı. Günlük meydan okumanın tek vaadi
+    // herkese aynı tahta, ve `shapeCoords` neredeyse bütün desenlerin
+    // `empty` fonksiyonundan çağrılıyor — yani siluetin kenarı
+    // oyuncunun bölümüne göre yontuluyordu. Ölçüldü
+    // (`holedaily.mjs`): aynı gün, aynı desen, aynı saat, aynı delik
+    // — ama 3. bölümdeki oyuncu 479 meyve, 44. bölümdeki 449 meyve
+    // görüyordu. Siluet 348 hücreye karşı 349.
+    wob: (blob(r, c, 0.45, 91 + tahtaLvl() * 29) - 0.5) * 0.22,
   };
 }
 
@@ -23922,7 +23942,16 @@ function levelTime() {
   // İçinde yenecek pay yok.
   const squeeze = (missionKind === 'order' || cards.length)
     ? 1
-    : 1 - Math.min(0.28, tier() * 0.07);
+    // `tier()` değil, **tahtanın** turu: `tier()` oyuncunun bölümünü
+    // okuyor ve günlük koşuda bu, aynı tahtaya farklı saat vermek
+    // demek. Ölçüldü (`holedaily.mjs`, bölüm taraması): aynı gün aynı
+    // tahtaya 291, 271 ve 250 saniye — %14'lük bir fark, ve skor
+    // liderlik tablosuna yazılıyor.
+    //
+    // Tema ve siluet aynı yerden aynı sebeple düzeltilmişti; bu
+    // üçüncü çağrı gözden kaçmıştı. Günlük koşuda `tahtaLvl()` günün
+    // kendi sayısı, yani herkeste aynı.
+    : 1 - Math.min(0.28, tierOf(tahtaLvl()) * 0.07);
   return Math.round(base * squeeze * ease()) + upg('time') * 5;
 }
 
@@ -24697,6 +24726,29 @@ document.getElementById('tchest2x').addEventListener('click', (e) => {
 setInterval(() => {
   if (menuEl.classList.contains('show')) refreshTchestBtn();
 }, 1000);
+// Oyuncunun bölümü. Tek değiştirme yolu kaydı yazıp sayfayı yeniden
+// yüklemekti; altmış bölümü taramak altmış açılış demekti ve her
+// açılış bu oyunda saniyeler sürüyor.
+window.fruitHoleSetLevel = n => { level = n; return level; };
+// `true` izlendi, `false` açılmadı, `null` oyunun kendi yoluna bırak.
+window.fruitHoleAdSim = v => { adSim = v; return adSim; };
+// Günlük ödül ekranını alınmamış hâlde aç. Ekranı açan tek dış yol
+// günün dönmesini beklemek, ve reklamın açılmadığı hâl o ekranda
+// ölçülüyor.
+window.fruitHoleShowDaily = () => { daily.rewardClaimed = false; return showDaily(); };
+// Reklam açılmadığında neyin durduğu dışarıdan görülebilsin diye.
+window.fruitHoleAdState = () => ({
+  canlandi: revivedThisLevel,
+  kayipEkran: document.getElementById('overlay').classList.contains('show'),
+  gunlukEkran: document.getElementById('daily').classList.contains('show'),
+  gunlukAlindi: !!daily.rewardClaimed,
+  sandikEkran: document.getElementById('tchest').classList.contains('show'),
+  dugmeler: ['daily2x', 'tchest2x', 'chest2x', 'reviveBtn'].map(id => {
+    const e = document.getElementById(id);
+    return { id, var: !!e, kapali: !!(e && e.disabled), gizli: !!(e && e.hidden),
+             yazi: e ? e.textContent.trim().slice(0, 16) : null };
+  }),
+});
 window.fruitHoleChest = () => ({
   left: tchestLeft(), n: tchest.n || 0, loot: tchestLoot(),
   text: tchestLootText(), label: document.getElementById('tchestBtn').querySelector('.tl').textContent,

@@ -783,9 +783,34 @@ tahta, kendisinden önce kaç seçim yapıldığına bağlı olurdu. Bugün soru
 değil; ama o seçimlerden biri değiştiği gün **geçmişteki her günün tarlası
 sessizce başka bir tarlaya dönerdi.**
 
+### Aynı sızıntı dört ayrı yerden geldi
+
+"Oyuncunun bölümü tarlaya karışmasın" tek bir satır değil, bir kural, ve
+kuralı çiğneyen yerler tek tek çıktı:
+
+1. **Tema** — `themeForLevel()` içindeki `tier()` oyuncunun bölümünü
+   okuyordu: farklı tema, farklı nesneler, farklı tarla.
+2. **Yerleşim** — `yerlesimStili(level)` ve iri öbeğin tohumu
+   (`777 + level * 37`).
+3. **Siluetin kenarı** — `shapeCoords`un dalgası `91 + level * 29` ile
+   tohumlanıyordu, ve o fonksiyon neredeyse bütün desenlerin `empty`
+   kuralından geçiyor. Aynı gün, aynı desen, aynı saat, aynı delik — ama
+   3. bölümdeki oyuncu 479, 44. bölümdeki 449 meyve görüyordu. Siluet
+   348 hücreye karşı 349.
+4. **Saat** — `levelTime()`in geç tur sıkıştırması yine `tier()`
+   okuyordu: aynı tahtaya 291, 271 ve 250 saniye.
+
+Üçüncüsü ile dördüncüsü, ilk ikisi düzeltildikten **sonra** çıktı, ve
+yalnızca günün deseni değiştiği için: ölçüm 3. ile 44. bölümü
+karşılaştırıyordu ve o günün deseninde ikisi aynı çıkıyordu. "İki oyuncu
+aynı tahtayı gördü" ile "tahta oyuncudan bağımsız" aynı şey değil.
+
+Ölçüm artık tek sekmede on altı bölümü tarıyor (`fruitHoleSetLevel`):
+açılış pahalı, bölümü değiştirmek değil.
+
 ### Ölçüm
 
-`scratchpad/holedaily.mjs`, 15 kontrol. En önemlisi ilki: iki bambaşka oyuncu
+`scratchpad/holedaily.mjs`, 18 kontrol. En önemlisi ilki: iki bambaşka oyuncu
 profili açılıyor — biri 3. bölümde, hiç yükseltmesi yok; öbürü 44. bölümde,
 hepsi dolu — ve ikisi de günlük koşuyu başlatıyor.
 

@@ -206,6 +206,14 @@
 
   /* Sürüm yazısı. Menünün sol alt köşesinde, okunacak kadar ama dikkat
      çekmeyecek kadar soluk. */
+  /* Ses tuşu menünün sağ üstünde. Duraklat ekranındaki ikizi turun
+     ortasında da kapatılabilsin diye var — sesi kapatmak isteyen kişi
+     çoğu zaman oynarken istiyor. */
+  #muteBtn { position: absolute; right: 14px;
+             top: calc(env(safe-area-inset-top, 0px) + 14px);
+             min-width: 44px; height: 44px; justify-content: center;
+             padding: 0 12px; font-size: 20px; cursor: pointer; }
+
   #verTag { position: absolute; left: 12px; bottom: 12px;
             font-size: 10px; font-weight: 700; letter-spacing: .04em;
             color: rgba(255,255,255,.45); }
@@ -239,6 +247,7 @@
       <button class="btn alt" id="goalsBtn">GOALS</button>
     </div>
     <span id="verTag">dev</span>
+    <div class="pill" id="muteBtn">🔊</div>
   </div>
 
   <div class="screen" id="map">
@@ -281,6 +290,7 @@
     <h2>Paused</h2>
     <div class="stack">
       <button class="btn" id="resumeBtn">RESUME</button>
+      <button class="btn alt" id="pauseMute">SOUND: ON</button>
       <button class="btn alt" id="quitBtn">MAIN MENU</button>
     </div>
   </div>
@@ -1296,7 +1306,24 @@ function stepSparks(dt) {
 // ---------------------------------------------------------------------
 let actx = null;
 const audio = () => (actx ||= new (window.AudioContext || window.webkitAudioContext)());
+// Ses açık mı. Bu satır vardı, `tone()` ona bakıyordu ve kayda
+// yazılıyordu — ama **değiştirecek hiçbir şey yoktu**: `muted` bütün
+// dosyada yalnızca burada ve `tone`'da geçiyordu. Yani oyunun sesini
+// kapatmanın yolu yoktu, ve kapatma özelliği kodda duruyordu.
+// Bu depodaki tanıdık sınıf: ekranda olmayan ama yazılmış şey.
 let muted = store.get('slicerush_muted', false);
+function sesYaz() {
+  const m = $('muteBtn'); if (m) m.textContent = muted ? '🔇' : '🔊';
+  const p = $('pauseMute'); if (p) p.textContent = muted ? 'SOUND: OFF' : 'SOUND: ON';
+}
+function sesCevir() {
+  muted = !muted;
+  store.set('slicerush_muted', muted);
+  sesYaz();
+  // Kapatırken ses çıkarmak, açarken çıkarmamak: geri bildirim
+  // yalnızca duyulabilir olduğunda bir şey ifade ediyor.
+  if (!muted) tone(660, 0.09, 'triangle', 0.12);
+}
 function tone(freq, dur, type = 'triangle', gain = 0.16, slideTo = null) {
   if (muted) return;
   try {
@@ -2167,6 +2194,9 @@ $('dblBtn').onclick = async () => {
   $('cCoins').textContent = '🪙 ' + got;
   b.textContent = ok ? '×2 TAKEN ✓' : 'AD DID NOT OPEN';
 };
+$('muteBtn').onclick      = () => { audio(); sesCevir(); };
+$('pauseMute').onclick    = () => sesCevir();
+sesYaz();
 $('pauseBtn').onclick     = () => { if (state === 'playing') { state = 'paused'; showScreen('pause'); } };
 $('resumeBtn').onclick    = () => { state = 'playing'; showScreen(null); last = performance.now(); };
 $('quitBtn').onclick      = () => { state = 'menu'; refreshMenu(); showScreen('menu'); };
@@ -2560,6 +2590,10 @@ window.sliceMeta = () => ({
   coins, runCoins, banked: paidOut, revived,
   blade: activeBlade, owned: [...ownedBlades],
   reach: BLADES[activeBlade].reach,
+  // Sesin kapalı olup olmadığı dışarıdan görülebilsin: "kapatma
+  // düğmesi gerçekten kapatıyor mu" diye bir ölçü başka türlü
+  // yazılamıyor.
+  sessiz: muted,
 });
 // Hedeflerin durumu — dışarıdan doğrulamak için.
 window.sliceGoals = () => ({

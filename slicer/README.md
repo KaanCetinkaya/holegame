@@ -153,6 +153,21 @@ mi, pencere bıçağa yer bırakıyor mu — ama geometrinin tamamı doğruyken
 bölüm yine de bitirilemeyebilir, çünkü engeller tek tek değil arka
 arkaya çözülüyor.
 
+## Sesi kapatmanın yolu yoktu
+
+`muted` değişkeni vardı, `tone()` ona bakıyordu, kayda yazılıyordu — ve
+bütün dosyada başka hiçbir yerde geçmiyordu. Yani kapatma özelliği
+yazılmış ve **ona dokunulacak hiçbir şey konmamıştı**. Bu depodaki
+tanıdık sınıf: ekranda olmayan ama var sayılan şey.
+
+Menünün sağ üstünde bir tuş, duraklat ekranında da ikizi — sesi
+kapatmak isteyen çoğu zaman oynarken istiyor. İkisi aynı duruma
+bakıyor, biri çevirince ötekinin yazısı da değişiyor.
+
+`scratchpad/slses.mjs` yalnızca simgeye bakmıyor: `AudioContext`in
+osilatör üretimini sayıyor. Simge değişip sesin devam etmesi, düğmenin
+hiç olmamasından beter olurdu.
+
 ## Akşamlar
 
 Koridor her bölümde aynı mordu. Karışım bölümle sertleştikten sonra 30.
@@ -311,6 +326,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slegri.mjs     # zorluk düzgün mü artıyor, uçurum var mı
     node scratchpad/slkayit.mjs    # bozuk kayıt anahtarı oyunu öldürüyor mu
     node scratchpad/slsurucu.mjs   # bölüm bitirilebiliyor mu, geçilen engel öldürüyor mu
+    node scratchpad/slses.mjs      # ses kapatılabiliyor mu, kapanınca susuyor mu
     node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 

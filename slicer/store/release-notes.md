@@ -11,25 +11,27 @@ beri değişti, ve kapalı testteki kişinin neye bakacağını söyleyen tek
 
 ## Bu sürüm (sürüm kodu 3)
 
-### İngilizce — `en-US` (473 karakter)
+### İngilizce — `en-US` (498 karakter)
 
 ```
 The corridor keeps asking new questions past level 17, and it stops looking the same while it does.
 
 • An obstacle you have already cleared can no longer kill you
+• A sound toggle, in the menu and on the pause screen
 • Six sceneries, changing every four levels
-• Two new obstacles: twin windows at different heights, and a mine waiting just past a narrow gap
+• Two new obstacles: twin windows, and a mine just past a narrow gap
 • The clamp at level 12 no longer arrives at its full difficulty
 • A damaged save can no longer stop the game from opening
 • Less memory held on to after a long session
 ```
 
-### Türkçe — `tr-TR` (442 karakter)
+### Türkçe — `tr-TR` (496 karakter)
 
 ```
 Koridor 17. bölümden sonra da yeni şeyler soruyor, ve bunu yaparken aynı görünmüyor.
 
 • Temiz geçtiğin engel artık arkandan öldürmüyor
+• Ses açma/kapama tuşu (menüde ve duraklat ekranında)
 • Altı manzara, dört bölümde bir değişiyor
 • İki yeni engel: farklı yüksekliklerde iki pencere, ve dar bir geçidin hemen ardında bekleyen mayın
 • 12. bölümdeki mengene artık ilk günden son zorluğunda gelmiyor

@@ -120,6 +120,49 @@ check(nb.startR > na.startR, 'normal bölümde yükseltmeli oyuncunun deliği da
   `${na.startR} -> ${nb.startR}`);
 check(!na.dailyRun && !nb.dailyRun, 'normal bölümde günlük kipi kapalı');
 
+// ---- 2b: bütün bölüm aralığı, tek sekmede ----
+//
+// İki profil yetmiyor. Bu ölçüm bir kez 3 ile 44'ü karşılaştırıp geçti
+// ve ertesi gün düştü: günün deseni değişince sızıntı görünür oldu.
+// Yani "iki oyuncu aynı tahtayı gördü" ile "tahta oyuncudan bağımsız"
+// aynı şey değil, ve kaçırılan şey ikincisiydi.
+//
+// Sebep buydu: `shapeCoords`un kenar dalgası `91 + level * 29` ile
+// tohumlanıyordu ve neredeyse bütün desenlerin `empty` fonksiyonu
+// oradan geçiyor. Aynı gün, aynı desen, aynı saat, aynı delik — ama
+// siluetin kenarı oyuncunun bölümüne göre yontuluyordu.
+//
+// Tek sekmede tarıyor: açılış pahalı, bölümü değiştirmek değil.
+console.log('\n2b. tahta oyuncunun bölümünden bağımsız mı');
+const tarama = await A.pg.evaluate(async () => {
+  const out = [];
+  for (const n of [1, 2, 3, 5, 8, 12, 17, 23, 29, 34, 40, 44, 55, 70, 90, 120]) {
+    window.fruitHoleSetLevel(n);
+    window.fruitHoleStartDaily();
+    for (let i = 0; i < 60; i++) {
+      if (window.fruitHoleDailyState().dailyRun) break;
+      await new Promise(r => setTimeout(r, 50));
+    }
+    await new Promise(r => setTimeout(r, 250));
+    const h = window.fruitHoleFieldHash();
+    const d = window.fruitHoleDailyState();
+    out.push({ n, hash: h.hash, adet: h.n, sure: d.timeFull, r: d.startR, desen: d.pattern });
+  }
+  return out;
+});
+const ilk = tarama[0];
+const sapan = tarama.filter(x => x.hash !== ilk.hash);
+console.log(`   ${tarama.length} bölüm · ${ilk.adet} meyve, ${ilk.hash}`);
+for (const x of sapan.slice(0, 6))
+  console.log(`   bölüm ${x.n}: ${x.adet} meyve, ${x.hash}`);
+check(sapan.length === 0, 'her bölümdeki oyuncu aynı tahtayı görüyor',
+  sapan.length ? `${sapan.length}/${tarama.length} farklı: ` +
+    sapan.slice(0, 4).map(x => `${x.n}→${x.adet}`).join(' ') : `${tarama.length} bölüm, tek tahta`);
+check(new Set(tarama.map(x => x.sure)).size === 1, 'saat de her bölümde aynı',
+  [...new Set(tarama.map(x => x.sure))].join(' '));
+check(new Set(tarama.map(x => x.r)).size === 1, 'delik de her bölümde aynı',
+  [...new Set(tarama.map(x => x.r))].join(' '));
+
 // ---- 3: ilerlemeye dokunmuyor ----
 console.log('\n3. ilerleme');
 const before = await B.pg.evaluate(() => ({
