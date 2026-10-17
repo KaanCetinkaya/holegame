@@ -15,6 +15,7 @@ const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
 pg.on('console', m => { if (m.type()==='error' && !m.text().includes('404')) errs.push('CONSOLE: '+m.text()); });
 await pg.goto('http://localhost:8141/', { waitUntil:'load' });
 await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+const bitmeyen = [], ekransiz = [];
 await pg.waitForTimeout(500);
 
 for (let lvl = 1; lvl <= 3; lvl++) {
@@ -36,11 +37,28 @@ for (let lvl = 1; lvl <= 3; lvl++) {
       }));
       console.log(`bölüm ${lvl}: ${p.state.padEnd(8)} kesilen ${String(p.cut).padStart(3)}/${p.total}  ` +
                   `yıldız "${shown.stars}"  ekran ${shown.clear ? 'BİTTİ' : shown.over ? 'ÇARPTI' : '???'}`);
+      if (!shown.clear && !shown.over) ekransiz.push(lvl);
       if (shown.clear) await pg.screenshot({ path: `${OUT}/slice_clear.png` });
       break;
     }
   }
-  if (guard >= 400) console.log(`bölüm ${lvl}: BİTMEDİ (400 adım)`);
+  if (guard >= 400) { console.log(`bölüm ${lvl}: BİTMEDİ (400 adım)`); bitmeyen.push(lvl); }
 }
 console.log('errors:', errs.length ? errs : 'none');
+// ## Çıkış kodu
+//
+// Bu dosya bulduğunu **basıyordu ama çıkış kodu sıfır dönüyordu**, yani onu
+// çağıran her şey — toplu koşu, ileride bir CI — "geçti" diye okuyordu.
+// Hata basan ama başarı sinyali veren bir test, hiç test olmamasından kötü:
+// bakılmış olduğu izlenimi veriyor. Aynı hata `holeorderplay`de bir kez
+// düzeltildi ve sebebi orada da yazılı.
+//
+// Aşağıdaki şart yeni bir iddia değil — dosyanın zaten ekrana yazdığı şeyin
+// aynısı.
+//
+// Bir bölüm ya bitiyor ya çarpıyor; üçüncü hâli ("???") ekranların hiç
+// gelmemesi demek, ve dört yüz adımda bitmemesi de bir sonuç.
+if (bitmeyen.length) console.log(`\nFAIL — bitmeyen bölüm: ${bitmeyen.join(', ')}`);
+if (ekransiz.length) console.log(`FAIL — bitiş ekranı gelmeyen bölüm: ${ekransiz.join(', ')}`);
+process.exitCode = (bitmeyen.length || ekransiz.length || errs.length) ? 1 : 0;
 await b.close(); srv.close();

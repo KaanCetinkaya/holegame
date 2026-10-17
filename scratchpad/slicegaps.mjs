@@ -78,4 +78,15 @@ for (let lvl = 1; lvl <= 30; lvl++) {
 }
 console.log(bad === 0 ? '\nPASS — her engel dizisi geçilebilir' : `\nFAIL — ${bad} bölümde imkânsız dizi`);
 console.log('errors:', errs.length ? errs : 'none');
+// ## Çıkış kodu
+//
+// Bu dosya bulduğunu **basıyordu ama çıkış kodu sıfır dönüyordu**, yani onu
+// çağıran her şey — toplu koşu, ileride bir CI — "geçti" diye okuyordu.
+// Hata basan ama başarı sinyali veren bir test, hiç test olmamasından kötü:
+// bakılmış olduğu izlenimi veriyor. Aynı hata `holeorderplay`de bir kez
+// düzeltildi ve sebebi orada da yazılı.
+//
+// Aşağıdaki şart yeni bir iddia değil — dosyanın zaten ekrana yazdığı şeyin
+// aynısı.
+process.exitCode = (bad || errs.length) ? 1 : 0;
 await b.close(); srv.close();

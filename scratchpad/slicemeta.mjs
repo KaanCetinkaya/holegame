@@ -77,8 +77,22 @@ const tooDear = await pg.evaluate(() => {
   document.querySelectorAll('#blades .blade')[5].click();
   return { before: before.coins, after: window.sliceMeta().coins, blade: window.sliceMeta().blade };
 });
+const bedava = tooDear.before !== tooDear.after;
 console.log(`pahalı olanı almayı dene: kasa ${tooDear.before} -> ${tooDear.after}  ` +
-            `${tooDear.before === tooDear.after ? 'OK — almadı' : '!!! bedava verdi'}`);
+            `${bedava ? '!!! bedava verdi' : 'OK — almadı'}`);
 
 console.log('errors:', errs.length ? errs : 'none');
+// ## Çıkış kodu
+//
+// Bu dosya bulduğunu **basıyordu ama çıkış kodu sıfır dönüyordu**, yani onu
+// çağıran her şey — toplu koşu, ileride bir CI — "geçti" diye okuyordu.
+// Hata basan ama başarı sinyali veren bir test, hiç test olmamasından kötü:
+// bakılmış olduğu izlenimi veriyor. Aynı hata `holeorderplay`de bir kez
+// düzeltildi ve sebebi orada da yazılı.
+//
+// Aşağıdaki şart yeni bir iddia değil — dosyanın zaten ekrana yazdığı şeyin
+// aynısı.
+//
+// Şart, dosyanın en keskin bulgusu: parası yetmeyen bıçağı oyun **vermemeli**.
+process.exitCode = (bedava || errs.length) ? 1 : 0;
 await b.close(); srv.close();
