@@ -297,6 +297,21 @@ if (siradan.length) {
       : `${saatli.length} bölüm`);
 }
 
+// Ödüllü reklam ne sıklıkta teklif ediliyor?
+//
+// "+15 saniye" ancak **kaybedince** teklif ediliyor (`revive`, bölüm başına
+// bir kez). Yani saatin bolluğu yalnızca yıldızı değil, oyunun tek ödüllü
+// reklam yerini de etkiliyor: kimse kaybetmiyorsa o reklam hiç gösterilmiyor
+// ve yazılmış bir özellik ölü duruyor.
+//
+// Kapı değil, karar için bir sayı: kat sayısı kısılırsa bu oran yükselir.
+{
+  const kaybeden = gecerli.filter(r => r.state === 'lost');
+  console.log(`  ödüllü "+15 saniye" teklifi: ${kaybeden.length}/${gecerli.length} bölümde ` +
+    `(yalnızca kaybedince çıkıyor)` +
+    (kaybeden.length ? ' — ' + kaybeden.map(r => r.lv).join(' ') : ''));
+}
+
 // Saat hangi daldan geliyor? — dört dal var ve hangisinin çalıştığı
 // sanıldığı gibi değil.
 //
