@@ -24330,7 +24330,20 @@ function levelTime() {
     : missionKind === 'mines'
     ? Math.round(sweepSeconds() * 2.6) + MINE_ALLOW * BOMB_COST
     // Hedef kartı olan bölümün saati tarlanın tamamından değil, **kartların
-    // istediği turdan** çıkıyor. Süpürme saati verilseydi kartlar tahtanın
+    // istediği turdan** çıkıyor.
+    //
+    // Ve bu dal, sanıldığı gibi özel bir durum değil: kartlar her uygun
+    // ızgara tahtasına konuyor (`pickCards`'ın çağrıldığı satırda bölüm
+    // şartı yok — yalnızca günlük koşu, görev, resim, şerit ve bulmaca
+    // dışarıda). Yani **sıradan bir ızgara bölümünün saatini veren şey bu
+    // dal**; üstteki süpürme dalı resim tahtalarında ve mayın görevinde
+    // çalışıyor.
+    //
+    // Yorumun sırası bunun tersini düşündürüyordu ve bir gece bu yüzden
+    // kaybedildi: saat bolluğu süpürme modelinde arandı, model düzeltilmeye
+    // çalışıldı, ve ölçüm sonunda bütün ızgara bölümlerinin kart dalında
+    // olduğunu söyledi (`scratchpad/holesaat.mjs`, "saat dalları" satırı —
+    // artık her koşuda yazıyor ve bu dağılım bir kapı). Süpürme saati verilseydi kartlar tahtanın
     // yarısını bile istemediği için her bölüm üç yıldızla biterdi; o hata
     // bir kez yapıldı ve README'de duruyor ("42-82% spare everywhere").
     : cards.length

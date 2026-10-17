@@ -297,6 +297,32 @@ if (siradan.length) {
       : `${saatli.length} bölüm`);
 }
 
+// Saat hangi daldan geliyor? — dört dal var ve hangisinin çalıştığı
+// sanıldığı gibi değil.
+//
+// `levelTime`in yorumu süpürme dalını varsayılan, kart dalını özel durum
+// gibi anlatıyor. Ölçüldü ve tam tersi: kartlar **her** uygun ızgara
+// tahtasına konuyor (`pickCards`, bölüm şartı yok — yalnızca günlük koşu,
+// görev, resim, şerit ve bulmaca dışarıda), yani sıradan bir ızgara
+// bölümünün saatini kart turu veriyor. Süpürme dalı resim tahtalarında ve
+// mayın görevinde çalışıyor.
+//
+// Bu satır o yüzden var: bir gün biri karta bölüm şartı koyarsa (ya da
+// kaldırırsa) bölümlerin saati sessizce başka bir formüle geçer, ve 2.6
+// kat sayısı tekrar önem kazanır. Dağılım yazılıyor, ve "sıradan ızgara
+// bölümü kart dalında" iddiası kapı.
+{
+  const dallar = {};
+  for (const r of satir) if (r.model) dallar[r.model.dal] = (dallar[r.model.dal] || 0) + 1;
+  console.log('  saat dalları: ' + Object.entries(dallar).map(([k, v]) => `${k} ${v}`).join(' · '));
+  const izgara = satir.filter(r => r.kind === 'ızgara' && !r.mission && r.model);
+  const kartsiz = izgara.filter(r => r.model.dal !== 'kart');
+  check(izgara.length > 0 && kartsiz.length === 0,
+    'sıradan ızgara bölümünün saati kart turundan geliyor',
+    kartsiz.length ? kartsiz.map(r => `${r.lv}:${r.model.dal}`).join(' ')
+                   : `${izgara.length} bölüm`);
+}
+
 // Görev bölümleri ayrı: saatleri başka formülden geliyor ve her biri
 // kendi ölçümüne sahip (holeorder, holeorderplay, holemayin). Burada
 // yalnızca yazılıyor, kapı kurulmuyor.
