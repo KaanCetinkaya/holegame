@@ -3479,6 +3479,19 @@ eklentilerle ayrı ayrı kuruluyor ve üçünün çıktısının **birbirinden f
 olduğu doğrulanıyor. Ekran üçüne de aynı şeyi yazsaydı hiçbir işe yaramazdı,
 ve bunu "ekran açılıyor mu" diye bakarak fark edemezdin.
 
+## Telefon yan çevrilince
+
+Manifest yönelim hakkında hiçbir şey söylemiyordu, yani WebView de yan
+dönüyordu. Dördü de dikey oyun — kamera, HUD ve tahta dikey ekrana göre
+kurulmuş — ve ölçüldü (Slice Rush, 740×360): menünün dört düğmesinin
+dördü de, PLAY dahil, perdenin altında kalıyor. Ekranlar
+kaydırılabilir olduğu için teknik olarak ulaşılabilir, ama oyunu açıp
+"oyna"yı aramak diye bir şey olmamalı.
+
+`patch-manifest.mjs` artık MainActivity'ye `screenOrientation="portrait"`
+yazıyor; `holepatch` üç satırla kontrol ediyor (yazıldı mı, bir kez mi,
+doğru etikete mi).
+
 ## Titreşim, izin olmadan sessizce çalışmıyor
 
 Oyun her yutmada kısa bir tık, kaybedince uzun bir buzz veriyor

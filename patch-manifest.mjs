@@ -159,6 +159,33 @@ if (app.billing && !xml.includes('com.android.vending.BILLING')) {
   console.log(`Faturalandırma izni eklendi -> ${app.dir}`);
 }
 
+// --- dikey kilit ---
+//
+// Dördü de dikey oyun: kamera, HUD ve parkur dikey ekrana göre
+// kurulmuş. Manifest hiçbir şey söylemediği için telefon yan
+// çevrildiğinde WebView de yan dönüyor, ve ölçüldü (Slice Rush,
+// 740×360): menünün dört düğmesinin dördü de — PLAY dahil —
+// perdenin altında kalıyor. Ekranlar kaydırılabilir olduğu için
+// teknik olarak ulaşılabilir, ama oyunu açıp "oyna"yı aramak diye
+// bir şey olmamalı.
+//
+// Yatay bir düzen çizmek de bir seçenekti; dört oyunun dördü için
+// ikinci bir yerleşim demek, ve hiçbiri yan oynanmak üzere
+// tasarlanmadı.
+if (!xml.includes('android:screenOrientation')) {
+  const once = xml;
+  xml = xml.replace(/<activity\b((?:[^>]*?)android:name="\.MainActivity")/,
+    '<activity\n            android:screenOrientation="portrait"$1');
+  if (xml === once) {
+    console.error('HATA: manifest içinde MainActivity bulunamadı, beklenmeyen biçim.');
+    process.exit(1);
+  }
+  changed = true;
+  console.log(`Dikey kilit eklendi -> ${app.dir}`);
+} else {
+  console.log('Dikey kilit zaten yerinde.');
+}
+
 // --- titreşim izni ---
 //
 // `navigator.vibrate()` WebView'da **sessizce** çalışmıyor: izin yoksa

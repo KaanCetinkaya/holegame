@@ -51,7 +51,19 @@ writeFileSync(join(app, 'src', 'main', 'AndroidManifest.xml'), `<?xml version="1
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
         android:label="@string/app_name">
-        <activity android:name=".MainActivity" />
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
@@ -104,6 +116,14 @@ check(manifest().includes('com.android.vending.BILLING'), 'faturalandırma izni 
 // hata da yok. Yani eksikliği ancak telefonu elinde tutan biri fark
 // eder — ya da buradaki satır.
 check(manifest().includes('android.permission.VIBRATE'), 'titreşim izni yazıldı');
+// Dikey kilit. Olmadığında telefon yan çevrilince WebView de yan
+// dönüyor ve dikey için çizilmiş menü perdenin altına kayıyor.
+check(manifest().includes('android:screenOrientation="portrait"'), 'dikey kilit yazıldı');
+check((manifest().match(/screenOrientation/g) || []).length === 1,
+  'dikey kilit bir kez yazıldı');
+// Doğru yere: MainActivity etiketinin içine, `<application`a değil.
+check(/<activity\b[^>]*android:screenOrientation="portrait"[^>]*android:name="\.MainActivity"/s
+  .test(manifest()), 'dikey kilit MainActivity üstünde');
 check((manifest().match(/android\.permission\.VIBRATE/g) || []).length === 1,
   'titreşim izni bir kez yazıldı');
 
@@ -143,7 +163,19 @@ writeFileSync(join(app, 'build.gradle'), `android {
 writeFileSync(join(app, 'src', 'main', 'AndroidManifest.xml'), `<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:label="@string/app_name">
-        <activity android:name=".MainActivity" />
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
 `);
