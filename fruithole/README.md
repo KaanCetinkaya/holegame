@@ -3485,6 +3485,14 @@ Test dördünü de kontrol ediyor: iki tuş da ekranın içinde, başlık örtü
 ve **dört sayacın dördü de görünüyor** — kaydırılabilir olması yetmiyor,
 çünkü kaydırılabildiğini söyleyen hiçbir şey yok.
 
+Ve dördüncüsü yine kaybolmuştu. Beş haneli bakiyede 360 pikselde sayaç
+sayısı 3/4'e düşüyordu; kaplama fiyatları yükseldikçe pilleri taşıyan
+yazı da uzadı. En geniş hâlin **beş hane** olduğunu görmek kolay değil:
+17359 "17.4k" (beş karakter), 123456 ise "123k" (dört). Yani altı hane
+beşten dar, ve yalnızca "en büyük sayı" denenseydi sorun görünmezdi.
+385px altında hap dolgusu, iç boşluk, nokta boyu ve yazı birkaç piksel
+daha kısıldı; dördü birden sığıyor.
+
 ## Bomba: tahtadaki ilk direnç
 
 O ana kadar bölümler birbirinden yalnızca **düzen** ve **saat** ile

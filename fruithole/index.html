@@ -258,8 +258,15 @@
   .upg .pip { width: 16px; height: 5px; border-radius: 999px; background: rgba(255,255,255,.22); }
   .upg .pip.on { background: linear-gradient(90deg,#ffe27a,#ffb02e);
     box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+  /* Dolgu 8px'ti ve düğme 37 piksel yüksekliğinde çıkıyordu — bu
+     dosyanın `.topKey` için kendi koyduğu "yaklaşık 38px'in altına
+     inme" sınırının bile altında, her ekran boyutunda (ölçüldü:
+     `scratchpad/holekucuk.mjs`). Yükseltmeler, hedefler ve mağaza
+     satırları alt alta duruyor ve hepsinin düğmesi bu: yanlış satıra
+     basmak yanlış şeye para vermek demek. Satır boyu değişmiyor,
+     yüksekliği 46 pikselik simge belirliyor. */
   .upg .buy { pointer-events: auto; cursor: pointer; border: 3px solid #fff; border-radius: 16px;
-    padding: 8px 13px; font-weight: 800; font-size: 13px; color: #5a3200; white-space: nowrap;
+    padding: 12px 13px; font-weight: 800; font-size: 13px; color: #5a3200; white-space: nowrap;
     background: linear-gradient(180deg,#ffdc7a,#ffb02e);
     box-shadow: inset 0 2px 0 rgba(255,255,255,.6), 0 4px 0 #c67e12; }
   .upg .buy:active { transform: translateY(2px); box-shadow: 0 2px 0 #c67e12; }
@@ -746,8 +753,20 @@
        yaşamak, bir sonraki eklemede taşmak demek. */
     #boosterBar { gap: 10px; }
     .slot { width: 58px; height: 58px; border-radius: 17px; font-size: 26px; }
-    #menuWallet .mw b { font-size: 11px; }
-    #menuWallet .mw { padding: 3px 6px 3px 3px; }
+    /* Dört sayacın dördü de görünsün diye sıkıştırma.
+       Ölçüldü (`scratchpad/holetop.mjs`): 360 pikselde beş haneli
+       bakiyede dördüncü sayaç satırın dışında kalıyordu. Cüzdan
+       yatayda kayabiliyor, yani teknik olarak kayıp değil — ama
+       kaydırma çubuğu gizli ve dört hapın yatay sürüklenebildiğini
+       kimse tahmin etmiyor, yani dördüncü para birimi oyuncu için
+       yok.
+       En geniş hâl beş hane: 17359 "17.4k" oluyor, 123456 ise "123k".
+       Yani altı hane beşten dar ve ölçüm yalnızca altı haneye bakmış
+       olsaydı sorunu hiç görmezdi. */
+    #menuWallet { gap: 3px; }
+    #menuWallet .mw b { font-size: 10.5px; }
+    #menuWallet .mw { padding: 3px 5px 3px 2px; gap: 2px; }
+    #menuWallet .mw i { width: 13px; height: 13px; border-width: 1px; }
   }
 
   /* bottom bar, so the secondary screens stop competing with Play */
