@@ -6200,6 +6200,48 @@ yıldızla bitiyor. Aynı sebeple **"+15 saniye" ödüllü reklamı hiç çıkm�
 tam bu hâli düzeltmek için konmuştu ("the old formula left 42-82% spare
 everywhere: no level could be lost, every level scored three stars").
 
+### Önce bir hata çıktı: yıldızın böleni koşu boyunca küçülüyordu
+
+Saati ölçerken yıldızın kendisine bakıldı ve orada bir denge sorusu değil
+düpedüz bir hata vardı. `liveStars` oranı şöyle hesaplıyordu:
+
+```js
+timeLeft / Math.max(1, levelTime())
+```
+
+`levelTime()` bir sabit değil: tahtanın **o anki** hâlinden hesaplanıyor.
+Süpürme modeli deliğin şimdiki yarıçapını okuyor (delik büyüdükçe tahmin
+kısalıyor), kartlı bölümde ise kalan kartların turunu ölçüyor — kartlar
+bitince o tur sıfıra iniyor ve `levelTime()` tabana, otuz saniyeye düşüyor.
+
+Yani oran, bölümü bitirdiğin anda **en küçük** bölenine bölünüyordu:
+
+| bölüm | verilen saat | bitişte `levelTime()` | oran: verilen → bitişteki |
+|---|---|---|---|
+| 19 | 239 | 186 | %90 → %116 |
+| 37 | 156 | 30 | %61 → **%315** |
+| 61 | 219 | 30 | %63 → **%458** |
+| 97 | 103 | 58 | %83 → %147 |
+
+Üç yıldız %45 istiyor. Yani kartlı bir bölüm — ve sıradan ızgara
+bölümlerinin **hepsi** kartlı — saatin yarısını harcasan da üç yıldız
+veriyordu. Oyuncunun koşu boyunca HUD'da gördüğü yıldız da aynı sebeple
+şişiyordu: tahta boşaldıkça yıldız kendiliğinden üçe çıkıyor.
+
+Bölen `timeFull` oldu — bölümün **verdiği** saat, ve tanımı da zaten öyle
+yazılı ("the clock the level was handed, before any of it ran"). Hazır
+duruyordu, kullanılmıyordu.
+
+Bir de saat güçlendiricisi: `timeLeft += 15` yapıyordu, artık `timeFull` da
+artıyor. Yoksa güçlendirici yıldız satın almaya dönüyor — on beş saniye
+ekleyip oranı yükseltmek, bölümü hızlı bitirmişsin gibi görünmek demek.
+Güçlendiricinin işi bölümü bitirtmek; hızlı bitirdiğini söyleyen şey yıldız.
+
+Bu hata saati **bollaştırmıyordu**, saatin bolluğunu **görünmez**
+kılıyordu: yıldız hep üç olduğu için kimse saate bakmıyordu. Düzeltildikten
+sonra ölçüm hâlâ "her bölüm üç yıldız" diyor (bkz. yukarıdaki tablo) — ama
+artık doğru sebepten, ve kararı verilecek sayı tek: kat sayısı.
+
 ### Model suçlu değil, kat sayısı suçlu — ve bu ölçülerek anlaşıldı
 
 İlk tahmin modeldeydi, çünkü ölçüm modelin **tek bir sayı** verdiğini

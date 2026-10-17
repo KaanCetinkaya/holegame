@@ -24406,9 +24406,32 @@ function liveStars() {
   // tavana dayanıyor, yani oran her zaman 1'in üstünde ve her koşu üç yıldız
   // olurdu. Ölçü tavanın neresinde bitirdiğin — hiç sıkışmadan geçen oyuncu
   // üç, son saniyelerde yetişen bir.
+  // Bölen `timeFull`: bölümün **verdiği** saat. Burada `levelTime()` yazıyordu
+  // ve o bir sabit değil — koşu boyunca küçülen bir sayı.
+  //
+  // `levelTime()` tahtanın o anki hâlinden hesaplanıyor: süpürme modeli
+  // deliğin **şimdiki** yarıçapını okuyor (delik büyüdükçe tahmin kısalıyor),
+  // kartlı bölümde ise kalan kartların turunu ölçüyor — kartlar bitince o tur
+  // sıfıra iniyor ve `levelTime()` tabana, otuz saniyeye düşüyor.
+  //
+  // Yani oran, bölümü bitirdiğin anda en küçük bölenine bölünüyordu. Ölçüldü
+  // (`scratchpad/holesaat.mjs` ve yıldız karşılaştırması):
+  //
+  //   blm | verilen saat | bitişte levelTime() | oran: verilen -> bitişteki
+  //    37 |          156 |                  30 | %61 -> %315
+  //    61 |          219 |                  30 | %63 -> %458
+  //    19 |          239 |                 186 | %90 -> %116
+  //
+  // Üç yıldız %45 istiyor, yani kartlı her bölüm — oyundaki sıradan ızgara
+  // bölümlerinin hepsi — saatin yarısını harcasa da üç yıldız veriyordu.
+  // Oyuncunun HUD'da koşu boyunca gördüğü yıldız da aynı sebeple şişiyordu:
+  // tahta boşaldıkça yıldız kendiliğinden üçe çıkıyor.
+  //
+  // `timeFull` tam bu iş için duruyor ve tanımı da öyle yazılı ("the clock the
+  // level was handed, before any of it ran").
   const ratio = missionKind === 'rush'
     ? timeLeft / RUSH_CAP
-    : timeLeft / Math.max(1, levelTime());
+    : timeLeft / Math.max(1, timeFull);
   return ratio >= 0.45 ? 3 : ratio >= 0.2 ? 2 : 1;
 }
 
@@ -24663,6 +24686,12 @@ function useBooster(b) {
 
   if (b.id === 'time') {
     timeLeft += BOOST_TIME_SEC;
+    // Verilen saat de artıyor, çünkü yıldızın böleni o (`liveStars`).
+    // Artmazsa güçlendirici yıldız satın almaya dönüyor: on beş saniye
+    // ekleyip oranı yükseltmek, bölümü hızlı bitirmişsin gibi görünmek
+    // demek. Güçlendiricinin işi bölümü **bitirtmek**; hızlı bitirdiğini
+    // söyleyen şey yıldız ve onu saat ölçüyor.
+    timeFull += BOOST_TIME_SEC;
     lastWholeSecond = -1;
     updateTimeUI();
   } else if (b.id === 'grow') {
@@ -28192,6 +28221,21 @@ window.fruitHoleOrderNearest = () => {
 // `alan` ile `doluAlan` yan yana duruyor çünkü modelin varsayımı şu:
 // süpürülecek şey tarlanın **tamamı**. Seyrek bir tahtada oyuncu boş
 // bölgeleri atlıyor ve ikisinin oranı o atlamanın ölçüsü.
+// Yıldız: oyunun kendi verdiği sayı, ve onu veren bölen.
+//
+// Ölçüm yıldızı kendi hesaplayabilir (`kalan / verilen`) ama o, oyunun ne
+// yaptığını değil ölçümün ne düşündüğünü söyler. İkisi burada yan yana
+// duruyor, çünkü aralarının açılması tam olarak bir kez oldu: `liveStars`
+// böleni koşu boyunca küçülen `levelTime()`a bölüyordu ve kartlı bölümlerde
+// oran %63 yerine %458 çıkıyordu.
+window.fruitHoleStars = () => ({
+  yildiz: liveStars(),
+  kalan: +timeLeft.toFixed(1),
+  verilen: +timeFull.toFixed(1),
+  // Modelin o anki tahmini. Bölen bu olmamalı; karşılaştırma için duruyor.
+  model: levelTime(),
+  gorev: missionKind || null,
+});
 window.fruitHoleClock = () => {
   const canli = fruits.filter(f => !f.eaten && !f.bomb);
   const hucre = new Set(canli.map(f => Math.round(f.z / CELL) + ',' + Math.round(f.x / CELL)));

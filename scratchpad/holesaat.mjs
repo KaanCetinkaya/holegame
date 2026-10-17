@@ -116,8 +116,11 @@ for (const lv of BOLUMLER) {
       window.__step(1000 / fps);
     }
     const w = window.fruitHoleWhere();
+    // Oyunun kendi yıldızı, bölümü bitirdiği an okunuyor.
+    const yildizOyun = window.fruitHoleStars();
     window.fruitHoleUnseedField();
     return { kind: pr.kind, mission: pr.mission, parca: pr.fruit, saat: Math.round(saat), model,
+             yildizOyun,
              kalan: +w.timeLeft.toFixed(1), eaten: w.eaten, total: w.total,
              state: w.state, kare, gl: window.fruitHoleGl().logged };
   }, [lv, FPS]);
@@ -216,6 +219,34 @@ if (siradan.length) {
   check(en <= az * 2 + 0.12, 'sıradan bölümlerin kalan payı birbirine yakın',
     `%${Math.round(az * 100)} – %${Math.round(en * 100)}`);
 }
+// Oyunun verdiği yıldız ile saatin söylediği yıldız aynı mı?
+//
+// Ölçümün kendi hesabı (`kalan / verilen`) ile oyunun `liveStars()`ı
+// ayrılabiliyor, ve bir kez ayrıldı: bölen koşu boyunca küçülen
+// `levelTime()`dı, yani bölümü bitirdiğin an en küçük hâline bölünüyordu.
+// Kartlı bölümlerde oran %63 yerine %458 çıkıyor ve her bölüm üç yıldız
+// oluyordu — HUD'da koşu boyunca görünen yıldız da aynı sebeple şişiyordu.
+//
+// Bu kapı o ayrılmayı ölçüyor: oyunun yıldızı, verilen saate göre
+// hesaplanan yıldızla aynı olmalı. Rush ve bulmaca dışarıda — ikisinin
+// yıldızı saatten okunmuyor (biri tavana, öteki deneme sayısına göre).
+{
+  const saatli = bitti.filter(r => r.yildizOyun && !['rush', 'puzzle'].includes(r.mission));
+  const ayrilan = saatli.filter(r => {
+    const o = r.yildizOyun.kalan / Math.max(1, r.yildizOyun.verilen);
+    const bizim = o >= 0.45 ? 3 : o >= 0.2 ? 2 : 1;
+    return bizim !== r.yildizOyun.yildiz;
+  });
+  check(saatli.length > 0 && ayrilan.length === 0,
+    'oyunun yıldızı verilen saate göre',
+    ayrilan.length
+      ? ayrilan.slice(0, 6).map(r => `${r.lv}: oyun ${r.yildizOyun.yildiz}, ` +
+          `saat ${(r.yildizOyun.kalan / r.yildizOyun.verilen * 100).toFixed(0)}% ` +
+          `(bölen ${r.yildizOyun.verilen} yerine ${r.yildizOyun.model} olsa ` +
+          `${(r.yildizOyun.kalan / Math.max(1, r.yildizOyun.model) * 100).toFixed(0)}%)`).join(' · ')
+      : `${saatli.length} bölüm`);
+}
+
 // Görev bölümleri ayrı: saatleri başka formülden geliyor ve her biri
 // kendi ölçümüne sahip (holeorder, holeorderplay, holemayin). Burada
 // yalnızca yazılıyor, kapı kurulmuyor.
