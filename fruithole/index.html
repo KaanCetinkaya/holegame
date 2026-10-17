@@ -17388,9 +17388,51 @@ const TIER_TWISTS = [
 // bölümdeki oyuncuyla 44. bölümdeki oyuncu aynı gün için farklı tahta
 // görürdü — günlük meydan okumanın verdiği tek söz bu değil. Tema tarafında
 // aynı hata bir kez yapılmıştı, `holedaily.mjs` yakalamıştı.
+// Çevirme tahtayı boşaltıyorsa kullanılmıyor.
+//
+// Kutupsal tahtalar deliğin etrafına kuruluyor ve delik tahtanın bir
+// ucunda: var olan hücreler sola-sağa simetrik, öne-arkaya değil.
+// Açıyı yarım tur çevirmek deseni tahtanın **olmayan** tarafına
+// taşıyor. Ölçüldü (`holeloop`): Bloom 819 dolu hücreden 335'e
+// iniyor (%59), Whirl %19 kaybediyor; sol-sağ aynasında ikisi de
+// sayıyı koruyor (%0-2), Orbits ve Dial ise her çevirmede koruyor.
+//
+// Yani kural desene göre değil, **ölçüye** göre: aday çevirme
+// deneniyor, tahtanın onda birinden çoğunu boşaltıyorsa sol-sağ
+// aynasına, o da boşaltıyorsa hiç çevirmemeye düşülüyor. Eşik
+// ölçülen iki kümenin arasında: güvenli çevirmeler %0-2, bozanlar
+// %18-59.
+//
+// Sayım hiçbir şeyi değiştirmiyor: bazı desenlerin `empty`si
+// `rnd()` çağırıyor ve o da tahtayı kuracak akışı ilerletirdi, o
+// yüzden tohum sayımdan önce saklanıp sonra geri konuyor.
+function doluSay(p, tw) {
+  const eskiSeed = _seed, eskiSeeded = _seeded;
+  let n = 0;
+  for (const c of (p.polar ? polarCells() : gridCells())) {
+    const [a, b] = tw ? (p.polar ? tw.polar(c.a, c.b) : tw.grid(c.a, c.b)) : [c.a, c.b];
+    if (!(p.empty && p.empty(a, b))) n++;
+  }
+  _seed = eskiSeed; _seeded = eskiSeeded;
+  return n;
+}
+const TWIST_KAYIP = 0.10;
+function twistKaybi(p, tw) {
+  const temel = doluSay(p, null);
+  if (!temel) return 0;
+  return Math.abs(doluSay(p, tw) - temel) / temel;
+}
+function twistFor(p, t) {
+  const aday = TIER_TWISTS[t % TIER_TWISTS.length];
+  if (!p || !aday) return aday;
+  if (twistKaybi(p, aday) <= TWIST_KAYIP) return aday;
+  const ayna = TIER_TWISTS[1];
+  if (aday !== ayna && twistKaybi(p, ayna) <= TWIST_KAYIP) return ayna;
+  return null;
+}
 function tierTwist() {
   if (dailyRun) return null;
-  return TIER_TWISTS[tier() % TIER_TWISTS.length];
+  return twistFor(currentPattern, tier());
 }
 
 // Turla kayan sıra: 25. bölüm yine Pyramid olmasın.
@@ -26286,6 +26328,21 @@ window.fruitHoleLoop = (n) => {
 //
 // Satır sayısı 34'e sabitleniyor: 13. bölümden sonra oyunun kendi değeri bu,
 // ve iki şekli farklı boyda tahtada karşılaştırmak ölçüyü bozar.
+// Bir desen, bir turda hangi çevirmeyi alıyor? Kural oyunda duruyor;
+// ölçüm onu tekrar yazarsa kural değiştiğinde ölçüm eski kuralı
+// ölçmeye devam eder.
+window.fruitHoleTwistAt = (patternName, t) => {
+  const p = PATTERNS.find(x => x.name === patternName);
+  // `twistFor` tahtayı sayıyor, yani `rows`a bağlı. Oyun bunu bölüm
+  // kurulurken çağırıyor ve orada `rows` doğru; dışarıdan sorulduğunda
+  // menü hâlindeki değer geliyordu ve kutupsal kayıp küçük ölçülüyordu.
+  // `fruitHoleShapeSig` ile aynı tahtaya sabitleniyor.
+  const oldRows = rows, oldHalfZ = fieldHalfZ;
+  rows = 34; fieldHalfZ = (rows * CELL) / 2;
+  const tw = twistFor(p, t);
+  rows = oldRows; fieldHalfZ = oldHalfZ;
+  return tw ? tw.id : 'none';
+};
 window.fruitHoleShapeSig = (patternName, twistId) => {
   const p = PATTERNS.find(x => x.name === patternName);
   if (!p) throw new Error('düzen yok: ' + patternName);

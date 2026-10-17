@@ -84,7 +84,13 @@ console.log(` hiçbir çevirmeden etkilenmeyen: ${hicbiri.length ? hicbiri.join(
 // Liste iki yönlü kontrol ediliyor: beklenmeyen bir düzen sabitlenirse de,
 // listedeki bir düzen artık değişmeye başlarsa da hata veriyor. Tek yönlü
 // olsaydı liste sessizce eskiyordu.
-const BEKLENEN_SABIT = ['Orbits'];
+// Dial de burada, ve sebebi Orbits'inkiyle aynı: ikisi de kutupsal ve
+// dönme bakımından simetrik — halkalar ve kadran çentikleri her
+// çevirmede kendi üstüne düşüyor, yani üç çevirmenin üçü de birebir
+// aynı şekli veriyor (ölçüldü: 505/505/505 ve 354/354/354, parmak
+// izleri de aynı). Liste eskimişti; Dial listede değildi ve test bunu
+// hata sayıyordu.
+const BEKLENEN_SABIT = ['Orbits', 'Dial'];
 for (const n of hicbiri) {
   if (!BEKLENEN_SABIT.includes(n)) hata.push(`${n} hiçbir çevirmeden etkilenmiyor, listede de yok`);
 }
@@ -109,7 +115,15 @@ const POLAR_PAY = 0.25;
 console.log('\n--- 3. dolu hücre sayısı korunuyor mu ---');
 for (const name of order) {
   const base = await pg.evaluate(n => window.fruitHoleShapeSig(n, 'none'), name);
-  for (const t of TW) {
+  // Her desene **oyunun verdiği** çevirmeler soruluyor, dördü birden
+  // değil. Kutupsal desenler yalnızca sol-sağ aynasını alıyor
+  // (`twistFor`): açıyı yarım tur çevirmek deseni tahtanın olmayan
+  // tarafına taşıyor ve Bloom'u 819 hücreden 335'e indiriyordu.
+  // Kuralı burada tekrar yazmak, kural değiştiğinde ölçümün eskisini
+  // ölçmesi olurdu — oyuna sorulup okunuyor.
+  const verilen = [...new Set(await pg.evaluate(n =>
+    [1, 2, 3].map(t => window.fruitHoleTwistAt(n, t)), name))].filter(t => t !== 'none');
+  for (const t of verilen) {
     const s = await pg.evaluate(([n, tw]) => window.fruitHoleShapeSig(n, tw), [name, t]);
     const fark = Math.abs(s.filled - base.filled);
     const pay = base.polar ? Math.ceil(base.filled * POLAR_PAY) : 0;
