@@ -11,13 +11,26 @@
 // koşturamıyordu.
 //
 // Görsel üreten betikler listede yok: ölçüm değiller, dosya yazıyorlar.
-import { readdirSync } from 'fs';
+import { readdirSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { spawnSync } from 'child_process';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
+// Her betiğin tam çıktısı bir dosyaya yazılıyor.
+//
+// Özet yalnızca FAIL satırlarını tutuyordu ve bir ölçüm düştüğünde geriye
+// bakılacak hiçbir şey kalmıyordu: `holemayin` bir toplu koşuda düştü,
+// tablosu gitti, ve neden düştüğünü anlamak için yirmi dakikalık betiği
+// baştan koşturmak gerekti — düşen hâliyle değil, aradan geçen
+// değişikliklerle birlikte, yani ölçtüğü şey artık aynı değildi.
+//
+// Klasör her koşuda sıfırlanıyor: eski bir koşunun çıktısı yeni koşunun
+// çıktısı sanılırsa, saklamak hiç saklamamaktan kötü.
+const CIKTI = join(HERE, 'ciktilar');
+try { rmSync(CIKTI, { recursive: true, force: true }); } catch {}
+mkdirSync(CIKTI, { recursive: true });
 
 // Ölçüm değil, üretim: mağaza görselleri ve klipler. Çalıştırılırsa
 // dakikalar harcayıp dosya yazıyorlar ve hiçbir şey ölçmüyorlar.
@@ -56,6 +69,9 @@ for (const ad of hepsi) {
   const son = (r.stdout || '').trimEnd().split('\n').pop() || '';
   const iyi = r.status === 0;
   if (!iyi) dusen.push(ad);
+  writeFileSync(join(CIKTI, ad + '.txt'),
+    `# ${ad} · ${sn}sn · çıkış ${r.status}\n\n${r.stdout || ''}` +
+    (r.stderr && r.stderr.trim() ? `\n--- stderr ---\n${r.stderr}` : ''));
   console.log(`  ${iyi ? 'OK  ' : 'DÜŞTÜ'} ${ad.padEnd(14)} ${sn.padStart(4)}sn  ${son.trim().slice(0, 52)}`);
   if (!iyi) {
     // Düşen betiğin çıktısı lazım, yoksa özet "bir şey bozuk" demekten
@@ -70,4 +86,5 @@ for (const ad of hepsi) {
 const toplam = ((Date.now() - bas) / 1000 / 60).toFixed(1);
 console.log(`\n${hepsi.length - dusen.length}/${hepsi.length} geçti · ${toplam} dakika`);
 if (dusen.length) console.log('düşen: ' + dusen.join(', '));
+console.log(`her betiğin tam çıktısı: scratchpad/ciktilar/<ad>.txt`);
 process.exitCode = dusen.length ? 1 : 0;

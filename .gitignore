@@ -56,3 +56,7 @@ fruithole/store/paste/
 # Test çıktıları ve ara dosyalar — ölçüm sonucu, kaynak değil
 scratchpad/out-*.txt
 scratchpad/liste-*.md
+
+# kosu.mjs'in her betik için yazdığı tam çıktı: düşen bir ölçümün tablosuna
+# geri bakmak için duruyor, kaynak değil ve her koşuda sıfırlanıyor.
+scratchpad/ciktilar/
