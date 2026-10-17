@@ -1839,7 +1839,77 @@ function showScreen(name) {
   for (const k in screens) screens[k].classList.toggle('show', k === name);
   $('hud').classList.toggle('show', name === null);
   $('barWrap').classList.toggle('show', name === null);
+  geriGuncelle();
 }
+
+// ---------------------------------------------------------------------
+// Donanım geri tuşu
+// ---------------------------------------------------------------------
+// Android'de geri tuşu, WebView'ın geçmişi boşsa uygulamayı kapatıyor.
+// Bu oyun tek sayfa ve hiç gezinmiyor, yani geçmiş hep boş: dükkânı
+// kapatmak için geri tuşuna basan oyuncu **oyundan çıkıyor**, tur
+// ortasındaysa turu da gidiyor.
+//
+// Çözüm eklentisiz: menüden başka bir yerdeyken geçmişe bir giriş
+// konuyor. Geri tuşu önce onu açıyor (`popstate`), biz de o ekranı
+// kapatıyoruz. Menüdeyken giriş yok, yani oradaki geri tuşu
+// uygulamadan çıkıyor — Android'in beklediği davranış.
+//
+// Geri tuşu `goBack()` çağırmayan bir yapıda hiçbir şey değişmiyor:
+// `pushState` zararsız, `popstate` hiç gelmiyor ve uygulama eskisi
+// gibi kapanıyor. Yani en kötü ihtimalle bugünkü davranış.
+// `history` bu dosyada **bıçağın iz dizisi** (bkz. yukarıda
+// `const history = []`), tarayıcının geçmişi değil. Buradaki her
+// çağrı o yüzden `window.history` diyor. İlk yazılışında demiyordu:
+// `history.pushState` bir dizide tanımsız, çağrı `TypeError` atıyor,
+// try/catch onu yutuyordu ve geri tuşu hiç çalışmıyordu — sessizce.
+// Ölçüm (`slgeri`) bunu "geçmişe bir girdi kondu" düşerek söyledi.
+let geriDerin = false;
+// Kendi temizliğimizle oyuncunun basışını ayırmak için: menüye
+// dönerken koyduğumuz girdiyi geri alıyoruz ve o da bir `popstate`
+// doğuruyor. Bayrak olmasa oyun o olayı "oyuncu geri bastı" sanardı.
+let geriAtiyor = false;
+function geriDerinMi() {
+  if (state === 'playing' || state === 'paused') return true;
+  const a = document.querySelector('.screen.show');
+  return !!(a && a.id !== 'menu');
+}
+function geriGuncelle() {
+  const derin = geriDerinMi();
+  if (derin === geriDerin) return;
+  if (derin) {
+    geriDerin = true;
+    try { window.history.pushState({ sl: 1 }, ''); } catch (e) { geriDerin = false; }
+  } else {
+    // Menüye normal yoldan dönüldü: koyduğumuz girdiyi geri al, yoksa
+    // yığında bize ait olmayan bir giriş kalıyor ve menüdeki ilk geri
+    // basışı yutuluyor.
+    geriDerin = false;
+    geriAtiyor = true;
+    try { window.history.back(); } catch (e) { geriAtiyor = false; }
+  }
+}
+function geriBas() {
+  const a = document.querySelector('.screen.show');
+  const id = a ? a.id : null;
+  if (id === 'map' || id === 'shop' || id === 'goals' || id === 'daily') {
+    showScreen('menu'); return;
+  }
+  if (id === 'pause') { state = 'playing'; showScreen(null); last = performance.now(); return; }
+  if (id === 'over' || id === 'clear') {
+    leaveRun(); state = 'menu'; refreshMenu(); showScreen('menu'); return;
+  }
+  // Oynarken: geri tuşu duraklatıyor. Kaybetmek değil, durmak.
+  if (state === 'playing') { state = 'paused'; showScreen('pause'); return; }
+  showScreen('menu');
+}
+addEventListener('popstate', () => {
+  if (geriAtiyor) { geriAtiyor = false; return; }
+  // Tarayıcı girdiyi zaten attı; `geriGuncelle` gerekirse yenisini koyar.
+  geriDerin = false;
+  geriBas();
+  geriGuncelle();
+});
 
 function refreshMenu() {
   $('mLevel').textContent = maxLevel;

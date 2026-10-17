@@ -196,6 +196,30 @@ kat kazanır, yani Obsidian onda 60 tur civarı. İki ucu da uzun.
 ilk beş bölümde bitmediğini kontrol ediyor. Eğri burada yazılı olduğu
 için fiyat değişince nereye oturduğu da görülüyor.
 
+## Geri tuşu oyundan çıkarıyordu
+
+Android'de geri tuşu, WebView'ın geçmişi boşsa uygulamayı kapatıyor.
+Bu oyun tek sayfa ve hiç gezinmiyor, yani geçmiş hep boştu: dükkânı
+kapatmak için geri basan oyuncu oyundan çıkıyordu, tur ortasındaysa
+turu da gidiyordu.
+
+Eklentisiz çözüm: menüden başka bir yerdeyken geçmişe bir girdi
+konuyor. Geri tuşu önce onu açıyor (`popstate`) ve oyun o ekranı
+kapatıyor; oynarken duraklatıyor. Menüdeyken girdi yok, yani oradaki
+geri tuşu uygulamadan çıkıyor — Android'in beklediği davranış. Ekran
+normal yoldan kapatıldığında girdi geri alınıyor, yoksa yığında bize
+ait olmayan bir giriş kalıyor ve menüdeki ilk basış yutuluyor.
+
+Geri tuşu `goBack()` çağırmayan bir yapıda hiçbir şey değişmiyor:
+`pushState` zararsız, `popstate` hiç gelmiyor, uygulama eskisi gibi
+kapanıyor.
+
+Bir tuzak vardı ve ölçüm onu ilk koşuda yakaladı: **bu dosyada
+`history` bıçağın iz dizisi**, tarayıcının geçmişi değil
+(`const history = []`). `history.pushState` bir dizide tanımsız, çağrı
+`TypeError` atıyor ve try/catch onu yutuyordu — yani özellik sessizce
+hiç çalışmıyordu. Artık her çağrı `window.history` diyor.
+
 ## Telefonu kulağına götürüp geri gelmek
 
 `requestAnimationFrame` arka planda çağrılmıyor, yani oyun orada devam
@@ -394,6 +418,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slses.mjs      # ses kapatılabiliyor mu, kapanınca susuyor mu
     node scratchpad/slgizle.mjs    # ekran elden gidince tur duruyor mu
     node scratchpad/slekonomi.mjs  # bıçaklar kaç bölümde alınabiliyor
+    node scratchpad/slgeri.mjs     # donanım geri tuşu ekranı mı kapatıyor
     node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
