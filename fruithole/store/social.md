@@ -1661,3 +1661,30 @@ the hole only grows by eating, and it starts too small for a single watermelon. 
 
 **Telefondan ve ses ekleyerek.** Ölçüldü (11 Ekim): atılmış her videonun
 hiç ses kanalı yok ve ses ancak yükleme anında eklenebiliyor.
+
+### Gün 17 — cogs.mp4  *(hazır, atılmadı)*
+
+`bloom`dan sonra, **gün aşırı** (dosyanın kendi kuralı: hepsini bir günde
+atmak hesabın dağıtımını bölüyor).
+
+Kare kare doğrulandı: 44. bölüm, Funfair — koyu zeminde renkli ampul
+halkaları, donutlar, ve Cogs düzeninin kırmızı-beyaz dişli yığınları. İlk
+karede delik **Size 1** ve yanındaki dişli yığını ondan üç kat uzun, son
+karede **Size 4**. Dosya 15 Ekim'de, sürüş düzeltmesinden sonra çekildi.
+
+Ekran yazısı: `level 44. size 1 at the funfair`
+
+```
+day 17 of building my own mobile game 🎡🕳️
+
+size 1 at a funfair, next to a stack three times taller than it. nine seconds later it is size 4.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+Açıklama oyunun kuralını anlatıyor, yapılışını değil: "hiç görüntü dosyası
+yok" açısı ikinci hesabın (`@peelogame_0`) ve iki hesap aynı şeyi
+söylememeli — bu ayrım `track` ve `hourglass`ta da böyle kuruldu.
+
+Bu ikisinden sonra **stok biter**. Yeni klip gerekirse araçta çekilmemiş
+dört kimlik duruyor: `redplanet`, `outback`, `academy`, `tulip`.
