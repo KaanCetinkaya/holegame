@@ -6186,7 +6186,8 @@ oynuyor, kalan saatin payı yazılıyor. Kırk bölüm:
 | ölçü | sonuç |
 |---|---|
 | botun bitirdiği bölüm | 35 / 36 |
-| kalan saat payı | %59 – %90 (ortanca %69) |
+| sıradan bölümde kalan saat payı | %59 – %90 |
+| bütün bölümlerde ortanca pay | %69 |
 | **üç yıldız alan sıradan bölüm** | **23 / 23** |
 | saat / botun gerçek işi | **3.3 kat** |
 
