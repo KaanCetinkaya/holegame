@@ -3479,6 +3479,35 @@ eklentilerle ayrı ayrı kuruluyor ve üçünün çıktısının **birbirinden f
 olduğu doğrulanıyor. Ekran üçüne de aynı şeyi yazsaydı hiçbir işe yaramazdı,
 ve bunu "ekran açılıyor mu" diye bakarak fark edemezdin.
 
+## Çizicinin önbelleği uzun oyunda büyüyor
+
+Yüz yirmi bölüm arka arkaya kurulunca canlı VAO sayısı 200'den 6300'e,
+yüklü tampon 1.8 MB'den 24 MB'ye çıkıyor. Artış yavaşlıyor ama
+durmuyor: kuyrukta bölüm başına ~28.
+
+Nereden geldiği **bulunamadı**, ve aranan yerler burada yazılı olsun:
+
+- Geometri defteri (her kuruluş yerini sayıp bırakılanı düşüyor)
+  biriken tek bir yer göstermiyor — en çoğu dört adet.
+- Sahne grafiği büyümüyor: 103 nesneyle başlıyor, 242'de duruyor.
+- Doku ve shader programı düzleşiyor (121 ve 28'de sabitleniyor).
+
+Yani artan şey çizicinin kendi önbelleğinde ve kaynağı henüz
+gösterilemedi. Yirmi dört megabayt bir telefonu düşürmez, ama eğilim
+yanlış yönde ve Kaan'ın "bazen donuyor gibi" cümlesinin arkasında bu
+olabilir.
+
+Ölçümün kendisi iki yerden yanlıştı ve ikisi de düzeltildi:
+
+- Defter, sahnede bulduğu **ilk** geometrinin prototipini yamıyordu ve
+  o bir PlaneGeometry'di: yalnızca düzlemler sayılıyordu. Altı bin
+  canlı VAO varken defterde iki satır görünmesinin sebebi buydu. Artık
+  zincirin tabanına (BufferGeometry) çıkıyor, ve `clone()`un geçtiği
+  `copy()` de sayılıyor.
+- "Düzleşiyor mu" sorusu ortadan sona bakıyordu, oysa doku sayısı tema
+  havuzu dolana kadar artıyor ve sonra duruyor. Rampanın kuyruğunu
+  ölçmek "sızıyor" demekti. Artık son üçte birde soruluyor.
+
 ## Bombanın önü: filtre bombanın olmayacağı yükseklikten bakıyordu
 
 Bombanın görünmesi bu dosyada üç kez yazıldı ve üçünde de yanlış bir

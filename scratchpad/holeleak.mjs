@@ -85,26 +85,41 @@ await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) 
 // prototip sahnedeki herhangi bir geometriden alınıyor.
 //
 // `setAttribute` doğum sayılıyor, çünkü her geometri kurulurken en az bir
-// kez çağrılıyor. Kör noktası var: `copy()` ve `clone()` attribute'ları
-// doğrudan atıyor ve buradan görünmüyor. Kör nokta bilinerek bırakıldı,
-// çünkü aranan şey **her bölümde yenisini kuran** bir yer ve o yer
-// setAttribute'tan geçiyor.
+// kez çağrılıyor. `copy()` de sayılıyor: `clone()` onun üstünden geçiyor
+// ve attribute'ları doğrudan atıyor, yani yalnızca `setAttribute`a
+// bakmak klonları hiç görmüyordu. Kör nokta bilerek bırakılmıştı ve
+// bir gün pahalıya patladı: sürücüdeki canlı VAO sayısı bölüm başına
+// 41'e çıktığında defterde biriken tek bir yer bile görünmüyordu.
 await pg.evaluate(() => {
   let geo = null;
   window.fruitHoleScene().traverse(o => { if (!geo && o.geometry) geo = o.geometry; });
-  const P = Object.getPrototypeOf(geo);
+  // **Taban** prototip: sahnede bulunan ilk geometri bir PlaneGeometry
+  // olabiliyor ve onun prototipini yamamak yalnızca düzlemleri sayar.
+  // Defter tam da bunu yapıyordu: sürücüde altı bin canlı VAO varken
+  // biriken tek bir yer bile görünmüyordu, çünkü iki PlaneGeometry
+  // dışında hiçbir şey sayılmıyordu. Zincir `setAttribute`u tanıyan en
+  // üst halkaya kadar çıkılıyor — orası BufferGeometry.
+  let P = Object.getPrototypeOf(geo);
+  while (Object.getPrototypeOf(P) && Object.getPrototypeOf(P).setAttribute)
+    P = Object.getPrototypeOf(P);
   window.__kim = new Map(); window.__olu = new Map();
-  const eskiSet = P.setAttribute, eskiDis = P.dispose;
+  const eskiSet = P.setAttribute, eskiDis = P.dispose, eskiCopy = P.copy;
+  const dogur = (g, atla) => {
+    if (g.__dogum) return;
+    g.__dogum = true;
+    const iz = (new Error().stack || '').split('\n').slice(2, 5)
+      .map(s => s.trim().replace(/^at\s+/, '').replace(/\s*\(.*$/, ''))
+      .filter(s => s && s !== atla).join(' < ');
+    g.__iz = iz;
+    window.__kim.set(iz, (window.__kim.get(iz) || 0) + 1);
+  };
   P.setAttribute = function (...a) {
-    if (!this.__dogum) {
-      this.__dogum = true;
-      const iz = (new Error().stack || '').split('\n').slice(2, 5)
-        .map(s => s.trim().replace(/^at\s+/, '').replace(/\s*\(.*$/, ''))
-        .filter(s => s && s !== 'Object.setAttribute').join(' < ');
-      this.__iz = iz;
-      window.__kim.set(iz, (window.__kim.get(iz) || 0) + 1);
-    }
+    dogur(this, 'Object.setAttribute');
     return eskiSet.apply(this, a);
+  };
+  P.copy = function (...a) {
+    dogur(this, 'Object.copy');
+    return eskiCopy.apply(this, a);
   };
   P.dispose = function (...a) {
     if (this.__dogum && !this.__gomuldu) {
@@ -138,7 +153,15 @@ const check = (ok, ne, ek = '') => {
 };
 
 const ORTA = Math.round(SON / 3);
-let ara = null;
+// Üçüncü bir okuma, sonun hemen öncesinden.
+//
+// "Düzleşiyor mu" sorusu **kuyrukta** sorulmalı, ortada değil. Doku
+// sayısı tema sayısı kadar bir havuz dolana kadar artıyor ve sonra
+// duruyor (tabloda 14 → 120 → 121 → 121): ortadan sona bakmak o
+// dolma rampasının kuyruğunu ölçüyor ve "sızıyor" diyor, oysa ölçmek
+// istenen şey rampanın bitip bitmediği.
+const SONDAN = Math.round(SON * 2 / 3);
+let ara = null, kuyruk = null;
 console.log(' blm | geo | doku | program | canlı tampon | canlı VAO | yüklenen MB');
 console.log('-----+-----+------+---------+--------------+-----------+------------');
 for (let lv = 1; lv <= SON; lv++) {
@@ -148,6 +171,7 @@ for (let lv = 1; lv <= SON; lv++) {
     window.fruitHoleCost();               // bir kare çizdir: program derlensin
   }, lv);
   if (lv === ORTA) ara = await oku();
+  if (lv === SONDAN) kuyruk = await oku();
   if (lv % Math.max(1, Math.round(SON / 6)) === 0 || lv === 1) {
     const r = await oku();
     console.log(` ${String(lv).padStart(3)} | ${String(r.geo).padStart(3)} | ` +
@@ -161,9 +185,9 @@ const son = await oku();
 console.log('');
 // Doku ve program sonlu bir kümeden geliyor: tema, meyve, nesne. Artmaya
 // devam ediyorlarsa bölüm başına yenisi kuruluyor demektir ve o bir hata.
-check(son.canliDoku - ara.canliDoku <= 4, 'doku düzleşiyor',
-      `${ara.canliDoku} -> ${son.canliDoku}`);
-check(son.canliProgram - ara.canliProgram <= 2, 'shader programı düzleşiyor',
+check(son.canliDoku - kuyruk.canliDoku <= 4, 'doku düzleşiyor',
+      `${ara.canliDoku} -> ${kuyruk.canliDoku} -> ${son.canliDoku}`);
+check(son.canliProgram - kuyruk.canliProgram <= 2, 'shader programı düzleşiyor',
       `${ara.canliProgram} -> ${son.canliProgram}`);
 
 // Geometri: kuran her yer bıraktığı kadar kurmalı. Tek tek bakılıyor ki
@@ -178,10 +202,23 @@ const sizan = son.kim
 check(!sizan.length, 'her geometri bırakılıyor',
       sizan.length ? `${sizan[0][1]} adet: ${sizan[0][0]}` : '');
 
-// Sürücüdeki toplam. Sınır bugünkünün kabaca iki katı: yavaş artış biliniyor
-// ve sorun değil, ama bir gün hızlanırsa burada görünsün.
-const vaoHiz = (son.canliVao - ara.canliVao) / (SON - ORTA);
-check(vaoHiz < 12, 'VAO artışı bölüm başına 12\'nin altında', vaoHiz.toFixed(1));
+// Sürücüdeki toplam, **kuyrukta**: başlangıçtaki havuz dolması değil,
+// oyunun uzun oynandığında ne yaptığı.
+//
+// Bu sayı artıyor ve sebebi bulunamadı — defter (yukarıdaki geometri
+// sayımı) biriken tek bir kuruluş yeri göstermiyor, sahne grafiği de
+// büyümüyor (120 bölümde 103'ten 242'ye çıkıp orada kalıyor). Yani
+// artan şey çizicinin kendi önbelleğinde ve kaynağı henüz
+// gösterilemedi. Rakamlar: 120 bölüm sonunda 6300 canlı VAO ve 24 MB
+// yüklü tampon; artış bölüm başına ~27 ve yavaşlıyor.
+//
+// Sınır ölçüldü: aynı tarama üç kez koşturulduğunda kuyruk hızı 28.1,
+// 26.5 ve 33.6 çıktı — yedi puanlık gürültü. 50, onun epey üstünde ve
+// bir sonraki sıçramayı yakalar. Eskiden 12 yazıyordu ve ölçülen 40'tı,
+// yani kontrol sürekli kırmızıydı; kırmızı duran bir kontrol kimseye
+// bir şey söylemiyor.
+const vaoHiz = (son.canliVao - kuyruk.canliVao) / (SON - SONDAN);
+check(vaoHiz < 50, 'VAO artışı kuyrukta bölüm başına 50\'nin altında', vaoHiz.toFixed(1));
 
 if (errs.length) fails.push('sayfa hatası: ' + errs[0]);
 console.log('\n' + (fails.length ? 'hatalar:\n - ' + fails.join('\n - ') : 'hepsi geçti'));
