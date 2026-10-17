@@ -62,6 +62,14 @@ await pg.addInitScript(FAKE_CLOCK);
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8349/', { waitUntil: 'load' });
 await pg.waitForFunction(() => typeof window.fruitHolePushTest === 'function', { timeout: 25000 });
+// Çizim kapalı: ölçülen şey oyunun mantığı, ekrandaki görüntü değil.
+//
+// Konteynerde GPU yok ve bir kare SwiftShader'la 300-450 ms; kareyi tek tek
+// ilerleten bu dosya bu bayrak olmadan dakikalar sürüyor. Bayrak yalnızca
+// `renderer.render`ı atlıyor — fizik, çarpışma, saat ve büyüme aynen
+// işliyor, ve bu kullanılmadan önce ölçüldü (aynı tohumlu tahta, 600 kare,
+// çizimli ve çizimsiz: sonuç birebir aynı).
+await pg.evaluate(() => window.fruitHoleDrawOff(true));
 
 const fails = [];
 const check = (ok, ne, ek = '') => {
