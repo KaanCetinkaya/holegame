@@ -165,6 +165,23 @@ Steel 59/66, Obsidian 56/66. Fark üç koşuda +5, +3 ve **-3** puan, yani
 gürültünün içinde. Menzil 0.9'a çıkarıldığında oran hâlâ %82 — bugünkü
 0.22 sınırın çok altında. 2.0'da ölçüm düşüyor: 60. bölüm hiç bitmiyor.
 
+## Telefonu kulağına götürüp geri gelmek
+
+`requestAnimationFrame` arka planda çağrılmıyor, yani oyun orada devam
+etmiyor. Sorun dönüşte: bıçak bırakıldığı yerde ve saniyede on beş
+birimle **hareket hâlinde** buluyor oyuncuyu. Bir bildirim, bir arama,
+bir kapı — hepsi kendi yapmadığın bir hamleyle ölmek demekti.
+
+Artık gizlenince tur duruyor ve duraklat ekranı açılıyor; geri dönüş
+kendiliğinden oynatmıyor, RESUME'a basılıyor. Fruit Hole aynı sebeple
+duruyor.
+
+`scratchpad/slgizle.mjs` gizlenmeyi taklit ediyor (`document.hidden`
+geçersiz kılınıp olay elle gönderiliyor): başsız tarayıcıda sayfa
+gerçekten gizlenmiyor ve o hâlde ölçüm hiçbir şey ölçmez. İlk
+yazılışında dinleyici `window`daydı ve olay kabarmadığı için hiç
+ulaşmıyordu — ölçüm bunu beş düşen kontrolle söyledi.
+
 ## Sesi kapatmanın yolu yoktu
 
 `muted` değişkeni vardı, `tone()` ona bakıyordu, kayda yazılıyordu — ve
@@ -339,6 +356,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slkayit.mjs    # bozuk kayıt anahtarı oyunu öldürüyor mu
     node scratchpad/slsurucu.mjs   # bölüm bitirilebiliyor mu, geçilen engel öldürüyor mu
     node scratchpad/slses.mjs      # ses kapatılabiliyor mu, kapanınca susuyor mu
+    node scratchpad/slgizle.mjs    # ekran elden gidince tur duruyor mu
     node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 

@@ -2135,6 +2135,27 @@ const stopDrag = () => { dragging = false; };
 app.addEventListener('pointerup', stopDrag);
 app.addEventListener('pointercancel', stopDrag);
 
+// Uygulama arka plana gidince tur duruyor.
+//
+// `requestAnimationFrame` arka planda zaten çağrılmıyor, yani oyun
+// "devam etmiyor" — ama geri dönüldüğünde bıçak bırakıldığı yerde ve
+// saniyede on beş birimle **hareket hâlinde** buluyor oyuncuyu.
+// Telefonu kulağına götürüp geri gelen kişi, kendi yapmadığı bir
+// hamleyle ölüyor. Fruit Hole aynı sebeple duruyor (`holehide`).
+//
+// Geri dönüşte `last` tazeleniyor: `tick`in `dt`si zaten 0.05'e
+// kırpılı, ama kırpılmış da olsa geçmiş zamanı oynatmanın bir anlamı
+// yok.
+// Dinleyici `document`te: olay orada doğuyor ve `window`a ancak
+// kabarırsa ulaşıyor.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (state === 'playing') { state = 'paused'; showScreen('pause'); }
+  } else {
+    last = performance.now();
+  }
+});
+
 // A keyboard is not the target, but it makes the game testable without one.
 addEventListener('keydown', e => {
   if (state !== 'playing') return;
