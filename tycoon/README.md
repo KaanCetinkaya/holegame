@@ -93,8 +93,22 @@ hızlı olan Döküm'e gitti.
 
 **3. deneme (mevcut).** Maliyetler **15/22/32/45** — neredeyse aynı. Fark
 artık başlangıç fiyatında değil, **fiyatın ne kadar hızlı tırmandığında**
-(1.09 / 1.085 / 1.08 / 1.075). Seviyeler **38/37/38/37**'de kalıyor ve
-darboğaz hat boyunca sürekli yer değiştiriyor. `baseRate` dördünde de 1:
+(1.09 / 1.085 / 1.08 / 1.075). Seviyeler o gün **38/37/38/37**'de kalıyordu
+ve darboğaz hat boyunca sürekli yer değiştiriyordu.
+
+O üç haneli sayı bugün başka: elli dakikalık bir koşuda seviyeler
+**137/168/168/168** (ölçüldü, `scratchpad/tydenge.mjs`). Oyun o günden sonra
+prestij, araştırma ve ürün kademeleri kazandı, yani 38 sayısı eskidi —
+**iddia** eskimedi: dördü birden tırmanıyor (en düşük, en yükseğin %82'si)
+ve darboğaz elli dakikada 118 kez el değiştirip dört istasyonun hepsini
+görüyor.
+
+Ve artık bir kapı var. Bu bölümün sayıları `tycoon*.mjs` denemelerinden
+geldi, o altı dosyada **tek bir iddia yok** (tablo basıp çıkış kodu sıfır
+dönüyorlar), yani maliyet eğrilerinden biri değişse seviyeler 14/5/4/2'ye
+dönebilir ve takımın hiçbir satırı bunu söylemezdi — ikinci denemenin hatası
+tam buydu. `tydenge.mjs` üç şartı kapıya çeviriyor ve kendi denemesi var
+(`tydenge.mjs tekyonlu`: oyuncu hep Döküm alıyor, üç şartın üçü de düşüyor). `baseRate` dördünde de 1:
 maliyetler bu kadar yakınken telafi edilecek bir şey kalmıyor, sabit hız da
 doğru olması gereken bir parametre eksiltiyor.
 

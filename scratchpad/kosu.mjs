@@ -49,9 +49,17 @@ mkdirSync(CIKTI, { recursive: true });
 // Hâlâ elle koşturuluyorlar ve işleri o: `node scratchpad/holesheet.mjs`
 // bütün düzenleri tek sayfaya diziyor, Kaan "şu bölüm yamuk duruyor"
 // dediğinde bakılan şey o.
+// `tycoon` … `tycoon6`: Motor Works'ün denge **denemeleri**. README'nin
+// "Denge — üç deneme" bölümünün ham çıktısı, ve altısında tek bir iddia
+// yok: tablo basıp çıkış kodu sıfır dönüyorlar. Takımda "OK" yazdıkları
+// sürece korudukları bir şey varmış gibi görünüyorlardı — oysa maliyet
+// eğrisi bozulsa altısı da yine OK yazardı. O iddiayı `tydenge.mjs`
+// kapıya çevirdi; bunlar elle koşturulacak denemeler olarak duruyor
+// (`tycoon2` tek başına 57 saniye).
 const URETEN = ['tyshots', 'tyfeature', 'slshots', 'slframe', 'slblade',
                 'holeshot', 'kosu',
-                'holesheet', 'holekare', 'holefirst', 'holesecim', 'holediagbtn'];
+                'holesheet', 'holekare', 'holefirst', 'holesecim', 'holediagbtn',
+                'tycoon', 'tycoon2', 'tycoon3', 'tycoon4', 'tycoon5', 'tycoon6'];
 
 // Önek verilmezse **yalnızca geliştirilen iki oyun**: Motor Works ve
 // Slice Rush, yaklaşık yirmi dakika. Fruit Hole'un doksan üç betiği
