@@ -81,25 +81,52 @@ const sayfaAc = async () => {
   return { ctx, p };
 };
 
+// Önerilen bir kat sayısını **denemek**: oyunun saatini değiştirmeden.
+//
+//   node scratchpad/holesaat.mjs 3 --kat 1.6
+//
+// Saat, bölümün kendi modelinden yeniden kuruluyor (süpürme bölümünde
+// `sweepSeconds`, kartlı bölümde kartların turu) ve `fruitHoleGiveTime` ile
+// o tahtaya veriliyor — yani oyundaki 2.6 ve 2.8 sabitlerine dokunmadan
+// "kat sayısı şu olsa ne olurdu" sorusunun cevabı ölçülüyor.
+//
+// İki sayı birden çıkıyor ve karar ikisine bakmak zorunda:
+//   - kaç bölümde bot hâlâ üç yıldız alıyor (yıldızın bir şey ifade etmesi)
+//   - kaç bölümü bot artık **bitiremiyor** (kaybedilebilirliğin dozu)
+//
+// Bot kusursuz değil: bitiremediği bir bölüm, gerçek oyuncunun
+// kaybedeceği bölüm demek değil ama o yöne işaret ediyor. Sayı kesme
+// kararının kendisi bu betiğin işi değil, kararın bedelini göstermek.
+const KAT = (() => {
+  const i = process.argv.indexOf('--kat');
+  return i === -1 ? null : Number(process.argv[i + 1]);
+})();
 const ADIM = Number(process.argv[2] || 3);
 const BOLUMLER = [];
 for (let n = 1; n <= 120; n += ADIM) BOLUMLER.push(n);
 
+if (KAT) console.log(`\n  DENEME: kat sayısı ${KAT} (oyunun kendi sabitleri değişmedi)`);
 console.log('\n  blm  tahta       görev   parça  saat  biten  kalan  pay   yıldız  sonuç');
 console.log('  ----+-----------+-------+------+-----+------+------+-----+-------+------');
 
 const satir = [];
 for (const lv of BOLUMLER) {
   const { ctx, p: pg } = await sayfaAc();
-  const o = await pg.evaluate(([l, fps]) => {
+  const o = await pg.evaluate(([l, fps, kat]) => {
     // Tohum sabit: aynı bölüm iki koşuda aynı tahta olsun. Tahtanın
     // kendi gürültüsü bu ölçümün sorusu değil.
     window.fruitHoleSeedField(4242 + l);
     const pr = window.fruitHoleProbe(l);
     window.fruitHoleStartLevel();
     for (let i = 0; i < 40; i++) window.__step(1000 / fps);
-    const saat = window.fruitHoleWhere().timeLeft;
+    let saat = window.fruitHoleWhere().timeLeft;
     const model = window.fruitHoleClock();
+    // Önerilen kat sayısı: saat bölümün kendi modelinden yeniden kuruluyor.
+    // Bulmacada saat yok, rush'ta saat her meyveyle doluyor — ikisi dışarıda.
+    if (kat && !['puzzle', 'rush'].includes(model.dal)) {
+      const taban = model.dal === 'kart' ? window.fruitHoleCards().tur : model.sweep;
+      if (taban > 0) saat = window.fruitHoleGiveTime(Math.round(taban * kat));
+    }
     // Bütçe saatin kendisinden: saat dolduğunda bölüm biter, yani daha
     // fazla kare ilerletmek bir şey ölçmez. Rush bölümünde saat her
     // meyveyle doluyor, orada bütçe sabit.
@@ -123,7 +150,7 @@ for (const lv of BOLUMLER) {
              yildizOyun,
              kalan: +w.timeLeft.toFixed(1), eaten: w.eaten, total: w.total,
              state: w.state, kare, gl: window.fruitHoleGl().logged };
-  }, [lv, FPS]);
+  }, [lv, FPS, KAT]);
   await ctx.close();
   // Bulmacada saat yok (9999) — payın anlamı da yok.
   const saatsiz = o.mission === 'puzzle';
