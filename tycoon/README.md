@@ -625,6 +625,45 @@ Sıralar küçük tutuldu. İlk hali sıra başına üç araç ve iki sütundu; 
 şubede fabrikadan kalabalık oluyordu ve göz okuması gereken hattı bırakıp
 otoparka gidiyordu — üstelik yakın sütun montaj bandının üstüne biniyordu.
 
+## Kayıt: iki küçük anahtar oyunu hiç açtırmıyordu
+
+Ana kayıt (`motorworks_save`) dikkatle okunuyordu — yedeği var, geçerlilik
+denetimi var, yazılamazsa şerit çıkıyor. Yanındaki iki küçük anahtar
+okunmuyordu:
+
+```js
+const notif = JSON.parse(localStorage.getItem('tycoon_notif') || '{}');
+const iap   = JSON.parse(localStorage.getItem('tycoon_iap')   || '{}');
+```
+
+Bu iki satır **modül kurulurken** çalışıyor. Yarım yazılmış bir değer
+`JSON.parse`ı patlatıyor, modül orada duruyor, yükleme perdesi hiç
+kalkmıyor — ve kayıt her açılışta yeniden okunduğu için kendiliğinden de
+düzelmiyor. Kalıcı siyah ekran, ve oyuncunun yapabileceği tek şey
+uygulamayı silmek.
+
+Düzeltmeden önce ölçüldü (`scratchpad/tykayit.mjs`, 7. bölüm):
+`tycoon_notif: '{bozuk'` ile oyun açılmıyor, `tycoon_iap: '{"a":'` ile de
+açılmıyor. Aynı hata Slice Rush'ta (`slicerush_blade` aralık dışı) ve Fruit
+Hole'da birer kez yaşandı; burada yaşanmadan kapandı — Motor Works henüz
+kapalı testte.
+
+`yanKayit` istisnayı yutuyor ve **türü de** kontrol ediyor:
+`JSON.parse('"muz"')` patlamıyor ama bir kelime veriyor, ve modül katı
+kipte olduğu için o kelimeye alan yazmak (`notif.son = ...`) TypeError
+atıyor.
+
+**Yazma tarafı da sarıldı.** `saveNotif` ve `saveIap` düz `setItem` ile
+yazıyordu: dolu bir telefonda atılan istisna çağrıldığı akışı kesiyor —
+satın alma teslim edildiği an, ya da bildirim izni verildiği an. İkisi de
+artık `yanYaz`dan geçiyor ve ana kaydın zaten kullandığı şeridi
+kaldırıyor, yani sessizce yutulmuyor. Ölçüldü: `setItem` patlatılmış
+hâlde bir ürün alınıyor, akış kesilmiyor ve şerit çıkıyor; sarmayı
+kaldırınca ikisi birden düşüyor.
+
+Anahtar listesi de oyundan okunuyor, yani üçüncü bir yan anahtar
+eklenip vakası yazılmazsa kapı düşüyor.
+
 ## Eksikler
 
 Oyunun kendisinde değil, Play tarafında duranlar:

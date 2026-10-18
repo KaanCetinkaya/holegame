@@ -191,6 +191,40 @@ const eksikYan = YAN_ANAHTAR.filter(k => !denenenYan.has(k));
 console.log(`     oyunun ${YAN_ANAHTAR.length} yan anahtarı · denenmeyen ${eksikYan.length}`);
 ok(eksikYan.length === 0, 'her yan anahtar bozuk hâliyle deneniyor', eksikYan.join(', '));
 
+// Yan kayıtları **yazmak** da patlamamalı.
+//
+// Ana kayıt yazılamadığında zaten bir şerit çıkıyordu (`kayitYazamadi`),
+// ama `saveNotif` ve `saveIap` düz `setItem` ile yazıyordu: dolu bir
+// telefonda atılan istisna çağrıldığı akışı kesiyor — satın alma
+// teslim edildiği an, ya da bildirim izni verildiği an. İkisi de artık
+// `yanYaz`dan geçiyor ve aynı şeridi kaldırıyor.
+{
+  const sayfa = await br.newPage({ viewport: { width: 412, height: 915 } });
+  const yh = [];
+  sayfa.on('pageerror', e => yh.push(String(e).split('\n')[0]));
+  await sayfa.addInitScript(() => localStorage.clear());
+  await sayfa.goto('http://localhost:8671/', { waitUntil: 'load', timeout: 90000 });
+  await sayfa.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
+  await sayfa.evaluate(() => { document.getElementById('dOk')?.click(); window.jeTutSkip(); });
+  const r = await sayfa.evaluate(async () => {
+    const esk = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = () => { throw new Error('QuotaExceededError'); };
+    let patladi = null;
+    try {
+      window.jeIapSim('tarayici');
+      await window.jeBuyProduct('motorworks_double');
+    } catch (e) { patladi = String(e).slice(0, 60); }
+    localStorage.setItem = esk;
+    return { patladi, yazamadi: window.jeKayit2().yazamadi, barAcik: window.jeKayit2().barAcik };
+  });
+  console.log(`     satın alma yazamıyorken: patladı ${r.patladi || 'hayır'} · ` +
+    `yazamadi ${r.yazamadi} · şerit ${r.barAcik}`);
+  ok(!r.patladi, 'yan kayıt yazılamayınca akış kesilmiyor', r.patladi || '');
+  ok(yh.length === 0, 'sayfa hatası yok', yh[0] || '');
+  ok(r.yazamadi && r.barAcik, 'oyuncuya söyleniyor', `yazamadi ${r.yazamadi} · şerit ${r.barAcik}`);
+  await sayfa.close();
+}
+
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;
 await br.close(); srv.close();

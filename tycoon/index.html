@@ -1011,7 +1011,20 @@ function yanKayit(anahtar) {
 }
 
 const notif = yanKayit('tycoon_notif');
-function saveNotif() { localStorage.setItem('tycoon_notif', JSON.stringify(notif)); }
+// Yan kayıtları yazmanın tek yolu. Ana kayıt yazılamadığında zaten bir
+// şerit çıkıyor (`kayitYazamadi`); bu ikisi hiç sarılı değildi, yani
+// dolu bir telefonda `setItem`in attığı istisna çağrıldığı akışı
+// kesiyordu — bildirim izni verildiği an, ya da satın alma teslim
+// edildiği an. Aynı şeridi burası da kaldırıyor: sessizce yutmak,
+// "aldım ama gelmedi" diyecek oyuncuya hiçbir şey vermemek olurdu.
+function yanYaz(anahtar, deger) {
+  try { localStorage.setItem(anahtar, deger); return true; }
+  catch (e) {
+    if (!kayitYazamadi) { kayitYazamadi = true; kayitUyar('yazilamadi'); }
+    return false;
+  }
+}
+function saveNotif() { yanYaz('tycoon_notif', JSON.stringify(notif)); }
 let _notifErr = '';
 const ADS_TESTING = true;
 // Telefondaki derlemenin numarası. Kaynakta 'dev' duruyor; gerçek numara
@@ -1656,7 +1669,7 @@ let IAP_NATIVE = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform());
 let IAP_ON = !!(IAP_NATIVE && _Purchases);
 
 const iap = yanKayit('tycoon_iap');
-function saveIap() { localStorage.setItem('tycoon_iap', JSON.stringify(iap)); }
+function saveIap() { yanYaz('tycoon_iap', JSON.stringify(iap)); }
 // Satın alınan çifte gelir. `unitPrice()` üzerinden uygulanıyor, üretim
 // hızı üzerinden değil: hız darboğaz hesabına ve tampon dolulukarına
 // giriyor, para ise yalnızca kasaya. Oyunun dengesi hızlarla kuruldu ve
