@@ -2067,8 +2067,14 @@ function fhOku(anahtar, varsayilan) {
 // beş dokunuş), yani "ilerlemem kaydolmuyor" diyen bir oyuncudan
 // bakılacak bir sayı istenebiliyor.
 let yazmaHata = 0, yazmaSon = '';
+// Son **başarılı** yazmanın anı. "İlerlemem gitti" diyen oyuncuda iki
+// ayrı arıza aynı cümleyle bildiriliyor: kayıt hiç yazılamadı mı (depo
+// dolu — yazma hatası sıfırdan büyük), yoksa yazıldı da sonradan mı
+// kayboldu (hata yok ama son yazma saatler önce). Çareleri ayrı, ve
+// teşhis ekranında ikisini ayıran bir sayı yoktu.
+let yazmaAn = 0;
 function fhYaz(anahtar, deger) {
-  try { localStorage.setItem(anahtar, deger); return true; }
+  try { localStorage.setItem(anahtar, deger); yazmaAn = Date.now(); return true; }
   catch (e) {
     yazmaHata++;
     // Ad **ve** mesaj: tarayıcı `QuotaExceededError`ı bazen adda,
@@ -23310,11 +23316,28 @@ const APP_VERSION = 'dev';
       return g;
     });
 
-    h += bolum('KAYIT', () =>
-      // "İlerlemem kaydolmuyor" diyen bir oyuncudan istenecek sayı. Sıfır
-      // değilse telefonun deposu dolu demek ve oyun o yazıyı atmış.
-      row('yazma hatası', yazmaHata ? `${yazmaHata} kez · son ${yazmaSon}` : 'yok',
-        yazmaHata === 0));
+    h += bolum('KAYIT', () => {
+      // Düz metin tutan iki anahtar: `JSON.parse` onlarda bir şey
+      // söylemiyor, o yüzden okunabilirlik taramasının dışındalar.
+      const HAM = ['fruithole_level', 'fruithole_muted'];
+      const anahtar = Object.keys(localStorage).filter(k => k.startsWith('fruithole_'));
+      // Bozulan bir anahtar oyunu açık tutuyor (okuyucular varsayılana
+      // dönüyor) ama oyuncu o alanı kaybediyor, ve hangisinin gittiğini
+      // söyleyen hiçbir yer yoktu.
+      const bozuk = anahtar.filter(k => !HAM.includes(k)).filter(k => {
+        try { JSON.parse(localStorage.getItem(k)); return false; } catch { return true; }
+      });
+      return row('anahtar', `${anahtar.length} tane`)
+        + row('okunamayan', bozuk.length ? bozuk.join(', ') : 'yok', bozuk.length === 0)
+        // "İlerlemem kaydolmuyor" diyen bir oyuncudan istenecek sayı. Sıfır
+        // değilse telefonun deposu dolu demek ve oyun o yazıyı atmış.
+        + row('yazma hatası', yazmaHata ? `${yazmaHata} kez · son ${yazmaSon}` : 'yok',
+            yazmaHata === 0)
+        + row('son yazma', yazmaAn
+            ? `${new Date(yazmaAn).toTimeString().slice(0, 8)} · ` +
+              `${Math.round((Date.now() - yazmaAn) / 1000)} sn önce`
+            : 'bu açılışta hiç', !!yazmaAn);
+    });
 
     h += bolum('REKLAM', () =>
       row('AdMob', yn(!!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob)),
@@ -26202,7 +26225,7 @@ function iconHTML(name, emoji, cls) {
 // placed in — zero unless something is pulling them.
 // Kayıt yazması kaç kez başarısız oldu, ve sonuncusu neydi. Teşhis
 // ekranındaki satırın ölçülebilir hâli.
-window.fruitHoleYazma = () => ({ hata: yazmaHata, son: yazmaSon });
+window.fruitHoleYazma = () => ({ hata: yazmaHata, son: yazmaSon, an: yazmaAn });
 // Yazmayı bozmanın yolu: kotayı gerçekten doldurmak yerine `setItem`i
 // patlatmak. Motor Works'teki `jeKayitBoz` ile aynı numara.
 window.fruitHoleYazmaBoz = (ac = true) => {

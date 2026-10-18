@@ -3561,6 +3561,30 @@ eklentilerle ayrı ayrı kuruluyor ve üçünün çıktısının **birbirinden f
 olduğu doğrulanıyor. Ekran üçüne de aynı şeyi yazsaydı hiçbir işe yaramazdı,
 ve bunu "ekran açılıyor mu" diye bakarak fark edemezdin.
 
+### Kayıt bölümü üç arızayı ayırıyor
+
+"İlerlemem gitti" tek bir cümle ama arkasında üç ayrı arıza var ve
+çareleri ayrı. KAYIT bölümü eskiden yalnızca ikincisini görüyordu:
+
+| satır | ayırdığı şey |
+|---|---|
+| `okunamayan` | bir anahtar bozuldu: oyun açılıyor, o alan varsayılana döndü, oyuncu onu kaybetti |
+| `yazma hatası` | telefonun deposu dolu, hiçbir şey yazılamıyor |
+| `son yazma` | yazıldı da sonradan mı kayboldu — hata yok ama son yazma saatler önce |
+
+`okunamayan`, `fruithole_` ile başlayan anahtarları tek tek
+`JSON.parse`dan geçirip bozuk olanı **adıyla** yazıyor. Düz metin tutan
+ikisi (`fruithole_level`, `fruithole_muted`) taramanın dışında: orada
+`JSON.parse` bir şey söylemiyor.
+
+`son yazma` yalnızca **başarılı** yazmada ilerliyor. Ölçüm bunu ayrıca
+tutuyor (`holediag` → "kayıt satırları"), çünkü patlayan yazmada da
+ilerleyen bir satır tam güvenilmesi gereken yerde yalan söylerdi — hata
+geri konup denendi, o hâlde düşüyor.
+
+Aynı üç satır Slice Rush'ta da var; Motor Works'te `son kayıt` var,
+orada kayıt tek anahtarda tutulduğu için anahtar taraması anlamsız.
+
 ### Oyun bozukken ekran hiç açılmıyordu
 
 `diagText()` tek parçaydı ve `showDiag()` onu korumasız çağırıyordu:

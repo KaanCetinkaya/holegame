@@ -227,11 +227,80 @@ console.log('\n--- oyun bozukken ---');
     `${yazan.length}/${bolumler.length}`);
   check(/okunamadı/.test(d.metin), 'bozuk bölüm sebebini söylüyor');
   // Başlık yalnızca `bolum` tarafından basılıyor, yani bölüm adlarının
-  // görünmesi içeriğin yazıldığını söylemiyor. Bozulan bölümden
-  // **sonraki** iki satır asıl kanıt: koruma olmasaydı metin orada
-  // kesilirdi.
-  check(/yazma hatası/.test(d.metin) && /AdMob/.test(d.metin),
-    'bozuk bölümden sonrakiler yazılmaya devam ediyor');
+  // görünmesi içeriğin yazıldığını söylemiyor. Asıl kanıt, bozulan
+  // bölümden **sonra** gelen gerçek satırlar: koruma olmasaydı metin
+  // orada kesilirdi.
+  //
+  // Seçilen iki satır `Object.keys`e dokunmayan bölümlerden: BİLDİRİM
+  // ve REKLAM. Bu satır bir ara KAYIT'tan okuyordu ve KAYIT'a anahtar
+  // taraması eklenince düştü — haklı olarak, çünkü o bölüm de artık
+  // `Object.keys` çağırıyor. Kapının sorduğu şey "şu bölüm sağlam"
+  // değil, "bozulmayan bölümler yazılmaya devam ediyor".
+  check(/izin/.test(d.metin) && /AdMob/.test(d.metin),
+    'bozuk bölümden sonrakiler yazılmaya devam ediyor',
+    `izin ${/izin/.test(d.metin)} · AdMob ${/AdMob/.test(d.metin)}`);
+  await pg.close();
+}
+
+// KAYIT bölümü: bozuk anahtarı adıyla söylüyor, son yazmayı tutuyor.
+//
+// Üç satırın üçü de "ilerlemem gitti" cümlesinin arkasındaki üç ayrı
+// arızayı ayırmak için var ve üçü aynı cümleyle bildiriliyor: anahtar
+// bozuldu mu (oyun açılıyor ama o alan varsayılana döndü), yazma
+// patlıyor mu (depo dolu), yoksa yazıldı da sonradan mı kayboldu
+// (hata yok ama son yazma çok önce).
+console.log('\n--- kayıt satırları ---');
+{
+  const pg = await open(null);
+  const ac = () => pg.evaluate(() => {
+    document.getElementById('diagBody').innerHTML = '';
+    const e = document.getElementById('verTag');
+    for (let i = 0; i < 5; i++) e.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    return [...document.querySelectorAll('#diagBody .row')]
+      .map(x => x.querySelector('b').textContent + '=' + x.querySelector('span').textContent);
+  });
+  const satir = ad => (s) => (s.find(x => x.startsWith(ad + '=')) || '').slice(ad.length + 1);
+
+  // Sağlam durumda: okunamayan yok, ve bir yazmadan sonra "son yazma"
+  // doluyor. Oyun açılışta zaten yazıyor, yine de elle bir yazma
+  // tetikleniyor ki satır boş kalmasın.
+  await pg.evaluate(() => document.getElementById('menuSound').click());
+  await pg.waitForTimeout(150);
+  let s1 = await ac();
+  const an1 = await pg.evaluate(() => window.fruitHoleYazma().an);
+  console.log(`    anahtar=${satir('anahtar')(s1)} · okunamayan=${satir('okunamayan')(s1)}`);
+  console.log(`    son yazma=${satir('son yazma')(s1)} · kanca ${an1}`);
+  check(/\d+ tane/.test(satir('anahtar')(s1)), 'anahtar sayısı yazılıyor', satir('anahtar')(s1));
+  check(satir('okunamayan')(s1) === 'yok', 'sağlam kayıtta okunamayan yok',
+    satir('okunamayan')(s1));
+  check(an1 > 0 && satir('son yazma')(s1).startsWith(new Date(an1).toTimeString().slice(0, 8)),
+    'son yazma kancayla aynı anı söylüyor', `${satir('son yazma')(s1)} / ${an1}`);
+
+  // Bozuk anahtar adıyla görünmeli.
+  await pg.evaluate(() => {
+    document.getElementById('diagClose').click();
+    localStorage.setItem('fruithole_stats', '{bozuk');
+  });
+  const s2 = await ac();
+  console.log(`    bozukken okunamayan=${satir('okunamayan')(s2)}`);
+  check(/fruithole_stats/.test(satir('okunamayan')(s2)), 'bozuk anahtar adıyla yazılıyor',
+    satir('okunamayan')(s2));
+
+  // Patlayan yazma "son yazma"yı ilerletmemeli: ilerletseydi satır tam
+  // güvenilmesi gereken yerde yalan söylerdi.
+  const an2 = await pg.evaluate(() => {
+    document.getElementById('diagClose').click();
+    localStorage.removeItem('fruithole_stats');
+    window.fruitHoleYazmaBoz(true);
+    document.getElementById('menuSound').click();
+    return { an: window.fruitHoleYazma().an, hata: window.fruitHoleYazma().hata };
+  });
+  const s3 = await ac();
+  console.log(`    bozuk yazmadan sonra: son yazma=${satir('son yazma')(s3)} · ` +
+    `yazma hatası=${satir('yazma hatası')(s3)}`);
+  check(an2.hata > 0, 'yazma bozuldu', `${an2.hata} hata`);
+  check(an2.an === an1, 'patlayan yazma son yazma anını ilerletmiyor', `${an1} → ${an2.an}`);
+  await pg.evaluate(() => window.fruitHoleYazmaBoz(false));
   await pg.close();
 }
 
