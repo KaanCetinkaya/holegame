@@ -54,10 +54,10 @@ npm test
 ```
 
 Bu, geliştirilen iki oyunu koşturuyor: Motor Works (40 ölçüm, 5 dakika) ve
-Slice Rush (22, 19 dakika), toplam **62 ölçüm, ~24 dakika**. Tek tek:
+Slice Rush (23, 17 dakika), toplam **63 ölçüm, ~22 dakika**. Tek tek:
 `npm run test:tycoon`,
 `npm run test:slicer`. Fruit Hole ayrı, çünkü 90 ölçümü var:
-`npm run test:fruithole` yükleme öncesi bakılacak **18 ölçüm, ~28 dakika**,
+`npm run test:fruithole` yükleme öncesi bakılacak **18 ölçüm, ~29 dakika**,
 `npm run test:fruithole:tam` hepsi (saatler). Hepsi birden:
 `npm run test:all`.
 
@@ -71,8 +71,8 @@ yüklendi, çünkü hiçbir yükleme öncesi ölçüm ona bakmıyordu. Şimdi
 bakıyor: 120 bölümde iki Cup Night, ikisi de ızgara tahtası, ikisinde de
 kolos kupa ve tahtanın öbür ucunda.
 
-Takımın süresinin neredeyse tamamı tek betikte: `holeboot` 981 saniye,
-kalan on altısı toplam 719. Sebebi ölçtüğü şey değil, **çizim**: altmış
+Takımın süresinin neredeyse tamamı tek betikte: `holeboot` ~1000 saniye,
+kalan on yedisi toplam ~720. Sebebi ölçtüğü şey değil, **çizim**: altmış
 bölümü altmışar kare oynatıyor ve bu konteynerde bir kare 300-450 ms.
 Bayrağı açmıyor ve açmamalı: aradığı şey "bu bölüm oynanırken bir yer
 patlıyor mu" ve çizim o yolun yarısı — `renderer.render` atlanırsa orada
