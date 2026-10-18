@@ -1689,10 +1689,12 @@ söylememeli — bu ayrım `track` ve `hourglass`ta da böyle kuruldu.
 Bu ikisinden sonra **stok biter**. Yeni klip gerekirse araçta çekilmemiş
 dört kimlik duruyor: `redplanet`, `outback`, `academy`, `tulip`.
 
-### `tulip` denendi ve araç kendi bekçisiyle reddetti
+### `tulip` denendi: engel kadrajın 0.54 birim dışında kaldı
 
-Gün 18 için `tulip` çekildi (37. bölüm, Tulip Fields, 400 meyve). Araç
-klibi **yazmadı** ve sebebini kendi söyledi:
+Gün 18 için `tulip` çekimi başlatıldı (37. bölüm, Tulip Fields, 400
+meyve) ve **tamamlanmadı** — çekimi ben durdurdum, konteynerde aynı anda
+koşan işler vardı. Ama aracın durmadan önce yazdığı satır asıl bilgiyi
+veriyor:
 
 ```
 silindir: 1 tane, en yakını 16.95 birim
@@ -1702,8 +1704,10 @@ tutmayan: silindir kadraj dışında (8.54 > 8)
 ```
 
 Yani klip "bu tahtada silindir var" diyecekti ve silindir sekiz birimlik
-kadrajın 0.54 birim dışında kaldı. Bu, kimlik listesinin yanında zaten
-yazılı olan şeyin tekrarı: *"çamur tahtada üç tane, mancınık ve silindir
+kadrajın 0.54 birim dışında kaldı. Araç bu durumda vazgeçmiyor: engelsiz
+dört şartla kaydı sürdürüyor ("dört şartla alındı"), yani çıkacak klip
+tahtayı gösterir ama **notunda yazan engeli göstermez**. Kimlik
+listesinin yanında zaten yazılı olan şeyin tekrarı: *"çamur tahtada üç tane, mancınık ve silindir
 birer tane. Tek olanlar kliplerde sürekli kadraj dışında diye düştü."*
 Kalan dört kimliğin dördü de tek engelli (`redplanet` mancınık, `outback`
 rüzgâr, `academy` ve `tulip` silindir), yani aynı risk dördünde de var.
