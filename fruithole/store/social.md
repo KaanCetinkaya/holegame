@@ -1740,6 +1740,33 @@ oraya hiç varamaz" gibi okunuyor ve araç vazgeçiyor (iki denemede
 değiştirmek olurdu.
 
 Gün 18 için sıradaki iş bu yüzden `tulip` değil: ya başka bir kimlik
-(`redplanet`, `outback`, `academy` — üçü de artık düzen klibi), ya da
-Tulip Fields'in **ikinci turdaki** bölümü, çünkü dev boyutu bölümle
-değişiyor.
+(`redplanet`, `outback`, `academy`), ya da Tulip Fields'in **ikinci
+turdaki** bölümü, çünkü dev boyutu bölümle değişiyor.
+
+### Tahtaya bakınca üçü düzen klibi olmaktan çıktı
+
+Yukarıdaki iki paragrafta "kalan dört kimliğin dördü de tek engelli
+(`redplanet` mancınık, `outback` rüzgâr, `academy` ve `tulip` silindir)"
+yazıyor ve bu **yanlıştı**. Tahtaya bakılmamıştı: engel listesi klip
+notlarından, yani daha önce çekilmiş denemelerin hatırasından geliyordu.
+
+`scratchpad/holeklipaday.mjs` tahtayı kuruyor, hiç oynamıyor ve engel
+sayısını oyundan okuyor — bir denemenin yirmi dakikasına karşılık otuz
+saniye. Ölçtüğü:
+
+| kimlik | bölüm | düzen | engeller |
+|---|---|---|---|
+| `redplanet` | 54 | Dial | **çamur 3**, mancınık 1 |
+| `tulip` | 37 | Comb | **çamur 3**, silindir 1 |
+| `outback` | 49 | Boomerang | **çamur 3**, rüzgâr 1 |
+| `academy` | 51 | Key | mancınık 1, silindir 1 |
+
+Üçünde de üç çamur var ve üçü artık düzen klibi değil, **çamur** vaat
+ediyor: kadraja girme şansı tek engellinin katları. Düzen klibi olarak
+kalan yalnızca `academy` — çünkü ölçüm onu da okudu ve orada çoğalan
+hiçbir engel yok, ikisinden de birer tane.
+
+Bu, "engelsiz klip tipi" işini boşa çıkarmıyor — `engel: null` duruyor ve
+`academy` onu kullanıyor. Değişen şey, üç kimliğin ona **gereksiz yere**
+düşürülmüş olması: engel vaat edemeyecekleri sanılıyordu, oysa en bol
+engelli tahtalar onlardı.
