@@ -627,6 +627,27 @@ mesafe ve çarpmamış olması; `mayin` için geçilen ve **kesilmemiş** mayın
 `yer` için dört ayrı tema ve her birinin ekranda yirmi kareden uzun
 durması.
 
+Üç şey ölçülerek eklendi ve üçü de ilk çekimin hatasıydı:
+
+- **Tur sürüyor mu.** Klip sekiz saniye, tur ondan kısa: bölüm bitince
+  kamera duruyor ve bitiş ekranı kalan saniyeleri yiyor. İlk çekimde `yer`
+  klibi beşinci saniyesini demire yapışmış hâlde geçirdi ve kanıtı bunu
+  görmedi, çünkü yalnızca temaya bakıyordu. Artık her klip turun
+  sürdüğünü de kanıtlıyor (240 karenin 240'ı, `yer` için 216) ve tur
+  bitince bir sonraki başlıyor.
+- **Sayaçlar tur başına.** Tur yenilenince parkur sıfırlanıyor, yani
+  "kaç demir geçildi" de sıfırlanıyor; toplam artık turların en yüksek
+  değerlerinin toplamı, son karenin değeri değil.
+- **Mayınlı tahta aranıyor.** Sekiz saniyede bıçak parkurun ilk ~120
+  biriminde kalıyor ve mayın orada olmayabiliyor — mayın parçası havuzda
+  bir seçenek ve yer bulamazsa vazgeçiyor (`slparca`: altı turun birinde).
+  İlk iki çekimde `mayin` klibi "0 mayın geçildi" deyip düştü. Araç artık
+  mayını erken olan bir tahta bulana kadar tahtayı yeniden kuruyor, seksen
+  denemede bulamazsa klibi çekmiyor.
+
+Ölçülen son çekim: 36 kesim ve havada sekiz yarım, sekiz demir geçildi
+çarpmadan, beş mayın geçildi hiçbiri kesilmeden, dört yer.
+
 ## Hedefler
 
 Oyunun meta katmanı yoktu: bölüm geçiliyor, para birikiyor, bıçak alınıyor ve
