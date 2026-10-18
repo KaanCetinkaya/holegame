@@ -236,6 +236,21 @@ check(sonSon[0] > ilkSon[0] && sonSon[1] > ilkSon[1], 'devir ilerletiyor',
   `ilk devir ${ilkSon.join('/')} → son devir ${sonSon.join('/')}`);
 check(hata.length === 0, 'sayfa hatası yok', hata[0] || '');
 
+// Kapı değil, bulgu: hangi kilometre taşları hiç vurulmuyor.
+//
+// Kaplamalar erişime çekildi ama **taşların kendisi** yerinde duruyor ve
+// bu tarama onların da hepsine varılmadığını söylüyor. Taşı indirmek
+// ekonomiyi değiştirir (her taş istasyonu ikiye katlıyor, yani tavan da
+// kayar), yani bu bir hata düzeltmesi değil denge kararı — ve bu depoda
+// kararın sahibi Kaan. Ölçüm kararı vermiyor, sayıyı her koşuda
+// görünür tutuyor.
+const varilan = tasListesi.filter(t => t <= enYuksekSeviye);
+const varilmayan = tasListesi.filter(t => t > enYuksekSeviye);
+console.log(`  --   vurulan taş ${varilan.length}/${tasListesi.length}` +
+  (varilmayan.length
+    ? ` · hiç vurulmayan: ${varilmayan.join(', ')} (en yüksek seviye ${enYuksekSeviye})`
+    : ''));
+
 // Kapı değil, bulgu: son iki kaplamaya ne kadar kaldı.
 const eksik = kaplamaSayisi - 1 - enYuksekKademe;
 // Bir kademeye girmek için gereken seviye: `tierOf` iki taşta bir

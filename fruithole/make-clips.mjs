@@ -450,7 +450,14 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
     'rüzgâr': window.fruitHoleWind().ilkBolum,
   }));
   for (const c of CLIPS) {
-    if (!c.engel) throw new Error(`${c.id}: hangi engeli göstereceği yazılmamış.`);
+    // `engel: null` düzen klibi demek ve bilerek yazılıyor; `undefined`
+    // ise unutulmuş demektir. İkisini ayırmak gerekiyor, yoksa "engel
+    // alanını silerim, kontrolden kurtulurum" yolu açılır.
+    if (c.engel === undefined) {
+      throw new Error(`${c.id}: hangi engeli göstereceği yazılmamış. ` +
+        `Düzen klibi olacaksa 'engel: null' yaz.`);
+    }
+    if (c.engel === null) continue;
     const id = ENGEL_ID[c.engel];
     if (!id) throw new Error(`${c.id}: '${c.engel}' bilinen bir engel adı değil.`);
     if (c.level < esik[c.engel]) {
