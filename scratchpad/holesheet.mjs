@@ -40,7 +40,7 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8244/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleTopDown, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleTopDown, null, { timeout: 30000 });
 // Play'e basmak şart. Menü bir diorama ve dönüyor; oyunu menüden çıkarmadan
 // çekilen her kare tahtayı eğik gösteriyor — `holeshot.mjs`'in başındaki
 // uzun not bunun hikâyesi.

@@ -40,7 +40,7 @@ async function cihaz() {
   const pg = await ctx.newPage();
   pg.on('pageerror', e => console.log('HATA ' + e));
   await pg.goto('http://localhost:8597/', { waitUntil: 'load', timeout: 90000 });
-  await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+  await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
   return { pg, ctx };
 }
 
@@ -79,7 +79,7 @@ ok(bos.branches === 0 && bos.cash === 0, 'yeni cihaz gerçekten boş başladı')
 const yuk = await b.pg.evaluate(k => window.jeYedekYukle(k), kod);
 ok(!!yuk.ok, 'kod kabul edildi', JSON.stringify(yuk));
 await b.pg.reload({ waitUntil: 'load' });
-await b.pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await b.pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 const hedef = await b.pg.evaluate(() => {
   const p = window.jeProbe();
   return { cash: p.cash, branches: p.branches, lvl: p.lvl,
@@ -153,7 +153,7 @@ pg6.on('pageerror', e => console.log('HATA ' + e));
 await pg6.addInitScript(() => localStorage.setItem('motorworks_save',
   JSON.stringify({ cash: 1234, lvl: [5], mgr: [true] })));
 await pg6.goto('http://localhost:8597/', { waitUntil: 'load', timeout: 90000 });
-await pg6.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await pg6.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 const gocmus = await pg6.evaluate(() => {
   const p = window.jeProbe();
   return { cash: p.cash, lvl: p.lvl, mgr: p.mgr, buf: p.buf, pile: p.pile, flow: p.flow };

@@ -61,7 +61,7 @@ for (const w of [360, 412]) {
       localStorage.setItem('fruithole_currency', JSON.stringify(p));
     }, purse);
     await pg.goto('http://localhost:8220/', { waitUntil: 'load' });
-    await pg.waitForFunction(() => window.fruitHoleWallet, { timeout: 25000 });
+    await pg.waitForFunction(() => window.fruitHoleWallet, null, { timeout: 30000 });
     await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
     await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
     await pg.waitForTimeout(600);
@@ -116,7 +116,7 @@ for (const w of [360, 412]) {
 const enGenisDeger = await (async () => {
   const pg = await br.newPage({ viewport: { width: 412, height: 800 } });
   await pg.goto('http://localhost:8220/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleFmt, { timeout: 25000 });
+  await pg.waitForFunction(() => window.fruitHoleFmt, null, { timeout: 30000 });
   const v = await pg.evaluate(() => {
     const aday = [999, 9999, 10000, 17359, 99499, 99999, 100001, 123456,
                   999499, 999999, 1234567, 12345678, 999999999, 1234567890];
@@ -141,7 +141,7 @@ for (const w of [360, 412]) {
       JSON.stringify({ berry: v, lychee: v, banana: v, melon: v }));
   }, enGenisDeger);
   await pg.goto('http://localhost:8220/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleWallet, { timeout: 25000 });
+  await pg.waitForFunction(() => window.fruitHoleWallet, null, { timeout: 30000 });
   await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
   await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
   await pg.click('#playBtn');

@@ -53,7 +53,7 @@ const ISTENEN = ['Ring', 'Blocks', 'Cross', 'Wave', 'Pyramid', 'Piles'];
 
 const ONCE = await br.newPage();
 await ONCE.goto('http://localhost:8283/', { waitUntil: 'load' });
-await ONCE.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function', { timeout: 25000 });
+await ONCE.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function', null, { timeout: 30000 });
 const TABLO = await ONCE.evaluate(() => window.fruitHoleThemeTable());
 await ONCE.close();
 const BOLUM = {};
@@ -84,11 +84,11 @@ for (const ad of ISTENEN) {
     localStorage.setItem('fruithole_seen', '1');
   }, lvl);
   await pg.goto('http://localhost:8283/', { waitUntil: 'domcontentloaded' });
-  await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
+  await pg.waitForFunction(() => window.fruitHoleWhere, null, { timeout: 60000 });
   await pg.waitForFunction(() => {
     const l = document.getElementById('loading');
     return !l || getComputedStyle(l).display === 'none';
-  }, { timeout: 60000 });
+  }, null, { timeout: 60000 });
 
   const pump = async n => { for (let i = 0; i < n; i++) await pg.evaluate(d => window.__step(d), 1000 / FPS); };
   await pump(30);

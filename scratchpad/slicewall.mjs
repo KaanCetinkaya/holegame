@@ -56,7 +56,7 @@ pg.on('console', m => {
   if (m.type() === 'error' && !m.text().includes('404')) errs.push('CONSOLE: ' + m.text());
 });
 await pg.goto('http://localhost:8166/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
 if (await pg.isVisible('#dOk')) await pg.click('#dOk');
 
 // Taranacak bölüm sayısı oyunun kendi eğrilerinden: en geç açılan parça

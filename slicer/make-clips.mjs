@@ -302,7 +302,7 @@ for (const klip of liste) {
   await pg.addInitScript(() => localStorage.clear());
   await pg.addInitScript(SAHTE_SAAT);
   await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load', timeout: 90000 });
-  await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 60000 });
+  await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 60000 });
   // Günlük ödül penceresi ilk açılışta her şeyin önüne geliyor.
   await pg.evaluate(() => {
     document.getElementById('dOk')?.click();

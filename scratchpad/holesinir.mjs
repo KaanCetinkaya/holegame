@@ -59,7 +59,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 await pg.addInitScript(FAKE_CLOCK);
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8347/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 25000 });
+await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 30000 });
 // Çizim kapalı: ölçülen şey oyunun mantığı, ekrandaki görüntü değil.
 //
 // Konteynerde GPU yok ve bir kare SwiftShader'la 300-450 ms; kareyi tek tek

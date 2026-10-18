@@ -40,7 +40,7 @@ const errs = [];
 pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.addInitScript(() => localStorage.setItem('fruithole_level', '12'));
 await pg.goto('http://localhost:8308/', { waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHolePerf, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHolePerf, null, { timeout: 60000 });
 
 const fails = [];
 const check = (ok, ad, not = '') => {
@@ -83,7 +83,7 @@ check(sonra.acik.n === 0, 'saklandıktan sonra açık sayaç sıfırlanıyor', `
 // 4. Sayfa kapanıp açılınca duruyor mu? Oyuncu teşhis ekranını takılmanın
 // hemen ardından açmıyor.
 await pg.reload({ waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHolePerf, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHolePerf, null, { timeout: 60000 });
 const kalici = await pg.evaluate(() => window.fruitHolePerf());
 console.log(`yeniden açılınca: ${kalici.frames} kare · en kötü ${kalici.worstMs} ms`);
 check(kalici.frames === sonra.frames, 'ölçüm sayfa kapanınca kaybolmuyor',

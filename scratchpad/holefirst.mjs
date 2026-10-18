@@ -54,7 +54,7 @@ await pg.goto('http://localhost:8237/', { waitUntil: 'domcontentloaded' });
 not('sayfa açıldı');
 
 // Oyun kodu ne zaman hazır?
-await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHoleWhere, null, { timeout: 60000 });
 not('oyun kodu hazır');
 
 // Ekranda ilk ne görünüyor? Her yarım saniyede bir bak, değişince yaz.
@@ -150,7 +150,7 @@ const oynanirT = Date.now();
 await pg.waitForFunction(() => {
   const w = window.fruitHoleWhere();
   return w && w.state === 'playing' && w.timeLeft > 0;
-}, { timeout: 30000 });
+}, null, { timeout: 30000 });
 await pg.waitForTimeout(1900);   // düşüş
 not('oynanabilir', `Play'e basıldıktan ${((Date.now() - oynanirT) / 1000).toFixed(1)}s sonra`);
 await pg.screenshot({ path: `${OUT}/3-oyun.png` });
@@ -250,7 +250,7 @@ await pg2.addInitScript(() => {
   window.__step = ms => { t += ms; for (const cb of q.splice(0, q.length)) { try { cb(t); } catch (e) {} } };
 });
 await pg2.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
-await pg2.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 60000 });
+await pg2.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 60000 });
 // Çizim kapalı: bu ölçü lokma başına, saniye başına değil.
 await pg2.evaluate(() => window.fruitHoleDrawOff(true));
 const onLokma = await pg2.evaluate(() => {

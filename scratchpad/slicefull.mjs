@@ -14,7 +14,7 @@ const pg = await b.newPage({ viewport:{width:412,height:915}, deviceScaleFactor:
 const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
 pg.on('console', m => { if (m.type()==='error' && !m.text().includes('404')) errs.push('CONSOLE: '+m.text()); });
 await pg.goto('http://localhost:8141/', { waitUntil:'load' });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
 const bitmeyen = [], ekransiz = [];
 await pg.waitForTimeout(500);
 

@@ -75,7 +75,7 @@ for (const sahte of [false, true]) {
       await pg.waitForFunction(() => {
         const l = document.getElementById('loading');
         return !l || getComputedStyle(l).display === 'none';
-      }, { timeout: 30000 });
+      }, null, { timeout: 30000 });
     } catch (e) { acildi = false; }
     // Menüye kadar git. Birinci bölümdeki yeni profil doğrudan menüye
     // düşüyor, ilerlemiş bir kayıtta önce günlük meydan okuma ekranı geliyor
@@ -135,7 +135,7 @@ console.log('\n--- oynanırken ---');
         try { cb(t); } catch (e) { window.__kareHata.push(String(e && e.message || e)); } } };
   });
   await pg.goto('http://localhost:8276/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 40000 });
+  await pg.waitForFunction(() => window.fruitHoleWhere, null, { timeout: 40000 });
   // Bütün ilk tur: her düzen, her yer. Nesneler temaya göre değişiyor, yani
   // hatayı bulmak için çok sayıda tahta gerekiyor — biri yetmiyordu.
   //

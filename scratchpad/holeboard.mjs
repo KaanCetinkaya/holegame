@@ -74,7 +74,7 @@ async function open(opts) {
   pg.on('pageerror', e => { console.log('  SAYFA HATASI: ' + e); fails.push(String(e)); });
   await pg.addInitScript(fake(opts));
   await pg.goto('http://localhost:8221/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleGamesState, { timeout: 25000 });
+  await pg.waitForFunction(() => window.fruitHoleGamesState, null, { timeout: 30000 });
   await pg.waitForTimeout(900);
   return pg;
 }

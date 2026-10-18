@@ -50,7 +50,7 @@ async function dene(anahtarlar) {
   await pg.goto('http://localhost:8703/', { waitUntil: 'load', timeout: 60000 });
   let d = { acildi: false };
   try {
-    await pg.waitForFunction(() => typeof window.sliceMeta === 'function', null, { timeout: 25000 });
+    await pg.waitForFunction(() => typeof window.sliceMeta === 'function', null, { timeout: 30000 });
     d = await pg.evaluate(() => {
       const m = window.sliceMeta();
       window.sliceStart(1);

@@ -46,7 +46,7 @@ const hata = [];
 pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8767/', { waitUntil: 'load', timeout: 120000 });
-await pg.waitForFunction(() => typeof window.fruitHoleAdSim === 'function', { timeout: 90000 });
+await pg.waitForFunction(() => typeof window.fruitHoleAdSim === 'function', null, { timeout: 90000 });
 await pg.waitForTimeout(1200);
 
 const cuzdan = () => pg.evaluate(() => window.fruitHoleWallet());

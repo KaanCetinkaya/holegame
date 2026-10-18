@@ -40,7 +40,7 @@ pg.on('console', m => {
   if (m.type() === 'error' && !m.text().includes('404')) errs.push('CONSOLE: ' + m.text());
 });
 await pg.goto('http://localhost:8207/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHolePuzzle === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.fruitHolePuzzle === 'function', null, { timeout: 30000 });
 
 const fails = [];
 const check = (ok, ad, not = '') => {

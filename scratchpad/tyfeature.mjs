@@ -31,7 +31,7 @@ const ctx = await browser.newContext({ viewport: { width: 1024, height: 500 },
 const pg = await ctx.newPage();
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8133/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 30000 });
 await pg.waitForTimeout(400);
 
 await pg.evaluate(() => {

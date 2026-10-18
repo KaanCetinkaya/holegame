@@ -49,7 +49,7 @@ async function open(bulunan = null) {
     if (a) localStorage.setItem('fruithole_found', JSON.stringify(a));
   }, bulunan);
   await pg.goto('http://localhost:8249/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleCollection, { timeout: 40000 });
+  await pg.waitForFunction(() => window.fruitHoleCollection, null, { timeout: 40000 });
   return pg;
 }
 
@@ -65,7 +65,7 @@ async function ekraniAc(pg) {
   await pg.click('#collBtn');
   // Küçük resimler tek geçişte üretiliyor; GPU'suz konteynerde bu birkaç
   // saniye sürüyor.
-  await pg.waitForFunction(() => window.fruitHoleCollection().thumbs > 0, { timeout: 40000 });
+  await pg.waitForFunction(() => window.fruitHoleCollection().thumbs > 0, null, { timeout: 40000 });
   await pg.waitForTimeout(300);
 }
 

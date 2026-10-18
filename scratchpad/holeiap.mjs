@@ -81,7 +81,7 @@ async function open(opts) {
   pg.on('pageerror', e => { console.log('  SAYFA HATASI: ' + e); fails.push('sayfa hatası: ' + e); });
   await pg.addInitScript(fakePlugin(opts));
   await pg.goto('http://localhost:8218/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleWallet, { timeout: 25000 });
+  await pg.waitForFunction(() => window.fruitHoleWallet, null, { timeout: 30000 });
   await pg.waitForTimeout(900);
   return pg;
 }
@@ -270,7 +270,7 @@ console.log('\n6. eklenti yokken (tarayıcı)');
 const pg6 = await br.newPage({ viewport: { width: 412, height: 915 } });
 pg6.on('pageerror', e => { console.log('  SAYFA HATASI: ' + e); fails.push('sayfa hatası: ' + e); });
 await pg6.goto('http://localhost:8218/', { waitUntil: 'load' });
-await pg6.waitForFunction(() => window.fruitHoleWallet, { timeout: 25000 });
+await pg6.waitForFunction(() => window.fruitHoleWallet, null, { timeout: 30000 });
 await pg6.waitForTimeout(700);
 check(await pg6.evaluate(() => !!document.getElementById('shopBtn')),
   'tarayıcıda mağaza yine açılıyor (akış denenebilsin diye)');

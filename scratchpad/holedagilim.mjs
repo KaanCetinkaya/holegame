@@ -61,7 +61,7 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 pg.on('pageerror', e => console.log('HATA ' + e));
 await pg.goto('http://localhost:8507/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 90000 });
+await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 90000 });
 
 const KOL = 3, SAT = 5;
 // ## Neyin eşiği var, neyin yok

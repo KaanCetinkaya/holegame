@@ -168,7 +168,7 @@ for (const [ad, kv] of YAN) {
   await sayfa.goto('http://localhost:8671/', { waitUntil: 'load', timeout: 90000 });
   let acildi = false;
   try {
-    await sayfa.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 20000 });
+    await sayfa.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 30000 });
     acildi = true;
   } catch (e) {}
   console.log(`     ${ad.padEnd(13)} açıldı:${acildi ? 'E' : 'H'}` +

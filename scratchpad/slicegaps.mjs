@@ -12,7 +12,7 @@ const b = await chromium.launch({ executablePath:'/opt/pw-browsers/chromium', ar
 const pg = await b.newPage({ viewport:{width:412,height:915}, deviceScaleFactor:1 });
 const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
 await pg.goto('http://localhost:8171/', { waitUntil:'load' });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
 
 console.log(' blm | engel | en dar geçiş | gereken | pencere | salınım payı | durum');
 console.log('-----+-------+--------------+---------+---------+--------------+--------');

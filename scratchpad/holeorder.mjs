@@ -26,7 +26,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8272/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleOrder === 'function', { timeout: 25000 });
+await pg.waitForFunction(() => typeof window.fruitHoleOrder === 'function', null, { timeout: 30000 });
 
 const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);
 

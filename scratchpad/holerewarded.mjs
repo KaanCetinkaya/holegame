@@ -45,7 +45,7 @@ await pg.addInitScript(() => {
     JSON.stringify({ berry: 900, lychee: 900, banana: 900, melon: 900 }));
 });
 await pg.goto('http://localhost:8202/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleWallet, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleWallet, null, { timeout: 30000 });
 
 // ---- 1. Günlük ödülü katla ----
 console.log('\n1. günlük ödül');
@@ -84,7 +84,7 @@ check(left.length === freeBtns.length - 1, 'o booster için düğme gitti (günl
 
 // Sayfayı yenile: sınır kalıcı mı?
 await pg.reload({ waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleWallet, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleWallet, null, { timeout: 30000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 await pg.waitForSelector('#upgBtn', { state: 'visible', timeout: 15000 });
 await pg.click('#upgBtn');

@@ -33,7 +33,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8243/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 30000 });
 await pg.evaluate(() => { const d = document.getElementById('dOk'); if (d) d.click(); });
 
 const fails = [];

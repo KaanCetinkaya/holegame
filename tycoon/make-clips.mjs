@@ -368,7 +368,7 @@ for (const klip of liste) {
   await pg.addInitScript(() => localStorage.clear());
   await pg.addInitScript(SAHTE_SAAT);
   await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load', timeout: 90000 });
-  await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+  await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
   // Açılış ekranları klibin üstünü kapatıyor.
   await pg.evaluate(() => {
     for (const s of document.querySelectorAll('.screen')) s.classList.remove('show');

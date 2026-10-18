@@ -55,7 +55,7 @@ const hata = [];
 pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8625/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceIpucu === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.sliceIpucu === 'function', null, { timeout: 30000 });
 await pg.evaluate(() => window.sliceDrawOff(true));
 
 const parcalar = await pg.evaluate(() => window.slicePieces());
@@ -86,7 +86,7 @@ const yeniOyuncu = await pg.evaluate(() => {
 // sınırı koyuyor.
 await pg.addInitScript(() => localStorage.setItem('slicerush_level', '99'));
 await pg.reload({ waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceIpucu === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.sliceIpucu === 'function', null, { timeout: 30000 });
 await pg.evaluate(() => window.sliceDrawOff(true));
 
 const gorulen = [];

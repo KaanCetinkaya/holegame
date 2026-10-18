@@ -35,7 +35,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8173/', { waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHoleWhere, null, { timeout: 60000 });
 await pg.waitForTimeout(2500);
 if (await pg.isVisible('#dailyBtn')) await pg.click('#dailyBtn');
 await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 30000 });
@@ -75,7 +75,7 @@ if (!yapildi) {
   process.exit(0);
 }
 // Olay tarayıcının kendi sırasında geliyor; bir kare yetiyor.
-await pg.waitForFunction(() => document.getElementById('pause').classList.contains('show'),
+await pg.waitForFunction(() => document.getElementById('pause').classList.contains('show'), null,
   { timeout: 5000 }).catch(() => {});
 const kayipta = await durum();
 check(kayipta.state === 'paused', 'kayıpta oyun duruyor', kayipta.state);
@@ -99,7 +99,7 @@ check(zorla.state === 'paused', 'zorlansa da oyun akmıyor', zorla.state);
 // --- bağlamı geri ver ---
 console.log('\n3) Bağlam gelince çizim geri geliyor');
 await pg.evaluate(() => window.__glExt.restoreContext());
-await pg.waitForFunction(() => document.getElementById('glNotice').hidden, { timeout: 8000 })
+await pg.waitForFunction(() => document.getElementById('glNotice').hidden, null, { timeout: 30000 })
   .catch(() => {});
 await pg.waitForTimeout(600);
 const sonra = await durum();

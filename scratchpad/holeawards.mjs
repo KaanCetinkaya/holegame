@@ -53,7 +53,7 @@ async function open({ stats = null, level = 1, ach = null, found = null, daily =
     if (a.daily) localStorage.setItem('fruithole_daily', JSON.stringify(a.daily));
   }, { stats, level, ach, found, daily });
   await pg.goto('http://localhost:8258/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleAwards, { timeout: 40000 });
+  await pg.waitForFunction(() => window.fruitHoleAwards, null, { timeout: 40000 });
   return pg;
 }
 

@@ -49,7 +49,7 @@ async function ac(anahtarlar) {
   // bir kayıtla da var, canvas yok.
   let canvas = false;
   try {
-    await pg.waitForFunction(() => !!document.querySelector('canvas'), null, { timeout: 15000 });
+    await pg.waitForFunction(() => !!document.querySelector('canvas'), null, { timeout: 30000 });
     canvas = true;
   } catch (e) { }
   const d = await pg.evaluate(() => ({
@@ -140,7 +140,7 @@ console.log('\n1b) Yazamayan bir telefonda oyun duruyor mu');
   pg.on('pageerror', e => h.push(String(e).split('\n')[0]));
   await pg.addInitScript(() => localStorage.clear());
   await pg.goto('http://localhost:8709/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => typeof window.fruitHoleYazma === 'function', { timeout: 30000 });
+  await pg.waitForFunction(() => typeof window.fruitHoleYazma === 'function', null, { timeout: 30000 });
   const once = await pg.evaluate(() => window.fruitHoleYazma());
   await pg.evaluate(() => window.fruitHoleYazmaBoz(true));
   // Yazan bir yol: ses tuşu. Tek tıkla `fruithole_muted` yazılıyor.

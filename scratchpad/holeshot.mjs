@@ -53,7 +53,7 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8254/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleLean, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleLean, null, { timeout: 30000 });
 
 // Günlük ödül penceresi ilk açılışta her şeyin önüne geliyor.
 if (await pg.isVisible('#dailyBtn')) await pg.click('#dailyBtn');

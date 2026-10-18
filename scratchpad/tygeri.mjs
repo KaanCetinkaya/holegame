@@ -38,7 +38,7 @@ const hata = [];
 pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8787/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 await pg.evaluate(() => { document.getElementById('dOk')?.click(); window.jeTutSkip(); });
 await pg.waitForTimeout(300);
 

@@ -13,7 +13,7 @@ const pg = await b.newPage({ viewport:{width:412,height:915}, deviceScaleFactor:
 const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
 pg.on('console', m => { if (m.type()==='error' && !m.text().includes('404')) errs.push('CONSOLE: '+m.text()); });
 await pg.goto('http://localhost:8163/', { waitUntil:'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 30000 });
 
 // Kaç bölüm? Oyunun kendi sırasından. Sabit 15 yazıyordu ve düzen sayısı
 // 19'dan 24'e çıkınca son dokuz düzen — beşi yepyeni — hiç ölçülmedi.

@@ -56,7 +56,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8620/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 30000 });
 // Çizim kapalı: ölçülen şey zincirin ekonomisi, ekrandaki fabrika değil.
 // `jeRun` benzetimi doğrudan ilerletiyor, yani kareler yalnızca arka planda
 // boşa çiziliyordu.

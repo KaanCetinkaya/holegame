@@ -71,7 +71,7 @@ for (const lvl of LEVELS) {
     localStorage.setItem('fruithole_seen', '1');
   }, lvl);
   await pg.goto('http://localhost:8274/', { waitUntil: 'domcontentloaded' });
-  await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
+  await pg.waitForFunction(() => window.fruitHoleWhere, null, { timeout: 60000 });
   // Çizim kapalı: ölçülen şey turun kendisi, ekrandaki görüntü değil.
   // Mayın bölümü dokuz bin kare sürüyor ve her kare GPU'suz 300-450 ms —
   // bu dosya toplu koşuda 1282 saniye aldı. Bayrak `renderer.render`ı
@@ -86,7 +86,7 @@ for (const lvl of LEVELS) {
   await pg.waitForFunction(() => {
     const l = document.getElementById('loading');
     return !l || getComputedStyle(l).display === 'none';
-  }, { timeout: 60000 });
+  }, null, { timeout: 60000 });
 
   const pump = async n => { for (let i = 0; i < n; i++) await pg.evaluate(d => window.__step(d), 1000 / FPS); };
   await pump(30);

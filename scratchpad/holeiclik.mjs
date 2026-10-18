@@ -21,7 +21,7 @@ const br = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', 
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 pg.on('pageerror', e => console.log('HATA ' + e));
 await pg.goto('http://localhost:8520/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 90000 });
+await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 90000 });
 
 console.log('\n  blm  düzen         dolu  iç payı');
 const hepsi = [];

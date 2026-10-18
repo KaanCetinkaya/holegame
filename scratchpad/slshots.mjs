@@ -146,7 +146,7 @@ async function shoot(dir, w, h, scale) {
       for (const [k, v] of Object.entries(seed || {})) localStorage.setItem(k, v);
     }, s.seed || null);
     await pg.goto('http://localhost:8145/', { waitUntil: 'load' });
-    await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+    await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
     await pg.waitForTimeout(400);
     // Günlük ödül penceresi açılışta kendini gösteriyor ve her karenin
     // üstünde duruyor. Kapatılmazsa yedi görselin yedisi de oyunu değil
@@ -191,7 +191,7 @@ await shoot(`${OUT}/tablet`, 1440, 2560, 2);
 const pg = await browser.newPage({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 2 });
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8145/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
 await pg.waitForTimeout(400);
 if (await pg.isVisible('#dOk')) { await pg.click('#dOk'); await pg.waitForTimeout(250); }
 await pg.evaluate(() => window.sliceStart(5));

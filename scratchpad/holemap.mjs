@@ -36,7 +36,7 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8272/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleCellMap, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleCellMap, null, { timeout: 30000 });
 
 const LV = process.argv.slice(2).map(Number).filter(n => Number.isFinite(n) && n > 0);
 if (!LV.length) LV.push(1);

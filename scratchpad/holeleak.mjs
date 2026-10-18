@@ -78,7 +78,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = []; pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.addInitScript(SAY);
 await pg.goto('http://localhost:8291/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 30000 });
+await pg.waitForFunction(() => window.fruitHoleProbe, null, { timeout: 30000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 
 // Geometri defteri. THREE modül olarak alınıyor, yani dışarıda global yok —

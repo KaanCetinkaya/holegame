@@ -39,7 +39,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 pg.on('pageerror', e => console.log('HATA ' + e));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8599/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 
 let fail = 0;
 const ok = (c, ad, not = '') => { if (!c) fail++; console.log(`  ${c ? 'OK  ' : 'FAIL'} ${ad}   ${not}`); };
@@ -126,7 +126,7 @@ const ctx2 = await br.newContext({ viewport: { width: 412, height: 915 } });
 const pg2 = await ctx2.newPage();
 await pg2.addInitScript(() => localStorage.clear());
 await pg2.goto('http://localhost:8599/', { waitUntil: 'load', timeout: 90000 });
-await pg2.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await pg2.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 await pg2.evaluate(() => document.getElementById('dOk')?.click());
 await pg2.waitForTimeout(1500);                    // gerçek kareler dönsün
 const tasimayan = await pg2.evaluate(() => {

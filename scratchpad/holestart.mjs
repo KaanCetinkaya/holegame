@@ -45,7 +45,7 @@ async function bak(baslik, bekleniyor) {
   await pg.waitForFunction(() => {
     const l = document.getElementById('loading');
     return !l || getComputedStyle(l).display === 'none';
-  }, { timeout: 30000 });
+  }, null, { timeout: 30000 });
   if (await pg.isVisible('#dailyBtn')) await pg.click('#dailyBtn');
 
   const d = await pg.evaluate(() => ({

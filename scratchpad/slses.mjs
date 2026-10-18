@@ -57,7 +57,7 @@ pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 // İlk yazılışında tam bu oldu ve ölçüm oyunu suçladı. Yeni bir
 // tarayıcı bağlamının deposu zaten boş.
 await pg.goto('http://localhost:8768/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.sliceMeta === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.sliceMeta === 'function', null, { timeout: 60000 });
 await pg.evaluate(() => document.getElementById('dOk')?.click());
 
 console.log('\n1) Menüdeki tuş');
@@ -88,7 +88,7 @@ ok(k.yazi !== t.yazi, 'simge değişti', `${t.yazi} → ${k.yazi}`);
 ok(k.kayit === 'true', 'kayda yazıldı', String(k.kayit));
 
 await pg.reload({ waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.sliceMeta === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.sliceMeta === 'function', null, { timeout: 60000 });
 await pg.evaluate(() => document.getElementById('dOk')?.click());
 const y = await pg.evaluate(() => ({ sessiz: window.sliceMeta().sessiz,
   yazi: document.getElementById('muteBtn').textContent.trim() }));

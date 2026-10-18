@@ -9,7 +9,7 @@ const srv = createServer((req,res)=>{const p=req.url==='/'?'/index.html':req.url
 const br = await chromium.launch({executablePath:'/opt/pw-browsers/chromium',args:['--use-gl=swiftshader']});
 const pg = await br.newPage({viewport:{width:412,height:915}});
 await pg.goto('http://localhost:8171/',{waitUntil:'domcontentloaded'});
-await pg.waitForFunction(()=>window.fruitHoleWhere,{timeout:60000});
+await pg.waitForFunction(()=>window.fruitHoleWhere, null,{timeout:60000});
 await pg.waitForTimeout(2000);
 // Telefondaki gibi: reklam şeridi var, sistem çubuğu var.
 const AD = 60;

@@ -58,7 +58,7 @@ const oku = () => ({
 async function bolum(pg, lvl) {
   await pg.evaluate(n => localStorage.setItem('fruithole_level', String(n)), lvl);
   await pg.reload({ waitUntil: 'domcontentloaded' });
-  await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
+  await pg.waitForFunction(() => window.fruitHoleWhere, null, { timeout: 60000 });
   await pg.waitForTimeout(2200);
   if (await pg.isVisible('#dailyBtn')) await pg.click('#dailyBtn');
   await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 30000 });
@@ -73,7 +73,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8306/', { waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHoleWhere, null, { timeout: 60000 });
 
 // 4 kart (sıradan ızgara), 5 sipariş, 15 devler, 25 hız, 35 mayın.
 console.log('bölüm  gösterge              desen satırı');

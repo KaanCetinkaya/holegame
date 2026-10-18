@@ -70,7 +70,7 @@ async function open({ native = true, opts = {}, stats = null, daily = null, noti
     if (a.notif) localStorage.setItem('fruithole_notif', JSON.stringify(a.notif));
   }, { stats, daily, notif });
   await pg.goto('http://localhost:8247/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleNotif, { timeout: 30000 });
+  await pg.waitForFunction(() => window.fruitHoleNotif, null, { timeout: 30000 });
   await pg.waitForTimeout(400);
   return pg;
 }

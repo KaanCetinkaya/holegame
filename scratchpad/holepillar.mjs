@@ -53,7 +53,7 @@ const check = (ok, what, saw) => {
 // sütunların şerit haline gelip gelmediği ancak uzun tahtada görülüyor.
 const ONCE = await br.newPage();
 await ONCE.goto('http://localhost:8199/', { waitUntil: 'load' });
-await ONCE.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
+await ONCE.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function', null,
   { timeout: 25000 });
 const ORDER = await ONCE.evaluate(() => window.fruitHoleThemeTable().order);
 const IDX = ORDER.indexOf('Pillars');
@@ -78,7 +78,7 @@ if (!BOLUM) throw new Error('Pillars hiçbir bölümde bulunamadı');
 
 await pg.addInitScript(n => localStorage.setItem('fruithole_level', String(n)), BOLUM);
 await pg.goto('http://localhost:8199/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHolePillars, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHolePillars, null, { timeout: 30000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
 await pg.click('#playBtn');

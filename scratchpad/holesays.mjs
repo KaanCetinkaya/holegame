@@ -56,7 +56,7 @@ async function ac(level = 20) {
       JSON.stringify({ time: 9, grow: 9, magnet: 9, twister: 9 }));
   }, String(level));
   await pg.goto('http://localhost:8321/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 25000 });
+  await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 30000 });
   await pg.waitForSelector('#dailyBtn', { state: 'visible', timeout: 8000 }).catch(() => {});
   await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
   await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
@@ -113,7 +113,7 @@ console.log('\n3. mayın satırı: bombanın bedelini doğru söylüyor mu');
   const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
   pg.on('pageerror', e => errs.push(String(e)));
   await pg.goto('http://localhost:8321/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 25000 });
+  await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 30000 });
   const o = await pg.evaluate(() => {
     // Mayın bölümünü bul: satırı yalnızca orada çıkıyor.
     for (let l = 1; l <= 60; l++) {
@@ -145,7 +145,7 @@ console.log('\n4. sayısız açıklamalar olduğu gibi duruyor');
   const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
   pg.on('pageerror', e => errs.push(String(e)));
   await pg.goto('http://localhost:8321/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleBoosterDefs, { timeout: 25000 });
+  await pg.waitForFunction(() => window.fruitHoleBoosterDefs, null, { timeout: 30000 });
   const b = await pg.evaluate(() => window.fruitHoleBoosterDefs().map(x => ({ id: x.id, desc: x.desc })));
   const bos = b.filter(x => !x.desc || !x.desc.trim());
   check(!bos.length, 'her booster\'ın bir açıklaması var', bos.map(x => x.id).join(' '));

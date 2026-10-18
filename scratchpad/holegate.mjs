@@ -37,7 +37,7 @@ await pg.addInitScript(u => {
   localStorage.setItem('fruithole_upgrades', JSON.stringify({ size: Number(u) }));
 }, String(UPG));
 await pg.goto('http://localhost:8193/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleProbe, null, { timeout: 30000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 
 console.log(`'size' yükseltmesi: ${UPG}\n`);

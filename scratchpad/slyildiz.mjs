@@ -56,7 +56,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const hata = [];
 pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8621/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
 // Çizim kapalı: ölçülen şey turun sonucu, ekrandaki görüntü değil.
 await pg.evaluate(() => window.sliceDrawOff(true));
 

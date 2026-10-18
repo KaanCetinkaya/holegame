@@ -39,7 +39,7 @@ const hata = [];
 pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 await pg.addInitScript(() => { localStorage.clear(); localStorage.setItem('fruithole_level', '12'); });
 await pg.goto('http://localhost:8786/', { waitUntil: 'load', timeout: 120000 });
-await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', { timeout: 90000 });
+await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', null, { timeout: 90000 });
 await pg.waitForTimeout(1500);
 await pg.evaluate(() => { document.getElementById('dailyBtn')?.click(); });
 await pg.waitForTimeout(400);

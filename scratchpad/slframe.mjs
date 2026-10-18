@@ -15,7 +15,7 @@ for (const [lvl, tag, want] of [[4,'a', p=>p.shards>=2], [6,'b', p=>p.streak>=5]
   const pg = await b.newPage({ viewport:{width:412,height:915}, deviceScaleFactor:2 });
   await pg.addInitScript(() => localStorage.clear());
   await pg.goto('http://localhost:8147/', { waitUntil:'load' });
-  await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+  await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
   await pg.evaluate(n => window.sliceStart(n), lvl);
   await pg.waitForTimeout(350);
   await pg.evaluate(() => document.getElementById('hint').classList.remove('show'));

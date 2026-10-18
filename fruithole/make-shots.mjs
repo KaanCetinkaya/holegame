@@ -196,7 +196,7 @@ const SHOTS = [
       await pg.click('#collBtn');
       // Küçük resimler tek geçişte üretiliyor; GPU'suz konteynerde bu
       // birkaç saniye sürüyor ve erken çekilen görsel boş kutular oluyor.
-      await pg.waitForFunction(() => window.fruitHoleCollection().thumbs > 0, { timeout: 90000 });
+      await pg.waitForFunction(() => window.fruitHoleCollection().thumbs > 0, null, { timeout: 90000 });
       await pg.waitForTimeout(600);
     } },
 ];
@@ -205,7 +205,7 @@ const SHOTS = [
 async function levelIndex() {
   const pg = await browser.newPage({ viewport: { width: 412, height: 915 } });
   await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
-  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
+  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function', null,
     { timeout: 25000 });
   const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);
   // Çözülen bölümün tahtası gerçekten o düzen mi?
@@ -254,7 +254,7 @@ async function shoot(dir, width, height, scale) {
     }, { level: String(s.level || 1), purse: s.purse || null, stars: s.stars || null,
          found: s.found || null });
     await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
-    await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 25000 });
+    await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 30000 });
     // Günlük ödül penceresi ilk açılışta her şeyin önüne geliyor.
     await pg.waitForSelector('#dailyBtn', { state: 'visible', timeout: 8000 }).catch(() => {});
     await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });

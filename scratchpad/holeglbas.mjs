@@ -78,7 +78,7 @@ for (const lv of [7, 51]) {
   await pg.addInitScript(FAKE_CLOCK);
   pg.on('pageerror', e => errs.push(String(e)));
   await pg.goto('http://localhost:8351/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => typeof window.fruitHoleLoseGl === 'function', { timeout: 25000 });
+  await pg.waitForFunction(() => typeof window.fruitHoleLoseGl === 'function', null, { timeout: 30000 });
 
   const dustu = await pg.evaluate((l) => {
     window.fruitHoleSeedField(9900 + l);
@@ -92,7 +92,7 @@ for (const lv of [7, 51]) {
   // "bağlam kayıp değil" diyordu, çünkü henüz düşmemişti.
   let kayip = false;
   try {
-    await pg.waitForFunction(() => window.fruitHoleGl().lost, { timeout: 10000 });
+    await pg.waitForFunction(() => window.fruitHoleGl().lost, null, { timeout: 30000 });
     kayip = true;
   } catch (e) {}
 
@@ -149,7 +149,7 @@ console.log('\ngeçmişte geri getiremeyen cihaz');
   });
   pg.on('pageerror', e => errs.push(String(e)));
   await pg.goto('http://localhost:8351/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function', { timeout: 25000 });
+  await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function', null, { timeout: 30000 });
   const once = await pg.evaluate(() => window.fruitHoleGl());
   console.log(`  defterde geri gelmeyen kayıt: ${once.gecmisteGelmedi} · deneme sınırı ${once.max}`);
   check(once.gecmisteGelmedi === 1, 'defterdeki başarısız kayıt okunuyor', String(once.gecmisteGelmedi));
@@ -164,7 +164,7 @@ console.log('\ngeçmişte geri getiremeyen cihaz');
   await pg.addInitScript(FAKE_CLOCK);
   pg.on('pageerror', e => errs.push(String(e)));
   await pg.goto('http://localhost:8351/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function', { timeout: 25000 });
+  await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function', null, { timeout: 30000 });
   const o = await pg.evaluate(() => window.fruitHoleGl());
   check(o.max === 4, 'temiz defterli cihazda dört deneme yapılıyor', String(o.max));
   await pg.close();

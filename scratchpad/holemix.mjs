@@ -36,7 +36,7 @@ const br = await chromium.launch({
 });
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 await pg.goto('http://localhost:8294/', { waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHoleMix, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHoleMix, null, { timeout: 60000 });
 await pg.evaluate(() => window.fruitHoleSeedField && window.fruitHoleSeedField(7));
 
 const fails = [];

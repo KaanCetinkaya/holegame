@@ -36,7 +36,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8298/', { waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHoleRocks, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHoleRocks, null, { timeout: 60000 });
 
 const fails = [];
 const check = (ok, ad, not = '') => {

@@ -32,7 +32,7 @@ const pg = await br.newPage({ viewport: { width: W, height: H } });
 pg.on('pageerror', e => console.log('HATA ' + e));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8591/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 
 let fail = 0;
 const ok = (c, ad, not = '') => { if (!c) fail++; console.log(`  ${c ? 'OK  ' : 'FAIL'} ${ad}   ${not}`); };

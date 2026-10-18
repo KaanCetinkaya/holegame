@@ -36,7 +36,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8296/', { waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHoleBombs, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHoleBombs, null, { timeout: 60000 });
 
 const fails = [];
 const check = (ok, ad, not = '') => {
@@ -272,7 +272,7 @@ check(mayin.hedefDisi, 'mayın bölümünde de bombalar hedefe girmiyor');
 console.log('\nbombayı yutmak:');
 await pg.evaluate(() => { localStorage.setItem('fruithole_level', '10'); });
 await pg.reload({ waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHoleBombs, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHoleBombs, null, { timeout: 60000 });
 await pg.waitForTimeout(2500);
 if (await pg.isVisible('#dailyBtn')) await pg.click('#dailyBtn');
 await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 30000 });

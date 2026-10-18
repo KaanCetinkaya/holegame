@@ -49,7 +49,7 @@ pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.addInitScript(FAKE_CLOCK);
 await pg.addInitScript(() => localStorage.setItem('fruithole_level', '11'));
 await pg.goto('http://localhost:8286/', { waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHoleWhere, null, { timeout: 60000 });
 // Çizim kapalı: ölçülen şey oyunun mantığı, ekrandaki görüntü değil.
 //
 // Konteynerde GPU yok ve bir kare SwiftShader'la 300-450 ms; kareyi tek tek

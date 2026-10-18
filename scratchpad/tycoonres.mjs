@@ -33,7 +33,7 @@ const check = (ok, what, saw) => {
 const near = (a, b, tol = 1e-6) => Math.abs(a - b) <= tol * Math.max(1, Math.abs(b));
 
 await pg.goto('http://localhost:8151/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 30000 });
 // Ölçüm kusursuz bir taşıyıcı varsayıyor: işçi oyuna girdikten sonra
 // bu bayrak olmadan sahte oyuncu hiçbir şey taşımıyor ve testler ölü bir
 // fabrikayı ölçüyor — seviye 1, kasa sıfır, ve yine 'geçti' diyorlar.

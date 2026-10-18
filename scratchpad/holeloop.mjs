@@ -21,7 +21,7 @@ const pg = await b.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8271/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleLoop === 'function', { timeout: 25000 });
+await pg.waitForFunction(() => typeof window.fruitHoleLoop === 'function', null, { timeout: 30000 });
 
 const hata = [];
 const order = await pg.evaluate(() => window.fruitHoleThemeTable().order);

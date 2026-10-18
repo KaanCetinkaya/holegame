@@ -44,7 +44,7 @@ for (const [w, h, name] of [[412, 915, 'normal'], [360, 780, 'küçük'], [412, 
   const pg = await br.newPage({ viewport: { width: w, height: h } });
   const errs = []; pg.on('pageerror', e => errs.push(String(e)));
   await pg.goto('http://localhost:8187/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleAdPad, { timeout: 25000 });
+  await pg.waitForFunction(() => window.fruitHoleAdPad, null, { timeout: 30000 });
   await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
   await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
 

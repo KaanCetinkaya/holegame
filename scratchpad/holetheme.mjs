@@ -46,7 +46,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 pg.on('pageerror', e => { console.log('  SAYFA HATASI: ' + e); fails.push(String(e)); });
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8263/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleThemeTable, { timeout: 40000 });
+await pg.waitForFunction(() => window.fruitHoleThemeTable, null, { timeout: 40000 });
 
 const T = await pg.evaluate(() => window.fruitHoleThemeTable());
 
@@ -337,7 +337,7 @@ console.log('\n8. hareket kapalıyken hava da duruyor');
   // çizimler yavaş, ve varsayılan 30 saniye yük altında yetmiyordu — test
   // bugün üç kez tam burada düştü, oyunda hiçbir şey olmadığı hâlde.
   await kisik.goto('http://localhost:8263/', { waitUntil: 'load', timeout: 120000 });
-  await kisik.waitForFunction(() => window.fruitHoleAir, { timeout: 40000 });
+  await kisik.waitForFunction(() => window.fruitHoleAir, null, { timeout: 40000 });
   if (await kisik.isVisible('#dailyBtn')) await kisik.click('#dailyBtn');
   await kisik.waitForSelector('#playBtn', { state: 'visible', timeout: 25000 });
   await kisik.click('#playBtn');

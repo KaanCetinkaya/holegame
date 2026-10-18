@@ -29,7 +29,7 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 600, height: 600 }, deviceScaleFactor: 2 });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8181/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleProbe, null, { timeout: 30000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 await pg.evaluate(() => {
   for (const s of document.querySelectorAll('.screen')) s.classList.remove('show');

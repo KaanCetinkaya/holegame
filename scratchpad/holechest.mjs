@@ -60,7 +60,7 @@ async function open({ stats = OYNAMIS, level = 8, chest = null, menu = true } = 
     if (a.chest) localStorage.setItem('fruithole_tchest', JSON.stringify(a.chest));
   }, { stats, level, chest });
   await pg.goto('http://localhost:8250/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleChest, { timeout: 40000 });
+  await pg.waitForFunction(() => window.fruitHoleChest, null, { timeout: 40000 });
   if (menu) {
     // Günlük ödül penceresi açılışta önü kesiyor.
     await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
@@ -203,7 +203,7 @@ console.log('\n5. kayıt');
   check(kayit && kayit.n === 1 && kayit.at > Date.now(), 'diske yazıldı', JSON.stringify(kayit));
 
   await pg.reload({ waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleChest, { timeout: 40000 });
+  await pg.waitForFunction(() => window.fruitHoleChest, null, { timeout: 40000 });
   const d = await durum(pg);
   check(d.left > 3.9 * SAAT, 'yeniden açılınca hâlâ bekliyor', `${(d.left / SAAT).toFixed(2)} saat`);
   await pg.close();
@@ -221,7 +221,7 @@ console.log('\n6. yerleşim');
       localStorage.setItem('fruithole_level', '8');
     }, OYNAMIS);
     await pg.goto('http://localhost:8250/', { waitUntil: 'load' });
-    await pg.waitForFunction(() => window.fruitHoleChest, { timeout: 40000 });
+    await pg.waitForFunction(() => window.fruitHoleChest, null, { timeout: 40000 });
     await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
     await pg.waitForTimeout(600);
 

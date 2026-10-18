@@ -132,6 +132,16 @@ kapsıyor. Bir günde dördü birden çıktı:
 - `holecatapult` elle yazılmış bir eşiği ölçüyordu ve o eşik oyunun
   verdiği sözden iki kat büyüktü. Artık eşiği oyundan okuyor.
 
+Ve bir gün sonra beşincisi, 213 yerde birden: `waitForFunction(fn,
+options)` yazılmıştı. Playwright'ta ikinci parametre sayfaya geçirilen
+**argüman**, seçenek değil — yani yazılan zaman aşımı bir argümana
+dönüşüyor ve gerçek sınır sessizce varsayılan otuz saniyede kalıyor.
+Doksan altısı 40-120 saniye istiyordu, yani istediğinin üçte birini
+alıyordu. Bedeli: `slice` toplu koşuda "sayfa otuz saniyede açılmadı"
+diye düştü, tek başına sorunsuz geçti. Doğrusu `waitForFunction(fn,
+null, options)`, ve `slbelge` artık buna kapı kuruyor — depodaki 182
+betiğin hepsini tarıyor, çünkü hata oyuna değil araca ait.
+
 Kural: eşik **seçilmez, ölçülür**. Aynı yapımı üç kez koşturup gürültüyü
 gör, eşiği onun üstüne koy. Ve ölçümü bir kere de **hatayı geri koyarak**
 çalıştır — geçmesi gereken yerde geçmek yetmez, düşmesi gereken yerde

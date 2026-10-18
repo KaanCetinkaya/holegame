@@ -38,7 +38,7 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8276/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleMud, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleMud, null, { timeout: 30000 });
 
 const fails = [];
 const check = (ok, ne, ek = '') => {

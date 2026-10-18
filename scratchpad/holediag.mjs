@@ -64,7 +64,7 @@ async function open(init) {
   pg.on('pageerror', e => { console.log('  SAYFA HATASI: ' + e); fails.push(String(e)); });
   if (init) await pg.addInitScript(init);
   await pg.goto('http://localhost:8222/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleDiag, { timeout: 25000 });
+  await pg.waitForFunction(() => window.fruitHoleDiag, null, { timeout: 30000 });
   await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
   await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
   await pg.waitForTimeout(700);

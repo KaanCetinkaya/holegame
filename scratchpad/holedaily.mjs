@@ -53,7 +53,7 @@ async function open(profile) {
       JSON.stringify({ berry: 5000, lychee: 5000, banana: 5000, melon: 5000 }));
   }, profile);
   await pg.goto('http://localhost:8210/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleFieldHash, { timeout: 25000 });
+  await pg.waitForFunction(() => window.fruitHoleFieldHash, null, { timeout: 30000 });
   await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
   await pg.waitForSelector('#goalsBtn', { state: 'visible', timeout: 20000 });
   return { ctx, pg };

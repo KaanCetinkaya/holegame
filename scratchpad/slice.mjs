@@ -16,7 +16,7 @@ const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
 // yok ve testi kırmızıya boyamaktan başka bir şey yapmıyor.
 pg.on('console', m => { if (m.type()==='error' && !m.text().includes('404')) errs.push('CONSOLE: '+m.text()); });
 await pg.goto('http://localhost:8111/', { waitUntil:'load' });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
 await pg.waitForTimeout(700);
 await pg.screenshot({ path: `${OUT}/slice_menu.png` });
 console.log('menu   ', JSON.stringify(await pg.evaluate(() => window.sliceProbe())));

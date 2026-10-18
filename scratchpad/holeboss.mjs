@@ -41,7 +41,7 @@ const check = (ok, what, saw) => {
 };
 
 await pg.goto('http://localhost:8211/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleBoss, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleBoss, null, { timeout: 30000 });
 
 // Tohum veriliyor, ve bir tane değil üç tane.
 //

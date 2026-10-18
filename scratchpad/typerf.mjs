@@ -39,8 +39,8 @@ for (let i = 0; i < 3; i++) {
   const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
   await pg.addInitScript(() => { localStorage.clear(); window.__t0 = performance.now(); });
   await pg.goto('http://localhost:8607/', { waitUntil: 'load', timeout: 90000 });
-  await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
-  await pg.waitForFunction(() => window.jePerf().cagri > 0, { timeout: 60000 });
+  await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
+  await pg.waitForFunction(() => window.jePerf().cagri > 0, null, { timeout: 60000 });
   sureler.push(await pg.evaluate(() => Math.round(performance.now() - window.__t0)));
   await pg.close();
 }
@@ -53,7 +53,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 pg.on('pageerror', e => console.log('HATA ' + e));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8607/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 await pg.evaluate(() => { document.getElementById('dOk')?.click(); window.jeTutSkip(); });
 await pg.waitForTimeout(600);
 

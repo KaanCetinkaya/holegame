@@ -34,7 +34,7 @@ pg.on('console', m => {
   if (m.type() === 'error' && !m.text().includes('404')) errs.push('CONSOLE: ' + m.text());
 });
 await pg.goto('http://localhost:8193/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceGoals === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceGoals === 'function', null, { timeout: 30000 });
 if (await pg.isVisible('#dOk')) await pg.click('#dOk');
 
 const fails = [];
@@ -85,7 +85,7 @@ check(g.stats.runs === 1, 'tur sayacı arttı', String(g.stats.runs));
 console.log('\n3) Sayfa yenilendikten sonra');
 const kesimOnce = g.stats.cuts;
 await pg.reload({ waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceGoals === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceGoals === 'function', null, { timeout: 30000 });
 if (await pg.isVisible('#dOk')) await pg.click('#dOk');
 g = await pg.evaluate(() => window.sliceGoals());
 check(g.stats.cuts === kesimOnce, 'kesim sayacı kayıtta duruyor',
@@ -101,7 +101,7 @@ const ilk = await pg.evaluate(() => {
   return true;
 });
 await pg.reload({ waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceGoals === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceGoals === 'function', null, { timeout: 30000 });
 if (await pg.isVisible('#dOk')) await pg.click('#dOk');
 g = await pg.evaluate(() => window.sliceGoals());
 const c10 = g.list.find(x => x.id === 'combo10');

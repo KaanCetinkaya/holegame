@@ -168,8 +168,56 @@ const oluSabit = sabitler.filter(n =>
 console.log(`     ${sabitler.length} sabit · hiç kullanılmayan ${oluSabit.length}`);
 ok(oluSabit.length === 0, 'tanımlanan her sabit kullanılıyor', oluSabit.join(', '));
 
+console.log('\n8) Ölçümlerin kendi zaman aşımları çalışıyor mu');
+// Playwright'ta `waitForFunction(fn, arg, options)` — ikinci parametre
+// sayfaya geçirilen **argüman**, seçenek değil. `waitForFunction(fn,
+// { timeout: 90000 })` yazmak o doksan saniyeyi bir argümana çeviriyor
+// ve zaman aşımı sessizce varsayılan otuz saniyede kalıyor.
+//
+// Depoda 213 yerde böyle yazılmıştı ve 96'sı 40-120 saniye istiyordu,
+// yani istediğinin üçte birini alıyordu. Bedeli ölçüldü: `slice` toplu
+// koşuda "sayfa 30 saniyede açılmadı" diye düştü, tek başına sorunsuz
+// geçti. Yazılmış ama hiçbir şey yapmayan bir sayı, bu deponun en sık
+// hatası — ve burada yüz doksan altısı birden vardı.
+//
+// Tarama bütün ölçüm betiklerine bakıyor, yalnızca Slice Rush'ınkilere
+// değil: hata oyuna değil araca ait.
+const tumBetikler = readdirSync(KOK + '/scratchpad').filter(f => f.endsWith('.mjs'))
+  .map(f => ['scratchpad/' + f, readFileSync(`${KOK}/scratchpad/${f}`, 'utf8')])
+  .concat(['fruithole', 'slicer', 'tycoon'].flatMap(d =>
+    readdirSync(`${KOK}/${d}`).filter(f => f.endsWith('.mjs'))
+      .map(f => [`${d}/${f}`, readFileSync(`${KOK}/${d}/${f}`, 'utf8')])));
+const yanlisYer = [];
+for (const [ad, metin] of tumBetikler) {
+  for (const m of metin.matchAll(/waitForFunction\(/g)) {
+    // Çağrının içini dengeli parantezle al.
+    let i = m.index + m[0].length, derin = 1;
+    while (i < metin.length && derin) {
+      const c = metin[i];
+      if (c === '(') derin++; else if (c === ')') derin--;
+      i++;
+    }
+    const ic = metin.slice(m.index + m[0].length, i - 1);
+    // Üst düzeyde iki argüman var ve ikincisi `{ timeout: ... }` ise,
+    // seçenek argüman yerine yazılmış demektir.
+    let derin2 = 0, parcalar = [], son = 0;
+    for (let n = 0; n < ic.length; n++) {
+      const c = ic[n];
+      if ('([{'.includes(c)) derin2++;
+      else if (')]}'.includes(c)) derin2--;
+      else if (c === ',' && derin2 === 0) { parcalar.push(ic.slice(son, n)); son = n + 1; }
+    }
+    parcalar.push(ic.slice(son));
+    if (parcalar.length === 2 && /^\s*\{/.test(parcalar[1]) && /timeout/.test(parcalar[1]))
+      yanlisYer.push(`${ad}:${metin.slice(0, m.index).split('\n').length}`);
+  }
+}
+console.log(`     ${tumBetikler.length} betik tarandı · yanlış yere yazılmış ${yanlisYer.length}`);
+ok(yanlisYer.length === 0, 'waitForFunction zaman aşımı seçenek yerinde',
+   yanlisYer.slice(0, 6).join(', '));
 
-console.log('\n8) Sürüm notu Play kutusuna sığıyor mu');
+
+console.log('\n9) Sürüm notu Play kutusuna sığıyor mu');
 // Sınır dil başına 500 karakter ve Play boşlukları da sayıyor: uzunsa
 // kutu kırmızıya dönüyor ve sürüm **kaydedilmiyor**. Dosya her bloğun
 // uzunluğunu başlığına elle yazıyor, yani iki şey bayatlayabilir — sayı

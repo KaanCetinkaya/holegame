@@ -35,7 +35,7 @@ pg.on('console', m => {
   if (m.type() === 'error' && !m.text().includes('404')) errs.push('CONSOLE: ' + m.text());
 });
 await pg.goto('http://localhost:8201/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 30000 });
 
 const fails = [];
 const check = (ok, ad, not = '') => {

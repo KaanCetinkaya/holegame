@@ -91,7 +91,7 @@ for (const b of BOYUTLAR) {
   pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
   await pg.addInitScript(() => localStorage.clear());
   await pg.goto('http://localhost:8731/', { waitUntil: 'load', timeout: 90000 });
-  await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 60000 });
+  await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 60000 });
   // Gerçekçi en kötü hâl: ileri gitmiş oyuncu. Haplar en genişken,
   // harita en uzunken, dükkân doluyken bakılıyor.
   await pg.evaluate(() => {
@@ -102,7 +102,7 @@ for (const b of BOYUTLAR) {
     localStorage.setItem('slicerush_stars', JSON.stringify(y));
   });
   await pg.reload({ waitUntil: 'load', timeout: 90000 });
-  await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 60000 });
+  await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 60000 });
   await pg.evaluate(() => document.getElementById('dOk')?.click());
 
   for (const ekran of EKRANLAR) {

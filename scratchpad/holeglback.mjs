@@ -38,7 +38,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8253/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function', null, { timeout: 30000 });
 
 const fails = [];
 const check = (ok, ad, not = '') => {
@@ -134,7 +134,7 @@ console.log('\n5) vazgeçince sayfa yeniliyor');
   });
   // Dört deneme 1.5 saniye arayla, sonra 1.5 saniye daha.
   await pg.waitForTimeout(10000);
-  await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function',
+  await pg.waitForFunction(() => typeof window.fruitHoleGl === 'function', null,
                            { timeout: 30000 }).catch(() => {});
   const d = await pg.evaluate(() => ({
     isaret: typeof window.__isaret,

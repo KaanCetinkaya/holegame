@@ -79,7 +79,7 @@ for (const b of BOYUTLAR) {
     localStorage.setItem('fruithole_currency', JSON.stringify({ coins: 98765, gems: 432 }));
   });
   await pg.goto('http://localhost:8762/', { waitUntil: 'load', timeout: 120000 });
-  await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', { timeout: 90000 });
+  await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', null, { timeout: 90000 });
   await pg.waitForTimeout(1200);
 
   for (const e of EKRANLAR) {

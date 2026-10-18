@@ -30,8 +30,8 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 pg.on('pageerror', e => console.log('HATA ' + e));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8584/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 90000 });
-await pg.waitForFunction(() => !!window.fruitHoleWhere, { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 90000 });
+await pg.waitForFunction(() => !!window.fruitHoleWhere, null, { timeout: 60000 });
 // Çizim kapalı: ölçülen şey oyunun mantığı, ekrandaki görüntü değil.
 //
 // Konteynerde GPU yok ve bir kare SwiftShader'la 300-450 ms; kareyi tek tek

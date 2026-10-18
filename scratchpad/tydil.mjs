@@ -42,7 +42,7 @@ async function ac(locale) {
   pg.on('pageerror', e => console.log('HATA ' + e));
   await pg.addInitScript(() => localStorage.clear());
   await pg.goto('http://localhost:8601/', { waitUntil: 'load', timeout: 90000 });
-  await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+  await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
   await pg.evaluate(() => { document.getElementById('dOk')?.click(); window.jeTutSkip(); });
   return pg;
 }
@@ -82,7 +82,7 @@ const secim = await en.evaluate(() => ({ dil: window.jeDil().dil, kayit: window.
 // veriyordu. Yeniden açılış, aynı bağlamda temizlemeyen yeni bir sayfa.
 const en2 = await en.context().newPage();
 await en2.goto('http://localhost:8601/', { waitUntil: 'load', timeout: 90000 });
-await en2.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await en2.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 const sonra = await en2.evaluate(() => window.jeDil().dil);
 console.log(`     seçim ${secim.dil} (kayıtta ${secim.kayit}) · yeniden açılışta ${sonra}`);
 ok(secim.dil === 1, 'düğme dili değiştirdi');

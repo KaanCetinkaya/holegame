@@ -408,7 +408,7 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
 {
   const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
   await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
-  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function',
+  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function', null,
     { timeout: 25000 });
   const tbl = await pg.evaluate(() => window.fruitHoleThemeTable());
   const order = tbl.order;
@@ -542,7 +542,7 @@ for (const clip of CLIPS) {
   const pump = async (n, ms = 1000 / FPS) => {
     for (let i = 0; i < n; i++) await pg.evaluate(d => window.__step(d), ms);
   };
-  await pg.waitForFunction(() => window.fruitHoleWhere, { timeout: 60000 });
+  await pg.waitForFunction(() => window.fruitHoleWhere, null, { timeout: 60000 });
   await pump(30);
 
   // Günlük meydan okuma ekranı her açılışta çıkmıyor: yeni bir profilde

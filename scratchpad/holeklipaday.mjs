@@ -60,7 +60,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const hata = [];
 pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8624/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', null, { timeout: 30000 });
 await pg.evaluate(() => window.fruitHoleDrawOff(true));
 
 // Aracın çekilmemiş dört kimliği düzen **adıyla** yazılı; bölüm

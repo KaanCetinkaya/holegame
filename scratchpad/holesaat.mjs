@@ -76,7 +76,7 @@ const sayfaAc = async () => {
   const p = await ctx.newPage();
   await p.addInitScript(FAKE);
   await p.goto('http://localhost:8616/', { waitUntil: 'load' });
-  await p.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 60000 });
+  await p.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 60000 });
   await p.evaluate(() => window.fruitHoleDrawOff(true));
   return { ctx, p };
 };

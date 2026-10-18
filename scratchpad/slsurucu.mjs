@@ -49,7 +49,7 @@ const hata = [];
 pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8736/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 60000 });
 await pg.evaluate(() => document.getElementById('dOk')?.click());
 
 // Hız 17'de, parça havuzu 28'de, karışım 32'de tavana vuruyor: 33'ten

@@ -60,7 +60,7 @@ pg.on('response', r => {
 });
 
 await pg.goto('http://localhost:8215/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleProbe, null, { timeout: 30000 });
 await pg.waitForTimeout(1500);
 
 // Yeni oyuncunun gördüğü ilk ekran.
@@ -166,7 +166,7 @@ for (const n of [100, 250, 999]) {
 console.log('\n5. bir bölümün tam turu');
 await pg.evaluate(() => { localStorage.setItem('fruithole_level', '1'); });
 await pg.reload({ waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleProbe, null, { timeout: 30000 });
 // Yalnızca ekran gerçekten açıksa tıkla. `if (d) d.click()` gizli düğmeye de
 // basıyor ve işleyici ekranın görünürlüğüne bakmadan ödülü alıyordu; test
 // böylece günlük ödülü sessizce tüketip sonraki bölümde "çıkmıyor" diyordu.
@@ -197,7 +197,7 @@ console.log('\n6. ikinci açılış');
 await pg.evaluate(() => { const b = document.getElementById('toMenuBtn'); if (b) b.click(); });
 await pg.waitForTimeout(600);
 await pg.reload({ waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleProbe, null, { timeout: 30000 });
 await pg.waitForTimeout(1600);
 check(await pg.isVisible('#daily'), 'oynadıktan sonraki açılışta günlük ödül çıkıyor');
 const order = await pg.evaluate(() => {

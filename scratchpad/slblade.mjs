@@ -27,7 +27,7 @@ const br = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium', args: ['--use-gl=swiftshader'] });
 const pg = await br.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2 });
 await pg.goto('http://localhost:8181/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
 if (await pg.isVisible('#dOk')) await pg.click('#dOk');
 // Bıçağı açık havada yakala.
 //

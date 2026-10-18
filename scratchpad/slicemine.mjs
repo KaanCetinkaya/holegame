@@ -41,7 +41,7 @@ await pg.addInitScript(() => {
   localStorage.setItem('slicerush_blade', '5');
 });
 await pg.goto('http://localhost:8167/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
 if (await pg.isVisible('#dOk')) await pg.click('#dOk');
 
 const fails = [];

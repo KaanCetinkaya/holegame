@@ -52,7 +52,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 await pg.addInitScript(FAKE_CLOCK);
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8353/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleShake === 'function', { timeout: 25000 });
+await pg.waitForFunction(() => typeof window.fruitHoleShake === 'function', null, { timeout: 30000 });
 
 const fails = [];
 const check = (ok, ne, ek = '') => {

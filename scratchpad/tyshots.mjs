@@ -89,7 +89,7 @@ async function shoot(dir, w, h, scale) {
     pg.on('pageerror', e => errs.push(String(e)));
     await pg.addInitScript(() => localStorage.clear());
     await pg.goto('http://localhost:8131/', { waitUntil: 'load' });
-    await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 20000 });
+    await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 30000 });
     await pg.waitForTimeout(400);
     // the daily reward pops on a fresh save and would be in every frame
     await pg.evaluate(() => document.getElementById('daily').classList.remove('show'));

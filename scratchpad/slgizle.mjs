@@ -39,7 +39,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const hata = [];
 pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8776/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 60000 });
 await pg.evaluate(() => document.getElementById('dOk')?.click());
 
 const gizle = (on) => pg.evaluate(o => {

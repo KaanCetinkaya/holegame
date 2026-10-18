@@ -39,7 +39,7 @@ pg.on('console', m => {
   console_errs.push(m.text());
 });
 await pg.goto('http://localhost:8177/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleProbe, null, { timeout: 30000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 await pg.evaluate(() => window.fruitHoleHold(true));
 

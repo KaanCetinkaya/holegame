@@ -33,7 +33,7 @@ const hatalar = [];
 pg.on('pageerror', e => hatalar.push(String(e)));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8625/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 await pg.evaluate(() => { document.getElementById('dOk')?.click(); window.jeTutSkip(); });
 
 let fail = 0;

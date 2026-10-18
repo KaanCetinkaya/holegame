@@ -30,7 +30,7 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8232/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleTopDown, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleTopDown, null, { timeout: 30000 });
 
 // 9 ve 72 final (Cup Night, ızgara tahtası), 10 patron — üçü yan yana
 // bakılınca finalin patrondan neyle ayrıldığı görünüyor.

@@ -50,7 +50,7 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8331/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleSanity === 'function', { timeout: 25000 });
+await pg.waitForFunction(() => typeof window.fruitHoleSanity === 'function', null, { timeout: 30000 });
 
 const fails = [];
 const check = (ok, ne, ek = '') => {

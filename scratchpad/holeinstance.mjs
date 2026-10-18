@@ -29,7 +29,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 const errs = [];
 pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8221/', { waitUntil: 'load' });
-await pg.waitForFunction(() => typeof window.fruitHoleCost === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.fruitHoleCost === 'function', null, { timeout: 30000 });
 
 console.log(' blm | meyve | çizim | üçgen   | geometri | doku | yığın | yığındaki | tekil nesne');
 console.log('-----+-------+-------+---------+----------+------+-------+-----------+------------');

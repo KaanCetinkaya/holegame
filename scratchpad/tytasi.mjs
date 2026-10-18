@@ -37,7 +37,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 pg.on('pageerror', e => console.log('HATA ' + e));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8574/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
 
 // Bir tam turun süresi: Foundry'den al, Stamping'e bırak, geri dön.
 //

@@ -34,7 +34,7 @@ const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
 pg.on('pageerror', e => console.log('HATA ' + e));
 await pg.addInitScript(() => localStorage.clear());
 await pg.goto('http://localhost:8566/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 30000 });
+await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 30000 });
 
 // Çizici bilgisi oyunun içinden okunuyor. `sliceScene` yoksa sahneyi
 // gezerek sayıyoruz — ölçüm için oyuna kanca eklemek gerekmesin.

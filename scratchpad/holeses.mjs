@@ -52,7 +52,7 @@ const pg = await ctx.newPage();
 const hata = [];
 pg.on('pageerror', e => hata.push(String(e).split('\n')[0]));
 await pg.goto('http://localhost:8779/', { waitUntil: 'load', timeout: 120000 });
-await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', { timeout: 90000 });
+await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', null, { timeout: 90000 });
 await pg.waitForTimeout(1200);
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 
@@ -125,7 +125,7 @@ ok(sessiz.titre === 0, 'sessizken telefon titremedi', `${sessiz.titre}`);
 
 console.log('\n4) Yenilemeden sonra');
 await pg.reload({ waitUntil: 'load', timeout: 120000 });
-await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', { timeout: 90000 });
+await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', null, { timeout: 90000 });
 await pg.waitForTimeout(1200);
 const y = await pg.evaluate(() => {
   const b = document.getElementById('menuSound');

@@ -48,7 +48,7 @@ async function open({ native = true, stats = null, rate = null } = {}) {
     if (a.rate) localStorage.setItem('fruithole_rate', JSON.stringify(a.rate));
   }, { stats, rate });
   await pg.goto('http://localhost:8245/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHoleRate, { timeout: 30000 });
+  await pg.waitForFunction(() => window.fruitHoleRate, null, { timeout: 30000 });
   return pg;
 }
 

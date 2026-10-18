@@ -71,7 +71,7 @@ const browser = await chromium.launch({
 const LEVEL = await (async () => {
   const pg = await browser.newPage({ viewport: { width: 412, height: 915 } });
   await pg.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
-  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function', { timeout: 25000 });
+  await pg.waitForFunction(() => typeof window.fruitHoleThemeTable === 'function', null, { timeout: 30000 });
   const t = await pg.evaluate(() => window.fruitHoleThemeTable());
   const adaylar = t.patternThemes
     .map((tema, i) => ({ tema, level: i + 1, ad: t.order[i] }))

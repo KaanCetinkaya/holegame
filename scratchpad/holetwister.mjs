@@ -47,7 +47,7 @@ pg.on('pageerror', e => errs.push(String(e).split('\n')[0]));
 // dokunmadığını ölçmenin en dolu yeri.
 await pg.addInitScript(() => localStorage.setItem('fruithole_level', '35'));
 await pg.goto('http://localhost:8304/', { waitUntil: 'domcontentloaded' });
-await pg.waitForFunction(() => window.fruitHoleUseBooster, { timeout: 60000 });
+await pg.waitForFunction(() => window.fruitHoleUseBooster, null, { timeout: 60000 });
 await pg.waitForTimeout(2500);
 if (await pg.isVisible('#dailyBtn')) await pg.click('#dailyBtn');
 await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 30000 });
@@ -96,7 +96,7 @@ await pg.close();
 const pg2 = await br.newPage({ viewport: { width: 412, height: 915 } });
 await pg2.addInitScript(() => localStorage.setItem('fruithole_level', '19'));
 await pg2.goto('http://localhost:8304/', { waitUntil: 'domcontentloaded' });
-await pg2.waitForFunction(() => window.fruitHoleUseBooster, { timeout: 60000 });
+await pg2.waitForFunction(() => window.fruitHoleUseBooster, null, { timeout: 60000 });
 await pg2.waitForTimeout(2500);
 if (await pg2.isVisible('#dailyBtn')) await pg2.click('#dailyBtn');
 await pg2.waitForSelector('#playBtn', { state: 'visible', timeout: 30000 });
@@ -124,7 +124,7 @@ for (const [w, h] of [[360, 640], [320, 568]]) {
   // 13. bölüm: dördüncü booster açık.
   await p3.addInitScript(() => localStorage.setItem('fruithole_level', '13'));
   await p3.goto('http://localhost:8304/', { waitUntil: 'domcontentloaded' });
-  await p3.waitForFunction(() => window.fruitHoleUseBooster, { timeout: 60000 });
+  await p3.waitForFunction(() => window.fruitHoleUseBooster, null, { timeout: 60000 });
   await p3.waitForTimeout(2500);
   if (await p3.isVisible('#dailyBtn')) await p3.click('#dailyBtn');
   await p3.waitForSelector('#playBtn', { state: 'visible', timeout: 30000 });

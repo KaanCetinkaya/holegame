@@ -40,7 +40,7 @@ const check = (ok, what, saw) => {
 
 await pg.addInitScript(() => localStorage.setItem('fruithole_level', '38'));
 await pg.goto('http://localhost:8197/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleProbe, null, { timeout: 30000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
 await pg.click('#playBtn');

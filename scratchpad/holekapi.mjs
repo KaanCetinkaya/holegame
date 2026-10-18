@@ -44,7 +44,7 @@ await pg.addInitScript(() => {
   window.__step = ms => { t += ms; for (const cb of q.splice(0, q.length)) cb(t); };
 });
 await pg.goto('http://localhost:8502/', { waitUntil: 'load', timeout: 90000 });
-await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 90000 });
+await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 90000 });
 // Çizim kapalı: ölçülen şey oyunun mantığı, ekrandaki görüntü değil.
 //
 // Konteynerde GPU yok ve bir kare SwiftShader'la 300-450 ms; kareyi tek tek

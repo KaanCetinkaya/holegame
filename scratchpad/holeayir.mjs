@@ -44,7 +44,7 @@ await pg.addInitScript(() => {
   window.__step = ms => { t += ms; for (const cb of q.splice(0, q.length)) cb(t); };
 });
 await pg.goto('http://localhost:8562/', { waitUntil: 'load', timeout: 120000 });
-await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', { timeout: 120000 });
+await pg.waitForFunction(() => typeof window.fruitHoleProbe === 'function', null, { timeout: 120000 });
 
 console.log('\n  blm  düzen          parça   kurulum   çizim   kurulum payı');
 console.log('  ----+--------------+------+---------+--------+-------------');

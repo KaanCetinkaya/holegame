@@ -30,7 +30,7 @@ const br = await chromium.launch({
 const pg = await br.newPage({ viewport: { width: 540, height: 960 }, deviceScaleFactor: 2 });
 const errs = []; pg.on('pageerror', e => errs.push(String(e)));
 await pg.goto('http://localhost:8175/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleProbe, { timeout: 20000 });
+await pg.waitForFunction(() => window.fruitHoleProbe, null, { timeout: 30000 });
 // Günlük ödül penceresi ilk açılışta tarlanın önüne geliyor — kapat.
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 await pg.waitForTimeout(400);

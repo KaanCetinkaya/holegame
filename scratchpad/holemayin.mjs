@@ -60,7 +60,7 @@ const sayfaAc = async () => {
   await p.addInitScript(FAKE);
   p.on('pageerror', e=>console.log('HATA '+e));
   await p.goto('http://localhost:8422/',{waitUntil:'load'});
-  await p.waitForFunction(()=>typeof window.fruitHoleProbe==='function',{timeout:25000});
+  await p.waitForFunction(()=>typeof window.fruitHoleProbe==='function', null,{timeout:25000});
   // Çizim kapalı.
   //
   // Bu dosya on iki koşu oynatıyor ve her koşu binlerce kare: konteynerde

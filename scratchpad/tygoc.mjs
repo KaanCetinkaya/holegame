@@ -62,7 +62,7 @@ async function sayfa(port, kayit) {
     if (k) localStorage.setItem('motorworks_save', k);
   }, kayit || null);
   await pg.goto(`http://localhost:${port}/`, { waitUntil: 'load', timeout: 90000 });
-  await pg.waitForFunction(() => typeof window.jeProbe === 'function', { timeout: 60000 });
+  await pg.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 60000 });
   return { pg, ctx, hata };
 }
 

@@ -47,7 +47,7 @@ await pg.addInitScript(() => {
   localStorage.setItem('fruithole_boosters', JSON.stringify({ time: 3, grow: 3, magnet: 3 }));
 });
 await pg.goto('http://localhost:8206/', { waitUntil: 'load' });
-await pg.waitForFunction(() => window.fruitHoleMagnet, { timeout: 25000 });
+await pg.waitForFunction(() => window.fruitHoleMagnet, null, { timeout: 30000 });
 await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
 await pg.waitForSelector('#playBtn', { state: 'visible', timeout: 20000 });
 

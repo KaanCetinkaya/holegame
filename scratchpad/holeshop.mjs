@@ -45,7 +45,7 @@ for (const w of [360, 412]) {
       JSON.stringify({ berry: 12345, lychee: 12345, banana: 12345, melon: 12345 }));
   });
   await pg.goto('http://localhost:8217/', { waitUntil: 'load' });
-  await pg.waitForFunction(() => window.fruitHolePrices, { timeout: 25000 });
+  await pg.waitForFunction(() => window.fruitHolePrices, null, { timeout: 30000 });
   await pg.evaluate(() => { const d = document.getElementById('dailyBtn'); if (d) d.click(); });
   await pg.click('#upgBtn');
   await pg.waitForTimeout(700);
