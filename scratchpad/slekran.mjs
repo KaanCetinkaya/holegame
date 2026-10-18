@@ -105,6 +105,23 @@ for (const b of BOYUTLAR) {
   await pg.waitForFunction(() => typeof window.sliceProbe === 'function', null, { timeout: 60000 });
   await pg.evaluate(() => document.getElementById('dOk')?.click());
 
+  // Kayıt uyarısı da en kötü hâlin parçası.
+  //
+  // `#kayitUyari` menünün içinde duran bir blok ve ekranlarda kaydırma
+  // yok: içerik ekrandan uzunsa iki uçtan birden kırpılıyor. Yani bu
+  // satır çıktığı gün bir düğmeyi ekranın dışına itebilir ve bunu
+  // kimse önceden bilmez. Oyuncunun göreceği bir uyarıyı ölçmemek,
+  // uyarıyı hiç yazmamakla aynı kapıya çıkıyor.
+  await pg.evaluate(() => {
+    window.sliceYazmaBoz(true);
+    window.sliceGive(1);          // yazan en kısa yol
+    window.sliceYazmaBoz(false);  // gerisi normal yazsın
+  });
+  // Kurulum tuttu mu: satır açılmadıysa aşağıdaki hiçbir ölçüm onu
+  // görmemiş demektir.
+  ok(await pg.evaluate(() => window.sliceYazma().uyari),
+     `${b.ad}: kayıt uyarısı gerçekten açıldı`);
+
   for (const ekran of EKRANLAR) {
     await ekranAc(pg, ekran);
     await pg.waitForTimeout(250);
