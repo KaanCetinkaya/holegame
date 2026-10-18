@@ -53,8 +53,10 @@ From the eighth level there is something you must not cut. A mine sits on
 the very line the fruit is running along, so the only answer is to leave the
 line and come back. Further in, the corridor asks harder questions: a clamp
 with one narrow window, three gates alternating floor and ceiling, two
-windows at different heights, and — last of all — a window with a mine
-waiting just past it.
+windows at different heights, a window with a mine waiting just past it,
+and — last of all — a window that will not hold still, drifting up and
+down while you close on it. Everything before it asked you for a height;
+that one asks you for a moment.
 
 🌄 SIX EVENINGS
 The corridor changes every four levels: twilight, desert, ice, forest,
