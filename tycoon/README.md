@@ -639,3 +639,14 @@ Oyunun kendisinde değil, Play tarafında duranlar:
   şartı bu
 - **Ad araması yapılmadı**: "Motor Works" adı Play'de aranmadı. Fruit
   Hole bu adım atlandığı için 13 bin yorumlu bir rakiple çarpıştı
+
+Ve Play tarafında değil, **karar bekleyen** bir tane:
+
+- **500, 750 ve 1000 taşlarına kimse varmıyor.** Ölçülen seviye tavanı
+  410 ve yapısal: 150 devir sonra da 410, üç saatlik şubelerle de 403 —
+  maliyet üstel, gelir doğrusal. Üç yerde söz veriliyor ama tutulmuyor:
+  panelde "×2 at 500" yazısı, README'nin kilometre taşı bölümü, ve
+  mağaza metninin **iki dilde** saydığı dokuz sayı. Seçenekler: üst üçü
+  ölçülen erişime çekmek (kaplamalarda yapılanın aynısı — erken oyun
+  değişmedi), tavanı yükseltmek, ya da listeyi altıda kesmek. Üçü de
+  dengeye dokunuyor, o yüzden ölçüm bunu söylüyor ve kararı vermiyor.
