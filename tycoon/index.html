@@ -2589,10 +2589,42 @@ const TIERS = [
   { col: '#e4ebf3', rough: 0.26, metal: 0.28, name: 'chrome',         adT: 'tier3' },
   { col: '#f0c85a', rough: 0.30, metal: 0.30, name: 'gold',           adT: 'tier4' },
 ];
-// Nine milestones, five fittings: a re-fit every second milestone, and the
-// last one is where a long-running branch ends up rather than a place
-// nobody sees.
-const tierOf = i => Math.min(TIERS.length - 1, Math.floor(milestonesHit(i) / 2));
+// Dokuz taş, beş kaplama. Kural "her iki taşta bir" idi ve o kuralın
+// yanında bir iddia duruyordu: son kaplama "uzun koşan bir şubenin vardığı
+// yer, kimsenin görmediği bir yer değil". Ölçüldü (`scratchpad/tydonanim.mjs`)
+// ve iddia yanlış çıktı — araç kademelerinde `tykademe`'nin bulduğunun
+// aynısı:
+//
+//   her iki taşta bir:   krom 6. taş (350. seviye), altın 8. taş (750.)
+//   ölçülen tavan:       150 devir × 30 dakika sonunda **410. seviye**
+//
+// Yani altın oyunda hiç çıkmıyordu, ve 500/750/1000 taşları da öyle. Tavan
+// uzun şubeyle de kalkmıyor (20 devir × 3 saat: 403) çünkü maliyet üstel ve
+// gelir doğrusal; oyunun kendi geç-oyun kolu (`tas` araştırması) bile
+// oraya götürmüyor.
+//
+// Eşik bu yüzden **ölçülen erişime** göre kuruldu, tıpkı Sports/Luxury
+// eşiklerinin 220/400'den 175/240'a çekilmesi gibi. Erken oyun aynen
+// duruyor (demir 25'e kadar, çelik 100'e kadar: ilk yarım saatin görüntüsü
+// değişmedi), değişen üst üçü:
+//
+//   kaplama        taş   seviye   ölçülen varış
+//   cilalı çelik    4      100    ilk şubede, on dakikada
+//   krom            5      200    ikinci şubede
+//   altın           6      350    araştırma ağacını dolduran oyuncuda,
+//                                 9. ile 23. devir arası
+//
+// Altın hâlâ ucuz değil: darboğazı alıp puanını hatta yatıran oyuncu 150
+// devir boyunca 253'te kalıyor ve altını hiç görmüyor. Onu açan şey
+// araştırma ağacı, yani oyunun "bu kol seviyeyi yeniden ilerletir" dediği
+// yerin karşılığı.
+const TIER_AT = [0, 2, 4, 5, 6];        // kaplama k için gereken taş sayısı
+const tierOf = i => {
+  const h = milestonesHit(i);
+  let t = 0;
+  for (let k = 0; k < TIER_AT.length; k++) if (h >= TIER_AT[k]) t = k;
+  return Math.min(TIERS.length - 1, t);
+};
 
 const shownTiers = [-1, -1, -1, -1];
 let shownBranches = -1;
@@ -4865,6 +4897,21 @@ window.jePrestijEkran = () => ({
   kalan: $('pKeep').textContent,
   mudur: G.mgr.filter(Boolean).length, baslangic: 1 + resLvl('start'),
 });
+// Fabrikanın **donanımı**: her istasyonun kaç kilometre taşı vurduğu ve
+// hangi kaplamaya döndüğü.
+//
+// `jeTier` aracın kademesini veriyor (Pickup → Sports → Luxury) ve o ayrı
+// bir sistem. Bu, istasyonun görünüşü: demir, çelik, cilalı çelik, krom,
+// altın. Kural `tierOf` — her iki taşta bir kaplama değişiyor — ve kaplama
+// adı oyundan okunuyor, ölçümde ikinci kez yazılmıyor.
+window.jeDonanim = () => [0, 1, 2, 3].map(i => ({
+  tas: milestonesHit(i), lvl: G.lvl[i],
+  kademe: tierOf(i), ad: TIERS[tierOf(i)].name,
+  sonraki: nextMilestone(i),
+}));
+// Kaplama listesi: ölçüm "beş kaplama var" diye bir sayı tutmasın, oyundan
+// okusun. Bir kaplama eklenirse ölçüm onu kendiliğinden sayar.
+window.jeKaplamalar = () => TIERS.map(t => t.name);
 window.jeTier = () => {
   const nx = nextProduct();
   return { kademe: productTier(), ad: T(product().nameT),

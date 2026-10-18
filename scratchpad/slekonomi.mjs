@@ -16,6 +16,27 @@
 //
 // Fiyatlar ve bıçak sayısı oyundan okunuyor (`sliceCost`), elle
 // yazılmıyor: dükkâna bir bıçak eklendiğinde ölçüm onu da sorar.
+//
+// ## İkinci soru: dokuz hedefin kaçı gerçekten alınıyor
+//
+// Tarama zaten hedef ödüllerini topluyordu — gelirin parçası oldukları
+// için — ama **hangisinin** düştüğüne hiç bakmıyordu. `slicegoals`
+// mekanizmayı ölçüyor (sayaç artıyor mu, iki kez ödüyor mu, zincirin
+// ikinci halkası gizli mi) ve bunu değerleri elle vererek yapıyor:
+// `x12 kombo` diye bir kombo yazılıyor ve hedef açılıyor. Yani "bir
+// oyuncu x25 komboyu gerçekten yapabiliyor mu" sorusunun cevabı hiçbir
+// yerde yoktu.
+//
+// Bu, bu depoda iki kez ölü içerik çıkmış bir soru: Motor Works'te beş
+// araç modelinin ikisi (`tykademe`) ve beş kaplamanın ikisi
+// (`tydonanim`) kimsenin varmadığı yerdeydi. Hedefler aynı riski
+// taşıyor, üstelik daha sessizce — ulaşılamayan bir hedef ekranda
+// duruyor ve oyuncuya "yapılabilir" diyor.
+//
+// Tarama her bölümden sonra hangi hedefin alınabilir olduğunu yazıyor,
+// yani çıkan şey "ulaşılıyor mu"nun ötesinde: **kaçıncı bölümde**.
+// `day7` ayrı, çünkü oynayarak değil takvimle geliyor: yedi günlük
+// zincir `sliceSetDay` ile kuruluyor.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
@@ -48,6 +69,12 @@ const r = await pg.evaluate(async (SON) => {
   const toplam = [];
   let kasa = 0;
   const ilk = fiyat.map(() => null);
+  const hedef = {};                     // hedef id → {kaçıncı bölüm, ödül}
+  // Üçüncü bıçağın parası kaçıncı bölümde birikiyor: `blades3` hedefi
+  // sahipliği sayıyor ve sahiplik paradan geçiyor.
+  const ikiUcuz = dukkan.filter(b => !b.sahip).map(b => b.fiyat)
+    .sort((a, b) => a - b).slice(0, 2).reduce((a, b) => a + b, 0);
+  let ucBicak = null;
   for (let n = 1; n <= SON; n++) {
     // Her bölüm bir kez: oyuncu ilerledikçe oynuyor, aynı bölümü
     // öğütmüyor. Öğütme varsayımı ölçümü istediği cevabı veren bir
@@ -59,15 +86,48 @@ const r = await pg.evaluate(async (SON) => {
     window.sliceQuit ? window.sliceQuit() : document.getElementById(
       p.state === 'clear' ? 'clearQuitBtn' : 'overQuitBtn').click();
     // Hedef ödülleri de gelirin parçası: gerçek oyuncu onları alıyor,
-    // ve almayan bir tarama oyunun verdiğinden azını ölçer.
+    // ve almayan bir tarama oyunun verdiğinden azını ölçer. Hangisinin
+    // kaçıncı bölümde düştüğü de burada yazılıyor.
     for (const g of window.sliceGoals().list)
-      if (g.claimable) window.sliceTakeGoal(g.id);
+      if (g.claimable) { if (!hedef[g.id]) hedef[g.id] = { n, pay: g.pay }; window.sliceTakeGoal(g.id); }
     kasa = window.sliceMeta().coins;
     toplam.push({ n, bitti: p.state === 'clear', kasa, once });
     for (let i = 0; i < fiyat.length; i++)
       if (ilk[i] === null && kasa >= fiyat[i]) ilk[i] = n;
+    if (ucBicak === null && kasa >= ikiUcuz) ucBicak = n;
   }
-  return { fiyat, ilk, kasa, toplam, ad: dukkan.map(b => b.ad) };
+  // Yedi günlük zincir: oynayarak gelmiyor, takvimle geliyor. Her gün
+  // "dün alınmış" hâline getirilip ödül toplanıyor, yani oyunun kendi
+  // zinciri yürütülüyor — sayaç elle yazılmıyor.
+  const gunler = [];
+  for (let g = 1; g <= 7; g++) {
+    window.sliceSetDay(1, g - 1);
+    document.getElementById('dOk').click();
+    gunler.push(window.sliceDaily().streak);
+  }
+  // Oyuncu bıçak da alıyor, ve bu taramanın sonunda yapılıyor: ortasında
+  // yapılsa yukarıdaki "kaçıncı bölümde alınabilir" ölçüsü bozulurdu —
+  // o ölçü harcanmamış kasayı soruyor ve öyle olduğu baştan yazılı.
+  // `sliceBlade` ödeme yapmıyor (ölçüm kancası, bıçak değiştirmek için);
+  // gerçek satın alma dükkân satırına dokunmak.
+  document.getElementById('shopBtn').click();
+  for (let tur = 0; tur < 6 && window.sliceMeta().owned.length < 3; tur++) {
+    const d = window.sliceShop().find(b => !b.sahip && b.fiyat <= window.sliceMeta().coins);
+    if (!d) break;
+    document.getElementById('blades').children[d.i].click();
+  }
+  document.getElementById('shopClose').click();
+  for (const g of window.sliceGoals().list)
+    if (g.claimable) {
+      if (!hedef[g.id]) hedef[g.id] = { n: g.id === 'blades3' ? ucBicak : null, pay: g.pay };
+      window.sliceTakeGoal(g.id);
+    }
+  const son = window.sliceGoals();
+  return { fiyat, ilk, kasa, toplam, hedef, gunler, ikiUcuz, ucBicak,
+           ad: dukkan.map(b => b.ad),
+           hedefler: son.list.map(g => ({ id: g.id, at: g.at, goal: g.goal,
+                                          pay: g.pay, taken: g.taken })),
+           gizli: son.gizli };
 }, SON);
 
 console.log(`\n${SON} bölüm oynandı · toplam kasa ${r.kasa}`);
@@ -95,6 +155,44 @@ const uzak = r.fiyat.map((f, i) => ({ i, f, n: r.ilk[i] }))
   .filter(x => x.n === null || x.n > 110);
 ok(uzak.length === 0, `her bıçak ${SON} bölüm içinde alınabiliyor`,
    uzak.map(x => `${r.ad[x.i]} (${x.f})`).join(', '));
+
+// --- Hedefler ulaşılıyor mu -------------------------------------------
+const hepsiHedef = [...r.hedefler.map(g => g.id), ...r.gizli];
+console.log(`\n  ${hepsiHedef.length} hedef · alınabilir olduğu bölüm`);
+for (const g of r.hedefler) {
+  const h = r.hedef[g.id];
+  const yer = !h ? 'ALINAMADI' : h.n === null ? 'yedi günlük zincirle' : `${h.n}. bölüm`;
+  console.log(`     ${g.id.padEnd(9)} ${String(g.goal).padStart(5)} ` +
+    `${String(g.pay).padStart(6)} para   ${yer}`);
+}
+if (r.gizli.length) console.log(`     hâlâ gizli: ${r.gizli.join(', ')}`);
+console.log(`     günlük zincir: ${r.gunler.join(' → ')}`);
+
+const alinmayan = hepsiHedef.filter(id => !r.hedef[id]);
+// Ulaşılamayan bir hedef ölü içerik: ekranda duruyor ve oyuncuya
+// yapılabilir diyor. `day7` oynayarak gelmiyor ve ölçüm onu takvimle
+// kuruyor — bu yüzden listede o da var, ayrı tutulmuyor.
+ok(alinmayan.length === 0, 'dokuz hedefin dokuzu da alınabiliyor',
+   alinmayan.length ? alinmayan.join(', ') : `${hepsiHedef.length}/${hepsiHedef.length}`);
+// Ve hepsi ilk birkaç bölümde düşmemeli: düşüyorsa meta katman bir
+// akşamda bitiyor demektir. Üç tarama ölçüldü ve beşinci bölümden sonra
+// düşenler hep aynı beş hedef oldu — `cut1000` (44, 47, 48), `lvl10` (9),
+// `lvl25` (24, 25, 24), `stars30` (13, 12, 13) ve `day7` (takvim). Erken
+// dörtlü de hep aynı: `combo10`, `combo25`, `blades3`, `cut100`, hepsi
+// ilk beş bölümde. Kapı beşte duruyor, yani ölçülen beşin altına
+// düşmeden uyarmıyor.
+const gecOlan = Object.values(r.hedef).filter(h => h.n === null || h.n > 5).length;
+ok(gecOlan >= 3, 'hedefler bir akşamda bitmiyor',
+   `${gecOlan} hedef beşinci bölümden sonra`);
+// Kodun kendi cümlesi: "hepsini toplamak bir bıçak eder". Fiyatlar
+// oyundan okunuyor, cümle elle doğrulanmıyor.
+const odul = r.hedefler.reduce((a, g) => a + g.pay, 0);
+const enPahali = Math.max(...r.fiyat);
+const alinabilen = r.fiyat.filter(f => f <= odul);
+console.log(`     hedeflerin toplamı ${odul} para · en pahalı bıçak ${enPahali}`);
+ok(alinabilen.length >= 1 && odul < enPahali,
+   'hedeflerin toplamı bir bıçak ediyor, dükkânı etmiyor',
+   `${odul} para · alabildiği ${alinabilen.length}/${r.fiyat.length} bıçak`);
 
 ok(!hata.length, 'sayfa hatası yok', hata[0] || '');
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');

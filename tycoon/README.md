@@ -397,7 +397,8 @@ listenin dışında tut.
 `tycoon2` (üç saatlik eğri), `tycoon3` (prestij döngüsü), `tycoon5`
 (ürün kademeleri ve fiyat), `tycoon6` (MAKS alımı), `tyhiz` (ekrandaki
 hız kasayla uyuşuyor mu), `tyduvar` (devir ne zaman açılıyor),
-`tykademe` (araç kademeleri ulaşılabilir mi), `tyuzun` (on beş devir:
+`tykademe` (araç kademeleri ulaşılabilir mi), `tydonanim` (fabrikanın beş
+kaplaması görülüyor mu, ve altını araştırma mı açıyor), `tyuzun` (on beş devir:
 NaN, taşma, tavan), `tytasi` (elle taşımanın sınırı), `tyblock` (tıkalı
 hat).
 
@@ -427,6 +428,9 @@ oyunla uyuşuyor mu), `tybelge` (bu dosya oyunla aynı şeyi mi anlatıyor).
 oynatanlar: `jeGive`, `jeRun`, `jeStep`, `jeBuy`, `jeSetLevel`,
 `jeGiveManager`, `jeTakeManager`, `jeOffline`, `jeBoost`, `jePrestige`,
 `jeResBuy`, `jeSetLifetime`, `jeSetEarned`, `jeWipeProgress`, `jeReset`.
+Fabrikanın görünüşünü okuyanlar: `jeDonanim` (istasyon başına taş sayısı,
+kademe ve kaplama adı), `jeKaplamalar` (kaplama listesi — ölçüm "beş tane
+var" diye bir sayı tutmasın diye).
 Ekranı kuranlar: `jeTutSkip`, `jeGunGoster`, `jeIapSim`, `jeReklamSim`,
 `jeDonus`, `jeKayitBoz`, `jeKayitDur`, `jeSave`.
 
@@ -500,8 +504,9 @@ hep aynı resmi görüyor.
 
 İki şey değişiyor artık:
 
-**Donanım kilometre taşlarıyla yenileniyor.** Her iki kilometre taşında bir
-kademe: demir → çelik → parlak çelik → krom → altın. Sadece **aksesuar
+**Donanım kilometre taşlarıyla yenileniyor.** Beş kaplama: demir → çelik →
+parlak çelik → krom → altın, sırasıyla 0, 2, 4, 5 ve 6 kilometre taşında
+(`TIER_AT`), yani 25, 100, 200 ve 350. seviyelerde. Sadece **aksesuar
 parçalar** değişiyor — bacalar, pres kasaları, robot kolları, tır rayları —
 çünkü bir ocağı baştan boyarsan ocak olmaktan çıkıyor. Siluet duruyor,
 işçilik iyileşiyor.
@@ -511,6 +516,41 @@ fabrika tek renge dönüyordu; yerini bıraktığı griden daha kötü okuyordu.
 Rampa artık renk değil **parlaklık**. Metalik değer de düşük tutuluyor:
 sahnede ortam haritası yok, yani metalik bir yüzeyin yansıtacağı bir şey yok
 ve neredeyse siyah çıkıyor.
+
+### Altın kimsenin görmediği bir yerdeydi
+
+Kural önce "her iki taşta bir" idi ve yanında bir cümle duruyordu: son
+kaplama *"uzun koşan bir şubenin vardığı yer, kimsenin görmediği bir yer
+değil."* O cümleyi hiçbir ölçüm denetlemiyordu. `tydonanim` denetledi:
+
+| oyuncu | 40 devir × 30 dk sonunda | gördüğü en üst kaplama (eski kural) |
+|---|---|---|
+| darboğazı alıyor, puanı hatta | 253. seviye | parlak çelik |
+| uyarıyı da okuyor | 253 | parlak çelik |
+| tek şube, hiç devretmiyor | 226 | parlak çelik |
+| araştırma ağacını dolduruyor | **391** | krom |
+
+Eski kuralla krom 350., altın **750. seviyeyi** istiyordu. Ölçülen tavan
+410 (150 devir × 30 dakika) ve uzun şube de kaldırmıyor (20 devir × 3 saat:
+403): maliyet üstel, gelir doğrusal. Yani altın oyunda hiç çıkmıyordu —
+500, 750 ve 1000 taşları gibi.
+
+Bu, `tykademe`nin araç kademelerinde bulduğunun aynısı ve çözüm de aynı
+oldu: eşikler ölçülen erişime çekildi. Sports/Luxury 220/400'den 175/240'a
+inmişti; kaplamalar da 0/2/4/5/6 taşa indi. Erken oyun **değişmedi** (demir
+25'e, çelik 100'e kadar), değişen üst üçü — ve altın bedava olmadı: onu
+yalnızca araştırma ağacını dolduran oyuncu, dokuzuncu devirde görüyor.
+
+Ölçümün kendisi iki kez yanlıştı ve ikisi de aynı cinsten:
+
+- **Örnekleme deliği.** Kaplama yalnızca devir sonunda okunuyordu ve
+  "görülen kaplamalar: parlak çelik" diyordu; oysa demir ile çelik her
+  devrin ilk dakikalarında ekranda. Ölçüm kendi deliğini oyunun eksiği
+  diye yazıyordu.
+- **Yanlış oyuncu.** Benzetimdeki oyuncu puanının hepsini `line`a
+  yatırıyordu ve `tas` araştırmasını — oyunun "geç oyunun seviyeyi yeniden
+  ilerletebilen tek kolu" dediği şeyi — hiç almıyordu. Alınca tavan 253'ten
+  410'a çıktı. "Ölü içerik" demeden önce düzeltilmesi gereken şey ölçümdü.
 
 **Avlu şubelerle doluyor.** Devredilen her fabrika için sol tarafa bir sıra
 bitmiş araç park ediyor. Prestijin gösterecek hiçbir şeyi yoktu — sayaç

@@ -456,7 +456,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slsurucu.mjs   # bölüm bitirilebiliyor mu, geçilen engel öldürüyor mu
     node scratchpad/slses.mjs      # ses kapatılabiliyor mu, kapanınca susuyor mu
     node scratchpad/slgizle.mjs    # ekran elden gidince tur duruyor mu
-    node scratchpad/slekonomi.mjs  # bıçaklar kaç bölümde alınabiliyor
+    node scratchpad/slekonomi.mjs  # bıçaklar ve hedefler kaç bölümde geliyor
     node scratchpad/slgeri.mjs     # donanım geri tuşu ekranı mı kapatıyor
     node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
     node scratchpad/slyildiz.mjs   # yıldız ekonomisi: üç yıldız alınabiliyor mu
@@ -578,6 +578,37 @@ birden göstermek listeyi yapılacaklar listesine çeviriyor; altısı görünü
 
 Ömür boyu sayaçlar (`slicerush_stats`) tur içi sayaçlardan ayrı: `cutCount`
 bir turun, `stats.cuts` hepsinin.
+
+### Dokuzunun dokuzu da gerçekten alınıyor mu
+
+`slicegoals.mjs` hedeflerin **mekanizmasını** ölçüyor: sayaç artıyor mu, ödül
+iki kez ödeniyor mu, zincirin ikinci halkası gizli mi. Bunu değerleri elle
+vererek yapıyor — "x12 kombo" yazıp hedefin açıldığını görüyor. Yani bir
+oyuncunun x25 komboyu gerçekten yapıp yapmadığı ölçülmüyordu.
+
+Bu depoda iki kez ölü içerik çıkmış bir soru (Motor Works'te beş araç
+modelinin ikisi, beş kaplamanın ikisi), ve hedeflerde daha sessiz olurdu:
+ulaşılamayan bir hedef ekranda durur ve oyuncuya "yapılabilir" der.
+`slekonomi.mjs` artık 120 bölümlük taramasında hangi hedefin **kaçıncı
+bölümde** düştüğünü yazıyor:
+
+| hedef | ölçülen bölüm |
+|---|---|
+| `combo10`, `combo25`, `blades3`, `cut100` | ilk beş |
+| `lvl10` | 9 |
+| `stars30` | 12-13 |
+| `lvl25` | 24-25 |
+| `cut1000` | 44-48 |
+| `day7` | oynayarak değil: yedi günlük zincirle |
+
+Dokuzu da alınıyor ve kapı bunu koruyor. İki ayrıntı ölçümün kendisinden:
+`day7` takvimle geliyor, o yüzden tarama `sliceSetDay` ile yedi günü
+kuruyor ve zincirin 1→7 yürüdüğünü görüyor; `blades3` ise sahiplik
+istiyor, yani tarama **sonunda** dükkândan bıçak satın alıyor —
+`sliceBlade` bir ölçüm kancası ve para almıyor, oyuncunun yaptığı şey
+dükkân satırına dokunmak. Satın alma taramanın ortasında yapılsa
+"bıçak kaçıncı bölümde alınabilir" ölçüsü bozulurdu; o ölçü harcanmamış
+kasayı soruyor.
 
 ### Ekranı haritaya eklemeyi unutma
 
