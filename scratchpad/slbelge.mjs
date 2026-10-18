@@ -141,6 +141,24 @@ const ikiKez = [...new Set(tanimlar.filter((n, i) => tanimlar.indexOf(n) !== i))
 console.log(`     ${tanimlar.length} kanca · iki kez yazılan ${ikiKez.length}`);
 ok(ikiKez.length === 0, 'her kanca bir kez tanımlanmış', ikiKez.join(', '));
 
+// Tanımlanmış ama hiç çağrılmayan işlev var mı?
+//
+// Aynı aileden bir kontrol: **yazılmış ama ölü** olan şey kendini
+// göstermiyor. Fruit Hole'da üç tane çıktı ve biri zararsız değildi —
+// `freeGeoms`, bölüm geçişinde geometriyi GPU'dan bırakmak için
+// yazılmış, başındaki yorum sızıntıyı anlatıyor, ve hiçbir yerden
+// çağrılmıyordu. Okuyan biri için o yorum "bu iş yapılıyor" diyordu.
+//
+// Tarama kaba ve kasten öyle: adı kaynakta bir kezden çok geçiyorsa
+// kullanılıyor sayılıyor.
+const islevler = [...new Set([...oyun.matchAll(/^\s*function ([A-Za-z_$][\w$]*)\s*\(/gm)]
+  .map(m => m[1]))];
+const oluIslev = islevler.filter(n =>
+  (oyun.match(new RegExp(`\\b${n}\\b`, 'g')) || []).length <= 1);
+console.log(`     ${islevler.length} işlev · hiç çağrılmayan ${oluIslev.length}`);
+ok(oluIslev.length === 0, 'tanımlanan her işlev kullanılıyor', oluIslev.join(', '));
+
+
 console.log('\n8) Sürüm notu Play kutusuna sığıyor mu');
 // Sınır dil başına 500 karakter ve Play boşlukları da sayıyor: uzunsa
 // kutu kırmızıya dönüyor ve sürüm **kaydedilmiyor**. Dosya her bloğun

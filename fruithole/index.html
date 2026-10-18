@@ -17728,12 +17728,6 @@ function damaTip(r, c, en, a, b) {
   return (Math.floor(r / en) + Math.floor(c / en)) % 2 ? b : a;
 }
 
-// Benek: düzenli aralıklarla tek hücrelik başka bir tür. Aralık dörtten
-// büyük olunca ekranda benek sayılmayacak kadar seyrek kalıyor.
-function benekTip(r, c, aralik, ana, benek) {
-  return (r % aralik === 0 && c % aralik === 0) ? benek : ana;
-}
-
 // Halka: bir merkezden hücre cinsinden eş uzaklıktaki bantlar. Ölçü hücre
 // cinsinden, normalleştirilmiş koordinatta değil — 13x33'lük bir tahtada
 // normalleştirilmiş daire uzun bir elips oluyor (`smallRingAt` bunu zaten
@@ -23539,17 +23533,6 @@ let sizeArc = null;
 const HOLE_EDGE_MAT = new THREE.MeshStandardMaterial({ color: '#1d2230', roughness: 0.7 });
 const ARC_SEGMENTS = 40;
 
-// Bir grubun içindeki geometrileri GPU'dan bırak.
-//
-// `scene.remove()` yalnızca sahne ağacından çıkarıyor; geometri kartta
-// duruyor. Malzemelere dokunulmuyor — buradakilerin hepsi paylaşımlı sabitler
-// (HOLE_LIP_MAT, MAGNET_EDGE_MAT…), onları bırakmak bir sonraki bölümü
-// bozardı.
-function freeGeoms(root) {
-  if (!root) return;
-  root.traverse(o => { if (o.geometry) o.geometry.dispose(); });
-}
-
 function buildHole() {
   // Her bölümde yeniden kuruluyor ve yedi geometri üretiyor. Eskisi
   // bırakılmadığı için GPU'daki geometri sayısı bölüm bölüm tırmanıyordu:
@@ -26131,13 +26114,6 @@ function iconHTML(name, emoji, cls) {
   return url
     ? `<span class="${cls} icon3d" style="background-image:url(${url})"></span>`
     : `<span class="${cls}">${emoji}</span>`;
-}
-
-// Same thing for containers that already carry their own background — the
-// image goes inside them instead of replacing it.
-function iconInner(name, emoji) {
-  const url = ICONS[name];
-  return url ? `<i class="icoImg" style="background-image:url(${url})"></i>` : emoji;
 }
 
 // Read-only window onto the numbers the HUD does not show, so level balance

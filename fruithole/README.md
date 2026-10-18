@@ -5089,6 +5089,32 @@ durumu, deliğin hızı). Blok artık `TYPE_BY_ID`nin hemen altında.
 `holeboot.mjs` bunu yakalayan test: kayıtlı bölümü elle kurup oyunu gerçek
 saatle açıyor ve yalnızca menüye varılıyorsa geçiyor.
 
+## Yazılmış ama çağrılmayan üç işlev
+
+`holeaudit` kaynağa bakan iki kontrol taşıyor — aynı kanca iki kez
+tanımlanmış mı, ve **tanımlanmış ama hiç çağrılmayan bir işlev var mı**.
+İkincisi eklendiği gün 424 işlev arasında üç tane buldu, ve biri zararsız
+değildi:
+
+- `freeGeoms` — bölüm geçişinde geometriyi GPU'dan bırakmak için
+  yazılmış, başındaki yorum sızıntıyı anlatıyor (1. bölümde 13 geometri,
+  30'da 282, 60'ta 572; bağlam kaybı 46-50. bölümlerde geliyordu) ve
+  **hiçbir yerden çağrılmıyordu**. Sızıntı başka türlü kapandı:
+  `buildHole` artık bir kez kuruluyor, yani bırakılacak bir şey üretmiyor.
+  Yani kod yanlış değildi, **gereksizdi** — ama okuyan biri için o yorum
+  "bu iş her bölümde yapılıyor" diyordu, ve bir sonraki sızıntıda
+  bakılacak yer orası sanılırdı.
+- `benekTip` — `damaTip` ve `halkaTip`in yanında duran üçüncü hücre
+  tipi; ötekiler kullanılıyor, bu hiç kullanılmadı.
+- `iconInner` — ikon yardımcısı, hiç çağrılmıyor.
+
+Üçü de silindi. Tarama kaba ve kasten öyle: adı kaynakta bir kezden çok
+geçiyorsa kullanılıyor sayılıyor. Dört yüz işlevde üç tane buldu ve
+üçü de gerçekten ölüydü, yani yanlış alarmı yok. Aynı kontrol Motor
+Works ve Slice Rush'ta da var (`tybelge`, `slbelge`); ikisinde de sıfır
+çıkıyor, ve hatayı geri koyarak denendi — çağrılmayan bir işlev eklenince
+ikisi de düşüyor.
+
 ## Beyaz ekranın defteri
 
 Beyaz ekran iki kez görüldü ve iki kez de elimizde hiçbir şey kalmadı. Sebebi

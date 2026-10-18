@@ -220,6 +220,26 @@ const ikiKez = [...new Set(tanimlar.filter((n, i) => tanimlar.indexOf(n) !== i))
 console.log(`\n${tanimlar.length} kanca · iki kez yazılan ${ikiKez.length}`);
 check(ikiKez.length === 0, 'her kanca bir kez tanımlanmış', ikiKez.join(', '));
 
+// Tanımlanmış ama hiç çağrılmayan işlev var mı?
+//
+// Aynı aileden bir kontrol ve aynı sebeple: **yazılmış ama ölü** olan şey
+// kendini göstermiyor. Üçü birden çıktı ve biri zararsız değildi —
+// `freeGeoms`, bölüm geçişinde geometriyi GPU'dan bırakmak için yazılmış,
+// başındaki yorum sızıntıyı anlatıyor (1. bölümde 13 geometri, 30'da 282,
+// 60'ta 572) ve **hiçbir yerden çağrılmıyordu**. Sızıntı başka türlü
+// kapandı (`buildHole` artık bir kez kuruluyor), ama okuyan biri için o
+// yorum "bu iş yapılıyor" diyordu. Ötekiler `benekTip` ve `iconInner`.
+//
+// Tarama kaba ve kasten öyle: adı kaynakta bir kezden çok geçiyorsa
+// kullanılıyor sayılıyor. 424 işlevde üç tane buldu ve üçü de gerçekten
+// ölüydü, yani yanlış alarmı yok.
+const islevler = [...new Set([...kaynak.matchAll(/^\s*function ([A-Za-z_$][\w$]*)\s*\(/gm)]
+  .map(m => m[1]))];
+const olu = islevler.filter(n =>
+  (kaynak.match(new RegExp(`\\b${n}\\b`, 'g')) || []).length <= 1);
+console.log(`${islevler.length} işlev · hiç çağrılmayan ${olu.length}`);
+check(olu.length === 0, 'tanımlanan her işlev kullanılıyor', olu.join(', '));
+
 console.log('\nhatalar: ' + (errs.length ? '\n  ' + errs.join('\n  ') : 'yok'));
 console.log(fails.length || errs.length
   ? `\n${fails.length} kontrol düştü, ${errs.length} istisna`
