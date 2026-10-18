@@ -1770,3 +1770,46 @@ Bu, "engelsiz klip tipi" işini boşa çıkarmıyor — `engel: null` duruyor ve
 `academy` onu kullanıyor. Değişen şey, üç kimliğin ona **gereksiz yere**
 düşürülmüş olması: engel vaat edemeyecekleri sanılıyordu, oysa en bol
 engelli tahtalar onlardı.
+
+### Gün 18 — outback.mp4  *(hazır, atılmadı)*
+
+`tulip` iki şartla üst üste düştü ve üçüncü denemeye gerek kalmadı:
+ölçüm hangi tahtada çekim yapılacağını söyledi. `outback` (49. bölüm,
+Boomerang düzeni, 201 meyve) üç çamurlu tahtalardan biri ve araç
+**ilk denemede** tuttu:
+
+```
+çamur: 3 tane, en yakını 10.27 birim
+kayıt 4.4. saniyede başlıyor · çevrede 57 meyve · kenara 5.0 birim
+  · kadrajda 7 dev (yutulabilir 0, büyüklük 1.57) · çamur 0.78 birim
+soğuk açılış 1.2 sn · dev 2.72 birim ötede · delik ve dev birlikte
+sürüş: yön değişimi 6.6°/kare · geri dönüş %1
+gövde 27-260 arası (7.8 sn) · dev 8.4. saniyede yutuluyor
+klip 9.0 sn (1.2 sn açılış + 7.8 sn oynanış)
+```
+
+İki sayı `tulip` denemelerinin tam karşılığı: çamur kadraja **0.78**
+birimde giriyor (sınır 8; `tulip`te silindir 8.54'te kalmıştı) ve
+kadrajdaki devin boyu **1.57** (sınır 1.6; `tulip`te 1.81 ve 1.89). Yani
+klibi tutturan şey araçta bir gevşetme değil, doğru tahtanın seçilmesi —
+ve o seçim yirmi dakikalık çekimle değil, otuz saniyelik
+`holeklipaday` ile yapıldı.
+
+Kare kare doğrulandı: 49. bölüm, kızıl toprak, bumerang düzeni. İlk
+karede delik **Size 1**, 160. karede **Size 3**, son karede **Size 4** —
+sayaçlar da ilerliyor (9/37 ve 9/17). Çamur deliğin sağında, kadrajın
+içinde.
+
+Ekran yazısı: `level 49. size 1 in the outback`
+
+```
+day 18 of building my own mobile game 🦘🕳️
+
+size 1 in the red dirt, with mud that slows the hole down. nine seconds later it is size 4.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+Gün aşırı kuralı duruyor: `bloom` (gün 16) ve `cogs` (gün 17) henüz
+atılmadı, bu üçüncü sırada. Stokta kalan iki kimlik `redplanet` (54,
+üç çamur) ve `academy` (51, düzen klibi).
