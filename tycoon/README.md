@@ -436,6 +436,33 @@ var" diye bir sayı tutmasın diye).
 Ekranı kuranlar: `jeTutSkip`, `jeGunGoster`, `jeIapSim`, `jeReklamSim`,
 `jeDonus`, `jeKayitBoz`, `jeKayitDur`, `jeSave`.
 
+### Bir kanca iki kez yazıldı, bir ölçüm kör oldu
+
+`window.jeCarryMax` iki yerde tanımlıydı: biri tek bölmenin taşıma
+kapasitesini veriyordu, öteki dört bölmenin dizisini. İkinci tanım
+birincisini **sessizce** eziyor — JavaScript'te bu bir hata değil, bir
+atama.
+
+Sayıyı bekleyen `tytasi` diziyi aldı. `[6,6,6,6] / 1.97` NaN veriyor, yani
+tablonun her satırı NaN bastı; iki kapısı da "eşiğin dışında kaç satır
+var" diye sayıyor ve NaN her karşılaştırmayı yanlış döndürdüğü için cevap
+hep sıfır çıktı. Betik takımda "OK" yazıyordu ve ölçtüğü şey yoktu.
+
+Düzeltildikten sonra gerçek sayılar: elle taşımanın zincire oranı 5.
+seviyeden sonra **%16.9**, birinci seviyede %50.8 — kapıların istediği
+%5-40 aralığının içinde.
+
+Üç şey değişti:
+
+1. Oyunda tek tanım kaldı (dört bölmenin dizisi), yanında neden tek
+   olması gerektiği yazılı.
+2. `tytasi` ilk bölmeyi okuyor, **ve** üçüncü bir kapı kazandı: sayılar
+   sayı mı (`Number.isFinite`). Bir kapı, ölçtüğü şeyin var olduğunu da
+   sormalı.
+3. Sınıfın kendisi kapıya bağlandı: `tybelge`, `slbelge` ve `holeaudit`
+   kaynakta iki kez yazılmış kanca arıyor (96, 26 ve 144 kanca). Üçü de
+   ikinci bir tanım yapıştırılarak denendi, üçü de düştü.
+
 ## Mağaza
 
 `tycoon/store/` içinde ikon, öne çıkan grafik, altı telefon ve altı tablet
