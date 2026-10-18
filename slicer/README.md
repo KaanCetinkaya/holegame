@@ -565,6 +565,35 @@ Sürüm yazısı menünün sol alt köşesinde. Kaynakta `dev`, gerçek numaray�
 `build-www.mjs` `app-version.json`'dan yazıyor — "güncelleme telefona indi
 mi" sorusunun tek cevabı o.
 
+## Klipler
+
+    node build-www.mjs
+    node slicer/make-clips.mjs                 # hepsi
+    node slicer/make-clips.mjs --only=kesim    # tek klip
+
+Dört klip, `store/clips/` altına 1080×1920 mp4: `kesim` (her şey gerçekten
+ikiye bölünüyor), `demir` (demirin arasından), `mayin` (hattı bırakmak
+zorundasın), `yer` (dört bölümde bir başka yer).
+
+Üç oyunun ikisinin klip aracı vardı ve kapalı testteki bu oyunun yoktu.
+Mağaza görselleri (`slshots`, `slframe`) duruyor ama onlar tek kare, ve bu
+oyunun anlattığı şey — bıçağın meyveyi ikiye bölmesi, demirin arasından
+geçmek — hareketsiz bir karede görünmüyor.
+
+Araç Motor Works'ünkiyle aynı iki kurala dayanıyor, ikisi de Fruit Hole'da
+ölçülerek öğrenildi: **sahte saat** (konteynerde GPU yok, gerçek saatle
+çekilen klipte oyun kareler arasında sıçrıyor) ve **sert ret** — klip
+anlatacağı şeyi anlatmadıysa dosya yazılmıyor.
+
+Fark oyuncuda: Motor Works'te ekonomi ileri sarılıyor, burada **turun
+kendisi oynanıyor**. Oyunun kendi otomatik sürücüsü kare kare sürüyor,
+yani klipteki tur gerçek — kaçırdığı meyve de, son anda kaçışı da. Her
+klibin kanıtı kendi iddiası: `kesim` için kesim sayısı, aynı anda havada
+duran yarım sayısı ve kombo; `demir` için geçilen demir, bıçağın gezdiği
+mesafe ve çarpmamış olması; `mayin` için geçilen ve **kesilmemiş** mayın;
+`yer` için dört ayrı tema ve her birinin ekranda yirmi kareden uzun
+durması.
+
 ## Hedefler
 
 Oyunun meta katmanı yoktu: bölüm geçiliyor, para birikiyor, bıçak alınıyor ve
