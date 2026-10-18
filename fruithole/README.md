@@ -5108,6 +5108,20 @@ değildi:
   tipi; ötekiler kullanılıyor, bu hiç kullanılmadı.
 - `iconInner` — ikon yardımcısı, hiç çağrılmıyor.
 
+Aynı tarama sabitler için de koşuyor ve bir tane buldu: `WATER`,
+tarlanın çevresindeki turkuaz suyun düz rengi, dalga dokusu yazıldıktan
+sonra kimsenin kullanmadığı bir satır. İki yüz altmış yedi sabitte bir
+tane, öteki iki oyunda sıfır.
+
+**Kancalara bakmıyor, ve bakmamalı.** Aynı tarama `window.fruitHole*`
+kancalarına çevrilince on iki tane "kullanılmayan" çıkıyor
+(`fruitHoleMusic`, `fruitHoleRestoreGl`, `fruitHoleSkin`…). Ama bir
+kancanın **işi** dosyanın dışından çağrılmak: depoda kimsenin
+çağırmaması onu ölü yapmaz, konsoldan elle çağrılan bir araç olduğunu
+gösterir. İşlev ve sabit için "bu dosyada kullanılmıyorsa ölüdür" doğru,
+kanca için değil — ve her zaman düşen bir kapı, her zaman geçenden
+beterdir.
+
 Üçü de silindi. Tarama kaba ve kasten öyle: adı kaynakta bir kezden çok
 geçiyorsa kullanılıyor sayılıyor. Dört yüz işlevde üç tane buldu ve
 üçü de gerçekten ölüydü, yani yanlış alarmı yok. Aynı kontrol Motor
