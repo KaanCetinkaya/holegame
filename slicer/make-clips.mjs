@@ -156,10 +156,27 @@ const KLIPLER = [
     // Oyunun ilk gerçek kararı: meyve sırası bir yükseklikte akıyor,
     // mayın tam o hizada oturuyor, devamı başka bir hizada. Kesmemek
     // gereken tek şey o.
-    kur: async pg => pg.evaluate(() => { window.sliceStart(16); }),
+    // Tahta aranıyor, seçilmiyor: mayın her tahtada ve her yerde
+    // çıkmıyor (parça havuzda bir seçenek, ve yer bulamazsa vazgeçiyor —
+    // ölçüldü, onda bir buçuk tur boş geçiyor: `slparca`). Sekiz saniyede
+    // bıçak parkurun ilk yüz yirmi biriminde kalıyor, yani mayın orada
+    // değilse klip mayın göstermiyor — ilk çekimde tam bu oldu, "0 mayın
+    // geçildi" deyip düştü. Araç artık mayını erken olan bir tahta bulana
+    // kadar tahtayı yeniden kuruyor; bulamazsa klip **çekilmiyor**.
+    kur: async pg => pg.evaluate(() => {
+      window.__mayinliTahta = () => {
+        for (let i = 0; i < 80; i++) {
+          window.sliceStart(16);
+          const m = window.sliceMines();
+          if (m.length >= 2 && m[0].d < 60) return true;
+        }
+        return false;
+      };
+      if (!window.__mayinliTahta()) throw new Error('mayınlı tahta bulunamadı');
+    }),
     kare: async pg => pg.evaluate(() => {
       const p0 = window.sliceProbe();
-      if (p0.state !== 'playing') { window.sliceStart(16); window.__tur = (window.__tur || 0) + 1; }
+      if (p0.state !== 'playing') { window.__mayinliTahta(); window.__tur = (window.__tur || 0) + 1; }
       window.sliceAutoPlay();
       const p = window.sliceStep(1 / 30);
       const mayin = window.sliceMines();
