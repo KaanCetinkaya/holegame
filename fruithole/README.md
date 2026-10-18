@@ -5089,6 +5089,42 @@ durumu, deliğin hızı). Blok artık `TYPE_BY_ID`nin hemen altında.
 `holeboot.mjs` bunu yakalayan test: kayıtlı bölümü elle kurup oyunu gerçek
 saatle açıyor ve yalnızca menüye varılıyorsa geçiyor.
 
+## Yazamayan bir telefon
+
+Kaydı **okumanın** tek yolu `fhOku` ve sebebi bu dosyada yazılı: bozuk
+tek bir anahtar oyunu açılmaz hâle getiriyordu. Ama **yazma** sarılmamıştı
+— on yedi yerde düz `localStorage.setItem` duruyordu.
+
+`setItem` dolu bir telefonda `QuotaExceededError` atıyor, ve o istisna
+çağrıldığı akışı orada kesiyor: bölüm sonu ekranı gelmiyor, kasa
+yazılmıyor, yeme döngüsü duruyor. Oyun açılıyor, sonra bir yerde
+sessizce duruyor — teşhisi okumanın hiçbir yolu yok.
+
+Motor Works bu durumu zaten bir şeritle söylüyordu (`kayitYazamadi`);
+burası hiç bakmıyordu. Artık tek yol `fhYaz`:
+
+- istisnayı yutuyor, oyun ayakta kalıyor
+- **sayıyor** ve sebebi tutuyor — sessizce yutmak, ilerlemesi
+  kaydolmayan oyuncuya hiçbir şey vermemek olurdu
+- teşhis ekranında bir satır (`KAYIT → yazma hatası`), yani "ilerlemem
+  kaydolmuyor" diyen bir oyuncudan bakılacak bir sayı istenebiliyor
+
+Ham okuyan iki anahtar da (`fruithole_level`, `fruithole_muted`) `fhHam`a
+geçti: ikisi de **modül kurulurken** okunuyordu ve `getItem`in kendisi de
+atabiliyor (depo kapalıysa) — orada atan bir istisna oyunu hiç açtırmazdı.
+
+`holekayit` bunu ölçüyor: `setItem` patlatılıyor, ses tuşuna iki kez
+basılıyor, ve dört şey isteniyor — sayfa hatası yok, oyun ayakta, sayaç
+arttı, sebep kaydedildi. Hatayı geri koyarak denendi: sarmayı
+kaldırınca üçü birden düşüyor.
+
+Aynı dosyanın bir başka kapısı da bu sırada **kendi kapsamını
+kaybetti** ve bu daha sinsi bir bozulma: "oyunun her kaydı bozuk hâliyle
+deneniyor" kapısı anahtarları `fhOku` ve `getItem` çağrılarından
+topluyordu, yazma `fhYaz`a taşınınca sayı sessizce 18'den 15'e indi — ve
+kapı yine yeşil yandı. Daha azını ölçmeye başlayıp geçmek, düşmekten
+kötü. Tarama artık beş yolun hepsine bakıyor.
+
 ## Yazılmış ama çağrılmayan üç işlev
 
 `holeaudit` kaynağa bakan iki kontrol taşıyor — aynı kanca iki kez

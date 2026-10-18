@@ -102,10 +102,13 @@ const VAKALAR = [
 // Anahtarlar artık oyunun kaynağından okunuyor; yeni bir anahtar
 // eklenip buraya vaka yazılmazsa kapı düşüyor.
 const KAYNAK = readFileSync('/home/user/holegame/fruithole/index.html', 'utf8');
-const ANAHTARLAR = [...new Set([
-  ...[...KAYNAK.matchAll(/fhOku\(\s*'(fruithole_[A-Za-z]+)'/g)].map(m => m[1]),
-  ...[...KAYNAK.matchAll(/getItem\(\s*'(fruithole_[A-Za-z]+)'/g)].map(m => m[1]),
-])];
+// Okuyan **ve yazan** her yol taranıyor. İlk hâli yalnızca `fhOku` ile
+// `getItem`e bakıyordu ve yazma `fhYaz`a taşınınca anahtar sayısı sessizce
+// 18'den 15'e düştü: kapı, kendi kapsamını kaybetti. Bir ölçümün en sinsi
+// bozulması, daha azını ölçmeye başlayıp yine yeşil yanması.
+const ANAHTARLAR = [...new Set(
+  [...KAYNAK.matchAll(/(?:fhOku|fhHam|fhYaz|getItem|setItem)\(\s*'(fruithole_[A-Za-z]+)'/g)]
+    .map(m => m[1]))];
 const DENENEN = new Set(VAKALAR.flatMap(([, kv]) => Object.keys(kv)));
 const eksikAnahtar = ANAHTARLAR.filter(k => !DENENEN.has(k));
 console.log(`\n0) Oyunun ${ANAHTARLAR.length} kayıt anahtarı · denenmeyen ${eksikAnahtar.length}`);
@@ -124,6 +127,35 @@ ok(sonuc.every(r => r.d.canvas), 'hepsinde oyun kuruldu',
    sonuc.filter(r => !r.d.canvas).map(r => r.ad).join(', '));
 ok(sonuc.every(r => !r.d.hata.length), 'hiçbirinde sayfa hatası yok',
    sonuc.filter(r => r.d.hata.length).map(r => `${r.ad}: ${r.d.hata[0].slice(0, 40)}`).join(' | '));
+
+console.log('\n1b) Yazamayan bir telefonda oyun duruyor mu');
+// `localStorage.setItem` dolu bir telefonda atıyor ve bu çağrıların
+// hiçbiri sarılı değildi: oyun sırasında atılan bir istisna o anki
+// akışı orada kesiyor. Ölçülen şey iki parçalı — oyun ayakta kalıyor
+// mu, ve **söylüyor mu**. Sessizce yutmak, ilerlemesi kaydolmayan
+// oyuncuya hiçbir şey vermemek olurdu.
+{
+  const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
+  const h = [];
+  pg.on('pageerror', e => h.push(String(e).split('\n')[0]));
+  await pg.addInitScript(() => localStorage.clear());
+  await pg.goto('http://localhost:8709/', { waitUntil: 'load' });
+  await pg.waitForFunction(() => typeof window.fruitHoleYazma === 'function', { timeout: 30000 });
+  const once = await pg.evaluate(() => window.fruitHoleYazma());
+  await pg.evaluate(() => window.fruitHoleYazmaBoz(true));
+  // Yazan bir yol: ses tuşu. Tek tıkla `fruithole_muted` yazılıyor.
+  await pg.evaluate(() => document.getElementById('menuSound').click());
+  await pg.evaluate(() => document.getElementById('menuSound').click());
+  const sonra = await pg.evaluate(() => window.fruitHoleYazma());
+  const canvas = await pg.evaluate(() => !!document.querySelector('canvas'));
+  await pg.evaluate(() => window.fruitHoleYazmaBoz(false));
+  console.log(`     önce ${once.hata} · sonra ${sonra.hata} · "${sonra.son}" · canvas:${canvas ? 'E' : 'H'}`);
+  ok(h.length === 0, 'yazma patlasa da sayfa hatası yok', h[0] || '');
+  ok(canvas, 'oyun ayakta');
+  ok(sonra.hata > once.hata, 'başarısız yazma sayılıyor', `${once.hata} -> ${sonra.hata}`);
+  ok(/Quota/i.test(sonra.son), 'sebebi kaydediliyor', sonra.son);
+  await pg.close();
+}
 
 console.log('\n2) Sağlam kayıt yanlışlıkla atılmıyor');
 // Ters hata daha pahalı: çalışan bir ilerlemeyi sıfırlamak. Temiz bir

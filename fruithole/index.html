@@ -2050,11 +2050,47 @@ function fhOku(anahtar, varsayilan) {
   if (typeof varsayilan === 'number' && !Number.isFinite(v)) return varsayilan;
   return v;
 }
+
+// Kaydı yazmanın ve ham okumanın tek yolu.
+//
+// Okuma `fhOku` ile sarıldı, **yazma sarılmadı**: on yedi yerde düz
+// `localStorage.setItem` duruyordu. Dolu bir telefonda setItem
+// `QuotaExceededError` atıyor ve o istisna, çağrıldığı akışı orada
+// kesiyor — bölüm sonu ekranı gelmiyor, kasa yazılmıyor, yeme döngüsü
+// duruyor. Motor Works bu durumu bir şeritle söylüyor (`kayitYazamadi`);
+// burası hiç bakmıyordu.
+//
+// Sessiz de yutulmuyor: sayaç teşhis ekranında duruyor (sürüm yazısına
+// beş dokunuş), yani "ilerlemem kaydolmuyor" diyen bir oyuncudan
+// bakılacak bir sayı istenebiliyor.
+let yazmaHata = 0, yazmaSon = '';
+function fhYaz(anahtar, deger) {
+  try { localStorage.setItem(anahtar, deger); return true; }
+  catch (e) {
+    yazmaHata++;
+    // Ad **ve** mesaj: tarayıcı `QuotaExceededError`ı bazen adda,
+    // bazen mesajda veriyor ve yalnızca birine bakmak sebebi
+    // "Error"a indiriyor — teşhis ekranındaki satırın tek işi sebebi
+    // söylemek.
+    const ad = (e && e.name) || 'hata';
+    const mesaj = (e && e.message) || '';
+    yazmaSon = `${anahtar}: ${(mesaj && mesaj !== ad ? ad + ' ' + mesaj : ad).slice(0, 48)}`;
+    return false;
+  }
+}
+// Ham okuma: JSON değil, düz metin tutan iki anahtar için
+// (`fruithole_level`, `fruithole_muted`). `getItem`in kendisi de
+// atabiliyor — depo kapalıysa ya da kotası dolduysa — ve ikisi de
+// **modül kurulurken** okunuyordu, yani orada atan bir istisna oyunu
+// hiç açtırmazdı.
+function fhHam(anahtar) {
+  try { return localStorage.getItem(anahtar); } catch (e) { return null; }
+}
 const START_LEVEL = 0;
 let level = START_LEVEL || (() => {
   // `parseInt('abc')` NaN veriyor ve NaN bir bölüm numarası olarak
   // bütün alan kurulumunu patlatıyordu.
-  const n = parseInt(localStorage.getItem('fruithole_level') || '1', 10);
+  const n = parseInt(fhHam('fruithole_level') || '1', 10);
   return Number.isFinite(n) && n >= 1 ? n : 1;
 })();
 let sizeStage = level;
@@ -2062,11 +2098,11 @@ let currentPattern = null;   // set by buildField()
 
 const currency = fhOku('fruithole_currency', {});
 TYPES.forEach(t => { if (!(t.id in currency)) currency[t.id] = 0; });
-function saveCurrency() { localStorage.setItem('fruithole_currency', JSON.stringify(currency)); }
+function saveCurrency() { fhYaz('fruithole_currency', JSON.stringify(currency)); }
 
 // Best star rating per level, so a replay can improve it but never lose it.
 const stars = fhOku('fruithole_stars', {});
-function saveStars() { localStorage.setItem('fruithole_stars', JSON.stringify(stars)); }
+function saveStars() { fhYaz('fruithole_stars', JSON.stringify(stars)); }
 
 // ---------------------------------------------------------------------
 // Upgrades
@@ -2133,7 +2169,7 @@ const upgMax = u => u.max || UPG_MAX;
 let dailyRun = false;
 let forcedPattern = null;
 const chall = fhOku('fruithole_chall', {});
-function saveChall() { localStorage.setItem('fruithole_chall', JSON.stringify(chall)); }
+function saveChall() { fhYaz('fruithole_chall', JSON.stringify(chall)); }
 function challKey() { return dayKey(new Date()); }
 function ensureChall() {
   const key = challKey();
@@ -2162,7 +2198,7 @@ function recordChall(score) {
 
 const upgrades = fhOku('fruithole_upgrades', {});
 UPGRADES.forEach(u => { if (!(u.id in upgrades)) upgrades[u.id] = 0; });
-function saveUpgrades() { localStorage.setItem('fruithole_upgrades', JSON.stringify(upgrades)); }
+function saveUpgrades() { fhYaz('fruithole_upgrades', JSON.stringify(upgrades)); }
 // Upgrades are switched off for the whole of a daily run.
 //
 // This is the decision the daily challenge turns on. Everyone is handed the
@@ -2255,7 +2291,7 @@ const skinStore = fhOku('fruithole_skins', {});
 let ownedSkins = new Set(skinStore.owned || ['classic']);
 let activeSkin = skinStore.active || 'classic';
 function saveSkins() {
-  localStorage.setItem('fruithole_skins',
+  fhYaz('fruithole_skins',
     JSON.stringify({ owned: [...ownedSkins], active: activeSkin }));
 }
 const skinById = id => SKINS.find(s => s.id === id) || SKINS[0];
@@ -2268,7 +2304,7 @@ function skinOwned(s) {
 const boosterStore = fhOku('fruithole_boosters', null);
 const boosters = boosterStore || Object.fromEntries(BOOSTERS.map(b => [b.id, b.free]));
 BOOSTERS.forEach(b => { if (!(b.id in boosters)) boosters[b.id] = b.free; });
-function saveBoosters() { localStorage.setItem('fruithole_boosters', JSON.stringify(boosters)); }
+function saveBoosters() { fhYaz('fruithole_boosters', JSON.stringify(boosters)); }
 function boosterUnlocked(b) { return level >= b.unlock; }
 
 // ---------------------------------------------------------------------
@@ -2284,7 +2320,7 @@ const stats = fhOku('fruithole_stats', {});
 // kurulamıyor — "x8 kombo yap" diye bir hedef sonsuza kadar ulaşılamaz
 // olurdu. Ham zincir (arka arkaya yutulan meyve sayısı) tavansız.
 ['fruits', 'levels', 'stars', 'bestCombo', 'bestStreak'].forEach(k => { if (!(k in stats)) stats[k] = 0; });
-function saveStats() { localStorage.setItem('fruithole_stats', JSON.stringify(stats)); }
+function saveStats() { fhYaz('fruithole_stats', JSON.stringify(stats)); }
 
 function dayKey(d) { return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
 
@@ -2302,7 +2338,7 @@ const MISSION_BY_ID = Object.fromEntries(MISSION_POOL.map(m => [m.id, m]));
 const MISSION_REWARD = 250;
 
 const daily = fhOku('fruithole_daily', {});
-function saveDaily() { localStorage.setItem('fruithole_daily', JSON.stringify(daily)); }
+function saveDaily() { fhYaz('fruithole_daily', JSON.stringify(daily)); }
 
 function ensureDaily() {
   const key = dayKey(new Date());
@@ -2391,7 +2427,7 @@ function achVisible(a) {
   return !p || !!achClaimed[p.id] || p.at() >= p.goal;
 }
 const achClaimed = fhOku('fruithole_ach', {});
-function saveAch() { localStorage.setItem('fruithole_ach', JSON.stringify(achClaimed)); }
+function saveAch() { fhYaz('fruithole_ach', JSON.stringify(achClaimed)); }
 
 // how far along a daily mission is, capped at its goal
 function missionAt(m) { return Math.min(daily[MISSION_BY_ID[m.id].track] || 0, m.goal); }
@@ -2806,7 +2842,7 @@ const NOTIF_HOUR = 19;          // akşamüstü: gün bitmeden oynayacak vakit v
 const NOTIF_AFTER = 3;          // izin, üçüncü bölümden önce sorulmuyor
 
 const notif = fhOku('fruithole_notif', {});
-function saveNotif() { localStorage.setItem('fruithole_notif', JSON.stringify(notif)); }
+function saveNotif() { fhYaz('fruithole_notif', JSON.stringify(notif)); }
 let _notifErr = '';
 
 // Bugün oynadıysa yarın, oynamadıysa bugün 19:00 — o da geçtiyse yarın.
@@ -2879,7 +2915,7 @@ notifInit();
 
 
 const iap = fhOku('fruithole_iap', {});
-function saveIap() { localStorage.setItem('fruithole_iap', JSON.stringify(iap)); }
+function saveIap() { fhYaz('fruithole_iap', JSON.stringify(iap)); }
 function adsRemoved() { return !!iap.remove_ads; }
 
 // A product with a `key` is owned forever (remove ads, starter pack); one
@@ -3017,7 +3053,7 @@ async function iapInit() {
 // ---------------------------------------------------------------------
 const _AC = window.AudioContext || window.webkitAudioContext;
 let _actx = null;
-let muted = localStorage.getItem('fruithole_muted') === '1';
+let muted = fhHam('fruithole_muted') === '1';
 
 function ensureAudio() {
   try {
@@ -3913,7 +3949,7 @@ document.getElementById('pauseBtn').addEventListener('click', pauseGame);
 document.getElementById('resumeBtn').addEventListener('click', resumeGame);
 document.getElementById('pauseMute').addEventListener('click', () => {
   muted = !muted;
-  localStorage.setItem('fruithole_muted', muted ? '1' : '0');
+  fhYaz('fruithole_muted', muted ? '1' : '0');
   refreshMuteBtn();
   refreshPauseMute();
   refreshMusic();
@@ -3927,7 +3963,7 @@ document.getElementById('pauseMenu').addEventListener('click', () => {
 
 document.getElementById('menuSound').addEventListener('click', () => {
   muted = !muted;
-  localStorage.setItem('fruithole_muted', muted ? '1' : '0');
+  fhYaz('fruithole_muted', muted ? '1' : '0');
   refreshMuteBtn();
   refreshPauseMute();
   refreshMusic();
@@ -4331,7 +4367,7 @@ function takeDailyFree(id) {
 const CHEST_GAP = 4 * 3600 * 1000;
 const CHEST_BASE = 110, CHEST_STEP = 6, CHEST_CAP = 25;
 const tchest = fhOku('fruithole_tchest', {});
-function saveTchest() { localStorage.setItem('fruithole_tchest', JSON.stringify(tchest)); }
+function saveTchest() { fhYaz('fruithole_tchest', JSON.stringify(tchest)); }
 
 // Kaç milisaniye kaldı. 0 ise sandık hazır.
 //
@@ -4542,7 +4578,7 @@ const GL_LOG_MAX = 10;
 let _buildAt = 0;
 let _adUp = false;
 let glLog = [];
-try { glLog = JSON.parse(localStorage.getItem('fruithole_gllog') || '[]'); } catch (e) { }
+try { glLog = JSON.parse(fhHam('fruithole_gllog') || '[]'); } catch (e) { }
 function glLogYaz(tip, ek) {
   try {
     const bilgi = renderer && renderer.info;
@@ -4562,7 +4598,7 @@ function glLogYaz(tip, ek) {
       ...ek,
     });
     glLog = glLog.slice(0, GL_LOG_MAX);
-    localStorage.setItem('fruithole_gllog', JSON.stringify(glLog));
+    fhYaz('fruithole_gllog', JSON.stringify(glLog));
   } catch (e) { }
 }
 
@@ -4770,7 +4806,7 @@ renderer.domElement.addEventListener('webglcontextrestored', () => {
   try {
     if (glLog[0] && glLog[0].tip === 'gl' && glLog[0].geri == null) {
       glLog[0].geri = _glTries;
-      localStorage.setItem('fruithole_gllog', JSON.stringify(glLog));
+      fhYaz('fruithole_gllog', JSON.stringify(glLog));
     }
   } catch (e) { }
   clearTimeout(_glTimer);
@@ -13145,7 +13181,7 @@ const GIANT_PROPS = Object.keys(PROPS).filter(k => PROPS[k].only !== 'small');
 // ---------------------------------------------------------------------
 const found = new Set(fhOku('fruithole_found', []));
 function saveFound() {
-  localStorage.setItem('fruithole_found', JSON.stringify([...found]));
+  fhYaz('fruithole_found', JSON.stringify([...found]));
 }
 function markFound(id) {
   if (found.has(id)) return;
@@ -23242,6 +23278,12 @@ const APP_VERSION = 'dev';
       h += row('kare', 'henüz ölçülmedi — bir bölüm oyna');
     }
 
+    h += '<div class="grp">KAYIT</div>';
+    // "İlerlemem kaydolmuyor" diyen bir oyuncudan istenecek sayı. Sıfır
+    // değilse telefonun deposu dolu demek ve oyun o yazıyı atmış.
+    h += row('yazma hatası', yazmaHata ? `${yazmaHata} kez · son ${yazmaSon}` : 'yok',
+      yazmaHata === 0);
+
     h += '<div class="grp">REKLAM</div>';
     h += row('AdMob', yn(!!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob)),
       !!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob));
@@ -25086,10 +25128,10 @@ function onCleared() {
 
   // Replaying an earlier level from the map must not roll progress back:
   // finishing level 3 when you had reached 10 leaves you on 10.
-  const progress = parseInt(localStorage.getItem('fruithole_level') || '1', 10);
+  const progress = parseInt(fhHam('fruithole_level') || '1', 10);
   const advanced = cleared + 1 > progress;
   level = Math.max(cleared + 1, progress);
-  if (!START_LEVEL) localStorage.setItem('fruithole_level', String(level));
+  if (!START_LEVEL) fhYaz('fruithole_level', String(level));
   refreshMenuLevel();
   const sub = isBest && prevBest > 0 ? 'New best!' : `Next: level ${level}`;
   showOverlay('Level Complete! 🎉', sub, 'Next', nextLevel, false);
@@ -25121,7 +25163,7 @@ function onCleared() {
 // En erken beşinci bölümden sonra, en çok üç kez, ve iki istem arası en az
 // üç gün. Puan verildiyse bir daha hiç.
 const rate = fhOku('fruithole_rate', {});
-function saveRate() { localStorage.setItem('fruithole_rate', JSON.stringify(rate)); }
+function saveRate() { fhYaz('fruithole_rate', JSON.stringify(rate)); }
 const RATE_MAX = 3, RATE_GAP = 3 * 86400000, RATE_AFTER = 5;
 const STORE_URL = 'https://play.google.com/store/apps/details?id=com.kaancetinkaya.fruithole';
 
@@ -26122,6 +26164,24 @@ function iconHTML(name, emoji, cls) {
 // starting a run, and reports what the clock is up against.
 // Sum of how far every uneaten piece has drifted from the cell it was
 // placed in — zero unless something is pulling them.
+// Kayıt yazması kaç kez başarısız oldu, ve sonuncusu neydi. Teşhis
+// ekranındaki satırın ölçülebilir hâli.
+window.fruitHoleYazma = () => ({ hata: yazmaHata, son: yazmaSon });
+// Yazmayı bozmanın yolu: kotayı gerçekten doldurmak yerine `setItem`i
+// patlatmak. Motor Works'teki `jeKayitBoz` ile aynı numara.
+window.fruitHoleYazmaBoz = (ac = true) => {
+  if (ac) {
+    if (!window.__eskiSetItem) {
+      window.__eskiSetItem = localStorage.setItem.bind(localStorage);
+      localStorage.setItem = () => { throw new Error('QuotaExceededError'); };
+    }
+  } else if (window.__eskiSetItem) {
+    localStorage.setItem = window.__eskiSetItem;
+    window.__eskiSetItem = null;
+  }
+  return !!window.__eskiSetItem;
+};
+
 window.fruitHoleDrift = () => fruits.reduce((a, f) =>
   a + (f.eaten ? 0 : Math.hypot(f.x - f.mesh.userData.ox, f.z - f.mesh.userData.oz)), 0);
 
@@ -28431,7 +28491,7 @@ let lastT = performance.now();
 const perf = fhOku('fruithole_perf', {});
 let perfN = 0, perfSum = 0, perfWorst = 0, perfWorstLv = 0, perfSlow = 0;
 function savePerf() {
-  try { localStorage.setItem('fruithole_perf', JSON.stringify(perf)); } catch (e) {}
+  try { fhYaz('fruithole_perf', JSON.stringify(perf)); } catch (e) {}
 }
 // Koşu bitince yazılıyor, her karede değil: localStorage'a saniyede altmış
 // kez yazmak ölçtüğü şeyi bozar.
