@@ -92,6 +92,14 @@ denemelerinin ham çıktısı.
 Hepsi Playwright + gerçek sayfa. Konteynerde GPU yok, SwiftShader'la
 çiziliyor ve bir kare 300-450 ms sürüyor.
 
+**İki takım aynı anda koşturulmaz.** `kosu.mjs` başlarken
+`scratchpad/ciktilar`'ı siliyor, yani ikinci koşu birincinin bütün
+çıktılarını götürüyor — ve kötü ihtimalde birincinin yazmaya
+çalıştığı dosyanın altından klasörü çekiyor. Özet hafızadan basıldığı
+için ekranda doğru görünüyor; kaybolan şey, düşen bir betiğe geri
+bakma imkânı. (Bir kez oldu: Slice Rush takımı koşarken Motor Works
+takımı başlatıldı.)
+
 Düşen bir betiğin **tam çıktısı** `scratchpad/ciktilar/<ad>.txt` dosyasında
 duruyor. Özet yalnızca FAIL satırlarını gösteriyor ve bir tabloya geri
 bakmak gerektiğinde yirmi dakikalık betiği baştan koşturmak, o arada kod
