@@ -618,9 +618,14 @@ oyundan okunuyor — parçanın kodu `c.bar`, `c.window` ya da `c.mine`
 rapor etmekle kalmıyor, **kontrol ediyor**: fark 1.4 katının altına
 düşerse hata veriyor, yani duvar geri gelirse sessiz kalmıyor.
 
-Geçilebilirlik ayrı ölçülüyor ve bozulmadı: `slicegaps.mjs` 30. bölüme
-kadar her engel dizisini geçilebilir buluyor, `slicemine.mjs` mayınlı
-bölümlerin bitirilebildiğini gösteriyor. Otomatik sürücü o gün 26 ve 30'da
+Geçilebilirlik ayrı ölçülüyor ve bozulmadı: `slicegaps.mjs` her engel
+dizisini geçilebilir buluyor, `slicemine.mjs` mayınlı bölümlerin
+bitirilebildiğini gösteriyor. Buradaki sınır da elle yazılmıştı — önce
+15, sonra 30 — ve iki kez yeni bir parçanın altında kaldı; artık eğrilerin
+bittiği bölümün dördü ötesine kadar tarıyor. Salınan pencerede
+geçilebilirlik tek bir karenin fotoğrafı da değil: boşluğun gezindiği
+aralık (`gapY0 ± genlik`) hesaba giriyor ve pencerenin bir anda şeridin
+tamamen dışında kalıp kalmadığına ayrıca bakılıyor. Otomatik sürücü o gün 26 ve 30'da
 ölüyordu ama bu değişiklikten önce de ölüyordu — ölçüldü, iki sürüm yan yana
 koşturuldu.
 

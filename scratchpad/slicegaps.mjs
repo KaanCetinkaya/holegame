@@ -14,8 +14,8 @@ const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
 await pg.goto('http://localhost:8171/', { waitUntil:'load' });
 await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeout: 20000 });
 
-console.log(' blm | engel | en dar geçiş | gereken | pencere | durum');
-console.log('-----+-------+--------------+---------+---------+--------');
+console.log(' blm | engel | en dar geçiş | gereken | pencere | salınım payı | durum');
+console.log('-----+-------+--------------+---------+---------+--------------+--------');
 let bad = 0;
 // Nereye kadar taranacağı oyundan okunuyor.
 //
@@ -25,8 +25,11 @@ let bad = 0;
 // en az denenmiş parça tam da hiç bakılmayan parça oldu. Sınır artık en
 // geç açılan parçanın ve karışım eğrisinin bittiği yerin dördü ötesi.
 const SINIR = await pg.evaluate(() => {
-  const enGec = window.slicePieces().reduce((m, p) => Math.max(m, p.minLevel), 0);
-  return Math.max(enGec, window.sliceMix(1).bit) + 4;
+  // Açılış değil **olgunluk**: `drift` 36'da giriyor ama genliği 48'e
+  // kadar büyüyor, yani en zor hâli 36'da değil 48'de. Açılışa göre
+  // durmak, parçanın hiç ölçülmemiş yarısını bırakmak olurdu.
+  const enOlgun = window.slicePieces().reduce((m, p) => Math.max(m, p.olgun), 0);
+  return Math.max(enOlgun, window.sliceMix(1).bit) + 4;
 });
 for (let lvl = 1; lvl <= SINIR; lvl++) {
   // her bölümü 12 kez üret, en kötü diziyi bul
@@ -106,6 +109,7 @@ for (let lvl = 1; lvl <= SINIR; lvl++) {
               `${(r.worst === Infinity ? '-' : r.worst.toFixed(2)+' sn').padStart(12)} | ` +
               `${(r.worst === Infinity ? '-' : r.worstNeed.toFixed(2)+' sn').padStart(7)} | ` +
               `${(r.pencere === Infinity ? '-' : r.pencere.toFixed(2)).padStart(7)} | ` +
+              `${(r.kalan === Infinity ? '-' : r.kalan.toFixed(2)).padStart(12)} | ` +
               `${ok ? 'OK' : !okYetis ? 'GEÇİLEMEZ' : !okPencere ? 'PENCERE KAPALI'
                    : 'SALINIM ŞERİTTEN TAŞIYOR'}`);
 }
