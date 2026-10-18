@@ -1631,7 +1631,7 @@ ikisi de **gönderi atıldıktan birkaç saat sonra bakmaktan** geliyordu.
 TikTok dağıtımı günlere yayıyor. Bir gönderinin sayısı en erken
 **ertesi gün** okunur.
 
-### Gün 16 — bloom.mp4  *(hazır, atılmadı)*
+### Gün 16 — bloom.mp4  *(atıldı: 15 Eki 0:12 — bkz. aşağıdaki düzeltme)*
 
 Stokta atılmamış iki klip kaldı (`bloom`, `cogs`) ve sıradaki `bloom`,
 çünkü ölçülmüş kural "ilk üçü en yoğun tarlalar" diyor: Bloom listenin en
@@ -1662,7 +1662,7 @@ the hole only grows by eating, and it starts too small for a single watermelon. 
 **Telefondan ve ses ekleyerek.** Ölçüldü (11 Ekim): atılmış her videonun
 hiç ses kanalı yok ve ses ancak yükleme anında eklenebiliyor.
 
-### Gün 17 — cogs.mp4  *(hazır, atılmadı)*
+### Gün 17 — cogs.mp4  *(atıldı: 16 Eki 21:15 — bkz. aşağıdaki düzeltme)*
 
 `bloom`dan sonra, **gün aşırı** (dosyanın kendi kuralı: hepsini bir günde
 atmak hesabın dağıtımını bölüyor).
@@ -1771,7 +1771,7 @@ Bu, "engelsiz klip tipi" işini boşa çıkarmıyor — `engel: null` duruyor ve
 düşürülmüş olması: engel vaat edemeyecekleri sanılıyordu, oysa en bol
 engelli tahtalar onlardı.
 
-### Gün 18 — outback.mp4  *(hazır, atılmadı)*
+### Gün 18 — outback.mp4  *(atılmadı; sırası geldiğinde **gün 17** olarak)*
 
 `tulip` iki şartla üst üste düştü ve üçüncü denemeye gerek kalmadı:
 ölçüm hangi tahtada çekim yapılacağını söyledi. `outback` (49. bölüm,
@@ -1810,6 +1810,55 @@ size 1 in the red dirt, with mud that slows the hole down. nine seconds later it
 #indiedev #solodev #gamedev #mobilegame #satisfying
 ```
 
-Gün aşırı kuralı duruyor: `bloom` (gün 16) ve `cogs` (gün 17) henüz
-atılmadı, bu üçüncü sırada. Stokta kalan iki kimlik `redplanet` (54,
-üç çamur) ve `academy` (51, düzen klibi).
+Gün aşırı kuralı duruyor. (Bu satır bir ara "`bloom` ve `cogs` henüz
+atılmadı" diyordu ve **yanlıştı** — ikisi de 15-16 Ekim'de atılmış;
+ayrıntısı aşağıda, "Kayıt hesapla uyuşmuyordu".) Stokta kalan iki
+kimlik `redplanet` (54, üç çamur) ve `academy` (51, düzen klibi).
+
+## Kayıt hesapla uyuşmuyordu — 18 Ekim 2026
+
+**Bu dosya iki klibi "hazır, atılmadı" diye tutuyordu, oysa ikisi de
+atılmıştı.** Kaan gönderi listesini açınca çıktı, ve ben o yanlış kaydı
+okuyup "sıradaki bloom" dediğim için `bloom` **ikinci kez** yüklendi.
+
+Hesapta gerçekte duranlar (18 Ekim 23:04'te alınan ekran görüntüsünden,
+izlenme sayıları o andaki hâliyle):
+
+| atıldı | açıklama | izlenme |
+|---|---|---|
+| 18 Eki 23:02 | day 16 of building my own mobile game 🕳️ | 0 (yeni) |
+| 16 Eki 21:15 | 219 fruit between the gears ⚙️ | 69 |
+| 15 Eki 0:12 | 417 fruit on this board 🌸 | **1** |
+| 13 Eki 18:47 | the hole gets bigger every time it eats. 65 pieces in 8 seconds | 117 |
+| 12 Eki 20:19 | three turtles watching a hole eat their reef 🐢 | 408 |
+
+Dört gönderinin dördü de bu dosyada **hiç yok**: açıklamaları buradaki
+hiçbir metinle eşleşmiyor, yani kayıt 11 Ekim'den sonra güncellenmemiş.
+Eşleştirme dosya tarihleriyle yapıldı ve kesin değil, güçlü:
+`bloom.mp4` 14 Eki 20:09'da üretildi ve 15 Eki 0:12'de 🌸 açıklamalı bir
+gönderi çıktı; `cogs.mp4` 15 Eki 20:37'de üretildi, 16 Eki 21:15'te
+⚙️ açıklamalı bir gönderi çıktı.
+
+**Kuralın kendisi doğruydu, uygulanışı değil.** Dosya zaten "gün numarası
+son gönderi + 1, ve profilden bir bakışta doğrulanır" diyor. O bir bakış
+atılmadı; kuyruktaki etiketlere güvenildi ve etiketler, atılmadığı
+sanılan iki klip yüzünden şişti. Bundan sonra: **atmadan önce profil
+listesine bakılacak**, ve numara oradan okunacak — dosyadan değil.
+
+Dosya artık bir gönderinin atıldığını kendi başına **iddia etmiyor**.
+Tarih yazan satır yalnızca listede görülmüş bir gönderi için yazılıyor;
+görülmemişse "atılmadı" değil, **"bilinmiyor"** doğru olan.
+
+### 15 Ekim'deki gönderi neden 1 izlenmede kaldı
+
+**Bilinmiyor, ve bir sebep uydurulmadı.** Dosyada aynı örüntü zaten
+kayıtlı: ikinci hesapta üç video 0'da kaldı, aynı hesaba sonradan atılan
+bir video 8 aldı, ve orada da "açıklanamadı" yazıyor.
+
+Listede gözle görülen tek fark **saat**: o gönderi 00:12'de atılmış,
+ötekiler 18:47-21:15 arasında. Bu bir gözlem, sebep değil — tek örnek
+üstünden kural çıkarılmıyor.
+
+Atılan ikinci kopya yüzünden şu an aynı klip iki gönderide duruyor.
+Yapılacak olan, 1 izlenmeli olanı silmek ve bugünkünü bırakmak: eskisi
+zaten dağıtım almamış, yenisi seri numarasına uyuyor.
