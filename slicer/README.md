@@ -498,6 +498,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
     node scratchpad/slyildiz.mjs   # yıldız ekonomisi: üç yıldız alınabiliyor mu
     node scratchpad/slparca.mjs    # her parça tahtaya çıkıyor ve engelini koyuyor mu
+    node scratchpad/slilk.mjs     # yeni oyuncunun ilk yarım dakikası
     node scratchpad/slipucu.mjs   # tur başındaki satır: doğru anda mı, bir kez mi
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
@@ -676,6 +677,38 @@ bir kez bitiyor, turların **%94'ü** bitiyor, 26. bölüm altı koşuda beş.
 Bitirme oranı bölümle düşüyor — 40'ta 4/6, 55'te 3/6 — ve zorluk eğrisinin
 istediği şey tam olarak bu; kapı "turların çoğu bitiyor" diyor, "hepsi"
 demiyor.
+
+## Yeni oyuncunun ilk yarım dakikası
+
+Kapalı teste yabancılar geliyor ve gelen kişi oyunu bir kez açıp
+bırakırsa hiçbir şey ölçülmemiş oluyor. Fruit Hole'un bu sorusu vardı
+(`holefirst`), Slice Rush'ta yoktu — ve testçi alacak iki oyundan biri
+bu. `slice` oyunu açıp bir tur oynatıyor ama **yolu** ölçmüyor.
+
+`scratchpad/slilk.mjs` üç şeye bakıyor, tertemiz bir profille:
+
+| ölçü | ölçülen | kapı |
+|---|---|---|
+| oynar hâle gelmek | **2 dokunuş** (günlük ödül + PLAY) | en çok 2 |
+| ilk ekranda kapalı öğe | **0** | 0 |
+| ilk kesim | **0.78 sn** | 2 sn |
+
+İki dokunuş eşiği Fruit Hole'dan geliyor ve aynı olması bir tercih
+değil: ikisi de aynı kitleden besleniyor, TikTok'tan gelen insan
+üçüncü dokunuşta yok.
+
+**Beklenmeyen bulgu: yirmi tahtanın yirmisi de aynı sayıyı veriyor.**
+Parkur rastgele ama açılışı değil — `buildCourse` her tahtayı dört
+meyveyle açıyor ve bıçak hep şeridin ortasından başlıyor, yani ilk
+kesime kadar geçen süre tasarımla sabit: üç koşuda da 0.78 saniye.
+
+Bu yüzden iki ayrı kapı var. Biri oyuncuya verilen söz (ilk kesim hemen
+geliyor), öteki o sözün **nasıl** tutulduğu (açılış sabit). İkincisi
+olmadan açılış bir gün rastgeleleşirse ortalama yine iyi görünür ve
+kötü tahtaya düşen oyuncu kimsenin ölçmediği yerde kaybolur. Hatayı
+geri koyarak denendi — açılıştaki dört meyve rastgele yüksekliğe
+dağıtılınca ortalama 1.42'ye, en kötü tahta **2.92 saniyeye** çıkıyor
+ve iki kapı birden düşüyor.
 
 ## Tur başındaki satır
 

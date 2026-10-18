@@ -78,4 +78,4 @@ Kapalı testte bakılacak şeyler:
    234 turun 85'i böyle bitiyordu, yani her beş ölümün dördü. Denemek
    için: bir demiri temiz geç ve hemen öteki uca kaç.
 
-Ölçümler: `npm run test:slicer` (23 ölçüm betiği).
+Ölçümler: `npm run test:slicer` (24 ölçüm betiği).
