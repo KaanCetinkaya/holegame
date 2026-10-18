@@ -113,6 +113,44 @@ console.log(`\n0) Oyunun ${ANAHTARLAR.length} kayıt anahtarı · denenmeyen ${e
 ok(eksikAnahtar.length === 0, 'oyunun her kaydı bozuk hâliyle deneniyor',
    eksikAnahtar.join(', '));
 
+console.log('\n0b) Yazamayan bir telefonda oyun ne yapıyor');
+// `store.set` düz `catch {}` idi: dolu bir telefonda oyun çalışmaya
+// devam ediyor ama hiçbir ilerleme kaydolmuyor, ve oyuncu bunu ancak
+// uygulamayı kapatıp açınca — bölümünü kaybetmiş olarak — anlıyor.
+// Motor Works bir şerit gösteriyor, Fruit Hole sayıp teşhis ekranına
+// yazıyor; burada hiçbiri yoktu.
+//
+// Ölçülen iki şey: oyun ayakta kalıyor mu, ve **söylüyor** mu.
+{
+  const pg = await br.newPage({ viewport: { width: 412, height: 915 } });
+  const h = [];
+  pg.on('pageerror', e => h.push(String(e).split('\n')[0]));
+  await pg.addInitScript(() => localStorage.clear());
+  await pg.goto('http://localhost:8703/', { waitUntil: 'load', timeout: 60000 });
+  await pg.waitForFunction(() => typeof window.sliceYazma === 'function', null, { timeout: 30000 });
+  const once = await pg.evaluate(() => window.sliceYazma());
+  const sonra = await pg.evaluate(() => {
+    window.sliceYazmaBoz(true);
+    // Yazan bir yol: bir bölüm başlat ve bitir — kasa, yıldız ve
+    // bölüm numarası yazılıyor.
+    window.sliceStart(1);
+    window.sliceRun(4000);
+    const r = window.sliceYazma();
+    window.sliceYazmaBoz(false);
+    return r;
+  });
+  const canvas = await pg.evaluate(() => !!document.querySelector('canvas'));
+  console.log(`     önce ${once.hata} · sonra ${sonra.hata} · menü uyarısı ${sonra.uyari} · canvas:${canvas ? 'E' : 'H'}`);
+  // Ters yön de önemli: sağlam bir telefonda o satır görünmemeli.
+  // Her zaman açık bir uyarı, hiç olmayan uyarı kadar işe yaramaz.
+  ok(!once.uyari, 'sağlam telefonda uyarı yok');
+  ok(h.length === 0, 'yazma patlasa da sayfa hatası yok', h[0] || '');
+  ok(canvas, 'oyun ayakta');
+  ok(sonra.hata > once.hata, 'başarısız yazma sayılıyor', `${once.hata} -> ${sonra.hata}`);
+  ok(sonra.uyari, 'oyuncuya menüde söyleniyor');
+  await pg.close();
+}
+
 console.log('\n1) Bozuk anahtarla oyun açılıyor mu');
 const sonuc = [];
 for (const [ad, k] of VAKALAR) {

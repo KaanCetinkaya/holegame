@@ -227,6 +227,12 @@
     .screen h1 { font-size: 33px; }
   }
 
+  /* Kayıt yazılamıyorsa menüde tek satır. Kırmızı değil turuncu: oyun
+     çalışmaya devam ediyor, kaybolan şey ilerleme. */
+  #kayitUyari { display: none; margin: 10px 0 0; padding: 8px 10px; border-radius: 10px;
+                background: rgba(255,138,0,.14); border: 1px solid rgba(255,138,0,.45);
+                color: #ffc06a; font-size: 12px; line-height: 1.35; }
+  #kayitUyari.show { display: block; }
   #verTag { position: absolute; left: 12px; bottom: 12px;
             font-size: 10px; font-weight: 700; letter-spacing: .04em;
             color: rgba(255,255,255,.45); }
@@ -259,6 +265,7 @@
       <button class="btn alt" id="shopBtn">BLADES</button>
       <button class="btn alt" id="goalsBtn">GOALS</button>
     </div>
+    <div id="kayitUyari">Progress is not saving — the phone's storage is full.</div>
     <span id="verTag">dev</span>
     <div class="pill" id="muteBtn">🔊</div>
   </div>
@@ -367,9 +374,29 @@ const $ = id => document.getElementById(id);
 // ---------------------------------------------------------------------
 // Save
 // ---------------------------------------------------------------------
+// Menüdeki uyarı satırını aç. `store.set` çağırıyor, yani `store`dan
+// önce **bildirim** olarak duruyor: hoisting sayesinde sıra sorun
+// değil, ama bir `const` olsaydı açılışta yazılan ilk kayıt onu
+// tanımlanmadan çağırırdı.
+function kayitUyariGoster() {
+  const el = document.getElementById('kayitUyari');
+  if (el) el.classList.add('show');
+}
+
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  // Yazma hatası sayılıyor ve **söyleniyor**.
+  //
+  // `catch {}` idi: dolu bir telefonda oyun çalışmaya devam ediyor ama
+  // hiçbir ilerleme kaydolmuyor ve oyuncu bunu ancak uygulamayı
+  // kapatıp açınca, bölümünü kaybetmiş olarak anlıyor. Motor Works bir
+  // şerit gösteriyor, Fruit Hole sayıp teşhis ekranına yazıyor; burada
+  // hiçbiri yoktu. Menüdeki tek satır o boşluğu kapatıyor.
+  yazmaHata: 0,
+  set(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); }
+    catch (e) { this.yazmaHata++; kayitUyariGoster(); }
+  },
   // Okunan şeyin **ne olduğu** de kontrol ediliyor, yalnızca
   // `JSON.parse` patlamaması değil.
   //
@@ -2971,6 +2998,23 @@ window.slicePieces = () => PIECES.map(p => ({
 // Tur başındaki satır: o anda ne yazıyor, hangi tanıtımlar görüldü, ve
 // hangi parçanın bir tanıtımı var. Üçü de ölçümün dışarıdan göremediği
 // şeyler — `#hint` yalnızca 2.6 saniye ekranda duruyor.
+// Kayıt yazması kaç kez başarısız oldu, ve menüdeki satır görünüyor mu.
+window.sliceYazma = () => ({
+  hata: store.yazmaHata,
+  uyari: !!document.getElementById('kayitUyari')?.classList.contains('show'),
+});
+// Yazmayı bozmanın yolu: kotayı doldurmak yerine `setItem`i patlatmak.
+window.sliceYazmaBoz = (ac = true) => {
+  if (ac && !window.__eskiSetItem) {
+    window.__eskiSetItem = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = () => { throw new Error('QuotaExceededError'); };
+  } else if (!ac && window.__eskiSetItem) {
+    localStorage.setItem = window.__eskiSetItem;
+    window.__eskiSetItem = null;
+  }
+  return !!window.__eskiSetItem;
+};
+
 window.sliceIpucu = () => ({
   yazi: $('hint').textContent,
   gorunur: $('hint').classList.contains('show'),

@@ -430,6 +430,27 @@ Seri, para gerçekten **alındığında** yazılıyor. Ekranı açıp uygulamada
 
 Anahtarların ayrı olması bir şans: bozulan biri ötekileri götürmüyor.
 
+### Yazamayan bir telefon artık söylüyor
+
+Okuma sarılıydı; **yazma** `catch {}` idi. Dolu bir telefonda
+`localStorage.setItem` istisna atıyor ve o hâlde oyun çalışmaya devam
+ediyor ama hiçbir ilerleme kaydolmuyor: oyuncu bunu ancak uygulamayı
+kapatıp açınca, bölümünü kaybetmiş olarak anlıyor — ve kimseye
+söyleyecek bir şeyi yok.
+
+Üç oyunun üçünde de aynı boşluk vardı ve üçü farklı kapandı: Motor
+Works ana kaydı yazamayınca zaten bir şerit gösteriyordu (yan anahtarlar
+da artık oraya bağlı), Fruit Hole sayıp teşhis ekranına yazıyor, ve
+burada ikisi de yoktu. Slice Rush'ın teşhis ekranı yok, o yüzden en
+yalını: sayaç artıyor ve menüde tek satır çıkıyor — *"Progress is not
+saving — the phone's storage is full."*
+
+`slkayit` dört şey istiyor: sağlam telefonda satır **yok**, `setItem`
+patlatılmışken sayfa hatası yok, oyun ayakta, sayaç arttı ve satır
+göründü. Hatayı geri koyarak denendi: `catch {}`'ye dönülünce son ikisi
+düşüyor. Her zaman açık bir uyarı, hiç olmayan uyarı kadar işe yaramaz —
+ilk kapı onun için.
+
 ### Tek bozuk anahtar oyunu öldürüyordu
 
 Okuma tek satırdı: `JSON.parse` patlarsa varsayılan, patlamazsa **ne
