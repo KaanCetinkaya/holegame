@@ -10,32 +10,32 @@ altında; karakter sayıları başlıkların yanında.
 
 ## Bu sürüm (sürüm kodu 8)
 
-### İngilizce — `en-US` (492 karakter)
+### İngilizce — `en-US` (483 karakter)
 
 ```
-Your factory is harder to lose, and the return screen no longer rounds twenty hours down to four.
+Your factory is harder to lose, and it changes its look as it grows.
 
+• Stations re-fit as they pass milestones, right up to gold
 • A damaged save falls back to a backup instead of starting you over
 • The game says so if it cannot save — a full phone used to be silent
 • Back closes the panel you are on instead of quitting
 • A failed ad no longer costs you the offline x2
 • Time away is the real time, and names the production the yard lost
 • One button collects every finished goal
-• The menu shows the build on the phone
 ```
 
-### Türkçe — `tr-TR` (469 karakter)
+### Türkçe — `tr-TR` (474 karakter)
 
 ```
-Fabrikanı kaybetmek zorlaştı, ve dönüş ekranı yirmi saati dörde yuvarlamıyor artık.
+Fabrikanı kaybetmek zorlaştı, ve büyüdükçe görünüşü değişiyor.
 
+• İstasyonlar kilometre taşlarıyla yenileniyor, altına kadar
 • Bozulan kayıt seni sıfırdan başlatmıyor, yedekten dönüyor
 • Oyun hiç kaydedemiyorsa söylüyor — dolu telefon eskiden sessizdi
 • Geri tuşu oyundan çıkmıyor, açık perdeyi kapatıyor
 • Açılmayan reklam artık çevrimdışı ikiye katlamayı yakmıyor
 • "Uzak kalınan süre" gerçek süre; boşa giden üretimi de yazıyor
 • Biten bütün ödüller tek düğmeyle alınıyor
-• Menünün altında derleme numarası
 ```
 
 ---

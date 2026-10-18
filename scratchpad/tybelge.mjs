@@ -77,5 +77,33 @@ ok(!(kimlik && belgeBosDiyor),
    'liderlik tablosu anlatımı kodla uyuşuyor',
    kimlik ? 'kimlik girilmiş, belgeyi güncelle' : '');
 
+console.log('\n6) Sürüm notu Play kutusuna sığıyor mu');
+// Not alanının sınırı dil başına 500 karakter ve Play boşlukları da
+// sayıyor: uzunsa kutu kırmızıya dönüyor ve sürüm **kaydedilmiyor**.
+// Dosya her bloğun uzunluğunu başlığına yazıyor ve o sayı elle yazılmış:
+// yani iki şey bayatlayabilir, sayı ve metnin kendisi. İkisi de burada,
+// ve sınır da dosyadan okunuyor — `holelisting`in mağaza metinleri için
+// yaptığının aynısı, sürüm notu hiçbir yerde ölçülmüyordu.
+const notlar = readFileSync(KOK + '/tycoon/store/release-notes.md', 'utf8');
+const sinir = Number((notlar.match(/\*\*(\d+) karakter\*\*/) || [])[1] || 500);
+const satirlar = notlar.split('\n');
+let notSayisi = 0, uzun = [], yanlisSayi = [];
+for (let i = 0; i < satirlar.length; i++) {
+  const m = satirlar[i].match(/^###\s+(.+?)\s*\((\d+) karakter\)/);
+  if (!m) continue;
+  const bas = satirlar.findIndex((l, k) => k > i && l.trim() === '```');
+  if (bas === -1) continue;
+  const son = satirlar.findIndex((l, k) => k > bas && l.trim() === '```');
+  if (son === -1) continue;
+  const metin = satirlar.slice(bas + 1, son).join('\n');
+  notSayisi++;
+  if (metin.length > sinir) uzun.push(`${m[1]} ${metin.length}`);
+  if (metin.length !== Number(m[2])) yanlisSayi.push(`${m[1]} yazan ${m[2]} gerçek ${metin.length}`);
+}
+console.log(`     ${notSayisi} not bloğu · sınır ${sinir}`);
+ok(notSayisi >= 2, 'sürüm notu blokları okunabildi', `${notSayisi}`);
+ok(uzun.length === 0, 'her not sınırın altında', uzun.join(' · '));
+ok(yanlisSayi.length === 0, 'başlıktaki karakter sayısı doğru', yanlisSayi.join(' · '));
+
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;

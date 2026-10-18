@@ -422,7 +422,9 @@ mağaza), `tysatin` (satın alınan teslim ediliyor mu), `tyreklam`
 (reklam açılmazsa oyuncu ne görüyor), `tygeri` (donanım geri tuşu
 perdeyi mi kapatıyor), `typlaygames`,
 `tysurum` (sürüm numarası ve reklam anahtarı), `tylisting` (mağaza metni
-oyunla uyuşuyor mu), `tybelge` (bu dosya oyunla aynı şeyi mi anlatıyor).
+oyunla uyuşuyor mu), `tybelge` (bu dosya oyunla aynı şeyi mi anlatıyor; sürüm notunun
+dil başına 500 karakterlik Play sınırına sığdığını ve başlığındaki
+sayının doğru olduğunu da ölçüyor).
 
 `window.jeProbe()` oyunun bütün durumunu döndürür. Oyunu parmaksız
 oynatanlar: `jeGive`, `jeRun`, `jeStep`, `jeBuy`, `jeSetLevel`,
@@ -454,6 +456,29 @@ dikey telefon için ayarlanmış 36 birimlik görüş, 1024×500'lük bir yatay
 grafikte fabrikayı bir noktaya indiriyor.
 
 Yayın öncesi yapılacaklar `store/listing.md` sonundaki listede.
+
+### Klipler
+
+    node tycoon/make-clips.mjs                  # hepsi
+    node tycoon/make-clips.mjs --only=kaplama   # tek klip
+
+Altı klip, `store/clips/` altına 1080×1920 mp4: `buyume` (tek ocaktan dolu
+önlüğe), `musteri`, `subeler` (her şubede başka bir yer), `kaplama`
+(demirden altına), `nezaret` (işçiyi darboğaza park et), `cevrimdisi`.
+
+Araç Fruit Hole'unkinden iki şey devralıyor ve ikisi de orada ölçülerek
+öğrenildi: **sahte saat** (ekran görüntüsü almak yavaş, gerçek saatle
+çekilen klipte oyun kareler arasında sıçrıyor) ve **sert ret** — bir klip
+anlatacağı şeyi anlatmadıysa dosya yazılmıyor. Her klibin bir `kanit`
+işlevi var ve ölçtüğü şey klibin iddiası: `subeler` için beş ayrı
+gökyüzü, `nezaret` için işçinin kadrajda kalması ve hızın zıplaması,
+`kaplama` için beş kaplamanın beşinin de görünmesi, sonuncunun altın
+olması ve hiçbirinin yarım saniyeden kısa durmaması.
+
+`kaplama` bu akşam eklendi, çünkü son iki kaplama bu akşama kadar
+kimsenin varmadığı bir yerdeydi ("Altın kimsenin görmediği bir yerdeydi").
+Ulaşılamayan bir şeyi mağazada göstermek yalan olurdu; `tydonanim` artık
+o klibin gösterdiği şeyin oyunda da olduğunu söylüyor.
 
 ## Araştırma
 

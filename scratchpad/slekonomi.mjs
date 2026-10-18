@@ -117,11 +117,17 @@ const r = await pg.evaluate(async (SON) => {
     document.getElementById('blades').children[d.i].click();
   }
   document.getElementById('shopClose').click();
-  for (const g of window.sliceGoals().list)
-    if (g.claimable) {
+  // Bir hedefi almak zincirin bir sonrakini **görünür** yapıyor ve o da
+  // hemen alınabilir olabilir: tek tur dönen bir döngü sonuncuyu
+  // kaçırırdı ve ölçüm ona "ulaşılamadı" derdi.
+  for (let tur = 0; tur < 9; tur++) {
+    const alinacak = window.sliceGoals().list.filter(g => g.claimable);
+    if (!alinacak.length) break;
+    for (const g of alinacak) {
       if (!hedef[g.id]) hedef[g.id] = { n: g.id === 'blades3' ? ucBicak : null, pay: g.pay };
       window.sliceTakeGoal(g.id);
     }
+  }
   const son = window.sliceGoals();
   return { fiyat, ilk, kasa, toplam, hedef, gunler, ikiUcuz, ucBicak,
            ad: dukkan.map(b => b.ad),

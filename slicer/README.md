@@ -463,8 +463,11 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
 Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik
-listesi, anılan kancalar, tavan ifadeleri ve reklam anahtarı. Tarayıcı
-açmıyor, bir saniyenin altında bitiyor.
+listesi, anılan kancalar, tavan ifadeleri, reklam anahtarı — ve iki tanesi
+`store/release-notes.md` içinde: notun karakter sayısı (Play'in sınırı 500
+ve uzun bir not kaydedilmiyor) ile notun sonundaki betik sayısı. İkincisi
+ölçüldüğü gün yanlıştı: "on altı ölçüm betiği" yazıyordu, yirmi bir
+tanesi vardı. Tarayıcı açmıyor, bir saniyenin altında bitiyor.
 
 `window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceMap`, `sliceDaily`,
 `sliceStart`, `sliceSetTarget`, `sliceAutoPlay`, `sliceGive`, `sliceRevive`,

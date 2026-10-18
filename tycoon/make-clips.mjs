@@ -146,6 +146,64 @@ const KLIPLER = [
     },
   },
   {
+    id: 'kaplama',
+    ad: 'Demirden altına',
+    // Oyunun en görünür ödülü: istasyonlar kilometre taşı geçtikçe
+    // yenileniyor — demir, çelik, cilalı çelik, krom, altın. Klip
+    // sekiz saniyede beşini de gösteriyor.
+    //
+    // Klip bu akşam yazıldı çünkü son iki kaplama bu akşama kadar
+    // kimsenin görmediği bir yerdeydi: `tydonanim` ölçtü, altın 750.
+    // seviye istiyordu, ölçülen tavan 410. Eşikler erişime çekildi
+    // (`TIER_AT`), yani klip artık gerçek oyuncunun gördüğü bir şeyi
+    // gösteriyor — bu şart, çünkü ulaşılamayan bir şeyi göstermek
+    // mağazada yalan olurdu.
+    kur: async pg => pg.evaluate(() => {
+      window.jeWipeProgress();
+      window.jeTutSkip();
+      window.jeGive(1e12);
+      for (let i = 0; i < 4; i++) { window.jeSetLevel(i, 1); window.jeGiveManager(i); }
+      window.jeRefresh();
+      // Fabrikanın tamamı kadrajda olmalı: değişen şey bacalar, pres
+      // kasaları, kollar ve raylar — biri kadraj dışında kalırsa klip
+      // "fabrika değişiyor" demiyor, "bir şey değişiyor" diyor.
+      window.jeCam(20, 0.035);
+    }),
+    kare: async (pg, f, toplam) => pg.evaluate(({ f, toplam }) => {
+      // Zaman beş kaplamaya **eşit** bölünüyor. Doğrusal bir seviye
+      // rampası altını son yarım saniyeye sıkıştırıyordu: kaplamalar
+      // 25, 100, 200 ve 350'de değişiyor, yani seviye düz artarsa
+      // klibin yarısı tek bir kaplamada geçiyor.
+      const sinir = [1, 25, 100, 200, 350, 420];
+      const k = Math.min(0.999, f / toplam);
+      const dilim = Math.floor(k * (sinir.length - 1));
+      const ic = k * (sinir.length - 1) - dilim;
+      const lvl = Math.round(sinir[dilim] + (sinir[dilim + 1] - sinir[dilim]) * ic);
+      for (let i = 0; i < 4; i++) window.jeSetLevel(i, lvl);
+      window.jeRefresh();
+      // Bantlar ve kollar normal hızda çalışsın: hızlandırılan şey
+      // seviye, fabrikanın kendisi değil.
+      window.jeRun(0.4);
+      const d = window.jeDonanim();
+      return { lvl, kademe: d[0].kademe, ad: d[0].ad, tas: d[0].tas };
+    }, { f, toplam }),
+    kanit: (s) => {
+      const gorulen = [...new Set(s.map(x => x.ad))];
+      const kademeler = [...new Set(s.map(x => x.kademe))].sort();
+      // Her kaplama göz görecek kadar durmalı: yarım saniyeden kısa
+      // duran bir kaplama klipte yanıp sönen bir kare oluyor.
+      const enKisa = Math.min(...kademeler.map(k => s.filter(x => x.kademe === k).length));
+      return {
+        ok: kademeler.length === 5 && s[s.length - 1].kademe === 4 && enKisa >= 15,
+        yazi: `${gorulen.length} kaplama: ${gorulen.join(' → ')} · ` +
+              `en kısa duran ${enKisa} kare · bitiş ${s[s.length - 1].ad} ` +
+              `(seviye ${s[s.length - 1].lvl})`,
+        neden: `kaplama klibi beşini göstermiyor: ${kademeler.length} kademe, ` +
+               `en kısa duran ${enKisa} kare, bitiş kademe ${s[s.length - 1].kademe}`,
+      };
+    },
+  },
+  {
     id: 'nezaret',
     ad: 'İşçiyi darboğaza park et',
     // İşçinin oyunun tamamında bir işi olmasını sağlayan şey. Klip

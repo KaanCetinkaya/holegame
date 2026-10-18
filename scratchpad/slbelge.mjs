@@ -50,6 +50,18 @@ console.log(`     ${betikler.length} betik · belgede olmayan ${anilmayan.length
 if (anilmayan.length) console.log(`     ${anilmayan.join(', ')}`);
 ok(anilmayan.length === 0, 'listede eksik betik yok', anilmayan.join(', '));
 
+// Sürüm notlarındaki sayı da aynı listeden geliyor ve bayatlamıştı:
+// "on altı ölçüm betiği" yazıyordu, ölçüm sayısı yirmi bire çıkmıştı.
+// Testçinin okuduğu tek metin o, ve orada yanlış bir sayı bu deponun
+// en sık hatası — elle yazılmış bir sayı, kod değişince yerinde kalıyor.
+const notlar = readFileSync(KOK + '/slicer/store/release-notes.md', 'utf8');
+const sayiSatiri = notlar.split('\n').find(l => l.includes('ölçüm betiği')) || '';
+const yazanSayi = (sayiSatiri.match(/(\d+) ölçüm betiği/) || [])[1];
+console.log(`     sürüm notları: ${sayiSatiri.trim() || '— satır yok'}`);
+ok(Number(yazanSayi) === betikler.length,
+   'sürüm notlarındaki betik sayısı doğru',
+   `notlarda ${yazanSayi || 'yok'} · gerçekte ${betikler.length}`);
+
 console.log('\n3) Belgede adı geçen her kanca oyunda var');
 const kancalar = [...belge.matchAll(/`(slice[A-Za-z]+)\(?\)?`/g)]
   .map(m => m[1]).filter((n, i, a) => a.indexOf(n) === i);
@@ -112,6 +124,33 @@ ok(new RegExp(`${kelime(temaSayisi)} evenings`, 'i').test(liste),
 // Metin "dört bölümde bir" diyor; kod da öyle demeli.
 ok(/every four levels/i.test(liste) && /\/ 4\) % TEMALAR\.length/.test(oyun),
    'tema sıklığı metinle aynı');
+
+console.log('\n7) Sürüm notu Play kutusuna sığıyor mu');
+// Sınır dil başına 500 karakter ve Play boşlukları da sayıyor: uzunsa
+// kutu kırmızıya dönüyor ve sürüm **kaydedilmiyor**. Dosya her bloğun
+// uzunluğunu başlığına elle yazıyor, yani iki şey bayatlayabilir — sayı
+// ve metnin kendisi. Sınır da dosyadan okunuyor. (`tybelge` aynısını
+// Motor Works için yapıyor; sürüm notu o güne kadar hiçbir yerde
+// ölçülmüyordu, oysa mağaza metinleri 2024'ten beri ölçülüyor.)
+const sinir = Number((notlar.match(/\*\*(\d+) karakter\*\*/) || [])[1] || 500);
+const satirlar = notlar.split('\n');
+let notSayisi = 0; const uzun = [], yanlisSayi = [];
+for (let i = 0; i < satirlar.length; i++) {
+  const m = satirlar[i].match(/^###\s+(.+?)\s*\((\d+) karakter\)/);
+  if (!m) continue;
+  const bas = satirlar.findIndex((l, k) => k > i && l.trim() === '```');
+  if (bas === -1) continue;
+  const son = satirlar.findIndex((l, k) => k > bas && l.trim() === '```');
+  if (son === -1) continue;
+  const metin = satirlar.slice(bas + 1, son).join('\n');
+  notSayisi++;
+  if (metin.length > sinir) uzun.push(`${m[1]} ${metin.length}`);
+  if (metin.length !== Number(m[2])) yanlisSayi.push(`${m[1]} yazan ${m[2]} gerçek ${metin.length}`);
+}
+console.log(`     ${notSayisi} not bloğu · sınır ${sinir}`);
+ok(notSayisi >= 2, 'sürüm notu blokları okunabildi', `${notSayisi}`);
+ok(uzun.length === 0, 'her not sınırın altında', uzun.join(' · '));
+ok(yanlisSayi.length === 0, 'başlıktaki karakter sayısı doğru', yanlisSayi.join(' · '));
 
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;

@@ -355,6 +355,14 @@ sayacın menü satırına sığması — onun yerine aynı satırda bölüm hari
 duruyor, çünkü haritanın kaldığın yerde açılması her oyuncunun her
 açılışta göreceği şey.
 
+Nota girmeyen ikinci şey, ve bu yönü ters: **süre takviyesi yıldız
+kazandırıyordu**. Yıldız "kalan sürenin tamamına oranı"ndan çıkıyor ve
+takviye payı bölene eklenmiyordu, yani +30 saniye alan oyuncu aynı tahtada
+daha yüksek bir oran görüyordu. Düzeltildi — takviye artık böleni de
+büyütüyor. Oyuncunun göreceği şey "yıldız zorlaştı", ve not yazmak için
+yanlış bir cümle: zorlaşan bir şey yok, ölçü doğrulandı. Takviyesiz oynayan
+için hiçbir şey değişmiyor.
+
 Nota girmeyen, ama bu sürümde olan: bir turun **finali** hiç çıkmayabiliyordu
 (55 bölümde bir gelen Cup Night bir bulmaca ya da görev bölümüne denk
 gelirse o turda final yok — 56-110 turu böyleydi). 90'ın üstündeki bir

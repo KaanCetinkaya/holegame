@@ -1,7 +1,8 @@
 // Fabrikanın son kaplaması (altın) gerçekten görülüyor mu?
 //
 //   node build-www.mjs && node scratchpad/tydonanim.mjs
-//   node scratchpad/tydonanim.mjs 12 30     # 12 devir, devir başına 30 dakika
+//   node scratchpad/tydonanim.mjs 150 30    # 150 devir: tavanın yeri
+//   node scratchpad/tydonanim.mjs 20 180    # uzun şubeler, aynı soru
 //
 // ## Neden var
 //
