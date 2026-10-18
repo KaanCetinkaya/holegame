@@ -125,17 +125,24 @@ bağlantısı onda çalışıyor. Grubu atlayıp doğrudan opt-in atmak, karşı
 tarafa kapalı bir kapı göstermek demek; o kişi bir daha denemiyor ve
 grupta itibarın gidiyor.
 
-### Önce kurulacak: her oyuna açık bir Google Grubu
+### Kurulum — 18 Ekim 2026'da yapıldı
 
-Slice Rush ve Motor Works'te bu **yok** (Fruit Hole'da var:
-`fenix-game-testers@googlegroups.com`, grup adı "fenix game", 19 üye).
-Sırayla:
+Üç oyun da **tek grubu** paylaşıyor:
+`fenix-game-testers@googlegroups.com` (grup adı "fenix game", 19 üye).
+Ayrı grup kurulmadı; Play Console aynı grup adresini birden çok
+uygulamanın testçi listesine kabul ediyor.
 
-1. groups.google.com → yeni grup, ör. `slice-rush-testers`
-2. Katılım ayarı: **"Anyone on the web can join"** — kapalıysa yabancı
-   giremez ve bütün kalıp çöker
-3. Play Console → Test → Kapalı test → **Test kullanıcıları** →
-   Google Grupları → grup adresini yapıştır
+Slice Rush ve Motor Works'te yapılan: Kapalı test → **Kanalı yönet** →
+Test kullanıcıları → radyo **"Google Gruplar"** → grup adresi → kaydet.
+İkisi de önce "E-posta listeleri" kipindeydi ve o kiple değiş tokuş
+kalıbı çalışmıyor: yabancı bir e-posta listesine **katılamaz**, ve
+grubu bir e-posta listesinin *içine* adres olarak koymak da aynı şey
+değil (Console onu tek bir adres sayıyor). Sayfadaki not bunu kendisi
+söylüyor: *"Sadece belirlediğiniz Google Grupların üyeleri testinize
+katılabilirler."*
+
+Testçiler sekmesindeki iki bağlantıdan kaydolma olanı **"Web'de
+katılın"** altında; "Android'de katılın" altındaki mağaza bağlantısı.
 
 ### Yapıştırılacak metin — Slice Rush
 
