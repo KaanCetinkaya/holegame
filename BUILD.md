@@ -275,7 +275,11 @@ Console'u açtığında adres çubuğunda zaten görünüyorlar.
 
 Tester bağlantıları:
 
-- Grup: https://groups.google.com/g/fruit-hole-testers
+- Grup: https://groups.google.com/g/fenix-game-testers
+  (`fenix-game-testers@googlegroups.com`, 19 üye · 18 Ekim 2026'da
+  ekrandan doğrulandı. Burada ve iki yerde daha `fruit-hole-testers`
+  yazıyordu ve **öyle bir grup yok** — adres hiçbir zaman kontrol
+  edilmemiş, varsayılmıştı.)
 - Opt-in: https://play.google.com/apps/testing/com.kaancetinkaya.fruithole
 
 **Grup üyesi sayısı ile Play'in saydığı tester sayısı aynı şey değil.** Play,

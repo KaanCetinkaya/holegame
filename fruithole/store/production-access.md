@@ -229,7 +229,7 @@ riskli" diye yazılmıştı. Hiçbiri doğru değilmiş: Test kullanıcıları
 sekmesinde **Google Gruplar** seçili ve iki grup bağlı —
 
 ```
-fruit-hole-testers@googlegroups.com     (bizim)
+fenix-game-testers@googlegroups.com     (bizim, 19 üye)
 testers-community@googlegroups.com      (karşılıklı test grubu)
 ```
 
@@ -241,6 +241,14 @@ Ders, kurulumun kendisinde değil: bu dosya aylardır listenin nasıl
 kurulduğunu **varsayarak** yazıyordu ve iki oturum boyunca o varsayımın
 üstüne plan yapıldı — "geçişi üretim başvurusundan sonra yap, sırayı
 şöyle kur". Bakmak beş saniye sürdü.
+
+**Ve aynı ders ikinci kez verildi, 18 Ekim'de.** Grubun adresi burada
+`fruit-hole-testers@googlegroups.com` diye yazılıydı. Öyle bir grup
+yok: gerçek adres `fenix-game-testers@googlegroups.com` ve grubun adı
+"fenix game". Slice Rush'ın testçi listesini kurarken bu yanlış adres
+Console'a yapıştırılmak üzereydi — Kaan grubu ekranda açıp gösterince
+çıktı. Buradaki her Play Console değeri **ekrandan doğrulanmadıkça
+tahmindir**, ve bu dosya iki kez tam olarak oradan yanıldı.
 
 ### İki bağlantı, ve hangisi kime
 

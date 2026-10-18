@@ -128,7 +128,8 @@ grupta itibarın gidiyor.
 ### Önce kurulacak: her oyuna açık bir Google Grubu
 
 Slice Rush ve Motor Works'te bu **yok** (Fruit Hole'da var:
-`fruit-hole-testers@googlegroups.com`). Sırayla:
+`fenix-game-testers@googlegroups.com`, grup adı "fenix game", 19 üye).
+Sırayla:
 
 1. groups.google.com → yeni grup, ör. `slice-rush-testers`
 2. Katılım ayarı: **"Anyone on the web can join"** — kapalıysa yabancı
@@ -145,7 +146,7 @@ yours — drop your links and I'll join today.
 Slice Rush — a one-finger blade game: you set the blade's height, it
 cuts everything it meets, and you miss the bars.
 
-Join the authorized Google Group: https://groups.google.com/g/slice-rush-testers
+Join the authorized Google Group: https://groups.google.com/g/fenix-game-testers
 Opt in: https://play.google.com/apps/testing/com.kaancetinkaya.slicerush
 Install from Google Play with the same Google account: https://play.google.com/store/apps/details?id=com.kaancetinkaya.slicerush
 
@@ -160,7 +161,7 @@ Aynı kalıp, ikinci satır ve bağlantılar değişiyor:
 Motor Works — an idle car factory: four stations in a chain, and the
 whole game is finding the one everything else is waiting on.
 
-Join the authorized Google Group: https://groups.google.com/g/motor-works-testers
+Join the authorized Google Group: https://groups.google.com/g/fenix-game-testers
 Opt in: https://play.google.com/apps/testing/com.kaancetinkaya.motorworks
 Install from Google Play with the same Google account: https://play.google.com/store/apps/details?id=com.kaancetinkaya.motorworks
 ```
