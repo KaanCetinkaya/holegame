@@ -522,7 +522,7 @@ takılma görülürse verilecek.
 
 ## Ölçümler
 
-    npm run test:fruithole        # yükleme öncesi küme, ~10 dakika
+    npm run test:fruithole        # yükleme öncesi küme, 17 betik, ~26 dakika
     npm run test:fruithole:tam    # doksan üç betik, saatler
 
 Kümenin ayrı olmasının sebebi ölçülerek öğrenildi. Günlük meydan okuma
@@ -533,7 +533,17 @@ koşturmak saatler sürüyor. Koşulmayan bir test, test değil.
 
 Kümede olanlar: geniş tarama (`holeaudit`), günlük meydan okuma, kayıt
 dayanıklılığı, her kayıtlı bölümden açılış, ekonomi, koleksiyon, satın
-alma, puanlama, başarımlar, sandık.
+alma, puanlama, başarımlar, sandık, ve **final** (`holeboss`).
+
+`holeboss` sonradan eklendi ve sebebi tam da kümenin varlık sebebi:
+yüklenen bir sürümde oyuncunun göreceği bir şey sessizce yok olmuştu.
+Cup Night turda bir kez geliyor ve o bölüm bulmaca ya da görev tahtasına
+denk gelirse o turun finali **hiç olmuyordu** — 56-110 turu böyleydi,
+yani Kaan'ın kaydı (90'ın üstünde) oyunun "FINAL" dediği şeyi bir kez
+bile görmedi. Hata aylarca yüklendi; yükleme öncesi hiçbir ölçüm ona
+bakmıyordu. Maliyeti ölçüldü: iki dakika, yirmi dört dakikalık kümede
+%8. Koşulduğunda gördüğü: 120 bölümde iki Cup Night, ikisi de ızgara
+tahtası, kolosları kupa ve tahtanın öbür ucunda.
 
 ## Kayıt
 

@@ -57,9 +57,19 @@ Bu, geliştirilen iki oyunu koşturuyor: Motor Works (40 ölçüm, 5 dakika) ve
 Slice Rush (22, 19 dakika), toplam **62 ölçüm, ~24 dakika**. Tek tek:
 `npm run test:tycoon`,
 `npm run test:slicer`. Fruit Hole ayrı, çünkü 90 ölçümü var:
-`npm run test:fruithole` yükleme öncesi bakılacak **16 ölçüm, ~24 dakika**,
+`npm run test:fruithole` yükleme öncesi bakılacak **17 ölçüm, ~26 dakika**,
 `npm run test:fruithole:tam` hepsi (saatler). Hepsi birden:
 `npm run test:all`.
+
+Listeye `holeboss` eklendi (2 dakika, ölçüldü). Gerekçesi: yükleme öncesi
+takımın işi, **oyuncunun göreceği bir şeyin sessizce kaybolmasını**
+yakalamak — ve tam bu oldu. Bir turun finali (Cup Night + kupa) 55
+bölümde bir geliyor ve o bölüm bulmaca/görev tahtasına denk gelirse o
+turda hiç olmuyordu; 56-110 turu böyleydi, yani 90'ın üstündeki bir
+oyuncu oyunun "FINAL" dediği şeyi bir kez bile görmüyordu. Aylarca
+yüklendi, çünkü hiçbir yükleme öncesi ölçüm ona bakmıyordu. Şimdi
+bakıyor: 120 bölümde iki Cup Night, ikisi de ızgara tahtası, ikisinde de
+kolos kupa ve tahtanın öbür ucunda.
 
 Sayılar ölçülerek yazıldı ve bir gecede değişti: çizim kapatılınca Fruit
 Hole'un yükleme öncesi takımı 37 dakikadan 24'e indi, ve hiçbir şey iddia
