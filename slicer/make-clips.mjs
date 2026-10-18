@@ -61,6 +61,13 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
 //
 // Kanıtların eşikleri seçilmedi, çekilerek ölçüldü — her birinin yanında
 // ölçülen sayı yazılı.
+// Kaç karede tur gerçekten sürüyor. Çarpan bir tur ekranda **donuyor**:
+// kamera son engele yapışıyor ve kalan saniyeler o görüntüde geçiyor.
+// İlk çekimde `yer` klibi tam bunu yaptı ve kanıtı görmedi, çünkü kanıt
+// yalnızca temaya bakıyordu — bir klibin "bir şey oluyor" kapısı,
+// anlattığı şeyin kapısı kadar gerekli.
+const yasayanKare = s => s.filter(x => x.state === 'playing').length;
+
 const KLIPLER = [
   {
     id: 'kesim',
@@ -80,11 +87,13 @@ const KLIPLER = [
       const kesim = s[s.length - 1].cut;
       const enCokParca = Math.max(...s.map(x => x.shards));
       const komboda = Math.max(...s.map(x => x.streak));
+      const canli = yasayanKare(s);
       return {
-        ok: kesim >= 20 && enCokParca >= 4 && komboda >= 8,
+        ok: kesim >= 20 && enCokParca >= 4 && komboda >= 8 && canli >= s.length * 0.95,
         yazi: `${kesim} kesim · en çok ${enCokParca} yarım aynı anda havada · ` +
-              `kombo ${komboda}`,
-        neden: `kesim klibi kesmiyor: ${kesim} kesim, ${enCokParca} yarım, kombo ${komboda}`,
+              `kombo ${komboda} · ${canli}/${s.length} karede tur sürüyor`,
+        neden: `kesim klibi kesmiyor: ${kesim} kesim, ${enCokParca} yarım, kombo ${komboda}, ` +
+               `${canli}/${s.length} canlı kare`,
       };
     },
   },
@@ -109,10 +118,11 @@ const KLIPLER = [
       // bir klip "demirin arasından" demiyor.
       const yLer = s.map(x => x.y);
       const aralik = Math.max(...yLer) - Math.min(...yLer);
+      const canli = yasayanKare(s);
       return {
-        ok: demir >= 4 && !olum && aralik >= 1.5,
+        ok: demir >= 4 && !olum && aralik >= 1.5 && canli >= s.length * 0.95,
         yazi: `${demir} demir geçildi · bıçak ${aralik.toFixed(1)} birim gezdi · ` +
-              `${olum ? 'çarptı' : 'çarpmadı'}`,
+              `${olum ? 'çarptı' : 'çarpmadı'} · ${canli}/${s.length} karede tur sürüyor`,
         neden: `demir klibi işini yapmıyor: ${demir} demir, ${aralik.toFixed(1)} birim, ` +
                `${olum ? 'turda çarpma var' : 'çarpma yok'}`,
       };
@@ -137,9 +147,11 @@ const KLIPLER = [
     kanit: (s) => {
       const gecilen = s[s.length - 1].gecilen;
       const mayinaOlum = s.some(x => x.vurulan === 'mine');
+      const canli = yasayanKare(s);
       return {
-        ok: gecilen >= 1 && !mayinaOlum,
-        yazi: `${gecilen} mayın geçildi, hiçbiri kesilmedi`,
+        ok: gecilen >= 1 && !mayinaOlum && canli >= s.length * 0.95,
+        yazi: `${gecilen} mayın geçildi, hiçbiri kesilmedi · ` +
+              `${canli}/${s.length} karede tur sürüyor`,
         neden: `mayın klibi mayın göstermiyor: ${gecilen} geçildi` +
                (mayinaOlum ? ', ve biri kesildi' : ''),
       };
@@ -156,7 +168,14 @@ const KLIPLER = [
       // Dört pencere, her birinde bir tema: 1, 5, 9, 13. bölümler.
       const dilim = Math.min(3, Math.floor(f / (toplam / 4)));
       const bolum = 1 + dilim * 4;
-      if (window.sliceProbe().level !== bolum) window.sliceStart(bolum);
+      // Tur bittiyse yeniden başlıyor. İlk çekimde bu yoktu ve klip
+      // beşinci saniyesini çarpma görüntüsünde geçirdi: kamera demire
+      // yapışıyor, ekranın tamamı kırmızı duruyor ve "başka bir yer"
+      // diyen klip hiçbir yer göstermiyor. Kanıt da onu görmüyordu,
+      // çünkü yalnızca temaya bakıyordu — o yüzden aşağıda "tur
+      // sürüyor" kapısı var.
+      const p0 = window.sliceProbe();
+      if (p0.level !== bolum || p0.state !== 'playing') window.sliceStart(bolum);
       window.sliceAutoPlay();
       const p = window.sliceStep(1 / 30);
       return { bolum, tema: window.sliceTheme().ad, cut: p.cut, state: p.state };
@@ -165,10 +184,13 @@ const KLIPLER = [
       const temalar = [...new Set(s.map(x => x.tema))];
       // Her tema göz görecek kadar durmalı.
       const enKisa = Math.min(...temalar.map(t => s.filter(x => x.tema === t).length));
+      const canli = yasayanKare(s);
       return {
-        ok: temalar.length >= 4 && enKisa >= 20,
-        yazi: `${temalar.length} yer: ${temalar.join(' → ')} · en kısa duran ${enKisa} kare`,
-        neden: `yer klibi yer değiştirmiyor: ${temalar.length} tema, en kısa ${enKisa} kare`,
+        ok: temalar.length >= 4 && enKisa >= 20 && canli >= s.length * 0.9,
+        yazi: `${temalar.length} yer: ${temalar.join(' → ')} · en kısa duran ${enKisa} kare · ` +
+              `${canli}/${s.length} karede tur sürüyor`,
+        neden: `yer klibi yer değiştirmiyor: ${temalar.length} tema, en kısa ${enKisa} kare, ` +
+               `${canli}/${s.length} canlı kare`,
       };
     },
   },
