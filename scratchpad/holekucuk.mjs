@@ -171,6 +171,50 @@ for (const b of BOYUTLAR) {
   await ctx.close();
 }
 
+// ## Bağlam kaybı şeridi en dar ekranda
+//
+// `#glBar` oyuncunun **bozulma anında** okuduğu tek şey: ne olduğunu
+// söylüyor ve "yeniden dene" düğmesini veriyor. Hiçbir ölçüm onu
+// küçük ekranda görmemişti — `holegl` davranışına bakıyor, buraya
+// ise hiç girmiyordu. Yazı sarar, düğme daralır, ve o anda
+// dokunulamayan bir düğme şeridi tamamen işe yaramaz yapar.
+//
+// Bağlamı kaybetmek sayfayı bozduğu için en sona bırakıldı ve kendi
+// sayfasında yapılıyor: ötekilerin ölçtüğü şey sağlam bir oyun.
+{
+  const ctx = await br.newContext({ viewport: { width: 360, height: 568 } });
+  const pg = await ctx.newPage();
+  await pg.addInitScript(() => localStorage.clear());
+  await pg.goto('http://localhost:8762/', { waitUntil: 'load', timeout: 90000 });
+  await pg.waitForFunction(() => typeof window.fruitHoleWhere === 'function', null, { timeout: 90000 });
+  const kurdu = await pg.evaluate(() => window.fruitHoleLoseGl());
+  await pg.waitForTimeout(600);
+  const g = await pg.evaluate(() => {
+    const bar = document.getElementById('glBar');
+    const btn = document.getElementById('glBarBtn');
+    const rb = bar.getBoundingClientRect(), rn = btn.getBoundingClientRect();
+    return {
+      acik: !bar.hidden,
+      icinde: rb.left >= 0 && rb.right <= innerWidth && rb.top >= 0 && rb.bottom <= innerHeight,
+      kutu: `${Math.round(rb.width)}x${Math.round(rb.height)}`,
+      dugme: `${Math.round(rn.width)}x${Math.round(rn.height)}`,
+      dugmeIcinde: rn.left >= 0 && rn.right <= innerWidth && rn.bottom <= innerHeight,
+      dugmeBoy: Math.min(rn.width, rn.height),
+      kirpik: bar.scrollHeight > bar.clientHeight + 1,
+    };
+  });
+  console.log(`\n360x568 · bağlam kaybı şeridi: açık ${g.acik} · kutu ${g.kutu} · ` +
+    `düğme ${g.dugme} · ekranda ${g.icinde && g.dugmeIcinde} · kırpık ${g.kirpik}`);
+  // Kurulumun kendisi de doğrulanıyor: eklenti yoksa şerit hiç
+  // açılmaz ve aşağıdaki üç kapı hiçbir şey görmeden geçerdi.
+  ok(kurdu && g.acik, 'bağlam kaybı şeridi açıldı', `eklenti ${kurdu}`);
+  ok(g.icinde && g.dugmeIcinde, 'şerit ve düğmesi ekranın içinde', g.kutu);
+  // Eşik dosyanın kendi ölçüsü (44), buraya ikinci kez seçilmedi.
+  ok(g.dugmeBoy >= TAP, `düğme parmakla basılabilir (${TAP}px)`, g.dugme);
+  ok(!g.kirpik, 'şeridin yazısı kırpılmıyor');
+  await ctx.close();
+}
+
 console.log('');
 ok(!sorun.length, 'her boyutta bütün ekranlar kullanılabilir',
    sorun.length ? '\n        ' + sorun.join('\n        ') : '');

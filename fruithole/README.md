@@ -5089,6 +5089,24 @@ durumu, deliğin hızı). Blok artık `TYPE_BY_ID`nin hemen altında.
 `holeboot.mjs` bunu yakalayan test: kayıtlı bölümü elle kurup oyunu gerçek
 saatle açıyor ve yalnızca menüye varılıyorsa geçiyor.
 
+## Bozulma anındaki düğme, oyunun en küçük düğmesiydi
+
+`#glBar` oyuncunun bağlam kaybı anında okuduğu tek şey: ne olduğunu
+söylüyor ve "yeniden dene" düğmesini veriyor. `holegl` onun
+**davranışını** ölçüyordu — kayıp yakalanıyor mu, geri geliyor mu — ama
+küçük ekranda nasıl durduğuna hiçbir ölçüm bakmamıştı.
+
+Bakılınca çıktı: düğme 360 pikselde **64×34**. Oyunun geri kalanı 44
+piksellik dokunma hedefi tutuyor (`holekucuk`in kendi ölçüsü; Apple 44,
+Google 48 istiyor) ve bu düğme ondan küçüktü — üstelik en çok gerektiği
+yerde, ekran bozulmuşken basılacak tek şey o. `min-height: 44px`
+eklendi, şimdi 68×44.
+
+Ölçüm en sona kondu ve kendi sayfasında duruyor: bağlamı kaybetmek
+sayfayı bozuyor, yani ötekilerin ölçtüğü şey sağlam bir oyun olarak
+kalıyor. Kurulumun kendisi de bir kapı — `WEBGL_lose_context` eklentisi
+yoksa şerit hiç açılmaz ve kalan üç kapı hiçbir şey görmeden geçerdi.
+
 ## İkinci tur birinciden farklı mı — 90'ın üstünde ne oluyor
 
 Oyun sonsuz: düzen tablosu 55'te bitiyor, sonra başa dönüyor, her turda

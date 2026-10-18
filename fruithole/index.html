@@ -465,8 +465,11 @@
   }
   #glBar[hidden] { display: none; }
   #glBarText { flex: 1; }
+  /* Oyunun geri kalanı 44 piksellik dokunma hedefi tutuyor; bu düğme
+     34'te kalmıştı ve ölçülmemişti. Üstelik en çok gereken yer burası:
+     ekran bozulduğunda oyuncunun basabileceği tek şey bu. */
   #glBarBtn {
-    border: 0; border-radius: 10px; padding: 9px 14px;
+    border: 0; border-radius: 10px; padding: 11px 16px; min-height: 44px;
     background: #f4b942; color: #2a1a06; font-weight: 700; font-size: 14px;
   }
 
