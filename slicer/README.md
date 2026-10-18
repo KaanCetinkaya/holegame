@@ -460,6 +460,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slgeri.mjs     # donanım geri tuşu ekranı mı kapatıyor
     node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
     node scratchpad/slyildiz.mjs   # yıldız ekonomisi: üç yıldız alınabiliyor mu
+    node scratchpad/slparca.mjs    # her parça tahtaya çıkıyor ve engelini koyuyor mu
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
 Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik
@@ -503,6 +504,38 @@ sertlik katsayısı kolay dolgu parçalarını (`run`, `stair`, `rest`)
 seyreltiyor, karar gerektirenleri (`mine`, `squeeze`, `sweep`, `weave`,
 `gauntlet`) sıklaştırıyor. Hiçbiri sıfıra inmiyor — yalnızca zor
 parçalardan kurulu bir parkur okunmuyor.
+
+### Havuzda olmak tahtada olmak değil
+
+Bu bölümün sayıları havuzun sayıları: "on bir parça, 28'de doluyor". Arada
+iki şey var ve ikisi de ölçülmüyordu — **ağırlık** (seçim ağırlıklı kura ve
+ağırlıklar bölümle kayıyor) ve **vazgeçme** (parça seçilip hiçbir şey
+koymayabiliyor: `bar()` yer bulamazsa false dönüyor, `window()`
+ulaşılamaz açıklıkta vazgeçiyor, `mine()` arkasından kaçış hattı
+gelemeyecekse hiç konmuyor — üçü de doğru davranış, geçilemez bir tahta
+zorluk değil hata).
+
+`slparca` oyunun kendi dökümünü okuyor (`sliceParcalar`: hangi parça
+seçildi, kaç meyve/demir/mayın koydu) ve kırk bölüm × otuz tahta kuruyor.
+Ölçülen hâli:
+
+| parça | açılış | seçildi | engelsiz geçti |
+|---|---|---|---|
+| `gate`, `tunnel`, `squeeze`, `sweep`, `weave` | 2-23 | 400-1000 | %0 |
+| `mine` | 8 | ~1100 | %15-18 |
+| `gauntlet` | 28 | ~280 | %15-23 |
+
+Yani on bir parçanın on biri tahtaya çıkıyor, ve en çok vazgeçen parça
+(`gauntlet`: dar pencere, hemen arkasında mayın — en çok yer isteyen dizi)
+beşte birden az. Kapı %45'te: ölçülenin iki katına yakın, "parça artık
+hiçbir şey koymuyor"u yakalayacak kadar dar.
+
+Ölçümün kendisi bir kez yanlış kuruldu ve bunu **hatayı geri koyma**
+denemesi gösterdi: engelli parçalar "hiç engel koymuş olanlar" diye
+gözlemden ayrılıyordu, yani `gauntlet` bilerek bozulup hiç engel koymaz
+hâle gelince sessizce meyve parçası sayıldı ve kapı geçti. Artık sınıf
+oyundan okunuyor — parçanın kodu `c.bar`, `c.window` ya da `c.mine`
+çağırıyorsa engel koymayı vaat ediyor demektir (`slicePieces().engel`).
 
 Ölçülen sonuç: 15-18. bölümlerde tur başına ortalama **4.4** demir,
 27-30. bölümlerde **9.2** — iki katından fazla. `slicewall.mjs` bunu artık

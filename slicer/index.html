@@ -1657,6 +1657,8 @@ function koyDemir(fromTop, h, d, gapY) {
   items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop, gapY });
 }
 
+// Son kurulan parkurun parça dökümü (ölçüm okuyor, oyun yazmıyor).
+let sonParcalar = [];
 function buildCourse(n) {
   for (const it of items) { scene.remove(it.mesh); if (it.shadow) scene.remove(it.shadow); }
   items = [];
@@ -1813,10 +1815,30 @@ function buildCourse(n) {
   const pool = PIECES.filter(p => n >= p.minLevel);
   const total = pool.reduce((a, p) => a + agirlik(p), 0);
   let guard = 0;
+  // Hangi parça seçildi ve **ne koydu**. Ölçüm için tutuluyor
+  // (`sliceParcalar`), oyunun davranışına girmiyor.
+  //
+  // Neden gerekiyor: bir parça seçilip hiçbir şey koymayabiliyor. `bar()`
+  // yer bulamazsa false dönüyor, `window()` ulaşılamaz bir açıklıkta
+  // vazgeçiyor, `mine()` arkasından kaçış hattı gelemeyecekse hiç
+  // konmuyor — üçünde de parça sessizce sıradan bir meyve sırasına
+  // dönüşüyor. Bu doğru davranış (geçilemez tahta zorluk değil hata),
+  // ama ölçülmediği sürece "havuzda on bir parça var" cümlesi tahtada
+  // ne olduğunu söylemiyor.
+  sonParcalar = [];
+  const sayac = () => items.reduce((a, i) => (a[i.kind] = (a[i.kind] || 0) + 1, a), {});
   while (slot < slots && guard++ < 200) {
     let roll = Math.random() * total, pick = pool[0];
     for (const p of pool) { roll -= agirlik(p); if (roll <= 0) { pick = p; break; } }
+    const once = sayac();
     c.y = c.clamp(pick.build(c));
+    const sonra = sayac();
+    sonParcalar.push({
+      id: pick.id,
+      meyve: (sonra.fruit || 0) - (once.fruit || 0),
+      demir: (sonra.bar || 0) - (once.bar || 0),
+      mayin: (sonra.mine || 0) - (once.mine || 0),
+    });
   }
 
   courseEnd = (slots - 1) * SPACING + 6;
@@ -2705,8 +2727,22 @@ window.sliceTheme = () => ({
   ray: '#' + RAIL_MAT.color.getHexString(),
   doku: renderer.info.memory.textures,
 });
+// Son kurulan parkurun parça dökümü: hangi parça seçildi, ve her biri kaç
+// meyve, demir ve mayın koydu. "Havuzda on bir parça var" ile "tahtada on
+// bir parça görünüyor" ayrı şeyler ve ikincisi ölçülmüyordu.
+window.sliceParcalar = () => sonParcalar.map(p => ({ ...p }));
 window.slicePieces = () => PIECES.map(p => ({
   id: p.id, minLevel: p.minLevel, weight: p.weight,
+  // Bu parça engel koymayı **vaat ediyor** mu: kodunda `c.bar`, `c.window`
+  // ya da `c.mine` çağırıyor mu. Ölçümün elle tutacağı bir liste değil,
+  // parçanın kendi kaynağı.
+  //
+  // Gerekçesi bir ölçüm hatası: `slparca` engelli parçaları "hiç engel
+  // koymuş olanlar" diye ayırıyordu, yani hiç koymayan bir parça sessizce
+  // meyve parçası sayılıyordu — `gauntlet`i bilerek bozup koşturunca kapı
+  // geçti. Gözlemden çıkarılan sınıf, tam da ölçülmek istenen şeyi
+  // kaybediyor.
+  engel: /\bc\s*\.\s*(bar|window|mine)\s*\(/.test(p.build.toString()),
 }));
 // Mayınların yeri — dizinin geçilebilir olduğunu dışarıdan doğrulamak için.
 window.sliceMines = () => items.filter(i => i.kind === 'mine').map(i => ({
