@@ -240,6 +240,17 @@ const olu = islevler.filter(n =>
 console.log(`${islevler.length} işlev · hiç çağrılmayan ${olu.length}`);
 check(olu.length === 0, 'tanımlanan her işlev kullanılıyor', olu.join(', '));
 
+// Aynı tarama sabitler için. `WATER` böyle bulundu: tarlanın çevresindeki
+// turkuaz suyun düz rengi, dalga dokusu yazıldıktan sonra kimsenin
+// kullanmadığı bir satır olarak kaldı. Yalnızca BÜYÜK_HARFLİ adlara
+// bakılıyor — yerel bir `const` zaten dar bir kapsamda ve okunur.
+const sabitler = [...new Set([...kaynak.matchAll(/^const ([A-Z][A-Z0-9_]{2,})\s*=/gm)]
+  .map(m => m[1]))];
+const oluSabit = sabitler.filter(n =>
+  (kaynak.match(new RegExp(`\\b${n}\\b`, 'g')) || []).length <= 1);
+console.log(`${sabitler.length} sabit · hiç kullanılmayan ${oluSabit.length}`);
+check(oluSabit.length === 0, 'tanımlanan her sabit kullanılıyor', oluSabit.join(', '));
+
 console.log('\nhatalar: ' + (errs.length ? '\n  ' + errs.join('\n  ') : 'yok'));
 console.log(fails.length || errs.length
   ? `\n${fails.length} kontrol düştü, ${errs.length} istisna`

@@ -15489,12 +15489,13 @@ const groundTex = kind => GROUND_TEX[kind] || (GROUND_TEX[kind] = GROUND_MAKERS[
 // The sand is an island in turquoise water rather than sand to the horizon:
 // it ties the board to the app icon, and it gives the field a visible edge —
 // before this you could not tell where the board stopped.
-const WATER = '#22c9cd';
-
+//
 // Ripples, drawn so the tile wraps: every wave is a whole number of periods
 // across the canvas, so scrolling the texture never shows a seam. A flat
 // colour was fine when it was only a border, but the board is a beach now
-// and still water reads as a painted floor.
+// and still water reads as a painted floor. (O düz renk `WATER` adıyla
+// duruyordu ve dalga dokusundan sonra kimse kullanmıyordu; sabit taraması
+// bulup çıkardı.)
 function waterTexture() {
   const S = 256, [c, ctx] = newCanvas(S);
   const img = ctx.createImageData(S, S);

@@ -107,6 +107,16 @@ const oluIslev = islevler.filter(n =>
 console.log(`     ${islevler.length} işlev · hiç çağrılmayan ${oluIslev.length}`);
 ok(oluIslev.length === 0, 'tanımlanan her işlev kullanılıyor', oluIslev.join(', '));
 
+// Aynı tarama sabitler için. Fruit Hole'da `WATER` böyle bulundu: dalga
+// dokusu yazıldıktan sonra kimsenin kullanmadığı bir düz renk. Yalnızca
+// BÜYÜK_HARFLİ adlara bakılıyor — yerel bir `const` zaten dar kapsamda.
+const sabitler = [...new Set([...oyun.matchAll(/^const ([A-Z][A-Z0-9_]{2,})\s*=/gm)]
+  .map(m => m[1]))];
+const oluSabit = sabitler.filter(n =>
+  (oyun.match(new RegExp(`\\b${n}\\b`, 'g')) || []).length <= 1);
+console.log(`     ${sabitler.length} sabit · hiç kullanılmayan ${oluSabit.length}`);
+ok(oluSabit.length === 0, 'tanımlanan her sabit kullanılıyor', oluSabit.join(', '));
+
 
 console.log('\n6) Sürüm notu Play kutusuna sığıyor mu');
 // Not alanının sınırı dil başına 500 karakter ve Play boşlukları da
