@@ -54,7 +54,7 @@ npm test
 ```
 
 Bu, geliştirilen iki oyunu koşturuyor: Motor Works (40 ölçüm, 5 dakika) ve
-Slice Rush (21, 16 dakika), toplam **61 ölçüm, ~21 dakika**. Tek tek:
+Slice Rush (22, 19 dakika), toplam **62 ölçüm, ~24 dakika**. Tek tek:
 `npm run test:tycoon`,
 `npm run test:slicer`. Fruit Hole ayrı, çünkü 90 ölçümü var:
 `npm run test:fruithole` yükleme öncesi bakılacak **16 ölçüm, ~24 dakika**,
