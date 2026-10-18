@@ -5089,6 +5089,49 @@ durumu, deliğin hızı). Blok artık `TYPE_BY_ID`nin hemen altında.
 `holeboot.mjs` bunu yakalayan test: kayıtlı bölümü elle kurup oyunu gerçek
 saatle açıyor ve yalnızca menüye varılıyorsa geçiyor.
 
+## İkinci tur birinciden farklı mı — 90'ın üstünde ne oluyor
+
+Oyun sonsuz: düzen tablosu 55'te bitiyor, sonra başa dönüyor, her turda
+çevrilmiş tahta ve kayan sırayla. `holeloop` bunun **doğruluğunu**
+ölçüyor (her tur 55 düzenin hepsini veriyor mu, 56. bölüm başa dönüyor
+mu). Ama "aynı düzen ikinci turda başka bir şey mi" sorusuna hiçbir
+ölçüm cevap vermiyordu — `holebalance` yalnızca birinci turu tarıyor,
+`holeboot` ileri bölümleri oynatıyor ama aradığı şey hata.
+
+Boşluğun pahalı tarafı: bilinen tek oyuncu 90'ın üstünde, yani oyunun
+ölçülmemiş bandında.
+
+`scratchpad/holetur.mjs` (5 saniye, oynamıyor) aynı düzeni üç turda
+kuruyor ve iki **belirlenimci** şey söylüyor:
+
+**Deliğin kendisi hiç değişmiyor.** Hız 3.4 ve büyüme tavanı 2.75, 1.
+bölümde de 158. bölümde de. Zorluk tahtanın boyu, saat ve engellerle
+taşınıyor. Bu bir hata değil — tasarımın yeri — ama bir yerde yazılı
+olmalıydı.
+
+**Aynı düzen, turdan tura başka bir tahta.** Tahta türü bölüm
+numarasından geliyor, düzenden değil; ölçülen on dört düzenin
+dokuzu turlar arasında tür değiştiriyor:
+
+```
+Checkers    resim  → ızgara  → ızgara
+Orchard     bulmaca → şerit  → ızgara
+Onion       ızgara → bulmaca → şerit
+Comb        ızgara → ızgara  → resim
+```
+
+Yani ikinci turda gerçekten başka bir şey oynanıyor, ve bunun sebebi
+çevirme değil tür kayması.
+
+**Ölçüm iki kez kendi örneklemini ölçtü** ve ikisi de dosyanın başında
+yazılı. Önce her ölçünün tur ortalamasını alıyordu: bir tura bir resim
+tahtası düşmesi (1600 meyve, 140 birimlik alan) o turun ortalamasını tek
+başına ikiye katlıyordu. Tür eşitlenince örneklem beşe indi ve engel
+sayısı tahta her kurulduğunda rastgele — "0.6 → 3.2 → 1.6" zarın
+yazdığı bir cümleydi. Ortalama kaldırıldı; geriye yalnızca tek
+kurulumla cevaplanan iki soru kaldı. Kapı da tek ve dar: **her düzen üç
+turda da kuruluyor mu.**
+
 ## Yazamayan bir telefon
 
 Kaydı **okumanın** tek yolu `fhOku` ve sebebi bu dosyada yazılı: bozuk
