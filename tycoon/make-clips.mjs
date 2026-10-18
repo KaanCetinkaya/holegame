@@ -170,6 +170,12 @@ const KLIPLER = [
       window.jeCam(20, 0.035);
     }),
     kare: async (pg, f, toplam) => pg.evaluate(({ f, toplam }) => {
+      // İpucu şeridi klibin ortasına oturuyor ve fabrikanın yarısını
+      // kapatıyor: ilk çekimde "işçinin taşıyacak malı kalmadı" yazısı
+      // ilk saniyeleri yedi. Kurulumda bir kez kapatmak yetmiyor, çünkü
+      // şerit oyun ilerledikçe yeniden açılıyor — `nezaret` klibi de
+      // bunu her karede kapatıyor.
+      document.getElementById('tut').classList.remove('show');
       // Zaman beş kaplamaya **eşit** bölünüyor. Doğrusal bir seviye
       // rampası altını son yarım saniyeye sıkıştırıyordu: kaplamalar
       // 25, 100, 200 ve 350'de değişiyor, yani seviye düz artarsa

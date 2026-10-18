@@ -134,24 +134,48 @@ ok(/BEŞ ARAÇ KADEMESİ|FIVE VEHICLE TIERS/.test(MD) && urun.en.length === 5,
 gecer(urun.en.join(', '), 'İngilizce kademe adları metinde');
 gecer(urun.tr.join(', '), 'Türkçe kademe adları metinde');
 
-console.log('\n8) Şube yerleri');
+console.log('\n8) Kaplamalar');
+// Metin beş kaplamayı adıyla sayıyor ("demir, çelik, cilalı çelik, krom ve
+// altın") ve bu cümle mağazada bir **söz**: eşikler ölçülen erişime
+// çekildiği gün yazıldı, ve `tydonanim` o erişimi koruyor. Burada
+// korunan şey başka: listenin oyundaki listeyle aynı olması. Kaplama
+// adları koddan okunuyor (`jeKaplamalar`), metne elle yazılmış hâlleriyle
+// karşılaştırılıyor.
+const kaplama = await pg.evaluate(() => window.jeKaplamalar());
+const kaplamaTR = { iron: 'demir', steel: 'çelik', 'polished steel': 'cilalı çelik',
+                    chrome: 'krom', gold: 'altın' };
+console.log(`     oyun: ${kaplama.join(', ')}`);
+ok(kaplama.length === 5, 'oyunda beş kaplama var', `${kaplama.length}`);
+// Tek tek kelime aramak işe yaramıyor ve bunu ölçüm **yanlış geçerek**
+// gösterdi: "altın" metinde `store/tr/` altında cümlesinde de geçiyor,
+// yani kaplama listesinden "altın"ı silmek kapıyı düşürmüyordu. Aranan
+// şey sıralı listenin kendisi — kaplamalar oyunda hangi sırayla
+// geliyorsa metinde de o sırayla yazıyor.
+const liste = (ad, baglac) => ad.slice(0, -1).join(', ') + ` ${baglac} ` + ad[ad.length - 1];
+const enListe = liste(kaplama, 'and');
+const trListe = liste(kaplama.map(k => kaplamaTR[k] || k), 've');
+console.log(`     beklenen: "${enListe}" · "${trListe}"`);
+gecer(enListe, 'İngilizce kaplama listesi metinde');
+gecer(trListe, 'Türkçe kaplama listesi metinde');
+
+console.log('\n9) Şube yerleri');
 const yer = await pg.evaluate(() => window.jeYerler());
 console.log(`     oyun: ${yer.en.join(', ')} · ${yer.tr.join(', ')}`);
 gecer(yer.tr.join(', ').toLowerCase(), 'Türkçe yer adları metinde');
 gecer(yer.en.join(', ').toLowerCase(), 'İngilizce yer adları metinde');
 
-console.log('\n9) Hedefler ve görevler');
+console.log('\n10) Hedefler ve görevler');
 console.log(`     oyun: ${oyun.hedefSayisi} hedef · günde ${oyun.gorevSayisi} görev`);
 ok(/On iki/.test(MD) && oyun.hedefSayisi === 12, 'hedef sayısı metinle aynı', `${oyun.hedefSayisi}`);
 ok(/Twelve/.test(MD) && oyun.hedefSayisi === 12, 'İngilizcesi de aynı');
 ok(/üç görev/.test(MD) && oyun.gorevSayisi === 3, 'günlük görev sayısı metinle aynı', `${oyun.gorevSayisi}`);
 
-console.log('\n10) Müşteri ödülü');
+console.log('\n11) Müşteri ödülü');
 console.log(`     oyun: ${oyun.musSn} saniyelik üretim`);
 ok(/yarım dakikalık|half a minute/i.test(MD) && oyun.musSn === 30,
    'müşteri ödülü metinle aynı', `${oyun.musSn} sn`);
 
-console.log('\n11) Satın alma');
+console.log('\n12) Satın alma');
 console.log(`     oyun: ${oyun.urunler.join(', ')}`);
 ok(!/satın alma \*\*yok\*\*/i.test(MD), 'metin "satın alma yok" demiyor');
 for (const id of oyun.urunler) gecer(id, `${id} metinde`);

@@ -49,6 +49,11 @@ beklemek işe yarıyor.
 10, 25, 50, 100, 200, 350, 500, 750, 1000. Her biri o tezgâhı bir anda
 ikiye katlıyor. Sıradakine ne kadar kaldığını her zaman görüyorsun.
 
+🔩 FABRİKA DEĞİŞİYOR
+Tezgâhlar kilometre taşı geçtikçe yenileniyor: demir, çelik, cilalı çelik,
+krom ve altın. Bacalar, pres kasaları, robot kolları ve tır rayları
+değişiyor — fabrikan yalnızca hızlanmıyor, ilerlediği görülüyor.
+
 👔 MÜDÜRLER
 Derya ocakların, Marco preslerin, Ines hattın, Kwame önlüğün başında.
 Müdür tuttuğun tezgâh iki kat hızlanıyor ve **kendi kendine çalışmaya**
@@ -135,6 +140,11 @@ bottleneck is worth doing.
 📈 MILESTONES
 10, 25, 50, 100, 200, 350, 500, 750, 1000. Each one doubles that station
 outright, and you can always see how far the next one is.
+
+🔩 THE PLANT CHANGES
+Stations are re-fitted as they pass milestones: iron, steel, polished
+steel, chrome and gold. Chimneys, press frames, robot arms and trailer
+rails change with them — the factory does not just get faster, it shows it.
 
 👔 MANAGERS
 Derya runs the furnaces, Marco the presses, Ines the line, Kwame the yard.

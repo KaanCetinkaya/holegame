@@ -53,8 +53,9 @@ cd C:\Users\HP\holegame
 npm test
 ```
 
-Bu, geliştirilen iki oyunu koşturuyor: Motor Works (39 ölçüm) ve Slice Rush
-(21), toplam **60 ölçüm, ~23 dakika**. Tek tek: `npm run test:tycoon`,
+Bu, geliştirilen iki oyunu koşturuyor: Motor Works (40 ölçüm, 5 dakika) ve
+Slice Rush (21, 16 dakika), toplam **61 ölçüm, ~21 dakika**. Tek tek:
+`npm run test:tycoon`,
 `npm run test:slicer`. Fruit Hole ayrı, çünkü 90 ölçümü var:
 `npm run test:fruithole` yükleme öncesi bakılacak **16 ölçüm, ~24 dakika**,
 `npm run test:fruithole:tam` hepsi (saatler). Hepsi birden:
