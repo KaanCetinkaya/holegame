@@ -57,6 +57,19 @@ for (const dil of ['tr-TR', 'en-US']) {
     await pg.evaluate(() => {
       document.getElementById('dOk')?.click();
       window.jeTutSkip();
+      // Kayıt şeridi de en kötü hâlin parçası.
+      //
+      // `#kayitBar` oyuncunun göreceği bir uyarı ve hiçbir ölçüm onu
+      // küçük ekranda görmemişti: panelin üstünde yer kaplıyor ve
+      // 360 pikselde bir düğmeyi aşağı itebilir. Görünmeyen bir
+      // şeridi ölçmemek, şeridi hiç yazmamakla aynı kapıya çıkıyor —
+      // çıktığı gün ekranı bozarsa kimse önceden bilmiyor.
+      // Kasayı kıpırdat: `saveNow` metin değişmediyse hiç yazmıyor, yani
+      // doğrudan `jeKayitBoz()` çağırmak sessiz bir boşa iş olabilirdi —
+      // ve ölçüm, ölçmediği bir şeyi ölçüyor sanırdı.
+      window.jeGive?.(1);
+      window.jeKayitBoz();
+      window.__seritAcik = !document.getElementById('kayitBar').hidden;
       // En **büyük** sayı en **geniş** yazı değil. `fmt` üç basamakta
       // bir ek harf koyuyor ve ondalık gösterip göstermemesi eşiğe
       // göre değişiyor: 1e12 "1.00T" (beş karakter), 1.23e15 ise
@@ -85,6 +98,10 @@ for (const dil of ['tr-TR', 'en-US']) {
       for (let i = 0; i < 4; i++) window.jeSetLevel(i, 14);
       window.jeRefresh();
     });
+    // Kurulum tuttu mu: şerit açılmadıysa aşağıdaki hiçbir ölçüm onu
+    // görmemiş demektir ve bu satır olmadan kimse fark etmez.
+    ok(await pg.evaluate(() => window.__seritAcik), `${b.ad}: kayıt şeridi gerçekten açıldı`);
+
     await pg.waitForTimeout(300);
 
     const d = await pg.evaluate(TAP => {
