@@ -1741,7 +1741,7 @@ function salinanlariOynat() {
   for (const it of items) {
     if (!it.salinim) continue;
     const s = it.salinim;
-    const kayma = s.genlik * Math.sin(simdi / 1000 * s.hiz + s.faz);
+    const kayma = s.genlik * Math.sin(oyunSaati / 1000 * s.hiz + s.faz);
     it.y = it.y0 + kayma;
     it.gapY = it.gapY0 + kayma;
     it.mesh.position.y = it.y;
@@ -1976,6 +1976,14 @@ let bladeY  = 2.4;
 let targetY = 2.4;
 let speed   = 8;
 let cutCount = 0, totalCuts = 0, streak = 0, runBest = 0;
+// Yalnızca tur işlerken ilerleyen saat; salınan engeller buna bakıyor.
+//
+// Tur durumunun yanında duruyor ve bunun bir sebebi var: `startLevel`
+// onu sıfırlıyor ve `startLevel` dosyanın yukarısında. Aşağıda bir
+// `let` olarak bırakmak, bu deponun üç kez yaşadığı hatanın kurulumu —
+// açılışta çalışan bir satır, daha aşağıda duran bir bağı okuyor ve
+// oyun hiç açılmıyor.
+let oyunSaati = 0;
 let runCoins = 0, revived = false, hitItem = null, paidOut = false;
 let last = performance.now();
 
@@ -2310,6 +2318,7 @@ function startLevel() {
   cutCount = 0; streak = 0; runBest = 0;
   runCoins = 0; revived = false; hitItem = null; paidOut = false;
   dist = START_D;
+  oyunSaati = 0;
   bladeY = targetY = (LANE_LOW + LANE_HIGH) / 2;
   speed = Math.min(8 + (level - 1) * 0.45, 15);
   history.length = 0;
@@ -2618,6 +2627,13 @@ let simdi = 0;
 function adim(dt) {
   simdi += dt * 1000;
   if (state === 'playing') {
+    // Salınımın saati `simdi` değil: `simdi` duvar saati (tick onu her
+    // karede `performance.now()`a eşitliyor) ve duraklatılan süre de
+    // içinde akıyor. Pencere, duraklattığın anda durur ama beş saniye
+    // sonra devam ettiğinde **başka bir yerde** belirirdi — oyuncunun
+    // ezberlediği şeyin, bakmadığı sırada kayması. Bu saat yalnızca tur
+    // işlerken ilerliyor.
+    oyunSaati += dt * 1000;
     // Önce engeller, sonra bıçak: çarpışma ikisinin de **bu kareye ait**
     // yerine bakmalı. Ters sırada salınan bir demir bir kare geriden
     // çarpışıyor ve oyuncu açısından bu, gördüğü boşluktan geçerken
@@ -2856,7 +2872,7 @@ window.sliceAutoPlay = () => {
       : (bar.fromTop ? LANE_LOW + 0.25 : LANE_HIGH - 0.25);
     if (bar.salinim) {
       const varis = Math.max(0, (bar.d - dist) / Math.max(1, speed));
-      const t = simdi / 1000 + varis;
+      const t = oyunSaati / 1000 + varis;
       hedef = bar.gapY0 + bar.salinim.genlik *
               Math.sin(t * bar.salinim.hiz + bar.salinim.faz);
     }
