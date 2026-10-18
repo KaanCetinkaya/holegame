@@ -125,7 +125,17 @@ ok(new RegExp(`${kelime(temaSayisi)} evenings`, 'i').test(liste),
 ok(/every four levels/i.test(liste) && /\/ 4\) % TEMALAR\.length/.test(oyun),
    'tema sıklığı metinle aynı');
 
-console.log('\n7) Sürüm notu Play kutusuna sığıyor mu');
+console.log('\n7) Aynı kanca iki kez tanımlanmış mı');
+// Motor Works'te tam bu oldu (`jeCarryMax`): iki tanım, ikincisi
+// birincisini eziyor, ve sayı bekleyen ölçüm dizi alıp bütün tablosunu
+// NaN basıyor — kapılar NaN karşılaştırmasıyla geçtiği için takımda "OK"
+// yazıyordu. Tarama bedava, o yüzden üç oyunda da var.
+const tanimlar = [...oyun.matchAll(/^window\.(slice[A-Za-z0-9]+)\s*=/gm)].map(m => m[1]);
+const ikiKez = [...new Set(tanimlar.filter((n, i) => tanimlar.indexOf(n) !== i))];
+console.log(`     ${tanimlar.length} kanca · iki kez yazılan ${ikiKez.length}`);
+ok(ikiKez.length === 0, 'her kanca bir kez tanımlanmış', ikiKez.join(', '));
+
+console.log('\n8) Sürüm notu Play kutusuna sığıyor mu');
 // Sınır dil başına 500 karakter ve Play boşlukları da sayıyor: uzunsa
 // kutu kırmızıya dönüyor ve sürüm **kaydedilmiyor**. Dosya her bloğun
 // uzunluğunu başlığına elle yazıyor, yani iki şey bayatlayabilir — sayı

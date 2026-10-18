@@ -4599,7 +4599,6 @@ window.jeWalk = bay => {
 // satın almak gerekiyor. Ölçüm, ekonomiyi değil **oranı** arıyor.
 window.jeSetLevel = (i, lv) => { G.lvl[i] = lv; refreshPanel(); return G.lvl[i]; };
 window.jeRates = () => STATIONS.map((_, i) => +rateOf(i).toFixed(3));
-window.jeCarryMax = (bay = 0) => carryMax(bay);
 // Müdür bonuslarının dokunduğu üç sayı, dışarıdan okunabilsin diye.
 window.jeCost = (i, n = 1) => +costOf(i, n).toFixed(4);
 window.jeBoostSecs = () => boostSecs();
@@ -4869,6 +4868,12 @@ window.jeTutNezaret = () => { tutNezaretIpucu(); return !!G.tipNez; };
 window.jeSupervise = () => SUPERVISE;
 window.jeBayZ = () => [...BAY_Z];
 window.jeHalkaRengi = () => halkaMat ? '#' + halkaMat.color.getHexString() : null;
+// Dört bölmenin taşıma kapasitesi. **Tek tanım** olması önemli: bu kanca
+// bir ara iki kez yazılmıştı — biri tek bölmenin sayısını, öteki dört
+// bölmenin dizisini veriyordu — ve ikincisi birincisini sessizce
+// eziyordu. `tytasi` sayıyı bekliyor ve diziyi alıyordu: bölme bütün
+// tablo boyunca NaN basıyor, kapıları NaN karşılaştırmasıyla geçiyor,
+// ve takımda "OK" yazıyordu.
 window.jeCarryMax = () => [0, 1, 2, 3].map(i => carryMax(i));
 // Ağacın şekli: hangi dal kaça ve nereye kadar. "Ağaç hâlâ bir seçim
 // mi" sorusu ancak tavanların toplam bedeliyle cevaplanıyor.

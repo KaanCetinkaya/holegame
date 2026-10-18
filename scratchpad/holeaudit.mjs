@@ -208,6 +208,18 @@ const order = await pg.evaluate(() => {
 check(order.indexOf('dailyBtn') < order.indexOf('daily2x'),
   'bedava olan düğme önce geliyor, reklam olan sonra', order.join(' > '));
 
+// Aynı kanca iki kez tanımlanmış mı — kaynağa bakan, tarayıcısız bir
+// kontrol. Motor Works'te tam bu oldu (`jeCarryMax`): ikinci tanım
+// birincisini eziyor, sayı bekleyen ölçüm dizi alıyor, bütün tablo NaN
+// basıyor ve kapılar NaN karşılaştırmasıyla geçtiği için takımda "OK"
+// yazıyordu. Burada 144 kanca var; elle bakılacak bir liste değil.
+const kaynak = readFileSync('/home/user/holegame/fruithole/index.html', 'utf8');
+const tanimlar = [...kaynak.matchAll(/^window\.(fruitHole[A-Za-z0-9]*)\s*=/gm)]
+  .map(m => m[1]);
+const ikiKez = [...new Set(tanimlar.filter((n, i) => tanimlar.indexOf(n) !== i))];
+console.log(`\n${tanimlar.length} kanca · iki kez yazılan ${ikiKez.length}`);
+check(ikiKez.length === 0, 'her kanca bir kez tanımlanmış', ikiKez.join(', '));
+
 console.log('\nhatalar: ' + (errs.length ? '\n  ' + errs.join('\n  ') : 'yok'));
 console.log(fails.length || errs.length
   ? `\n${fails.length} kontrol düştü, ${errs.length} istisna`

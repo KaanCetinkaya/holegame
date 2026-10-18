@@ -77,6 +77,19 @@ ok(!(kimlik && belgeBosDiyor),
    'liderlik tablosu anlatımı kodla uyuşuyor',
    kimlik ? 'kimlik girilmiş, belgeyi güncelle' : '');
 
+console.log('\n7) Aynı kanca iki kez tanımlanmış mı');
+// Bu, oyunu değil **ölçümü** sessizce bozan bir hata ve bir kez oldu:
+// `jeCarryMax` iki kez yazılmıştı, biri tek bölmenin sayısını veriyordu,
+// öteki dört bölmenin dizisini. İkincisi birincisini eziyor ve sayı
+// bekleyen `tytasi` diziyi alıyordu: bütün tablo NaN, iki kapı da NaN
+// karşılaştırmasıyla geçiyor, takımda "OK". Tarama bedava — dosyada
+// `window.jeX =` satırlarını saymak yetiyor.
+const tanimlar = [...oyun.matchAll(/^window\.(je[A-Za-zÇĞİÖŞÜçğıöşü0-9]+)\s*=/gm)]
+  .map(m => m[1]);
+const ikiKez = [...new Set(tanimlar.filter((n, i) => tanimlar.indexOf(n) !== i))];
+console.log(`     ${tanimlar.length} kanca · iki kez yazılan ${ikiKez.length}`);
+ok(ikiKez.length === 0, 'her kanca bir kez tanımlanmış', ikiKez.join(', '));
+
 console.log('\n6) Sürüm notu Play kutusuna sığıyor mu');
 // Not alanının sınırı dil başına 500 karakter ve Play boşlukları da
 // sayıyor: uzunsa kutu kırmızıya dönüyor ve sürüm **kaydedilmiyor**.

@@ -68,7 +68,13 @@ for (const lv of [1, 5, 10, 20, 40, 60, 100, 185]) {
     window.jeSetLevel(0, l);
     window.jeSetLevel(1, l);
     const uretim = window.jeRates()[0];
-    const tasima = window.jeCarryMax();
+    // Dizinin **ilk** bölmesi: kanca dört bölmeyi birden veriyor.
+    // Burada bir süre `window.jeCarryMax()` yazıyordu ve sayı bekleyen
+    // hesaba dizi gidiyordu; bütün tablo NaN basıyor, iki kapı da NaN
+    // karşılaştırmasıyla geçiyor ve takımda "OK" yazıyordu. Sebebi
+    // oyundaki çift tanımdı (düzeltildi), ama ölçüm kendini de
+    // korumalı — aşağıda "sayılar sayı mı" kapısı var.
+    const tasima = window.jeCarryMax()[0];
     const mgrCost = window.jeMgrCost(1);          // Stamping'in müdürü
     const fiyat = window.jeProbe().price;
     return { uretim, tasima, mgrCost, fiyat };
@@ -97,7 +103,15 @@ console.log(`\n  zincir payı %5'in altında (müdürsüz oyuncu kilitlenir): ${
   (olu.length ? ` — ${olu.map(s => `lv${s.lv} %${(s.zincir * 100).toFixed(2)}`).join(' · ')}` : ''));
 console.log(`  zincir payı %40'ın üstünde (müdür anlamsızlaşır): ${fazla.length}/${bakilan.length}` +
   (fazla.length ? ` — ${fazla.map(s => `lv${s.lv} %${(s.zincir * 100).toFixed(1)}`).join(' · ')}` : ''));
-const fail = olu.length + fazla.length;
+// Üçüncü kapı, ve en ucuzu: **sayılar sayı mı.** Bu ölçüm bir gün
+// boyunca NaN bastı ve geçti — NaN her karşılaştırmayı yanlış döndürüyor,
+// yani eşiğin dışında kalan satır sayısı sıfır çıkıyor. Bir kapı, ölçtüğü
+// şeyin var olduğunu da sormalı.
+const sayisiz = satir.filter(s => ![s.uretim, s.tasima, s.elleSn, s.halka, s.zincir]
+  .every(Number.isFinite));
+console.log(`  sayı olmayan satır: ${sayisiz.length}/${satir.length}` +
+  (sayisiz.length ? ` — lv${sayisiz.map(s => s.lv).join(', lv')}` : ''));
+const fail = olu.length + fazla.length + sayisiz.length;
 console.log(fail ? `\n${fail} seviye eşiğin dışında` : '\nhepsi aralıkta');
 process.exitCode = fail ? 1 : 0;
 
