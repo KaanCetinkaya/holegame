@@ -987,7 +987,30 @@ const _Notif = _Cap && _Cap.Plugins ? _Cap.Plugins.LocalNotifications : null;
 const NOTIF_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _Notif);
 const NOTIF_ID = 1;
 
-const notif = JSON.parse(localStorage.getItem('tycoon_notif') || '{}');
+// Yan kayıtlar: bozulan biri oyunu açılmaz hâle getirmemeli.
+//
+// İkisi de (`tycoon_notif`, `tycoon_iap`) düz `JSON.parse(... || '{}')`
+// idi ve o satır **modül kurulurken** çalışıyor: yarım yazılmış bir
+// değer `JSON.parse`ı patlatıyor, modül orada duruyor, yükleme perdesi
+// hiç kalkmıyor. Kayıt her açılışta yeniden okunduğu için de
+// kendiliğinden düzelmiyor — siyah ekran kalıcı ve oyuncunun
+// yapabileceği tek şey uygulamayı silmek.
+//
+// Ölçüldü (`scratchpad/tykayit.mjs`): `tycoon_notif: '{bozuk'` ile oyun
+// hiç açılmıyor, `tycoon_iap: '{"a":'` ile de. Aynı hata Slice Rush'ta
+// (`slicerush_blade` aralık dışı) ve Fruit Hole'da birer kez yaşandı;
+// burada yaşanmadan kapandı.
+//
+// Tür de bakılıyor, yalnızca patlamaması değil: `JSON.parse('"muz"')`
+// sorunsuz çalışıp bir kelime veriyor, ve modül katı kipte olduğu için
+// o kelimeye alan yazmak (`notif.son = ...`) TypeError atıyor.
+function yanKayit(anahtar) {
+  let v;
+  try { v = JSON.parse(localStorage.getItem(anahtar) || '{}'); } catch (e) { return {}; }
+  return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+}
+
+const notif = yanKayit('tycoon_notif');
 function saveNotif() { localStorage.setItem('tycoon_notif', JSON.stringify(notif)); }
 let _notifErr = '';
 const ADS_TESTING = true;
@@ -1632,7 +1655,7 @@ const _Purchases = _Cap && _Cap.Plugins ? _Cap.Plugins.NativePurchases : null;
 let IAP_NATIVE = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform());
 let IAP_ON = !!(IAP_NATIVE && _Purchases);
 
-const iap = JSON.parse(localStorage.getItem('tycoon_iap') || '{}');
+const iap = yanKayit('tycoon_iap');
 function saveIap() { localStorage.setItem('tycoon_iap', JSON.stringify(iap)); }
 // Satın alınan çifte gelir. `unitPrice()` üzerinden uygulanıyor, üretim
 // hızı üzerinden değil: hız darboğaz hesabına ve tampon dolulukarına

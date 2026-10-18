@@ -80,10 +80,38 @@ const VAKALAR = [
   ['yıldızlar dizi',      { slicerush_stars: '[1,2,3]' }],
   ['sayaçlar bozuk',      { slicerush_stats: '{"cuts":"çok"}' }],
   ['seri aralık dışı',    { slicerush_dayStreak: '900' }],
+  // Aşağıdaki beşi liste **oyundan türetilince** eklendi: oyun on iki
+  // anahtar yazıyor, burada yedisi deneniyordu. Eksik kalanlar sonradan
+  // eklenenlerdi — yani en az denenmiş olanlar.
+  ['en iyi kombo kelime', { slicerush_combo: '"çok"' }],
+  ['ses nesne',           { slicerush_muted: '{}' }],
+  ['hedefler dizi',       { slicerush_goals: '[1,2]' }],
+  ['son gün kelime',      { slicerush_dayLast: '"dün"' }],
+  ['ipuçları dizi',       { slicerush_hints: '[]' }],
   ['hepsi birden',        { slicerush_blade: '99', slicerush_level: '-5',
                             slicerush_coins: '"muz"', slicerush_blades: 'null',
-                            slicerush_stars: '7', slicerush_stats: '[]' }],
+                            slicerush_stars: '7', slicerush_stats: '[]',
+                            slicerush_goals: '[1,2]', slicerush_hints: '[]',
+                            slicerush_combo: '"çok"', slicerush_dayLast: '"dün"' }],
 ];
+
+// Oyunun yazdığı her anahtar burada deneniyor mu?
+//
+// Liste elle yazılıyordu ve bayatlamıştı: oyun on iki anahtar
+// kullanıyor, bu dosya yedisini deniyordu. Eksik kalanlar sonradan
+// eklenenler — ve bu dosyanın varlık sebebi tam olarak, tek bir bozuk
+// anahtarın oyunu açılmaz hâle getirmesi. Anahtarlar artık oyunun
+// kaynağından okunuyor; yeni bir anahtar eklenip buraya vaka
+// yazılmazsa kapı düşüyor.
+const KAYNAK = readFileSync('/home/user/holegame/slicer/index.html', 'utf8');
+const ANAHTARLAR = [...new Set(
+  [...KAYNAK.matchAll(/store\.(?:get|set|sayi|nesne|dizi)\(\s*'(slicerush_[A-Za-z]+)'/g)]
+    .map(m => m[1]))];
+const DENENEN = new Set(VAKALAR.flatMap(([, kv]) => Object.keys(kv)));
+const eksikAnahtar = ANAHTARLAR.filter(k => !DENENEN.has(k));
+console.log(`\n0) Oyunun ${ANAHTARLAR.length} kayıt anahtarı · denenmeyen ${eksikAnahtar.length}`);
+ok(eksikAnahtar.length === 0, 'oyunun her kaydı bozuk hâliyle deneniyor',
+   eksikAnahtar.join(', '));
 
 console.log('\n1) Bozuk anahtarla oyun açılıyor mu');
 const sonuc = [];

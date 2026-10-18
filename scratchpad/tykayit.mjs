@@ -138,6 +138,59 @@ const temiz = await pg.evaluate(() => window.jeKayit2());
 console.log(`     durum "${temiz.durum}" · şerit ${temiz.barAcik}`);
 ok(temiz.durum === '' && !temiz.barAcik, 'ilk açılışta sessiz');
 
+console.log('\n7) Yan anahtarlar oyunu açılmaz yapıyor mu');
+// Ana kayıt dikkatle okunuyordu, yanındaki iki küçük anahtar okunmuyordu.
+//
+// `tycoon_notif` ve `tycoon_iap` düz `JSON.parse(... || '{}')` ile
+// **modül kurulurken** okunuyordu: yarım yazılmış bir değer parse'ı
+// patlatıyor, modül orada duruyor, yükleme perdesi hiç kalkmıyor. Kayıt
+// her açılışta yeniden okunduğu için kendiliğinden de düzelmiyor —
+// kalıcı siyah ekran. Ölçüldü ve ikisi de oyunu açılmaz yapıyordu;
+// `yanKayit` eklendi.
+//
+// Tür de deneniyor: `JSON.parse('"muz"')` patlamıyor ama bir kelime
+// veriyor, ve katı kipte o kelimeye alan yazmak TypeError atıyor.
+const YAN = [
+  ['notif yarım',  { tycoon_notif: '{bozuk' }],
+  ['notif kelime', { tycoon_notif: '"muz"' }],
+  ['notif dizi',   { tycoon_notif: '[]' }],
+  ['iap yarım',    { tycoon_iap: '{"a":' }],
+  ['iap sayı',     { tycoon_iap: '42' }],
+  ['ikisi birden', { tycoon_notif: '{bozuk', tycoon_iap: '{"a":' }],
+];
+const yanSonuc = [];
+for (const [ad, kv] of YAN) {
+  const sayfa = await br.newPage({ viewport: { width: 412, height: 915 } });
+  const yanHata = [];
+  sayfa.on('pageerror', e => yanHata.push(String(e).split('\n')[0]));
+  await sayfa.addInitScript(kv => { localStorage.clear();
+    for (const [k, v] of kv) localStorage.setItem(k, v); }, Object.entries(kv));
+  await sayfa.goto('http://localhost:8671/', { waitUntil: 'load', timeout: 90000 });
+  let acildi = false;
+  try {
+    await sayfa.waitForFunction(() => typeof window.jeProbe === 'function', null, { timeout: 20000 });
+    acildi = true;
+  } catch (e) {}
+  console.log(`     ${ad.padEnd(13)} açıldı:${acildi ? 'E' : 'H'}` +
+    (yanHata.length ? `  HATA ${yanHata[0].slice(0, 50)}` : ''));
+  yanSonuc.push({ ad, acildi, hata: yanHata });
+  await sayfa.close();
+}
+ok(yanSonuc.every(r => r.acildi), 'bozuk yan anahtarla da oyun açılıyor',
+   yanSonuc.filter(r => !r.acildi).map(r => r.ad).join(', '));
+ok(yanSonuc.every(r => !r.hata.length), 'hiçbirinde sayfa hatası yok',
+   yanSonuc.filter(r => r.hata.length).map(r => `${r.ad}: ${r.hata[0].slice(0, 40)}`).join(' | '));
+
+// Oyunun yazdığı her yan anahtar burada deneniyor mu? Liste elle
+// yazılırsa bir sonraki anahtar sessizce dışarıda kalır.
+const KAYNAK = readFileSync('/home/user/holegame/tycoon/index.html', 'utf8');
+const YAN_ANAHTAR = [...new Set(
+  [...KAYNAK.matchAll(/(?:yanKayit|getItem)\(\s*'(tycoon_[A-Za-z]+)'/g)].map(m => m[1]))];
+const denenenYan = new Set(YAN.flatMap(([, kv]) => Object.keys(kv)));
+const eksikYan = YAN_ANAHTAR.filter(k => !denenenYan.has(k));
+console.log(`     oyunun ${YAN_ANAHTAR.length} yan anahtarı · denenmeyen ${eksikYan.length}`);
+ok(eksikYan.length === 0, 'her yan anahtar bozuk hâliyle deneniyor', eksikYan.join(', '));
+
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;
 await br.close(); srv.close();
