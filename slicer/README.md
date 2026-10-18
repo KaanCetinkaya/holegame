@@ -579,6 +579,16 @@ Yani tanışmada bile sabit şerit çarpışma payının altında — parça ilk
 günden bir şey istiyor — ve olgunlukta açıklık salınımın gerisinde
 kalıyor. Yirmi beş tahtada kurulamama oranı her bölümde %0.
 
+**Salınımın kendi saati var.** Önce `simdi` kullanıyordu ve `simdi`
+duvar saati — `tick` onu her karede `performance.now()`a eşitliyor, yani
+duraklatılan süre de içinde akıyor. Pencere, duraklattığın anda durup
+beş saniye sonra **başka bir yerde** beliriyordu: oyuncunun az önce
+okuduğu hareket, bakmadığı sırada kayıyor. Saat artık yalnızca tur
+işlerken ilerliyor, ve tur durumunun yanında duruyor — aşağıda bir `let`
+olarak bırakmak bu deponun üç kez yaşadığı hatanın kurulumu olurdu
+(açılışta çalışan bir satır, daha aşağıdaki bir bağı okuyor, oyun hiç
+açılmıyor).
+
 **Sürücü de öğretildi, ve bu bir oyun değişikliği değil.** Otomatik
 oyuncu kapıların `gapY`sine nişan alıyor; salınan bir pencerede o değer
 **şu anki** yer ve sürücü oraya varana kadar pencere başka yerde olacak.
