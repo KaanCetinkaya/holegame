@@ -2971,6 +2971,39 @@ long you sat on the menu, so the rows run diagonally"). Mağaza görselleri ve
 TikTok klipleri de düz, çünkü `make-shots.mjs` ve `make-clips.mjs`
 `#playBtn`'e basıyor.
 
+### Klip adayını çekmeden önce ölçmek
+
+Bir klip denemesi bu konteynerde yirmi dakikayı geçiyor: araç kaydı
+başlatmadan önce bölümün on altı saniyesini oynuyor ve 720×1280 kare
+SwiftShader'da saniyeler sürüyor. Üç deneme hakkı var, yani tutmayan bir
+kimlik bir saat yiyor — `tulip` iki kez böyle gitti.
+
+`scratchpad/holeklipaday.mjs` tahtayı kuruyor, **hiç oynamıyor** ve
+saniyeler içinde tahtanın sabit gerçeklerini yazıyor: düzen, tahta türü
+(şerit/resim/bulmaca tahtasına engel yerleşmiyor) ve hangi engelden kaç
+tane var. Eşikleri aracın kaynağından okuyor, ikinci kez yazmıyor.
+
+İlk koşuda listeyi değiştiren şey çıktı:
+
+| bölüm | düzen | engeller |
+|---|---|---|
+| 54 | Dial | çamur 3 · mancınık 1 |
+| 37 | Comb | çamur 3 · silindir 1 |
+| 49 | Boomerang | çamur 3 · rüzgâr 1 |
+| 51 | Key | mancınık 1 · silindir 1 |
+
+Üçü tek engelli sanılıp silindir/mancınık/rüzgâr vaat ediyordu, oysa
+üçünde de **üç çamur** var — ve aracın kendi notu zaten "tek olanlar
+kliplerde sürekli kadraj dışında diye düştü" diyordu. Üçü çamura
+çevrildi; `academy` (Key) tek engelli kaldığı için düzen klibi.
+
+Betiğin söylemediği bir şey de var ve bunu kendi çıktısında yazıyor:
+"dev boyu" sütunu tahtanın **ilk** hâli, yani deliğin en küçük olduğu an.
+Araç o şarta on altı saniye oynadıktan sonra bakıyor ve delik o sürede
+büyüyor. İlk yazılışı "ilk bakışta uygun: yok" diye bir satır basıyordu
+— ölçmediği bir şey hakkında karar veren bir satır, ve bu deponun en
+sevmediği şey.
+
 Kusur aracın yokluğundaydı: bu kare her seferinde elde, tek kullanımlık bir
 betikle alınıyordu ve her seferinde aynı satır unutuluyordu. Artık
 `scratchpad/holeshot.mjs` var, Play'e basıyor **ve** çekmeden önce açının

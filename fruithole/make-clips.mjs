@@ -247,15 +247,23 @@ const CLIPS = [
   // Engel de temadan geliyor: Cube World'ün izin verdikleri silindir ve
   // rüzgâr, mancınık o tahtaya hiç gelmiyor. Aracın ikinci bekçisi bunu da
   // söyledi — klipte olmayan bir engeli vaat etmek, klibi yalan yapardı.
-  // Dört kimlik `engel: null` — **düzen klibi**. Dördü de tek engelli
-  // tahtalar (mancınık ve silindir tahtada birer tane, rüzgâr bir tane) ve
-  // tek olanlar kadraja sürekli girmiyor; `tulip` denemesinde silindir
-  // sekiz birimlik kadrajın 0.54 birim dışında kaldı. Vaat edilmeyen bir
-  // engel gösterilmemiş olmuyor — tahtada duruyor, kadraja girerse
-  // görünüyor — ama klip onun üstüne söz kurmuyor, düzenin üstüne
-  // kuruyor: kadran, lale şeridi, bumerang, anahtar.
+  // Çekilmemiş dört kimliğin engeli **ölçülerek** seçildi
+  // (`scratchpad/holeklipaday.mjs`): tahta kuruluyor ve hangi engelden
+  // kaç tane olduğu sayılıyor. Çıkan şey listeyi değiştirdi —
+  //
+  //   54 Dial       çamur:3  mancınık:1
+  //   37 Comb       çamur:3  silindir:1
+  //   49 Boomerang  çamur:3  rüzgâr:1
+  //   51 Key        mancınık:1  silindir:1
+  //
+  // Yani üçünde çamur **üç tane** ve o üçü tek engelli sanılıp silindir
+  // ya da mancınık vaat ediyordu; `tulip` denemesinde silindir kadrajın
+  // 0.54 birim dışında kaldı. Listenin başında zaten yazılıydı: "çamur
+  // tahtada üç tane, mancınık ve silindir birer tane. Tek olanlar
+  // kliplerde sürekli kadraj dışında diye düştü." Üçü artık çamur vaat
+  // ediyor. `academy` (Key) tek engelli kaldı, o yüzden düzen klibi.
   { id: 'cubes',     pattern: 'Cubes',     engel: 'silindir', note: 'Cube World · küp bloklar · ızgara tahta' },
-  { id: 'redplanet', pattern: 'Dial',      engel: null,       note: 'Red Planet · kızıl toz, kadran düzeni · 216 meyve · düzen klibi' },
+  { id: 'redplanet', pattern: 'Dial',      engel: 'çamur',    note: 'Red Planet · kızıl toz, kadran düzeni · 216 meyve · tahtada üç çamur' },
   // jardin çıkarıldı: Maze 35. bölümde ve orası bir **görev bölümü**.
   //
   // Görev bölümlerinde hiçbir engel yerleşmiyor — ölçüldü, üç kuruluşta
@@ -283,10 +291,10 @@ const CLIPS = [
   { id: 'cogs',      pattern: 'Cogs',      engel: 'çamur',    note: 'Cogs · dişli çarklar · 219 meyve' },
   { id: 'track',     pattern: 'Track',     engel: 'silindir', note: 'Track · pist düzeni · 232 meyve' },
   { id: 'hourglass', pattern: 'Hourglass', engel: 'çamur',    note: 'Hourglass · kum saati · 314 meyve · patron bölümü' },
-  { id: 'tulip',     pattern: 'Comb',      engel: null,       note: 'Tulip Fields · şeritli lale tarlası · 400 meyve · düzen klibi' },
+  { id: 'tulip',     pattern: 'Comb',      engel: 'çamur',    note: 'Tulip Fields · şeritli lale tarlası · 400 meyve · tahtada üç çamur' },
   { id: 'matchday',  pattern: 'Cross',     engel: 'çamur',    note: 'Matchday France · çizgili çim · 459 meyve (en kalabalık)' },
   { id: 'forbidden', pattern: 'Gate',      engel: 'çamur',    note: 'Forbidden City · kırmızı kapı, taş avlu · 408 meyve' },
-  { id: 'outback',   pattern: 'Boomerang', engel: null,       note: 'Outback · kızıl merkez, bumerang düzeni · 201 meyve · düzen klibi' },
+  { id: 'outback',   pattern: 'Boomerang', engel: 'çamur',    note: 'Outback · kızıl merkez, bumerang düzeni · 201 meyve · tahtada üç çamur' },
   { id: 'academy',   pattern: 'Key',       engel: null,       note: 'Academy · mumlu taş koridor, anahtar düzen · 243 meyve · düzen klibi' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
