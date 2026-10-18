@@ -1721,3 +1721,25 @@ bir dönüyor ve ikinci turdaki tahtada engel sayısı başka.
 Çekim bu konteynerde ucuz da değil: bir deneme ısınmayla birlikte yirmi
 dakikayı geçiyor, çünkü 720×1280 kare SwiftShader'da saniyeler sürüyor ve
 araç kaydı başlatmadan önce tahtanın oturmasını bekliyor.
+
+**Düzen klibi denendi, ve tulip ikinci bir şarttan düştü.** Araca
+`engel: null` eklendi (klip engel vaat etmiyor, düzeni anlatıyor) ve
+`tulip` iki kez daha çekildi. İkisinde de kayıt noktası bulunamadı, ama
+bu sefer sebep engel değil:
+
+```
+kayıt 16.0. saniyede başlıyor · çevrede 67 meyve · kenara 8.6 birim
+  · kadrajda 6 dev (yutulabilir 0, büyüklük 1.81) · engelsiz yok
+tutmayan: dev çok büyük (1.81 > 1.6)
+```
+
+Yani bu tahtada, öteki şartların tuttuğu anda kadrajdaki dev deliğe göre
+fazla büyük — klibin sözü "küçücük delik, kocaman meyve" değil, "delik
+oraya hiç varamaz" gibi okunuyor ve araç vazgeçiyor (iki denemede
+1.81 ve 1.89, sınır 1.6). Doğru davranış: `NEAR_MAX`ı gevşetmek, sözü
+değiştirmek olurdu.
+
+Gün 18 için sıradaki iş bu yüzden `tulip` değil: ya başka bir kimlik
+(`redplanet`, `outback`, `academy` — üçü de artık düzen klibi), ya da
+Tulip Fields'in **ikinci turdaki** bölümü, çünkü dev boyutu bölümle
+değişiyor.
