@@ -277,6 +277,14 @@ hata verip duruyor.
    eklendikten sonra güncellenmemişti. Gizlilik sayfasının kendisinde
    satın alma bölümü zaten var.)
 
+   **Sayfanın yayında olduğu doğrulanmadı** ve bir kez bakılması
+   gerekiyor: depoda `main` diye bir dal yok, uzaktaki üç dalın
+   üçü de `claude/…`, ve `docs/` yalnızca üstünde çalışılan dalda.
+   Pages'in kaynağı "main /docs" ise üç gizlilik sayfası da 404
+   veriyor demektir. Konteynerden bakılamıyor (github.io adı
+   çözülmüyor), telefondan bir dokunuşla bakılabiliyor. Ayrıntısı
+   `slicer/README.md` → Eksikler.
+
 ## Dil — 8 Ekim 2026
 
 Arayüzün tamamı İngilizceye çevrildi (47 metin). Mağaza görselleri de:

@@ -283,6 +283,38 @@ for (const b of BOYUTLAR) {
   if (bas.yok || bas.kesis)
     sorun.push(`${b.ad} ses tuşu başlığın üstünde (pay ${bas.pay}px)`);
 
+  // Sürüm yazısı bir düğmenin üstüne binmiyor.
+  //
+  // Yazı sol alt köşede ve **görünenden büyük**: teşhis perdesinin beş
+  // dokunuşluk el hareketi ona bağlı olduğu için 10px dolgu kondu,
+  // yani 40x12'lik yazı 60x32'lik bir hedefe dönüştü. Büyüyen hedef
+  // menünün alt düğmesinin sol kenarına girebilir, ve o zaman
+  // düğmeye basan parmak düğmeye değil yazıya değer — düğme
+  // çalışmıyor görünür. Kısa ekranlarda menü dibe kadar indiği için
+  // risk tam burada.
+  const ust = await pg.evaluate(() => {
+    const v = document.getElementById('verTag');
+    if (!v) return { yok: true };
+    const a = v.getBoundingClientRect();
+    const gorunur = el => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
+    };
+    const binen = [...document.querySelectorAll('#menu button, #menu .pill')]
+      .filter(gorunur)
+      .filter(el => {
+        const r = el.getBoundingClientRect();
+        return !(a.right <= r.left || a.left >= r.right || a.bottom <= r.top || a.top >= r.bottom);
+      })
+      .map(el => el.id || el.textContent.trim().slice(0, 12));
+    return { kutu: [Math.round(a.left), Math.round(a.top), Math.round(a.width), Math.round(a.height)],
+             binen };
+  });
+  console.log(`  sürüm yazısı ${ust.kutu?.join(',')} · bindiği düğme ` +
+    (ust.binen?.length ? ust.binen.join(', ') : 'yok'));
+  if (ust.yok || ust.binen.length)
+    sorun.push(`${b.ad} sürüm yazısı düğmenin üstünde: ${ust.binen?.join(', ') || 'yazı yok'}`);
+
   if (hata.length) { sorun.push(`${b.ad} sayfa hatası: ${hata[0]}`); console.log(`  HATA ${hata[0]}`); }
   await ctx.close();
 }

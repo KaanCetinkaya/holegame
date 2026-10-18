@@ -105,6 +105,14 @@ Dahili testte bakılacak şeyler:
    yazmalı. Hız kutusunda aynı cümle kasanın üstünde belirmeli.
    Eskiden ikisi de sessizdi ve dönüş ekranı hakkı yakıyordu.
 
+8. **Teşhis perdesi** — menüdeki sürüm yazısına beş hızlı dokunuş tam
+   ekran bir liste açıyor: sürüm, eklentiler, kaydın hâli, istasyon
+   seviyeleri, Play tarafı, ve yakalanan son beş hata. **Copy**
+   düğmesi hepsini panoya alıyor. Testçiye söylenecek tek cümle bu:
+   *"bir sorun olursa sürüm yazısına beş kez dokun, Copy'ye bas, bana
+   yapıştır."* Oyunun bir yeri bozukken de açılıyor — o bölüm
+   "okunamadı" diyor, kalanı yazılmaya devam ediyor.
+
 Bir önceki sürümden devam eden kontroller: müzik, müşteri arabası,
 günlük görevler, şube yerleri, müdür yetenekleri, öğretici, yedek kodu,
 depo bildirimi.

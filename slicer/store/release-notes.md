@@ -78,4 +78,11 @@ Kapalı testte bakılacak şeyler:
    234 turun 85'i böyle bitiyordu, yani her beş ölümün dördü. Denemek
    için: bir demiri temiz geç ve hemen öteki uca kaç.
 
-Ölçümler: `npm run test:slicer` (24 ölçüm betiği).
+7. **Teşhis perdesi** — menüdeki sürüm yazısına beş hızlı dokunuş tam
+   ekran bir liste açıyor: sürüm, kayıt (okunamayan anahtar dahil),
+   bölüm/yıldız/para/bıçak, reklam durumu, ve son beş hata. Altındaki
+   **Copy** düğmesi hepsini panoya alıyor. Testçiye söylenecek tek
+   cümle bu: *"bir sorun olursa sürüm yazısına beş kez dokun, Copy'ye
+   bas, bana yapıştır."* Oyunun kendisi bozukken de açılıyor.
+
+Ölçümler: `npm run test:slicer` (25 ölçüm betiği).

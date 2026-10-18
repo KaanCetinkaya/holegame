@@ -187,6 +187,23 @@ verdiysen o kadarına gir.
 Not: o gruplarda **t.me bağlantısı yasak** (bot otomatik siliyor).
 Yukarıdaki üç bağlantının üçü de google.com, sorun çıkmıyor.
 
+## Sorun bildiren birine ne söylenecek
+
+Testçinin elinden gelen tek şey "bir şey oldu" cümlesi ve o cümleyle
+geriye hiçbir sayı kalmıyor. İki oyunda da gizli bir teşhis ekranı var,
+ve ona yollanacak tek cümle bu:
+
+```
+If anything breaks: on the main menu, tap the small version number in
+the bottom-left corner five times quickly. A screen of numbers opens —
+hit Copy and paste it to me. It tells me your build, your save and the
+last errors, and nothing else.
+```
+
+Motor Works'te yazı menünün altında ortada, Slice Rush'ta sol alt
+köşede; ikisinde de beş **hızlı** dokunuş gerekiyor (araları 1.2
+saniyeyi geçerse sayaç sıfırlanıyor).
+
 ## Türkçe tanıdıklara
 
 ```

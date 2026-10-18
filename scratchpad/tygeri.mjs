@@ -114,6 +114,40 @@ console.log(`     geçmiş ${t0.uzunluk} → ${t1.uzunluk} · bizim ${t1.bizim}`
 ok(!t1.bizim, 'girdimiz geri alındı');
 ok(t1.uzunluk <= t0.uzunluk + 1, 'geçmiş birikmedi', `${t0.uzunluk} → ${t1.uzunluk}`);
 
+console.log('\n5) Teşhis perdesi açıkken geri perdeyi kapatıyor');
+// Perde menünün **üstünde** açılıyor, yani ikisi birden `show`.
+// `geriAcikPerde` ilk bulduğunu döndürdüğü için perde listenin
+// başında duruyor; altta kalsaydı geri tuşu menüyü kapatır, perde
+// ekranda asılı kalırdı. Kapı bunu da ölçüyor: yalnızca "perde
+// kapandı" değil, menünün açık kaldığı da.
+await pg.evaluate(() => {
+  document.getElementById('dOk')?.click();
+  window.jeTutSkip();
+  document.getElementById('menuBtn').click();
+});
+await pg.waitForTimeout(250);
+await pg.evaluate(() => {
+  const e = document.getElementById('verLine');
+  for (let i = 0; i < 5; i++) e.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+});
+await pg.waitForTimeout(200);
+const gor = () => pg.evaluate(() => ({
+  tani: document.getElementById('tani').classList.contains('show'),
+  menu: document.getElementById('menu').classList.contains('show'),
+}));
+const g1 = await gor();
+const g1h = await durum();
+console.log(`     perde ${g1.tani} · menü ${g1.menu} · bizim ${g1h.bizim}`);
+ok(g1.tani, 'perde açıldı');
+ok(g1h.bizim, 'perde açıkken bizim girdimizin üstündeyiz — geri uygulamadan çıkmaz');
+await geri();
+const g2 = await gor();
+console.log(`     geriden sonra: perde ${g2.tani} · menü ${g2.menu}`);
+ok(!g2.tani, 'geri perdeyi kapattı');
+ok(g2.menu, 'altındaki menü açık kaldı — geri menüyü kapatmadı');
+await pg.evaluate(() => document.getElementById('closeMenu')?.click());
+await pg.waitForTimeout(250);
+
 ok(!hata.length, 'sayfa hatası yok', hata[0] || '');
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;

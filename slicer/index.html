@@ -233,9 +233,32 @@
                 background: rgba(255,138,0,.14); border: 1px solid rgba(255,138,0,.45);
                 color: #ffc06a; font-size: 12px; line-height: 1.35; }
   #kayitUyari.show { display: block; }
-  #verTag { position: absolute; left: 12px; bottom: 12px;
+  /* Yazı 12px'te duruyor ama dokunma alanı 10px dolgu kadar büyük:
+     teşhis perdesinin el hareketi buraya bağlı ve 10px'lik bir yazıya
+     beş kez üst üste dokunmak ölçülecek bir şey değil. */
+  #verTag { position: absolute; left: 2px; bottom: 2px; padding: 10px;
             font-size: 10px; font-weight: 700; letter-spacing: .04em;
             color: rgba(255,255,255,.45); }
+
+  /* Teşhis perdesi. Motor Works ve Fruit Hole'dakinin aynısı, aynı
+     sebeple: kapalı testteki yabancının elinden gelen tek şey "bir şey
+     oldu" cümlesi ve o cümleyle elde hiçbir sayı kalmıyor. Gizli,
+     çünkü menüye oyuncunun işine yaramayan bir satır eklemeye değmez;
+     beş hızlı dokunuş kazara olmuyor. */
+  #tani { position: fixed; inset: 0; z-index: 90; display: none;
+          background: #0d1118; color: #dfe6f5; overflow: auto;
+          padding: 14px 14px 20px; font-size: 12px; line-height: 1.45; }
+  #tani.show { display: block; }
+  #tani h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: .06em; }
+  #tani .trow { display: flex; gap: 8px; padding: 2px 0; }
+  #tani .trow b { flex: none; width: 96px; font-weight: 600; color: #93a0bb; }
+  #tani .trow span { flex: 1 1 auto; word-break: break-all; }
+  #tani .ok { color: #6ee7a8; }
+  #tani .no { color: #ff8b8b; }
+  #tani .acts { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  #tani .acts button { flex: 1 1 auto; min-height: 44px; border: 0; border-radius: 10px;
+                       padding: 10px 14px; font: inherit; font-weight: 700;
+                       background: #243049; color: #fff; }
 </style>
 </head>
 <body>
@@ -341,6 +364,15 @@
   </div>
 </div>
 
+<div id="tani">
+  <h2>DIAGNOSTICS</h2>
+  <div id="taniBody"></div>
+  <div class="acts">
+    <button id="taniCopy">Copy</button>
+    <button id="taniClose">Close</button>
+  </div>
+</div>
+
 <script type="importmap">
 { "imports": { "three": "https://esm.sh/three@0.161.0" } }
 </script>
@@ -393,8 +425,14 @@ const store = {
   // şerit gösteriyor, Fruit Hole sayıp teşhis ekranına yazıyor; burada
   // hiçbiri yoktu. Menüdeki tek satır o boşluğu kapatıyor.
   yazmaHata: 0,
+  // Son **başarılı** yazmanın anı. Teşhis perdesi bunu gösteriyor,
+  // çünkü "ilerlemem gitti" cümlesi iki ayrı arızayı aynı sözcüklerle
+  // bildiriyor: kayıt hiç yazılamamış mı (yazamadı sıfırdan büyük),
+  // yoksa yazılmış da sonradan mı kaybolmuş (yazamadı sıfır ama son
+  // yazma çok önce). İkisinin çaresi aynı değil.
+  yazmaAn: 0,
   set(k, v) {
-    try { localStorage.setItem(k, JSON.stringify(v)); }
+    try { localStorage.setItem(k, JSON.stringify(v)); this.yazmaAn = Date.now(); }
     catch (e) { this.yazmaHata++; kayitUyariGoster(); }
   },
   // Okunan şeyin **ne olduğu** de kontrol ediliyor, yalnızca
@@ -464,6 +502,8 @@ async function adsInit() {
   if (!ADS_ON) return;
   try { await _AdMob.initialize({ initializeForTesting: ADS_TESTING }); } catch (e) {}
 }
+// Son reklam hatası, teşhis perdesi için.
+let _reklamSon = '';
 function showRewarded() {
   if (!ADS_ON) return Promise.resolve(true);
   return new Promise(async resolve => {
@@ -474,7 +514,14 @@ function showRewarded() {
       subD = await _AdMob.addListener('onRewardedVideoAdDismissed', () => { cleanup(); resolve(got); });
       await _AdMob.prepareRewardVideoAd({ adId: AD_UNITS.rewarded });
       await _AdMob.showRewardVideoAd();
-    } catch (e) { cleanup(); resolve(false); }
+    } catch (e) {
+      // Sebep saklanıyor. `resolve(false)` oyuncuya "ödül yok" demenin
+      // doğru yolu ama **neden** olmadığını da götürüyordu: kapalı
+      // testteki kişi "×2 çalışmadı" diyor ve elde hiçbir şey kalmıyor.
+      // Teşhis perdesi bu satırı gösteriyor.
+      _reklamSon = String(e && e.message || e).slice(0, 80);
+      cleanup(); resolve(false);
+    }
   });
 }
 adsInit();
@@ -2054,6 +2101,10 @@ let geriDerin = false;
 // doğuruyor. Bayrak olmasa oyun o olayı "oyuncu geri bastı" sanardı.
 let geriAtiyor = false;
 function geriDerinMi() {
+  // Teşhis perdesi bir `.screen` değil, o yüzden burada ayrıca
+  // soruluyor: sorulmazsa menünün üstünde açık bir perdeyken geri
+  // tuşu uygulamadan çıkıyor — testçi ekranı okurken.
+  if (document.getElementById('tani').classList.contains('show')) return true;
   if (state === 'playing' || state === 'paused') return true;
   const a = document.querySelector('.screen.show');
   return !!(a && a.id !== 'menu');
@@ -2074,6 +2125,10 @@ function geriGuncelle() {
   }
 }
 function geriBas() {
+  // Teşhis perdesi her şeyin üstünde duruyor, o yüzden ilk sırada:
+  // açıkken geri tuşu onu kapatıyor, altındaki ekrana dokunmuyor.
+  const perde = document.getElementById('tani');
+  if (perde.classList.contains('show')) { perde.classList.remove('show'); return; }
   const a = document.querySelector('.screen.show');
   const id = a ? a.id : null;
   if (id === 'map' || id === 'shop' || id === 'goals' || id === 'daily') {
@@ -3000,7 +3055,7 @@ window.slicePieces = () => PIECES.map(p => ({
 // şeyler — `#hint` yalnızca 2.6 saniye ekranda duruyor.
 // Kayıt yazması kaç kez başarısız oldu, ve menüdeki satır görünüyor mu.
 window.sliceYazma = () => ({
-  hata: store.yazmaHata,
+  hata: store.yazmaHata, an: store.yazmaAn,
   uyari: !!document.getElementById('kayitUyari')?.classList.contains('show'),
 });
 // Yazmayı bozmanın yolu: kotayı doldurmak yerine `setItem`i patlatmak.
@@ -3014,6 +3069,130 @@ window.sliceYazmaBoz = (ac = true) => {
   }
   return !!window.__eskiSetItem;
 };
+
+// ---------------------------------------------------------------------
+// Teşhis perdesi
+//
+// Sürüm yazısına beş hızlı dokunuş. Fruit Hole ve Motor Works'tekinin
+// aynısı ve aynı sebeple: kapalı testteki yabancının elinden gelen tek
+// şey "bir şey oldu" cümlesi, ve o cümleyle geriye hiçbir sayı
+// kalmıyor. Perde hiçbir şeyi değiştirmiyor, yalnızca okuyor.
+// ---------------------------------------------------------------------
+// Yakalanan son hatalar. Bir turda yüzlerce kez atan bir satır kutuyu
+// süpürmesin diye aynı mesaj listelenmiyor, sayılıyor.
+const _taniHata = [];
+function _taniHataYaz(mesaj) {
+  const m = String(mesaj).split('\n')[0].slice(0, 120);
+  const v = _taniHata.find(h => h.m === m);
+  if (v) { v.n++; return; }
+  _taniHata.unshift({ m, n: 1, t: new Date().toTimeString().slice(0, 8) });
+  if (_taniHata.length > 5) _taniHata.pop();
+}
+window.addEventListener('error', e => _taniHataYaz(e.message || e.error || 'hata'));
+window.addEventListener('unhandledrejection', e => _taniHataYaz('promise: ' + (e.reason || '')));
+
+function taniMetin() {
+  const esc = t => String(t).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+  const row = (ad, deger, iyi) =>
+    `<div class="trow"><b>${esc(ad)}</b><span class="${iyi === undefined ? '' : iyi ? 'ok' : 'no'}">${esc(deger)}</span></div>`;
+  const yn = v => v ? 'var' : 'yok';
+  // Her bölüm kendi içinde korunuyor. Perdenin açıldığı an, bir şeyin
+  // bozulduğu an: okuduğu bir şey patlarsa perde boş açılır ve en çok
+  // ihtiyaç duyulan yerde hiçbir şey söylemez.
+  const bolum = (ad, f) => {
+    let g = `<div class="grp">${ad}</div>`;
+    try { g += f(); } catch (e) { g += row('okunamadı', String(e).slice(0, 120), false); }
+    return g;
+  };
+  let h = '';
+  h += bolum('UYGULAMA', () => {
+    const eklenti = Object.keys((_Cap && _Cap.Plugins) || {});
+    return row('sürüm', APP_VERSION)
+      + row('native', yn(ADS_ON || !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform())))
+      + row('eklenti', eklenti.length ? eklenti.join(', ') : '(hiç yok)', eklenti.length > 0)
+      + row('ekran', `${innerWidth}x${innerHeight}`);
+  });
+
+  h += bolum('KAYIT', () => {
+    // Hangi anahtarın yazılı olduğu, kaç kez yazılamadığı, ve bozuk
+    // olduğu için varsayılana dönen var mı. Üçüncüsü sessiz olan:
+    // `store.sayi` bozuk değeri yutup varsayılanı veriyor, oyuncu
+    // bölümünü kaybetmiş oluyor ve hiçbir yerde yazmıyordu.
+    const anahtar = Object.keys(localStorage).filter(k => k.startsWith('slicerush_'));
+    const bozuk = anahtar.filter(k => {
+      try { JSON.parse(localStorage.getItem(k)); return false; } catch { return true; }
+    });
+    return row('anahtar', anahtar.length ? anahtar.length + ' tane' : '(hiç yok)')
+      + row('okunamayan', bozuk.length ? bozuk.join(', ') : 'yok', bozuk.length === 0)
+      + row('yazamadı', store.yazmaHata ? store.yazmaHata + ' kez' : 'hayır', !store.yazmaHata)
+      + row('son yazma', store.yazmaAn
+          ? `${new Date(store.yazmaAn).toTimeString().slice(0, 8)} · ` +
+            `${Math.round((Date.now() - store.yazmaAn) / 1000)} sn önce`
+          : 'bu açılışta hiç', !!store.yazmaAn);
+  });
+
+  h += bolum('OYUN', () => {
+    const p = window.sliceProbe();
+    return row('bölüm', `${p.level} / en uzak ${p.maxLevel}`)
+      + row('yıldız', String(totalStars()))
+      + row('para', String(coins))
+      + row('bıçak', `${BLADES[activeBlade].name} · ${ownedBlades.length}/${BLADES.length} açık`)
+      + row('durum', p.state)
+      + row('ses', muted ? 'kapalı' : 'açık');
+  });
+
+  h += bolum('REKLAM', () =>
+    row('açık', yn(ADS_ON), ADS_ON)
+    + row('test kipi', ADS_TESTING ? 'EVET' : 'hayır')
+    + (_reklamSon ? row('son hata', _reklamSon, false) : row('son hata', 'yok', true)));
+
+  h += bolum('HATA', () => _taniHata.length
+    ? _taniHata.map(e => row(`${e.t}${e.n > 1 ? ' ×' + e.n : ''}`, e.m, false)).join('')
+    : row('yakalanan', 'yok', true));
+  return h;
+}
+
+{
+  const perde = $('tani');
+  const govde = $('taniBody');
+  const ver = $('verTag');
+  // Beş dokunuş, araları 1.2 saniyeyi geçerse sayaç sıfırlanıyor —
+  // yoksa gün içine yayılmış beş dokunuş birikip kendiliğinden açardı.
+  let vurus = 0, son = 0;
+  if (ver) ver.addEventListener('click', () => {
+    const simdi = Date.now();
+    vurus = (simdi - son < 1200) ? vurus + 1 : 1;
+    son = simdi;
+    if (vurus >= 5) {
+      vurus = 0;
+      try { govde.innerHTML = taniMetin(); }
+      catch (e) { govde.textContent = 'teşhis yazılamadı: ' + e; }
+      perde.classList.add('show');
+      // Perde bir `.screen` olmadığı için `showScreen`den geçmiyor;
+      // geçmiş girdisini buradan koyduruyoruz, yoksa donanım geri
+      // tuşu perdeyi değil uygulamayı kapatıyor.
+      geriGuncelle();
+    }
+  });
+  $('taniClose').addEventListener('click', () => {
+    perde.classList.remove('show');
+    geriGuncelle();
+  });
+  $('taniCopy').addEventListener('click', async () => {
+    const d = $('taniCopy');
+    try { await navigator.clipboard.writeText(govde.innerText); d.textContent = 'Copied ✓'; }
+    catch (e) { d.textContent = 'Copy failed'; }
+    setTimeout(() => { d.textContent = 'Copy'; }, 1800);
+  });
+}
+
+// Teşhis perdesinin ölçülebilir hâli.
+window.sliceTani = () => ({
+  acik: $('tani').classList.contains('show'),
+  satir: document.querySelectorAll('#taniBody .trow').length,
+  hata: _taniHata.map(h => ({ ...h })),
+  metin: $('taniBody').innerText.slice(0, 400),
+});
 
 window.sliceIpucu = () => ({
   yazi: $('hint').textContent,

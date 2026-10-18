@@ -500,6 +500,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slparca.mjs    # her parça tahtaya çıkıyor ve engelini koyuyor mu
     node scratchpad/slilk.mjs     # yeni oyuncunun ilk yarım dakikası
     node scratchpad/slipucu.mjs   # tur başındaki satır: doğru anda mı, bir kez mi
+    node scratchpad/sltani.mjs    # teşhis perdesi: el hareketi, beş bölüm, oyun bozukken
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
 Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik
@@ -513,7 +514,59 @@ tanesi vardı. Tarayıcı açmıyor, bir saniyenin altında bitiyor.
 `sliceStart`, `sliceSetTarget`, `sliceAutoPlay`, `sliceGive`, `sliceRevive`,
 `sliceDouble`, `sliceSetDay`, `sliceReset` testlerin oyunu parmaksız
 oynamasını sağlar. `sliceMix` karışım eğrisini (başı, sonu, her parçanın
-katsayısı), `sliceIpucu` tur başındaki satırı veriyor.
+katsayısı), `sliceIpucu` tur başındaki satırı, `sliceTani` teşhis
+perdesini (açık mı, kaç satır, hata kutusunda ne var) veriyor.
+
+## Teşhis perdesi
+
+Menüdeki sürüm yazısına **beş hızlı dokunuş** tam ekran bir liste
+açıyor: sürüm, native mi, yüklü eklentiler, ekran ölçüsü; kayıt
+(kaç anahtar, okunamayan var mı, kaç kez yazılamadı); oyun (bölüm, en
+uzak bölüm, yıldız, para, bıçak, ses); reklam (açık mı, test kipinde
+mi, son hata); ve yakalanan son beş hata. Altında bir **Copy** düğmesi.
+
+Üç oyundan ikisinde vardı, burada yoktu. Sebebi Fruit Hole'daki ile
+aynı (`fruithole/README.md` → teşhis ekranı): kapalı teste yabancı
+geliyor ve yabancının elinden gelen tek şey "bir şey oldu" cümlesi —
+o cümleyle elde hiçbir sayı kalmıyor.
+
+Slice Rush'a özel iki satırı var ve ikisi de yutulan bir şeyi geri
+getiriyor:
+
+- **okunamayan anahtar.** `store.sayi`/`store.nesne` bozuk bir değeri
+  yutup varsayılanı veriyor. Doğru davranış — oyun açılıyor, kalan
+  ilerleme duruyor — ama kaybolan alanı söyleyen hiçbir şey yoktu.
+  Perde bozuk anahtarı **adıyla** yazıyor.
+- **son reklam hatası.** `showRewarded` istisnayı yutup `false`
+  dönüyordu; "×2 çalışmadı" diyen testçiden geriye sebep kalmıyordu.
+- **son yazma.** Kaydın var olup olmadığı değil, **ne zaman**
+  yazıldığı. "İlerlemem gitti" cümlesi iki ayrı arızayı aynı
+  sözcüklerle bildiriyor: kayıt hiç yazılamadı mı (depo dolu), yoksa
+  yazıldı da sonradan mı kayboldu. Satır son başarılı yazmanın
+  saatini veriyor ve yazma bozukken **ilerlemiyor** — ölçüm bunu
+  ayrıca tutuyor, çünkü ilerleyen bir satır en çok güvenilmesi
+  gereken yerde yalan söylerdi.
+
+Gizli olması bir güvenlik değil, menüye oyuncunun işine yaramayan bir
+satır eklememek. Pencere 1.2 saniye: araları açılırsa sayaç sıfırlanıyor.
+Sürüm yazısı 10px ve köşede duruyor, o yüzden dokunma alanı dolguyla
+büyütüldü — ölçüm bunu da tutuyor, dolgu kalkarsa düşüyor.
+
+**Geri tuşu perdeyi kapatıyor, uygulamayı değil.** Perde bir `.screen`
+değil, yani `showScreen`den geçmiyor ve geçmiş girdisi kendiliğinden
+konmuyordu: menünün üstünde açık bir perdeyken donanım geri tuşu
+doğrudan uygulamadan çıkıyordu — hem de ekranı okumak için açmış olan
+testçinin elinde. `geriDerinMi` artık perdeyi de sayıyor, `geriBas`
+ilk sırada onu kapatıyor, ve perde açılıp kapanırken `geriGuncelle`
+çağrılıyor. `slgeri`'nin altıncı bölümü bunu ölçüyor; hata geri
+konunca `goBack()` sayfayı terk ediyor, yani ölçüm telefondaki
+davranışın tam karşılığını görüyor.
+
+Perde **oyun bozukken de** açılmalı: beş bölümün her biri kendi içinde
+korunuyor, patlayan bölüm kırmızı bir `okunamadı` satırına dönüşüyor ve
+kalanlar yazılmaya devam ediyor. Tek parça bir metin üreticisi burada
+boş perde veriyordu — yani tam ihtiyaç duyulan anda hiçbir şey
+söylemiyor, üstelik "teşhis ekranı var" sanıldığı için bakılmıyordu.
 
 ## İçerik 17. bölümde tükeniyordu
 
@@ -923,7 +976,20 @@ Oyunun kendisinde değil, Play tarafında duranlar:
 - **Kapalı test**: 12 test kullanıcısı, 14 gün. Üretime başvurmanın şartı
   bu ve şu an kayıtlı testçi sayısı sıfır
 - Gizlilik politikası sayfasının yayında olduğu **doğrulanmadı**
-  (`docs/privacy-slicerush.html`); konteynerden GitHub Pages'e çıkış kapalı
+  (`docs/privacy-slicerush.html`); konteynerden GitHub Pages'e çıkış
+  kapalı — `kaancetinkaya.github.io` adı bu makinede çözülmüyor bile.
+
+  18 Ekim 2026'da bakılan ve not edilmeye değer olan: depoda **`main`
+  diye bir dal yok**. Uzakta üç dal var, üçü de `claude/…`, ve `docs/`
+  klasörü yalnızca birinde — üstünde çalışılan dalda
+  (`claude/game-development-continue-awblv7`). Yani Pages'in kaynağı
+  "main /docs" olarak kurulmuşsa üç sayfa da yayında değil. Fruit
+  Hole'un aynı klasördeki `privacy.html` adresiyle incelemeden geçmiş
+  olması, o gün yayında olduğunun kanıtı; bugün olduğunun değil.
+
+  Kaan'ın telefondan tek bakışla kapatabileceği bir madde: adresi aç,
+  gizlilik metni çıkıyorsa tamam; 404 çıkıyorsa Pages'in kaynak dalı
+  GitHub → Settings → Pages'ten o dala çevrilecek.
 - "Slice Rush" adı Play'de aratılmadı
 
 AdMob tarafı tamam: kendi ödüllü birimi ve uygulama kimliği 7 Ekim 2026'da

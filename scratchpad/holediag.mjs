@@ -182,6 +182,59 @@ console.log('\n--- dağınık dokunuş ---');
   await pg.close();
 }
 
+// Oyunun bir yeri bozukken ekran yine açılıyor mu?
+//
+// Bu ekranın açıldığı an, bir şeyin bozulduğu an — ve tam orada
+// çalışmıyordu. `diagText()` tek parçaydı: okuduğu şeylerden biri
+// patlayınca `body.innerHTML` hiç yazılmıyor, `show` sınıfı hiç
+// eklenmiyor ve **ekran açılmıyordu**. Oyuncu beş kez dokunup hiçbir
+// şey olmadığını görüyor; bizim tarafta ise "teşhis ekranı var"
+// sanıldığı için bakılmıyor. İki oyunda daha aynı yapı yazılırken
+// fark edildi ve üçünde birden düzeltildi: her bölüm kendi içinde
+// korunuyor, patlayan bölüm kırmızı bir satır oluyor.
+//
+// Kapı iki şey istiyor: ekran açılacak, ve kalan bölümler yazılmaya
+// devam edecek. Birincisi olmadan ikincisi ölçülemiyor; ikincisi
+// olmadan ekran açılıyor ama boş.
+console.log('\n--- oyun bozukken ---');
+{
+  const pg = await open(null);
+  // Bozulacak şey dışarıdan erişilebilir olmalı ve oyunun okuduğu
+  // şeylerden biri olmalı: ekranın okuduğu değerler modül içinde, yani
+  // `window` üstünden bozulamıyor. `Object.keys` ikisini birden
+  // sağlıyor — başlık (eklenti listesi) ve MAĞAZA (sahip olunanlar) onu
+  // çağırıyor, kalan dört bölüm çağırmıyor. Yama beş tık boyunca duruyor
+  // ve hemen geri alınıyor; metin tık işleyicisinin içinde, aynı karede
+  // üretildiği için araya başka bir şey giremiyor.
+  const d = await pg.evaluate(() => {
+    document.getElementById('diagBody').innerHTML = '';
+    const asil = Object.keys;
+    Object.keys = () => { throw new Error('TANIDENEME bozuk'); };
+    try {
+      const e = document.getElementById('verTag');
+      for (let i = 0; i < 5; i++) e.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    } finally { Object.keys = asil; }
+    return {
+      acik: document.getElementById('diag').classList.contains('show'),
+      metin: document.getElementById('diagBody').innerText,
+    };
+  });
+  check(d.acik, 'sonda bozukken ekran yine açılıyor');
+  const bolumler = ['LİDERLİK', 'MAĞAZA', 'BİLDİRİM', 'EKRAN', 'KAYIT', 'REKLAM'];
+  const yazan = bolumler.filter(b => d.metin.includes(b));
+  console.log(`    yazılan bölümler: ${yazan.join(', ') || '(hiçbiri)'}`);
+  check(yazan.length === bolumler.length, 'bozukken altı bölüm de yazılıyor',
+    `${yazan.length}/${bolumler.length}`);
+  check(/okunamadı/.test(d.metin), 'bozuk bölüm sebebini söylüyor');
+  // Başlık yalnızca `bolum` tarafından basılıyor, yani bölüm adlarının
+  // görünmesi içeriğin yazıldığını söylemiyor. Bozulan bölümden
+  // **sonraki** iki satır asıl kanıt: koruma olmasaydı metin orada
+  // kesilirdi.
+  check(/yazma hatası/.test(d.metin) && /AdMob/.test(d.metin),
+    'bozuk bölümden sonrakiler yazılmaya devam ediyor');
+  await pg.close();
+}
+
 console.log(fails.length ? `\n${fails.length} kontrol düştü` : '\nhepsi geçti');
 await br.close();
 srv.close();

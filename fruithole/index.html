@@ -23211,91 +23211,124 @@ const APP_VERSION = 'dev';
     state === undefined ? '' : ` class="${state ? 'ok' : 'no'}"`}>${esc(v)}</span></div>`;
   const yn = b => b ? 'evet' : 'hayır';
 
+  // Her bölüm kendi içinde korunuyor.
+  //
+  // Bu perdenin açıldığı an, oyunun bir yerinin bozulduğu an — ve tek
+  // parça bir metin üreticisi tam orada çalışmıyordu: okuduğu şeylerden
+  // biri patlayınca `body.innerHTML` hiç yazılmıyor, `show` sınıfı hiç
+  // eklenmiyor ve **perde açılmıyordu**. Oyuncu beş kez dokunup hiçbir
+  // şey olmadığını görüyor, biz de "teşhis ekranı var" sanıp
+  // bakmıyorduk. Patlayan bölüm artık kırmızı bir satır oluyor,
+  // kalanlar yazılmaya devam ediyor.
+  const bolum = (ad, f) => {
+    let g = ad ? `<div class="grp">${ad}</div>` : '';
+    try { g += f(); } catch (e) { g += row('okunamadı', String(e).slice(0, 120), false); }
+    return g;
+  };
+
   function diagText() {
-    const plugins = Object.keys((_Cap && _Cap.Plugins) || {});
-    const priced = PRODUCTS.filter(p => p.livePrice).length;
-    const owned = Object.keys(iap).filter(k => iap[k]);
     let h = '';
-    h += row('sürüm', APP_VERSION);
-    h += row('native', yn(IS_NATIVE), IS_NATIVE);
-    h += row('eklenti', plugins.length ? plugins.join(', ') : '(hiç yok)', plugins.length > 0);
+    h += bolum('', () => {
+      const plugins = Object.keys((_Cap && _Cap.Plugins) || {});
+      return row('sürüm', APP_VERSION)
+        + row('native', yn(IS_NATIVE), IS_NATIVE)
+        + row('eklenti', plugins.length ? plugins.join(', ') : '(hiç yok)', plugins.length > 0);
+    });
 
-    h += '<div class="grp">LİDERLİK</div>';
-    h += row('PlayGames', yn(!!_Games), !!_Games);
-    h += row('giriş', yn(_gamesIn), _gamesIn);
-    if (_gamesErr) h += row('sebep', _gamesErr, false);
-    if (_gamesRaw) h += row('cevap', _gamesRaw);
-    if (_gamesProbe) h += row('tanı', _gamesProbe, /geçti/.test(_gamesProbe));
-    h += row('tablo id', LEADERBOARD_ID || '(boş)', !!LEADERBOARD_ID);
-    h += row('🏆 düğme', yn(gamesReady()), gamesReady());
-    if (_boardErr) h += row('tablo', _boardErr, /sorunsuz/.test(_boardErr));
+    h += bolum('LİDERLİK', () => {
+      let g = '';
+      g += row('PlayGames', yn(!!_Games), !!_Games);
+      g += row('giriş', yn(_gamesIn), _gamesIn);
+      if (_gamesErr) g += row('sebep', _gamesErr, false);
+      if (_gamesRaw) g += row('cevap', _gamesRaw);
+      if (_gamesProbe) g += row('tanı', _gamesProbe, /geçti/.test(_gamesProbe));
+      g += row('tablo id', LEADERBOARD_ID || '(boş)', !!LEADERBOARD_ID);
+      g += row('🏆 düğme', yn(gamesReady()), gamesReady());
+      if (_boardErr) g += row('tablo', _boardErr, /sorunsuz/.test(_boardErr));
+      return g;
+    });
 
-    h += '<div class="grp">MAĞAZA</div>';
-    h += row('Purchases', yn(!!_Purchases), !!_Purchases);
-    h += row('fiyat', `${priced} / ${PRODUCTS.length}`, priced === PRODUCTS.length);
-    if (_iapErr) h += row('sebep', _iapErr, false);
-    h += row('sahip', owned.length ? owned.join(', ') : '(yok)');
+    h += bolum('MAĞAZA', () => {
+      const priced = PRODUCTS.filter(p => p.livePrice).length;
+      const owned = Object.keys(iap).filter(k => iap[k]);
+      let g = '';
+      g += row('Purchases', yn(!!_Purchases), !!_Purchases);
+      g += row('fiyat', `${priced} / ${PRODUCTS.length}`, priced === PRODUCTS.length);
+      if (_iapErr) g += row('sebep', _iapErr, false);
+      g += row('sahip', owned.length ? owned.join(', ') : '(yok)');
+      return g;
+    });
 
-    h += '<div class="grp">BİLDİRİM</div>';
-    h += row('eklenti', yn(!!_Notif), !!_Notif);
-    h += row('izin', notif.asked ? (notif.granted ? 'verildi' : 'reddedildi') : 'sorulmadı',
-      !!notif.granted);
-    if (notif.granted) h += row('sıradaki', notifWhen().toLocaleString());
-    if (_notifErr) h += row('sebep', _notifErr, false);
+    h += bolum('BİLDİRİM', () => {
+      let g = '';
+      g += row('eklenti', yn(!!_Notif), !!_Notif);
+      g += row('izin', notif.asked ? (notif.granted ? 'verildi' : 'reddedildi') : 'sorulmadı',
+        !!notif.granted);
+      if (notif.granted) g += row('sıradaki', notifWhen().toLocaleString());
+      if (_notifErr) g += row('sebep', _notifErr, false);
+      return g;
+    });
 
-    h += '<div class="grp">EKRAN</div>';
-    h += row('GL kaybı', _glLostN ? `${_glLostN} kez · son ${_glLostAt}` : 'olmadı', _glLostN === 0);
-    // Kalıcı defter. Uygulama kapansa da duruyor, yani beyaz ekranı görüp
-    // uygulamayı kapatan oyuncunun elinde hâlâ kanıt oluyor.
-    if (glLog.length) {
-      h += row('defter', `${glLog.length} kayıt`, false);
-      for (const k of glLog) {
-        const ad = k.tip === 'gl' ? 'GL' : k.tip === 'hata' ? 'HATA' : 'SÖZ';
-        const geri = k.tip === 'gl'
-          ? (k.geri == null ? ' · GERİ GELMEDİ' : ` · ${k.geri}. denemede geldi`) : '';
-        h += row(`${ad} ${k.t}`,
-          `bölüm ${k.lv} · ${k.parca} parça · ${k.geo} geo · ${k.tex} doku · ` +
-          `${k.cagri} çizim` +
-          (k.ms != null ? ` · kuruluştan ${k.ms}ms` : '') +
-          (k.hal ? ` · ${k.hal}` : '') +
-          (k.rek ? ' · REKLAM AÇIK' : '') +
-          `${geri}${k.mesaj ? ' · ' + k.mesaj : ''}` +
-          `${k.yer ? ' (' + k.yer + ')' : ''}`,
-          false);
+    h += bolum('EKRAN', () => {
+      let g = '';
+      g += row('GL kaybı', _glLostN ? `${_glLostN} kez · son ${_glLostAt}` : 'olmadı', _glLostN === 0);
+      // Kalıcı defter. Uygulama kapansa da duruyor, yani beyaz ekranı görüp
+      // uygulamayı kapatan oyuncunun elinde hâlâ kanıt oluyor.
+      if (glLog.length) {
+        g += row('defter', `${glLog.length} kayıt`, false);
+        for (const k of glLog) {
+          const ad = k.tip === 'gl' ? 'GL' : k.tip === 'hata' ? 'HATA' : 'SÖZ';
+          const geri = k.tip === 'gl'
+            ? (k.geri == null ? ' · GERİ GELMEDİ' : ` · ${k.geri}. denemede geldi`) : '';
+          g += row(`${ad} ${k.t}`,
+            `bölüm ${k.lv} · ${k.parca} parça · ${k.geo} geo · ${k.tex} doku · ` +
+            `${k.cagri} çizim` +
+            (k.ms != null ? ` · kuruluştan ${k.ms}ms` : '') +
+            (k.hal ? ` · ${k.hal}` : '') +
+            (k.rek ? ' · REKLAM AÇIK' : '') +
+            `${geri}${k.mesaj ? ' · ' + k.mesaj : ''}` +
+            `${k.yer ? ' (' + k.yer + ')' : ''}`,
+            false);
+        }
+      } else {
+        g += row('defter', 'boş — beyaz ekran kaydedilmemiş', true);
       }
-    } else {
-      h += row('defter', 'boş — beyaz ekran kaydedilmemiş', true);
-    }
-    // Kare ölçer: takılmanın olup olmadığını tahminden çıkarıp sayıya
-    // çeviriyor. Tarayıcıda ölçülemiyor (GPU yok), yani bu satırların tek
-    // okunacağı yer gerçek telefon.
-    if (perf.frames) {
-      const fps = perf.avgMs ? Math.round(1000 / perf.avgMs) : 0;
-      const pay = perf.slow / perf.frames;
-      h += row('kare', `${fps} fps ort · ${perf.frames} kare · ${perf.runs} koşu`, fps >= 45);
-      h += row('takılan', `${perf.slow} kare (%${(pay * 100).toFixed(1)}) 20 fps altında`,
-        pay < 0.01);
-      h += row('en kötü', `${perf.worstMs} ms · bölüm ${perf.worstLevel}`,
-        (perf.worstMs || 0) < 120);
-    } else {
-      h += row('kare', 'henüz ölçülmedi — bir bölüm oyna');
-    }
+      // Kare ölçer: takılmanın olup olmadığını tahminden çıkarıp sayıya
+      // çeviriyor. Tarayıcıda ölçülemiyor (GPU yok), yani bu satırların tek
+      // okunacağı yer gerçek telefon.
+      if (perf.frames) {
+        const fps = perf.avgMs ? Math.round(1000 / perf.avgMs) : 0;
+        const pay = perf.slow / perf.frames;
+        g += row('kare', `${fps} fps ort · ${perf.frames} kare · ${perf.runs} koşu`, fps >= 45);
+        g += row('takılan', `${perf.slow} kare (%${(pay * 100).toFixed(1)}) 20 fps altında`,
+          pay < 0.01);
+        g += row('en kötü', `${perf.worstMs} ms · bölüm ${perf.worstLevel}`,
+          (perf.worstMs || 0) < 120);
+      } else {
+        g += row('kare', 'henüz ölçülmedi — bir bölüm oyna');
+      }
+      return g;
+    });
 
-    h += '<div class="grp">KAYIT</div>';
-    // "İlerlemem kaydolmuyor" diyen bir oyuncudan istenecek sayı. Sıfır
-    // değilse telefonun deposu dolu demek ve oyun o yazıyı atmış.
-    h += row('yazma hatası', yazmaHata ? `${yazmaHata} kez · son ${yazmaSon}` : 'yok',
-      yazmaHata === 0);
+    h += bolum('KAYIT', () =>
+      // "İlerlemem kaydolmuyor" diyen bir oyuncudan istenecek sayı. Sıfır
+      // değilse telefonun deposu dolu demek ve oyun o yazıyı atmış.
+      row('yazma hatası', yazmaHata ? `${yazmaHata} kez · son ${yazmaSon}` : 'yok',
+        yazmaHata === 0));
 
-    h += '<div class="grp">REKLAM</div>';
-    h += row('AdMob', yn(!!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob)),
-      !!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob));
-    h += row('reklamsız', yn(adsRemoved()));
+    h += bolum('REKLAM', () =>
+      row('AdMob', yn(!!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob)),
+        !!(_Cap && _Cap.Plugins && _Cap.Plugins.AdMob))
+      + row('reklamsız', yn(adsRemoved())));
     return h;
   }
 
   function showDiag() {
-    body.innerHTML = diagText();
+    // Son kapı: bölüm bölüm korunan metin yine de patlarsa perde
+    // açılmaya devam ediyor ve sebebini yazıyor. Açılmayan bir teşhis
+    // ekranı, olmayandan kötü — var sanıldığı için bakılmıyor.
+    try { body.innerHTML = diagText(); }
+    catch (e) { body.innerHTML = row('teşhis', 'yazılamadı: ' + e, false); }
     diag.classList.add('show');
   }
 

@@ -433,7 +433,9 @@ tablosu), `tyingilizce` (Türkçe açıkken ekranda İngilizce kalmış metin),
 mağaza), `tysatin` (satın alınan teslim ediliyor mu), `tyreklam`
 (reklam açılmazsa oyuncu ne görüyor), `tygeri` (donanım geri tuşu
 perdeyi mi kapatıyor), `typlaygames`,
-`tysurum` (sürüm numarası ve reklam anahtarı), `tylisting` (mağaza metni
+`tysurum` (sürüm numarası ve reklam anahtarı), `tytani` (teşhis
+perdesi — gizli el hareketi, beş bölüm, ve oyun bozukken),
+`tylisting` (mağaza metni
 oyunla uyuşuyor mu), `tybelge` (bu dosya oyunla aynı şeyi mi anlatıyor; sürüm notunun
 dil başına 500 karakterlik Play sınırına sığdığını ve başlığındaki
 sayının doğru olduğunu da ölçüyor).
@@ -446,7 +448,8 @@ Fabrikanın görünüşünü okuyanlar: `jeDonanim` (istasyon başına taş say�
 kademe ve kaplama adı), `jeKaplamalar` (kaplama listesi — ölçüm "beş tane
 var" diye bir sayı tutmasın diye).
 Ekranı kuranlar: `jeTutSkip`, `jeGunGoster`, `jeIapSim`, `jeReklamSim`,
-`jeDonus`, `jeKayitBoz`, `jeKayitDur`, `jeSave`.
+`jeDonus`, `jeKayitBoz`, `jeKayitDur`, `jeSave`, `jeTani` (teşhis
+perdesi açık mı, kaç satır, hata kutusunda ne var).
 
 ### Bir kanca iki kez yazıldı, bir ölçüm kör oldu
 
@@ -663,6 +666,59 @@ kaldırınca ikisi birden düşüyor.
 
 Anahtar listesi de oyundan okunuyor, yani üçüncü bir yan anahtar
 eklenip vakası yazılmazsa kapı düşüyor.
+
+## Teşhis perdesi
+
+Menüdeki sürüm yazısına **beş kez** dokununca tam ekran bir liste
+açılıyor: sürüm, native mi, yüklü Capacitor eklentileri, ekran ölçüsü,
+kaydın hâli (ana/yedek/geçerli/durum/yazamadı), fabrikanın durumu
+(istasyon seviyeleri, müdür sayısı, şube), Play tarafı (tablo kimliği ve
+varsa reddedilme sebebi), ve yakalanan son beş hata. Altında bir
+**Kopyala** düğmesi var.
+
+**"Son kayıt" satırı** bir ayrım yapıyor ve o ayrımı başka hiçbir
+satır yapmıyor: "ilerlemem gitti" diyen oyuncuda kayıt **hiç
+yazılamadı** mı (telefonun deposu dolu — `yazamadı: EVET`), yoksa
+yazıldı da sonradan mı kayboldu (`yazamadı: hayır`, ama son kayıt
+saatler önce). İki arıza, tek cümle, ayrı çareler. Satır son
+**başarılı** yazmanın saatini ve üstünden kaç saniye geçtiğini
+veriyor; yazma patlarken ilerlemiyor, ve ölçüm tam bunu tutuyor —
+ilerleseydi satır en çok güvenilmesi gereken yerde yalan söylerdi.
+
+Niye: kapalı teste yabancı geliyor ve yabancının elinden gelen tek şey
+"bir şey oldu" cümlesi. Fruit Hole'da bunun karşılığı vardı
+(`fruitHoleDiag`, sebebi orada yazılı) ve işe yaradığı ölçüldü — 🏆
+düğmesinin yokluğunun üç ayrı sebebi var ve üçü dışarıdan aynı
+görünüyor. Motor Works'te yoktu, yani testçinin bildirdiği her sorun
+elde hiçbir sayı olmadan bakılacak bir cümleydi.
+
+Gizli olması bir güvenlik değil, bir sadelik: beş hızlı dokunuş kazara
+olmuyor ve menü oyuncunun kafasını karıştıran bir satır kazanmıyor.
+Pencere 1.2 saniye — araları açılırsa sayaç sıfırlanıyor, yoksa gün
+içine yayılmış beş dokunuş birikip kendiliğinden açardı.
+
+**Geri tuşu perdeyi kapatıyor.** Perde `GERI_PERDE` listesinin
+**başında** duruyor, çünkü menünün üstünde açılıyor ve ikisi birden
+`show` oluyor: `geriAcikPerde` ilk bulduğunu döndürdüğü için altta
+kalsaydı geri tuşu menüyü kapatır, perde ekranda asılı kalırdı.
+Listeye girmesi tek satır; geçmiş girdisini `MutationObserver` zaten
+kendiliğinden koyuyor. `tygeri`'nin beşinci bölümü iki şeyi birden
+ölçüyor: perde kapandı mı, ve altındaki menü açık kaldı mı.
+
+**Perde oyun bozukken de açılmalı**, ve ilk hâli açılmıyordu. `taniMetin()`
+tek parçaydı: okuduğu şeylerden biri patlayınca metnin tamamı gidiyor ve
+perde boş açılıyordu — yani tam ihtiyaç duyulan anda hiçbir şey
+söylemiyor, üstelik "teşhis ekranı var" sanıldığı için bakılmıyordu. Beş
+bölümün her biri artık kendi içinde korunuyor: patlayan bölüm kırmızı bir
+`okunamadı` satırı oluyor, kalan dördü yazılmaya devam ediyor.
+
+Ölçümü `scratchpad/tytani.mjs`, dokuz kapı: dört dokunuş açmıyor, araları
+açık beş dokunuş açmıyor, hızlı beş dokunuş açıyor, beş bölümün beşi de
+yazılıyor, sürüm satırı var, düğmeler 360px'te 44px, yatay taşma yok,
+hata kutusu beşte duruyor ve aynı mesajı sayıyor, sonda bozukken perde
+yine beş bölümü yazıp sebebini söylüyor, ve perde kaydı değiştirmiyor.
+Sonuncusu bir teşhis ekranı için ayrı bir iddia: aradığı sorunun kendisi
+olmamalı.
 
 ## Eksikler
 

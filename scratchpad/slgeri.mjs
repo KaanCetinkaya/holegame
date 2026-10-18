@@ -126,6 +126,39 @@ ok(!m1.bizim, 'menüye dönünce girdimiz geri alındı');
 ok(m1.uzunluk <= m0.uzunluk + 1, 'geçmiş birikmedi',
    `${m0.uzunluk} → ${m1.uzunluk}`);
 
+console.log('\n6) Teşhis perdesi açıkken geri perdeyi kapatıyor');
+// Perde bir `.screen` değil, yani `showScreen`den geçmiyor ve
+// geçmiş girdisi kendiliğinden konmuyordu: menünün üstünde açık bir
+// perdeyken geri tuşu **uygulamayı** kapatıyordu — hem de ekranı
+// okumak için açmış olan testçinin elinde.
+await pg.evaluate(() => {
+  const e = document.getElementById('verTag');
+  for (let i = 0; i < 5; i++) e.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+});
+await pg.waitForTimeout(200);
+const t1 = await durum();
+const acik = () => pg.evaluate(() => document.getElementById('tani').classList.contains('show'));
+console.log(`     perde açık ${await acik()} · bizim girdimizde ${t1.bizim}`);
+ok(await acik(), 'perde açıldı');
+ok(t1.bizim, 'perde açıkken bizim girdimizin üstündeyiz — geri uygulamadan çıkmaz');
+await geri();
+// Geçmişte girdi yoksa `goBack()` sayfayı **terk ediyor** — telefonda
+// uygulamanın kapanmasının tarayıcıdaki karşılığı tam olarak bu.
+// Hata geri konup ölçüldüğünde olan şey buydu ve betik orada
+// `sliceProbe is not a function` diye çöküyordu: doğru sinyal, kötü
+// biçim. Çöken bir betiğin arkasındaki satırlar hiç koşmuyor, o
+// yüzden burada yakalanıp temiz bir FAIL'e çevriliyor.
+let t2 = null;
+try { t2 = await durum(); } catch (e) { t2 = null; }
+if (!t2) {
+  ok(false, 'geri perdeyi kapattı', 'sayfa gitti — geri uygulamadan çıktı');
+} else {
+  console.log(`     geriden sonra: perde açık ${await acik()} · ekran ${t2.ekran}`);
+  ok(!(await acik()), 'geri perdeyi kapattı');
+  ok(t2.ekran === 'menu', 'altındaki ekran yerinde duruyor', t2.ekran);
+  ok(!t2.bizim, 'perde kapanınca girdimiz geri alındı');
+}
+
 ok(!hata.length, 'sayfa hatası yok', hata[0] || '');
 console.log(fail ? `\n${fail} kontrol düştü` : '\nhepsi geçti');
 process.exitCode = fail ? 1 : 0;

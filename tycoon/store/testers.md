@@ -72,3 +72,9 @@ forumun tanıtım için ayrı bir günü var.
 
 İkisi de iki testi birden kapsıyor, o yüzden tek yerde duruyor:
 `slicer/store/testers.md` → "Telegram / karşılıklı test grupları".
+
+## Sorun bildiren birine ne söylenecek
+
+Aynı sebeple o dosyada: `slicer/store/testers.md` → "Sorun bildiren
+birine ne söylenecek". Kısası — menüdeki sürüm yazısına beş hızlı
+dokunuş teşhis ekranını açıyor, **Copy** hepsini panoya alıyor.

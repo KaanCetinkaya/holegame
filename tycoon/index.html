@@ -257,6 +257,31 @@
   }
   #kayitBar[hidden] { display: none; }
 
+  /* Teşhis perdesi. Oyuncuya kapalı değil **gizli**: sürüm yazısına beş
+     dokunuş kazara olmaz, ve hiçbir şeyi değiştirmiyor — yalnızca
+     okuyor. Fruit Hole'daki ile aynı gerekçe: kapalı testteki kişinin
+     "bir şey oldu" cümlesiyle elimizde hiçbir sayı kalmıyordu. */
+  #tani {
+    position: fixed; inset: 0; z-index: 90; display: none;
+    background: #10131c; color: #dfe6f5; overflow: auto;
+    padding: 14px 14px 20px; font-size: 12px; line-height: 1.45;
+  }
+  #tani.show { display: block; }
+  #tani h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: .06em; }
+  #tani .row { display: flex; gap: 8px; padding: 2px 0; }
+  #tani .row b { flex: none; width: 96px; font-weight: 600; color: #93a0bb; }
+  #tani .row span { flex: 1 1 auto; word-break: break-all; }
+  #tani .grp { margin: 12px 0 4px; font-weight: 700; font-size: 11px;
+               letter-spacing: .08em; color: #6f7c99; }
+  #tani .ok { color: #6ee7a8; }
+  #tani .no { color: #ff8b8b; }
+  #tani .acts { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  #tani .acts button {
+    flex: 1 1 auto; min-height: 44px; border: 0; border-radius: 10px;
+    padding: 10px 14px; font: inherit; font-weight: 700;
+    background: #2b3350; color: #fff;
+  }
+
   /* Mağaza satırı. */
   .prod {
     display: flex; align-items: center; gap: 10px; text-align: left;
@@ -360,6 +385,15 @@
   <div id="float"></div>
   <div id="tut"></div>
   <div id="kayitBar" hidden></div>
+
+  <div id="tani">
+    <h2>🔧 Diagnostics</h2>
+    <div id="taniBody"></div>
+    <div class="acts">
+      <button id="taniCopy">Copy</button>
+      <button id="taniClose">Close</button>
+    </div>
+  </div>
 
   <div id="panel">
     <div id="bulk">
@@ -931,6 +965,13 @@ let kayitYazamadi = false;
 // denenebilirdi ama o, kurtarıldığında beş dakikayı çöpe atmak demek;
 // iki `setItem` birkaç yüz baytla bedava sayılır.
 let sonMetin = null;
+// Son **başarılı** yazmanın anı. Teşhis perdesi bunu gösteriyor ve
+// gösterdiği şey başka hiçbir satırın söylemediği bir fark:
+// "ilerlemem gitti" diyen oyuncuda kayıt hiç yazılmamış mı
+// (yazamadı: EVET), yoksa yazılmış da sonradan mı kaybolmuş
+// (yazamadı: hayır ama son kayıt saatler önce). İkisi aynı cümleyle
+// bildiriliyor ve iki ayrı arıza.
+let sonKayitAn = 0;
 const saveNow = () => {
   if (wiped) return;
   let metin;
@@ -945,6 +986,7 @@ const saveNow = () => {
   }
   kayitYazamadi = false;
   sonMetin = metin;
+  sonKayitAn = Date.now();
 };
 
 // ---------------------------------------------------------------------
@@ -3905,6 +3947,11 @@ $('boostBtn').onclick = boostTikla;
 //
 // Geri tuşu `goBack()` çağırmayan bir yapıda hiçbir şey değişmiyor.
 const GERI_PERDE = {
+  // Teşhis perdesi **en başta**: menünün üstünde açılıyor, yani
+  // ikisi birden `show` oluyor ve `geriAcikPerde` ilk bulduğunu
+  // döndürüyor. Altta kalsaydı geri tuşu perdeyi değil menüyü
+  // kapatır, perde ekranda asılı kalırdı.
+  tani: 'taniClose',
   welcome: 'wOk',
   daily: 'dOk',
   prestige: 'pNo',
@@ -4788,8 +4835,127 @@ window.jeSave = () => { saveNow(); return true; };
 // ve yenileme `pagehide` ile sağlam hâli geri yazıyor — yani bozulma,
 // ölçülmeden önce kendiliğinden onarılıyordu.
 window.jeKayitDur = () => { wiped = true; return true; };
+// ---------------------------------------------------------------------
+// Teşhis perdesi
+//
+// Kapalı testteki kişi "bir şey oldu" diyor ve elimizde hiçbir sayı
+// kalmıyor. Fruit Hole'da bu bir kez pahalıya patladı ve orada teşhis
+// ekranı yazıldı; burada yoktu, ve testçiler tam şimdi geliyor.
+//
+// Oyuncuya kapalı değil **gizli**: sürüm yazısına beş dokunuş kazara
+// olmuyor, ve perde hiçbir şeyi değiştirmiyor — yalnızca okuyor.
+// Kopyala düğmesi, okunan şeyi tek dokunuşta bir mesaja çevirmek için;
+// ekran fotoğrafı okunmuyor, metin okunuyor.
+// ---------------------------------------------------------------------
+
+// Yakalanan son hatalar. Bir tur içinde yüzlerce kez atan bir satır
+// perdeyi doldurmasın diye son beşi tutuluyor, ve aynı mesaj iki kez
+// yazılmıyor — sayısı artıyor.
+const _taniHata = [];
+function _taniHataYaz(mesaj) {
+  const m = String(mesaj).split('\n')[0].slice(0, 120);
+  const v = _taniHata.find(h => h.m === m);
+  if (v) { v.n++; return; }
+  _taniHata.unshift({ m, n: 1, t: new Date().toTimeString().slice(0, 8) });
+  if (_taniHata.length > 5) _taniHata.pop();
+}
+window.addEventListener('error', e => _taniHataYaz(e.message || e.error || 'hata'));
+window.addEventListener('unhandledrejection', e => _taniHataYaz('promise: ' + (e.reason || '')));
+
+function taniMetin() {
+  const esc = t => String(t).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+  const row = (ad, deger, iyi) =>
+    `<div class="row"><b>${esc(ad)}</b><span class="${iyi === undefined ? '' : iyi ? 'ok' : 'no'}">${esc(deger)}</span></div>`;
+  const yn = v => v ? 'var' : 'yok';
+  // Her bölüm kendi içinde korunuyor. Bu perdenin açıldığı an, oyunun
+  // bir yerinin bozulduğu an: okuduğu bir şey patlarsa perde boş
+  // açılırsa en çok ihtiyaç duyulan yerde hiçbir şey söylemez. Patlayan
+  // bölüm kırmızı bir satır oluyor, kalanlar yazılmaya devam ediyor.
+  const bolum = (ad, f) => {
+    let g = `<div class="grp">${ad}</div>`;
+    try { g += f(); } catch (e) { g += row('okunamadı', String(e).slice(0, 120), false); }
+    return g;
+  };
+  let h = '';
+  h += bolum('UYGULAMA', () => {
+    const eklenti = Object.keys((_Cap && _Cap.Plugins) || {});
+    return row('sürüm', APP_VERSION)
+      + row('native', yn(IAP_NATIVE), IAP_NATIVE)
+      + row('eklenti', eklenti.length ? eklenti.join(', ') : '(hiç yok)', eklenti.length > 0)
+      + row('ekran', `${innerWidth}x${innerHeight}`);
+  });
+
+  h += bolum('KAYIT', () => {
+    const k2 = window.jeKayit2();
+    return row('ana kayıt', yn(k2.anaVar), k2.anaVar)
+      + row('yedek', yn(k2.yedekVar))
+      + row('geçerli', yn(k2.gecerli), k2.gecerli)
+      + row('durum', k2.durum || '(sorun yok)', !k2.durum)
+      + row('yazamadı', k2.yazamadi ? 'EVET' : 'hayır', !k2.yazamadi)
+      + row('son kayıt', sonKayitAn
+          ? `${new Date(sonKayitAn).toTimeString().slice(0, 8)} · ` +
+            `${Math.round((Date.now() - sonKayitAn) / 1000)} sn önce`
+          : 'bu açılışta hiç', !!sonKayitAn);
+  });
+
+  h += bolum('FABRİKA', () => {
+    const p = window.jeProbe();
+    return row('seviyeler', p.lvl.join(' / '))
+      + row('müdür', p.mgr.filter(Boolean).length + ' / ' + p.mgr.length)
+      + row('şube', String(p.branches));
+  });
+
+  h += bolum('PLAY', () =>
+    row('tablo id', LEADERBOARD_ID || '(boş)', !!LEADERBOARD_ID)
+    + (_gamesErr ? row('tablo sebep', _gamesErr, false) : '')
+    + (_notifErr ? row('bildirim sebep', _notifErr, false) : ''));
+
+  h += bolum('HATA', () => _taniHata.length
+    ? _taniHata.map(e => row(`${e.t}${e.n > 1 ? ' ×' + e.n : ''}`, e.m, false)).join('')
+    : row('yakalanan', 'yok', true));
+  return h;
+}
+
+{
+  const perde = document.getElementById('tani');
+  const govde = document.getElementById('taniBody');
+  const ver = document.getElementById('verLine');
+  // Beş dokunuş, aralarındaki boşluk 1.2 saniyeyi geçerse sayaç
+  // sıfırlanır — yoksa gün içine yayılmış beş dokunuş birikip
+  // kendiliğinden açardı.
+  let vurus = 0, son = 0;
+  if (ver) ver.addEventListener('click', () => {
+    const simdi = Date.now();
+    vurus = (simdi - son < 1200) ? vurus + 1 : 1;
+    son = simdi;
+    if (vurus >= 5) {
+      vurus = 0;
+      try { govde.innerHTML = taniMetin(); }
+      catch (e) { govde.textContent = 'teşhis yazılamadı: ' + e; }
+      perde.classList.add('show');
+    }
+  });
+  document.getElementById('taniClose').addEventListener('click',
+    () => perde.classList.remove('show'));
+  document.getElementById('taniCopy').addEventListener('click', async () => {
+    const d = document.getElementById('taniCopy');
+    const metin = govde.innerText;
+    try { await navigator.clipboard.writeText(metin); d.textContent = 'Kopyalandı ✓'; }
+    catch (e) { d.textContent = 'Kopyalanamadı'; }
+    setTimeout(() => { d.textContent = 'Kopyala'; }, 1800);
+  });
+}
+
+// Teşhis perdesinin ölçülebilir hâli.
+window.jeTani = () => ({
+  acik: document.getElementById('tani').classList.contains('show'),
+  satir: document.querySelectorAll('#taniBody .row').length,
+  hata: _taniHata.map(h => ({ ...h })),
+  metin: document.getElementById('taniBody').innerText.slice(0, 400),
+});
+
 window.jeKayit2 = () => ({
-  durum: kayitDurum, yazamadi: kayitYazamadi,
+  durum: kayitDurum, yazamadi: kayitYazamadi, sonAn: sonKayitAn,
   barAcik: !$('kayitBar').hidden, barYazi: $('kayitBar').textContent,
   anaVar: localStorage.getItem(KEY) !== null,
   yedekVar: localStorage.getItem(KEY_YEDEK) !== null,

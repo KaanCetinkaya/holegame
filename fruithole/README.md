@@ -3561,6 +3561,37 @@ eklentilerle ayrı ayrı kuruluyor ve üçünün çıktısının **birbirinden f
 olduğu doğrulanıyor. Ekran üçüne de aynı şeyi yazsaydı hiçbir işe yaramazdı,
 ve bunu "ekran açılıyor mu" diye bakarak fark edemezdin.
 
+### Oyun bozukken ekran hiç açılmıyordu
+
+`diagText()` tek parçaydı ve `showDiag()` onu korumasız çağırıyordu:
+
+```js
+body.innerHTML = diagText();   // patlarsa bir sonraki satıra geçilmiyor
+diag.classList.add('show');
+```
+
+Okuduğu değerlerden biri patlayınca metnin tamamı gidiyor, `show`
+sınıfı hiç eklenmiyor ve **ekran açılmıyordu**. Yani bu ekran tam
+varlık sebebinin gerçekleştiği anda — oyunun bir yeri bozukken —
+çalışmıyordu. İkinci bedeli daha sinsi: oyuncu beş kez dokunup hiçbir
+şey olmadığını görüyor, bizim tarafta ise "teşhis ekranı var"
+sanıldığı için oraya hiç bakılmıyordu.
+
+Aynı yapı Motor Works ile Slice Rush'a yazılırken fark edildi ve
+üçünde birden düzeltildi: her bölüm kendi içinde korunuyor, patlayan
+bölüm kırmızı bir `okunamadı` satırına dönüşüyor, kalanlar yazılmaya
+devam ediyor. `showDiag` ayrıca son bir kapı tutuyor — metin yine de
+patlarsa ekran açılıyor ve sebebini yazıyor.
+
+Ölçümü `holediag`'ın sonunda, dört satır: `Object.keys` beş tık
+boyunca patlatılıyor (başlık ile MAĞAZA onu çağırıyor, kalan dört
+bölüm çağırmıyor), ekran açılmalı, altı bölüm de yazılmalı,
+`okunamadı` görünmeli, ve bozuk bölümden **sonraki** satırlar
+(`yazma hatası`, `AdMob`) yerinde durmalı. Sonuncusu gerekiyor çünkü
+bölüm başlıklarını `bolum` kendisi basıyor: başlıkların görünmesi tek
+başına içeriğin yazıldığını söylemiyor. Hata geri konup ölçüldü —
+korumasız hâlde dördü de düşüyor.
+
 ## Çizicinin önbelleği uzun oyunda büyüyor
 
 Yüz yirmi bölüm arka arkaya kurulunca canlı VAO sayısı 200'den 6300'e,
