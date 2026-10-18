@@ -74,11 +74,43 @@ const VAKALAR = [
   ['daily dizi',         { fruithole_daily: '[]' }],
   ['iap null',           { fruithole_iap: 'null' }],
   ['stats sayı',         { fruithole_stats: '42' }],
+  // Aşağıdaki sekizi liste **oyundan türetilince** eklendi: kayıt
+  // anahtarları on sekiz, burada on biri deneniyordu. Eksik kalanlar,
+  // sonradan eklenmiş olanlardı — yani en az denenmiş olanlar.
+  ['ach kelime',         { fruithole_ach: '"hepsi"' }],
+  ['chall dizi',         { fruithole_chall: '[]' }],
+  ['gllog nesne',        { fruithole_gllog: '{}' }],
+  ['muted saçma',        { fruithole_muted: 'belki' }],
+  ['notif yarım',        { fruithole_notif: '{"a":' }],
+  ['perf kelime',        { fruithole_perf: '"hızlı"' }],
+  ['rate dizi',          { fruithole_rate: '[1,2]' }],
+  ['tchest sayı',        { fruithole_tchest: '9' }],
   ['hepsi birden',       { fruithole_currency: '{bozuk', fruithole_stars: 'undefined',
                            fruithole_upgrades: '"muz"', fruithole_skins: '{"a":',
                            fruithole_level: 'abc', fruithole_daily: '[]',
-                           fruithole_found: '{}', fruithole_iap: 'null' }],
+                           fruithole_found: '{}', fruithole_iap: 'null',
+                           fruithole_ach: '"hepsi"', fruithole_chall: '[]',
+                           fruithole_notif: '{"a":', fruithole_tchest: '9' }],
 ];
+
+// Oyunun kullandığı her anahtar burada deneniyor mu?
+//
+// Liste elle yazılıyordu ve bayatlamıştı: oyun on sekiz anahtar
+// kullanıyor, bu dosya on birini deniyordu. Eksik kalanlar sonradan
+// eklenenler, yani en az denenmiş olanlar — ve bu dosyanın varlık
+// sebebi, tek bir bozuk anahtarın oyunu açılmaz hâle getirmesi.
+// Anahtarlar artık oyunun kaynağından okunuyor; yeni bir anahtar
+// eklenip buraya vaka yazılmazsa kapı düşüyor.
+const KAYNAK = readFileSync('/home/user/holegame/fruithole/index.html', 'utf8');
+const ANAHTARLAR = [...new Set([
+  ...[...KAYNAK.matchAll(/fhOku\(\s*'(fruithole_[A-Za-z]+)'/g)].map(m => m[1]),
+  ...[...KAYNAK.matchAll(/getItem\(\s*'(fruithole_[A-Za-z]+)'/g)].map(m => m[1]),
+])];
+const DENENEN = new Set(VAKALAR.flatMap(([, kv]) => Object.keys(kv)));
+const eksikAnahtar = ANAHTARLAR.filter(k => !DENENEN.has(k));
+console.log(`\n0) Oyunun ${ANAHTARLAR.length} kayıt anahtarı · denenmeyen ${eksikAnahtar.length}`);
+ok(eksikAnahtar.length === 0, 'oyunun her kaydı bozuk hâliyle deneniyor',
+   eksikAnahtar.join(', '));
 
 console.log('\n1) Bozuk anahtarla oyun açılıyor mu');
 const sonuc = [];
