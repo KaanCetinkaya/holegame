@@ -522,8 +522,8 @@ takılma görülürse verilecek.
 
 ## Ölçümler
 
-    npm run test:fruithole        # yükleme öncesi küme, 17 betik, ~26 dakika
-    npm run test:fruithole:tam    # doksan üç betik, saatler
+    npm run test:fruithole        # yükleme öncesi küme, 20 betik, ~28 dakika
+    npm run test:fruithole:tam    # doksan iki betik, saatler
 
 Kümenin ayrı olmasının sebebi ölçülerek öğrenildi. Günlük meydan okuma
 **1 Ekim'den beri** herkese aynı tahtayı vermiyordu (aşağıda) ve bunu

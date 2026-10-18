@@ -56,8 +56,8 @@ npm test
 Bu, geliştirilen iki oyunu koşturuyor: Motor Works (41 ölçüm, 5 dakika) ve
 Slice Rush (25, 17 dakika), toplam **66 ölçüm, ~22 dakika**. Tek tek:
 `npm run test:tycoon`,
-`npm run test:slicer`. Fruit Hole ayrı, çünkü 90 ölçümü var:
-`npm run test:fruithole` yükleme öncesi bakılacak **19 ölçüm, ~29 dakika**,
+`npm run test:slicer`. Fruit Hole ayrı, çünkü 92 ölçümü var:
+`npm run test:fruithole` yükleme öncesi bakılacak **20 ölçüm, ~28 dakika**,
 `npm run test:fruithole:tam` hepsi (saatler). Hepsi birden:
 `npm run test:all`.
 
@@ -70,6 +70,15 @@ oyuncu oyunun "FINAL" dediği şeyi bir kez bile görmüyordu. Aylarca
 yüklendi, çünkü hiçbir yükleme öncesi ölçüm ona bakmıyordu. Şimdi
 bakıyor: 120 bölümde iki Cup Night, ikisi de ızgara tahtası, ikisinde de
 kolos kupa ve tahtanın öbür ucunda.
+
+Listeye `holediag` de eklendi (35 saniye, ölçüldü) ve gerekçesi
+`holeboss`unkiyle aynı sınıftan: 18 Ekim'de teşhis ekranının **oyun
+bozukken hiç açılmadığı** bulundu — `showDiag` tek parça bir metin
+üreticisi çağırıyordu, okuduğu bir şey patlayınca ekran hiç açılmıyordu.
+Yani ekran tam ihtiyaç duyulan anda çalışmıyordu ve bu hiçbir yerde
+görünmüyordu: "teşhis ekranı var" sanıldığı için oraya bakılmıyordu bile.
+Oyuncunun normalde görmediği bir ekran, ama bozuk bir kurulumda elimizdeki
+tek kanal — ve 35 saniye, yirmi sekiz dakikalık takımın yanında bedava.
 
 Takımın süresinin neredeyse tamamı tek betikte: `holeboot` ~1000 saniye,
 kalan on yedisi toplam ~720. Sebebi ölçtüğü şey değil, **çizim**: altmış
