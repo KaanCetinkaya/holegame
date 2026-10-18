@@ -69,7 +69,9 @@ Kapalı testte bakılacak şeyler:
    (`slicerush_blade` aralık dışıysa siyah ekran, kalıcı). Denemek için:
    tarayıcıda `localStorage.setItem('slicerush_blade','99')` ve yenile.
 5. **17 sonrası** — karışım bölümle sertleşiyor: tur başına ortalama
-   demir 15-18. bölümlerde 4.4, 27-30'da 9.2.
+   demir 15-18. bölümlerde 4.1, 47-50'de 9.0 (üç koşuda ×2.19 ile ×2.52
+   arası). Kolay parçaların ağırlığı 32. bölümde ×0.45'e iniyor, zor
+   olanlarınki ×1.80'e çıkıyor.
 
 6. **Arkadan ölüm** — çarpışma, geçilen engele altmış yedi milisaniye
    daha bakıyordu ve bir sonraki boşluğa inerken öldürüyordu. Ölçüldü:

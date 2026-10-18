@@ -16,12 +16,20 @@
 // çıkmadığını kimse fark etmez. Oyunda bunun bir örneği zaten var —
 // `holeboss`un yakaladığı final, aylarca hiç görünmedi.
 //
-// Üç kapı:
+// Beş kapı:
 //
 //   1. Tanıtımı olan her parça, kendi açılış bölümünde satırı veriyor.
 //      Bölüm numarası buraya yazılmıyor, `slicePieces()`ten okunuyor.
-//   2. İkinci kez aynı bölüme girince satır **tekrar çıkmıyor**.
-//   3. Satır en dar telefonda tek satıra sığıyor ve kutudan taşmıyor.
+//   2. Yeni oyuncu kontrol satırını görüyor.
+//   3. Tanıtım bölümü olmayan turda satır **susuyor** — yoksa yeni bir şey
+//      söylenecek yer, okunmayı bırakmış bir satır olurdu.
+//   4. İkinci kez aynı bölüme girince tanıtım **tekrar çıkmıyor**.
+//   5. Satır en dar telefonda tek satıra sığıyor ve kutudan taşmıyor.
+//
+// Ölçümün kendisi üç kez yanlış kuruldu ve üçü de dosyanın içinde
+// yazılı: yanlış dünyada denemek (`sliceStart` `maxLevel`i taşımıyor),
+// cümle yerine görünürlüğe bakmak, ve kutuyu ölçerken kendi bıraktığı
+// yazıyı ölçmek.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { createServer } from 'http';
 import { readFileSync } from 'fs';

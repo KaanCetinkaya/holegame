@@ -232,9 +232,13 @@ console.log(`${ad(erken)} ort. demir ${d1.toFixed(1)} · ${ad(gec)} ort. demir $
 // Eşik ölçülerek kondu. İlk hâlinde bölüm başına beş tahta kuruluyordu
 // ve oran beş koşuda ×1.69 ile ×3.27 arasında geziniyordu — yani kontrol
 // oyunun değişmesini değil kendi gürültüsünü ölçüyordu ve takımda
-// rastgele düşüyordu. Örneklem yirmi dörde çıkınca üç koşu ×1.93, ×1.94
-// ve ×2.32 verdi. 1.4, bunun epey altında ve gerçek duvarı (iki taraf da
-// aynı, ×1.0 civarı) hâlâ yakalıyor.
+// rastgele düşüyordu. Örneklem yirmi dörde çıkınca gürültü oturdu: eski
+// pencerede (15-18 / 27-30) üç koşu ×1.93, ×1.94 ve ×2.32 verdi.
+//
+// Pencereler eğrinin uçlarına taşınınca (15-18 / 47-50) yeniden ölçüldü:
+// ×2.52, ×2.40, ×2.19. Eşik 1.4'te bırakıldı — üç koşunun en düşüğünün
+// de epey altında, ve gerçek duvarı (iki taraf da aynı, ×1.0 civarı)
+// hâlâ yakalıyor.
 const ayri = d2 >= d1 * 1.4;
 console.log(`geç bölüm erken bölümden ayırt edilebiliyor mu: ${ayri ? 'EVET' : 'HAYIR'}`);
 if (!ayri) errs.push(

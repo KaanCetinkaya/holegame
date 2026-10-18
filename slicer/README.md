@@ -376,6 +376,15 @@ Yine de mükemmel değil — bir sonraki engele bakıyor, ondan sonrakine değil
 bu yüzden turların bir kısmında çarpıyor. Parkurun geçilebilir olup
 olmadığının ölçüsü bu değil, `slicegaps.mjs`.
 
+**Salınan kapıda önüne nişan alıyor.** Kapının `gapY`si o anki yer;
+sürücü oraya varana kadar pencere başka yerde olacak. Varış süresi
+mesafeden, yeri de salınımın kendi formülünden hesaplanıyor. Bu bir
+zorluk ayarı değil **ölçüm aracının düzeltmesi**: insan oyuncu
+pencerenin gittiği yönü gözüyle okuyor, sürücü okuyamasaydı ölçülen şey
+oyunun zorluğu değil sürücünün körlüğü olurdu — ve aynı hata bu
+dosyada iki kez yapıldı (önce "tavandan geliyorsa dibe kaç", sonra
+engeli erken geçilmiş saymak).
+
 Yıldızlar kesilen orana göre: %90 / %70 / %40.
 
 ## Bölüm haritası
