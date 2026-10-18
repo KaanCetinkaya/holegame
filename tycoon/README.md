@@ -160,6 +160,18 @@ ilk saatten sonra bütün satın almalar birbirinin aynıydı ve oyun bitiyordu.
 Kilometre taşları düz tırmanışı bir dizi hedefe çeviriyor — türün cevabı bu,
 ve bir idle oyunun bir akşam yerine bir hafta tutmasının sebebi.
 
+**Dokuzunun altısı oynanıyor.** Ölçülen seviye tavanı 410 (150 devir × 30
+dakika; uzun şube de kaldırmıyor, 20 devir × 3 saat: 403), yani 500, 750 ve
+1000 taşlarına hiçbir oyuncu varmıyor — istasyon sınırı 1000 olduğu için
+kodda ulaşılabilirler, pratikte değil. Ayrıntısı aşağıda, "Donanım
+kilometre taşlarıyla yenileniyor".
+
+Bu satır bir hata raporu değil, **verilmemiş bir karar**: üst üç taşı
+ölçülen erişime çekmek (kaplamalarda yapılanın aynısı) ya da tavanı
+yükseltmek, ikisi de dengeyi değiştirir ve kararın sahibi Kaan.
+Panelde bir oyuncunun gördüğü şey şu an "×2 at 500" ve o söz
+tutulmuyor.
+
 ## Prestij (şube devri)
 
 Devrettiğinde fabrika sıfırlanır, karşılığında **kalıcı puan** kazanırsın:
