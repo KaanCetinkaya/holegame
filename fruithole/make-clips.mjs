@@ -247,8 +247,15 @@ const CLIPS = [
   // Engel de temadan geliyor: Cube World'ün izin verdikleri silindir ve
   // rüzgâr, mancınık o tahtaya hiç gelmiyor. Aracın ikinci bekçisi bunu da
   // söyledi — klipte olmayan bir engeli vaat etmek, klibi yalan yapardı.
+  // Dört kimlik `engel: null` — **düzen klibi**. Dördü de tek engelli
+  // tahtalar (mancınık ve silindir tahtada birer tane, rüzgâr bir tane) ve
+  // tek olanlar kadraja sürekli girmiyor; `tulip` denemesinde silindir
+  // sekiz birimlik kadrajın 0.54 birim dışında kaldı. Vaat edilmeyen bir
+  // engel gösterilmemiş olmuyor — tahtada duruyor, kadraja girerse
+  // görünüyor — ama klip onun üstüne söz kurmuyor, düzenin üstüne
+  // kuruyor: kadran, lale şeridi, bumerang, anahtar.
   { id: 'cubes',     pattern: 'Cubes',     engel: 'silindir', note: 'Cube World · küp bloklar · ızgara tahta' },
-  { id: 'redplanet', pattern: 'Dial',      engel: 'mancınık', note: 'Red Planet · kızıl toz, kadran düzeni · 216 meyve' },
+  { id: 'redplanet', pattern: 'Dial',      engel: null,       note: 'Red Planet · kızıl toz, kadran düzeni · 216 meyve · düzen klibi' },
   // jardin çıkarıldı: Maze 35. bölümde ve orası bir **görev bölümü**.
   //
   // Görev bölümlerinde hiçbir engel yerleşmiyor — ölçüldü, üç kuruluşta
@@ -276,11 +283,11 @@ const CLIPS = [
   { id: 'cogs',      pattern: 'Cogs',      engel: 'çamur',    note: 'Cogs · dişli çarklar · 219 meyve' },
   { id: 'track',     pattern: 'Track',     engel: 'silindir', note: 'Track · pist düzeni · 232 meyve' },
   { id: 'hourglass', pattern: 'Hourglass', engel: 'çamur',    note: 'Hourglass · kum saati · 314 meyve · patron bölümü' },
-  { id: 'tulip',     pattern: 'Comb',      engel: 'silindir', note: 'Tulip Fields · şeritli lale tarlası · 400 meyve' },
+  { id: 'tulip',     pattern: 'Comb',      engel: null,       note: 'Tulip Fields · şeritli lale tarlası · 400 meyve · düzen klibi' },
   { id: 'matchday',  pattern: 'Cross',     engel: 'çamur',    note: 'Matchday France · çizgili çim · 459 meyve (en kalabalık)' },
   { id: 'forbidden', pattern: 'Gate',      engel: 'çamur',    note: 'Forbidden City · kırmızı kapı, taş avlu · 408 meyve' },
-  { id: 'outback',   pattern: 'Boomerang', engel: 'rüzgâr',   note: 'Outback · kızıl merkez, bumerang düzeni · 201 meyve' },
-  { id: 'academy',   pattern: 'Key',       engel: 'silindir', note: 'Academy · mumlu taş koridor, anahtar düzen · 243 meyve' },
+  { id: 'outback',   pattern: 'Boomerang', engel: null,       note: 'Outback · kızıl merkez, bumerang düzeni · 201 meyve · düzen klibi' },
+  { id: 'academy',   pattern: 'Key',       engel: null,       note: 'Academy · mumlu taş koridor, anahtar düzen · 243 meyve · düzen klibi' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
   // ve 2.73), o yüzden listeden çıkmıyor.
@@ -576,8 +583,20 @@ for (const clip of CLIPS) {
   // sayısı kırk kata çıkarıldı, ötekilerde değil.)
   //
   // Yani izin var diye engel var değil. Burada tahtanın kendisine bakılıyor.
-  const sozu = await pg.evaluate(a => window.__engel(a), clip.engel);
-  if (!sozu.sayi) {
+  // `engel: null` — düzen klibi: klip bir engel vaat etmiyor, tahtanın
+  // kendisini gösteriyor.
+  //
+  // Niye gerekti: çekilmemiş dört kimliğin dördü de **tek** engelli
+  // tahtalar (mancınık ve silindir tahtada birer tane) ve tek olanlar
+  // kadraja sürekli girmiyor. `tulip` denemesinde silindir sekiz birimlik
+  // kadrajın 0.54 birim dışında kaldı. Araç o durumda vazgeçmiyor,
+  // engelsiz dört şartla kaydı sürdürüyor — ama klibin notunda "silindir"
+  // yazıyor, yani çıkan dosya söz verdiği şeyi göstermiyor. İki yoldan
+  // dürüst olanı, klibin baştan engel vaat etmemesi.
+  const sozu = clip.engel
+    ? await pg.evaluate(a => window.__engel(a), clip.engel)
+    : { sayi: 0, uzak: null };
+  if (clip.engel && !sozu.sayi) {
     // "Yeniden çalıştır, tahta rastgele" her zaman doğru değil.
     //
     // jardin altı denemenin altısında bu satırı verdi ve altısı da boşunaydı:
@@ -602,7 +621,9 @@ for (const clip of CLIPS) {
         `hiçbir engel yok. Görev bölümleri (her onuncunun beşincisi) engelsiz. ` +
         `Yeniden çalıştırmak işe yaramaz; klibin bölümünü ya da engelini değiştir.`);
   }
-  console.log(`  ${clip.engel}: ${sozu.sayi} tane, en yakını ${sozu.uzak} birim`);
+  console.log(clip.engel
+    ? `  ${clip.engel}: ${sozu.sayi} tane, en yakını ${sozu.uzak} birim`
+    : '  düzen klibi: engel vaat edilmiyor');
 
   // Isınma: kaydetmeden oyna. Kare yakalamadığımız için bu kısım hızlı
   // geçiyor — maliyeti yalnızca çizim, ekran görüntüsü değil.
@@ -859,7 +880,9 @@ for (const clip of CLIPS) {
   // kaybettiğini söylemiyor.
   const dortu = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE
     && d.dev > 0 && d.yutulabilir === 0 && d.buyukluk <= NEAR_MAX;
-  const engelde = d => d.engelUzak !== null && d.engelUzak <= ENGEL_R;
+  // Engel vaat edilmiyorsa engel şartı yok: arama dört şartı arıyor ve
+  // bulunca kaydı başlatıyor.
+  const engelde = d => !clip.engel || (d.engelUzak !== null && d.engelUzak <= ENGEL_R);
   const uygun = d => dortu(d) && engelde(d);
   let warm = 0;
   // Isınmanın ilk kısmı da engele doğru: delik büyürken yolu oraya çıksın.
@@ -894,7 +917,7 @@ for (const clip of CLIPS) {
   console.log(`  kayıt ${(warm / FPS).toFixed(1)}. saniyede başlıyor · ` +
     `çevrede ${d.yakin} meyve · kenara ${(d.halfX - Math.abs(d.x)).toFixed(1)} birim · ` +
     `kadrajda ${d.dev} dev (yutulabilir ${d.yutulabilir}, büyüklük ${d.buyukluk}) · ` +
-    `${clip.engel} ${d.engelUzak === null ? 'yok' : d.engelUzak + ' birim'}` +
+    `${clip.engel || 'engelsiz'} ${d.engelUzak === null ? 'yok' : d.engelUzak + ' birim'}` +
     (uygun(d) ? ''
       : engelsiz ? `  (${clip.engel} kadraja girmedi, dört şartla alındı)`
       : '  (şart sağlanmadı, üst sınıra dayandı)'));
@@ -908,7 +931,7 @@ for (const clip of CLIPS) {
     if (!(d.dev > 0)) eksik.push('kadrajda dev yok');
     if (!(d.yutulabilir === 0)) eksik.push('dev şimdiden yutulabilir');
     if (!(d.buyukluk <= NEAR_MAX)) eksik.push(`dev çok büyük (${d.buyukluk} > ${NEAR_MAX})`);
-    if (!(d.engelUzak !== null && d.engelUzak <= ENGEL_R)) {
+    if (clip.engel && !(d.engelUzak !== null && d.engelUzak <= ENGEL_R)) {
       eksik.push(`${clip.engel} kadraj dışında (${d.engelUzak} > ${ENGEL_R})`);
     }
     console.log(`  tutmayan: ${eksik.join(' · ')}`);
@@ -925,6 +948,18 @@ for (const clip of CLIPS) {
     if (!engelsiz) {
       throw new Error(`${clip.id}: şart tutmadı — ${eksik.join(' · ')}. ` +
         `Klip tahtanın en boş anından çıkardı. Yeniden çalıştır, tahta rastgele.`);
+    }
+    // Dört şart tuttu ama **engel kadraja girmedi**: eskiden kayıt burada
+    // sürüyordu ve çıkan dosya, notunda yazan engeli göstermiyordu.
+    // `tulip` denemesinde silindir kadrajın 0.54 birim dışında kaldı ve
+    // klip yine çekilecekti. Aracın kendi kuralı bunu yasaklıyor:
+    // anlatacağını anlatmayan klip yazılmaz. Vaat edilmeyen bir engel
+    // yoksa (`engel: null`) bu yola hiç girilmiyor.
+    if (clip.engel) {
+      throw new Error(`${clip.id}: ${clip.engel} kadraja girmedi ` +
+        `(${d.engelUzak} > ${ENGEL_R}). Klip onu vaat ediyor ve göstermeyecekti. ` +
+        `Yeniden çalıştır (tahta rastgele), ya da bu kimliği düzen klibine ` +
+        `çevir: listede 'engel' alanını null yap.`);
     }
   }
 
