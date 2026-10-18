@@ -1688,3 +1688,32 @@ söylememeli — bu ayrım `track` ve `hourglass`ta da böyle kuruldu.
 
 Bu ikisinden sonra **stok biter**. Yeni klip gerekirse araçta çekilmemiş
 dört kimlik duruyor: `redplanet`, `outback`, `academy`, `tulip`.
+
+### `tulip` denendi ve araç kendi bekçisiyle reddetti
+
+Gün 18 için `tulip` çekildi (37. bölüm, Tulip Fields, 400 meyve). Araç
+klibi **yazmadı** ve sebebini kendi söyledi:
+
+```
+silindir: 1 tane, en yakını 16.95 birim
+kayıt 12.9. saniyede başlıyor · çevrede 61 meyve · silindir 8.54 birim
+  (silindir kadraja girmedi, dört şartla alındı)
+tutmayan: silindir kadraj dışında (8.54 > 8)
+```
+
+Yani klip "bu tahtada silindir var" diyecekti ve silindir sekiz birimlik
+kadrajın 0.54 birim dışında kaldı. Bu, kimlik listesinin yanında zaten
+yazılı olan şeyin tekrarı: *"çamur tahtada üç tane, mancınık ve silindir
+birer tane. Tek olanlar kliplerde sürekli kadraj dışında diye düştü."*
+Kalan dört kimliğin dördü de tek engelli (`redplanet` mancınık, `outback`
+rüzgâr, `academy` ve `tulip` silindir), yani aynı risk dördünde de var.
+
+Eşiği gevşetmek (`--engelr`) bir çözüm değil: o sayı "engel kadrajda" demek
+ve büyütülürse klip kadrajda olmayan bir şeyi vaat eder. İki gerçek yol
+var, ikisi de ayrı iş: engelsiz bir klip tipi (düzenin kendisini anlatan),
+ya da aynı temanın **başka turdaki** bölümünü kullanmak — tema 55 bölümde
+bir dönüyor ve ikinci turdaki tahtada engel sayısı başka.
+
+Çekim bu konteynerde ucuz da değil: bir deneme ısınmayla birlikte yirmi
+dakikayı geçiyor, çünkü 720×1280 kare SwiftShader'da saniyeler sürüyor ve
+araç kaydı başlatmadan önce tahtanın oturmasını bekliyor.
