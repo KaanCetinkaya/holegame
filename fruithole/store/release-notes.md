@@ -34,7 +34,7 @@ yazıldığı günden sonra gelen iki şey: **hedef kartları** (bölümün ne i
 değiştiren en büyük oynanış değişikliği, yani listenin başına geçmesi gereken
 madde) ve dört yer daha.
 
-## 39 (1.13) — 492 karakter
+## 39 (1.13) — 491 karakter
 
 ```
 New in this update:
@@ -348,6 +348,20 @@ alıyor:
 - **Bomba önündeki meyvenin arkasında kalıyordu.** Kaan'ın cümlesi: "bir
   şeye dokununca süreden gidiyor ama neye anlayamadım." Ölçüldü,
   bombaların %63'ünün önünde onu aşan bir parça vardı; şimdi %0.
+
+### Nota **girmeyen** bir düzeltme, ve sebebi
+
+Kayıt yazması da sarıldı: `localStorage.setItem` dolu bir telefonda
+istisna atıyordu ve o istisna, çağrıldığı akışı (bölüm sonu ekranı, kasa
+yazımı) orada kesiyordu. Artık yutuluyor, sayılıyor ve teşhis ekranında
+duruyor.
+
+Bu nota **girmiyor**, çünkü dosyanın kuralı şu: düzeltilen hatalardan
+yalnızca oyuncunun başına gelmiş olanlar yazılıyor. Bunun geldiğine dair
+tek bir kayıt yok — kodu okurken bulundu. Oyuncunun görmediği bir
+düzeltmeyi "yeni neler var" kutusuna yazmak, o kutuyu okunmaz yapan
+şeydir. Bir gün "ilerlemem kaydolmuyor" diyen biri çıkarsa, bakılacak
+sayı teşhis ekranında duruyor ve o gün yazılır.
 
 Yerlerini ikisi açtı: "nothing is left sitting where the hole cannot reach
 it" (47-50 arasında yüklenmişti ve oyuncu için görünmez) ve dördüncü

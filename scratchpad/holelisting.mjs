@@ -65,5 +65,37 @@ for (const f of files) {
   if (!found) check(false, 'sınırlı hiçbir alan bulunamadı — başlık biçimi değişmiş olabilir');
 }
 
+// Sürüm notları da aynı kapıdan geçiyor.
+//
+// Bu dosyanın kendi başında yazıyor: "Sınır 500 karakter ve Play
+// boşlukları da sayıyor: uzunsa kutu kırmızıya dönüyor ve sürüm
+// kaydedilmiyor. Metni yazdıktan sonra sayılıyor, tahmin edilmiyor."
+// Sayılıyordu ama **kontrol edilmiyordu** — Slice Rush ve Motor Works'te
+// bu kapı var, Fruit Hole'da yoktu, ve üçünün içinde Play'e en sık
+// yükleneni bu.
+//
+// İki şey isteniyor: metin sınıra sığıyor, ve başlıktaki sayı metnin
+// gerçek uzunluğu. İkincisi elle yazılmış bir sayı, yani bu deponun en
+// sık hatası — bir sonraki notu yazan kişi ona bakarak yer hesaplıyor.
+console.log('\nrelease-notes.md');
+const notlar = readFileSync(`${DIR}/release-notes.md`, 'utf8');
+const nSatir = notlar.split('\n');
+const SINIR = Number((notlar.match(/\*\*(\d+) karakter\*\*/) || [])[1] || 500);
+let notSayisi = 0;
+for (let i = 0; i < nSatir.length; i++) {
+  const m = nSatir[i].match(/^##\s+(.+?)\s*—\s*(\d+) karakter/);
+  if (!m) continue;
+  const bas = nSatir.findIndex((l, k) => k > i && l.trim() === '```');
+  if (bas === -1) continue;
+  const son = nSatir.findIndex((l, k) => k > bas && l.trim() === '```');
+  if (son === -1) continue;
+  const metin = nSatir.slice(bas + 1, son).join('\n');
+  notSayisi++;
+  check(metin.length <= SINIR, `sürüm ${m[1]} sığıyor`, `${metin.length} / ${SINIR}`);
+  check(metin.length === Number(m[2]), `sürüm ${m[1]} başlığındaki sayı doğru`,
+    `yazan ${m[2]} · gerçek ${metin.length}`);
+}
+check(notSayisi > 0, 'sürüm notu bloğu bulundu', `${notSayisi} blok`);
+
 console.log(fails.length ? `\n${fails.length} alan sığmıyor` : '\nhepsi sığıyor');
 process.exit(fails.length ? 1 : 0);
