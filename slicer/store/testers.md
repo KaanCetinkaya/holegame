@@ -106,6 +106,79 @@ rather than installing and deleting. Google asks how the testers were
 found and a test where nobody played reads as exactly that.
 ```
 
+## Değiş tokuş grubunun kendi biçimi — üç bağlantı
+
+Bu gruplarda herkes aynı kalıbı atıyor ve kalıba uymayan gönderi
+okunmuyor. Üç satır, bu sırayla:
+
+```
+Join the authorized Google Group: https://groups.google.com/g/<grup-adı>
+Opt in: https://play.google.com/apps/testing/<paket>
+Install from Google Play with the same Google account: https://play.google.com/store/apps/details?id=<paket>
+```
+
+**Üçü de gerekiyor ve sırası önemli.** Sebebi bu dosyanın başka yerinde
+zaten yazılı: kapalı testin katılma bağlantısı **listede olmayan birinde
+açılmıyor**. Grup o yüzden birinci satırda — yabancı önce gruba
+katılıyor, listeye böyle giriyor, ve ancak ondan sonra opt-in
+bağlantısı onda çalışıyor. Grubu atlayıp doğrudan opt-in atmak, karşı
+tarafa kapalı bir kapı göstermek demek; o kişi bir daha denemiyor ve
+grupta itibarın gidiyor.
+
+### Önce kurulacak: her oyuna açık bir Google Grubu
+
+Slice Rush ve Motor Works'te bu **yok** (Fruit Hole'da var:
+`fruit-hole-testers@googlegroups.com`). Sırayla:
+
+1. groups.google.com → yeni grup, ör. `slice-rush-testers`
+2. Katılım ayarı: **"Anyone on the web can join"** — kapalıysa yabancı
+   giremez ve bütün kalıp çöker
+3. Play Console → Test → Kapalı test → **Test kullanıcıları** →
+   Google Grupları → grup adresini yapıştır
+
+### Yapıştırılacak metin — Slice Rush
+
+```
+Hi developers, I need 12 testers for my game and I will do the same for
+yours — drop your links and I'll join today.
+
+Slice Rush — a one-finger blade game: you set the blade's height, it
+cuts everything it meets, and you miss the bars.
+
+Join the authorized Google Group: https://groups.google.com/g/slice-rush-testers
+Opt in: https://play.google.com/apps/testing/com.kaancetinkaya.slicerush
+Install from Google Play with the same Google account: https://play.google.com/store/apps/details?id=com.kaancetinkaya.slicerush
+
+Please join and I will do the same for your app.
+```
+
+### Motor Works
+
+Aynı kalıp, ikinci satır ve bağlantılar değişiyor:
+
+```
+Motor Works — an idle car factory: four stations in a chain, and the
+whole game is finding the one everything else is waiting on.
+
+Join the authorized Google Group: https://groups.google.com/g/motor-works-testers
+Opt in: https://play.google.com/apps/testing/com.kaancetinkaya.motorworks
+Install from Google Play with the same Google account: https://play.google.com/store/apps/details?id=com.kaancetinkaya.motorworks
+```
+
+İkisini tek gönderide birleştirme: gruplar tek uygulamalık gönderi
+okumaya alışık, iki oyunlu bir gönderide ikincisi atlanıyor. Ayrı ayrı
+at, araya biraz zaman koy.
+
+### Karşılığını gerçekten ver
+
+"I will do the same for your app" bir nezaket cümlesi değil, grubun tek
+kuralı. Vermeyen atılıyor, ve atılmadan önce senin opt-in'lerinden
+çıkılıyor — yani 14 günlük sayaç sıfırlanıyor. Kaç kişiye söz
+verdiysen o kadarına gir.
+
+Not: o gruplarda **t.me bağlantısı yasak** (bot otomatik siliyor).
+Yukarıdaki üç bağlantının üçü de google.com, sorun çıkmıyor.
+
 ## Türkçe tanıdıklara
 
 ```
