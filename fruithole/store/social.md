@@ -1862,3 +1862,42 @@ Listede gözle görülen tek fark **saat**: o gönderi 00:12'de atılmış,
 Atılan ikinci kopya yüzünden şu an aynı klip iki gönderide duruyor.
 Yapılacak olan, 1 izlenmeli olanı silmek ve bugünkünü bırakmak: eskisi
 zaten dağıtım almamış, yenisi seri numarasına uyuyor.
+
+### Gece yarısı atılan üç gönderi sıfırda kaldı — iki hesapta birden
+
+18 Ekim'de iki hesabın gönderi listesi yan yana okundu ve tek bir
+örüntü çıktı. Saat, gönderinin kendi listesinden:
+
+| saat | gönderi | hesap | izlenme |
+|---|---|---|---|
+| 15 Eki 00:16 | 417 fruit on this board 🌸 | B | **0** |
+| 15 Eki 23:57 | 306 fruit in rings 🍊 | B | **0** |
+| 15 Eki 00:12 | 417 fruit on this board 🌸 | A | **1** |
+| 13 Eki 18:44 | level 50 boss stage | B | 429 |
+| 12 Eki 20:19 | three turtles watching a hole eat their reef 🐢 | A | 408 |
+| 16 Eki 21:08 | 219 fruit between the gears ⚙️ | B | 387 |
+| 13 Eki 18:47 | the hole gets bigger every time it eats | A | 117 |
+| 16 Eki 21:15 | 219 fruit between the gears ⚙️ | A | 69 |
+
+Gece yarısına denk gelen üçünün üçü de 0-1'de; 18:44-21:15 arasındaki
+beşinin beşi de 69-429. İki ayrı hesapta aynı şey.
+
+**Bu bir sebep değil, bir örüntü.** Klipler ve açıklamalar da farklı,
+yani tek değişken saat değil — ve dosyanın kuralı eşik uydurmamak.
+Denenecek hâli şu: sıradaki klip **19:00-21:00 arasında** atılacak,
+gece yarısı atılmayacak. Sayı yükselirse sebep ölçülmüş olur.
+
+Bu, daha önce "açıklanamadı" diye bırakılan sıfırların yerine geçmiyor;
+onlar (ikinci hesapta üç video 0, sonraki 8) saatleri kayda
+geçirilmediği için bu tabloya giremedi. Bundan sonra **her gönderinin
+saati** yazılıyor.
+
+### "Sadece ben" ve "İçerik inceleniyor" sıfırın bilinen sebebi
+
+`outback` (day 17) atıldıktan sonra listede 0 izlenmeyle duruyordu ve
+sebebini TikTok kendisi yazıyordu: gizlilik **"Sadece ben"**, ve
+gönderinin altında ⚠️ **"İçerik inceleniyor"**. "Sadece ben"deki bir
+video kimseye gösterilmiyor, yani o sıfır beklenen sıfır.
+
+Bir gönderi sıfırdaysa bakılacak ilk yer burası — listedeki gizlilik
+sütunu ve rozet. Ancak ikisi de temizse "açıklanamadı" denir.

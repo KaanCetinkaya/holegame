@@ -233,10 +233,20 @@
                 background: rgba(255,138,0,.14); border: 1px solid rgba(255,138,0,.45);
                 color: #ffc06a; font-size: 12px; line-height: 1.35; }
   #kayitUyari.show { display: block; }
-  /* Yazı 12px'te duruyor ama dokunma alanı 10px dolgu kadar büyük:
-     teşhis perdesinin el hareketi buraya bağlı ve 10px'lik bir yazıya
-     beş kez üst üste dokunmak ölçülecek bir şey değil. */
-  #verTag { position: absolute; left: 2px; bottom: 2px; padding: 10px;
+  /* Sol **üst** köşe, ve köşe ölçülerek seçildi.
+     Yazı eskiden sol alttaydı ve orada bir düğmenin üstünde duruyordu:
+     360x568'de menü ekranın 25 piksel dışına taşıyor (GOALS 539..593,
+     ekran 568), yani altta boş yer **yok**. Eski 40x12'lik yazı bile
+     (12..52, y 544..556) GOALS'un içindeydi — konumlanmış bir öğe
+     olduğu için dokunmayı da alıyordu, yani düğmenin üstünde ölü bir
+     nokta vardı. Teşhis perdesinin el hareketi için dolgu eklenince
+     ölü nokta büyüdü ve `slekran` onu yakaladı.
+     Sol üst dört boyutta da boş: başlık 78'den sonra başlıyor, ses
+     tuşu sağ üstte. Dolgu 10px, yani 40x12'lik yazı 60x32'lik bir
+     hedef oluyor — on piksellik bir yazıya beş kez dokunmak
+     ölçülecek bir şey değil. */
+  #verTag { position: absolute; left: 2px;
+            top: calc(env(safe-area-inset-top, 0px) + 2px); padding: 10px;
             font-size: 10px; font-weight: 700; letter-spacing: .04em;
             color: rgba(255,255,255,.45); }
 

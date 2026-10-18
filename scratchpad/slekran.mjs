@@ -283,15 +283,21 @@ for (const b of BOYUTLAR) {
   if (bas.yok || bas.kesis)
     sorun.push(`${b.ad} ses tuşu başlığın üstünde (pay ${bas.pay}px)`);
 
-  // Sürüm yazısı bir düğmenin üstüne binmiyor.
+  // Sürüm yazısı menüdeki hiçbir şeyin üstüne binmiyor.
   //
-  // Yazı sol alt köşede ve **görünenden büyük**: teşhis perdesinin beş
-  // dokunuşluk el hareketi ona bağlı olduğu için 10px dolgu kondu,
-  // yani 40x12'lik yazı 60x32'lik bir hedefe dönüştü. Büyüyen hedef
-  // menünün alt düğmesinin sol kenarına girebilir, ve o zaman
-  // düğmeye basan parmak düğmeye değil yazıya değer — düğme
-  // çalışmıyor görünür. Kısa ekranlarda menü dibe kadar indiği için
-  // risk tam burada.
+  // Bu satır yazıldığı gün bir hatayı yakaladı ve hata **yeni
+  // değildi**: yazı sol alt köşedeydi ve 360x568'de menü ekranın 25
+  // piksel dışına taşıyor (GOALS 539..593, ekran 568), yani altta boş
+  // yer yok. Dolgusuz 40x12'lik eski yazı bile (12..52, y 544..556)
+  // GOALS'un içindeydi — konumlanmış bir öğe olduğu için dokunmayı da
+  // alıyor, yani düğmenin üstünde hiçbir işe yaramayan bir nokta
+  // duruyordu. Teşhis perdesinin el hareketi için dolgu eklenince o
+  // nokta büyüdü ve ölçüm onu gördü.
+  //
+  // Yazı sol üste taşındı (dört boyutta da 2..62, y 2..34; başlık
+  // 74'ten sonra başlıyor, ses tuşu sağ üstte). Kapı o yüzden
+  // yalnızca düğmelere değil **başlığa ve karta da** bakıyor: risk
+  // artık orada.
   const ust = await pg.evaluate(() => {
     const v = document.getElementById('verTag');
     if (!v) return { yok: true };
@@ -300,20 +306,21 @@ for (const b of BOYUTLAR) {
       const r = el.getBoundingClientRect();
       return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
     };
-    const binen = [...document.querySelectorAll('#menu button, #menu .pill')]
+    const binen = [...document.querySelectorAll(
+      '#menu h1, #menu p, #menu .card, #menu button, #menu .pill')]
       .filter(gorunur)
       .filter(el => {
         const r = el.getBoundingClientRect();
         return !(a.right <= r.left || a.left >= r.right || a.bottom <= r.top || a.top >= r.bottom);
       })
-      .map(el => el.id || el.textContent.trim().slice(0, 12));
+      .map(el => el.id || el.tagName.toLowerCase() + ':' + el.textContent.trim().slice(0, 10));
     return { kutu: [Math.round(a.left), Math.round(a.top), Math.round(a.width), Math.round(a.height)],
              binen };
   });
-  console.log(`  sürüm yazısı ${ust.kutu?.join(',')} · bindiği düğme ` +
+  console.log(`  sürüm yazısı ${ust.kutu?.join(',')} · bindiği öğe ` +
     (ust.binen?.length ? ust.binen.join(', ') : 'yok'));
   if (ust.yok || ust.binen.length)
-    sorun.push(`${b.ad} sürüm yazısı düğmenin üstünde: ${ust.binen?.join(', ') || 'yazı yok'}`);
+    sorun.push(`${b.ad} sürüm yazısı bir öğenin üstünde: ${ust.binen?.join(', ') || 'yazı yok'}`);
 
   if (hata.length) { sorun.push(`${b.ad} sayfa hatası: ${hata[0]}`); console.log(`  HATA ${hata[0]}`); }
   await ctx.close();

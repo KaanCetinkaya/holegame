@@ -549,8 +549,30 @@ getiriyor:
 
 Gizli olması bir güvenlik değil, menüye oyuncunun işine yaramayan bir
 satır eklememek. Pencere 1.2 saniye: araları açılırsa sayaç sıfırlanıyor.
-Sürüm yazısı 10px ve köşede duruyor, o yüzden dokunma alanı dolguyla
-büyütüldü — ölçüm bunu da tutuyor, dolgu kalkarsa düşüyor.
+Sürüm yazısı 10px, o yüzden dokunma alanı dolguyla büyütüldü — ölçüm
+bunu da tutuyor, dolgu kalkarsa düşüyor.
+
+### Sürüm yazısı bir düğmenin üstünde duruyordu
+
+Dolgu eklenince `slekran`'a "yazı menüdeki hiçbir şeyin üstüne
+binmiyor" diye bir kapı yazıldı, ve kapı ilk koşuda düştü — ama
+yakaladığı hata **yeni değildi**. Ölçülen sayılar:
+
+| ekran | GOALS düğmesi | eski sürüm yazısı |
+|---|---|---|
+| 360x568 | y 539..593 | y 544..556 (x 12..52) |
+| 360x592 | y 539..593 | y 568..580 |
+
+360x568'de menü ekranın **25 piksel dışına taşıyor**, yani altta boş
+yer yok: dolgusuz 40x12'lik eski yazı bile GOALS'un içindeydi.
+Konumlanmış bir öğe olduğu için dokunmayı da alıyordu — düğmenin sol
+alt köşesinde hiçbir şey yapmayan bir nokta vardı ve bunu ölçen bir
+şey yoktu. Dolgu o noktayı büyüttü, yaratmadı.
+
+Yazı **sol üste** taşındı; köşe ölçülerek seçildi, dört boyutta da
+`2..62, y 2..34` duruyor ve başlık 74'ten önce başlamıyor, ses tuşu
+sağ üstte. Kapı artık düğmelerin yanı sıra başlığa, paragrafa ve
+karta da bakıyor: risk oraya taşındı.
 
 **Geri tuşu perdeyi kapatıyor, uygulamayı değil.** Perde bir `.screen`
 değil, yani `showScreen`den geçmiyor ve geçmiş girdisi kendiliğinden
