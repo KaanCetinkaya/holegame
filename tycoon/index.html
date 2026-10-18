@@ -4781,7 +4781,14 @@ window.jeKayit2 = () => ({
   anaVar: localStorage.getItem(KEY) !== null,
   yedekVar: localStorage.getItem(KEY_YEDEK) !== null,
   bozukVar: localStorage.getItem(KEY_BOZUK) !== null,
-  gecerli: kayitGecerli(JSON.parse(localStorage.getItem(KEY) || 'null')),
+  // Bozuk bir kaydı **anlatması** gereken satır, bozuk kayıtla
+  // patlamamalı. Düz `JSON.parse` idi: ölçüm, oyun kaydı onarmadan önce
+  // bakarsa rapor yerine istisna alıyordu — yani teşhisin kendisi,
+  // teşhis edeceği durumda çalışmıyordu.
+  gecerli: (() => {
+    try { return kayitGecerli(JSON.parse(localStorage.getItem(KEY) || 'null')); }
+    catch (e) { return false; }
+  })(),
 });
 // Yazmayı bozmanın yolu: kotayı doldurmak yerine `setItem`'ı patlat.
 window.jeKayitBoz = () => {
