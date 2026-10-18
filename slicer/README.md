@@ -106,10 +106,17 @@ yapıyordu — hep aynı dağınık yığın, hatırlanacak hiçbir an yok. Art�
 | **sweep** | sırayla tavandan ve yerden üç kapı | 18 |
 | **weave** | arka arkaya iki pencere, farklı yüksekliklerde | 23 |
 | **gauntlet** | dar pencere, hemen arkasında aynı hizada mayın | 28 |
+| **drift** | pencere duruyor değil: açıklık yukarı aşağı salınıyor | 36 |
 
 Her parça nereden başladığını ve nerede bittiğini biliyor, bir sonraki
 oradan devam ediyor. Yeni bir parça türünün açılması da bir ilerleme
-biçimi: zikzak 3., tünel 5., kapan 28. bölümde giriyor.
+biçimi: zikzak 3., tünel 5., kapan 28., kayan pencere 36. bölümde giriyor.
+
+`drift`e kadar on bir parçanın hepsinin cevabı bir **yükseklikti**: "şu
+hizaya git", "öteki uca kaç", "tam ortada ol". Hepsi tahtaya bakarak
+okunuyor ve bıçak oraya varınca iş bitiyor. Kayan pencerede cevap bir
+yükseklik değil bir **an** — pencere, oyuncu ona varana kadar başka bir
+yerde olacak. Yeni olan şey bir parça değil bir eksen: zaman.
 
 Bu tablo elle yazılıyor ve iki kez bayatladı — mayın, mengene ve salınım
 eklendiğinde kimse buraya dokunmadı. `scratchpad/slbelge.mjs` artık
@@ -482,28 +489,95 @@ ayarın üçü de sonlu ve `scratchpad/slicewall.mjs` nerede durduklarını öl�
 
 | ölçü | tavana çıktığı bölüm | tavan |
 |---|---|---|
-| parça havuzu (`PIECES`) | **28** | on bir parça, en yüksek `minLevel` 28 |
+| parça havuzu (`PIECES`) | **36** | on iki parça, en yüksek `minLevel` 36 |
 | parkur boyu | **12** | `Math.min(24 + n * 2, 48)` yuva → 165.8 |
 | hız | **17** | `Math.min(8 + (n - 1) * 0.45, 15)` |
+| karışım eğrisi (`sertlik`) | **32** | 17'de 0, 32'de 1 |
+| parça eğrileri (`olgun`) | **48** | `drift` 36'da giriyor, 48'de son hâlini alıyor |
+
+Son iki satır sonradan eklendi ve sebebi bir ölçüm hatası: **açılış
+bölümü ile olgunluk bölümü ayrı şeyler.** `slicewall` "en geç açılan
+parça 28" diye tarıyordu ve orada duruyordu, oysa mengene 22'ye,
+karışım 32'ye, kayan pencere 48'e kadar büyümeye devam ediyor. Yani
+ölçüm, hâlâ değişen bir bandı "durmuş" ilan ediyordu — tam da sormak
+için yazıldığı şeyin tersi. Parçalar artık `olgun` alanıyla kendi
+eğrilerinin nerede bittiğini söylüyor ve tarama oraya kadar gidiyor.
 
 Boy ve hız tavanları yerinde: daha uzun bir tur yorucu, daha hızlı bir
 bıçak okunmuyor. Yani duvarı iten şey o ikisi olamazdı.
 
 **Havuz.** 5'te doluyordu; mayın (8), mengene (12), salınım (18), dokuma
-(23) ve kapan (28) eklendi. Son ikisi bu türün sorduğu iki yeni soru:
+(23), kapan (28) ve kayan pencere (36) eklendi. Üçü bu türün sorduğu üç
+yeni soru:
 
 - **dokuma** — arka arkaya iki pencere, farklı yüksekliklerde. Mengene tek
   pencere, yani "şu yüksekliğe git ve orada kal". Burada ikinci pencere
   başka bir yerde: cevap bir yükseklik değil, bir sıra.
 - **kapan** — dar pencere, hemen arkasında aynı hizada mayın. Pencere "tam
   şurada ol", mayın "tam orada kalma" diyor. İkisi tek tek vardı.
+- **kayan pencere** — açıklık yerinde durmuyor, yukarı aşağı salınıyor.
+  Önceki on bir parçanın hepsinin cevabı bir yükseklikti; burada cevap
+  bir **an**, çünkü pencere oyuncu ona varana kadar başka bir yerde
+  olacak. Eklenen şey bir parça değil bir eksen: zaman.
 
 **Karışım.** Havuz dolduktan sonra bile bölüm numarasının bir anlamı
 olmalı. Ağırlıklar artık bölümle kayıyor: 17'de 0, 32'de 1 olan bir
 sertlik katsayısı kolay dolgu parçalarını (`run`, `stair`, `rest`)
 seyreltiyor, karar gerektirenleri (`mine`, `squeeze`, `sweep`, `weave`,
-`gauntlet`) sıklaştırıyor. Hiçbiri sıfıra inmiyor — yalnızca zor
-parçalardan kurulu bir parkur okunmuyor.
+`gauntlet`, `drift`) sıklaştırıyor. Hiçbiri sıfıra inmiyor — yalnızca
+zor parçalardan kurulu bir parkur okunmuyor.
+
+Eğri `buildCourse`un içindeydi ve dışarıdan okunamıyordu. Bedeli ölçümde
+görüldü: `slicewall` "geç bölüm" derken elle yazılmış 30'u kastediyordu,
+oysa eğri 32'de bitiyor — rampanın son üçte biri hiç ölçülmüyordu.
+`sliceMix()` artık eğrinin başını, sonunu ve her parçanın katsayısını
+veriyor; ölçüm pencerelerini oradan alıyor.
+
+Ve katsayıya **pay** ile bakmak yetmiyor. Zor parçaların katsayısı
+sıfırlansa bile kolay parçalar seyreldiği için zorun payı yine
+yükseliyor, yani paya bakan bir kapı eğrinin yarısının ölmesini
+göremiyor. Kapı o yüzden `agirlik / temel` oranına bakıyor — parçanın
+kendi bölüm eğrisi çıkarıldıktan sonra geriye kalan katsayıya — ve iki
+yönü ayrı ayrı istiyor: kolay seyrelecek, zor sıklaşacak.
+
+### Salınan bir pencere kendiliğinden bir soru değil
+
+`drift` eklendiğinde ilk eğrisi şöyleydi: 36. bölümde genlik 0.45,
+açıklık 2.45; ikisi de 48'e kadar büyüyor. Ekranda doğru görünüyordu —
+pencere gerçekten salınıyordu. Ama açıklık genliğin iki katından
+genişse ortada **hiç kıpırdamadan** geçilebilecek bir şerit kalıyor:
+`açıklık − 2×genlik`. 36. bölümde o şerit 1.55 birimdi, yani oyuncu
+şeridin ortasında durup pencerenin salınmasını seyredebiliyordu. Parça
+on iki bölüm boyunca dekordu.
+
+Bunu yakalayan şey gözle bakmak değil, ölçümün kapısı oldu ve kapı ilk
+koşusunda düştü. Eşik seçilmedi: oyunun kendi çarpışma payından geliyor
+— demir `half + 0.2` ile ısırıyor, yani iki taraftan 0.4 birim. Sabit
+şerit bundan genişse parça o bölümde bir şey sormuyor.
+
+Eğri ona göre yazıldı ve ölçüldü:
+
+| bölüm | genlik | açıklık | sabit şerit |
+|---|---|---|---|
+| 36 (açılış) | 1.05 | 2.46 | **0.36** |
+| 40 | 1.12 | 2.28 | 0.04 |
+| 44 | 1.19 | 2.10 | −0.27 |
+| 48 (olgun) | 1.25 | 1.90 | **−0.60** |
+
+Yani tanışmada bile sabit şerit çarpışma payının altında — parça ilk
+günden bir şey istiyor — ve olgunlukta açıklık salınımın gerisinde
+kalıyor. Yirmi beş tahtada kurulamama oranı her bölümde %0.
+
+**Sürücü de öğretildi, ve bu bir oyun değişikliği değil.** Otomatik
+oyuncu kapıların `gapY`sine nişan alıyor; salınan bir pencerede o değer
+**şu anki** yer ve sürücü oraya varana kadar pencere başka yerde olacak.
+Sürücü artık varış süresini mesafeden, yeri de salınımın kendi
+formülünden hesaplayıp **önüne** nişan alıyor. Aynı hata bu dosyada iki
+kez yapıldı (önce "tavandan geliyorsa dibe kaç", sonra engeli erken
+geçilmiş saymak) ve ikisinde de ölçülen şey oyunun zorluğu değil
+sürücünün körlüğü olmuştu. Ölçüldü: 36-50 arasında otuz altı turun
+yirmi yedisi bitiyor ve **salınan demirde tek ölüm yok** — ölümlerin
+hepsi mayın, ki 20. ve 30. bölümlerde de öyle.
 
 ### Havuzda olmak tahtada olmak değil
 

@@ -17,10 +17,18 @@ await pg.waitForFunction(() => typeof window.sliceProbe === 'function', { timeou
 console.log(' blm | engel | en dar geçiş | gereken | pencere | durum');
 console.log('-----+-------+--------------+---------+---------+--------');
 let bad = 0;
-// 30'a kadar. On beşte duruyordu ve o sınır parça havuzu 5. bölümde
-// dolduğu için yeterliydi; artık değil — mengene 12'den, salınım 18'den
-// açılıyor, yani eski menzil yeni parçaların ikisini de hiç görmüyordu.
-for (let lvl = 1; lvl <= 30; lvl++) {
+// Nereye kadar taranacağı oyundan okunuyor.
+//
+// Elle yazılmıştı ve iki kez yetmedi: önce 15'te duruyordu (havuz 5'te
+// doluyor diye), sonra 30'da (mengene 12, salınım 18). İkisinde de yeni
+// bir parça eklendi ve sınır sessizce onun altında kaldı — yani en yeni,
+// en az denenmiş parça tam da hiç bakılmayan parça oldu. Sınır artık en
+// geç açılan parçanın ve karışım eğrisinin bittiği yerin dördü ötesi.
+const SINIR = await pg.evaluate(() => {
+  const enGec = window.slicePieces().reduce((m, p) => Math.max(m, p.minLevel), 0);
+  return Math.max(enGec, window.sliceMix(1).bit) + 4;
+});
+for (let lvl = 1; lvl <= SINIR; lvl++) {
   // her bölümü 12 kez üret, en kötü diziyi bul
   const r = await pg.evaluate(n => {
     const CLIMB = 5, LANE_LOW = 0.8, LANE_HIGH = 4.8;
@@ -34,6 +42,8 @@ for (let lvl = 1; lvl <= 30; lvl++) {
     // arada bıçağa yer kalıp kalmadığı. Bu ölçü olmadan geçilemez bir
     // pencere testten sessizce geçerdi.
     let pencere = Infinity;
+    // Salınan pencerenin şeritte bıraktığı en dar pay.
+    let kalan = Infinity;
     for (let k = 0; k < runs; k++) {
       window.sliceStart(n);
       const list = window.sliceBars();
@@ -45,7 +55,14 @@ for (let lvl = 1; lvl <= 30; lvl++) {
         // katılırsa 0/0 olarak girip asıl en dar geçişi gizliyor.
         if (list[i].d === list[i-1].d) continue;
         const have = (list[i].d - list[i-1].d) / speed;
-        const need = Math.abs(list[i].gapY - list[i-1].gapY) / CLIMB;
+        // Salınan bir kapının boşluğu tek bir yerde değil, `gapY0 ±
+        // genlik` aralığında. `gapY` o **anın** fotoğrafı ve ona bakmak,
+        // oyuncunun yetişemeyeceği bir sırayı geçilebilir ilan edebilir:
+        // iki kapı o karede aynı hizadayken bir saniye sonra iki ayrı
+        // uçta olur. En kötü hâl, iki genliğin de mesafeye eklenmesi.
+        const oynak = (list[i].salinim ? list[i].salinim.genlik : 0) +
+                      (list[i-1].salinim ? list[i-1].salinim.genlik : 0);
+        const need = (Math.abs(list[i].gapY - list[i-1].gapY) + oynak) / CLIMB;
         if (have - need < worst - worstNeed) { worst = have; worstNeed = need; }
       }
       // Yakın ve karşıt iki demir bir pencere kuruyor.
@@ -59,22 +76,38 @@ for (let lvl = 1; lvl <= 30; lvl++) {
           const tavan = (ust.y - ust.half) - 0.2;
           const taban = (alt.y + alt.half) + 0.2;
           pencere = Math.min(pencere, tavan - taban);
+          // Salınan pencere şeridin dışına çıkabilir mi?
+          //
+          // Açıklığın **genişliği** salınımla değişmiyor (iki gövde
+          // birlikte kayıyor), ama **yeri** değişiyor: en yukarıdayken
+          // alt kenarı şeridin tepesini, en aşağıdayken üst kenarı
+          // dibini geçerse bıçağın gidebileceği hiçbir yükseklik kalmaz.
+          // Genişliğe bakan ölçü bunu göremez, çünkü orada pencere hâlâ
+          // açık — yalnızca ulaşılamaz.
+          const g = Math.max(ust.salinim ? ust.salinim.genlik : 0,
+                             alt.salinim ? alt.salinim.genlik : 0);
+          if (g > 0) kalan = Math.min(kalan, tavan - g - LANE_LOW,
+                                             LANE_HIGH - (taban + g));
         }
       }
     }
-    return { worst, worstNeed, pencere, bars: Math.round(bars / runs) };
+    return { worst, worstNeed, pencere, kalan, bars: Math.round(bars / runs) };
   }, lvl);
   const okYetis = r.worst === Infinity || r.worst >= r.worstNeed;
   // Pencere en az bıçağın yarı yüksekliği kadar açık olmalı; sıfır ya da
   // eksi, kapalı bir duvar demek.
   const okPencere = r.pencere === Infinity || r.pencere >= 0.3;
-  const ok = okYetis && okPencere;
+  // Salınan pencerenin şeritte bıraktığı pay. Sıfır ya da eksi: açıklık
+  // bir anda şeridin tamamen dışında kalıyor demektir.
+  const okKalan = r.kalan === Infinity || r.kalan >= 0.15;
+  const ok = okYetis && okPencere && okKalan;
   if (!ok) bad++;
   console.log(` ${String(lvl).padStart(3)} | ${String(r.bars).padStart(5)} | ` +
               `${(r.worst === Infinity ? '-' : r.worst.toFixed(2)+' sn').padStart(12)} | ` +
               `${(r.worst === Infinity ? '-' : r.worstNeed.toFixed(2)+' sn').padStart(7)} | ` +
               `${(r.pencere === Infinity ? '-' : r.pencere.toFixed(2)).padStart(7)} | ` +
-              `${ok ? 'OK' : (okYetis ? 'PENCERE KAPALI' : 'GEÇİLEMEZ')}`);
+              `${ok ? 'OK' : !okYetis ? 'GEÇİLEMEZ' : !okPencere ? 'PENCERE KAPALI'
+                   : 'SALINIM ŞERİTTEN TAŞIYOR'}`);
 }
 console.log(bad === 0 ? '\nPASS — her engel dizisi geçilebilir' : `\nFAIL — ${bad} bölümde imkânsız dizi`);
 console.log('errors:', errs.length ? errs : 'none');

@@ -1464,7 +1464,7 @@ const PIECES = [
   // iki yuvalık mesafede tırmanabileceği kadar. Yeterli yer yoksa parça
   // mayın koymuyor ve sıradan bir sıraya dönüyor — demirdeki `bar()` false
   // dönünce ne yapılıyorsa aynısı. Geçilemez bir tahta zorluk değil, hata.
-  { id: 'mine', minLevel: 8, weight: 3, build(c) {
+  { id: 'mine', minLevel: 8, olgun: 14, weight: 3, build(c) {
       // Mayının yarıçapı + en uzun bıçağın menzili + pay. Bunun altındaki
       // bir kaçış, kaçış değil.
       const GEREKEN = MINE_R + 0.22 + 0.34;
@@ -1527,7 +1527,7 @@ const PIECES = [
   // puanlık bir düşüş gösterdi, oyunun en sert basamağı. Oyuncu yeni bir
   // soruyu ilk gün seyrek görmeli: bir parkurda bir mengene bir şey
   // öğretir, üç mengene bir duvardır.
-  { id: 'squeeze', minLevel: 12, weight: 2,
+  { id: 'squeeze', minLevel: 12, olgun: 22, weight: 2,
     weightAt: n => Math.min(2, 0.6 + (n - 12) * 0.23),
     build(c) {
       const orta = (LANE_LOW + LANE_HIGH) / 2;
@@ -1617,6 +1617,65 @@ const PIECES = [
       for (let k = 0; k < 3 + ((Math.random() * 3) | 0); k++) c.fruit(kaçış);
       return kaçış;
     } },
+  // Kayan pencere: açıklık duruyor değil, yukarı aşağı salınıyor.
+  //
+  // Şimdiye kadarki on bir parçanın hepsinin cevabı bir **yükseklikti**:
+  // "şu hizaya git", "öteki uca kaç", "tam ortada ol". Hepsi tahtanın
+  // kendisine bakarak okunuyor ve bıçak oraya gidince iş bitiyor. Burada
+  // cevap bir yükseklik değil bir **an**: pencere oyuncu ona varana kadar
+  // başka bir yerde olacak, yani nereye gideceğini değil nerede olacağını
+  // okumak gerekiyor.
+  //
+  // İçerik duvarını ileri iten şey bu. Ölçüm (`scratchpad/slicewall.mjs`)
+  // boy tavanının 12'de, hız tavanının 17'de, havuzun 28'de, karışım
+  // eğrisinin 32'de durduğunu söylüyordu — yani 32'den sonra bölüm
+  // numarası yine bir şey ifade etmiyordu. Yeni bir eksen (zaman) o
+  // duvarı yeni tavan eklemeden ileri alıyor.
+  //
+  // Güvenlik tek bir yerde toplanıyor: `window()` salınımı biliyor ve
+  // pencere şeritten taşacaksa parçayı hiç kurmuyor. Geçilemez bir tahta
+  // zorluk değil, hata.
+  { id: 'drift', minLevel: 36, olgun: 48, weight: 2,
+    build(c) {
+      const orta = (LANE_LOW + LANE_HIGH) / 2;
+      // Genlik bölümle büyüyor, açıklık daralıyor; ikisi de 48'de
+      // duruyor (`olgun`). Tanışma bölümünde pencere geniş, salınım
+      // küçük — `squeeze`in öğrettiği şey: yeni bir soru ilk gün son
+      // hâliyle sorulmaz.
+      //
+      // Ama "yumuşak" ile "ölü" ayrı şeyler ve ilk eğri ikincisiydi.
+      // Açıklık genliğin iki katından genişse ortada hiç kıpırdamadan
+      // geçilebilecek bir şerit kalıyor ve salınım dekor oluyor: ilk
+      // denemede 36. bölümde o şerit 1.55 birimdi, yani parça on iki
+      // bölüm boyunca hiçbir şey sormuyordu. `slicewall` bunu kapı
+      // yaptı ve ilk koşuda düştü — eğri ona göre yazıldı: tanışmada
+      // sabit şerit zaten yok (0.35, çarpışma payının altında),
+      // olgunlukta eksiye geçiyor.
+      const genlik = Math.min(1.25, 1.05 + (c.lvl - 36) * 0.017);
+      const acik = Math.max(1.9, 2.45 - (c.lvl - 36) * 0.045);
+      // Hız radyan/saniye. Bir tur ~4 saniye: oyuncu pencereyi gördüğü
+      // andan geçtiği ana kadar yarım tura yakın yol alıyor, yani
+      // pencerenin **gittiği yön** okunabiliyor ama "şu an nerede"
+      // cevabı yetmiyor.
+      const hiz = 1.5;
+      const salinim = { genlik, hiz, faz: Math.random() * Math.PI * 2 };
+      // İki yuvalık giriş, yarı yolda. Pencere şeridin ortasında kuruluyor
+      // ve bıçak bir önceki parçadan iki birim uzakta olabiliyor: `bar()`
+      // ulaşılabilirliği **bir önceki engele** göre ölçüyor, bıçağın o
+      // anki yüksekliğine göre değil. Giriş meyvesi hem o yolu açıyor hem
+      // de nereye gidileceğini söylüyor.
+      for (let k = 0; k < 2; k++) c.fruit(c.clamp((c.y + orta) / 2));
+      if (!c.window(orta, acik, salinim)) {
+        for (let k = 0; k < 4; k++) c.fruit(c.y);
+        return c.y;
+      }
+      // Pencereden sonraki meyve şeridin ortasında: açıklığın gezindiği
+      // bandın merkezi orası. Salınımı izleyen bir meyve dizisi kurmak
+      // mümkün değil — meyvenin yeri tahta kurulurken belli, pencerenin
+      // yeri ise oyuncunun oraya **kaç saniyede** vardığına bağlı.
+      for (let k = 0; k < 3 + ((Math.random() * 3) | 0); k++) c.fruit(orta);
+      return orta;
+    } },
   // Nefes: kısa bir boşluk. Her yuvası dolu bir parkur okunmuyor.
   { id: 'rest', minLevel: 1, weight: 1, build(c) {
       c.skip(1 + ((Math.random() * 2) | 0));
@@ -1626,7 +1685,15 @@ const PIECES = [
 
 // Bir demir gövdesi. `bar()` ve `window()` ikisi de bunu kullanıyor;
 // pencere aynı `d`'de iki kez çağırıyor.
-function koyDemir(fromTop, h, d, gapY) {
+// `salinim` verilirse demir yerinde durmuyor: boşluk yukarı aşağı
+// kayıyor. `{ genlik, hiz, faz }` — genlik birim, hız radyan/saniye.
+//
+// `uzat`, gövdenin **çapalandığı** uca eklenen fazladan boy. Salınan bir
+// demir aşağı kaydığında tavanla arasında boşluk açılıyordu: ekranda
+// havada duran bir levha, ve oyuncunun okuyamayacağı bir şey. Gövde o
+// kadar uzatılıp çapası aynı kadar dışarı alınıyor, yani boşluğun yeri
+// değişmiyor, yalnızca demir her salınımda tavana (ya da yere) yetişiyor.
+function koyDemir(fromTop, h, d, gapY, salinim = null, uzat = 0) {
   const mesh = new THREE.Group();
   const bar = new THREE.Mesh(BAR_GEO, barMat);
   bar.scale.y = h;
@@ -1644,7 +1711,7 @@ function koyDemir(fromTop, h, d, gapY) {
     bolt.position.set(sx, fromTop ? h / 2 - 0.3 : -h / 2 + 0.3, 0);
     mesh.add(bolt);
   }
-  const cy = fromTop ? (LANE_HIGH + 2.2) - h / 2 : (LANE_LOW - 2.2) + h / 2;
+  const cy = fromTop ? (LANE_HIGH + 2.2 + uzat) - h / 2 : (LANE_LOW - 2.2 - uzat) + h / 2;
   mesh.position.set(0, cy, -d);
   scene.add(mesh);
   // Boşluğun gerçek yeri nesnenin üstünde taşınıyor.
@@ -1654,8 +1721,55 @@ function koyDemir(fromTop, h, d, gapY) {
   // için doğruydu; pencerede iki demir **aynı** boşluğu paylaşıyor ve o
   // varsayım ikisine iki ayrı, uydurma değer veriyor. Geçilebilirlik testi
   // de o uydurma değerleri okuyup her pencereyi imkânsız ilan etti.
-  items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop, gapY });
+  items.push({ kind: 'bar', mesh, d, y: cy, half: h / 2, fromTop, gapY,
+               salinim, y0: cy, gapY0: gapY });
 }
+
+// Salınan demirleri oyunun saatine göre yerine koy.
+//
+// Konum birikimle değil **saatin fonksiyonu** olarak hesaplanıyor
+// (`y0 + genlik*sin(...)`), yani kare süresi ne olursa olsun aynı saatte
+// aynı yerde. Bu bir rahatlık değil şart: ölçümler `sliceStep(dt)` ile
+// kendi saatlerini ilerletiyor ve biriken bir konum, otuz kare atan bir
+// ölçümle altmış kare atan bir oyunu iki ayrı tahtaya çevirirdi.
+//
+// `it.y` demirin gövde merkezi, `it.gapY` boşluğun yeri; ikisi birlikte
+// kayıyor, çünkü boşluğu kaydırmak gövdeyi kaydırmak demek. Çarpışma
+// `it.y` ile `it.half`e bakıyor, dışarısı `it.gapY`ye — ikisi ayrı
+// güncellenmezse biri ötekine yalan söyler.
+function salinanlariOynat() {
+  for (const it of items) {
+    if (!it.salinim) continue;
+    const s = it.salinim;
+    const kayma = s.genlik * Math.sin(simdi / 1000 * s.hiz + s.faz);
+    it.y = it.y0 + kayma;
+    it.gapY = it.gapY0 + kayma;
+    it.mesh.position.y = it.y;
+  }
+}
+
+// Karışımın sertlik eğrisi.
+//
+// `buildCourse`un içindeydi ve dışarıdan okunamıyordu. Bedeli `slicewall`da
+// görüldü: o ölçüm "geç bölüm erken bölümden ayırt edilebiliyor mu" diye
+// soruyor ve "geç bölüm"ü **elle yazılmış** 30 sanıyordu. Eğri 32'de
+// bitiyor, yani ölçüm rampanın son üçte birini hiç görmeden rampayı
+// ölçtüğünü sanıyordu. Burada durunca `sliceMix` onu oyundan okuyabiliyor
+// ve eğri değişirse ölçüm onunla birlikte kayıyor.
+const SERT_BAS = 17, SERT_BOY = 15;
+const sertlik = n => Math.max(0, Math.min(1, (n - SERT_BAS) / SERT_BOY));
+const KOLAY = new Set(['run', 'stair', 'rest']);
+const ZOR = new Set(['mine', 'squeeze', 'sweep', 'weave', 'gauntlet', 'drift']);
+// Parçanın kendi bölüm eğrisi varsa o, yoksa sabit ağırlığı; sonra
+// karışımın sertlik katsayısı. İkisi ayrı şeyler: biri "bu parça ne
+// zaman olgunlaşıyor", öteki "geç bölümde karışım nereye kayıyor".
+const temel = (p, n) => (p.weightAt ? p.weightAt(n) : p.weight);
+const agirlik = (p, n) => {
+  const s = sertlik(n);
+  return KOLAY.has(p.id) ? temel(p, n) * (1 - 0.55 * s)
+       : ZOR.has(p.id)   ? temel(p, n) * (1 + 0.80 * s)
+       : temel(p, n);
+};
 
 // Son kurulan parkurun parça dökümü (ölçüm okuyor, oyun yazmıyor).
 let sonParcalar = [];
@@ -1722,12 +1836,18 @@ function buildCourse(n) {
     bar(fromTop, gapY) {
       if (slot >= slots) return false;
       const d = slot * SPACING;
+      // Bir önceki kapı salınıyorsa boşluğunun yeri tek bir sayı değil,
+      // bir aralık: aradaki mesafeye onun genliği ekleniyor. En iyi hâle
+      // göre ölçmek, oyuncunun yetişemeyeceği bir sırayı geçilebilir ilan
+      // etmek olurdu.
+      const oynak = lastBar ? lastBar.genlik || 0 : 0;
       // Can the blade get from the last bar's gap to this one in the course
       // between them? Nothing stopped two opposing bars landing in adjacent
       // slots: at level 1 that is four tenths of a second to cross a lane
       // that takes a full second, which is not difficulty, it is a wall with
       // no way through.
-      if (lastBar && (d - lastBar.d) / runSpeed < Math.abs(gapY - lastBar.gapY) / CLIMB)
+      if (lastBar && (d - lastBar.d) / runSpeed <
+          (Math.abs(gapY - lastBar.gapY) + oynak) / CLIMB)
         return false;
       const edge = fromTop ? gapY + 0.55 : gapY - 0.55;
       const h = fromTop ? (LANE_HIGH + 2.2) - edge : edge - (LANE_LOW - 2.2);
@@ -1735,7 +1855,7 @@ function buildCourse(n) {
 
       slot++;
       koyDemir(fromTop, h, d, gapY);
-      lastBar = { d, gapY };
+      lastBar = { d, gapY, genlik: 0 };
       return true;
     },
     // Pencere: aynı hizada, biri tavandan biri yerden iki demir.
@@ -1749,21 +1869,32 @@ function buildCourse(n) {
     // Buradaki iki gövde aynı `d`'de duruyor ve tek yuva harcıyor. Yeni olan
     // şey de bu: şimdiye kadar her demirin cevabı "öteki uca git"ti, burada
     // tek doğru yükseklik var ve o da şeridin ortasında bir yerde.
-    window(gapY, aciklik = 1.6) {
+    // `salinim` verilirse pencerenin iki gövdesi **birlikte** kayıyor:
+    // açıklık hep aynı genişlikte kalıyor ama yeri duruyor değil. Oyuncuya
+    // sorduğu şey yeni: şimdiye kadar her kapının cevabı bir yükseklikti,
+    // burada cevap bir yükseklik değil, bir **an**.
+    window(gapY, aciklik = 1.6, salinim = null) {
       if (slot >= slots) return false;
       const d = slot * SPACING;
-      if (lastBar && (d - lastBar.d) / runSpeed < Math.abs(gapY - lastBar.gapY) / CLIMB)
+      const g = salinim ? salinim.genlik : 0;
+      const oynak = g + (lastBar ? lastBar.genlik || 0 : 0);
+      if (lastBar && (d - lastBar.d) / runSpeed <
+          (Math.abs(gapY - lastBar.gapY) + oynak) / CLIMB)
         return false;
       const ustKenar = gapY + aciklik / 2;
       const altKenar = gapY - aciklik / 2;
-      const hUst = (LANE_HIGH + 2.2) - ustKenar;
-      const hAlt = altKenar - (LANE_LOW - 2.2);
+      // Salınan pencere şeritten taşmamalı: açıklık en yukarıdayken alt
+      // kenarı şeridin tepesini, en aşağıdayken üst kenarı dibini
+      // geçerse o tahta geçilemez olur, zor değil.
+      if (g > 0 && (altKenar + g >= LANE_HIGH || ustKenar - g <= LANE_LOW)) return false;
+      const hUst = (LANE_HIGH + 2.2 + g) - ustKenar;
+      const hAlt = altKenar - (LANE_LOW - 2.2 - g);
       if (hUst <= 0.6 || hAlt <= 0.6) return false;
 
       slot++;
-      koyDemir(true, hUst, d, gapY);
-      koyDemir(false, hAlt, d, gapY);
-      lastBar = { d, gapY };
+      koyDemir(true, hUst, d, gapY, salinim, g);
+      koyDemir(false, hAlt, d, gapY, salinim, g);
+      lastBar = { d, gapY, genlik: g };
       return true;
     },
     // Mayın. Bir yuva yiyor ve o yükseklikte durulamaz hâle getiriyor.
@@ -1799,21 +1930,12 @@ function buildCourse(n) {
   // tırmandığını sanıyordu. Ağırlıkların kaymasının sebebi bu: yeni
   // parça yazmadan da geç bölüm başka bir tahta olmalı.
   //
-  // `SERT` 17'de 0, 32'de 1. Kolay dolgu parçaları seyreliyor, karar
-  // gerektirenler sıklaşıyor; hiçbiri sıfıra inmiyor, çünkü yalnızca zor
-  // parçalardan kurulu bir parkur okunmuyor.
-  const sert = Math.max(0, Math.min(1, (n - 17) / 15));
-  const KOLAY = new Set(['run', 'stair', 'rest']);
-  const ZOR = new Set(['mine', 'squeeze', 'sweep', 'weave', 'gauntlet']);
-  // Parçanın kendi bölüm eğrisi varsa o, yoksa sabit ağırlığı; sonra
-  // karışımın sertlik katsayısı. İkisi ayrı şeyler: biri "bu parça ne
-  // zaman olgunlaşıyor", öteki "geç bölümde karışım nereye kayıyor".
-  const temel = p => (p.weightAt ? p.weightAt(n) : p.weight);
-  const agirlik = p => KOLAY.has(p.id) ? temel(p) * (1 - 0.55 * sert)
-                     : ZOR.has(p.id)   ? temel(p) * (1 + 0.80 * sert)
-                     : temel(p);
+  // Sertlik eğrisi 17'de 0, 32'de 1 ve yukarıda duruyor (`sertlik`).
+  // Kolay dolgu parçaları seyreliyor, karar gerektirenler sıklaşıyor;
+  // hiçbiri sıfıra inmiyor, çünkü yalnızca zor parçalardan kurulu bir
+  // parkur okunmuyor.
   const pool = PIECES.filter(p => n >= p.minLevel);
-  const total = pool.reduce((a, p) => a + agirlik(p), 0);
+  const total = pool.reduce((a, p) => a + agirlik(p, n), 0);
   let guard = 0;
   // Hangi parça seçildi ve **ne koydu**. Ölçüm için tutuluyor
   // (`sliceParcalar`), oyunun davranışına girmiyor.
@@ -1829,7 +1951,7 @@ function buildCourse(n) {
   const sayac = () => items.reduce((a, i) => (a[i.kind] = (a[i.kind] || 0) + 1, a), {});
   while (slot < slots && guard++ < 200) {
     let roll = Math.random() * total, pick = pool[0];
-    for (const p of pool) { roll -= agirlik(p); if (roll <= 0) { pick = p; break; } }
+    for (const p of pool) { roll -= agirlik(p, n); if (roll <= 0) { pick = p; break; } }
     const once = sayac();
     c.y = c.clamp(pick.build(c));
     const sonra = sayac();
@@ -2453,6 +2575,11 @@ let simdi = 0;
 function adim(dt) {
   simdi += dt * 1000;
   if (state === 'playing') {
+    // Önce engeller, sonra bıçak: çarpışma ikisinin de **bu kareye ait**
+    // yerine bakmalı. Ters sırada salınan bir demir bir kare geriden
+    // çarpışıyor ve oyuncu açısından bu, gördüğü boşluktan geçerken
+    // ölmek demek.
+    salinanlariOynat();
     const d0 = dist, y0 = bladeY;
     dist += speed * dt;
     // Follow rather than snap: the lag is what makes the blade feel like an
@@ -2670,8 +2797,27 @@ window.sliceAutoPlay = () => {
     // Bu bir oyun hatası değil, **ölçüm aracının** hatası; ama sliceRun
     // 12. bölümün üstünde ne ölçerse ölçsün, ölçtüğü şey oyun değil
     // sürücünün kendi kusuru oluyordu.
-    window.sliceSetTarget(bar.gapY != null ? bar.gapY
-      : (bar.fromTop ? LANE_LOW + 0.25 : LANE_HIGH - 0.25));
+    // Salınan bir kapıda `gapY` **şu anki** yer, ve sürücünün oraya
+    // varması zaman alıyor. Bu satır bir oyun hatası değil ölçüm
+    // aracının hatası olurdu — ve aynı hata bu dosyada iki kez
+    // yapıldı: önce "tavandan geliyorsa dibe kaç" diye varsayıyordu,
+    // sonra engeli erken geçilmiş sayıyordu. Üçüncüsü "pencere
+    // nerededeyse orası" olurdu, oysa `drift`in sorduğu şey tam olarak
+    // bu değil: pencere oyuncu varana kadar başka bir yerde olacak.
+    //
+    // Varış süresi mesafeden geliyor, yer de salınımın kendi
+    // formülünden. İnsan oyuncu bunu gözüyle yapıyor; sürücünün de
+    // yapması gerek, yoksa ölçtüğü şey oyunun zorluğu değil kendi
+    // körlüğü olur.
+    let hedef = bar.gapY != null ? bar.gapY
+      : (bar.fromTop ? LANE_LOW + 0.25 : LANE_HIGH - 0.25);
+    if (bar.salinim) {
+      const varis = Math.max(0, (bar.d - dist) / Math.max(1, speed));
+      const t = simdi / 1000 + varis;
+      hedef = bar.gapY0 + bar.salinim.genlik *
+              Math.sin(t * bar.salinim.hiz + bar.salinim.faz);
+    }
+    window.sliceSetTarget(hedef);
     return 'dodge';
   }
   // Mayın meyveden önce geliyor, aynı gerekçeyle: bu döngü eskiden meyve
@@ -2733,6 +2879,12 @@ window.sliceTheme = () => ({
 window.sliceParcalar = () => sonParcalar.map(p => ({ ...p }));
 window.slicePieces = () => PIECES.map(p => ({
   id: p.id, minLevel: p.minLevel, weight: p.weight,
+  // Parçanın kendi eğrisi nerede bitiyor. Açılış bölümü "ne zaman
+  // görünüyor" sorusunun cevabı; `olgun` ise "ne zaman son hâlini
+  // alıyor". İkisi karıştırıldığında içerik ölçümü, hâlâ değişen bir
+  // bandı durmuş sayıyor — `drift` 36'da giriyor ama 48'e kadar
+  // büyüyor. Eğrisi olmayan parçalar için ikisi aynı.
+  olgun: p.olgun ?? p.minLevel,
   // Bu parça engel koymayı **vaat ediyor** mu: kodunda `c.bar`, `c.window`
   // ya da `c.mine` çağırıyor mu. Ölçümün elle tutacağı bir liste değil,
   // parçanın kendi kaynağı.
@@ -2744,6 +2896,28 @@ window.slicePieces = () => PIECES.map(p => ({
   // kaybediyor.
   engel: /\bc\s*\.\s*(bar|window|mine)\s*\(/.test(p.build.toString()),
 }));
+// Karışımın sertlik eğrisi: bir bölümde kolay ve zor parçalar hangi
+// ağırlıkla çekiliyor, ve eğri nerede başlayıp nerede bitiyor.
+//
+// Eğrinin bitiş noktası oyundan okunabilsin diye var. `slicewall` "geç
+// bölüm" derken 30'u kastediyordu; eğri 32'de bitiyor, yani rampanın son
+// üçte biri ölçümün dışında kalıyordu. Sayıyı oraya ikinci kez yazmak
+// aynı hatayı bir sonraki ayarda tekrarlardı.
+// Her parça için hem **temel** ağırlık (parçanın kendi bölüm eğrisi) hem
+// de karışımdan geçmiş hâli veriliyor. İkisi ayrı olmazsa eğrinin ölüp
+// ölmediği ölçülemiyor: zor parçaların katsayısı sıfırlansa bile kolay
+// parçalar seyreldiği için zorun **payı** yine yükseliyor, yani paya
+// bakan bir kapı o bozulmayı görmüyor. Oran (`agirlik / temel`) yalnızca
+// katsayıya bakıyor.
+window.sliceMix = (n = 1) => ({
+  bas: SERT_BAS, bit: SERT_BAS + SERT_BOY, sert: +sertlik(n).toFixed(3),
+  kolay: [...KOLAY], zor: [...ZOR],
+  parca: Object.fromEntries(PIECES.filter(p => n >= p.minLevel).map(p => [p.id, {
+    temel: +temel(p, n).toFixed(4),
+    agirlik: +agirlik(p, n).toFixed(4),
+    sinif: KOLAY.has(p.id) ? 'kolay' : ZOR.has(p.id) ? 'zor' : 'orta',
+  }])),
+});
 // Mayınların yeri — dizinin geçilebilir olduğunu dışarıdan doğrulamak için.
 window.sliceMines = () => items.filter(i => i.kind === 'mine').map(i => ({
   d: +i.d.toFixed(2), y: +i.y.toFixed(2), r: i.r,
@@ -2756,6 +2930,12 @@ window.sliceBars = () => items.filter(i => i.kind === 'bar').map(i => ({
   fromTop: i.fromTop,
   // Kurulurken kaydedilen gerçek değer. Burada uydurulmuyor.
   gapY: +i.gapY.toFixed(2),
+  // Salınan bir demirde `gapY` **o anki** yer; geçilebilirliğe bakan bir
+  // ölçüm bunu bilmeden tek bir karenin fotoğrafını tahtanın tamamı
+  // sanar. Genlik ve hız o yüzden burada: boşluğun gezindiği aralık
+  // `gapY0 ± genlik`.
+  salinim: i.salinim ? { genlik: i.salinim.genlik, hiz: i.salinim.hiz,
+                         gapY0: +i.gapY0.toFixed(2) } : null,
 })).sort((a, b) => a.d - b.d);
 window.sliceMeta = () => ({
   coins, runCoins, banked: paidOut, revived,

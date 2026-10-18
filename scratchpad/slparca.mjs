@@ -47,7 +47,6 @@ const srv = createServer((q, r) => {
   } else { r.writeHead(404); r.end('no'); }
 }).listen(8623);
 
-const SON = Number(process.argv[2] || 40);
 const TAHTA = Number(process.argv[3] || 30);
 
 const br = await chromium.launch({
@@ -61,6 +60,14 @@ await pg.goto('http://localhost:8623/', { waitUntil: 'load' });
 await pg.waitForFunction(() => typeof window.sliceParcalar === 'function', { timeout: 30000 });
 // Çizim kapalı: ölçülen şey parkurun kurulumu, ekrandaki görüntü değil.
 await pg.evaluate(() => window.sliceDrawOff(true));
+
+// Kaç bölüm taranacağı elle değil havuzdan: en geç açılan parçanın altı
+// bölüm ötesi. Elle yazılmış bir sınır, bir sonraki parça ondan geç
+// açıldığında sessizce onu hiç görmez — ve bu dosyanın tek işi her
+// parçanın tahtaya çıktığını göstermek.
+const SON = Number(process.argv[2]) ||
+  (await pg.evaluate(() =>
+    window.slicePieces().reduce((m, p) => Math.max(m, p.minLevel), 0) + 6));
 
 const veri = await pg.evaluate(async ({ SON, TAHTA }) => {
   const parcalar = window.slicePieces();

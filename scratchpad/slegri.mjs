@@ -1,12 +1,12 @@
 // Zorluk düzgün mü artıyor, yoksa bir yerde uçurum mu var?
 //
-// Bugün karışım bölümle sertleşmeye başladı: kolay dolgu parçaları
-// seyreliyor, karar gerektirenler sıklaşıyor, ve 23 ile 28'de iki yeni
-// parça giriyor. `slicewall.mjs` bunun **ölçülebilir** olduğunu
-// gösteriyor (tur başına 4.4 demirden 9.2'ye), `slicegaps.mjs` her
-// dizinin geçilebilir olduğunu. İkisi de "düzgün artıyor mu" sorusunu
-// cevaplamıyor: bir bölüm ötekinin iki katı zorlaşıyorsa oyuncu orada
-// bırakır ve iki ölçüm de bunu görmez.
+// Karışım bölümle sertleşiyor: kolay dolgu parçaları seyreliyor, karar
+// gerektirenler sıklaşıyor, ve 23, 28, 36'da üç yeni parça giriyor.
+// `slicewall.mjs` bunun **ölçülebilir** olduğunu gösteriyor (tur başına
+// iki katından fazla demir), `slicegaps.mjs` her dizinin geçilebilir
+// olduğunu. İkisi de "düzgün artıyor mu" sorusunu cevaplamıyor: bir
+// bölüm ötekinin iki katı zorlaşıyorsa oyuncu orada bırakır ve iki
+// ölçüm de bunu görmez.
 //
 // Otomatik sürücü iyi bir oyuncu değil — bir sonraki engele bakıyor,
 // ondan sonrakine değil (bkz. slicer/README.md). Ama **tutarlı biçimde**
@@ -21,7 +21,6 @@ import { createServer } from 'http';
 import { readFileSync } from 'fs';
 
 const ÖRNEK = 16;
-const SON = 30;
 
 const srv = createServer((q, r) => {
   const p = q.url === '/' ? '/index.html' : q.url.split('?')[0];
@@ -43,6 +42,13 @@ await pg.evaluate(() => { for (const el of document.querySelectorAll('.screen'))
 
 let fail = 0;
 const ok = (c, ad, not = '') => { if (!c) fail++; console.log(`  ${c ? 'OK  ' : 'FAIL'} ${ad}   ${not}`); };
+
+// Nereye kadar: bütün eğrilerin durduğu bölümün iki ötesi. Elle
+// yazılmış 30, `drift` 36'da girdiği anda yeni parçanın getirdiği
+// basamağı hiç görmeyecekti — ve bu dosyanın tek işi basamak aramak.
+const SON = await pg.evaluate(() => Math.max(
+  window.sliceMix(1).bit,
+  window.slicePieces().reduce((m, p) => Math.max(m, p.olgun), 0)) + 2);
 
 const satir = [];
 for (let n = 1; n <= SON; n++) {
