@@ -2267,6 +2267,43 @@ $('dOk').onclick = () => {
   sfx.clear();
 };
 
+// Tur başındaki tek satır.
+//
+// Her turda aynı cümle yazıyordu: "Slide your finger up and down".
+// Birinci bölümde gereken şey, kırkıncıda gürültü — ve oyuncunun
+// okumayı bıraktığı bir yer, yeni bir şey söylemek için elverişli
+// değil. Satır artık üç durumdan birini söylüyor ya da hiç çıkmıyor.
+//
+// Yeni parçanın tanıtımı bir süs değil: on bir parçanın hepsi tek
+// kareye bakılarak anlaşılıyor (demir orada duruyor, mayın orada
+// duruyor), `drift` ise anlaşılmıyor — pencerenin **hareket ettiğini**
+// görmek için ona bakmayı sürdürmek gerek. Kuralı bir karede
+// görünmeyen ilk parça o, ve söylenmesi gereken ilk parça da o.
+const TANITIM = {
+  mine:     'Do not cut the mines',
+  squeeze:  'Two bars, one gap — find the height',
+  sweep:    'Gates from the roof and the floor, in turn',
+  weave:    'Two gaps in a row, at different heights',
+  gauntlet: 'A mine waits right behind the gap',
+  drift:    'This window will not hold still',
+};
+let ipucuGoruldu = store.nesne('slicerush_hints', {});
+function ipucuSec(n) {
+  // Açılış bölümü **oyundan** okunuyor, buraya ikinci kez yazılmıyor:
+  // bir parçanın açılışı kaydığında tanıtımı da onunla kayar.
+  const yeni = PIECES.find(p => TANITIM[p.id] && p.minLevel === n && !ipucuGoruldu[p.id]);
+  if (yeni) {
+    ipucuGoruldu[yeni.id] = 1;
+    store.set('slicerush_hints', ipucuGoruldu);
+    return TANITIM[yeni.id];
+  }
+  // Kontrol satırı, oyuncu üçüncü bölümü geçene kadar. `level`e değil
+  // `maxLevel`e bakıyor: birinci bölümü sonradan tekrar oynayan birine
+  // parmağını nasıl kaydıracağını anlatmak gerekmiyor.
+  if (maxLevel <= 3) return 'Slide your finger up and down';
+  return null;
+}
+
 function startLevel() {
   temaUygula(level);
   totalCuts = buildCourse(level);
@@ -2288,8 +2325,14 @@ function startLevel() {
   $('bar').style.width = '0%';
   state = 'playing';
   showScreen(null);
-  $('hint').classList.add('show');
-  setTimeout(() => $('hint').classList.remove('show'), 2600);
+  const ipucu = ipucuSec(level);
+  if (ipucu) {
+    $('hint').textContent = ipucu;
+    $('hint').classList.add('show');
+    setTimeout(() => $('hint').classList.remove('show'), 2600);
+  } else {
+    $('hint').classList.remove('show');
+  }
 }
 
 // Coins are banked here rather than as they are cut, so a crash costs the
@@ -2909,6 +2952,15 @@ window.slicePieces = () => PIECES.map(p => ({
 // parçalar seyreldiği için zorun **payı** yine yükseliyor, yani paya
 // bakan bir kapı o bozulmayı görmüyor. Oran (`agirlik / temel`) yalnızca
 // katsayıya bakıyor.
+// Tur başındaki satır: o anda ne yazıyor, hangi tanıtımlar görüldü, ve
+// hangi parçanın bir tanıtımı var. Üçü de ölçümün dışarıdan göremediği
+// şeyler — `#hint` yalnızca 2.6 saniye ekranda duruyor.
+window.sliceIpucu = () => ({
+  yazi: $('hint').textContent,
+  gorunur: $('hint').classList.contains('show'),
+  goruldu: { ...ipucuGoruldu },
+  tanitimi: Object.keys(TANITIM),
+});
 window.sliceMix = (n = 1) => ({
   bas: SERT_BAS, bit: SERT_BAS + SERT_BOY, sert: +sertlik(n).toFixed(3),
   kolay: [...KOLAY], zor: [...ZOR],
@@ -3001,9 +3053,18 @@ window.sliceSetDay = (back, streak) => {
   $('daily').classList.remove('show');
   checkDaily();
 };
+// Kaydı sıfırla. Anahtarlar elle sayılıyordu ve liste bayatlamıştı:
+// `goals`, `stats` ve `muted` listede yoktu, yani "sıfırlanmış" bir
+// oyunda hedefler hâlâ alınmış görünüyordu ve ömür boyu sayaçlar
+// duruyordu — yani hedeflerin hiçbiri bir daha alınamıyordu. Önekle
+// süpürmek yeni bir anahtar eklendiğinde de doğru kalıyor.
 window.sliceReset = () => {
-  for (const k of ['level', 'stars', 'combo', 'coins', 'blades', 'blade', 'dayLast', 'dayStreak'])
-    localStorage.removeItem('slicerush_' + k);
+  const silinecek = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('slicerush_')) silinecek.push(k);
+  }
+  for (const k of silinecek) localStorage.removeItem(k);
   location.reload();
 };
 

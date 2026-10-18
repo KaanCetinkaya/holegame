@@ -468,6 +468,7 @@ ikisini birden). Tek tek de koşturulabilir:
     node scratchpad/slekran.mjs    # küçük telefonlarda ekranlar duruyor mu
     node scratchpad/slyildiz.mjs   # yıldız ekonomisi: üç yıldız alınabiliyor mu
     node scratchpad/slparca.mjs    # her parça tahtaya çıkıyor ve engelini koyuyor mu
+    node scratchpad/slipucu.mjs   # tur başındaki satır: doğru anda mı, bir kez mi
     node scratchpad/slbelge.mjs    # bu dosya oyunla aynı şeyi mi anlatıyor
 
 Sonuncusu belgenin bayatlayan kısımlarını ölçüyor: parça tablosu, betik
@@ -480,7 +481,8 @@ tanesi vardı. Tarayıcı açmıyor, bir saniyenin altında bitiyor.
 `window.sliceProbe()` durumu döndürür; `sliceMeta`, `sliceMap`, `sliceDaily`,
 `sliceStart`, `sliceSetTarget`, `sliceAutoPlay`, `sliceGive`, `sliceRevive`,
 `sliceDouble`, `sliceSetDay`, `sliceReset` testlerin oyunu parmaksız
-oynamasını sağlar.
+oynamasını sağlar. `sliceMix` karışım eğrisini (başı, sonu, her parçanın
+katsayısı), `sliceIpucu` tur başındaki satırı veriyor.
 
 ## İçerik 17. bölümde tükeniyordu
 
@@ -629,6 +631,64 @@ bir kez bitiyor, turların **%94'ü** bitiyor, 26. bölüm altı koşuda beş.
 Bitirme oranı bölümle düşüyor — 40'ta 4/6, 55'te 3/6 — ve zorluk eğrisinin
 istediği şey tam olarak bu; kapı "turların çoğu bitiyor" diyor, "hepsi"
 demiyor.
+
+## Tur başındaki satır
+
+Her turun başında 2.6 saniyelik bir şerit çıkıyordu ve hep aynı cümleyi
+yazıyordu: *"Slide your finger up and down"*. Birinci bölümde gereken şey,
+kırkıncıda gürültü — ve oyuncunun okumayı bıraktığı bir yer, yeni bir şey
+söylemek için elverişli değil.
+
+Satır artık üç durumdan birini söylüyor:
+
+- **kontrol satırı**, oyuncu üçüncü bölümü geçene kadar. `level`e değil
+  `maxLevel`e bakıyor: birinci bölümü sonradan tekrar oynayan birine
+  parmağını nasıl kaydıracağını anlatmak gerekmiyor
+- **yeni bir parçanın tanıtımı**, parçanın açılış bölümünde ve **bir kez**
+  (`slicerush_hints`). Açılış bölümü buraya yazılmıyor, parçanın kendi
+  `minLevel`inden okunuyor
+- **hiçbir şey**
+
+Tanıtımı olan altı parça var; kalan altısında (`run`, `stair`, `zig`,
+`gate`, `tunnel`, `rest`) yok ve bu bir eksiklik değil bir karar: hepsi
+tek kareye bakılınca anlaşılıyor. Tanıtım gerektiren ilk parça
+`drift` — pencerenin **hareket ettiğini** görmek için ona bakmayı
+sürdürmek gerekiyor, yani kuralı tek karede görünmeyen ilk parça o.
+
+| bölüm | satır |
+|---|---|
+| 8 | Do not cut the mines |
+| 12 | Two bars, one gap — find the height |
+| 18 | Gates from the roof and the floor, in turn |
+| 23 | Two gaps in a row, at different heights |
+| 28 | A mine waits right behind the gap |
+| 36 | This window will not hold still |
+
+`scratchpad/slipucu.mjs` üç şeye kapı kuruyor: her tanıtım kendi açılış
+bölümünde çıkıyor, ikinci kez çıkmıyor, ve 360 pikselde tek satıra
+sığıyor. Ölçülen: otuz sekiz bölümün otuz ikisinde satır hiç çıkmıyor.
+
+Ölçümün kendisi iki kez yanlış kuruldu ve ikisi de aynı cinsten:
+
+- "İkinci kez çıkmıyor" kapısı yalnızca **görünürlüğe** bakıyordu ve
+  kontrol satırını tanıtım sanıp altı kez düştü. Karşılaştırma artık
+  cümlenin kendisine.
+- Sığma kapısı her parça için `sliceStart` çağırıp kutuya bakıyordu, ama
+  tanıtım bir kez çıktığı için kutuda **son** yazan cümle kalıyordu: altı
+  satırın altısında aynı yazı ölçüldü. Artık yazı doğrudan kutuya
+  konuyor — sığmak bir yerleşim sorusu, oyunun o anki hâlinin değil.
+
+Bir de ölçüm oyunu yanlış dünyada denedi: kural `maxLevel`e bakıyor ama
+`sliceStart(n)` yalnızca `level`i taşıyor, yani kontrol satırı otuz sekiz
+bölümün otuz sekizinde çıkıyordu. Ölçüm artık kaydın sınırını yazıp
+sayfayı **yeniden yüklüyor** — `maxLevel` modül yüklenirken bir kez
+okunuyor.
+
+**Kayıt sıfırlama da düzeldi.** `sliceReset` anahtarları elle sayıyordu
+ve liste bayatlamıştı: `goals`, `stats` ve `muted` içinde yoktu, yani
+"sıfırlanmış" bir oyunda hedefler alınmış görünüyor ve ömür boyu sayaçlar
+duruyordu — hiçbir hedef bir daha alınamıyordu. Artık `slicerush_`
+önekiyle süpürüyor, yani yeni bir anahtar eklendiğinde de doğru kalıyor.
 
 ## Kesimin geri bildirimi
 

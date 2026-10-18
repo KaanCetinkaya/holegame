@@ -63,8 +63,14 @@ ok(Number(yazanSayi) === betikler.length,
    `notlarda ${yazanSayi || 'yok'} · gerçekte ${betikler.length}`);
 
 console.log('\n3) Belgede adı geçen her kanca oyunda var');
+// Ters eğik tırnak içindeki her `slice...` bir kanca değil: ölçüm
+// betiklerinin yarısı da öyle başlıyor (`slicewall`, `slicegaps`,
+// `slicemine`). Betik adı geçen bir cümle "belgede olmayan kanca" diye
+// düşüyordu ve düşüşün oyunla ilgisi yoktu — kapı, adlandırmayı
+// ölçüyordu. Betik dosyası olarak var olan adlar eleniyor.
 const kancalar = [...belge.matchAll(/`(slice[A-Za-z]+)\(?\)?`/g)]
-  .map(m => m[1]).filter((n, i, a) => a.indexOf(n) === i);
+  .map(m => m[1]).filter((n, i, a) => a.indexOf(n) === i)
+  .filter(n => !betikler.includes(n));
 const yok = kancalar.filter(k => !new RegExp(`window\\.${k}\\s*=`).test(oyun));
 console.log(`     ${kancalar.length} kanca anılıyor: ${kancalar.join(', ') || '—'}`);
 ok(yok.length === 0, 'belgedeki kancaların hepsi var', yok.join(', '));
