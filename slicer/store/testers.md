@@ -63,6 +63,25 @@ kişiye değmez. İzin varsa metin yukarıdakinin aynısı.
 Bu bölüm Motor Works'ü de kapsıyor: aynı kişi iki listeye birden
 girebiliyor, yani tek mesajla iki sayaç birden dolar.
 
+**Hangi kanal? Kayıtta yoktu, bir kez unutuldu.** Depoda bugüne kadar
+yalnızca *"Telegram/Discord'da closed testing exchange grupları"* diye
+bir **tür** yazılıydı; tek somut şey Fruit Hole'un listesine bağlı
+`testers-community@googlegroups.com` ve o bir Google Grubu, Telegram
+değil. Aranan kanalın adı hiçbir yere yazılmadığı için kayboldu — bu
+dosya onun için var. Aday kanallar, 18 Ekim 2026'da arandı:
+
+| Kanal | Durum |
+|---|---|
+| `testers-community@googlegroups.com` | **Zaten kullanılıyor** (Fruit Hole'un listesinde bağlı) |
+| `t.me/console_testers` | Bir duyurudan geliyor ama duyuru ~923 günlük; yaşıyor mu belirsiz |
+| `t.me/GooglePlay20Testers` | ~110 üye, kimin işlettiği doğrulanmadı |
+
+Girmeden önce bakılacak şey: **üyeler gerçek insan mı.** Bu gruplar için
+dile getirilen asıl risk bot ağları, ve sahte etkileşim yakalanırsa
+ceza uygulamaya değil **geliştirici hesabına** yazılıyor. (Uyarıyı dile
+getirenlerin bir kısmı ücretli testçi satan siteler, yani tek taraflı
+bir kaynak — ama risk yine de gerçek.)
+
 Uyarı önce: "closed testing exchange" grupları on iki kişiyi hızlı
 buluyor ama gelen kişi oyunu **oynamıyor** — kurup bırakıyor. Google'ın
 istediği şey gerçek test ve üretim başvurusunda "testçileri nasıl
