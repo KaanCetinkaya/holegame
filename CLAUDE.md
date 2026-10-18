@@ -53,8 +53,8 @@ cd C:\Users\HP\holegame
 npm test
 ```
 
-Bu, geliştirilen iki oyunu koşturuyor: Motor Works (40 ölçüm, 5 dakika) ve
-Slice Rush (24, 17 dakika), toplam **64 ölçüm, ~22 dakika**. Tek tek:
+Bu, geliştirilen iki oyunu koşturuyor: Motor Works (41 ölçüm, 5 dakika) ve
+Slice Rush (25, 17 dakika), toplam **66 ölçüm, ~22 dakika**. Tek tek:
 `npm run test:tycoon`,
 `npm run test:slicer`. Fruit Hole ayrı, çünkü 90 ölçümü var:
 `npm run test:fruithole` yükleme öncesi bakılacak **19 ölçüm, ~29 dakika**,
@@ -154,6 +154,17 @@ Kural: eşik **seçilmez, ölçülür**. Aynı yapımı üç kez koşturup gür�
 gör, eşiği onun üstüne koy. Ve ölçümü bir kere de **hatayı geri koyarak**
 çalıştır — geçmesi gereken yerde geçmek yetmez, düşmesi gereken yerde
 düşmeli.
+
+**Ölçümden önce okunacak yer boşaltılır.** 18 Ekim'de teşhis perdesine
+yazılan kapı "beş bölümün beşi de yazılıyor" diyordu ve hatayı geri
+koyunca — perde hiç açılmazken — yine OK yazdı: perdenin gövdesinde bir
+önceki açılışın metni duruyordu ve kapı onu okuyordu. Yani kapı
+ölçtüğünü sandığı şeyi değil, kendi bıraktığı artığı ölçüyordu. Artık
+her denemeden önce gövde boşaltılıyor. Aynı gün ikinci bir çeşidi:
+"aynı hata iki kez yazılmıyor, sayılıyor" kapısı, tekrarlanan mesajı
+yedi yeni hatanın **önünde** atıyordu, mesaj kutudan düşüyor ve kapı
+"kutuda yok" deyip geçiyordu — hiçbir zaman düşemeyecek bir kapı. Sıra
+ters çevrildi.
 
 Ve bir eşik bulunamıyorsa **uydurulmaz**. `holedagilim` için üç istatistik
 denendi, üçü de ölçüldü ve üçü de bırakıldı (dosyanın başında yazılı):
