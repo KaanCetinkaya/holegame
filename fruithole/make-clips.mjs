@@ -303,7 +303,11 @@ const CLIPS = [
   // okudu: hiçbirinde başlangıç dev oranı 1.6'nın altında değil, en
   // iyisi 1.79 ve o Hopscotch. Üç çamuru da var, yani engel sözü
   // kadraja girme şansı en yüksek olanlardan.
-  { id: 'hopscotch', pattern: 'Hopscotch', engel: 'çamur',   note: 'Hopscotch · seksek düzeni · tahtada üç çamur' },
+  // Bölüm **doğrudan** veriliyor, düzen adıyla değil: `pattern` verilince
+  // araç o düzenin **ilk** göründüğü bölümü seçiyor ve Hopscotch ilk kez
+  // 12'de çıkıyor — orada çamur henüz yok (29'dan başlıyor). Araç bunu
+  // çekime girmeden söyledi; aranan tahta düzenin 60'taki tekrarı.
+  { id: 'hopscotch', level: 60,         engel: 'çamur',   note: 'Hopscotch · seksek düzeni · 60. bölüm · tahtada üç çamur' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
   // ve 2.73), o yüzden listeden çıkmıyor.
@@ -480,24 +484,41 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
       throw new Error(`${c.id}: ${c.engel} ${esik[c.engel]}. bölümden başlıyor ama ` +
         `klip ${c.level}. bölümde — o tahtada hiç çıkmaz. Başka bir düzen seç.`);
     }
-    // Numarası elle verilen klip de atlanmıyor: tema bölüm numarasından
-    // geliyor (`PATTERNS[(level - 1) % n].theme`), yani `boss` için de
-    // sorulabilir ve sorulmalı — o tahtanın engelleri de yere bağlı.
-    const tid = patternThemes[(c.level - 1) % patternThemes.length];
-    const izin = await pg.evaluate(t => window.fruitHoleThemeObstacles(t), tid);
-    // Tanıtım bölümü muafiyeti, `obstacleHere`'in aynısı: bir engelin ilk
-    // bölümünde o engel yerin çiftinde olmasa da çıkıyor, çünkü oyuncu onu
-    // bir yerde öğrenmek zorunda ve öğrendiği bölüm o.
+    // Sözü verilen engel o tahtada **gerçekten var mı?**
     //
-    // Bu satır olmadan doğrulama kendi işini fazla iyi yapıyordu: `jardin`
-    // 29. bölümde ve Le Jardin'in çifti catapult+wind, ama 29 çamurun
-    // tanıtım bölümü — yani çamur orada **garanti**, listede en güvenilir
-    // tahta. Doğrulama onu reddediyordu.
-    const tanitim = c.level === esik[c.engel];
-    if (!tanitim && !izin.includes(id)) {
-      throw new Error(`${c.id}: ${c.pattern} düzeni ${c.level}. bölümde, orada ` +
-        `${tid} teması var ve o temanın engelleri ${izin.join(', ')} — ` +
-        `${c.engel} o tahtaya hiç gelmiyor. Başka bir düzen ya da başka bir engel seç.`);
+    // Burada bir ara temadan türetilen bir izin listesi vardı:
+    // `patternThemes[(level - 1) % n]` ile tema bulunuyor, sonra
+    // `themeObstacles` o temanın engel çiftini veriyordu. Deterministik
+    // ve ucuzdu, ama **yanlıştı**: 19 Ekim'de 60. bölüm için "ny teması,
+    // engelleri roller+wind, çamur gelmez" dedi ve çekimi reddetti.
+    // Tahta kurulup sayıldığında çamur 3, rüzgâr 1 çıktı. Yani formül
+    // tahtanın gerçeğiyle çelişiyordu ve düzen sayısıyla tema döngüsü
+    // aynı uzunlukta olmadığı için yüksek bölümlerde kayıyordu.
+    //
+    // Artık tahmin yok: tahta kuruluyor ve engel sayılıyor. Birkaç
+    // saniye pahalı, ama ölçtüğü şey tam olarak klibin ihtiyacı olan
+    // şey — ve bir formülün bayatlaması mümkün değil.
+    //
+    // Tanıtım bölümü muafiyeti de kalktı, çünkü gerekçesi bu formüldü:
+    // bir engelin ilk bölümünde engel yerin çiftinde olmasa da çıkıyor
+    // ve formül onu reddediyordu. Tahtayı sayan bir kontrol o durumu
+    // zaten doğru görüyor.
+    const gercek = await pg.evaluate(l => {
+      window.fruitHoleSetLevel(l);
+      window.fruitHoleStartLevel();
+      return {
+        'mancınık': (window.fruitHoleCatapults().yerler || []).length,
+        'silindir': (window.fruitHoleRollers().yerler || []).length,
+        'çamur': (window.fruitHoleMud().yerler || []).length,
+        'rüzgâr': window.fruitHoleWind().var ? 1 : 0,
+      };
+    }, c.level);
+    if (!gercek[c.engel]) {
+      const baska = Object.entries(gercek).filter(([, n]) => n > 0)
+        .map(([k, n]) => `${k}:${n}`);
+      throw new Error(`${c.id}: ${c.level}. bölüm tahtası kuruldu ve ${c.engel} ` +
+        `yok` + (baska.length ? ` (tahtada ${baska.join(', ')} var)` : ' — tahtada hiç engel yok') +
+        `. Başka bir bölüm ya da başka bir engel seç.`);
     }
   }
   await pg.close();
