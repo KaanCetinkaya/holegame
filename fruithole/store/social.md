@@ -1991,3 +1991,42 @@ tek hesap.
 görünen beş satırıyla kurulmuştu ve 18 Ekim gecesinin iki gönderisi o
 beşin dışındaydı. Aynı hata iki gün üst üste aynı yerden geldi —
 kesik bir listenin görünen kısmından kural çıkarmak.
+
+### Gün 18 — blast.mp4  *(hazır, atılmadı)*
+
+Stok 19 Ekim'de bitmişti ve o gün beş kimlikte kırk küsur deneme boşa
+gitti. Çıkış yolu yeniden denemek değil, **tahtayı ölçerek seçmek**
+oldu — ve seçimi yine `holeklipaday` yaptı, tıpkı `outback`ta olduğu
+gibi.
+
+Tarama yirmi bir tahtayı oynatmadan okudu. Önemli olan şey şu: hiçbir
+tahtada başlangıç dev oranı 1.6'nın (aracın sınırı) altında değil, en
+iyisi 1.76. Yani sınır tahtanın ilk hâliyle **hiç** sağlanmıyor; klip
+ancak ısınmanın on altı saniyesinde delik büyüdüğü için çıkıyor. Bu da
+hangi bandın işe yaradığını söylüyor: `cogs` 1.86'dan tutmuştu, ve
+`blast` da 1.86'dan tuttu.
+
+| aday | bölüm | başlangıç oranı | sonuç |
+|---|---|---|---|
+| **Blast** | 62 | 1.86 | **çıktı** |
+| Hopscotch | 60 | 1.79 | üç denemede düştü (1.85) |
+| Dial (redplanet) | 54 | 1.90 | on beş denemede düştü |
+| Key (academy) | 51 | — | üç denemede düştü (2.02) |
+
+Kare kare doğrulandı: 62. bölüm, **Rooftop** — mor zemin, renkli ampul
+halkaları, donut ve çilek yığınları. İlk karede delik **Size 1** ve
+önünde kendinden üç kat uzun bir yığın var; son karede **Size 4**.
+
+Ekran yazısı: `level 62. size 1 on the rooftop`
+
+```
+day 18 of building my own mobile game 🌃🕳️
+
+size 1 on a rooftop, next to a stack three times its height. nine seconds later it is size 4.
+
+#indiedev #solodev #gamedev #mobilegame #satisfying
+```
+
+Gün numarası profilden: A hesabının son gönderisi 17 (outback, 18 Eki
+23:11, 249 izlenme). Saat için tek kural: **gece yarısına yaklaşma** —
+23:11 iş gördü, 23:57 ölü.
