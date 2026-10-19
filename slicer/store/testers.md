@@ -2,9 +2,16 @@
 
 Yapısı Fruit Hole'unkinin aynısı ve sebebi orada yazılı
 (`fruithole/store/production-access.md` → "Ne yazılacak"): kısa,
-İngilizce, karşıdakine ne yapacağını söyleyen, ve **bağlantı vermiyor,
-adres istiyor** — kapalı testin katılma adresi listede olmayan birinde
-açılmıyor ve açılmadığında kişi sana değil Google'a kızıp bırakıyor.
+İngilizce, ve karşıdakine ne yapacağını söyleyen.
+
+**Metin 19 Ekim'de değişti: artık adres istemiyor, üç bağlantı
+veriyor.** Eski hâli "bana Gmail adresini yolla, listeye ben eklerim"
+diyordu ve gerekçesi doğruydu — kapalı testin katılma adresi listede
+olmayan birinde açılmıyor. Ama 18 Ekim'de testçi listesi **Google
+Grubu**'na çevrildi (`fenix-game-testers`), yani yabancı artık kendi
+kendine listeye girebiliyor: gruba katılıyor, sonra opt-in çalışıyor.
+Elle ekleme adımı ortadan kalktı, ve onunla birlikte "Kaan cevap
+yazana kadar bekleyen kişi" de.
 
 Uygulama kimliği: `com.kaancetinkaya.slicerush`
 
@@ -30,10 +37,16 @@ is split at exactly the height the blade went through, so cutting near
 the top of a melon gives you a cap and a bowl, and you cannot cut the
 same melon the same way twice.
 
-It's on Google Play's closed test, which means I have to add people by
-hand. Comment or DM me the Gmail address you use on your phone and I'll
-put you on the list tonight. It has to be the account your phone's Play
-Store is signed in to, otherwise the invite just 404s for you.
+It is on Google Play's closed test, so there are three steps and they
+have to be in this order:
+
+1. Join the group: https://groups.google.com/g/fenix-game-testers
+2. Opt in: https://play.google.com/apps/testing/com.kaancetinkaya.slicerush
+3. Install: https://play.google.com/store/apps/details?id=com.kaancetinkaya.slicerush
+
+Use the same Google account your phone's Play Store is signed in to —
+with any other account step 2 just 404s, and that is where most people
+give up.
 
 What I actually need is people who get past level 12. That is where the
 corridor starts asking real questions — a clamp with one narrow window,
