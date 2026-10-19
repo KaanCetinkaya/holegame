@@ -950,11 +950,11 @@
     <i style="--a:315deg;--d:2.1s;background:#3fae38"></i>
     </div>
   </div>
-  <div class="sub">Loading…</div>
+  <div class="sub" data-t="loading">Loading…</div>
 </div>
 <div id="app">
   <div id="topbar">
-    <div id="levelBadge">LEVEL <span id="levelN">1</span></div>
+    <div id="levelBadge"><span data-t="levelCap">LEVEL</span> <span id="levelN">1</span></div>
     <div id="centerCol">
       <div id="timeTag"><span class="clock">⏱</span><span id="timeN">0</span></div>
       <div id="progWrap">
@@ -969,11 +969,11 @@
     <div id="patternTag"></div>
   </div>
 
-  <div id="sizeTag">Size <span id="sizeN">1</span></div>
+  <div id="sizeTag"><span data-t="size">Size</span> <span id="sizeN">1</span></div>
   <div id="boosterBar"></div>
   <div id="combo"></div>
   <div id="giantArrow">🍉</div>
-  <div id="hint">Drag anywhere to steer the hole and swallow the fruit</div>
+  <div id="hint" data-t="dragHint">Drag anywhere to steer the hole and swallow the fruit</div>
   <div id="joyBase"></div>
   <div id="joyKnob"></div>
 
@@ -983,22 +983,22 @@
        tahta geliyor, ekranda bunu söyleyen hiçbir şey olmuyordu. Telefonda
        görülen ekran tam olarak buydu. -->
   <div id="glBar" hidden>
-    <span id="glBarText">Graphics restarting…</span>
-    <button id="glBarBtn">Retry</button>
+    <span id="glBarText" data-t="glRestart">Graphics restarting…</span>
+    <button id="glBarBtn" data-t="glRetry">Retry</button>
   </div>
 
   <div id="pause" class="screen">
-    <h1>Paused</h1>
+    <h1 data-t="paused">Paused</h1>
     <!-- Grafik bağlamı kaybolduğunda görünüyor. Oyuncu bunu görmeden
          Resume'a basarsa boş bir tahtaya dönüyor ve süre işlemeye devam
          ediyor — telefonda tam olarak bu oldu. -->
-    <p id="glNotice" hidden>Graphics restarting… the board will come back.</p>
+    <p id="glNotice" hidden data-t="glBoard">Graphics restarting… the board will come back.</p>
     <div class="menuRow">
-      <button class="btn" id="resumeBtn">Resume</button>
+      <button class="btn" id="resumeBtn" data-t="resume">Resume</button>
     </div>
     <div class="menuRow">
-      <button class="btn ghost" id="pauseMute"><span class="bIco" data-icon="speaker"></span>Sound</button>
-      <button class="btn ghost" id="pauseMenu"><span class="bIco" data-icon="house"></span>Menu</button>
+      <button class="btn ghost" id="pauseMute"><span class="bIco" data-icon="speaker"></span data-t="sound">Sound</button>
+      <button class="btn ghost" id="pauseMenu"><span class="bIco" data-icon="house"></span data-t="menu">Menu</button>
     </div>
   </div>
 
@@ -1007,28 +1007,30 @@
       <div id="menuWallet"></div>
       <button id="shopBtn" class="topKey">🛒</button>
       <button id="menuSound" class="topKey">🔊</button>
+      <!-- Dil tuşu. Yazıyı kendisi kuruyor (EN/TR), o yüzden data-t yok. -->
+      <button id="menuLang" class="topKey">EN</button>
     </div>
     <h1><span class="brand">Peelo</span>Fruit Hole</h1>
     <div id="menuBanner"></div>
     <div id="menuShelf"></div>
     <div class="logo">
-      <span class="lvl"><small>Level</small><b id="menuLvlN">1</b></span>
+      <span class="lvl"><small data-t="levelWord">Level</small><b id="menuLvlN">1</b></span>
     </div>
     <p id="menuSub">Level 1</p>
-    <div id="playTray"><button class="btn" id="playBtn">Play</button></div>
+    <div id="playTray"><button class="btn" id="playBtn" data-t="play">Play</button></div>
     <!-- Kumun üstünde duruyor, Play'in soluna değil üstüne: Play'in yanındaki
          her şey Play'e basmaya çalışan parmağın yoluna giriyor. -->
     <button id="tchestBtn" hidden>
       <span class="cIco" data-icon="chest"></span>
-      <span class="tl">Free</span>
+      <span class="tl" data-t="freeChest">Free</span>
     </button>
     <span id="verTag"></span>
     <div id="menuNav">
-      <button class="nav" id="levelsBtn"><span class="ic">🗺️</span><span class="lb">Levels</span></button>
-      <button class="nav" id="upgBtn"><span class="ic">⬆️</span><span class="lb">Upgrades</span></button>
-      <button class="nav mid" id="homeBtn"><span class="ic">🏠</span><span class="lb">Home</span></button>
-      <button class="nav" id="goalsBtn"><span class="ic">📋</span><span class="lb">Goals</span></button>
-      <button class="nav" id="awardsBtn"><span class="ic">🏆</span><span class="lb">Awards</span></button>
+      <button class="nav" id="levelsBtn"><span class="ic">🗺️</span><span class="lb" data-t="navLevels">Levels</span></button>
+      <button class="nav" id="upgBtn"><span class="ic">⬆️</span><span class="lb" data-t="navUpg">Upgrades</span></button>
+      <button class="nav mid" id="homeBtn"><span class="ic">🏠</span><span class="lb" data-t="navHome">Home</span></button>
+      <button class="nav" id="goalsBtn"><span class="ic">📋</span><span class="lb" data-t="navGoals">Goals</span></button>
+      <button class="nav" id="awardsBtn"><span class="ic">🏆</span><span class="lb" data-t="navAwards">Awards</span></button>
     </div>
   </div>
 
@@ -1044,100 +1046,100 @@
   </div>
 
   <div id="shop" class="screen">
-    <h1><span class="hIco" data-icon="cart"></span>Shop</h1>
+    <h1><span class="hIco" data-icon="cart"></span><span data-t="shop">Shop</span></h1>
     <div id="shopList"></div>
     <p id="shopNote" class="muted"></p>
     <div class="menuRow">
-      <button class="btn ghost" id="restoreBtn">Restore purchases</button>
-      <button class="btn ghost" id="shopClose">Close</button>
+      <button class="btn ghost" id="restoreBtn" data-t="restore">Restore purchases</button>
+      <button class="btn ghost" id="shopClose" data-t="close">Close</button>
     </div>
   </div>
 
   <div id="goals" class="screen">
-    <h1><span class="hIco" data-icon="clipboard"></span>Goals</h1>
-    <p class="sect">📅 Today's challenge</p>
+    <h1><span class="hIco" data-icon="clipboard"></span><span data-t="goals">Goals</span></h1>
+    <p class="sect" data-t="todayChal">📅 Today's challenge</p>
     <div id="challCard">
       <div id="challLine"></div>
       <div id="challSub"></div>
-      <button class="btn" id="challBtn">Play today's field</button>
-      <button class="btn ghost" id="challLeaderBtn" hidden>🏆 Leaderboard</button>
+      <button class="btn" id="challBtn" data-t="playToday">Play today's field</button>
+      <button class="btn ghost" id="challLeaderBtn" hidden data-t="board">🏆 Leaderboard</button>
     </div>
-    <p class="sect">Daily missions</p>
+    <p class="sect" data-t="dailyMiss">Daily missions</p>
     <div id="missionList"></div>
-    <p class="sect"><span class="sIco" data-icon="trophy"></span>Achievements</p>
+    <p class="sect"><span class="sIco" data-icon="trophy"></span data-t="achieve">Achievements</p>
     <div id="achList"></div>
-    <button class="btn ghost" id="collBtn">🧺 Collection</button>
-    <button class="btn ghost" id="goalsClose">Close</button>
+    <button class="btn ghost" id="collBtn" data-t="collBtn">🧺 Collection</button>
+    <button class="btn ghost" id="goalsClose" data-t="close">Close</button>
   </div>
 
   <div id="levels" class="screen">
-    <h1><span class="hIco" data-icon="map"></span>Levels</h1>
+    <h1><span class="hIco" data-icon="map"></span><span data-t="levels">Levels</span></h1>
     <p id="levelsSub" class="muted"></p>
     <div id="levelGrid"></div>
-    <button class="btn ghost" id="levelsClose">Close</button>
+    <button class="btn ghost" id="levelsClose" data-t="close">Close</button>
   </div>
 
   <div id="daily" class="screen">
-    <h1><span class="hIco" data-icon="star"></span>Daily Reward</h1>
+    <h1><span class="hIco" data-icon="star"></span data-t="dailyRew">Daily Reward</h1>
     <p id="dailySub"></p>
     <div class="stats" id="dailyLoot"></div>
     <!-- Claim first. The free thing is the easy thing, and an optional
          advert should never be the button nearest the thumb. -->
-    <button class="btn" id="dailyBtn">Claim</button>
-    <button class="btn adBtn" id="daily2x" hidden>📺 Claim double</button>
+    <button class="btn" id="dailyBtn" data-t="claim">Claim</button>
+    <button class="btn adBtn" id="daily2x" hidden data-t="claimDbl">📺 Claim double</button>
   </div>
 
   <div id="tchest" class="screen">
-    <h1><span class="hIco" data-icon="chest"></span>Free Chest</h1>
+    <h1><span class="hIco" data-icon="chest"></span data-t="chestFree">Free Chest</h1>
     <p id="tchestSub"></p>
     <div class="stats" id="tchestLoot"></div>
     <!-- Günlük ödülle aynı sıra: bedava olan düğme parmağa yakın, reklam
          onun üstünde. -->
-    <button class="btn" id="tchestTake">Open</button>
-    <button class="btn adBtn" id="tchest2x" hidden>📺 Open double</button>
-    <button class="btn ghost" id="tchestClose">Close</button>
+    <button class="btn" id="tchestTake" data-t="open">Open</button>
+    <button class="btn adBtn" id="tchest2x" hidden data-t="openDbl">📺 Open double</button>
+    <button class="btn ghost" id="tchestClose" data-t="close">Close</button>
   </div>
 
   <div id="upgrades" class="screen">
-    <h1><span class="hIco" data-icon="arrow"></span>Upgrades</h1>
+    <h1><span class="hIco" data-icon="arrow"></span><span data-t="upgrades">Upgrades</span></h1>
     <div id="upgWallet"></div>
     <div id="upgList"></div>
-    <p class="sect"><span class="sIco" data-icon="burst"></span>Boosters</p>
+    <p class="sect"><span class="sIco" data-icon="burst"></span data-t="boosters">Boosters</p>
     <div id="boostShop"></div>
-    <p class="sect"><span class="sIco" data-icon="ring"></span>Hole skins</p>
+    <p class="sect"><span class="sIco" data-icon="ring"></span data-t="skins">Hole skins</p>
     <div id="skinShop"></div>
-    <button class="btn ghost" id="upgClose">Close</button>
+    <button class="btn ghost" id="upgClose" data-t="close">Close</button>
   </div>
 
   <div id="collection" class="screen">
-    <h1><span class="hIco" data-icon="trophy"></span>Collection</h1>
+    <h1><span class="hIco" data-icon="trophy"></span><span data-t="collection">Collection</span></h1>
     <p id="collCount" class="muted">0 / 0</p>
     <div id="collList"></div>
-    <button class="btn ghost" id="collClose">Close</button>
+    <button class="btn ghost" id="collClose" data-t="close">Close</button>
   </div>
 
   <div id="rate" class="screen">
-    <h1>Enjoying Peelo?</h1>
-    <p id="rateSub">A rating on Google Play helps more than you would think.</p>
+    <h1 data-t="rateTitle">Enjoying Peelo?</h1>
+    <p id="rateSub" data-t="rateBody">A rating on Google Play helps more than you would think.</p>
     <div class="menuRow">
-      <button class="btn" id="rateGo">⭐ Rate</button>
-      <button class="btn ghost" id="rateLater">Later</button>
+      <button class="btn" id="rateGo" data-t="rateGo">⭐ Rate</button>
+      <button class="btn ghost" id="rateLater" data-t="rateLater">Later</button>
     </div>
   </div>
 
   <div id="overlay" class="screen">
-    <h1 id="overlayTitle">Level Complete!</h1>
+    <h1 id="overlayTitle" data-t="complete">Level Complete!</h1>
     <p id="overlaySub"></p>
     <div class="stats" id="overlayStats"></div>
     <div id="reward" hidden>
       <button id="chest" aria-label="Open reward"><span class="cIco" data-icon="chest"></span></button>
-      <p id="rewardLine">Tap the chest</p>
-      <button class="btn adBtn" id="chest2x" hidden>📺 Double it</button>
+      <p id="rewardLine" data-t="tapChest">Tap the chest</p>
+      <button class="btn adBtn" id="chest2x" hidden data-t="dblIt">📺 Double it</button>
     </div>
-    <button class="btn" id="reviveBtn">📺 +15 seconds</button>
+    <button class="btn" id="reviveBtn" data-t="plus15">📺 +15 seconds</button>
     <div class="menuRow">
-      <button class="btn ghost" id="actionBtn">Next</button>
-      <button class="btn ghost" id="toMenuBtn">🏠 Menu</button>
+      <button class="btn ghost" id="actionBtn" data-t="next">Next</button>
+      <button class="btn ghost" id="toMenuBtn" data-t="homeMenu">🏠 Menu</button>
     </div>
   </div>
 </div>
@@ -2095,6 +2097,113 @@ function fhYaz(anahtar, deger) {
 function fhHam(anahtar) {
   try { return localStorage.getItem(anahtar); } catch (e) { return null; }
 }
+// ---------------------------------------------------------------------
+// Dil
+//
+// Oyun İngilizce yazıldı ve hedef kitle ABD/Avrupa olarak seçilmişti
+// (`store/social.md`). 19 Ekim'de Play Console'a bakıldı ve kitle orada
+// değil: günlük 3-8 yüklemenin neredeyse tamamı **Türkiye**. Yani
+// oyuncular oyunu kendi dillerinde görmüyordu, ve bunu söyleyen bir
+// ölçüm de yoktu — Motor Works'te 47 çevrilmiş metin var, burada sıfırdı.
+//
+// Yapı Motor Works'ünkiyle aynı: tablo + `T()` + `data-t`. Statik
+// yazıları tek tek güncellemek yerine `dilUygula()` hepsini bir kerede
+// yazıyor; ekranları tek tek dolaşmak, ilk kaçırılan ekranın İngilizce
+// kalması demekti.
+const METIN = {
+  // Oyun içi
+  loading:   ['Loading…', 'Yükleniyor…'],
+  levelCap:  ['LEVEL', 'BÖLÜM'],
+  size:      ['Size', 'Boy'],
+  dragHint:  ['Drag anywhere to steer the hole and swallow the fruit',
+              'Deliği sürüklemek için ekranda herhangi bir yere bas ve meyveyi yut'],
+  glRestart: ['Graphics restarting…', 'Görüntü yeniden başlıyor…'],
+  glRetry:   ['Retry', 'Yeniden dene'],
+  glBoard:   ['Graphics restarting… the board will come back.',
+              'Görüntü yeniden başlıyor… tahta geri gelecek.'],
+  paused:    ['Paused', 'Duraklatıldı'],
+  resume:    ['Resume', 'Devam et'],
+  sound:     ['Sound', 'Ses'],
+  menu:      ['Menu', 'Menü'],
+  // Menü
+  levelWord: ['Level', 'Bölüm'],
+  play:      ['Play', 'Oyna'],
+  freeChest: ['Free', 'Bedava'],
+  navLevels: ['Levels', 'Bölümler'],
+  navUpg:    ['Upgrades', 'Yükseltme'],
+  navHome:   ['Home', 'Ana sayfa'],
+  navGoals:  ['Goals', 'Hedefler'],
+  navAwards: ['Awards', 'Ödüller'],
+  // Mağaza
+  shop:      ['Shop', 'Mağaza'],
+  restore:   ['Restore purchases', 'Satın alımları geri yükle'],
+  close:     ['Close', 'Kapat'],
+  // Hedefler
+  goals:     ['Goals', 'Hedefler'],
+  todayChal: ['📅 Today’s challenge', '📅 Bugünün meydan okuması'],
+  playToday: ['Play today’s field', 'Bugünün tarlasını oyna'],
+  board:     ['🏆 Leaderboard', '🏆 Liderlik tablosu'],
+  boardSign: ['🏆 Sign in for the leaderboard', '🏆 Tablo için giriş yap'],
+  signingIn: ['Signing in…', 'Giriş yapılıyor…'],
+  dailyMiss: ['Daily missions', 'Günlük görevler'],
+  achieve:   ['Achievements', 'Başarımlar'],
+  collBtn:   ['🧺 Collection', '🧺 Koleksiyon'],
+  collection:['Collection', 'Koleksiyon'],
+  levels:    ['Levels', 'Bölümler'],
+  // Günlük ödül ve sandık
+  dailyRew:  ['Daily Reward', 'Günlük Ödül'],
+  claim:     ['Claim', 'Al'],
+  claimDbl:  ['📺 Claim double', '📺 İki katını al'],
+  chestFree: ['Free Chest', 'Bedava Sandık'],
+  open:      ['Open', 'Aç'],
+  openDbl:   ['📺 Open double', '📺 İki katıyla aç'],
+  tapChest:  ['Tap the chest', 'Sandığa dokun'],
+  // Yükseltme
+  upgrades:  ['Upgrades', 'Yükseltmeler'],
+  boosters:  ['Boosters', 'Güçlendiriciler'],
+  skins:     ['Hole skins', 'Delik kaplamaları'],
+  wear:      ['Wear', 'Tak'],
+  owned:     ['✓ Owned', '✓ Alındı'],
+  max:       ['MAX', 'SON'],
+  // Puanlama
+  rateTitle: ['Enjoying Peelo?', 'Peelo hoşuna gitti mi?'],
+  rateBody:  ['A rating on Google Play helps more than you would think.',
+              'Google Play’deki bir puan sandığından çok işe yarıyor.'],
+  rateGo:    ['⭐ Rate', '⭐ Puan ver'],
+  rateLater: ['Later', 'Sonra'],
+  // Bölüm sonu
+  complete:  ['Level Complete!', 'Bölüm Tamam!'],
+  dblIt:     ['📺 Double it', '📺 İki katına çıkar'],
+  plus15:    ['📺 +15 seconds', '📺 +15 saniye'],
+  next:      ['Next', 'Sonraki'],
+  homeMenu:  ['🏠 Menu', '🏠 Menü'],
+  // Dil düğmesi
+  lang:      ['EN', 'TR'],
+};
+// Varsayılan cihazdan geliyor; oyuncu menüden değiştirirse seçimi
+// kayda yazılıyor ve bir daha cihaza bakılmıyor — bir kere Türkçeye
+// alan oyuncu, telefonunu İngilizceye çevirince oyunu İngilizce
+// bulmamalı.
+let dil = (() => {
+  const k = fhHam('fruithole_lang');
+  if (k === '0' || k === '1') return Number(k);
+  return (navigator.language || '').toLowerCase().startsWith('tr') ? 1 : 0;
+})();
+// Türkçede 'i' harfinin büyüğü 'İ'. Varsayılan yerelle büyütmek
+// "BÖLÜM" yazarken sorun çıkarmıyor ama "İKİ" yerine "IKI" yazıyor.
+const buyuk = s => String(s).toLocaleUpperCase(dil === 1 ? 'tr-TR' : 'en-US');
+const T = (k, ...a) => {
+  const g = METIN[k];
+  if (!g) return k;
+  let s = g[dil] || g[0];
+  a.forEach((v, i) => { s = s.split('{' + i + '}').join(v); });
+  return s;
+};
+function dilUygula() {
+  for (const el of document.querySelectorAll('[data-t]')) el.textContent = T(el.dataset.t);
+  document.documentElement.lang = dil === 1 ? 'tr' : 'en';
+}
+
 const START_LEVEL = 0;
 let level = START_LEVEL || (() => {
   // `parseInt('abc')` NaN veriyor ve NaN bir bölüm numarası olarak
@@ -3979,6 +4088,36 @@ document.getElementById('menuSound').addEventListener('click', () => {
   if (!muted) { ensureAudio(); sfx.click(); }
 });
 
+// Dil tuşu. Seçim kayda yazılıyor ve bir daha cihaza bakılmıyor.
+//
+// Açık ekranlar kendi yazılarını kendileri kuruyor (liste satırları,
+// başarım kartları), o yüzden `dilUygula`dan sonra onlar da yeniden
+// çiziliyor — yoksa menüde dil değişiyor ama açık duran hedefler
+// ekranı İngilizce kalıyordu.
+function dilYaz() {
+  const b = document.getElementById('menuLang');
+  if (b) b.textContent = T('lang');
+}
+// Kendi yazısını kendi kuran her ekran. Tek tek çağırmak yerine burada
+// toplandı: dil değişince açık olanın hangisi olduğunu bilmek
+// gerekmiyor, ve ileride eklenen bir ekran unutulursa buraya eklenir.
+function yenidenCiz() {
+  for (const f of [refreshMenuLevel, refreshLevelTag, renderUpgrades, renderSkinShop,
+                   renderBoostShop, renderChall, refreshChallLeaderBtn, renderGoals,
+                   renderLevels, renderShop, renderCollection, refreshTchestBtn,
+                   refreshCollBtn, refreshGlNotice]) {
+    try { f(); } catch (e) {}
+  }
+}
+document.getElementById('menuLang').addEventListener('click', () => {
+  dil = dil === 1 ? 0 : 1;
+  fhYaz('fruithole_lang', String(dil));
+  dilUygula();
+  dilYaz();
+  yenidenCiz();
+  if (!muted) { ensureAudio(); sfx.click(); }
+});
+
 document.getElementById('goalsBtn').addEventListener('click', () => {
   saveStats();
   renderGoals();
@@ -4507,6 +4646,11 @@ document.getElementById('upgClose').addEventListener('click', () => {
 buildCounters();
 refreshLevelTag();
 refreshMenuLevel();
+// Statik yazılar açılışta bir kere yazılıyor. Burada, çünkü yukarıdaki
+// üç çağrı kendi yazılarını kuruyor ve `dilUygula` onların üstüne
+// yazmıyor — tersi sırada menü bir kare İngilizce görünüyordu.
+dilUygula();
+dilYaz();
 
 // ---------------------------------------------------------------------
 // Three.js scene
