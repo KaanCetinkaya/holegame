@@ -1959,15 +1959,22 @@ görüldü:
 | 23:02 | day 16 · bloom | A | **344** |
 | 23:11 | day 17 · outback | A | **249** |
 | 23:57 | 306 fruit in rings | B | **0** |
-| 00:12 | 417 fruit | A | **1** |
 | 00:16 | 417 fruit | B | **0** |
 | 21:08 / 21:15 | 219 gears | B / A | 387 / 70 |
 | 18:44 / 18:47 | boss stage / 65 pieces | B / A | 429 / 124 |
 | 20:19 / 20:21 | three turtles | A / B | 410 / 136 |
 
 23:02 ve 23:11 iş görüyor, 23:57 ölü. Yani "akşam" diye bir şart yok;
-ölü olan üç gönderinin üçü de **23:45-00:30** aralığında. Kural buna
+ölü olan **iki** gönderinin ikisi de 23:45-00:30 aralığında. Kural buna
 daraltıldı.
+
+**Tabloda bir satır düzeltildi.** Burada bir ara üçüncü bir ölü gönderi
+yazıyordu: A hesabı, 15 Ekim 00:12, 1 izlenme. O gönderi listede artık
+yok (silinmiş olmalı), yani sayısı bir daha doğrulanamıyor —
+doğrulanamayan bir satır tabloda durmaz. Geriye iki ölü gönderi
+kalıyor, ikisi de B hesabında ve ikisi de gece yarısının yirmi
+dakikası içinde. Örüntü aynı yöne bakıyor ama dayanağı **iki** nokta,
+üç değil; bu kadarıyla bir sebep değil, sınanacak bir tahmin.
 
 **İkinci şüphe de zayıfladı.** "Aynı klip iki hesaba yakın saatte
 giderse ikincisi dağıtım almaz" diye bir beklenti vardı: 219 gears iki
