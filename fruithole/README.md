@@ -520,9 +520,52 @@ mıknatıs ve gölgeler meyvenin kendi nesnesine dokunuyor, yani bu oyunun çizi
 yolunu baştan kurmak demek. Ölçüm burada duruyor; karar, gerçek telefonda
 takılma görülürse verilecek.
 
+## Türkçe
+
+Oyun İngilizce yazıldı ve hedef kitle ABD/Avrupa seçilmişti
+(`store/social.md`: "Sosyal medyada da İngilizce yazılıyor, çünkü
+TikTok içeriği dile göre dağıtıyor"). 19 Ekim 2026'da Play Console'a
+bakıldı ve kitle orada değil: **günlük 3-8 yüklemenin neredeyse tamamı
+Türkiye**. Yani oyuncular oyunu kendi dillerinde görmüyordu, ve bunu
+söyleyen hiçbir ölçüm yoktu — Motor Works'te 47 çevrilmiş metin vardı,
+burada sıfır.
+
+Yapı Motor Works'ünkiyle aynı: `METIN` tablosu, `T()`, ve statik
+yazılarda `data-t`. `dilUygula()` hepsini tek geçişte yazıyor; ekranları
+tek tek güncellemek, ilk kaçırılan ekranın İngilizce kalması demekti.
+Varsayılan cihazdan geliyor, seçim `fruithole_lang`'e yazılıyor ve bir
+daha cihaza bakılmıyor: Türkçeyi seçen oyuncu telefonunu İngilizceye
+çevirince oyunu İngilizce bulmamalı. Düğme menünün üst şeridinde,
+sesin yanında.
+
+**Tarla ve düzen adları çevrilmedi** — "Valley of Kings" bir yer adı,
+"Dial" bir düzenin adı, ve Motor Works'te müdür adları da çevrilmiyor.
+Ölçüm bu adları bir kalıpla değil **oyundan okuyarak** geçiyor (109 ad),
+yani yeni bir tema eklenince kendiliğinden kapsanıyor.
+
+Ölçümü `scratchpad/holedil.mjs`. Tabloyu değil **ekranı** ölçüyor,
+çünkü asıl kaçak tablonun dışında oluyor: altı ekran iki dilde açılıyor
+ve iki dilde aynı kalan her yazı şüpheli. İlk koşusunda on yedi yer
+buldu — mağazanın tamamı, üç başarımın yanlış anahtarı (`a_msn1`
+ekranda ham anahtar olarak yazıyordu), bugünün tarlası kartı, koleksiyon
+sayacı ve bölüm özeti.
+
+Kapı iki kez hatayı geri koyarak denendi ve ikisinde de bir eksiği
+ortaya çıktı:
+
+- İlk beyaz liste "en çok üç kelime, büyük harfle başlayan" diye bir
+  **kalıptı** ve "Remove ads"i de yutuyordu: mağaza başlıklarının
+  çevirisi kalksa kapı yine geçerdi. Adlar artık oyundan okunuyor.
+- İngilizce bir parça **Türkçe bir satırın içine** karışırsa (ör.
+  `bits.join(' · ')` ile kurulan bir satırda) karşılaştırma onu
+  göremiyordu: satırın tamamı iki dilde farklı olduğu için şüpheli
+  sayılmıyordu. İkinci bir satır eklendi ve tabloyu tersten kullanıyor —
+  bir anahtarın İngilizce karşılığı Türkçe ekranda görünüyorsa, orası
+  çevrilmemiş demek.
+
 ## Ölçümler
 
-    npm run test:fruithole        # yükleme öncesi küme, 20 betik, ~28 dakika
+    npm run test:fruithole        # yükleme öncesi küme, 21 betik, ~29 dakika
     npm run test:fruithole:tam    # doksan iki betik, saatler
 
 Kümenin ayrı olmasının sebebi ölçülerek öğrenildi. Günlük meydan okuma

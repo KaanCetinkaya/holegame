@@ -1392,7 +1392,7 @@ const MISSION_ICON = { order: '📋', giants: '🍉', rush: '⏱', mines: '💣'
 const MISSION_NAME = { order: 'ORDER', giants: 'GIANTS', rush: 'RUSH',
                        mines: 'MINEFIELD', puzzle: 'PUZZLE' };
 function missionNoun() {
-  if (missionKind === 'order') return TYPE_BY_ID[orderType].label;
+  if (missionKind === 'order') return fruitAd(orderType);
   if (missionKind === 'giants') return 'Giant';
   return 'Fruit';   // rush ve mines: tahtanın tamamı
 }
@@ -2177,6 +2177,121 @@ const METIN = {
   plus15:    ['📺 +15 seconds', '📺 +15 saniye'],
   next:      ['Next', 'Sonraki'],
   homeMenu:  ['🏠 Menu', '🏠 Menü'],
+  // Meyve adları. Sayaçlarda ve ödül satırlarında geçiyor.
+  f_berry:  ['Strawberry', 'Çilek'],
+  f_lychee: ['Apple', 'Elma'],
+  f_banana: ['Banana', 'Muz'],
+  f_melon:  ['Watermelon', 'Karpuz'],
+  // Günlük görevler
+  m_eat:    ['Eat {0} fruit', '{0} meyve ye'],
+  m_lvl:    ['Finish {0} levels', '{0} bölüm bitir'],
+  m_star:   ['Earn {0} stars', '{0} yıldız kazan'],
+  m_combo:  ['Hit an x{0} combo', 'x{0} kombo yap'],
+  mReward:  ['Reward: {0} fruit', 'Ödül: {0} meyve'],
+  // Başarımlar
+  a_eat100:   ['Hundred bites', 'Yüz lokma'],
+  a_eat100d:  ['Eat 100 fruit in total', 'Toplam 100 meyve ye'],
+  a_eat1000:  ['Never full', 'Doymak bilmez'],
+  a_eat1000d: ['Eat 1000 fruit in total', 'Toplam 1000 meyve ye'],
+  a_lvl10:    ['Tenth level', 'Onuncu bölüm'],
+  a_lvl10d:   ['Reach level 10', '10. bölüme ulaş'],
+  a_star15:   ['Star hunter', 'Yıldız avcısı'],
+  a_star15d:  ['Earn 15 stars', '15 yıldız kazan'],
+  a_combo5:   ['Chain eater', 'Zincir yiyici'],
+  a_combo5d:  ['Hit an x5 combo', 'x5 kombo yap'],
+  a_eat5000:  ['Bottomless', 'Dipsiz'],
+  a_eat5000d: ['Eat 5000 fruit in total', 'Toplam 5000 meyve ye'],
+  a_lvl25:    ['Quarter way', 'Çeyrek yol'],
+  a_lvl25d:   ['Reach level 25', '25. bölüme ulaş'],
+  a_lvl50:    ['Fifty fields', 'Elli tarla'],
+  a_lvl50d:   ['Reach level 50', '50. bölüme ulaş'],
+  a_star60:   ['Star collector', 'Yıldız toplayıcı'],
+  a_star60d:  ['Earn 60 stars', '60 yıldız kazan'],
+  a_star120:  ['Star hoard', 'Yıldız hazinesi'],
+  a_star120d: ['Earn 120 stars', '120 yıldız kazan'],
+  a_chain50:  ['Unbroken', 'Kopmadan'],
+  a_chain50d: ['Eat 50 fruit in one chain', 'Tek zincirde 50 meyve ye'],
+  a_chain100: ['One breath', 'Tek nefeste'],
+  a_chain100d:['Eat 100 fruit in one chain', 'Tek zincirde 100 meyve ye'],
+  a_find20:   ['Beachcomber', 'Sahil toplayıcısı'],
+  a_find20d:  ['Find 20 objects', '20 nesne bul'],
+  a_find40:   ['Curator', 'Koleksiyoncu'],
+  a_find40d:  ['Find 40 objects', '40 nesne bul'],
+  a_findall:  ['Nothing left', 'Geriye bir şey kalmadı'],
+  a_findalld: ['Find every object', 'Bütün nesneleri bul'],
+  a_streak7:  ['Seven days', 'Yedi gün'],
+  a_streak7d: ['Reach a 7 day streak', '7 günlük seriye ulaş'],
+  a_msn1:     ['Order up', 'Sipariş hazır'],
+  a_msn1d:    ['Finish a mission level', 'Bir görev bölümü bitir'],
+  a_msn10:    ['Regular', 'Müdavim'],
+  a_msn10d:   ['Finish 10 mission levels', '10 görev bölümü bitir'],
+  a_giant5:   ['Heavy lifting', 'Ağır iş'],
+  a_giant5d:  ['Clear the giants on 5 levels', '5 bölümde devleri temizle'],
+  // Güçlendiriciler
+  b_time:     ['Time', 'Süre'],
+  b_grow:     ['Grow', 'Büyüme'],
+  b_growd:    ['Hole grows at once', 'Delik bir anda büyüyor'],
+  b_magnet:   ['Super magnet', 'Süper mıknatıs'],
+  b_twister:  ['Twister', 'Kasırga'],
+  b_twisterd: ['Sweeps everything around you', 'Çevrendeki her şeyi süpürüyor'],
+  // Kaplamalar
+  s_classic: ['Classic', 'Klasik'],
+  s_mint:    ['Mint', 'Nane'],
+  s_grape:   ['Grape', 'Üzüm'],
+  s_coral:   ['Coral', 'Mercan'],
+  s_ink:     ['Ink', 'Mürekkep'],
+  s_lime:    ['Lime', 'Misket limonu'],
+  s_candy:   ['Candy', 'Şeker'],
+  s_ocean:   ['Ocean', 'Okyanus'],
+  s_gold:    ['Gold', 'Altın'],
+  s_chrome:  ['Chrome', 'Krom'],
+  // Yükseltmeler
+  u_speed:   ['Speed', 'Hız'],
+  u_speedd:  ['Hole moves {0}% faster', 'Delik %{0} daha hızlı'],
+  u_size:    ['Starting size', 'Başlangıç boyu'],
+  u_sized:   ['Hole starts {0} wider', 'Delik {0} daha geniş başlıyor'],
+  u_time:    ['Extra time', 'Ek süre'],
+  u_timed:   ['+{0} seconds every level', 'Her bölümde +{0} saniye'],
+  u_magnet:  ['Magnet', 'Mıknatıs'],
+  u_magnetd: ['Pulls fruit in from {0} further out', '{0} daha uzaktan meyve çekiyor'],
+  notUpg:    ['Not upgraded yet', 'Henüz yükseltilmedi'],
+  // Kaplama satırı
+  inUse:     ['In use', 'Takılı'],
+  tapWear:   ['Tap to wear', 'Takmak için dokun'],
+  reachLvl:  ['Reach level {0}', '{0}. bölüme ulaş'],
+  notYours:  ['Not yours yet', 'Henüz senin değil'],
+  // Güçlendirici satırı
+  unlockAt:  ['Unlocks at level {0}', '{0}. bölümde açılıyor'],
+  ownedN:    ['Owned: {0}', 'Elinde: {0}'],
+  nextBoost: ['{0} booster unlocks at level {1}', '{0} güçlendiricisi {1}. bölümde açılıyor'],
+  boostLoot: ['{0} {1} booster', '{0} {1} güçlendiricisi'],
+  // Mağaza
+  p_remove_ads:  ['Remove ads', 'Reklamları kaldır'],
+  p_remove_adsd: ['No more banner or between-level ads',
+                  'Şerit ve bölüm arası reklam kalmıyor'],
+  p_starter:     ['Starter pack', 'Başlangıç paketi'],
+  p_pack_small:  ['Fruit basket', 'Meyve sepeti'],
+  p_pack_large:  ['Fruit truck', 'Meyve kamyonu'],
+  pFruitAll:     ['{0} of every fruit', 'Her meyveden {0} tane'],
+  pStarterAdd:   [', {0} of every booster, and no ads',
+                  ', her güçlendiriciden {0} tane, ve reklamsız'],
+  shopBrowser:   ['Browser build: nothing is charged and items are granted outright so you can try the flow. Real purchases work only in the app.',
+                  'Tarayıcı sürümü: hiçbir ücret alınmıyor, akışı denemen için ürünler doğrudan veriliyor. Gerçek satın alma yalnızca uygulamada çalışıyor.'],
+  shopMissing:   ['Some items could not be priced by Google Play just now. Check your connection and reopen the shop.',
+                  'Google Play bazı ürünlerin fiyatını şu an veremedi. Bağlantını kontrol edip mağazayı yeniden aç.'],
+  shopPrices:    ['Prices come from the store; purchases are billed to your Google Play account.',
+                  'Fiyatlar mağazadan geliyor; satın alımlar Google Play hesabına yazılıyor.'],
+  // Bugünün tarlası
+  bestToday: ['Best today: {0} fruit', 'Bugünün en iyisi: {0} meyve'],
+  notPlayed: ['Not played yet', 'Bugün oynanmadı'],
+  dayStreak: ['Day {0} streak', '{0} günlük seri'],
+  noUpg:     ['No upgrades — same hole for everyone',
+              'Yükseltme yok — herkese aynı delik'],
+  playAgain: ['Play again', 'Yeniden oyna'],
+  // Menü ve listeler
+  newLevel:  ['New level', 'Yeni bölüm'],
+  collCount: ['🧺 Collection {0}/{1}', '🧺 Koleksiyon {0}/{1}'],
+  lvlSummary:['{0} cleared · {1} stars', '{0} bitti · {1} yıldız'],
   // Dil düğmesi
   lang:      ['EN', 'TR'],
 };
@@ -2199,6 +2314,9 @@ const T = (k, ...a) => {
   a.forEach((v, i) => { s = s.split('{' + i + '}').join(v); });
   return s;
 };
+// Meyve adı. Tablodaki `label` İngilizce duruyor ve kodun başka
+// yerlerinde kimlik gibi kullanılıyor; ekranda görünen ad buradan.
+const fruitAd = id => T('f_' + id);
 function dilUygula() {
   for (const el of document.querySelectorAll('[data-t]')) el.textContent = T(el.dataset.t);
   document.documentElement.lang = dil === 1 ? 'tr' : 'en';
@@ -2252,18 +2370,18 @@ function saveStars() { fhYaz('fruithole_stars', JSON.stringify(stars)); }
 // ---------------------------------------------------------------------
 const UPGRADES = [
   { id: 'speed',  icon: '💨', name: 'Speed',          pay: 'berry',  base: 250,
-    desc: lv => `Hole moves ${lv * 8}% faster` },
+    desc: lv => T('u_speedd', lv * 8) },
   // Size stops at three steps, so its track is a third the length of the
   // others. Its base is higher to keep the banana counter worth watching for
   // as long as the rest; the slack that is left over is what the Gold skin,
   // the most expensive thing in the game, is priced against.
   { id: 'size',   icon: '⭕', name: 'Starting size',  pay: 'banana', base: 320,
     max: 3,
-    desc: lv => `Hole starts ${(Math.min(lv, 3) * 0.03).toFixed(2)} wider` },
+    desc: lv => T('u_sized', (Math.min(lv, 3) * 0.03).toFixed(2)) },
   { id: 'time',   icon: '⏱',  name: 'Extra time',     pay: 'lychee', base: 250,
-    desc: lv => `+${lv * 5} seconds every level` },
+    desc: lv => T('u_timed', lv * 5) },
   { id: 'magnet', icon: '🧲', name: 'Magnet',         pay: 'melon',  base: 280,
-    desc: lv => `Pulls fruit in from ${(lv * 0.28).toFixed(2)} further out` },
+    desc: lv => T('u_magnetd', (lv * 0.28).toFixed(2)) },
 ];
 const UPG_MAX = 5;
 // Most upgrades run to UPG_MAX. Starting size stops earlier, because what it
@@ -2443,10 +2561,10 @@ function saveStats() { fhYaz('fruithole_stats', JSON.stringify(stats)); }
 function dayKey(d) { return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
 
 const MISSION_POOL = [
-  { id: 'eat',   icon: '🍇', track: 'fruits',    text: n => `Eat ${n} fruit`,     roll: () => 60 + Math.floor(Math.random() * 5) * 20 },
-  { id: 'lvl',   icon: '🏁', track: 'levels',    text: n => `Finish ${n} levels`,  roll: () => 2 + Math.floor(Math.random() * 3) },
-  { id: 'star',  icon: '⭐', track: 'stars',     text: n => `Earn ${n} stars`, roll: () => 4 + Math.floor(Math.random() * 5) },
-  { id: 'combo', icon: '🔥', track: 'bestCombo', text: n => `Hit an x${n} combo`,   roll: () => 3 + Math.floor(Math.random() * 3) },
+  { id: 'eat',   icon: '🍇', track: 'fruits',    text: n => T('m_eat', n),     roll: () => 60 + Math.floor(Math.random() * 5) * 20 },
+  { id: 'lvl',   icon: '🏁', track: 'levels',    text: n => T('m_lvl', n),  roll: () => 2 + Math.floor(Math.random() * 3) },
+  { id: 'star',  icon: '⭐', track: 'stars',     text: n => T('m_star', n), roll: () => 4 + Math.floor(Math.random() * 5) },
+  { id: 'combo', icon: '🔥', track: 'bestCombo', text: n => T('m_combo', n),   roll: () => 3 + Math.floor(Math.random() * 3) },
 ];
 const MISSION_BY_ID = Object.fromEntries(MISSION_POOL.map(m => [m.id, m]));
 // Missions, achievements and the daily reward all scale with the shop.
@@ -3395,7 +3513,7 @@ function refreshMenuLevel() {
   // önce bilsin. Görevin sürprizi kuralın kendisi değil, hangi meyve olduğu.
   const mk = missionKindFor(level);
   menuSubEl.textContent = (mk ? `${MISSION_ICON[mk]} ${MISSION_NAME[mk]} · ` : '') +
-    (best ? '★'.repeat(best) + '☆'.repeat(3 - best) : 'New level');
+    (best ? '★'.repeat(best) + '☆'.repeat(3 - best) : T('newLevel'));
 
   // Banner: the next thing the player will be given, or the star total once
   // there is nothing left to unlock.
@@ -3424,7 +3542,7 @@ function refreshMenuLevel() {
       `<span class="bt">${(t && t.name) || 'Fifty-three places'}</span>`;
   } else if (next) {
     banner.innerHTML = iconHTML('lock', '🔒', 'bi') +
-      `<span class="bt">${next.name} booster unlocks at level ${next.unlock}</span>`;
+      `<span class="bt">${T('nextBoost', T('b_' + next.id), next.unlock)}</span>`;
   } else {
     const total = Object.values(stars).reduce((a, b) => a + b, 0);
     banner.innerHTML = `<span class="bi">⭐</span><span class="bt">${total} stars collected — everything unlocked</span>`;
@@ -3629,8 +3747,8 @@ function renderUpgrades() {
     row.innerHTML =
       iconHTML(UPGRADE_ICON[u.id], u.icon, 'ico') +
       `<span class="mid">` +
-        `<span class="nm">${u.name}</span>` +
-        `<div class="ds">${lv ? u.desc(lv) : 'Not upgraded yet'}</div>` +
+        `<span class="nm">${T('u_' + u.id)}</span>` +
+        `<div class="ds">${lv ? u.desc(lv) : T('notUpg')}</div>` +
         `<div class="pips">${Array.from({ length: upgMax(u) }, (_, i) =>
           `<span class="pip${i < lv ? ' on' : ''}"></span>`).join('')}</div>` +
       `</span>`;
@@ -3638,7 +3756,7 @@ function renderUpgrades() {
     const btn = document.createElement('button');
     btn.className = 'buy';
     if (maxed) {
-      btn.textContent = 'MAX';
+      btn.textContent = T('max');
       btn.disabled = true;
     } else {
       btn.innerHTML = `Upgrade${priceHTML(cost, pay.id)}`;
@@ -3668,13 +3786,13 @@ function renderSkinShop() {
     row.innerHTML =
       `<span class="ico skinDot" style="--rim:${sk.rim};--lip:${sk.lip}"></span>` +
       `<span class="mid">` +
-        `<span class="nm">${sk.name}</span>` +
+        `<span class="nm">${T('s_' + sk.id)}</span>` +
         // The price is already on the button; repeating it here just made
         // the row say "400 Strawberry" twice.
         `<div class="ds">${
-          owned ? (active ? 'In use' : 'Tap to wear')
-                : sk.level !== undefined ? `Reach level ${sk.level}`
-                : 'Not yours yet'}</div>` +
+          owned ? (active ? T('inUse') : T('tapWear'))
+                : sk.level !== undefined ? T('reachLvl', sk.level)
+                : T('notYours')}</div>` +
       `</span>`;
 
     const btn = document.createElement('button');
@@ -3730,9 +3848,9 @@ function renderBoostShop() {
     row.innerHTML =
       iconHTML(BOOSTER_ICON[b.id], b.icon, 'ico') +
       `<span class="mid">` +
-        `<span class="nm">${b.name}</span>` +
-        `<div class="ds">${b.desc}</div>` +
-        `<div class="own">${locked ? `Unlocks at level ${b.unlock}` : `Owned: ${boosters[b.id] || 0}`}</div>` +
+        `<span class="nm">${T('b_' + b.id)}</span>` +
+        `<div class="ds">${METIN['b_' + b.id + 'd'] ? T('b_' + b.id + 'd') : ''}</div>` +
+        `<div class="own">${locked ? T('unlockAt', b.unlock) : T('ownedN', boosters[b.id] || 0)}</div>` +
       `</span>`;
 
     // One free one a day per booster, for an ad. Capped because an
@@ -3810,12 +3928,12 @@ function renderChall() {
   document.getElementById('challLine').textContent =
     `${th ? th.icon + ' ' : ''}${p.icon} ${p.name}`;
   const bits = [];
-  bits.push(chall.plays ? `Best today: ${chall.best} fruit` : 'Not played yet');
-  if (chall.streak) bits.push(`Day ${chall.streak} streak`);
-  bits.push('No upgrades — same hole for everyone');
+  bits.push(chall.plays ? T('bestToday', chall.best) : T('notPlayed'));
+  if (chall.streak) bits.push(T('dayStreak', chall.streak));
+  bits.push(T('noUpg'));
   document.getElementById('challSub').textContent = bits.join(' · ');
   document.getElementById('challBtn').textContent =
-    chall.plays ? 'Play again' : "Play today's field";
+    chall.plays ? T('playAgain') : T('playToday');
 }
 // Hidden until there is actually a board to open. A button that does
 // nothing is worse than no button — it reads as broken rather than absent.
@@ -3867,7 +3985,7 @@ function renderGoals() {
   (daily.missions || []).forEach(m => {
     const def = MISSION_BY_ID[m.id];
     mList.appendChild(goalRow(
-      def.icon, def.text(m.goal), `Reward: ${MISSION_REWARD} fruit`,
+      def.icon, def.text(m.goal), T('mReward', MISSION_REWARD),
       missionAt(m), m.goal, m.claimed,
       () => claimMission(m)
     ));
@@ -3877,7 +3995,7 @@ function renderGoals() {
   aList.innerHTML = '';
   ACHIEVEMENTS.filter(achVisible).forEach(a => {
     aList.appendChild(goalRow(
-      a.icon, a.name, `${a.desc} · ${a.reward} ${TYPE_BY_ID[a.pay].label}`,
+      a.icon, T('a_' + a.id), `${T('a_' + a.id + 'd')} · ${a.reward} ${fruitAd(a.pay)}`,
       a.at(), a.goal, !!achClaimed[a.id],
       () => claimAch(a)
     ));
@@ -4144,7 +4262,7 @@ function renderLevels() {
   const top = level + 8;                    // a few locked ones to aim at
   const done = Object.keys(stars).length;
   document.getElementById('levelsSub').textContent =
-    `${done} cleared · ${Object.values(stars).reduce((a, b) => a + b, 0)} stars`;
+    T('lvlSummary', done, Object.values(stars).reduce((a, b) => a + b, 0));
   grid.innerHTML = '';
   for (let n = 1; n <= top; n++) {
     // A chapter head every ten levels, carrying the stars taken in it.
@@ -4311,10 +4429,10 @@ const PRODUCTS = [
 // cümlenin biçimi hiçbir şeye söz vermiyor.
 for (const p of PRODUCTS) {
   if (p.desc || !p.fruit) continue;
-  p.desc = `${p.fruit.toLocaleString('en-US')} of every fruit` +
-    (p.id === 'fruithole_starter'
-      ? `, ${STARTER_BOOSTERS} of every booster, and no ads`
-      : '');
+  // Açıklama dil değişince yeniden kurulmalı, o yüzden alan değil
+  // **işlev**: sabit bir metin, ilk dilde donup kalırdı.
+  p.descFn = () => T('pFruitAll', p.fruit.toLocaleString(dil === 1 ? 'tr-TR' : 'en-US')) +
+    (p.id === 'fruithole_starter' ? T('pStarterAdd', STARTER_BOOSTERS) : '');
 }
 const PRODUCT_BY_ID = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
 // Hand a product over. `payout` is false when the purchase is only being
@@ -4340,8 +4458,8 @@ function renderShop() {
     row.innerHTML =
       `<span class="ico">${p.icon}</span>` +
       `<span class="mid">` +
-        `<span class="nm">${p.name}</span>` +
-        `<div class="ds">${p.desc}</div>` +
+        `<span class="nm">${T('p_' + (p.key || p.id.replace(/^fruithole_/, '')))}</span>` +
+        `<div class="ds">${p.descFn ? p.descFn() : T('p_' + (p.key || p.id.replace(/^fruithole_/, '')) + 'd')}</div>` +
       `</span>`;
     // On device, a product is only offered at the price Play gave for it.
     //
@@ -4364,10 +4482,10 @@ function renderShop() {
 
   const missing = IAP_ON && PRODUCTS.some(p => !p.livePrice && !(p.key && iap[p.key]));
   document.getElementById('shopNote').textContent = !IAP_ON
-    ? 'Browser build: nothing is charged and items are granted outright so you can try the flow. Real purchases work only in the app.'
+    ? T('shopBrowser')
     : missing
-      ? 'Some items could not be priced by Google Play just now. Check your connection and reopen the shop.'
-      : 'Prices come from the store; purchases are billed to your Google Play account.';
+      ? T('shopMissing')
+      : T('shopPrices');
 }
 
 async function buyProduct(p, btn) {
@@ -4419,7 +4537,7 @@ function showDaily() {
     ? `Day ${daily.streak} streak — come back tomorrow`
     : `Day ${daily.streak} streak`;
   document.getElementById('dailyLoot').innerHTML =
-    `<span class="pill">${daily.loot.amount} ${t.label}</span>`;
+    `<span class="pill">${daily.loot.amount} ${fruitAd(t.id)}</span>`;
   document.getElementById('dailyBtn').textContent = got ? 'Close' : 'Claim';
   // Only while there is something to claim. Offering to double a reward
   // that has already been taken is an ad with nothing behind it.
@@ -4551,8 +4669,8 @@ function tchestLoot() {
 function tchestLootText(mult = 1) {
   const l = tchestLoot();
   return l.kind === 'booster'
-    ? `${mult} ${BOOSTERS.find(b => b.id === l.id).name} booster`
-    : `${l.amount * mult} ${TYPE_BY_ID[l.type].label}`;
+    ? T('boostLoot', mult, T('b_' + l.id))
+    : `${l.amount * mult} ${fruitAd(l.type)}`;
 }
 
 function takeTchest(mult) {
@@ -13347,7 +13465,7 @@ function markFound(id) {
 // söyleyen tek şey bu, ve 5/63 ile 41/63 arasındaki fark tıklama sebebi.
 function refreshCollBtn() {
   const b = document.getElementById('collBtn');
-  if (b) b.textContent = `🧺 Collection ${ALL_PROPS.filter(id => found.has(id)).length}/${ALL_PROPS.length}`;
+  if (b) b.textContent = T('collCount', ALL_PROPS.filter(id => found.has(id)).length, ALL_PROPS.length);
 }
 
 const ALL_PROPS = Object.keys(PROPS);
@@ -25148,7 +25266,7 @@ function takeReward() {
   sfx.booster();
   burstPips(chestEl, type.uiBase || type.base);
 
-  rewardLineEl.textContent = `+${amount} ${type.label}`;
+  rewardLineEl.textContent = `+${amount} ${fruitAd(type.id)}`;
 
   // The chest opening is the moment in the whole run the player is most
   // pleased with what just happened, which is exactly when an optional ad
@@ -25164,7 +25282,7 @@ function takeReward() {
     bumpCurrency(type.id, amount);
     sfx.win();
     burstPips(chest2xEl, type.uiBase || type.base);
-    rewardLineEl.textContent = `+${amount * 2} ${type.label}`;
+    rewardLineEl.textContent = `+${amount * 2} ${fruitAd(type.id)}`;
     chest2xEl.hidden = true;
   });
 
@@ -25455,7 +25573,9 @@ window.fruitHoleCollection = () => ({
 // o güvencenin dışarıdan da görülebilmesi için — üretimin kendisi bir gün
 // elle yazmaya geri dönerse test düşsün.
 window.fruitHoleProducts = () => PRODUCTS.map(p => ({
-  id: p.id, ad: p.name, yazi: p.desc, meyve: p.fruit || 0,
+  // Açıklama artık dile göre üretiliyor: kanca da üretilmiş hâlini
+  // veriyor, yoksa sayıyı ölçen kapı boş bir alan okurdu.
+  id: p.id, ad: p.name, yazi: p.descFn ? p.descFn() : p.desc, meyve: p.fruit || 0,
   booster: p.id === 'fruithole_starter' ? STARTER_BOOSTERS : 0,
 }));
 window.fruitHoleMarkFound = id => markFound(id);
@@ -25491,7 +25611,7 @@ function onTimeUp() {
   let mesaj;
   if (cards.length) {
     const eksik = cards.filter(k => k.got < k.need)
-      .map(k => `${k.need - k.got} ${TYPE_BY_ID[k.type].label.toLowerCase()}`);
+      .map(k => `${k.need - k.got} ${fruitAd(k.type).toLocaleLowerCase(dil === 1 ? 'tr-TR' : 'en-US')}`);
     mesaj = eksik.length ? `${eksik.join(', ')} left` : 'so close';
   } else {
     const left = missionKind
@@ -26370,6 +26490,15 @@ function iconHTML(name, emoji, cls) {
 // Kayıt yazması kaç kez başarısız oldu, ve sonuncusu neydi. Teşhis
 // ekranındaki satırın ölçülebilir hâli.
 window.fruitHoleYazma = () => ({ hata: yazmaHata, son: yazmaSon, an: yazmaAn });
+// Dil: hangisi açık, tabloda ne var, ve ekranda kaç `data-t` duruyor.
+// Ölçüm tabloyu dışarıdan okuyabilsin diye; elle yazılmış bir kopya
+// bir gün tablodan ayrı düşerdi.
+window.fruitHoleDil = () => ({
+  dil,
+  tablo: METIN,
+  anahtar: Object.keys(METIN),
+  isaretli: [...document.querySelectorAll('[data-t]')].map(e => e.dataset.t),
+});
 // Yazmayı bozmanın yolu: kotayı gerçekten doldurmak yerine `setItem`i
 // patlatmak. Motor Works'teki `jeKayitBoz` ile aynı numara.
 window.fruitHoleYazmaBoz = (ac = true) => {
