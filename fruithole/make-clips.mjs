@@ -296,6 +296,14 @@ const CLIPS = [
   { id: 'forbidden', pattern: 'Gate',      engel: 'çamur',    note: 'Forbidden City · kırmızı kapı, taş avlu · 408 meyve' },
   { id: 'outback',   pattern: 'Boomerang', engel: 'çamur',    note: 'Outback · kızıl merkez, bumerang düzeni · 201 meyve · tahtada üç çamur' },
   { id: 'academy',   pattern: 'Key',       engel: null,       note: 'Academy · mumlu taş koridor, anahtar düzen · 243 meyve · düzen klibi' },
+  // 19 Ekim'de eklendi ve seçimi `holeklipaday` yaptı. O gün dört
+  // kimlikte otuz dokuz deneme boşa gitti: elde kalan kimlikler zaten
+  // hiç tutmadıkları için elde kalmıştı — bir seçilim etkisi, ve
+  // "yeniden dene" ona çare değil. Tarama on bir tahtayı oynatmadan
+  // okudu: hiçbirinde başlangıç dev oranı 1.6'nın altında değil, en
+  // iyisi 1.79 ve o Hopscotch. Üç çamuru da var, yani engel sözü
+  // kadraja girme şansı en yüksek olanlardan.
+  { id: 'hopscotch', pattern: 'Hopscotch', engel: 'çamur',   note: 'Hopscotch · seksek düzeni · tahtada üç çamur' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
   // ve 2.73), o yüzden listeden çıkmıyor.
