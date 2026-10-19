@@ -1945,3 +1945,42 @@ bir söz.
 gevşetmek değil (eşiğin gerekçesi yazılı ve doğru), **yeniden
 denemek**: aracın kendi mesajı bunu söylüyor ve tutma oranı kabaca
 dörtte bir.
+
+### Düzeltme: sorun "akşam/gece" değil, gece yarısının yirmi dakikası
+
+Dün bu dosyaya "gece yarısı atılan üç gönderi sıfırda kaldı, akşam
+atılanlar 69-429 aldı" diye bir örüntü yazıldı ve oradan "19:00-21:00
+arasında at" önerisi çıktı. **Öneri fazla genişti.** 19 Ekim'de iki
+hesabın listesi tekrar okundu ve 18 Ekim gecesi atılan iki gönderi
+görüldü:
+
+| saat | gönderi | hesap | izlenme |
+|---|---|---|---|
+| 23:02 | day 16 · bloom | A | **344** |
+| 23:11 | day 17 · outback | A | **249** |
+| 23:57 | 306 fruit in rings | B | **0** |
+| 00:12 | 417 fruit | A | **1** |
+| 00:16 | 417 fruit | B | **0** |
+| 21:08 / 21:15 | 219 gears | B / A | 387 / 70 |
+| 18:44 / 18:47 | boss stage / 65 pieces | B / A | 429 / 124 |
+| 20:19 / 20:21 | three turtles | A / B | 410 / 136 |
+
+23:02 ve 23:11 iş görüyor, 23:57 ölü. Yani "akşam" diye bir şart yok;
+ölü olan üç gönderinin üçü de **23:45-00:30** aralığında. Kural buna
+daraltıldı.
+
+**İkinci şüphe de zayıfladı.** "Aynı klip iki hesaba yakın saatte
+giderse ikincisi dağıtım almaz" diye bir beklenti vardı: 219 gears iki
+hesaba yedi dakika arayla gitti ve 387 ile 70 aldı — ikisi de sıfır
+değil. Kopya öldürmüyor; sayıyı düşürüyor olabilir ama bu veriyle
+ayırt edilemiyor.
+
+Geriye tek ortak nokta kalıyor ve hâlâ bir **sebep değil, örüntü**:
+gece yarısına yakın atılan hiçbir gönderi dağıtım almadı. Sıradaki
+klip bunu tek değişkenle sınayacak — gece yarısından uzak bir saat,
+tek hesap.
+
+**Bu düzeltmenin kendisi de bir ders:** ilk tablo yalnızca listenin
+görünen beş satırıyla kurulmuştu ve 18 Ekim gecesinin iki gönderisi o
+beşin dışındaydı. Aynı hata iki gün üst üste aynı yerden geldi —
+kesik bir listenin görünen kısmından kural çıkarmak.
