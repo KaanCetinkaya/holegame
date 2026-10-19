@@ -1901,3 +1901,47 @@ video kimseye gösterilmiyor, yani o sıfır beklenen sıfır.
 
 Bir gönderi sıfırdaysa bakılacak ilk yer burası — listedeki gizlilik
 sütunu ve rozet. Ancak ikisi de temizse "açıklanamadı" denir.
+
+### Stok bitti, ve bu dosya hangisinin atıldığını bilemiyor
+
+19 Ekim: `matchday` de atılmış çıktı. Klasördeki sekiz klibin
+(`bloom`, `cogs`, `cubes`, `hourglass`, `lens`, `matchday`, `onion`,
+`outback`) **sekizi de** atıldı. Elde atılmamış klip kalmadı.
+
+Bu, kaydın ikinci kez yanıldığı yer. Dün `bloom` ile `cogs` "hazır,
+atılmadı" yazıyordu ve ikisi de atılmıştı; bugün `matchday` iki
+hesabın listesinde görünmediği için atılmamış sanıldı ve o da
+atılmıştı — listelerde yalnızca ilk beş gönderi görünüyordu, altı
+kesikti.
+
+**Kural, ve bu sefer sebebiyle birlikte:** bu dosya bir klibin
+atılıp atılmadığını *bilemez*. Klip üretimi burada, gönderi orada, ve
+ikisi arasında bir bağ yok — dosyaya yazılan her "atılmadı" bir
+tahmindir. Atmadan önce **profil listesi açılır ve aranır**; kesik bir
+listenin görünen kısmı "yok" demek değil.
+
+Sıradaki klip üretilerek gelecek: `node fruithole/make-clips.mjs
+--only <kimlik>`. Çekilmemiş iki kimlik kaldı, `redplanet` (54) ve
+`academy` (51), ve ikisi de bugün aracın şartlarına takıldı.
+
+### Aracın reddi: kadrajdaki dev çok büyük
+
+Altı denemede üçü aynı yerden düştü — kadrajdaki dev deliğin 1.88,
+1.9 ve 2.02 katıydı, sınır 1.6. Şart "klip dokuz saniyede kapanacak
+bir açık göstersin" diyor, yani 2.0'lık bir dev klibin tutamayacağı
+bir söz.
+
+**Bölüme bağlı değil, tahtanın o anki rastgeleliğine bağlı** —
+ölçülen dört nokta bunu söylüyor:
+
+| klip | bölüm | kadrajdaki devin boyu |
+|---|---|---|
+| tulip | 37 | 1.81 · 1.89 ✗ |
+| outback | 49 | **1.57** ✓ |
+| academy | 51 | 2.02 ✗ |
+| redplanet | 54 | 1.9 · 1.88 ✗ |
+
+37. bölüm 1.81 verirken 49. bölüm 1.57 veriyor. Yani çare eşiği
+gevşetmek değil (eşiğin gerekçesi yazılı ve doğru), **yeniden
+denemek**: aracın kendi mesajı bunu söylüyor ve tutma oranı kabaca
+dörtte bir.
