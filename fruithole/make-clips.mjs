@@ -308,6 +308,10 @@ const CLIPS = [
   // 12'de çıkıyor — orada çamur henüz yok (29'dan başlıyor). Araç bunu
   // çekime girmeden söyledi; aranan tahta düzenin 60'taki tekrarı.
   { id: 'hopscotch', level: 60,         engel: 'çamur',   note: 'Hopscotch · seksek düzeni · 60. bölüm · tahtada üç çamur' },
+  // İkinci aday, aynı taramadan. Başlangıç dev oranı 1.86 ve bu bant
+  // klip çıkarıyor: `cogs` de 1.86'dan tuttu — ölçüm ısınmadan sonra
+  // bakıyor ve delik o on altı saniyede büyüyor. Üç çamuru var.
+  { id: 'blast',     level: 62,         engel: 'çamur',   note: 'Blast · patlama düzeni · 62. bölüm · tahtada üç çamur' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
   // ve 2.73), o yüzden listeden çıkmıyor.
