@@ -48,6 +48,10 @@ Use the same Google account your phone's Play Store is signed in to —
 with any other account step 2 just 404s, and that is where most people
 give up.
 
+I'm in the same boat, so it's mutual: drop your app's links in a
+comment and I'll join your test today and actually open it a couple of
+times.
+
 What I actually need is people who get past level 12. That is where the
 corridor starts asking real questions — a clamp with one narrow window,
 then gates alternating floor and ceiling, then a mine sitting on the
@@ -56,6 +60,15 @@ feels unfair, tell me which level.
 
 Free, no signup, works offline.
 ```
+
+**Reddit de karşılıklı.** Bu dosya bir ara "Reddit'te karşılık
+beklenmiyor, oradakiler zaten testçi" diyordu; Kaan düzeltti ve o
+thread'lerde olan o: r/alphaandbetausers'ın büyük kısmı aynı 12 kişi /
+14 gün şartındaki geliştiriciler, yani Telegram'daki kuralın aynısı
+orada da geçerli. Gönderi bunu açıkça söylüyor, çünkü söylemeyen
+gönderi okunmuyor; ve söz verilen her teste **gerçekten** girilecek.
+
+Takip tek listede, kanal ayırmadan: kime söz verildi, girildi mi.
 
 ## r/TestMyApp
 
