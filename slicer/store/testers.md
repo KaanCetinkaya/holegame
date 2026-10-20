@@ -1,5 +1,25 @@
 # Kapalı test için testçi çağrısı — Slice Rush
 
+## 20 Ekim 2026: 12 testçi doldu
+
+Play Console'daki üretim sayfasında ilk iki madde üstü çizili:
+kapalı test sürümü yayında, ve **en az 12 test kullanıcısı kaydoldu**.
+Kalan tek madde "12 kullanıcıyla en az 14 gün" — yani 3 Kasım civarı.
+
+Bundan sonrası korumak:
+
+- **Tampon.** 12'de durmak riskli; değiş tokuşla gelenin bir kısmı
+  birkaç gün sonra siliyor ve sayı 12'nin altına düşerse süre
+  ilerlemiyor. Hedef 15-16.
+- **Söz verilen testlere gerçekten gir.** Çıkışların bilinen sebebi
+  bu: karşılık vermeyeni listeden atıyorlar.
+- **Grup üyelerine dokunma.** Testçi listesi bir Google Grubu, üye
+  çıkarmak testçi çıkarmak demek.
+- **Yeni sürüm yüklemek sayacı sıfırlamıyor** ve iyi oluyor: yeni
+  gelen kişinin gördüğü şey v1-2 değil, aradaki düzeltmelerin hepsini
+  taşıyan sürüm olsun — kötü bir sürümü silen testçi sayacı düşürür.
+
+
 Yapısı Fruit Hole'unkinin aynısı ve sebebi orada yazılı
 (`fruithole/store/production-access.md` → "Ne yazılacak"): kısa,
 İngilizce, ve karşıdakine ne yapacağını söyleyen.
