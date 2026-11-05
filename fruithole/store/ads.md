@@ -11,13 +11,22 @@ Kendi verisiyle, 19 Ekim:
 | sayı | kaynak |
 |---|---|
 | günlük kazanç ₺0,74 · 22 gösterim · eBGBM ₺33,51 | AdMob ana sayfa |
-| günlük yükleme 3-8 (son hafta 6-7), çoğu Türkiye | Play Console → İstatistikler |
-| **indirme başına ~₺0,12** | durağan durumda günlük kazanç ÷ günlük yükleme |
+| oyunu yüklü tutan kullanıcı 3-8, çoğu Türkiye | Play Console → İstatistikler |
+| son 28 gün: **14 yeni edinme**, 18 aylık etkin cihaz | Play Console ana sayfası, 5 Kasım |
+| **indirme başına ~₺1,5** | durağan durumda günlük kazanç ÷ günlük yeni yükleme |
 
-Satın alınan indirme bunun kat kat üstünde, yani bu tur bir yatırım
-değil. `social.md`'deki "reklam vererek indirme almak her indirmede
-3-10 kat zarar" hesabı hâlâ doğru yönü gösteriyor ve gerçek veriyle
-**daha kötü** çıkıyor: o hesap ARPDAU'yu $0,04 varsaymıştı.
+**Düzeltme, 5 Kasım.** Bu tablo ilk yazıldığında "günlük yükleme 3-8"
+diyordu ve oradan "indirme başına ₺0,12" çıkıyordu. İkisi de yanlıştı:
+o grafik günlük *yeni* yüklemeyi değil, o gün oyunu **yüklü tutan**
+kullanıcı sayısını gösteriyordu. Gerçek yeni yükleme son 28 günde 14,
+yani günde yarım; ₺0,74'lük günlük kazançla indirme başına ~₺1,5 eder.
+Kazanç tek bir günün okuması (bir gün önce ₺1,60'tı), yani aralık
+kabaca ₺1,5-3.
+
+Sonuç yön değiştirmiyor ama **büyüklüğü** değişiyor: Türkiye'de
+satın alınan indirme ₺3-6, yani reklam indirme başına "yüz kat" değil
+**kabaca iki-dört kat** zarar. Hâlâ geri dönmeyen bir harcama, ama
+"saçma" değil ölçülebilir bir açık.
 
 **Düzeltme (aynı gün, aynı konuşmada):** ilk söylenen "satın alınan
 indirme ₺20-80" rakamı **Tier-1** fiyatı. Yüklemeler Türkiye'den
@@ -90,3 +99,23 @@ Google Ads kohortu orada ayrı duruyor.
 
 *(tur bittiğinde doldurulacak: harcanan, gelen indirme, gerçekleşen
 CPI, 1. gün ve 7. gün elde tutma, ve karar kuralının ne dediği.)*
+
+## 5 Kasım: üç oyunun 28 günü
+
+Play Console ana sayfası, son 28 gün:
+
+| oyun | kanal | edinme | ilk açılış | aylık etkin cihaz |
+|---|---|---|---|---|
+| Slice Rush | kapalı test | 10 | 9 | 10 |
+| Motor Works | kapalı test | **1** | 1 | **2** |
+| Fruit Hole | üretim | 14 (+%600) | — | 18 (+%350) |
+
+Fruit Hole'un son güncellemesi **6 Ekim**. Türkçe, teşhis ekranı
+düzeltmesi ve kayıt satırlarını taşıyan v51 hiç yüklenmedi; yani bu
+dosyadaki reklam turunun "ölçülebilir kohort" gerekçesi, gelen
+oyuncunun Türkçe görmediği bir sürüm üzerinden okunurdu.
+
+Motor Works'ün sayısı ayrı bir risk: 12 testçi kayıtlı ama 28 günde
+yalnızca 2 cihaz oyunu açmış. Üretim başvurusu "test gerçekten
+yapıldı mı"ya bakıyor; Slice Rush'ta 12 testçinin 9'u oyunu açmış,
+Motor Works'te neredeyse hiçbiri.

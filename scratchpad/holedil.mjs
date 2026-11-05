@@ -5,8 +5,8 @@
 // ## Neden var
 //
 // Oyun İngilizce yazıldı, hedef kitle ABD/Avrupa seçilmişti. 19 Ekim'de
-// Play Console'a bakıldı: günlük 3-8 yüklemenin neredeyse tamamı
-// **Türkiye**. Yani oyuncular oyunu kendi dillerinde görmüyordu ve bunu
+// Play Console'a bakıldı: oyunu yüklü tutan kullanıcıların neredeyse
+// tamamı **Türkiye**. Yani oyuncular oyunu kendi dillerinde görmüyordu ve bunu
 // söyleyen hiçbir ölçüm yoktu.
 //
 // Çeviri eklendi. Bu dosya onun **bütün** olup olmadığını ölçüyor,

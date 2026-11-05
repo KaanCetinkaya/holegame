@@ -525,8 +525,13 @@ takılma görülürse verilecek.
 Oyun İngilizce yazıldı ve hedef kitle ABD/Avrupa seçilmişti
 (`store/social.md`: "Sosyal medyada da İngilizce yazılıyor, çünkü
 TikTok içeriği dile göre dağıtıyor"). 19 Ekim 2026'da Play Console'a
-bakıldı ve kitle orada değil: **günlük 3-8 yüklemenin neredeyse tamamı
-Türkiye**. Yani oyuncular oyunu kendi dillerinde görmüyordu, ve bunu
+bakıldı ve kitle orada değil: **oyunu yüklü tutan kullanıcıların neredeyse
+tamamı Türkiye'de**. (Bu satır bir ara "günlük 3-8 yükleme" diyordu ve
+yanlıştı: o grafik günlük *yeni* yüklemeyi değil, o gün oyunu **yüklü
+tutan** kullanıcı sayısını gösteriyordu. 5 Kasım'da Play Console ana
+sayfası son 28 günü 14 edinme, 18 aylık etkin cihaz olarak verdi — yani
+günde yarım yeni yükleme. Kitlenin Türk olduğu ise aynı grafiğin ülke
+kırılımından geliyor ve o kısım doğru.) Yani oyuncular oyunu kendi dillerinde görmüyordu, ve bunu
 söyleyen hiçbir ölçüm yoktu — Motor Works'te 47 çevrilmiş metin vardı,
 burada sıfır.
 
