@@ -176,3 +176,37 @@ henüz bağlanamaz (AdMob yalnızca herkese açık mağaza sayfasına
 bağlanıyor). Bu bağlantı düşük istek sayısını açıklamıyor — eşleşme
 %100, yani gelen istek dolduruluyor — ama zorunlu bir adım ve
 eksikti.
+
+### AdMob uygulamayı doğrulayamadı: `app-ads.txt` kökte yok
+
+6 Kasım, AdMob "Uygulama kurulumunu tamamlayın": *Peelo: Fruit Hole
+(Android) uygulamasını doğrulayamadık.* Tarayıcı Play'deki geliştirici
+sitesini (`kaancetinkaya.github.io`) okumuş ve kökte dosya bulamamış:
+
+```
+https://kaancetinkaya.github.io/app-ads.txt   → 404
+http://kaancetinkaya.github.io/app-ads.txt    → 404
+```
+
+Sebep yapısal: bu deponun sayfaları **proje sitesi** olarak
+`kaancetinkaya.github.io/holegame/…` altında yayınlanıyor, ve
+`app-ads.txt` alan adının **kökünde** aranıyor. Kökü yalnızca adı
+`KaanCetinkaya.github.io` olan bir **kullanıcı sitesi** deposu
+yayınlayabiliyor. Doğrulanmamış uygulamaya reklam sınırlı sunuluyor.
+
+Dosyanın içeriği AdMob'un verdiği satır (yayıncı kimliği gizli değil,
+bu dosya tasarım gereği herkese açık):
+
+```
+google.com, pub-2542927456156553, DIRECT, f08c47fec0942fa0
+```
+
+Kurulum: `KaanCetinkaya.github.io` adında public depo → kökte
+`app-ads.txt` → Settings → Pages: main / root → adresin satırı
+gösterdiği kontrol edilir → AdMob'da "Güncellemeleri kontrol edin".
+Kullanıcı sitesi proje sitelerini bozmuyor; `/holegame/` altındaki
+gizlilik sayfaları yerinde kalıyor.
+
+Slice Rush ve Motor Works aynı geliştirici sitesini ve aynı yayıncı
+kimliğini kullanıyor, yani üretime çıktıklarında aynı dosya onları
+da kapsıyor.
