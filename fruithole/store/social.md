@@ -2030,3 +2030,45 @@ size 1 on a rooftop, next to a stack three times its height. nine seconds later 
 Gün numarası profilden: A hesabının son gönderisi 17 (outback, 18 Eki
 23:11, 249 izlenme). Saat için tek kural: **gece yarısına yaklaşma** —
 23:11 iş gördü, 23:57 ölü.
+
+## Yeni içerik planı — 6 Kasım 2026
+
+Kaan'ın kuralı, her video için:
+
+> **Küçük delikle başlar, büyür, sonda büyük bir şeyi yutarak biter.
+> İlk saniyede soru şeklinde bir ekran yazısı olur.**
+
+Çekim artık **telefonda ekran kaydıyla**. Bu, 19 Ekim'deki kırk boşa
+denemenin çaresi: `make-clips` kadrajda yutulabilir dev, yeterince meyve
+ve engel arıyor ve tutmayınca vazgeçiyordu; elle oynayan biri iyi anı
+kendisi yakalar, kötüsünü siler. Kaan'ın kaydı level map'ten istenen
+bölümü yeniden oynayarak alınıyor, 90+ bölümlük ilerleme bozulmuyor.
+Bildirimler kapalı; ekranda reklam şeridi görünürse kırpılıyor.
+
+### Formatlar ve oyundaki karşılıkları
+
+Her formatın yanında **oyunun gerçekte ne yaptığı** yazılı, çünkü
+oyunda olmayan bir şeyi vaat eden video yorumlarda yakalanır.
+
+| format | ilk saniyedeki soru | oyunda gerçeği |
+|---|---|---|
+| Küçükten devasaya | `Can a tiny hole eat this whole field?` | Her bölüm küçük başlıyor; son dev yutuluyor. Şu ana kadarki bütün kliplerin omurgası. |
+| Son saniyede kazanma | `Will it make it in time? ⏱️` | Bölümün saati var; birkaç saniye kala bitirmek gerçek ve telefonda çekilebilir. |
+| Kırmızı rakip | `Me or the red one — who eats more?` | **31. bölümden** itibaren kırmızı kenarlı rakip delik çıkıyor. Ama **seni yemiyor, sana çarpmıyor, büyümüyor**, ve senden yavaş (×0.72). Tek yaptığı meyveyi senden önce yemek. Yani "rakibe yenildim" formatı oyunda yok — doğru hâli bir **yarış**: kim daha çok yiyor. |
+| Boss | `Can my hole swallow THIS? 😳` | Her **10.** bölüm boss (`BOSS_EVERY = 10`), tahtanın sonunda dev meyve. Hangi meyve olduğu karede görünene göre yazılır, ezberden değil. |
+| Yorumlardan bölüm | `Which fruit should my next level be? 🍓` | Oyunda bölüm editörü **yok**. Dürüst hâli: yorumdaki meyveden bir bölüm gerçekten oyuna eklenir ve sonraki video onu gösterir. Bir uyarı: bugüne kadarki bütün gönderilerde yorum **sıfır** — bu format ancak biraz izleyici birikince çalışır. |
+
+### Doğrulanmış iki sayı
+
+- **Tema sayısı 54**, 48 değil (oyunun kendi tablosundan sayıldı). "Same
+  hole, N different worlds" türü bir yazıda doğru sayı bu.
+- Boss her 10. bölüm. "Level 10 🍍" gibi belirli bir meyve, o karede
+  görünmedikçe yazılmaz.
+
+### Değişmeyen kurallar
+
+- Yüklerken **ses ekle**. Atılmış hiçbir videoda ses kanalı yoktu.
+- **Gece yarısının yirmi dakikasına atma**: ölü iki gönderi 23:57 ve
+  00:16'daydı, 23:11'dekiler 249 ve 344 aldı.
+- Son kareye küçük yazı: `Peelo: Fruit Hole – Google Play`. Aynı video
+  TikTok, Reels ve Shorts'a; biyografide Play bağlantısı.
