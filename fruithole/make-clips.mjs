@@ -1004,15 +1004,44 @@ for (const clip of CLIPS) {
     await pg.evaluate(() => window.fruitHoleDrawOff(true));
     const sinir = Math.round(KOLOS_MAX * FPS);
     let oran = null, i = 0;
+    // Sürüş `adim`in kova hedefi değil, **yutulabilen en yakın parça**.
+    //
+    // Kova hedefi `fruitHoleFruitSpots`u sayıyor ve o liste delikten büyük
+    // parçaları da içeriyor. On iki saniyelik ısınmada fark edilmiyordu;
+    // burada ölçüldü: delik ilk 15 saniyede 43 parça yedi, sonraki 135
+    // saniyede **sıfır** — yiyemeyeceği iri parçaların kovasına gidip
+    // orada dönüyordu. Bu kısım klibe girmediği için görüntü kaygısı yok,
+    // tek iş büyümek.
+    const yakinAdim = () => pg.evaluate(dt => {
+      const w = window.fruitHoleWhere();
+      const h = window.fruitHoleNearest();
+      if (h) {
+        const dx = h.x - w.x, dz = h.z - w.z, d = Math.hypot(dx, dz);
+        if (d > 0) window.fruitHoleSteer(dx / d, dz / d);
+      } else window.fruitHoleSteer(0, 0);
+      window.__step(dt);
+      return { state: window.fruitHoleWhere().state };
+    }, 1000 / FPS);
     for (; i < sinir; i++) {
-      const s = await adim(false);
+      const s = await yakinAdim();
       if (s.state !== 'playing') break;
       if (i % 15 === 0) {
-        oran = await pg.evaluate(() => {
-          const b = window.fruitHoleBoss();
-          return b.boss ? +(b.colossusR / (window.fruitHoleWhere().r * 0.92)).toFixed(2) : null;
+        const o = await pg.evaluate(() => {
+          const b = window.fruitHoleBoss(), w = window.fruitHoleWhere();
+          return { oran: b.boss ? +(b.colossusR / (w.r * 0.92)).toFixed(2) : null,
+                   prop: b.prop, r: +w.r.toFixed(2), yenen: w.eaten, toplam: w.total,
+                   saat: w.timeLeft, yuzde: b.pctForColossus };
         });
+        oran = o.oran;
+        // Gidişat her on beş oyun saniyesinde bir yazılıyor: ön ısınma
+        // düşerse "delik neden büyümedi" sorusunun cevabı burada.
+        if (i % (15 * FPS) === 0) {
+          console.log(`    ${(i / FPS).toFixed(0)} sn · delik ${o.r} · kupa ${o.oran ?? 'yok'}× ` +
+            `(${o.prop || 'meyve'}) · yenen ${o.yenen}/${o.toplam} · saat ${o.saat} · ` +
+            `kalan iş %${o.yuzde}`);
+        }
         if (oran !== null && oran <= NEAR_MAX) break;
+        if (oran === null) { console.log('    kolos ön ısınmada yendi'); break; }
       }
     }
     await pg.evaluate(() => window.fruitHoleDrawOff(false));
