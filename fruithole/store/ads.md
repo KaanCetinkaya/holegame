@@ -151,3 +151,28 @@ görünüyor mu bak, ertesi gün istek sayısı bir artmış mı kontrol et.
 
 Her iki durumda da ücretli reklam şu an anlamsız: satın alınan indirme
 ₺3-6, getirisi ~₺0,1.
+
+### Aynı gün, AdMob ana sayfası: aylık sayı ve eksik bir kurulum adımı
+
+| | |
+|---|---|
+| **Ekim toplamı** | **₺10,70** |
+| Kasım (ilk altı gün) | ₺0,29 |
+| dün / bugün | ₺0,00 / ₺0,00 |
+| son 7 gün, önceki 7 güne göre | istek 3 (−%50), gösterim 2 (−%50) |
+
+Doğru ölçü bu: bir aylık toplam. Yukarıdaki iki hesap — önce tek
+günden ₺0,12 ve ₺1,5, sonra tek haftadan ₺0,1 — kısa pencerelerden
+indirme başına değer çıkardı ve üçü de birbirini tuttu ya da tutmadı,
+tesadüfen. Ekim'in ₺10,70'i, son 28 günün 14 yüklemesiyle, indirme
+başına **~₺0,75** ediyor. Satın alınan indirme Türkiye'de ₺3-6: reklam
+hâlâ dört-sekiz kat zarar.
+
+Aynı sayfada AdMob kurulumu **3/4** görünüyor. Eksik adım: "Uygulama
+mağazasına bağlantı oluştur — reklam yayınlamaya başlamadan önce
+uygulamaların onaylanması gerekir". Fruit Hole yayında, yani
+bağlanabilir; Slice Rush ve Motor Works kapalı testte olduğu için
+henüz bağlanamaz (AdMob yalnızca herkese açık mağaza sayfasına
+bağlanıyor). Bu bağlantı düşük istek sayısını açıklamıyor — eşleşme
+%100, yani gelen istek dolduruluyor — ama zorunlu bir adım ve
+eksikti.
