@@ -803,7 +803,13 @@ for (const clip of CLIPS) {
     if (hedef && hedef.kova &&
         Math.hypot(hedef.x - w.x, hedef.z - w.z) < 2.5) hedef = null;
     if (!hedef) {
-      const p = window.fruitHoleFruitSpots();
+      // Yalnızca **yutulabilen** parçalar. `fruitHoleFruitSpots` delikten
+      // büyükleri de veriyor, ve iri meyveli tahtada en kalabalık kova
+      // onlardan oluşuyordu: 64 ve 45'te delik (Size 1-3) çilek ve elma
+      // yığınının içinde durdu, kaydedilen 7.8 saniyede **sıfır** parça
+      // yedi (6 Kasım, beş çekim). Kupa ön ısınmasında da aynısı ölçüldü:
+      // 135 saniye, sıfır parça.
+      const p = window.fruitHoleFruitSpots().filter(f => f.r <= w.r * 0.92);
       const kova = new Map();
       for (const f of p) {
         const k = Math.round(f.x / 3) + ',' + Math.round(f.z / 3);
