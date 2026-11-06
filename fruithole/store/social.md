@@ -2095,6 +2095,31 @@ tema adına değil; açıklama karede görünen yere göre yazılır.
 Rakip 31'den önce hiç yok, boss her 10. bölüm (10'dan 120'ye on ikisi
 de taramada doğrulandı; 89 da Cup Night ve boss).
 
+#### Çekim sonucu (6 Kasım akşam): üç klip var, biri yok
+
+Tablodaki bölümler tahtanın **kuruluşuna** bakılarak seçildi ve üçü
+çekimde tutmadı; çıkan klipler başka bölümlerden. Ayrıntısı
+`make-clips.mjs`'te her kimliğin üstünde.
+
+| klip | bölüm | ne gösteriyor | açıklama |
+|---|---|---|---|
+| `kupa.mp4` | 10 | kupa yakın planda açılıyor, delik (Size 7-8) ona gidiyor, 8.4. sn'de yutuyor | `the trophy is the last thing on the board. will it fit? 🏆🕳️` |
+| `yaris.mp4` | 61 | kırmızı rakip başta ve sonda kadrajda, dev çilek 8.4. sn'de | `the red hole wants the same strawberries 🔴🕳️ who gets there first?` |
+| `sonsaniye.mp4` | 44 | saat kırmızı, 13'ten geri sayıyor, dev saatte 2.1 sn kala yutuluyor | `2 seconds left. one giant strawberry. ⏱️🍓` |
+| `devler` | 50 | **çıkmadı** | — |
+
+**Kaan'ın kuralı ("her video küçük delikle başlasın") üçünde de
+tutmuyor**, ve bu bir çekim hatası değil ölçülen bir sınır: yükseltmesiz
+delik dokuz saniyede bir devi yutacak kadar büyümüyor. Klipler bu yüzden
+büyümenin çoğunu kayıttan önce, çizimsiz yapıyor. "Bu kadar küçük bir
+delik" diyen açıklamalar (aşağıdaki ilk taslaklar) bu kliplerle
+kullanılmaz — karede delik küçük değil. Kuralı tutmanın tek yolu
+hızlandırılmış kurgu (ekranda ⏩ ile), ve o bir karar.
+
+Saat klibinde saat **kısaltılmış**: oyuncunun saatin geri kalanını
+harcamış hâli. Bölüm kazanılmıyor, klip yutmada bitiyor; açıklama
+"kazandı" demiyor.
+
 #### 1 — Boss, bölüm 10
 
 İlk saniye yazısı: `Can my hole swallow THIS? 😳`
