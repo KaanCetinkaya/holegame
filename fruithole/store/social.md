@@ -2072,3 +2072,81 @@ oyunda olmayan bir şeyi vaat eden video yorumlarda yakalanır.
   00:16'daydı, 23:11'dekiler 249 ve 344 aldı.
 - Son kareye küçük yazı: `Peelo: Fruit Hole – Google Play`. Aynı video
   TikTok, Reels ve Shorts'a; biyografide Play bağlantısı.
+
+### Çekim listesi — hangi bölüm, ne yapılacak
+
+6 Kasım'da 120 bölüm tarandı (her bölüm kurulup okundu: tema, düzen,
+tahta türü, süre, dev sayısı, boss, rakip). Tahta türleri: 85 ızgara,
+12 şerit, 12 resim, 11 bulmaca. Video ızgara tahtadan çekilir — öteki
+üçünde dev ve rakip yok.
+
+**Bir uyarı:** tema adı oyuncunun kaydına göre değişebiliyor. `blast`
+klibi 62. bölümde "Rooftop" gösterdi, tarama aynı bölümde "Funfair"
+okudu. Yani çekimde bölüm numarasına ve boss/rakip bilgisine güvenilir,
+tema adına değil; açıklama karede görünen yere göre yazılır.
+
+| # | format | bölüm | neden o bölüm |
+|---|---|---|---|
+| 1 | Boss | **10** | Cup Night: kolos bir **dev kupa** — "bunu yutabilir miyim" sorusunun en net karesi. 9 dev. |
+| 2 | Küçükten devasaya | **41** | 19 dev, taranan ızgara tahtaların en kalabalığı; büyüme boyunca kadraja sürekli dev giriyor. |
+| 3 | Son saniyede kazanma | **60** | Süre 83 sn, taranan bölümlerin en kısası; saat ekranda gerçekten tehdit gibi duruyor. Boss da var. |
+| 4 | Rakip yarışı | **61** | Rakip var, 345 meyve, 114 sn: kırmızı deliğin yediği görünür kadar dolu, yarış kısa. Yedek: **57** (100 sn). |
+
+Rakip 31'den önce hiç yok, boss her 10. bölüm (10'dan 120'ye on ikisi
+de taramada doğrulandı; 89 da Cup Night ve boss).
+
+#### 1 — Boss, bölüm 10
+
+İlk saniye yazısı: `Can my hole swallow THIS? 😳`
+
+Delik küçük başlar, tahtayı yerken büyür, sonda dev kupaya gider ve
+yutar. Kayıt kupa kadraja girdiği anda başlasın; ilk saniye kupa.
+
+```
+can a hole this small eat a trophy this big? 🏆🕳️
+
+wait for the end.
+
+#holegame #mobilegame #satisfying #indiedev #androidgame
+```
+
+#### 2 — Küçükten devasaya, bölüm 41
+
+İlk saniye yazısı: `Can a tiny hole eat this whole field?`
+
+```
+it starts smaller than a strawberry. watch what it eats last 🍉🕳️
+
+#satisfying #holegame #mobilegame #oddlysatisfying #indiedev
+```
+
+#### 3 — Son saniyede kazanma, bölüm 60
+
+İlk saniye yazısı: `Will it make it in time? ⏱️`
+
+Saat kayıtta görünür kalsın; son dev, saniyeler kala yutulsun. Saat
+oyunda gerçekte gerekenden geniş (`holesaat`: 3.3 kat), yani bunu
+yakalamak için acele etmeden oynamak gerekiyor — gerilim sahnelenmiş
+ama saat gerçek.
+
+```
+3 seconds left. one giant fruit. ⏱️🕳️
+
+#satisfying #holegame #mobilegame #gaming #indiedev
+```
+
+#### 4 — Rakip yarışı, bölüm 61
+
+İlk saniye yazısı: `Me or the red one — who eats more?`
+
+Rakip **seni yemiyor** ve senden yavaş; video bir yarış, yenilgi
+değil. Kırmızı deliğin meyve kaptığı bir an kadrajda olsun, sonda
+sen büyük bir şeyi yut.
+
+```
+a red hole is stealing my fruit 😤 so I ate the biggest thing on the board
+
+#holegame #mobilegame #satisfying #gaming #indiedev
+```
+
+Her videoda son kareye küçük yazı: `Peelo: Fruit Hole – Google Play`.
