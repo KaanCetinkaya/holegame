@@ -408,6 +408,12 @@ const ENGEL_KUR = () => {
     if (ad === 'rakip')    { const v = window.fruitHoleRival();
       return v.var ? { sayi: 1, uzak: +Math.hypot(v.x - w.x, v.z - w.z).toFixed(2), x: v.x, z: v.z }
                    : { sayi: 0, uzak: null, x: null, z: null }; }
+    // 'dev': yutulmaya en yakın dev (deliğe oranla en küçüğü). Ön ısınmalı
+    // klipler ısınmayı ona sürüyor; aşağıda, `onIsinma`.
+    if (ad === 'dev') { const g = window.fruitHoleGiantList().filter(x => !x.eatable)
+        .sort((a, b) => a.r - b.r || a.dist - b.dist)[0];
+      return g ? { sayi: 1, uzak: g.dist, x: g.x, z: g.z }
+               : { sayi: 0, uzak: null, x: null, z: null }; }
     // Kolos bir engel değil ama ısınma ona da aynı yoldan sürülüyor: patron
     // tahtasında kupa öbür uçta duruyor ve kendi başına kadraja girmiyor.
     // Yeri dev listesinden, boyuna bakarak: `fruitHoleBoss` yer vermiyor.
@@ -1004,7 +1010,7 @@ for (const clip of CLIPS) {
   let warm = 0;
   // Isınma neye doğru sürülüyor: söz verilen engel, ya da patron
   // klibinde kupa.
-  const git = clip.kolos ? 'kolos' : clip.engel;
+  const git = clip.kolos ? 'kolos' : clip.onIsinma ? 'dev' : clip.engel;
   // Patron klibinin ön ısınması: kupa ancak tahtanın büyük kısmı
   // yendikten sonra yutulabiliyor (`fruitHoleBoss().pctForColossus`,
   // 10. bölümde kabaca üçte iki), ve on iki saniyelik ısınma oraya
@@ -1039,15 +1045,31 @@ for (const clip of CLIPS) {
   // yedi ve devi yine yutamadı. Küçük delik yavaş yiyor; büyümenin çoğu
   // klibin dışında yapılınca kayıttaki delik saniyede ~8 parça yiyor
   // (`kupa`, 64 parça / 7.8 sn). Bedeli: klip küçük delikle açılmıyor.
+  //
+  // Sabit süreyle denendi ve ölçüldü: on iki saniye tahtanın üçte birini
+  // yiyordu, ardından gelen ısınma da kalanı; altı çekimin altısı
+  // "çevrede meyve 5-39 < 50" ya da "kadrajda dev yok" diye düştü. Artık
+  // süre bir üst sınır: en küçük dev deliğin `near` katına inince
+  // bırakılıyor ve ısınma deliği o deve sürüyor (`__engel('dev')`).
   if (clip.onIsinma) {
+    const sinir = clip.near ?? NEAR_MAX;
     await pg.evaluate(() => window.fruitHoleDrawOff(true));
     const n = Math.round(clip.onIsinma * FPS);
-    let j = 0;
-    for (; j < n; j++) if ((await yakinAdim()).state !== 'playing') break;
+    let j = 0, oran = null;
+    for (; j < n; j++) {
+      if ((await yakinAdim()).state !== 'playing') break;
+      if (j % 15) continue;
+      oran = await pg.evaluate(() => {
+        const w = window.fruitHoleWhere();
+        const g = window.fruitHoleGiantList().filter(x => !x.eatable);
+        return g.length ? +(Math.min(...g.map(x => x.r)) / (w.r * 0.92)).toFixed(2) : null;
+      });
+      if (oran !== null && oran <= sinir) break;
+    }
     await pg.evaluate(() => window.fruitHoleDrawOff(false));
     const w = await pg.evaluate(() => window.fruitHoleWhere());
     console.log(`  ön ısınma ${(j / FPS).toFixed(1)} sn (çizimsiz) · delik ${w.r.toFixed(2)} · ` +
-      `yenen ${w.eaten}/${w.total}`);
+      `yenen ${w.eaten}/${w.total} · en küçük dev ${oran}×`);
   }
   if (clip.kolos) {
     // Ön ısınma nerede bırakıyor. Önce `NEAR_MAX`ta (1.6) bırakıyordu ve
