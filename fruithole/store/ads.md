@@ -119,3 +119,35 @@ Motor Works'ün sayısı ayrı bir risk: 12 testçi kayıtlı ama 28 günde
 yalnızca 2 cihaz oyunu açmış. Üretim başvurusu "test gerçekten
 yapıldı mı"ya bakıyor; Slice Rush'ta 12 testçinin 9'u oyunu açmış,
 Motor Works'te neredeyse hiçbiri.
+
+## 6 Kasım: son yedi günün AdMob raporu
+
+| | |
+|---|---|
+| istek | **3** |
+| gösterim | **2** |
+| tahmini kazanç | **₺0,29** |
+| eBGBM | ₺146 (iki gösterimden, gürültü) |
+| eşleşme | %100 |
+
+Yedi günün altısı sıfır; bütün hareket tek günde. Bu, yukarıdaki
+"indirme başına ~₺1,5" düzeltmesini de düzeltiyor: o hesap ₺0,74'lük
+**tek bir günden** yapılmıştı. Haftalık ortalama günde ~₺0,04, yani
+indirme başına (günde yarım yükleme) **~₺0,1**. Tek günlük bir okumadan
+indirme başına değer çıkarmak iki kez yanlış sonuç verdi; bundan sonra
+en az yedi günlük ortalama.
+
+İki okuma mümkün ve ikisi ayrılmadan bir şey söylenemez:
+
+1. **Oyunu açan yok.** 28 günde 14 yükleme ve haftada 3 reklam isteği
+   birbiriyle uyumlu.
+2. **Reklam isteği gitmiyor.** 19 Ekim'de günde 30 istek vardı; kod 6
+   Ekim'den beri değişmedi, yani bozulmuş olması beklenmez ama
+   bakılmadı.
+
+Ayıran deneme beş dakika: oyunu aç, bir bölüm oyna, reklam şeridi
+görünüyor mu bak, ertesi gün istek sayısı bir artmış mı kontrol et.
+Şerit görünüyorsa sorun (1), görünmüyorsa (2).
+
+Her iki durumda da ücretli reklam şu an anlamsız: satın alınan indirme
+₺3-6, getirisi ~₺0,1.

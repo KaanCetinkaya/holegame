@@ -312,6 +312,16 @@ const CLIPS = [
   // klip çıkarıyor: `cogs` de 1.86'dan tuttu — ölçüm ısınmadan sonra
   // bakıyor ve delik o on altı saniyede büyüyor. Üç çamuru var.
   { id: 'blast',     level: 62,         engel: 'çamur',   note: 'Blast · patlama düzeni · 62. bölüm · tahtada üç çamur' },
+  // 6 Kasım çekim listesinden (store/social.md). Bölümler 120 bölümlük
+  // bir taramayla seçildi; her biri bir formatın en net hâli.
+  //
+  // Boss: 10. bölüm Cup Night, kolos bir dev kupa.
+  { id: 'kupa',      level: 10,         engel: null,      note: 'Boss · Cup Night · 10. bölüm · kolos dev kupa' },
+  // Küçükten devasaya: taranan ızgara tahtaların en çok devlisi (19).
+  // Engel sözü yok; klibin vaadi büyüme.
+  { id: 'devler',    level: 41,         engel: null,      note: 'Küçükten devasaya · 41. bölüm · tahtada 19 dev' },
+  // Rakip yarışı: rakip 31'den başlıyor, 61'de tahta dolu (345 meyve).
+  { id: 'yaris',     level: 61,         engel: 'rakip',   note: 'Rakip yarışı · 61. bölüm · kırmızı rakip delik' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
   // ve 2.73), o yüzden listeden çıkmıyor.
