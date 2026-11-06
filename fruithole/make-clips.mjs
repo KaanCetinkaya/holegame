@@ -334,7 +334,7 @@ const CLIPS = [
   // yükseltmeleri kapatıyor) oradaki parçaların çoğuna sığmıyor. Kova
   // düzeltmesinden sonra da iki çekimde kayıt penceresinde sıfır parça
   // yedi. 50 (Hourglass) birinci turda ve `hourglass` klibi orada çıktı.
-  { id: 'devler',    level: 50,         engel: null,      near: 1.75, note: 'Küçükten devasaya · 50. bölüm · kadrajda beş dev' },
+  { id: 'devler',    level: 50,         engel: null,      onIsinma: 12, near: 1.2, note: 'Küçükten devasaya · 50. bölüm · kadrajda beş dev' },
   // Rakip yarışı: rakip 31'den başlıyor, 61'de tahta dolu (345 meyve).
   { id: 'yaris',     level: 61,         engel: 'rakip',   premax: 24, note: 'Rakip yarışı · 61. bölüm · kırmızı rakip delik' },
   // Son saniyede kazanma. Saat zaten çekimden önce kısılıyor
@@ -344,13 +344,14 @@ const CLIPS = [
   //
   // İlk çekimde kayıt **3. saniyede** başladı (şartlar hemen tuttu) ve
   // saat 13 saniyeye kısıldı: delik henüz küçücüktü, 7.8 saniyede 7-9
-  // parça yedi (saniyede ~1) ve dev yutulmadan bölüm kaybedildi. Isınma
-  // en az 10 saniye (`premin`), delik büyümüş girsin; dev de 1.3 katı
-  // geçmesin (`near`), çünkü saat ötekilerin arama süresini vermiyor.
+  // parça yedi (saniyede ~1) ve dev yutulmadan bölüm kaybedildi. Önce
+  // `premin: 10` denendi, yetmedi (kayıtta yine 0-9 parça). Şimdi çizimsiz
+  // `onIsinma` deliği büyütüyor ve dev 1.2 katı geçmiyor (`near`), çünkü
+  // saat ötekilerin arama süresini vermiyor.
   //
   // 45 bırakıldı: üç çekimde kayıt penceresinde sıfır parça. 44 (Cogs)
   // `cogs` klibinin çıktığı tahta.
-  { id: 'sonsaniye', level: 44,         engel: null,      sonSaniye: true, premin: 10, near: 1.3,
+  { id: 'sonsaniye', level: 44,         engel: null,      sonSaniye: true, onIsinma: 12, near: 1.2,
     note: 'Son saniye · 44. bölüm · saat bitmek üzereyken dev yutuluyor' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
@@ -1014,6 +1015,40 @@ for (const clip of CLIPS) {
   // sıradan süpürmeyle büyüyor, kupaya gitmiyor; kupa deliğin `NEAR_MAX`
   // katına inince bırakılıyor ve aşağıdaki sıradan ısınma deliği kupaya
   // sürüyor. Üst sınır oyun saatinde `KOLOS_MAX` saniye.
+  // Sürüş `adim`in kova hedefi değil, **yutulabilen en yakın parça**.
+  //
+  // Kova hedefi `fruitHoleFruitSpots`u sayıyor ve o liste delikten büyük
+  // parçaları da içeriyor. On iki saniyelik ısınmada fark edilmiyordu;
+  // burada ölçüldü: delik ilk 15 saniyede 43 parça yedi, sonraki 135
+  // saniyede **sıfır** — yiyemeyeceği iri parçaların kovasına gidip
+  // orada dönüyordu. Bu kısım klibe girmediği için görüntü kaygısı yok,
+  // tek iş büyümek.
+  const yakinAdim = () => pg.evaluate(dt => {
+    const w = window.fruitHoleWhere();
+    const h = window.fruitHoleNearest();
+    if (h) {
+      const dx = h.x - w.x, dz = h.z - w.z, d = Math.hypot(dx, dz);
+      if (d > 0) window.fruitHoleSteer(dx / d, dz / d);
+    } else window.fruitHoleSteer(0, 0);
+    window.__step(dt);
+    return { state: window.fruitHoleWhere().state };
+  }, 1000 / FPS);
+  // Çizimsiz ön ısınma, kupasız klipler için: sabit süre, yalnızca büyümek
+  // (`onIsinma` saniye). Sebep kupadakiyle aynı ve ölçüldü: 50'de kayıt
+  // dev deliğin 1.13-1.16 katıyken başladı, delik 21 saniyede 6-27 parça
+  // yedi ve devi yine yutamadı. Küçük delik yavaş yiyor; büyümenin çoğu
+  // klibin dışında yapılınca kayıttaki delik saniyede ~8 parça yiyor
+  // (`kupa`, 64 parça / 7.8 sn). Bedeli: klip küçük delikle açılmıyor.
+  if (clip.onIsinma) {
+    await pg.evaluate(() => window.fruitHoleDrawOff(true));
+    const n = Math.round(clip.onIsinma * FPS);
+    let j = 0;
+    for (; j < n; j++) if ((await yakinAdim()).state !== 'playing') break;
+    await pg.evaluate(() => window.fruitHoleDrawOff(false));
+    const w = await pg.evaluate(() => window.fruitHoleWhere());
+    console.log(`  ön ısınma ${(j / FPS).toFixed(1)} sn (çizimsiz) · delik ${w.r.toFixed(2)} · ` +
+      `yenen ${w.eaten}/${w.total}`);
+  }
   if (clip.kolos) {
     // Ön ısınma nerede bırakıyor. Önce `NEAR_MAX`ta (1.6) bırakıyordu ve
     // üç çekimin üçü de düştü: kupa kadraja girdi, delik kayıt boyunca
@@ -1024,24 +1059,6 @@ for (const clip of CLIPS) {
     await pg.evaluate(() => window.fruitHoleDrawOff(true));
     const sinir = Math.round(KOLOS_MAX * FPS);
     let oran = null, i = 0;
-    // Sürüş `adim`in kova hedefi değil, **yutulabilen en yakın parça**.
-    //
-    // Kova hedefi `fruitHoleFruitSpots`u sayıyor ve o liste delikten büyük
-    // parçaları da içeriyor. On iki saniyelik ısınmada fark edilmiyordu;
-    // burada ölçüldü: delik ilk 15 saniyede 43 parça yedi, sonraki 135
-    // saniyede **sıfır** — yiyemeyeceği iri parçaların kovasına gidip
-    // orada dönüyordu. Bu kısım klibe girmediği için görüntü kaygısı yok,
-    // tek iş büyümek.
-    const yakinAdim = () => pg.evaluate(dt => {
-      const w = window.fruitHoleWhere();
-      const h = window.fruitHoleNearest();
-      if (h) {
-        const dx = h.x - w.x, dz = h.z - w.z, d = Math.hypot(dx, dz);
-        if (d > 0) window.fruitHoleSteer(dx / d, dz / d);
-      } else window.fruitHoleSteer(0, 0);
-      window.__step(dt);
-      return { state: window.fruitHoleWhere().state };
-    }, 1000 / FPS);
     for (; i < sinir; i++) {
       const s = await yakinAdim();
       if (s.state !== 'playing') break;
