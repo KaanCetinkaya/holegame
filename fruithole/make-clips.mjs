@@ -322,6 +322,10 @@ const CLIPS = [
   { id: 'devler',    level: 41,         engel: null,      note: 'Küçükten devasaya · 41. bölüm · tahtada 19 dev' },
   // Rakip yarışı: rakip 31'den başlıyor, 61'de tahta dolu (345 meyve).
   { id: 'yaris',     level: 61,         engel: 'rakip',   note: 'Rakip yarışı · 61. bölüm · kırmızı rakip delik' },
+  // Son saniyede kazanma: 60. bölüm, taranan en kısa saat (83 sn).
+  // `sonSaniye` saati çekimden önce kısıyor; ayrıntısı çekim döngüsünde.
+  { id: 'sonsaniye', level: 60,         engel: null,      sonSaniye: true,
+    note: 'Son saniye · 60. bölüm · saat bitmek üzereyken dev yutuluyor' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
   // ve 2.73), o yüzden listeden çıkmıyor.
@@ -381,8 +385,12 @@ const ENGEL_KUR = () => {
   };
 };
 // Temanın engel çifti: adı `themeObstacles`'ın kullandığı İngilizce karşılık.
+// Rakip burada da var. Çekim sırasındaki kontrol (`__engel`) onu baştan
+// tanıyordu, ama bu tablo tanımıyordu — ve doğrulama bütün listeyi
+// çekimden önce taradığı için tek bir `engel: 'rakip'` satırı, ötekiler
+// dahil hiçbir klibin çekilmemesi demekti. 6 Kasım'da tam bu oldu.
 const ENGEL_ID = { 'mancınık': 'catapult', 'silindir': 'roller',
-                   'çamur': 'mud', 'rüzgâr': 'wind' };
+                   'çamur': 'mud', 'rüzgâr': 'wind', 'rakip': 'rival' };
 
 
 // Oyunun saatini sahteleyen katman. Sayfadaki her şeyden önce çalışması
@@ -482,6 +490,7 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
     'silindir': window.fruitHoleRollers().ilkBolum,
     'çamur': window.fruitHoleMud().ilkBolum,
     'rüzgâr': window.fruitHoleWind().ilkBolum,
+    'rakip': window.fruitHoleRival().ilkBolum,
   }));
   for (const c of CLIPS) {
     // `engel: null` düzen klibi demek ve bilerek yazılıyor; `undefined`
@@ -525,6 +534,7 @@ const ffmpeg = existsSync('/usr/bin/ffmpeg') ? '/usr/bin/ffmpeg' : 'ffmpeg';
         'silindir': (window.fruitHoleRollers().yerler || []).length,
         'çamur': (window.fruitHoleMud().yerler || []).length,
         'rüzgâr': window.fruitHoleWind().var ? 1 : 0,
+        'rakip': window.fruitHoleRival().var ? 1 : 0,
       };
     }, c.level);
     if (!gercek[c.engel]) {
@@ -1034,6 +1044,19 @@ for (const clip of CLIPS) {
   // kendi genişliğine dönüyor, böylece kesme yalnızca konumda oluyor,
   // ölçekte değil.
   const coldDir = join(frameDir, 'c');
+  // Son saniye klibi: saat **soğuk açılıştan önce** kısılıyor, böylece
+  // açılıştan gövdeye kadar her karede aynı saat geriye sayıyor.
+  //
+  // Bu, telefonda "yavaş oyna, devi sona bırak" demenin karşılığı: oyuncu
+  // saatin geri kalanını harcamış olsaydı bölüm tam bu hâlde olurdu. Saat
+  // oyunun kendi saati ve kendi hızında işliyor; değişen yalnızca nereden
+  // başladığı. On üç saniye şuradan çıkıyor: klip dokuz saniye, dev av
+  // penceresinde (son dört saniye) yutuluyor, ve yutulduğu anda saatte
+  // bir ile beş saniye arası kalsın isteniyor. Aralığın dışına düşen
+  // çekim aşağıda reddediliyor.
+  if (clip.sonSaniye) {
+    await pg.evaluate(t => window.fruitHoleGiveTime(t), SECONDS + 4);
+  }
   const bodyDir = join(frameDir, 'b');
   mkdirSync(coldDir, { recursive: true });
   mkdirSync(bodyDir, { recursive: true });
@@ -1117,6 +1140,7 @@ for (const clip of CLIPS) {
   const AV_BASLA = total - Math.round(AV_SN * FPS);
   let f = 0, yutuldu = -1, erken = 0, onceki = null, kartBitti = false, bitti = null;
   let ilkYenen = null, sonYenen = null, ilkSaat = null, sonSaat = null;
+  let saatYutma = null;   // devin yutulduğu karedeki kalan süre
   // Deliğin kare kare yeri. Klibin **kaydedilen** penceresinde ne kadar
   // sallandığını buradan ölçüyoruz.
   const yol = [];
@@ -1141,7 +1165,7 @@ for (const clip of CLIPS) {
       animations: 'disabled',
     });
     if (onceki !== null && s.dev < onceki) {
-      if (f + TAIL >= total) { if (yutuldu < 0) yutuldu = f; }
+      if (f + TAIL >= total) { if (yutuldu < 0) { yutuldu = f; saatYutma = s.timeLeft; } }
       else erken++;
     }
     onceki = s.dev;
@@ -1228,6 +1252,14 @@ for (const clip of CLIPS) {
     throw new Error(`${clip.id}: dev yutulmadı — klibin ödemesi yok. ` +
       `Arama süresi doldu (--search ${SEARCH}s).`);
   }
+  // Son saniye klibinin sözü "saat bitmek üzereyken". Dev daha erken
+  // yutulduysa (saatte beş saniyeden fazla) söz yok; hiç kalmadıysa bölüm
+  // zaten kaybedilmiş ve yukarıdaki kontrol düşürmüştür.
+  if (clip.sonSaniye && !(saatYutma >= 1 && saatYutma <= 5)) {
+    throw new Error(`${clip.id}: dev saatte ${saatYutma} saniye kala yutuldu — ` +
+      `son saniye değil (1-5 arası isteniyor). Yeniden çalıştır, tahta rastgele.`);
+  }
+  if (clip.sonSaniye) console.log(`  son saniye: dev saatte ${saatYutma} sn kala yutuldu`);
   if (yendiPencere < 20) {
     throw new Error(`${clip.id}: kaydedilen 7.8 saniyede yalnızca ` +
       `${yendiPencere} parça yendi — tahtanın boş bir anı.`);
