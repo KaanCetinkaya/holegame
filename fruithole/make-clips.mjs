@@ -320,7 +320,7 @@ const CLIPS = [
   // bir taramayla seçildi; her biri bir formatın en net hâli.
   //
   // Boss: 10. bölüm Cup Night, kolos bir dev kupa.
-  { id: 'kupa',      level: 10,         engel: null,      kolos: true, note: 'Boss · Cup Night · 10. bölüm · kolos dev kupa' },
+  { id: 'kupa',      level: 10,         engel: null,      kolos: true, kolosOran: 1.15, note: 'Boss · Cup Night · 10. bölüm · kolos dev kupa' },
   // Küçükten devasaya. İlk seçim 41'di (tahtada 19 dev) ama devleri
   // deliğin 1.98 katıydı ve çekimde iki kez "kadrajda dev yok, çevrede
   // meyve 41 < 50" diye düştü. 64'te kadrajda altı dev, en yakını 1.71
@@ -1001,6 +1001,12 @@ for (const clip of CLIPS) {
   // katına inince bırakılıyor ve aşağıdaki sıradan ısınma deliği kupaya
   // sürüyor. Üst sınır oyun saatinde `KOLOS_MAX` saniye.
   if (clip.kolos) {
+    // Ön ısınma nerede bırakıyor. Önce `NEAR_MAX`ta (1.6) bırakıyordu ve
+    // üç çekimin üçü de düştü: kupa kadraja girdi, delik kayıt boyunca
+    // 57-105 parça yedi, yine de 21 saniyede 1.6'dan 1.0'a inemedi. Ön
+    // ısınmada ise 15 saniyede 3.1'den 1.7'ye iniyor. Yani büyümenin
+    // çoğu klibin dışında yapılmalı; `kolosOran` klibin kendi sınırı.
+    const kolosSinir = clip.kolosOran ?? NEAR_MAX;
     await pg.evaluate(() => window.fruitHoleDrawOff(true));
     const sinir = Math.round(KOLOS_MAX * FPS);
     let oran = null, i = 0;
@@ -1040,15 +1046,15 @@ for (const clip of CLIPS) {
             `(${o.prop || 'meyve'}) · yenen ${o.yenen}/${o.toplam} · saat ${o.saat} · ` +
             `kalan iş %${o.yuzde}`);
         }
-        if (oran !== null && oran <= NEAR_MAX) break;
+        if (oran !== null && oran <= kolosSinir) break;
         if (oran === null) { console.log('    kolos ön ısınmada yendi'); break; }
       }
     }
     await pg.evaluate(() => window.fruitHoleDrawOff(false));
     console.log(`  ön ısınma ${(i / FPS).toFixed(1)} sn (çizimsiz) · kupa deliğin ${oran} katı`);
-    if (oran === null || oran > NEAR_MAX) {
+    if (oran === null || oran > kolosSinir) {
       throw new Error(`${clip.id}: ön ısınma ${KOLOS_MAX} saniyede kupayı ` +
-        `deliğin ${NEAR_MAX} katına indiremedi (${oran}).`);
+        `deliğin ${kolosSinir} katına indiremedi (${oran}).`);
     }
   }
   // Isınmanın ilk kısmı da engele doğru: delik büyürken yolu oraya çıksın.
