@@ -325,14 +325,24 @@ const CLIPS = [
   // deliğin 1.98 katıydı ve çekimde iki kez "kadrajda dev yok, çevrede
   // meyve 41 < 50" diye düştü. 64'te kadrajda altı dev, en yakını 1.71
   // (holeklipaday, 6 Kasım). Engel sözü yok; klibin vaadi büyüme.
-  { id: 'devler',    level: 64,         engel: null,      note: 'Küçükten devasaya · 64. bölüm · kadrajda altı dev' },
+  //
+  // 64'ün ilk çekiminde iki deneme "dev çok büyük (1.67 > 1.6)" diye
+  // düştü, yani sınırın hemen üstünde; `near: 1.75` o iki tahtayı içeri
+  // alıyor. Dev yutulmazsa klip yine düşüyor.
+  { id: 'devler',    level: 64,         engel: null,      near: 1.75, note: 'Küçükten devasaya · 64. bölüm · kadrajda altı dev' },
   // Rakip yarışı: rakip 31'den başlıyor, 61'de tahta dolu (345 meyve).
   { id: 'yaris',     level: 61,         engel: 'rakip',   premax: 24, note: 'Rakip yarışı · 61. bölüm · kırmızı rakip delik' },
   // Son saniyede kazanma. Saat zaten çekimden önce kısılıyor
   // (`sonSaniye`), yani bölümün kendi saatinin kısa olması gerekmiyor;
   // 60 bu yüzden seçilmişti ve devi deliğin 1.98 katı çıktı. 45'te en
   // yakın dev 1.69 ve tahtada engel yok (holeklipaday, 6 Kasım).
-  { id: 'sonsaniye', level: 45,         engel: null,      sonSaniye: true,
+  //
+  // İlk çekimde kayıt **3. saniyede** başladı (şartlar hemen tuttu) ve
+  // saat 13 saniyeye kısıldı: delik henüz küçücüktü, 7.8 saniyede 7-9
+  // parça yedi (saniyede ~1) ve dev yutulmadan bölüm kaybedildi. Isınma
+  // en az 10 saniye (`premin`), delik büyümüş girsin; dev de 1.3 katı
+  // geçmesin (`near`), çünkü saat ötekilerin arama süresini vermiyor.
+  { id: 'sonsaniye', level: 45,         engel: null,      sonSaniye: true, premin: 10, near: 1.3,
     note: 'Son saniye · 45. bölüm · saat bitmek üzereyken dev yutuluyor' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
@@ -966,8 +976,12 @@ for (const clip of CLIPS) {
   // O yüzden arama iki aşamalı: önce beşi, sonra dördü. Geri adım bir
   // yerde yazılı olmalı, yoksa "şart sağlanmadı" satırı klibin neyi
   // kaybettiğini söylemiyor.
+  // Klip kendi dev sınırını verebilir (`near`). Bu bir ön eleme: asıl
+  // kapı aşağıda, "dev yutuldu mu". Sınırı gevşetmek kötü bir klibi
+  // geçirmiyor, yalnızca yutulamayacak bir çekimi denemeye razı oluyor.
+  const yakinSinir = clip.near ?? NEAR_MAX;
   const dortu = d => d.yakin >= AHEAD_MIN && Math.abs(d.x) <= d.halfX - EDGE
-    && d.dev > 0 && d.yutulabilir === 0 && d.buyukluk <= NEAR_MAX;
+    && d.dev > 0 && d.yutulabilir === 0 && d.buyukluk <= yakinSinir;
   // Engel vaat edilmiyorsa engel şartı yok: arama dört şartı arıyor ve
   // bulunca kaydı başlatıyor.
   const engelde = d => !clip.engel || (d.engelUzak !== null && d.engelUzak <= ENGEL_R);
@@ -1009,7 +1023,7 @@ for (const clip of CLIPS) {
     }
   }
   // Isınmanın ilk kısmı da engele doğru: delik büyürken yolu oraya çıksın.
-  for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim(false, git);
+  for (; warm < Math.round((clip.premin ?? PRE_MIN) * FPS); warm++) await adim(false, git);
   // Klip kendi üst sınırını verebilir (`premax`). Yalnızca `yaris`
   // veriyor: rakip delik dolaşıyor ve on iki saniyede iki çekimde de
   // kadraja girmedi (12.98 ve 10.83 birim, sınır 8). Uzun ısınmanın
@@ -1057,7 +1071,7 @@ for (const clip of CLIPS) {
     if (!(Math.abs(d.x) <= d.halfX - EDGE)) eksik.push('delik kenarda');
     if (!(d.dev > 0)) eksik.push('kadrajda dev yok');
     if (!(d.yutulabilir === 0)) eksik.push('dev şimdiden yutulabilir');
-    if (!(d.buyukluk <= NEAR_MAX)) eksik.push(`dev çok büyük (${d.buyukluk} > ${NEAR_MAX})`);
+    if (!(d.buyukluk <= yakinSinir)) eksik.push(`dev çok büyük (${d.buyukluk} > ${yakinSinir})`);
     if (clip.engel && !(d.engelUzak !== null && d.engelUzak <= ENGEL_R)) {
       eksik.push(`${clip.engel} kadraj dışında (${d.engelUzak} > ${ENGEL_R})`);
     }
