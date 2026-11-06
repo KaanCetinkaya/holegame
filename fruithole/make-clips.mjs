@@ -329,7 +329,12 @@ const CLIPS = [
   // 64'ün ilk çekiminde iki deneme "dev çok büyük (1.67 > 1.6)" diye
   // düştü, yani sınırın hemen üstünde; `near: 1.75` o iki tahtayı içeri
   // alıyor. Dev yutulmazsa klip yine düşüyor.
-  { id: 'devler',    level: 64,         engel: null,      near: 1.75, note: 'Küçükten devasaya · 64. bölüm · kadrajda altı dev' },
+  //
+  // 64 bırakıldı: ikinci turun tahtası, ve yükseltmesiz delik (klip
+  // yükseltmeleri kapatıyor) oradaki parçaların çoğuna sığmıyor. Kova
+  // düzeltmesinden sonra da iki çekimde kayıt penceresinde sıfır parça
+  // yedi. 50 (Hourglass) birinci turda ve `hourglass` klibi orada çıktı.
+  { id: 'devler',    level: 50,         engel: null,      near: 1.75, note: 'Küçükten devasaya · 50. bölüm · kadrajda beş dev' },
   // Rakip yarışı: rakip 31'den başlıyor, 61'de tahta dolu (345 meyve).
   { id: 'yaris',     level: 61,         engel: 'rakip',   premax: 24, note: 'Rakip yarışı · 61. bölüm · kırmızı rakip delik' },
   // Son saniyede kazanma. Saat zaten çekimden önce kısılıyor
@@ -342,8 +347,11 @@ const CLIPS = [
   // parça yedi (saniyede ~1) ve dev yutulmadan bölüm kaybedildi. Isınma
   // en az 10 saniye (`premin`), delik büyümüş girsin; dev de 1.3 katı
   // geçmesin (`near`), çünkü saat ötekilerin arama süresini vermiyor.
-  { id: 'sonsaniye', level: 45,         engel: null,      sonSaniye: true, premin: 10, near: 1.3,
-    note: 'Son saniye · 45. bölüm · saat bitmek üzereyken dev yutuluyor' },
+  //
+  // 45 bırakıldı: üç çekimde kayıt penceresinde sıfır parça. 44 (Cogs)
+  // `cogs` klibinin çıktığı tahta.
+  { id: 'sonsaniye', level: 44,         engel: null,      sonSaniye: true, premin: 10, near: 1.3,
+    note: 'Son saniye · 44. bölüm · saat bitmek üzereyken dev yutuluyor' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
   // ve 2.73), o yüzden listeden çıkmıyor.
