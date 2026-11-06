@@ -107,6 +107,10 @@ const SEARCH = Number(arg('search', 12));
 // yutulabilir", 1.6 "biraz büyümek gerek". Üstü, dokuz saniyede kapanmayan
 // bir açık demek.
 const NEAR_MAX = Number(arg('near', 1.6));
+// Patron klibinin çizimsiz ön ısınması en fazla kaç oyun saniyesi sürsün
+// (aşağıda, `clip.kolos`). Kupa öbür uçta ve tahtanın çoğu yenmeden
+// yutulamıyor; bu sınır yalnızca sonsuz döngüye karşı.
+const KOLOS_MAX = Number(arg('kolosmax', 150));
 // Klibin son kaç saniyesinde dev avlanıyor. Öncesinde otomatik oyuncu
 // sıradan meyveyi süpürüyor; yoldaki devi yine yiyebilir ama ona gitmiyor.
 const AV_SN = Number(arg('hunt', 4));
@@ -316,16 +320,20 @@ const CLIPS = [
   // bir taramayla seçildi; her biri bir formatın en net hâli.
   //
   // Boss: 10. bölüm Cup Night, kolos bir dev kupa.
-  { id: 'kupa',      level: 10,         engel: null,      note: 'Boss · Cup Night · 10. bölüm · kolos dev kupa' },
-  // Küçükten devasaya: taranan ızgara tahtaların en çok devlisi (19).
-  // Engel sözü yok; klibin vaadi büyüme.
-  { id: 'devler',    level: 41,         engel: null,      note: 'Küçükten devasaya · 41. bölüm · tahtada 19 dev' },
+  { id: 'kupa',      level: 10,         engel: null,      kolos: true, note: 'Boss · Cup Night · 10. bölüm · kolos dev kupa' },
+  // Küçükten devasaya. İlk seçim 41'di (tahtada 19 dev) ama devleri
+  // deliğin 1.98 katıydı ve çekimde iki kez "kadrajda dev yok, çevrede
+  // meyve 41 < 50" diye düştü. 64'te kadrajda altı dev, en yakını 1.71
+  // (holeklipaday, 6 Kasım). Engel sözü yok; klibin vaadi büyüme.
+  { id: 'devler',    level: 64,         engel: null,      note: 'Küçükten devasaya · 64. bölüm · kadrajda altı dev' },
   // Rakip yarışı: rakip 31'den başlıyor, 61'de tahta dolu (345 meyve).
-  { id: 'yaris',     level: 61,         engel: 'rakip',   note: 'Rakip yarışı · 61. bölüm · kırmızı rakip delik' },
-  // Son saniyede kazanma: 60. bölüm, taranan en kısa saat (83 sn).
-  // `sonSaniye` saati çekimden önce kısıyor; ayrıntısı çekim döngüsünde.
-  { id: 'sonsaniye', level: 60,         engel: null,      sonSaniye: true,
-    note: 'Son saniye · 60. bölüm · saat bitmek üzereyken dev yutuluyor' },
+  { id: 'yaris',     level: 61,         engel: 'rakip',   premax: 24, note: 'Rakip yarışı · 61. bölüm · kırmızı rakip delik' },
+  // Son saniyede kazanma. Saat zaten çekimden önce kısılıyor
+  // (`sonSaniye`), yani bölümün kendi saatinin kısa olması gerekmiyor;
+  // 60 bu yüzden seçilmişti ve devi deliğin 1.98 katı çıktı. 45'te en
+  // yakın dev 1.69 ve tahtada engel yok (holeklipaday, 6 Kasım).
+  { id: 'sonsaniye', level: 45,         engel: null,      sonSaniye: true,
+    note: 'Son saniye · 45. bölüm · saat bitmek üzereyken dev yutuluyor' },
   // Patron bölümü: düzen değil olay seçiliyor, o yüzden numara doğrudan.
   // İlk üç videonun en iyisi buydu (ortalama izlenme 3.35 sn; ötekiler 2.21
   // ve 2.73), o yüzden listeden çıkmıyor.
@@ -381,6 +389,13 @@ const ENGEL_KUR = () => {
     if (ad === 'rakip')    { const v = window.fruitHoleRival();
       return v.var ? { sayi: 1, uzak: +Math.hypot(v.x - w.x, v.z - w.z).toFixed(2), x: v.x, z: v.z }
                    : { sayi: 0, uzak: null, x: null, z: null }; }
+    // Kolos bir engel değil ama ısınma ona da aynı yoldan sürülüyor: patron
+    // tahtasında kupa öbür uçta duruyor ve kendi başına kadraja girmiyor.
+    // Yeri dev listesinden, boyuna bakarak: `fruitHoleBoss` yer vermiyor.
+    if (ad === 'kolos')    { const b = window.fruitHoleBoss();
+      const k = b.boss ? window.fruitHoleGiantList().find(x => x.r === b.colossusR) : null;
+      return k ? { sayi: 1, uzak: k.dist, x: k.x, z: k.z }
+               : { sayi: 0, uzak: null, x: null, z: null }; }
     return { sayi: 0, uzak: null, x: null, z: null };
   };
 };
@@ -870,7 +885,8 @@ for (const clip of CLIPS) {
     // olsun aynı sayıyı veriyor.
     const son = window.fruitHoleWhere();
     return { hx: son.x, hz: son.z,
-             dev: g.length, eaten: w.eaten, total: w.total, timeLeft: w.timeLeft,
+             dev: g.length, kolos: window.fruitHoleBoss().count,
+             eaten: w.eaten, total: w.total, timeLeft: w.timeLeft,
              state: w.state, kartPay: ister ? +(oldu / ister).toFixed(2) : 0 };
   }, [1000 / FPS, avla, git, ENGEL_R * 0.7]);
   //
@@ -904,9 +920,13 @@ for (const clip of CLIPS) {
   // öbeğe yapıştı ama öbek tarlanın sol kenarındaydı, ve kamera deliği takip
   // ettiği için karenin üçte biri tarlanın dışındaki düz yeşil zemin oldu.
   // Kalabalık bir kare istiyoruz, kalabalığın yanında boş bir şerit değil.
-  const durum = () => pg.evaluate(([r, ad]) => {
+  const durum = () => pg.evaluate(([r, ad, kolos]) => {
     const w = window.fruitHoleWhere();
-    const g = window.fruitHoleGiantList();
+    // Patron klibinde söz kupanın kendisi: yoldaki sıradan bir dev şartı
+    // sağlamamalı, yoksa kayıt kupa öbür uçtayken başlar.
+    const b = kolos ? window.fruitHoleBoss() : null;
+    const g = window.fruitHoleGiantList()
+      .filter(x => !kolos || (b.boss && x.r === b.colossusR));
     // Kadrajda olan dev: önümüzde (dz negatif, kamera yukarısı) ve yakın.
     const onde = g.filter(x => x.dz < 3 && x.dist < 13);
     return {
@@ -919,7 +939,7 @@ for (const clip of CLIPS) {
       // Sözü verilen engel kadrajda mı.
       engelUzak: window.__engel(ad).uzak,
     };
-  }, [AHEAD_R, clip.engel]);
+  }, [AHEAD_R, clip.engel, !!clip.kolos]);
   // Dördüncü şart: dev yalnızca yutulamaz değil, **neredeyse** yutulabilir
   // olmalı.
   //
@@ -953,12 +973,51 @@ for (const clip of CLIPS) {
   const engelde = d => !clip.engel || (d.engelUzak !== null && d.engelUzak <= ENGEL_R);
   const uygun = d => dortu(d) && engelde(d);
   let warm = 0;
+  // Isınma neye doğru sürülüyor: söz verilen engel, ya da patron
+  // klibinde kupa.
+  const git = clip.kolos ? 'kolos' : clip.engel;
+  // Patron klibinin ön ısınması: kupa ancak tahtanın büyük kısmı
+  // yendikten sonra yutulabiliyor (`fruitHoleBoss().pctForColossus`,
+  // 10. bölümde kabaca üçte iki), ve on iki saniyelik ısınma oraya
+  // varmıyordu. İlk çekim iki kez "kadrajda dev yok" deyip düştü.
+  //
+  // Bu kısım klibe girmiyor, o yüzden çizim kapalı oynanıyor
+  // (`fruitHoleDrawOff`; fizik, saat ve büyüme aynen işliyor). Delik
+  // sıradan süpürmeyle büyüyor, kupaya gitmiyor; kupa deliğin `NEAR_MAX`
+  // katına inince bırakılıyor ve aşağıdaki sıradan ısınma deliği kupaya
+  // sürüyor. Üst sınır oyun saatinde `KOLOS_MAX` saniye.
+  if (clip.kolos) {
+    await pg.evaluate(() => window.fruitHoleDrawOff(true));
+    const sinir = Math.round(KOLOS_MAX * FPS);
+    let oran = null, i = 0;
+    for (; i < sinir; i++) {
+      const s = await adim(false);
+      if (s.state !== 'playing') break;
+      if (i % 15 === 0) {
+        oran = await pg.evaluate(() => {
+          const b = window.fruitHoleBoss();
+          return b.boss ? +(b.colossusR / (window.fruitHoleWhere().r * 0.92)).toFixed(2) : null;
+        });
+        if (oran !== null && oran <= NEAR_MAX) break;
+      }
+    }
+    await pg.evaluate(() => window.fruitHoleDrawOff(false));
+    console.log(`  ön ısınma ${(i / FPS).toFixed(1)} sn (çizimsiz) · kupa deliğin ${oran} katı`);
+    if (oran === null || oran > NEAR_MAX) {
+      throw new Error(`${clip.id}: ön ısınma ${KOLOS_MAX} saniyede kupayı ` +
+        `deliğin ${NEAR_MAX} katına indiremedi (${oran}).`);
+    }
+  }
   // Isınmanın ilk kısmı da engele doğru: delik büyürken yolu oraya çıksın.
-  for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim(false, clip.engel);
-  const enCok = Math.round(PRE_MAX * FPS);
+  for (; warm < Math.round(PRE_MIN * FPS); warm++) await adim(false, git);
+  // Klip kendi üst sınırını verebilir (`premax`). Yalnızca `yaris`
+  // veriyor: rakip delik dolaşıyor ve on iki saniyede iki çekimde de
+  // kadraja girmedi (12.98 ve 10.83 birim, sınır 8). Uzun ısınmanın
+  // tahtayı tükettiği yukarıda ölçülü, ama 61. bölümde tahta 345 parça.
+  const enCok = Math.round((clip.premax ?? PRE_MAX) * FPS);
   let d = await durum();
   while (warm < enCok && !uygun(d)) {
-    await adim(false, clip.engel);
+    await adim(false, git);
     d = await durum();
     warm++;
   }
@@ -1072,9 +1131,12 @@ for (const clip of CLIPS) {
     // 4.6 genişlikte, yani normalden ayırt edilemeyecek kadar geniş çıktı —
     // soğuk açılışın hiç olmaması gibi. O durumda söz devde: kadraj yalnızca
     // deve gidiyor, delik açılış bitince zaten geliyor.
-    const ac = await pg.evaluate(([dar, gen, yakin]) => {
+    const ac = await pg.evaluate(([dar, gen, yakin, kolos]) => {
       const w = window.fruitHoleWhere();
-      const g = window.fruitHoleGiantList().filter(x => x.dz < 3 && x.dist < 13)[0];
+      const b = kolos ? window.fruitHoleBoss() : null;
+      const g = window.fruitHoleGiantList()
+        .filter(x => !kolos || (b.boss && x.r === b.colossusR))
+        .filter(x => x.dz < 3 && x.dist < 13)[0];
       if (!g) return null;
       const ikisi = g.dist <= yakin;
       const halfW = ikisi ? Math.min(gen, Math.max(dar, g.dist * 0.62)) : dar;
@@ -1082,7 +1144,7 @@ for (const clip of CLIPS) {
       else window.fruitHoleCamLook(g.x, g.z, true);
       window.fruitHoleZoom(halfW);
       return { halfW: +halfW.toFixed(2), dist: g.dist, ikisi };
-    }, [COLD_W, 4.6, 6]);
+    }, [COLD_W, 4.6, 6, !!clip.kolos]);
     if (ac) {
       coldN = Math.round(COLD * FPS);
       for (let i = 0; i < coldN; i++) {
@@ -1164,11 +1226,14 @@ for (const clip of CLIPS) {
       path: join(bodyDir, String(f).padStart(5, '0') + '.png'),
       animations: 'disabled',
     });
-    if (onceki !== null && s.dev < onceki) {
+    // Patron klibinde sayılan yalnız kupa: yoldaki sıradan bir dev
+    // yutulunca klip kupa tahtadayken bitmesin.
+    const sayac = clip.kolos ? s.kolos : s.dev;
+    if (onceki !== null && sayac < onceki) {
       if (f + TAIL >= total) { if (yutuldu < 0) { yutuldu = f; saatYutma = s.timeLeft; } }
       else erken++;
     }
-    onceki = s.dev;
+    onceki = sayac;
     if (f % 60 === 0) {
       process.stdout.write(`  ${f} kare · yenen ${s.eaten}/${s.total} · ` +
         `dev ${s.dev} · süre ${s.timeLeft}s\r`);
