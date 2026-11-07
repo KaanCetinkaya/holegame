@@ -210,3 +210,11 @@ gizlilik sayfaları yerinde kalıyor.
 Slice Rush ve Motor Works aynı geliştirici sitesini ve aynı yayıncı
 kimliğini kullanıyor, yani üretime çıktıklarında aynı dosya onları
 da kapsıyor.
+
+**7 Kasım: dosya yayında.** `KaanCetinkaya.github.io` deposu kuruldu,
+`https://kaancetinkaya.github.io/app-ads.txt` satırı gösteriyor (Kaan'ın
+telefonundan görüldü; bu konteynerden o alan adına erişim yok). İlk
+kayıt boş gitmişti — telefonda yapıştırma çalışmadı ve dosya
+"0 lines · 1 Byte" kaldı; tarayıcı da boş sayfayı önbellekten gösterdi.
+Kontrol bu yüzden dosyanın kendisinden ("1 lines") ve `?v=2` ile yapıldı.
+Sıradaki: AdMob'da "Güncellemeleri kontrol edin"; onay saatler-günler.
