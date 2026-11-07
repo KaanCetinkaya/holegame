@@ -218,3 +218,21 @@ kayıt boş gitmişti — telefonda yapıştırma çalışmadı ve dosya
 "0 lines · 1 Byte" kaldı; tarayıcı da boş sayfayı önbellekten gösterdi.
 Kontrol bu yüzden dosyanın kendisinden ("1 lines") ve `?v=2` ile yapıldı.
 Sıradaki: AdMob'da "Güncellemeleri kontrol edin"; onay saatler-günler.
+
+### 7 Kasım: AdMob'da iki Fruit Hole var
+
+Uygulamalar listesinde iki ayrı kayıt çıktı:
+
+| AdMob'daki ad | kimlik | durum |
+|---|---|---|
+| `fruit-hole` | `~4653695871` | **oyunun kullandığı** (`patch-manifest.mjs`), reklam birimleri ve Ekim'in ₺10,70'i burada; mağazaya bağlı değil |
+| `Peelo: Fruit Hole` | `~1831319279` | mağazaya bağlı, **reklam birimi yok**, kazanç her zaman ₺0; kodda hiç geçmiyor |
+
+"Uygulamayı doğrulayamadık" uyarısı ikincisi içindi. `fruit-hole`'u
+mağazaya bağlamak telefondan iki kez "Uygulama kaydedilirken bir sorun
+oluştu" ile düştü; büyük ihtimalle Play kaydı zaten öteki AdMob
+uygulamasına bağlı olduğu için. Bu bir **tahmin**, doğrulanmadı.
+
+Boş olanı gizlemek bağlantıyı serbest bırakır mı, bilinmiyor; gizleme
+geri alınabiliyor ve kaydın birimi yok, yani denemesi zararsız. Kodun
+kullandığı kimliğe (`~4653695871`) dokunulmaz.

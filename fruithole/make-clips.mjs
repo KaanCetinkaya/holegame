@@ -334,7 +334,11 @@ const CLIPS = [
   // yükseltmeleri kapatıyor) oradaki parçaların çoğuna sığmıyor. Kova
   // düzeltmesinden sonra da iki çekimde kayıt penceresinde sıfır parça
   // yedi. 50 (Hourglass) birinci turda ve `hourglass` klibi orada çıktı.
-  { id: 'devler',    level: 50,         engel: null,      onIsinma: 12, near: 1.2, note: 'Küçükten devasaya · 50. bölüm · kadrajda beş dev' },
+  //
+  // 7 Kasım: Kaan'ın sözü "küçük delikle başla, devle bitir" dokuz
+  // saniyede gerçek hızda tutulamadı; klip 3x hızlı (`hiz`), dev
+  // başlangıçta deliğin 2.5 katına kadar olabilir.
+  { id: 'devler',    level: 50,         engel: null,      hiz: 3, near: 2.5, note: 'Küçükten devasaya · 50. bölüm · kadrajda beş dev' },
   // Rakip yarışı: rakip 31'den başlıyor, 61'de tahta dolu (345 meyve).
   { id: 'yaris',     level: 61,         engel: 'rakip',   premax: 24, note: 'Rakip yarışı · 61. bölüm · kırmızı rakip delik' },
   // Son saniyede kazanma. Saat zaten çekimden önce kısılıyor
@@ -1295,13 +1299,31 @@ for (const clip of CLIPS) {
   // gerekiyor, ortada değil.
   //
   // Gövde, soğuk açılış kadar kısalıyor: toplam süre SECONDS olarak kalıyor.
-  const total = Math.round(SECONDS * FPS) - coldN;
-  const TAIL = Math.round(0.6 * FPS);        // yutmadan sonra nefes payı
-  const ARA = Math.round(SEARCH * FPS);      // yutma aranacak ek süre
+  // Hızlandırılmış klip (`hiz`): gövde oyunun H katı süresini kapsıyor ve
+  // her H. kare alınıyor, yani video H kat hızlı oynuyor. Soğuk açılış
+  // gerçek hızda kalıyor. Sebebi ölçülü: yükseltmesiz delik dokuz saniyede
+  // küçükten bir devi yutacak kadar büyümüyor (6 Kasım, `devler`'in on dört
+  // çekimi), ve "küçük delikle başla, devle bitir" sözü ancak böyle
+  // tutuluyor. Ekranda ⏩ rozeti var: izleyen hızlandırıldığını görüyor.
+  const H = Math.max(1, Math.round(clip.hiz || 1));
+  const total = (Math.round(SECONDS * FPS) - coldN) * H;
+  const TAIL = Math.round(0.6 * FPS) * H;    // yutmadan sonra nefes payı
+  const ARA = Math.round(SEARCH * FPS) * H;  // yutma aranacak ek süre
+  if (H > 1) {
+    await pg.evaluate(h => {
+      const r = document.createElement('div');
+      r.id = 'hizRozet';
+      r.textContent = `⏩ ${h}x`;
+      r.style.cssText = 'position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 96px);' +
+        'z-index:99999;padding:6px 12px;border-radius:14px;background:rgba(0,0,0,.55);' +
+        'color:#fff;font:800 22px system-ui,sans-serif;letter-spacing:.5px;pointer-events:none;';
+      document.body.appendChild(r);
+    }, H);
+  }
   // Av penceresi: klibin son AV_SN saniyesi. Önce tarla süpürülüyor, sonra
   // dev. Ödemenin sonda olmasının tek yolu bu — beklemek yetmiyor, devi
   // ortada yememek gerekiyor.
-  const AV_BASLA = total - Math.round(AV_SN * FPS);
+  const AV_BASLA = total - Math.round(AV_SN * FPS) * H;
   let f = 0, yutuldu = -1, erken = 0, onceki = null, kartBitti = false, bitti = null;
   let ilkYenen = null, sonYenen = null, ilkSaat = null, sonSaat = null;
   let saatYutma = null;   // devin yutulduğu karedeki kalan süre
@@ -1324,7 +1346,9 @@ for (const clip of CLIPS) {
     if (ilkYenen === null) { ilkYenen = s.eaten; ilkSaat = s.timeLeft; }
     sonYenen = s.eaten; sonSaat = s.timeLeft;
     yol.push([s.hx, s.hz]);
-    await pg.screenshot({
+    // Hızlandırılmış klipte yalnızca her H. kare çekiliyor: kesim aşağıda
+    // var olan dosyaları alıyor.
+    if (f % H === 0) await pg.screenshot({
       path: join(bodyDir, String(f).padStart(5, '0') + '.png'),
       animations: 'disabled',
     });
@@ -1467,11 +1491,13 @@ for (const clip of CLIPS) {
       join(cutDir, String(k++).padStart(5, '0') + '.png'));
   }
   for (let i = basKare; i <= sonKare; i++) {
-    renameSync(join(bodyDir, String(i).padStart(5, '0') + '.png'),
-      join(cutDir, String(k++).padStart(5, '0') + '.png'));
+    const kay = join(bodyDir, String(i).padStart(5, '0') + '.png');
+    if (H > 1 && !existsSync(kay)) continue;
+    renameSync(kay, join(cutDir, String(k++).padStart(5, '0') + '.png'));
   }
   console.log(`  klip ${(k / FPS).toFixed(1)} sn ` +
-    (coldN ? `(${(coldN / FPS).toFixed(1)} sn açılış + ${(adet / FPS).toFixed(1)} sn oynanış)` : ''));
+    (coldN ? `(${(coldN / FPS).toFixed(1)} sn açılış + ${(adet / FPS).toFixed(1)} sn oyun` +
+      (H > 1 ? `, ${H}x hızlı` : '') + ')' : ''));
 
   const mp4 = join(OUT, `${clip.id}.mp4`);
   const r = spawnSync(ffmpeg, [
