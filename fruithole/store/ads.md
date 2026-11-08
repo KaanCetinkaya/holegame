@@ -236,3 +236,16 @@ uygulamasına bağlı olduğu için. Bu bir **tahmin**, doğrulanmadı.
 Boş olanı gizlemek bağlantıyı serbest bırakır mı, bilinmiyor; gizleme
 geri alınabiliyor ve kaydın birimi yok, yani denemesi zararsız. Kodun
 kullandığı kimliğe (`~4653695871`) dokunulmaz.
+
+## 8 Kasım: Play Console ana sayfası, son 28 gün
+
+| | | önceki 28 güne göre |
+|---|---|---|
+| cihaz edinme | 12 | +%140 |
+| cihaz ilk açılış | **6** | +%100 |
+| aylık etkin cihaz | 17 | +%143 |
+| son üretim sürümü | 6 Ekim, 5 yükleme, yükleme tabanının %62,5'i | |
+
+Edinenlerin **yarısı oyunu hiç açmamış** (12 edinme, 6 ilk açılış).
+Altı kişilik bir kohortta elde tutma oranı bir sayı değil, gürültü;
+5 Kasım'daki "edinme 14" ile bugünkü 12 de aynı pencerenin kaymasından.
