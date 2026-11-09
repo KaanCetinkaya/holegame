@@ -258,3 +258,11 @@ Bağlamayı taşımak yerine **oyun doğrulanmış kayda taşındı**: Kaan
 `/1629344577`, ödüllü `/1107755343`), kod ve `patch-manifest.mjs` bunlara
 çevrildi. Etkisi v51 yüklenince başlıyor; yeni birimlerin reklam
 göstermeye başlaması AdMob'a göre bir saate kadar sürebilir.
+
+**Slice Rush ve Motor Works için ders.** İkisi de AdMob'da kendi
+kayıtlarında (`Slice rush` ~2923303466, `Motor Works` ~3883131532), birer
+birimle ve kodla eşleşiyor; ikisi de "sınırlı reklam sunumu"nda, çünkü
+kapalı testteki bir uygulama mağazaya bağlanamıyor. Üretime çıktıklarında
+bağlama **o satırdaki "Mağaza ekle"den** yapılacak — "Uygulama ekle" ile
+Play tarafından başlanırsa Fruit Hole'daki gibi ikinci, boş bir kayıt
+açılıyor ve kod yine bağlanmamış olanı kullanıyor.
