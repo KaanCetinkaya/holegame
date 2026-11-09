@@ -50,11 +50,12 @@
     ]
   },
   "slicer": {
-    "versionCode": 3,
+    "versionCode": 4,
     "versionName": "1.0",
     "uploaded": [
       1,
-      2
+      2,
+      3
     ],
     "built": 2,
     "builtCodes": [

@@ -9,7 +9,14 @@ beri değişti, ve kapalı testteki kişinin neye bakacağını söyleyen tek
 
 ---
 
-## Bu sürüm (sürüm kodu 3)
+## Bu sürüm (sürüm kodu 4)
+
+**Başlık 9 Kasım'da 3'ten 4'e düzeltildi.** Kod 3, 15 Ekim 21:03'te
+alpha'ya yüklenmiş (Play Console'da görüldü) ama `app-version.json`
+bunu bilmiyordu ve bu notlar 3 için yazıldı. Aşağıdaki maddelerin
+neredeyse hepsi (arkadan ölüm 16 Ekim, geri tuşu, ses ve titreşim 17
+Ekim, yerinde durmayan pencere 18 Ekim) 15 Ekim'den **sonra** girdi; yani
+3'te değiller, 4'te ilk kez çıkıyorlar. Not metni olduğu gibi doğru.
 
 ### İngilizce — `en-US` (497 karakter)
 

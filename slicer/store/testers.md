@@ -280,14 +280,17 @@ Sebep Play'in cevabında yazmıyor. Elimizdeki iki sayı:
 - 5 Kasım, son 28 gün: 10 edinme, **9 ilk açılış**, 10 aylık etkin
   cihaz. Kayıtlıların çoğu oyunu en az bir kez açmış — yani "kimse
   açmadı" sebebi burada geçerli değil.
-- Test boyunca **hiç güncelleme yüklenmedi**: `app-version.json`'da
-  yüklenen kodlar 1 ve 2, ikisi de testten önce. Başvuru formu
-  "testçi geri bildirimiyle neyi değiştirdiniz" diye soruyor.
+- Sayılan 14 günde (20 Ekim'de 12 testçiye ulaşıldı) **güncelleme
+  yüklenmedi**. Son sürüm 3 (1.0), 15 Ekim 21:03'te alpha'ya çıkmış —
+  Play Console'dan görüldü, 9 Kasım; `app-version.json` bunu bilmiyordu
+  ve 3'ü yüklenmemiş sanıyordu, düzeltildi (sıradaki kod 4). Başvuru
+  formu "testçi geri bildirimiyle neyi değiştirdiniz" diye soruyor.
 
 Açılış yetiyor gibi görünüyor ama **tekrar** açılış bilinmiyor; 14 gün
 boyunca oynanıp oynanmadığı bu sayılardan çıkmıyor. Bu 14 günde:
 
 1. Testçilere oyunu birkaç gün aralıkla açıp oynamalarını isteyen mesaj.
-2. Test içinde bir güncelleme (versionCode 3; App bundle explorer'daki
-   tutarsızlık önce kontrol edilecek).
+2. Test içinde bir güncelleme: versionCode 4. 15 Ekim'den beri girenler
+   (teşhis ekranı, sürüm etiketinin GOALS'tan taşınması, geri tuşu)
+   onun içinde.
 3. Başvuru cevaplarında güncellemenin neyi değiştirdiği somut yazılır.
