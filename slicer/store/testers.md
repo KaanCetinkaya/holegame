@@ -263,3 +263,31 @@ adres olursa link sende açılmıyor — en sık buradan patlıyor.
 Hangisini istersen: bıçaklı olan (Slice Rush) ya da fabrika olan
 (Motor Works). İkisi de olur.
 ```
+
+## 7 Kasım: üretim başvurusu reddedildi — "daha fazla test"
+
+Başvuru 7 Kasım (Cumartesi) 05:08'de incelendi: *"üretim kanalına
+erişebilmeniz için oyununuzun daha fazla test edilmesi gerekiyor."* Yeni
+şart: **inceleme tarihinden itibaren** 12 testçiyle 14 gün daha kapalı
+test. 9 Kasım'da sayaç "12 test kullanıcısı kesintisiz olarak 2 gündür
+kayıtlı" diyor; en erken yeniden başvuru **21 Kasım**.
+
+(Bu ekran önce Motor Works'ün sanıldı ve not onun dosyasına yazılıp geri
+alındı. Motor Works'ün başvurusunun cevabı ayrıca bakılacak.)
+
+Sebep Play'in cevabında yazmıyor. Elimizdeki iki sayı:
+
+- 5 Kasım, son 28 gün: 10 edinme, **9 ilk açılış**, 10 aylık etkin
+  cihaz. Kayıtlıların çoğu oyunu en az bir kez açmış — yani "kimse
+  açmadı" sebebi burada geçerli değil.
+- Test boyunca **hiç güncelleme yüklenmedi**: `app-version.json`'da
+  yüklenen kodlar 1 ve 2, ikisi de testten önce. Başvuru formu
+  "testçi geri bildirimiyle neyi değiştirdiniz" diye soruyor.
+
+Açılış yetiyor gibi görünüyor ama **tekrar** açılış bilinmiyor; 14 gün
+boyunca oynanıp oynanmadığı bu sayılardan çıkmıyor. Bu 14 günde:
+
+1. Testçilere oyunu birkaç gün aralıkla açıp oynamalarını isteyen mesaj.
+2. Test içinde bir güncelleme (versionCode 3; App bundle explorer'daki
+   tutarsızlık önce kontrol edilecek).
+3. Başvuru cevaplarında güncellemenin neyi değiştirdiği somut yazılır.
