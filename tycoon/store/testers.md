@@ -78,3 +78,24 @@ forumun tanıtım için ayrı bir günü var.
 Aynı sebeple o dosyada: `slicer/store/testers.md` → "Sorun bildiren
 birine ne söylenecek". Kısası — menüdeki sürüm yazısına beş hızlı
 dokunuş teşhis ekranını açıyor, **Copy** hepsini panoya alıyor.
+
+## 7 Kasım: üretim başvurusu reddedildi — "daha fazla test"
+
+5 Kasım'da yapılan başvuru 7 Kasım 05:08'de incelendi: *"üretim kanalına
+erişebilmeniz için oyununuzun daha fazla test edilmesi gerekiyor."* Yeni
+şart: **inceleme tarihinden itibaren** 12 testçiyle 14 gün daha kapalı
+test. 9 Kasım'da sayaç "12 test kullanıcısı kesintisiz olarak 2 gündür
+kayıtlı" diyor; en erken yeniden başvuru **21 Kasım**.
+
+Sebep tahmin değil, sayıda duruyordu (`fruithole/store/ads.md`, 5 Kasım):
+12 testçi kayıtlıydı ama 28 günde yalnızca **2 cihaz** oyunu açmıştı.
+Slice Rush'ta 12'nin 9'u açmıştı. Yani eksik olan kayıt değil kullanım.
+
+Bu 14 günde yapılacaklar:
+
+1. Testçilerin oyunu **açması** — kayıt yetmiyor. Gruplara, oyunu birkaç
+   gün aralıkla açıp birkaç dakika oynamalarını isteyen bir mesaj.
+2. Test içinde **bir güncelleme** (versionCode 8 hazır): başvuruda
+   "testçi geri bildirimiyle neyi değiştirdiniz" sorusunun cevabı olur.
+3. Yeniden başvuruda Play Console'un kendi sayıları (etkin testçi,
+   açılış) önce kontrol edilir; 2 cihazla başvurmak aynı cevabı alır.
