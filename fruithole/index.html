@@ -2718,15 +2718,21 @@ const boosterBarEl = document.getElementById('boosterBar');
 // app's units are registered to a different app and cannot be used here.
 //
 // The matching AdMob App ID goes in the Android manifest, not in this file:
-//   ca-app-pub-2542927456156553~4653695871
+//   ca-app-pub-2542927456156553~1831319279
+//
+// 9 Kasım'da AdMob'daki **"Peelo: Fruit Hole"** kaydına taşındı. Eskisi
+// (`fruit-hole`, ~4653695871) Play'e bağlanamıyordu ve "sınırlı reklam
+// sunumu"nda kaldı; Play'e bağlı ve app-ads.txt'si doğrulanmış kayıt bu.
+// Uygulama kimliği ve birimler aynı kayda ait olmalı: biri değişirse
+// `patch-manifest.mjs`'teki appId de değişir.
 // ---------------------------------------------------------------------
 const _Cap = window.Capacitor;
 const _AdMob = _Cap && _Cap.Plugins ? _Cap.Plugins.AdMob : null;
 const ADS_ON = !!(_Cap && _Cap.isNativePlatform && _Cap.isNativePlatform() && _AdMob);
 const AD_UNITS = {
-  rewarded:     'ca-app-pub-2542927456156553/4650610263',
-  interstitial: 'ca-app-pub-2542927456156553/3960345120',
-  banner:       'ca-app-pub-2542927456156553/9522879176',
+  rewarded:     'ca-app-pub-2542927456156553/1107755343',
+  interstitial: 'ca-app-pub-2542927456156553/1629344577',
+  banner:       'ca-app-pub-2542927456156553/9507834591',
 };
 
 // Tapping your own live ads gets an AdMob account suspended, so testing on

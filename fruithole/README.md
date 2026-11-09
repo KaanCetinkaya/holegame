@@ -4625,10 +4625,18 @@ Fruit Hole'un **kendi AdMob birimleri** koda girildi (`AD_UNITS`):
 
 | Yer | Kimlik |
 |---|---|
-| Uygulama (AdMob App ID) | `ca-app-pub-2542927456156553~4653695871` |
-| Ödüllü | `ca-app-pub-2542927456156553/4650610263` |
-| Geçiş | `ca-app-pub-2542927456156553/3960345120` |
-| Banner | `ca-app-pub-2542927456156553/9522879176` |
+| Uygulama (AdMob App ID) | `ca-app-pub-2542927456156553~1831319279` |
+| Ödüllü | `ca-app-pub-2542927456156553/1107755343` |
+| Geçiş | `ca-app-pub-2542927456156553/1629344577` |
+| Banner | `ca-app-pub-2542927456156553/9507834591` |
+
+**9 Kasım'da kayıt değişti.** AdMob'da aynı oyun için iki kayıt vardı:
+kodun kullandığı `fruit-hole` (~4653695871) Play'e bağlı değildi ve
+"sınırlı reklam sunumu"nda kaldı; Play'e bağlı ve app-ads.txt'si
+doğrulanmış `Peelo: Fruit Hole` (~1831319279) ise hiç birimi olmayan
+boş bir kayıttı. Birimler ikincisinde açıldı ve kod oraya taşındı
+(v51 ile). Eski kaydın geçmiş kazancı orada kalıyor; yeni sürüme
+geçmeyen telefonlar eskisinden istemeye devam ediyor.
 
 **App ID koda değil, Android manifest'ine girer** — ve manifest `cap add`
 ile üretildiği için native proje her yeniden oluşturulduğunda kaybolur.

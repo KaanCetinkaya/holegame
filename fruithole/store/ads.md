@@ -249,3 +249,12 @@ kullandığı kimliğe (`~4653695871`) dokunulmaz.
 Edinenlerin **yarısı oyunu hiç açmamış** (12 edinme, 6 ilk açılış).
 Altı kişilik bir kohortta elde tutma oranı bir sayı değil, gürültü;
 5 Kasım'daki "edinme 14" ile bugünkü 12 de aynı pencerenin kaymasından.
+
+**9 Kasım: karar ve uygulama.** Bilgisayardan bakılan tablo kesinleştirdi:
+`fruit-hole` "Sınırlı reklam sunumu — limiti kaldırmak için mağaza
+ekleyin", `Peelo: Fruit Hole` "Hazır, reklam sunma etkin, Google Play".
+Bağlamayı taşımak yerine **oyun doğrulanmış kayda taşındı**: Kaan
+`Peelo: Fruit Hole`'da üç birim açtı (banner `/9507834591`, geçiş
+`/1629344577`, ödüllü `/1107755343`), kod ve `patch-manifest.mjs` bunlara
+çevrildi. Etkisi v51 yüklenince başlıyor; yeni birimlerin reklam
+göstermeye başlaması AdMob'a göre bir saate kadar sürebilir.

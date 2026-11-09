@@ -30,7 +30,9 @@ const APPS = {
   },
   fruithole: {
     dir: 'android-fruithole',
-    appId: 'ca-app-pub-2542927456156553~4653695871',
+    // AdMob'daki "Peelo: Fruit Hole" (Play'e bağlı, doğrulanmış). 9 Kasım'a
+    // kadar ~4653695871'di; ayrıntısı fruithole/index.html `AD_UNITS`.
+    appId: 'ca-app-pub-2542927456156553~1831319279',
     // Uygulama içi satın alma yalnızca burada var.
     billing: true,
     // Oyun `navigator.vibrate` çağırıyor (her yutmada kısa bir tık).
