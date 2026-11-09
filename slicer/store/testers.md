@@ -1,0 +1,317 @@
+# Kapalı test için testçi çağrısı — Slice Rush
+
+## 20 Ekim 2026: 12 testçi doldu
+
+Play Console'daki üretim sayfasında ilk iki madde üstü çizili:
+kapalı test sürümü yayında, ve **en az 12 test kullanıcısı kaydoldu**.
+Kalan tek madde "12 kullanıcıyla en az 14 gün" — yani 3 Kasım civarı.
+
+Bundan sonrası korumak:
+
+- **Tampon.** 12'de durmak riskli; değiş tokuşla gelenin bir kısmı
+  birkaç gün sonra siliyor ve sayı 12'nin altına düşerse süre
+  ilerlemiyor. Hedef 15-16.
+- **Söz verilen testlere gerçekten gir.** Çıkışların bilinen sebebi
+  bu: karşılık vermeyeni listeden atıyorlar.
+- **Grup üyelerine dokunma.** Testçi listesi bir Google Grubu, üye
+  çıkarmak testçi çıkarmak demek.
+- **Yeni sürüm yüklemek sayacı sıfırlamıyor** ve iyi oluyor: yeni
+  gelen kişinin gördüğü şey v1-2 değil, aradaki düzeltmelerin hepsini
+  taşıyan sürüm olsun — kötü bir sürümü silen testçi sayacı düşürür.
+
+
+Yapısı Fruit Hole'unkinin aynısı ve sebebi orada yazılı
+(`fruithole/store/production-access.md` → "Ne yazılacak"): kısa,
+İngilizce, ve karşıdakine ne yapacağını söyleyen.
+
+**Metin 19 Ekim'de değişti: artık adres istemiyor, üç bağlantı
+veriyor.** Eski hâli "bana Gmail adresini yolla, listeye ben eklerim"
+diyordu ve gerekçesi doğruydu — kapalı testin katılma adresi listede
+olmayan birinde açılmıyor. Ama 18 Ekim'de testçi listesi **Google
+Grubu**'na çevrildi (`fenix-game-testers`), yani yabancı artık kendi
+kendine listeye girebiliyor: gruba katılıyor, sonra opt-in çalışıyor.
+Elle ekleme adımı ortadan kalktı, ve onunla birlikte "Kaan cevap
+yazana kadar bekleyen kişi" de.
+
+Uygulama kimliği: `com.kaancetinkaya.slicerush`
+
+---
+
+## r/alphaandbetausers
+
+Başlık:
+
+```
+[Android] Slice Rush - a one-finger blade game, looking for closed testers
+```
+
+Gövde:
+
+```
+I've been building this on my own. A blade flies down a corridor and
+the only thing you control is its height: slide your finger up and
+down, cut everything it meets, and miss the bars.
+
+The cut is real. Nothing is swapped for a pre-broken model — the object
+is split at exactly the height the blade went through, so cutting near
+the top of a melon gives you a cap and a bowl, and you cannot cut the
+same melon the same way twice.
+
+It is on Google Play's closed test, so there are three steps and they
+have to be in this order:
+
+1. Join the group: https://groups.google.com/g/fenix-game-testers
+2. Opt in: https://play.google.com/apps/testing/com.kaancetinkaya.slicerush
+3. Install: https://play.google.com/store/apps/details?id=com.kaancetinkaya.slicerush
+
+Use the same Google account your phone's Play Store is signed in to —
+with any other account step 2 just 404s, and that is where most people
+give up.
+
+I'm in the same boat, so it's mutual: drop your app's links in a
+comment and I'll join your test today and actually open it a couple of
+times.
+
+What I actually need is people who get past level 12. That is where the
+corridor starts asking real questions — a clamp with one narrow window,
+then gates alternating floor and ceiling, then a mine sitting on the
+line the fruit is running along. If something breaks, freezes or just
+feels unfair, tell me which level.
+
+Free, no signup, works offline.
+```
+
+**Reddit de karşılıklı.** Bu dosya bir ara "Reddit'te karşılık
+beklenmiyor, oradakiler zaten testçi" diyordu; Kaan düzeltti ve o
+thread'lerde olan o: r/alphaandbetausers'ın büyük kısmı aynı 12 kişi /
+14 gün şartındaki geliştiriciler, yani Telegram'daki kuralın aynısı
+orada da geçerli. Gönderi bunu açıkça söylüyor, çünkü söylemeyen
+gönderi okunmuyor; ve söz verilen her teste **gerçekten** girilecek.
+
+Takip tek listede, kanal ayırmadan: kime söz verildi, girildi mi.
+
+## r/TestMyApp
+
+Aynı metin, **ilk iki paragraf atılarak**. Orada oyunun ne olduğu değil,
+testin ne istediği okunuyor.
+
+## r/AndroidGaming
+
+**Önce kenar çubuğundaki kuralları oku.** Çoğu büyük oyun alt forumu
+kendi oyununu tanıtmayı ya tamamen yasaklıyor ya da haftanın belirli bir
+gününe bağlıyor. Silinen gönderi + kısıtlanan hesap, oradan gelecek beş
+kişiye değmez. İzin varsa metin yukarıdakinin aynısı.
+
+---
+
+## Telegram / karşılıklı test grupları — **iki test için birden**
+
+Bu bölüm Motor Works'ü de kapsıyor: aynı kişi iki listeye birden
+girebiliyor, yani tek mesajla iki sayaç birden dolar.
+
+**Hangi kanal? Kayıtta yoktu, bir kez unutuldu.** Depoda bugüne kadar
+yalnızca *"Telegram/Discord'da closed testing exchange grupları"* diye
+bir **tür** yazılıydı; tek somut şey Fruit Hole'un listesine bağlı
+`testers-community@googlegroups.com` ve o bir Google Grubu, Telegram
+değil. Aranan kanalın adı hiçbir yere yazılmadığı için kayboldu — bu
+dosya onun için var. Aday kanallar, 18 Ekim 2026'da arandı:
+
+| Kanal | Durum |
+|---|---|
+| `testers-community@googlegroups.com` | **Zaten kullanılıyor** (Fruit Hole'un listesinde bağlı) |
+| `t.me/console_testers` | Bir duyurudan geliyor ama duyuru ~923 günlük; yaşıyor mu belirsiz |
+| `t.me/GooglePlay20Testers` | ~110 üye, kimin işlettiği doğrulanmadı |
+
+Girmeden önce bakılacak şey: **üyeler gerçek insan mı.** Bu gruplar için
+dile getirilen asıl risk bot ağları, ve sahte etkileşim yakalanırsa
+ceza uygulamaya değil **geliştirici hesabına** yazılıyor. (Uyarıyı dile
+getirenlerin bir kısmı ücretli testçi satan siteler, yani tek taraflı
+bir kaynak — ama risk yine de gerçek.)
+
+Uyarı önce: "closed testing exchange" grupları on iki kişiyi hızlı
+buluyor ama gelen kişi oyunu **oynamıyor** — kurup bırakıyor. Google'ın
+istediği şey gerçek test ve üretim başvurusunda "testçileri nasıl
+buldun" diye soruluyor; sahte görünen bir test doğrudan ret sebebi. Bu
+kanal kullanılacaksa dürüstçe ve **tek başına değil** kullanılır:
+tanıdıklar + TikTok ile karıştır, hepsi buradan gelmesin.
+
+```
+Hi — I have two Android games in Google Play closed testing and I need
+the 12 testers / 14 days. Happy to join yours back the same day.
+
+  • Slice Rush — one-finger blade game, you set the blade's height and
+    cut everything it meets
+  • Motor Works — idle car factory, the puzzle is finding the station
+    everything else is waiting on
+
+Send me the Gmail address your phone's Play Store is signed in to and
+say which one (or both) and I'll add you tonight.
+
+One ask, and I mean it: please actually open it a couple of times
+rather than installing and deleting. Google asks how the testers were
+found and a test where nobody played reads as exactly that.
+```
+
+## Değiş tokuş grubunun kendi biçimi — üç bağlantı
+
+Bu gruplarda herkes aynı kalıbı atıyor ve kalıba uymayan gönderi
+okunmuyor. Üç satır, bu sırayla:
+
+```
+Join the authorized Google Group: https://groups.google.com/g/<grup-adı>
+Opt in: https://play.google.com/apps/testing/<paket>
+Install from Google Play with the same Google account: https://play.google.com/store/apps/details?id=<paket>
+```
+
+**Üçü de gerekiyor ve sırası önemli.** Sebebi bu dosyanın başka yerinde
+zaten yazılı: kapalı testin katılma bağlantısı **listede olmayan birinde
+açılmıyor**. Grup o yüzden birinci satırda — yabancı önce gruba
+katılıyor, listeye böyle giriyor, ve ancak ondan sonra opt-in
+bağlantısı onda çalışıyor. Grubu atlayıp doğrudan opt-in atmak, karşı
+tarafa kapalı bir kapı göstermek demek; o kişi bir daha denemiyor ve
+grupta itibarın gidiyor.
+
+### Kurulum — 18 Ekim 2026'da yapıldı
+
+Üç oyun da **tek grubu** paylaşıyor:
+`fenix-game-testers@googlegroups.com` (grup adı "fenix game", 19 üye).
+Ayrı grup kurulmadı; Play Console aynı grup adresini birden çok
+uygulamanın testçi listesine kabul ediyor.
+
+Slice Rush ve Motor Works'te yapılan: Kapalı test → **Kanalı yönet** →
+Test kullanıcıları → radyo **"Google Gruplar"** → grup adresi → kaydet.
+İkisi de önce "E-posta listeleri" kipindeydi ve o kiple değiş tokuş
+kalıbı çalışmıyor: yabancı bir e-posta listesine **katılamaz**, ve
+grubu bir e-posta listesinin *içine* adres olarak koymak da aynı şey
+değil (Console onu tek bir adres sayıyor). Sayfadaki not bunu kendisi
+söylüyor: *"Sadece belirlediğiniz Google Grupların üyeleri testinize
+katılabilirler."*
+
+Testçiler sekmesindeki iki bağlantıdan kaydolma olanı **"Web'de
+katılın"** altında; "Android'de katılın" altındaki mağaza bağlantısı.
+
+### Yapıştırılacak metin — Slice Rush
+
+```
+Hi developers, I need 12 testers for my game and I will do the same for
+yours — drop your links and I'll join today.
+
+Slice Rush — a one-finger blade game: you set the blade's height, it
+cuts everything it meets, and you miss the bars.
+
+Join the authorized Google Group: https://groups.google.com/g/fenix-game-testers
+Opt in: https://play.google.com/apps/testing/com.kaancetinkaya.slicerush
+Install from Google Play with the same Google account: https://play.google.com/store/apps/details?id=com.kaancetinkaya.slicerush
+
+Please join and I will do the same for your app.
+```
+
+### Motor Works
+
+Aynı kalıp, ikinci satır ve bağlantılar değişiyor:
+
+```
+Motor Works — an idle car factory: four stations in a chain, and the
+whole game is finding the one everything else is waiting on.
+
+Join the authorized Google Group: https://groups.google.com/g/fenix-game-testers
+Opt in: https://play.google.com/apps/testing/com.kaancetinkaya.motorworks
+Install from Google Play with the same Google account: https://play.google.com/store/apps/details?id=com.kaancetinkaya.motorworks
+```
+
+İkisini tek gönderide birleştirme: gruplar tek uygulamalık gönderi
+okumaya alışık, iki oyunlu bir gönderide ikincisi atlanıyor. Ayrı ayrı
+at, araya biraz zaman koy.
+
+### Karşılığını gerçekten ver
+
+"I will do the same for your app" bir nezaket cümlesi değil, grubun tek
+kuralı. Vermeyen atılıyor, ve atılmadan önce senin opt-in'lerinden
+çıkılıyor — yani 14 günlük sayaç sıfırlanıyor. Kaç kişiye söz
+verdiysen o kadarına gir.
+
+Not: o gruplarda **t.me bağlantısı yasak** (bot otomatik siliyor).
+Yukarıdaki üç bağlantının üçü de google.com, sorun çıkmıyor.
+
+## Sorun bildiren birine ne söylenecek
+
+Testçinin elinden gelen tek şey "bir şey oldu" cümlesi ve o cümleyle
+geriye hiçbir sayı kalmıyor. İki oyunda da gizli bir teşhis ekranı var,
+ve ona yollanacak tek cümle bu:
+
+```
+If anything breaks: on the main menu, tap the small version number in
+the bottom-left corner five times quickly. A screen of numbers opens —
+hit Copy and paste it to me. It tells me your build, your save and the
+last errors, and nothing else.
+```
+
+Motor Works'te yazı menünün altında ortada, Slice Rush'ta sol alt
+köşede; ikisinde de beş **hızlı** dokunuş gerekiyor (araları 1.2
+saniyeyi geçerse sayaç sıfırlanıyor).
+
+## Türkçe tanıdıklara
+
+```
+Selam, iki Android oyunum Google'ın kapalı testinde ve şartı 12 kişi,
+14 gün. Yapman gereken: linkten test kullanıcısı ol, oyunu indir, bir
+iki kez aç. Para yok, kayıt yok, internet bile gerekmiyor.
+
+Bana telefonundaki Play Store'un Gmail adresini yollar mısın? Başka bir
+adres olursa link sende açılmıyor — en sık buradan patlıyor.
+
+Hangisini istersen: bıçaklı olan (Slice Rush) ya da fabrika olan
+(Motor Works). İkisi de olur.
+```
+
+## 7 Kasım: üretim başvurusu reddedildi — "daha fazla test"
+
+Başvuru 7 Kasım (Cumartesi) 05:08'de incelendi: *"üretim kanalına
+erişebilmeniz için oyununuzun daha fazla test edilmesi gerekiyor."* Yeni
+şart: **inceleme tarihinden itibaren** 12 testçiyle 14 gün daha kapalı
+test. 9 Kasım'da sayaç "12 test kullanıcısı kesintisiz olarak 2 gündür
+kayıtlı" diyor; en erken yeniden başvuru **21 Kasım**.
+
+(Bu ekran önce Motor Works'ün sanıldı ve not onun dosyasına yazılıp geri
+alındı. Motor Works'ün başvurusunun cevabı ayrıca bakılacak.)
+
+Sebep Play'in cevabında yazmıyor. Elimizdeki iki sayı:
+
+- 5 Kasım, son 28 gün: 10 edinme, **9 ilk açılış**, 10 aylık etkin
+  cihaz. Kayıtlıların çoğu oyunu en az bir kez açmış — yani "kimse
+  açmadı" sebebi burada geçerli değil.
+- Sayılan 14 günde (20 Ekim'de 12 testçiye ulaşıldı) **güncelleme
+  yüklenmedi**. Son sürüm 3 (1.0), 15 Ekim 21:03'te alpha'ya çıkmış —
+  Play Console'dan görüldü, 9 Kasım; `app-version.json` bunu bilmiyordu
+  ve 3'ü yüklenmemiş sanıyordu, düzeltildi (sıradaki kod 4). Başvuru
+  formu "testçi geri bildirimiyle neyi değiştirdiniz" diye soruyor.
+
+Açılış yetiyor gibi görünüyor ama **tekrar** açılış bilinmiyor; 14 gün
+boyunca oynanıp oynanmadığı bu sayılardan çıkmıyor. Bu 14 günde:
+
+1. Testçilere oyunu birkaç gün aralıkla açıp oynamalarını isteyen mesaj.
+2. Test içinde bir güncelleme: versionCode 4. 15 Ekim'den beri girenler
+   (teşhis ekranı, sürüm etiketinin GOALS'tan taşınması, geri tuşu)
+   onun içinde.
+3. Başvuru cevaplarında güncellemenin neyi değiştirdiği somut yazılır.
+
+### 9 Kasım: "Kullanıcı sayısını artırın" sayfası, son 28 gün (12 Eki - 8 Kas)
+
+| | |
+|---|---|
+| cihaz gösterimi | 18 (+%20) |
+| cihaz edinme | 10 |
+| cihaz ilk açılış | 11 |
+| aylık etkin cihaz | 12 (+%20) |
+| **7 gün cihazı elde tutma** | **1** |
+
+Grafikler (gözle okundu): edinme ve ilk açılış **20 Ekim civarında**
+tek bir sıçrama (~5), sonra bir iki tane. Günlük etkin cihaz o gün ~6,
+bir hafta boyunca ~2, sonra 0-1; Kasım başında kısa bir ~2, 8 Kasım'a
+doğru yine sıfır. Yani testçiler oyunu **bir kez** açmış, ikinci haftada
+neredeyse kimse dönmemiş, yedi gün kalan **tek** cihaz.
+
+Bu, yukarıdaki "açılış yetiyor gibi görünüyor ama tekrar açılış
+bilinmiyor" sorusunun cevabı: tekrar açılış yok. Ret sebebi büyük
+ihtimalle bu, güncelleme eksikliğiyle birlikte. Yeni 14 günde ölçü bu
+grafik: günlük etkin cihaz her gün en az birkaç olmalı.
