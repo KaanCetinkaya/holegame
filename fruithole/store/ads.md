@@ -115,10 +115,13 @@ düzeltmesi ve kayıt satırlarını taşıyan v51 hiç yüklenmedi; yani bu
 dosyadaki reklam turunun "ölçülebilir kohort" gerekçesi, gelen
 oyuncunun Türkçe görmediği bir sürüm üzerinden okunurdu.
 
-Motor Works'ün sayısı ayrı bir risk: 12 testçi kayıtlı ama 28 günde
-yalnızca 2 cihaz oyunu açmış. Üretim başvurusu "test gerçekten
-yapıldı mı"ya bakıyor; Slice Rush'ta 12 testçinin 9'u oyunu açmış,
-Motor Works'te neredeyse hiçbiri.
+Motor Works'ün 2 cihazı: 28 günde yalnızca 2 cihaz oyunu açmış.
+
+**Düzeltme, 9 Kasım.** Burada "12 testçi kayıtlı" yazıyordu ve
+konuşmada Motor Works'ün 5 Kasım'da üretime başvurduğu söylendi. İkisi
+de yanlıştı: Kaan Motor Works için **testçi hiç aramadı**. 7 Kasım'da
+reddedilen başvuru Slice Rush'ınki (`slicer/store/testers.md`). Motor
+Works'ün kapalı testi 12 testçi ve 14 gün şartına daha başlamadı.
 
 ## 6 Kasım: son yedi günün AdMob raporu
 

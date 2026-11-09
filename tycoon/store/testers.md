@@ -78,3 +78,15 @@ forumun tanıtım için ayrı bir günü var.
 Aynı sebeple o dosyada: `slicer/store/testers.md` → "Sorun bildiren
 birine ne söylenecek". Kısası — menüdeki sürüm yazısına beş hızlı
 dokunuş teşhis ekranını açıyor, **Copy** hepsini panoya alıyor.
+
+## 9 Kasım: durum
+
+Motor Works için **henüz testçi aranmadı**. Kapalı testte sürüm var
+(alpha) ama 12 testçi / 14 gün sayacı başlamadı; 28 günde oyunu açan 2
+cihaz büyük ihtimalle Kaan'ın kendi cihazları. Önceki notlarda geçen
+"12 testçi kayıtlı" ve "5 Kasım'da üretime başvuruldu" yanlıştı
+(`fruithole/store/ads.md`, 9 Kasım düzeltmesi).
+
+Slice Rush'tan çıkan ders bu teste baştan girmeli: kayıt yetmiyor,
+testçinin **14 gün boyunca** dönmesi gerekiyor ve test içinde en az bir
+güncelleme yüklenmeli.
