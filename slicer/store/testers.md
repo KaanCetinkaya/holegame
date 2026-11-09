@@ -294,3 +294,24 @@ boyunca oynanıp oynanmadığı bu sayılardan çıkmıyor. Bu 14 günde:
    (teşhis ekranı, sürüm etiketinin GOALS'tan taşınması, geri tuşu)
    onun içinde.
 3. Başvuru cevaplarında güncellemenin neyi değiştirdiği somut yazılır.
+
+### 9 Kasım: "Kullanıcı sayısını artırın" sayfası, son 28 gün (12 Eki - 8 Kas)
+
+| | |
+|---|---|
+| cihaz gösterimi | 18 (+%20) |
+| cihaz edinme | 10 |
+| cihaz ilk açılış | 11 |
+| aylık etkin cihaz | 12 (+%20) |
+| **7 gün cihazı elde tutma** | **1** |
+
+Grafikler (gözle okundu): edinme ve ilk açılış **20 Ekim civarında**
+tek bir sıçrama (~5), sonra bir iki tane. Günlük etkin cihaz o gün ~6,
+bir hafta boyunca ~2, sonra 0-1; Kasım başında kısa bir ~2, 8 Kasım'a
+doğru yine sıfır. Yani testçiler oyunu **bir kez** açmış, ikinci haftada
+neredeyse kimse dönmemiş, yedi gün kalan **tek** cihaz.
+
+Bu, yukarıdaki "açılış yetiyor gibi görünüyor ama tekrar açılış
+bilinmiyor" sorusunun cevabı: tekrar açılış yok. Ret sebebi büyük
+ihtimalle bu, güncelleme eksikliğiyle birlikte. Yeni 14 günde ölçü bu
+grafik: günlük etkin cihaz her gün en az birkaç olmalı.
